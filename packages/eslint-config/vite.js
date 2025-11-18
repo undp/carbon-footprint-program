@@ -1,6 +1,7 @@
 import { config as baseConfig } from "./base.js";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
+import tanstackRouterPlugin from "eslint-plugin-tanstack-router";
 import globals from "globals";
 
 /**
@@ -28,6 +29,7 @@ export const viteJsConfig = [
     plugins: {
       react: reactPlugin,
       "react-hooks": reactHooksPlugin,
+      "tanstack-router": tanstackRouterPlugin,
     },
     settings: {
       react: {
