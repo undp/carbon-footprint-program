@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2",
+    "turbo": "^2.6.1"
+  },
+  "packageManager": "pnpm@10.22.0",
+  "name": "huella-latam"
+}
