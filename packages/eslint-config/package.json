@@ -5,7 +5,8 @@
   "type": "module",
   "exports": {
     "./base": "./base.js",
-    "./vite-js": "./vite.js"
+    "./vite-js": "./vite.js",
+    "./api": "./api.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
