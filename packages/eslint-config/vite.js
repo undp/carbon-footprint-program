@@ -38,18 +38,21 @@ export const viteJsConfig = [
       react: {
         version: "detect",
       },
+      "import/resolver": {
+        typescript: true,
+      },
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-unsafe-argument": "warn",
+      "@typescript-eslint/no-unsafe-assignment": "warn",
+      "@typescript-eslint/no-unsafe-member-access": "warn",
+      "@typescript-eslint/no-unsafe-call": "warn",
     },
     ignores: ["**/*.gen.ts"],
-    settings: {
-      "import/resolver": {
-        typescript: true,
-      },
-    },
   },
 ];
