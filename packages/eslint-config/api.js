@@ -12,7 +12,7 @@ export const apiConfig = [
     languageOptions: {
       globals: {
         ...globals.node,
-        ...globals.jest,
+        ...globals.vitest,
       },
       parserOptions: {
         sourceType: "module",
