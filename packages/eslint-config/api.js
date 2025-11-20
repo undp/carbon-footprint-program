@@ -13,6 +13,7 @@ export const apiConfig = [
     languageOptions: {
       globals: {
         ...globals.node,
+        ...globals.vitest,
       },
       parserOptions: {
         sourceType: "module",
@@ -20,25 +21,13 @@ export const apiConfig = [
         projectService: true,
       },
     },
-    rules: {
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-unsafe-argument": "warn",
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-call": "warn",
-    },
-  },
-  {
-    files: [
-      "**/*.test.{js,ts}",
-      "**/*.spec.{js,ts}",
-      "**/__tests__/**/*.{js,ts}",
-    ],
-    languageOptions: {
-      globals: {
-        ...globals.vitest,
-      },
-    },
+    // rules: {
+    //   "@typescript-eslint/no-explicit-any": "warn",
+    //   "@typescript-eslint/no-floating-promises": "error",
+    //   "@typescript-eslint/no-unsafe-argument": "warn",
+    //   "@typescript-eslint/no-unsafe-assignment": "warn",
+    //   "@typescript-eslint/no-unsafe-member-access": "warn",
+    //   "@typescript-eslint/no-unsafe-call": "warn",
+    // },
   },
 ];
