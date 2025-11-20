@@ -3,6 +3,7 @@ import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 import pluginRouter from "@tanstack/eslint-plugin-router";
 import pluginQuery from "@tanstack/eslint-plugin-query";
+import importPlugin from "eslint-plugin-import";
 import globals from "globals";
 
 /**
@@ -14,6 +15,7 @@ export const viteJsConfig = [
   ...baseConfig,
   ...pluginRouter.configs["flat/recommended"],
   ...pluginQuery.configs["flat/recommended"],
+  ...importPlugin.configs["flat/recommended"],
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {

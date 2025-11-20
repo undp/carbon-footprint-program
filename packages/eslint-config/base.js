@@ -10,7 +10,14 @@ import tseslint from "typescript-eslint";
  * */
 export const config = [
   {
-    ignores: ["dist/**"],
+    ignores: [
+      "dist/**",
+      "build/**",
+      "coverage/**",
+      "node_modules/**",
+      "*.config.js",
+      "*.config.ts",
+    ],
   },
   js.configs.recommended,
   eslintConfigPrettier,
