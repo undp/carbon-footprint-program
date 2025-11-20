@@ -4,6 +4,7 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import pluginRouter from "@tanstack/eslint-plugin-router";
 import pluginQuery from "@tanstack/eslint-plugin-query";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 
 /**
  * ESLint configuration for Vite projects with React and TypeScript.
@@ -15,8 +16,12 @@ export const viteJsConfig = [
   ...pluginRouter.configs["flat/recommended"],
   ...pluginQuery.configs["flat/recommended"],
   {
+    ignores: ["**/*.gen.ts"],
+  },
+  {
     files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
+      parser: tseslint.parser,
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -38,9 +43,6 @@ export const viteJsConfig = [
       react: {
         version: "detect",
       },
-      "import/resolver": {
-        typescript: true,
-      },
     },
     rules: {
       ...reactPlugin.configs.recommended.rules,
@@ -53,6 +55,5 @@ export const viteJsConfig = [
       "@typescript-eslint/no-unsafe-member-access": "warn",
       "@typescript-eslint/no-unsafe-call": "warn",
     },
-    ignores: ["**/*.gen.ts"],
   },
 ];
