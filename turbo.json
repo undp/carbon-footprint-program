@@ -17,6 +17,10 @@
     },
     "clean": {
       "cache": false
+    },
+    "start": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"]
     }
   }
 }
