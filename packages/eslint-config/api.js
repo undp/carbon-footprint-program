@@ -14,19 +14,18 @@ export const apiConfig = [
         ...globals.node,
         ...globals.jest,
       },
-      sourceType: "commonjs",
       parserOptions: {
+        sourceType: "module",
+        ecmaVersion: "latest",
         projectService: true,
-        tsconfigRootDir: import.meta.dirname,
       },
     },
   },
   {
     rules: {
-      "@typescript-eslint/no-explicit-any": "off",
-      "@typescript-eslint/no-floating-promises": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/no-unsafe-argument": "warn",
     },
   },
 ];
-

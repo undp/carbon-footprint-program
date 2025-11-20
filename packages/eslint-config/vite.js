@@ -1,7 +1,8 @@
 import { config as baseConfig } from "./base.js";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
-import tanstackRouterPlugin from "eslint-plugin-tanstack-router";
+import pluginRouter from "@tanstack/eslint-plugin-router";
+import pluginQuery from "@tanstack/eslint-plugin-query";
 import globals from "globals";
 
 /**
@@ -11,6 +12,8 @@ import globals from "globals";
  */
 export const viteJsConfig = [
   ...baseConfig,
+  ...pluginRouter.configs["flat/recommended"],
+  ...pluginQuery.configs["flat/recommended"],
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
@@ -24,12 +27,12 @@ export const viteJsConfig = [
         ecmaFeatures: {
           jsx: true,
         },
+        projectService: true,
       },
     },
     plugins: {
       react: reactPlugin,
       "react-hooks": reactHooksPlugin,
-      "tanstack-router": tanstackRouterPlugin,
     },
     settings: {
       react: {
@@ -42,7 +45,6 @@ export const viteJsConfig = [
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
     },
-    globalIgnores: ["**/*.gen.ts"],
+    ignores: ["**/*.gen.ts"],
   },
 ];
-
