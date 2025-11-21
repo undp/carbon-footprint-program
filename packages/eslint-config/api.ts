@@ -1,13 +1,12 @@
 import globals from "globals";
-import { config as baseConfig } from "./base.js";
+import { config as baseConfig } from "./base.ts";
 import tseslint from "typescript-eslint";
+import type { Linter } from "eslint";
 
 /**
  * A custom ESLint configuration for Node.js API.
- *
- * @type {import("eslint").Linter.Config[]}
- * */
-export const apiConfig = [
+ */
+export const apiConfig: Linter.Config[] = [
   ...baseConfig,
   {
     files: ["**/*.{js,ts}"],

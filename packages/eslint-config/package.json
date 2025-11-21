@@ -4,9 +4,9 @@
   "description": "Shared ESLint configuration for the repository",
   "type": "module",
   "exports": {
-    "./base": "./base.js",
-    "./vite-js": "./vite.js",
-    "./api": "./api.js"
+    "./base": "./base.ts",
+    "./vite-js": "./vite.ts",
+    "./api": "./api.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
