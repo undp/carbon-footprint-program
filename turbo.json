@@ -6,21 +6,21 @@
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**"]
     },
-    "lint": {},
+    "clean": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true
     },
-    "type-check": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"]
-    },
-    "clean": {
-      "cache": false
-    },
+    "lint": {},
     "start": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"]
+    },
+    "type-check": {
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"]
     }
   }
 }
