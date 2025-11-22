@@ -5,6 +5,8 @@
       "ms-azuretools.vscode-bicep",
       "prisma.prisma",
       "bradlc.vscode-tailwindcss",
-      "eamodio.gitlens"
+      "eamodio.gitlens",
+      "aaron-bond.better-comments",
+      "ms-azuretools.vscode-containers"
     ]
   }
