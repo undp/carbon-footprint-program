@@ -11,10 +11,10 @@
     "db:studio": "prisma studio"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
+    "@types/node": "catalog:shared",
     "dotenv": "^17.2.3",
     "prisma": "catalog:prisma",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "tsx": "catalog:shared",
+    "typescript": "catalog:shared"
   }
 }

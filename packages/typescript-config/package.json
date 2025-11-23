@@ -5,7 +5,7 @@
   "description": "Shared TypeScript configuration for the repository",
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "catalog:shared"
   },
   "publishConfig": {
     "access": "public"

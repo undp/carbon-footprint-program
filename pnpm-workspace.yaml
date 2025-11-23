@@ -4,3 +4,8 @@ packages:
 catalogs:
   prisma:
     prisma: latest
+  shared:
+    typescript: ^5.9.3
+    "@types/node": ^24.10.1
+    zod: ^4.1.12
+    tsx: ^4.20.6
