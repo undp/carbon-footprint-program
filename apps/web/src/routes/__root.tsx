@@ -1,8 +1,8 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
-import viteLogo from "../assets/vite.svg";
-import reactLogo from "../assets/react.svg";
+import viteLogo from "@/assets/vite.svg";
+import reactLogo from "@/assets/react.svg";
 import { Button } from "@/components/ui/button";
 
 const queryClient = new QueryClient();
