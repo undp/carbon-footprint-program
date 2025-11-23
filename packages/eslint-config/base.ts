@@ -9,18 +9,12 @@ import type { Linter } from "eslint";
  */
 export const config: Linter.Config[] = [
   {
-    ignores: [
-      "dist/**",
-      "build/**",
-      "coverage/**",
-      "node_modules/**",
-      "*.config.js",
-      "*.config.ts",
-    ],
+    ignores: ["dist/**", "build/**", "coverage/**", "node_modules/**"],
   },
   js.configs.recommended,
   eslintConfigPrettier,
   ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
   {
     plugins: {
       turbo: turboPlugin,
@@ -28,6 +22,13 @@ export const config: Linter.Config[] = [
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
+      "no-console": "warn", // TODO: discuss if we want to disable this
+      "no-debugger": "error",
+      "prefer-const": "warn",
+      "@typescript-eslint/no-unused-vars": [
+        "warn",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
     },
   },
 ];

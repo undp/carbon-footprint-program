@@ -23,12 +23,6 @@ export const apiConfig: Linter.Config[] = [
       },
     },
     rules: {
-      "@typescript-eslint/no-floating-promises": "error",
-      "@typescript-eslint/no-misused-promises": "error",
-      "@typescript-eslint/no-unsafe-argument": "warn",
-      "@typescript-eslint/no-unsafe-assignment": "warn",
-      "@typescript-eslint/no-unsafe-member-access": "warn",
-      "@typescript-eslint/no-unsafe-call": "warn",
       "no-process-exit": "warn",
     },
   },
