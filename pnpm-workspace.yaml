@@ -3,7 +3,7 @@ packages:
   - "packages/*"
 catalogs:
   prisma:
-    prisma: latest
+    prisma: ^7.0.0
   shared:
     typescript: ^5.9.3
     "@types/node": ^24.10.1
