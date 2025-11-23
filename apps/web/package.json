@@ -1,8 +1,13 @@
 {
   "name": "web",
   "version": "0.0.0",
+  "description": "Web application for Huella Latam",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "vite",
@@ -11,10 +16,6 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
-  },
-  "license": "MIT",
-  "engines": {
-    "node": ">=24.0.0"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",

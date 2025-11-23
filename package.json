@@ -1,8 +1,8 @@
 {
   "name": "huella-latam",
   "version": "0.0.0",
-  "private": true,
   "description": "Huella Latam monorepo",
+  "private": true,
   "packageManager": "pnpm@10.23.0",
   "license": "MIT",
   "engines": {
