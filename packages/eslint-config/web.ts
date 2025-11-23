@@ -32,7 +32,6 @@ export const webConfig: Linter.Config[] = [
           jsx: true,
         },
         projectService: true,
-        tsconfigRootDir: __dirname,
       },
     },
     plugins: {

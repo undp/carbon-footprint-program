@@ -20,7 +20,6 @@ export const apiConfig: Linter.Config[] = [
         sourceType: "module",
         ecmaVersion: "latest",
         projectService: true,
-        tsconfigRootDir: __dirname,
       },
     },
     rules: {
