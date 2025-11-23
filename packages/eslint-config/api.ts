@@ -24,6 +24,10 @@ export const apiConfig: Linter.Config[] = [
     },
     rules: {
       "no-process-exit": "warn",
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        { checksVoidReturn: false }, // * Fastify handlers can return void
+      ],
     },
   },
 ];

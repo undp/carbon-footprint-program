@@ -22,7 +22,7 @@ export const config: Linter.Config[] = [
     rules: {
       "turbo/no-undeclared-env-vars": "warn",
       "@typescript-eslint/no-explicit-any": "warn",
-      "no-console": "warn", // TODO: discuss if we want to disable this
+      "no-console": "warn", // TODO: discuss if we want to disable this (we are going to use pino)
       "no-debugger": "error",
       "prefer-const": "warn",
       "@typescript-eslint/no-unused-vars": [
