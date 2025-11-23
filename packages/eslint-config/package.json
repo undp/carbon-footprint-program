@@ -6,7 +6,7 @@
   "type": "module",
   "exports": {
     "./base": "./base.ts",
-    "./vite-js": "./vite.ts",
+    "./web": "./web.ts",
     "./api": "./api.ts"
   },
   "devDependencies": {

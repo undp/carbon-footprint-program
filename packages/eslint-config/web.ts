@@ -8,9 +8,9 @@ import tseslint from "typescript-eslint";
 import type { Linter } from "eslint";
 
 /**
- * ESLint configuration for Vite projects with React and TypeScript.
+ * ESLint configuration for web projects with React and TypeScript.
  */
-export const viteJsConfig: Linter.Config[] = [
+export const webConfig: Linter.Config[] = [
   ...baseConfig,
   ...pluginRouter.configs["flat/recommended"],
   ...pluginQuery.configs["flat/recommended"],
