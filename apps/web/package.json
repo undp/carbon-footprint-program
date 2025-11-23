@@ -1,7 +1,7 @@
 {
   "name": "web",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -11,6 +11,10 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
