@@ -29,6 +29,10 @@
     "type-check": {
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
       "outputs": []
+    },
+    "test": {
+      "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
+      "outputs": []
     }
   }
 }
