@@ -1,12 +1,14 @@
 {
-    "recommendations": [
-      "dbaeumer.vscode-eslint",
-      "esbenp.prettier-vscode",
-      "ms-azuretools.vscode-bicep",
-      "prisma.prisma",
-      "bradlc.vscode-tailwindcss",
-      "eamodio.gitlens",
-      "aaron-bond.better-comments",
-      "ms-azuretools.vscode-containers"
-    ]
-  }
+  "recommendations": [
+    "aaron-bond.better-comments",
+    "bradlc.vscode-tailwindcss",
+    "dbaeumer.vscode-eslint",
+    "eamodio.gitlens",
+    "esbenp.prettier-vscode",
+    "ms-azuretools.vscode-bicep",
+    "ms-azuretools.vscode-containers",
+    "pflannery.vscode-versionlens",
+    "prisma.prisma",
+    "yoavbls.pretty-ts-errors"
+  ]
+}
