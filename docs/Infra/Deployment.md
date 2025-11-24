@@ -102,9 +102,13 @@ infra/
 
 - **Versión**: PostgreSQL 18
 - **Alta disponibilidad**: Deshabilitada (para dev)
-- **Zona de disponibilidad**: 1
+- **Zona de disponibilidad**: Sin zona explícita por defecto (Azure selecciona automáticamente)
+  - Configurable mediante el parámetro `availabilityZone` en `params/main.dev.bicepparam`
+  - Valores posibles: `'1'`, `'2'`, `'3'`, o `''` (vacío = sin zona específica)
+  - ⚠️ No todas las regiones soportan zonas de disponibilidad
 - **Database**: Crea una base de datos con charset UTF8 y collation `es_ES.UTF8`
 - **Contraseña**: Recibida como parámetro seguro desde `main.bicep`
+- **Firewall**: Configurable mediante el parámetro `allowedIpRanges`
 
 **Outputs**:
 
@@ -507,6 +511,34 @@ az postgres flexible-server update \
 - **Mínimo**: 32 GB
 - **Máximo**: 16,384 GB (16 TB)
 - **Incrementos**: Burstable tier usa potencias de 2 (32, 64, 128, 256...)
+
+### Zonas de Disponibilidad (PostgreSQL)
+
+**Configuración actual**: Sin zona explícita (Azure selecciona automáticamente)
+
+**Para especificar una zona**, edita `infra/params/main.dev.bicepparam`:
+
+```bicep
+// Sin zona específica (default, Azure selecciona)
+param availabilityZone = ''
+
+// O especificar una zona (1, 2, o 3)
+param availabilityZone = '1'
+```
+
+**Importante**:
+- ⚠️ No todas las regiones de Azure soportan zonas de disponibilidad
+- Regiones con zonas: East US, West Europe, Southeast Asia, etc.
+- Regiones sin zonas: Central India, Brazil South (algunas), etc.
+- Si especificas una zona no disponible en tu región, el deployment fallará
+
+**Verificar zonas disponibles**:
+
+```bash
+az postgres flexible-server list-skus \
+  --location "$LOCATION" \
+  --query "[?name=='$SKU_NAME'].supportedAvailabilityZones" -o tsv
+```
 
 ---
 
