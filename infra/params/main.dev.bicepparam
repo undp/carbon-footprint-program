@@ -24,3 +24,5 @@ param dbAllowedIpRanges = [
     end: '0.0.0.0'
   }
 ]
+
+param availabilityZone = ''

@@ -40,6 +40,9 @@ param devGroupObjectId string = ''
 @description('Allowed IP ranges for PostgreSQL firewall')
 param dbAllowedIpRanges array = []
 
+@description('Availability zone for the Postgres server (1, 2, or 3). Set to empty string for regions without zones.')
+param availabilityZone string = ''
+
 @description('Developer name for resource naming')
 param developerName string
 
@@ -97,5 +100,6 @@ module postgres 'modules/postgres.bicep' = {
     geoRedundantBackup: dbGeoRedundantBackup
     allowedIpRanges: dbAllowedIpRanges
     tags: tags
+    availabilityZone: availabilityZone
   }
 }
