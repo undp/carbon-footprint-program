@@ -12,7 +12,7 @@ param dbName string
 param user string
 
 @description('Postgres SKU name this is used to define the compute and pricing tier')
-param SkuName string
+param skuName string
 
 @description('Postgres SKU tier (e.g., Burstable, GeneralPurpose, MemoryOptimized)')
 param skuTier string
@@ -30,7 +30,7 @@ resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
   name: uniqueString(resourceGroup().id)
   location: location
   sku: {
-    name: SkuName
+    name: skuName
     tier: skuTier
   }
   properties: {

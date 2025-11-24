@@ -61,7 +61,7 @@ module postgres 'modules/postgres.bicep' = {
     user: dbUser
     password: existingKeyVault.getSecret(keyVault.outputs.postgresSecretName)
     dbName: dbName
-    SkuName: dbSkuName
+    skuName: dbSkuName
     skuTier: dbSkuTier
     storageSizeGB: dbStorageSizeGB
     backupRetentionDays: dbBackupRetentionDays
