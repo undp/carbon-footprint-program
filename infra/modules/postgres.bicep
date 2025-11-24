@@ -26,6 +26,9 @@ param backupRetentionDays int
 @description('Geo-redundant backup setting for the Postgres server')
 param geoRedundantBackup string
 
+@description('Availability zone for the Postgres server (1, 2, or 3). Set to empty string for regions without zones.')
+param availabilityZone string = '1'
+
 resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
   name: uniqueString(resourceGroup().id)
   location: location
@@ -36,7 +39,8 @@ resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
   properties: {
     administratorLogin: user
     administratorLoginPassword: password
-    availabilityZone: '1'
+    // Note: Availability zone '1' may not be available in all regions
+    availabilityZone: availabilityZone
     version: '18'
     storage: {
       storageSizeGB: storageSizeGB
