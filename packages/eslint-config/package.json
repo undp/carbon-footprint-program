@@ -5,7 +5,6 @@
   "private": true,
   "type": "module",
   "exports": {
-    "./base": "./base.ts",
     "./web": "./web.ts",
     "./api": "./api.ts"
   },
