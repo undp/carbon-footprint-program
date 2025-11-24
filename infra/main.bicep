@@ -9,12 +9,25 @@ param keyVaultSkuName string
 param storageSkuName string
 
 // --------- Database parameters ---------
+@description('Database user')
 param dbUser string
+
+@description('Database name')
 param dbName string
+
+@description('Database SKU name')
 param dbSkuName string
+
+@description('Database SKU tier')
 param dbSkuTier string
+
+@description('Storage size in GB')
 param dbStorageSizeGB int
+
+@description('Backup retention in days')
 param dbBackupRetentionDays int
+
+@description('Enable geo-redundant backup')
 param dbGeoRedundantBackup string
 
 @secure()
