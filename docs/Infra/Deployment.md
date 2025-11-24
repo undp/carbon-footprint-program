@@ -282,7 +282,9 @@ export LOCATION="eastus2"
 export DB_PASSWORD_OVERRIDE="miContraseA123"
 ```
 
-**Importante**: 
+**Importante**:
+
+- Todos los comandos a continuación asumen que estás en el directorio raíz del proyecto. Puedes ejecutar scripts con `./infra/deploy.sh` o navegar al directorio infra con `cd infra && ./deploy.sh`.
 - Asegúrate de que `infra/.envrc` esté en `.gitignore` para no commitear credenciales
 - Si usas direnv, ejecuta `cd infra && direnv allow` para cargar automáticamente las variables
 
