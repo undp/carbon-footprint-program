@@ -17,7 +17,7 @@ param dbGeoRedundantBackup = 'Disabled'
 param dbPassword = '' // Will be overridden by deploy.sh with generated password
 param developerName = '' // Will be overridden by deploy.sh with generated developer name
 
-// Azure services only (uncomment for Azure-only access)
+// Special 0.0.0.0 range: allows access from Azure services only
 param dbAllowedIpRanges = [
   {
     start: '0.0.0.0'
