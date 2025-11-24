@@ -12,6 +12,12 @@ param dbPassword string = ''
 @description('Name for the database password secret')
 param dbPasswordSecretName string = 'postgres-admin-password'
 
+@description('Network ACL default action: Allow or Deny')
+param networkAclDefaultAction string = 'Allow'
+
+@description('Services to bypass for network ACLs')
+param networkAclBypass string = 'AzureServices'
+
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: uniqueString(resourceGroup().id)
   location: location
@@ -23,8 +29,8 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
     enableRbacAuthorization: true
     createMode: 'default'
     networkAcls: {
-      bypass: 'AzureServices'
-      defaultAction: 'Allow'
+      bypass: networkAclBypass
+      defaultAction: networkAclDefaultAction
     }
     sku: {
       name: skuName
