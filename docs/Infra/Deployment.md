@@ -120,9 +120,18 @@ infra/
 **Configuración**:
 
 - Kind: `StorageV2` (propósito general v2)
-- Acceso: Públicamente accesible
+- **Acceso público anónimo**: Deshabilitado (`allowBlobPublicAccess: false`)
+- **Network ACLs**: Firewall por defecto en `Deny` con bypass para `AzureServices`
+- **Acceso restringido**: Solo servicios de Azure pueden acceder por defecto
 - SupportsHttpsTrafficOnly: true
 - MinimumTlsVersion: TLS 1.2
+
+**Seguridad**:
+
+- ✅ Sin acceso público anónimo a blobs
+- ✅ Firewall restrictivo por defecto
+- ✅ Solo servicios de Azure confiables pueden acceder
+- ✅ Para acceso desde IPs específicas, configura `networkAclDefaultAction` y añade reglas de IP en el módulo
 
 #### `params/main.dev.bicepparam`
 
@@ -465,6 +474,7 @@ az postgres flexible-server update \
 ```
 
 **Importante**: 
+
 - La contraseña se preserva automáticamente entre deployments
 - No necesitas regenerar la contraseña en cada deployment
 - Para cambiarla, debes actualizar tanto Key Vault como PostgreSQL manualmente
