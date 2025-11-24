@@ -10,14 +10,19 @@ param dbName string
 
 @description('Postgres admin username')
 param user string
+
 @description('Postgres SKU name this is used to define the compute and pricing tier')
 param SkuName string
+
 @description('Postgres SKU tier (e.g., Burstable, GeneralPurpose, MemoryOptimized)')
 param skuTier string
+
 @description('Storage size in GB for the Postgres server')
 param storageSizeGB int
+
 @description('Backup retention days for the Postgres server')
 param backupRetentionDays int
+
 @description('Geo-redundant backup setting for the Postgres server')
 param geoRedundantBackup string
 
