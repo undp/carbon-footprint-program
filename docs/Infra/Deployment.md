@@ -272,7 +272,8 @@ export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 export AZURE_RESOURCE_GROUP="undp-huella-latam-rg"
 export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"  # Grupo de Azure AD con acceso a Key Vault
 export APP_ENV="dev"
-export LOCATION="eastus"
+# Location 'eastus' is not available for subscriptions with free trial.
+export LOCATION="eastus2"
 # Opcional: Fuerza una contraseña en especifico
 export DB_PASSWORD_OVERRIDE="miContraseA123"
 ```
