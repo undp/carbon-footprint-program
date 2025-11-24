@@ -15,3 +15,11 @@ param dbStorageSizeGB = 32 // Minimum allowed
 param dbBackupRetentionDays = 7 // Minimum allowed
 param dbGeoRedundantBackup = 'Disabled'
 param dbPassword = '' // Will be overridden by deploy.sh with generated password
+
+// Azure services only (uncomment for Azure-only access)
+param dbAllowedIpRanges = [
+  {
+    start: '0.0.0.0'
+    end: '0.0.0.0'
+  }
+]

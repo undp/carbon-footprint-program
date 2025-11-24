@@ -37,6 +37,9 @@ param dbPassword string
 @description('Object ID of the Azure AD group for Key Vault access (optional)')
 param devGroupObjectId string = ''
 
+@description('Allowed IP ranges for PostgreSQL firewall')
+param dbAllowedIpRanges array = []
+
 // --------- Key Vault ---------
 // We can create up to 1 key vault per deployment
 module keyVault 'modules/keyVault.bicep' = {
@@ -80,5 +83,6 @@ module postgres 'modules/postgres.bicep' = {
     storageSizeGB: dbStorageSizeGB
     backupRetentionDays: dbBackupRetentionDays
     geoRedundantBackup: dbGeoRedundantBackup
+    allowedIpRanges: dbAllowedIpRanges
   }
 }

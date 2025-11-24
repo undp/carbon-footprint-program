@@ -56,6 +56,20 @@ resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
   }
 }
 
+@description('Array of allowed IP ranges')
+param allowedIpRanges array
+
+resource firewallRules 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2025-08-01' = [
+  for (ipRange, i) in allowedIpRanges: {
+    parent: psql
+    name: 'AllowedIP-${i}'
+    properties: {
+      startIpAddress: ipRange.start
+      endIpAddress: ipRange.end
+    }
+  }
+]
+
 // Create the specified database
 resource db 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-08-01' = {
   parent: psql
