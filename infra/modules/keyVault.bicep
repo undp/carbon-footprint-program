@@ -18,8 +18,11 @@ param networkAclDefaultAction string = 'Allow'
 @description('Services to bypass for network ACLs')
 param networkAclBypass string = 'AzureServices'
 
+@description('Name of the Key Vault (must be globally unique, 3-24 alphanumeric chars)')
+param keyVaultName string = 'kv-${uniqueString(resourceGroup().id)}'
+
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
-  name: uniqueString(resourceGroup().id)
+  name: keyVaultName
   location: location
   properties: {
     tenantId: subscription().tenantId
@@ -66,4 +69,5 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = i
 output name string = keyVault.name
 output id string = keyVault.id
 output vaultUri string = keyVault.properties.vaultUri
-output postgresSecretName string = dbPasswordSecret.name
+#disable-next-line outputs-should-not-contain-secrets
+output postgresSecretName string = (dbPassword != '') ? dbPasswordSecret.name : dbPasswordSecretName
