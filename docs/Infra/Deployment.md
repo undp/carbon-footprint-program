@@ -4,7 +4,6 @@
 
 - [Descripción General](#descripción-general)
 - [Estructura del Directorio `infra/`](#estructura-del-directorio-infra)
-- [Arquitectura de la Solución](#arquitectura-de-la-solución)
 - [Requisitos Previos](#requisitos-previos)
 - [Configuración Inicial](#configuración-inicial)
 - [Proceso de Deployment](#proceso-de-deployment)
@@ -311,6 +310,7 @@ Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades (desde
 Este proyecto utiliza **Azure Deployment Stacks** en lugar de deployments estándar. Los Deployment Stacks ofrecen ventajas significativas:
 
 **Ventajas**:
+
 - ✅ **Gestión como unidad atómica**: Todos los recursos se gestionan juntos
 - ✅ **Protección contra eliminación**: Previene eliminación accidental de recursos críticos
 - ✅ **Limpieza automática**: Puede eliminar recursos que ya no están en el template
@@ -319,6 +319,7 @@ Este proyecto utiliza **Azure Deployment Stacks** en lugar de deployments están
 - ✅ **Rollback**: Facilita volver a versiones anteriores
 
 **Configuración del Stack**:
+
 - **Nombre**: `undp-huella-latam-stack-{environment}`
 - **Deny Settings**: `none` (sin restricciones, ideal para desarrollo)
 - **Action on Unmanage**: `detachAll` (preserva recursos si se eliminan del template)
@@ -367,28 +368,33 @@ El script creará o actualizará el Deployment Stack automáticamente.
 ### Gestión del Deployment Stack
 
 **Ver información del stack**:
+
 ```bash
 cd infra
 ./view-stack.sh
 ```
 
 Muestra:
+
 - Información general del stack
 - Lista de recursos gestionados
 - Outputs del deployment
 
 **Eliminar el stack**:
+
 ```bash
 cd infra
 ./delete-stack.sh
 ```
 
 El script ofrece tres opciones interactivas:
+
 1. **deleteAll**: Elimina el stack y TODOS los recursos gestionados
 2. **detachAll**: Elimina el stack pero PRESERVA todos los recursos
 3. **deleteResources**: Elimina recursos pero preserva Resource Groups
 
 **Ver cambios antes de aplicar (What-If)**:
+
 ```bash
 cd infra
 az stack group create \
@@ -409,7 +415,7 @@ cd infra && az bicep build --file main.bicep
 
 ---
 
-## Gestión de Secretos
+## Flujo de Gestión de Secretos
 
 ### Obtener Contraseña desde Key Vault
 
@@ -432,7 +438,7 @@ echo "Database password: $DB_PASSWORD"
 
 ### Rotar Contraseña
 
-**Opción 1: Usando DB_PASSWORD_OVERRIDE (Recomendado)**
+#### Opción 1: Usando DB_PASSWORD_OVERRIDE (Recomendado)
 
 ```bash
 # Generar y aplicar nueva contraseña en un solo paso
@@ -443,7 +449,7 @@ export DB_PASSWORD_OVERRIDE="mi-nueva-contraseña-segura"
 ./deploy.sh
 ```
 
-**Opción 2: Actualización Manual en Key Vault**
+#### Opción 2: Actualización Manual en Key Vault
 
 ```bash
 # 1. Generar nueva contraseña
