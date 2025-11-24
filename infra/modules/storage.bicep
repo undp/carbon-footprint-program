@@ -7,6 +7,9 @@ param networkAclDefaultAction string = 'Deny'
 @description('Services to bypass for network ACLs')
 param networkAclBypass string = 'AzureServices'
 
+@description('Tags to apply to the Storage Account')
+param tags object = {}
+
 resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   name: uniqueString(resourceGroup().id)
   location: location
@@ -24,6 +27,7 @@ resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
       defaultAction: networkAclDefaultAction
     }
   }
+  tags: tags
 }
 output name string = storage.name
 output id string = storage.id

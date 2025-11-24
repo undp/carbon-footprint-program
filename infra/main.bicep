@@ -40,6 +40,16 @@ param devGroupObjectId string = ''
 @description('Allowed IP ranges for PostgreSQL firewall')
 param dbAllowedIpRanges array = []
 
+@description('Developer name for resource naming')
+param developerName string
+
+@description('Tags to apply to all resources')
+param tags object = {
+  Environment: developerName
+  Project: 'undp-huella-latam'
+  ManagedBy: 'Bicep'
+}
+
 // --------- Key Vault ---------
 // We can create up to 1 key vault per deployment
 module keyVault 'modules/keyVault.bicep' = {
@@ -49,6 +59,7 @@ module keyVault 'modules/keyVault.bicep' = {
     location: location
     dbPassword: dbPassword
     devGroupObjectId: devGroupObjectId
+    tags: tags
   }
 }
 
@@ -58,6 +69,7 @@ module storage 'modules/storage.bicep' = {
   params: {
     skuName: storageSkuName
     location: location
+    tags: tags
   }
 }
 
@@ -84,5 +96,6 @@ module postgres 'modules/postgres.bicep' = {
     backupRetentionDays: dbBackupRetentionDays
     geoRedundantBackup: dbGeoRedundantBackup
     allowedIpRanges: dbAllowedIpRanges
+    tags: tags
   }
 }

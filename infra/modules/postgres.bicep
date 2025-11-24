@@ -29,6 +29,9 @@ param geoRedundantBackup string
 @description('Availability zone for the Postgres server (1, 2, or 3). Set to empty string for regions without zones.')
 param availabilityZone string = '1'
 
+@description('Tags to apply to the PostgreSQL server')
+param tags object = {}
+
 resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
   name: uniqueString(resourceGroup().id)
   location: location
@@ -54,6 +57,7 @@ resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
     }
     createMode: 'Default'
   }
+  tags: tags
 }
 
 @description('Array of allowed IP ranges')

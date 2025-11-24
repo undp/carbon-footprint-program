@@ -269,6 +269,7 @@ export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 export AZURE_RESOURCE_GROUP="undp-huella-latam-rg"
 export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"  # Grupo de Azure AD con acceso a Key Vault
 export APP_ENV="dev"
+export DEVELOPER_NAME="tu-nombre"  # Tu nombre para tagging de recursos
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"
 ```
@@ -337,6 +338,8 @@ El script creará o actualizará el Deployment Stack automáticamente.
    - `AZURE_RESOURCE_GROUP`
    - `AZURE_SUBSCRIPTION_GROUP` (nombre del grupo de Azure AD)
    - `APP_ENV` (default: "dev")
+   - `DEVELOPER_NAME` (tu nombre para tagging de recursos)
+   - `LOCATION` (región de Azure)
 4. **Selección de suscripción**
 5. **Creación de Resource Group** (si no existe)
 6. **Obtención del Object ID del grupo de Azure AD** para permisos de Key Vault
@@ -353,6 +356,7 @@ El script creará o actualizará el Deployment Stack automáticamente.
      --parameters "params/main.$APP_ENV.bicepparam" \
      --parameters dbPassword="$DB_PASSWORD" \
      --parameters devGroupObjectId="$DEVS_GROUP_ID" \
+     --parameters developerName="$DEVELOPER_NAME" \
      --deny-settings-mode "none" \
      --action-on-unmanage "detachAll" \
      --yes \

@@ -23,6 +23,9 @@ param networkAclBypass string = 'AzureServices'
 @maxLength(24)
 param keyVaultName string = 'kv-${uniqueString(resourceGroup().id)}'
 
+@description('Tags to apply to the Key Vault')
+param tags object = {}
+
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: keyVaultName
   location: location
@@ -42,6 +45,7 @@ resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
       family: 'A'
     }
   }
+  tags: tags
 }
 
 // Create/update secret only if password is provided

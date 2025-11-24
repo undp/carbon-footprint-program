@@ -105,6 +105,7 @@ az stack group create \
   --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam" \
   --parameters dbPassword="$DB_PASSWORD" \
   --parameters devGroupObjectId="$DEVS_GROUP_ID" \
+  --parameters developerName="$DEVELOPER_NAME" \
   --deny-settings-mode "none" \
   --action-on-unmanage "detachAll" \
   --yes \
