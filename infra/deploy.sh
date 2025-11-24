@@ -10,21 +10,21 @@ if ! az account show >/dev/null 2>&1; then
 fi
 
 # 1) Load .env / .envrc if present (non-sensitive config only)
-if [ -f ".env" ]; then
+if [ -f "../.env" ]; then
   echo "Loading .env..."
   # Export all variables defined in .env
   set -o allexport
   # shellcheck disable=SC1091
-  source .env
+  source ../.env
   set +o allexport
 fi
 
-# Optional: support .envrc if you don’t use direnv directly
-if [ -f ".envrc" ]; then
+# Optional: support .envrc if you don't use direnv directly
+if [ -f "../.envrc" ]; then
   echo "Loading .envrc..."
   set -o allexport
   # shellcheck disable=SC1091
-  source .envrc
+  source ../.envrc
   set +o allexport
 fi
 
@@ -95,8 +95,8 @@ deployment_result=0
 az deployment group create \
   --subscription "$AZURE_SUBSCRIPTION_ID" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --template-file "infra/main.bicep" \
-  --parameters "infra/params/main.$APP_ENV.bicepparam" \
+  --template-file "main.bicep" \
+  --parameters "params/main.$APP_ENV.bicepparam" \
   --parameters dbPassword="$DB_PASSWORD" \
   --parameters devGroupObjectId="$DEVS_GROUP_ID" \
   --verbose || deployment_result=$?

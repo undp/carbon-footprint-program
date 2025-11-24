@@ -32,6 +32,7 @@ Este proyecto utiliza **Azure Bicep** como lenguaje de Infrastructure as Code (I
 
 ```
 infra/
+├── deploy.sh                     # Script de deployment
 ├── main.bicep                    # Orquestador principal
 ├── modules/                      # Módulos reutilizables
 │   ├── keyVault.bicep           # Azure Key Vault + secretos
@@ -283,12 +284,12 @@ export DB_PASSWORD_OVERRIDE="miContraseA123"
 ### 2. Hacer Ejecutable el Script
 
 ```bash
-chmod +x deploy.sh
+chmod +x infra/deploy.sh
 ```
 
 ### 3. Validar Parámetros
 
-Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades:
+Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades (desde el directorio raíz del proyecto):
 
 - **Storage**: `Standard_LRS` es la opción más económica
 - **Key Vault**: `standard` es suficiente para la mayoría de casos
@@ -304,6 +305,7 @@ Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades:
 ### Deployment Completo
 
 ```bash
+cd infra
 ./deploy.sh
 ```
 
@@ -340,10 +342,11 @@ Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades:
 Para ver qué recursos se crearían sin ejecutar el deployment:
 
 ```bash
+cd infra
 az deployment group what-if \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --template-file "infra/main.bicep" \
-  --parameters "infra/params/main.dev.bicepparam" \
+  --template-file "main.bicep" \
+  --parameters "params/main.dev.bicepparam" \
   --parameters dbPassword="dummy-password-for-testing"
 ```
 
@@ -351,6 +354,8 @@ az deployment group what-if \
 
 ```bash
 az bicep build --file infra/main.bicep
+# O desde el directorio infra/
+cd infra && az bicep build --file main.bicep
 ```
 
 ---
