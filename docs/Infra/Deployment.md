@@ -581,7 +581,6 @@ az postgres flexible-server delete \
   --name "$POSTGRES_NAME" \
   --yes
 ```
----
 
 ## Referencias
 
