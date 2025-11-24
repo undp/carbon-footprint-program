@@ -88,22 +88,37 @@ else
   echo "New password generated"
 fi
 
-# 7) Run the Bicep deployment (Resource Group scoped)
-echo "Running Bicep deployment to dev environment..."
+# 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
+echo "Running Bicep deployment using Deployment Stack..."
+
+STACK_NAME="undp-huella-latam-stack-$APP_ENV"
 
 deployment_result=0
-az deployment group create \
-  --subscription "$AZURE_SUBSCRIPTION_ID" \
+
+# Get the script directory to ensure correct paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+az stack group create \
+  --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --template-file "main.bicep" \
-  --parameters "params/main.$APP_ENV.bicepparam" \
+  --template-file "$SCRIPT_DIR/main.bicep" \
+  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam" \
   --parameters dbPassword="$DB_PASSWORD" \
   --parameters devGroupObjectId="$DEVS_GROUP_ID" \
+  --deny-settings-mode "none" \
+  --action-on-unmanage "detachAll" \
+  --yes \
   --verbose || deployment_result=$?
 
 if [ $deployment_result -ne 0 ]; then
-  echo "=== [dev.sh] Deployment FAILED with exit code $deployment_result ==="
+  echo "=== [dev.sh] Deployment Stack FAILED with exit code $deployment_result ==="
   exit $deployment_result
 fi
 
-echo "=== [dev.sh] Deployment completed successfully ==="
+echo "=== [dev.sh] Deployment Stack completed successfully ==="
+echo "Stack name: $STACK_NAME"
+echo ""
+echo "Useful commands:"
+echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
+echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
+echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
