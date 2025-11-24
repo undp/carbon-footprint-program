@@ -78,7 +78,7 @@ infra/
 - Soft delete habilitado con retención de 90 días
 - **Creación condicional de secreto**: Solo crea/actualiza el secreto si `dbPassword != ''`
   - Preserva secretos existentes cuando se pasa contraseña vacía
-  - Permite rotación controlada mediante `DB_PASSWORD_OVERRIDE`
+  - La contraseña se genera automáticamente una sola vez
 - Network ACLs configuradas para permitir servicios de Azure
 
 **Role Assignment**:
@@ -202,20 +202,13 @@ param dbPassword = ''                   // Sobrescrito por deploy.sh
 3. **Sin cambios**: El módulo `keyVault` no actualiza el secreto (condición `if (dbPassword != '')`)
 4. **Recuperación**: PostgreSQL continúa usando la contraseña original del secreto
 
-**Rotación Manual con Override**:
-
-1. **Variable de entorno**: Definir `export DB_PASSWORD_OVERRIDE="nueva-contraseña"`
-2. **Ejecución**: Ejecutar `./deploy.sh`
-3. **Sobrescritura**: El secreto se actualiza con la nueva contraseña
-4. **Actualización**: PostgreSQL recibe la nueva contraseña
-
 **Ventajas de este enfoque**:
 
 - ✅ Password no está hardcodeada en archivos
 - ✅ Password no aparece en logs de deployment
+- ✅ Password se genera automáticamente una sola vez
 - ✅ Password queda almacenada en Key Vault para uso futuro
 - ✅ **Password no se sobrescribe en cada deployment** (preservación automática)
-- ✅ Rotación controlada mediante variable de entorno
 - ✅ ARM tiene permisos para leer durante deployment (`enabledForTemplateDeployment`)
 
 ---
@@ -278,8 +271,6 @@ export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"  # Grupo de Azure AD con acc
 export APP_ENV="dev"
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"
-# Opcional: Fuerza una contraseña en especifico
-export DB_PASSWORD_OVERRIDE="miContraseA123"
 ```
 
 **Importante**:
@@ -352,7 +343,6 @@ El script creará o actualizará el Deployment Stack automáticamente.
 7. **Verificación de secreto existente** en Key Vault
    - Si existe `postgres-admin-password`: No genera nueva contraseña (preserva la existente)
    - Si no existe: Genera nueva contraseña con `openssl rand -base64 18`
-   - Si `DB_PASSWORD_OVERRIDE` está definido: Usa esa contraseña (sobrescribe)
 8. **Creación/actualización del Deployment Stack**:
 
    ```bash
@@ -442,49 +432,38 @@ echo "Database password: $DB_PASSWORD"
 
 ### Rotar Contraseña
 
-#### Opción 1: Usando DB_PASSWORD_OVERRIDE (Recomendado)
+Para rotar la contraseña de PostgreSQL:
 
 ```bash
-# Generar y aplicar nueva contraseña en un solo paso
-DB_PASSWORD_OVERRIDE=$(openssl rand -base64 18) ./deploy.sh
+# 1. Obtener nombre del Key Vault
+KEY_VAULT_NAME=$(az keyvault list \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query "[0].name" -o tsv)
 
-# O definir la contraseña manualmente
-export DB_PASSWORD_OVERRIDE="mi-nueva-contraseña-segura"
-./deploy.sh
-```
-
-#### Opción 2: Actualización Manual en Key Vault
-
-```bash
-# 1. Generar nueva contraseña
+# 2. Generar nueva contraseña
 NEW_PASSWORD=$(openssl rand -base64 18)
 
-# 2. Actualizar en Key Vault
+# 3. Actualizar secreto en Key Vault
 az keyvault secret set \
   --vault-name "$KEY_VAULT_NAME" \
   --name "postgres-admin-password" \
   --value "$NEW_PASSWORD"
 
-# 3. Re-desplegar PostgreSQL con override para aplicar nueva contraseña
-DB_PASSWORD_OVERRIDE=$(az keyvault secret show \
-  --vault-name "$KEY_VAULT_NAME" \
-  --name "postgres-admin-password" \
-  --query "value" -o tsv) ./deploy.sh
+# 4. Actualizar contraseña en PostgreSQL
+POSTGRES_NAME=$(az postgres flexible-server list \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query "[0].name" -o tsv)
+
+az postgres flexible-server update \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "$POSTGRES_NAME" \
+  --admin-password "$NEW_PASSWORD"
 ```
 
-### Forzar Contraseña Específica
-
-Si necesitas usar una contraseña específica (por ejemplo, para testing o migración):
-
-```bash
-# En .envrc (opcional, comentado por defecto)
-# export DB_PASSWORD_OVERRIDE="tu-contraseña-especifica"
-
-# O en línea de comando
-DB_PASSWORD_OVERRIDE="mi-contraseña" ./deploy.sh
-```
-
-**Importante**: Una vez aplicada, la contraseña se preservará en futuros deployments a menos que vuelvas a usar `DB_PASSWORD_OVERRIDE`.
+**Importante**: 
+- La contraseña se preserva automáticamente entre deployments
+- No necesitas regenerar la contraseña en cada deployment
+- Para cambiarla, debes actualizar tanto Key Vault como PostgreSQL manualmente
 
 ---
 
