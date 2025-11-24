@@ -37,6 +37,7 @@ fi
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
+: "${DEVELOPER_NAME:?DEVELOPER_NAME is required}"
 : "${APP_ENV:=dev}"
 
 echo "Environment:      $APP_ENV"
