@@ -36,9 +36,10 @@ fi
 : "${LOCATION:?LOCATION is required}"
 : "${APP_ENV:=dev}"
 
-echo "Subscription:     $AZURE_SUBSCRIPTION_ID"
-echo "Resource Group:   $AZURE_RESOURCE_GROUP"
 echo "Environment:      $APP_ENV"
+echo "Subscription:     $AZURE_SUBSCRIPTION_ID"
+echo "Location:         $LOCATION"
+echo "Resource Group:   $AZURE_RESOURCE_GROUP"
 
 # 3) Ensure correct subscription is selected
 echo "Setting Azure subscription..."
