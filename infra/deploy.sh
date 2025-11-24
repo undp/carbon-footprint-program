@@ -10,21 +10,23 @@ if ! az account show >/dev/null 2>&1; then
 fi
 
 # 1) Load .env / .envrc if present (non-sensitive config only)
-if [ -f "../.env" ]; then
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -f "$SCRIPT_DIR/.env" ]; then
   echo "Loading .env..."
   # Export all variables defined in .env
   set -o allexport
   # shellcheck disable=SC1091
-  source ../.env
+  source "$SCRIPT_DIR/.env"
   set +o allexport
 fi
 
 # Optional: support .envrc if you don't use direnv directly
-if [ -f "../.envrc" ]; then
+if [ -f "$SCRIPT_DIR/.envrc" ]; then
   echo "Loading .envrc..."
   set -o allexport
   # shellcheck disable=SC1091
-  source ../.envrc
+  source "$SCRIPT_DIR/.envrc"
   set +o allexport
 fi
 
@@ -94,9 +96,6 @@ echo "Running Bicep deployment using Deployment Stack..."
 STACK_NAME="undp-huella-latam-stack-$APP_ENV"
 
 deployment_result=0
-
-# Get the script directory to ensure correct paths
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 az stack group create \
   --name "$STACK_NAME" \

@@ -268,10 +268,10 @@ az account set --subscription "<tu-subscription-id>"
 
 ### 1. Variables de Entorno
 
-Crea un archivo `.env` o `.envrc` en la raíz del proyecto:
+Crea un archivo `.envrc` o `.env` en el directorio **`infra/`**:
 
 ```bash
-# .env
+# infra/.envrc
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 export AZURE_RESOURCE_GROUP="undp-huella-latam-rg"
 export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"  # Grupo de Azure AD con acceso a Key Vault
@@ -282,7 +282,9 @@ export LOCATION="eastus2"
 export DB_PASSWORD_OVERRIDE="miContraseA123"
 ```
 
-**Importante**: Asegúrate de que `.env` esté en `.gitignore` para no commitear credenciales.
+**Importante**: 
+- Asegúrate de que `infra/.envrc` esté en `.gitignore` para no commitear credenciales
+- Si usas direnv, ejecuta `cd infra && direnv allow` para cargar automáticamente las variables
 
 ### 2. Hacer Ejecutable el Script
 
@@ -336,7 +338,7 @@ El script creará o actualizará el Deployment Stack automáticamente.
 ### Pasos Ejecutados por el Script
 
 1. **Verificación de login en Azure CLI**
-2. **Carga de variables de entorno** desde `.env` o `.envrc`
+2. **Carga de variables de entorno** desde `infra/.env` o `infra/.envrc`
 3. **Validación de variables requeridas**:
    - `AZURE_SUBSCRIPTION_ID`
    - `AZURE_RESOURCE_GROUP`
