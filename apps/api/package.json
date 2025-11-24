@@ -30,7 +30,7 @@
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:shared",
-    "dotenv": "^17.2.3",
+    "dotenv": "catalog:shared",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared"
   }

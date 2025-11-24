@@ -12,7 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:shared",
-    "dotenv": "^17.2.3",
+    "dotenv": "catalog:shared",
     "prisma": "catalog:prisma",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared"
