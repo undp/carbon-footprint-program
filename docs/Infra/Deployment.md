@@ -141,7 +141,7 @@ param keyVaultSkuName = 'standard'
 
 // Database
 param dbUser = 'pgadmin'
-param dbName = 'huella_latam_db'
+param dbName = 'huella_latam'
 param dbSkuName = 'Standard_B1ms'      // 1 vCore, 2 GB RAM
 param dbSkuTier = 'Burstable'          // Tier más económico
 param dbStorageSizeGB = 32             // Mínimo permitido
