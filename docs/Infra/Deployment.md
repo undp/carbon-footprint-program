@@ -8,6 +8,8 @@
 - [Requisitos Previos](#requisitos-previos)
 - [Configuración Inicial](#configuración-inicial)
 - [Proceso de Deployment](#proceso-de-deployment)
+  - [Azure Deployment Stacks](#azure-deployment-stacks)
+  - [Gestión del Deployment Stack](#gestión-del-deployment-stack)
 - [Gestión de Secretos](#gestión-de-secretos)
 - [Parámetros de Configuración](#parámetros-de-configuración)
 - [Troubleshooting](#troubleshooting)
@@ -30,9 +32,11 @@ Este proyecto utiliza **Azure Bicep** como lenguaje de Infrastructure as Code (I
 
 ## Estructura del Directorio `infra/`
 
-```
+```plaintext
 infra/
-├── deploy.sh                     # Script de deployment
+├── deploy.sh                     # Script principal de deployment (Deployment Stacks)
+├── delete-stack.sh              # Script para eliminar Deployment Stacks
+├── view-stack.sh                # Script para inspeccionar Deployment Stacks
 ├── main.bicep                    # Orquestador principal
 ├── modules/                      # Módulos reutilizables
 │   ├── keyVault.bicep           # Azure Key Vault + secretos
@@ -302,12 +306,31 @@ Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades (desde
 
 ## Proceso de Deployment
 
+### Azure Deployment Stacks
+
+Este proyecto utiliza **Azure Deployment Stacks** en lugar de deployments estándar. Los Deployment Stacks ofrecen ventajas significativas:
+
+**Ventajas**:
+- ✅ **Gestión como unidad atómica**: Todos los recursos se gestionan juntos
+- ✅ **Protección contra eliminación**: Previene eliminación accidental de recursos críticos
+- ✅ **Limpieza automática**: Puede eliminar recursos que ya no están en el template
+- ✅ **Drift detection**: Detecta cambios manuales en recursos
+- ✅ **Versionado**: Mantiene historial de cambios
+- ✅ **Rollback**: Facilita volver a versiones anteriores
+
+**Configuración del Stack**:
+- **Nombre**: `undp-huella-latam-stack-{environment}`
+- **Deny Settings**: `none` (sin restricciones, ideal para desarrollo)
+- **Action on Unmanage**: `detachAll` (preserva recursos si se eliminan del template)
+
 ### Deployment Completo
 
 ```bash
 cd infra
 ./deploy.sh
 ```
+
+El script creará o actualizará el Deployment Stack automáticamente.
 
 ### Pasos Ejecutados por el Script
 
@@ -325,29 +348,55 @@ cd infra
    - Si existe `postgres-admin-password`: No genera nueva contraseña (preserva la existente)
    - Si no existe: Genera nueva contraseña con `openssl rand -base64 18`
    - Si `DB_PASSWORD_OVERRIDE` está definido: Usa esa contraseña (sobrescribe)
-8. **Ejecución del deployment de Bicep**:
+8. **Creación/actualización del Deployment Stack**:
 
    ```bash
-   az deployment group create \
+   az stack group create \
+     --name "undp-huella-latam-stack-$APP_ENV" \
      --resource-group "$AZURE_RESOURCE_GROUP" \
-     --template-file "infra/main.bicep" \
-     --parameters "infra/params/main.$APP_ENV.bicepparam" \
+     --template-file "main.bicep" \
+     --parameters "params/main.$APP_ENV.bicepparam" \
      --parameters dbPassword="$DB_PASSWORD" \
      --parameters devGroupObjectId="$DEVS_GROUP_ID" \
+     --deny-settings-mode "none" \
+     --action-on-unmanage "detachAll" \
+     --yes \
      --verbose
    ```
 
-### Deployment Dry-Run (What-If)
+### Gestión del Deployment Stack
 
-Para ver qué recursos se crearían sin ejecutar el deployment:
-
+**Ver información del stack**:
 ```bash
 cd infra
-az deployment group what-if \
+./view-stack.sh
+```
+
+Muestra:
+- Información general del stack
+- Lista de recursos gestionados
+- Outputs del deployment
+
+**Eliminar el stack**:
+```bash
+cd infra
+./delete-stack.sh
+```
+
+El script ofrece tres opciones interactivas:
+1. **deleteAll**: Elimina el stack y TODOS los recursos gestionados
+2. **detachAll**: Elimina el stack pero PRESERVA todos los recursos
+3. **deleteResources**: Elimina recursos pero preserva Resource Groups
+
+**Ver cambios antes de aplicar (What-If)**:
+```bash
+cd infra
+az stack group create \
+  --name "undp-huella-latam-stack-dev" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --template-file "main.bicep" \
   --parameters "params/main.dev.bicepparam" \
-  --parameters dbPassword="dummy-password-for-testing"
+  --what-if
 ```
 
 ### Validar Sintaxis sin Deploy
