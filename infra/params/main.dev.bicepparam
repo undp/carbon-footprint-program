@@ -7,8 +7,8 @@ param storageSkuName = 'Standard_LRS'
 param keyVaultSkuName = 'standard'
 
 // Database
-param dbUser = 'pgadmin'
-param dbName = 'huella_latam_db'
+param dbUser = 'admin'
+param dbName = 'huella_latam'
 param dbSkuName = 'Standard_B1ms'
 param dbSkuTier = 'Burstable'
 param dbStorageSizeGB = 32 // Minimum allowed
