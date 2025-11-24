@@ -25,6 +25,7 @@ param dbPassword string
 param devGroupObjectId string = ''
 
 // --------- Key Vault ---------
+// We can create up to 1 key vault per deployment
 module keyVault 'modules/keyVault.bicep' = {
   name: 'keyVaultDeployment'
   params: {
