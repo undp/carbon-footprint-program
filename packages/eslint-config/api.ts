@@ -9,7 +9,7 @@ import type { Linter } from "eslint";
 export const apiConfig: Linter.Config[] = [
   ...baseConfig,
   {
-    files: ["**/*.{js,ts}"],
+    files: ["**/*.{js,cjs,mjs,ts,tsx,cts,mts}"],
     languageOptions: {
       parser: tseslint.parser,
       globals: {
