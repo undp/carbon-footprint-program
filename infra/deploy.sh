@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== [dev.sh] Dev deployment starting ==="
+echo "=== [deploy.sh] Dev deployment starting (ENV: $APP_ENV) ==="
 
 # 0) Ensure Azure CLI is logged in
 if ! az account show >/dev/null 2>&1; then
@@ -111,11 +111,11 @@ az stack group create \
   --verbose || deployment_result=$?
 
 if [ $deployment_result -ne 0 ]; then
-  echo "=== [dev.sh] Deployment Stack FAILED with exit code $deployment_result ==="
+  echo "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
   exit $deployment_result
 fi
 
-echo "=== [dev.sh] Deployment Stack completed successfully ==="
+echo "=== [deploy.sh] Deployment Stack completed successfully (ENV: $APP_ENV) ==="
 echo "Stack name: $STACK_NAME"
 echo ""
 echo "Useful commands:"
