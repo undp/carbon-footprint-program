@@ -12,9 +12,9 @@ export const config: Linter.Config[] = [
     ignores: ["dist/**", "build/**", "coverage/**", "node_modules/**"],
   },
   js.configs.recommended,
-  eslintConfigPrettier,
   ...tseslint.configs.recommended,
   ...tseslint.configs.recommendedTypeChecked,
+  eslintConfigPrettier,
   {
     plugins: {
       turbo: turboPlugin,
