@@ -27,7 +27,7 @@ param backupRetentionDays int
 param geoRedundantBackup string
 
 @description('Availability zone for the Postgres server (1, 2, or 3). Set to empty string for regions without zones.')
-param availabilityZone string = '1'
+param availabilityZone string = ''
 
 @description('Tags to apply to the PostgreSQL server')
 param tags object = {}
