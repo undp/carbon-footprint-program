@@ -52,6 +52,10 @@ resource existingKeyVault 'Microsoft.KeyVault/vaults@2025-05-01' existing = {
 // --------- Postgres ---------
 module postgres 'modules/postgres.bicep' = {
   name: 'postgresDeployment'
+  dependsOn: [
+    #disable-next-line no-unnecessary-dependson
+    keyVault
+  ]
   params: {
     location: location
     user: dbUser
