@@ -33,6 +33,7 @@ fi
 # 2) Check required non-sensitive variables
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
+: "${LOCATION:?LOCATION is required}"
 : "${APP_ENV:=dev}"
 
 echo "Subscription:     $AZURE_SUBSCRIPTION_ID"
