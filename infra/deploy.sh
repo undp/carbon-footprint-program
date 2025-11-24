@@ -9,6 +9,9 @@ if ! az account show >/dev/null 2>&1; then
   az login
 fi
 
+# Pre-flight: ensure required tools are available
+command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required but not found."; }
+
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -83,6 +86,10 @@ elif [ -n "$EXISTING_VAULT" ]; then
     DB_PASSWORD=""
   else
     echo "No existing password secret found. Generating new password..."
+    
+    # Pre-flight: ensure required tools are available
+    command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required but not found."; }
+
     DB_PASSWORD=$(openssl rand -base64 18)
     echo "New password generated"
   fi
