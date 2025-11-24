@@ -68,11 +68,7 @@ EXISTING_VAULT=$(az keyvault list \
 
 DB_PASSWORD=""
 
-# Check if user wants to force a specific password via environment variable
-if [ -n "${DB_PASSWORD_OVERRIDE:-}" ]; then
-  echo "DB_PASSWORD_OVERRIDE is set. Using provided password."
-  DB_PASSWORD="$DB_PASSWORD_OVERRIDE"
-elif [ -n "$EXISTING_VAULT" ]; then
+if [ -n "$EXISTING_VAULT" ]; then
   echo "Found existing Key Vault: $EXISTING_VAULT"
   
   # Check if secret exists (don't retrieve value, just check existence)
@@ -86,10 +82,6 @@ elif [ -n "$EXISTING_VAULT" ]; then
     DB_PASSWORD=""
   else
     echo "No existing password secret found. Generating new password..."
-    
-    # Pre-flight: ensure required tools are available
-    command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required but not found."; }
-
     DB_PASSWORD=$(openssl rand -base64 18)
     echo "New password generated"
   fi
