@@ -59,6 +59,12 @@ resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
 @description('Array of allowed IP ranges')
 param allowedIpRanges array
 
+@description('Collation of the database.')
+param collation string = 'es_ES.UTF8'
+
+@description('Character set of the database.')
+param charset string = 'UTF8'
+
 resource firewallRules 'Microsoft.DBforPostgreSQL/flexibleServers/firewallRules@2025-08-01' = [
   for (ipRange, i) in allowedIpRanges: {
     parent: psql
@@ -75,8 +81,8 @@ resource db 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-08-01' = {
   parent: psql
   name: dbName
   properties: {
-    charset: 'UTF8'
-    collation: 'es_ES.UTF8'
+    charset: charset
+    collation: collation
   }
 }
 
