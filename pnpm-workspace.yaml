@@ -8,3 +8,4 @@ catalogs:
     "@types/node": ^24.10.1
     zod: ^4.1.12
     tsx: ^4.20.6
+    vitest: ^4.0.13

@@ -32,6 +32,6 @@
     "dotenv": "catalog:shared",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared",
-    "vitest": "^4.0.13"
+    "vitest": "catalog:shared"
   }
 }
