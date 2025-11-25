@@ -12,12 +12,18 @@ catalogs:
     dotenv:
       specifier: ^17.2.3
       version: 17.2.3
+    pino:
+      specifier: ^10.1.0
+      version: 10.1.0
     tsx:
       specifier: ^4.20.6
       version: 4.20.6
     typescript:
       specifier: ^5.9.3
       version: 5.9.3
+    vitest:
+      specifier: ^4.0.13
+      version: 4.0.13
     zod:
       specifier: ^4.1.12
       version: 4.1.12
@@ -45,7 +51,7 @@ importers:
         specifier: ^5.6.2
         version: 5.6.2
       pino:
-        specifier: ^10.1.0
+        specifier: catalog:shared
         version: 10.1.0
       zod:
         specifier: catalog:shared
@@ -70,7 +76,7 @@ importers:
         specifier: catalog:shared
         version: 5.9.3
       vitest:
-        specifier: ^4.0.13
+        specifier: catalog:shared
         version: 4.0.13(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)
 
   apps/web:
@@ -96,6 +102,9 @@ importers:
       lucide-react:
         specifier: ^0.554.0
         version: 0.554.0(react@19.2.0)
+      pino:
+        specifier: catalog:shared
+        version: 10.1.0
       react:
         specifier: ^19.2.0
         version: 19.2.0
@@ -151,6 +160,9 @@ importers:
       vite:
         specifier: ^7.2.4
         version: 7.2.4(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)
+      vitest:
+        specifier: catalog:shared
+        version: 4.0.13(@types/node@24.10.1)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)
 
   packages/database:
     dependencies:
@@ -160,9 +172,6 @@ importers:
       pg:
         specifier: ^8.16.3
         version: 8.16.3
-      prisma:
-        specifier: ^7.0.0
-        version: 7.0.0(@types/react@19.2.6)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
     devDependencies:
       '@types/node':
         specifier: catalog:shared
@@ -170,6 +179,9 @@ importers:
       dotenv:
         specifier: catalog:shared
         version: 17.2.3
+      prisma:
+        specifier: ^7.0.0
+        version: 7.0.0(@types/react@19.2.6)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3)
       tsx:
         specifier: catalog:shared
         version: 4.20.6
