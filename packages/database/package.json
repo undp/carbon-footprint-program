@@ -2,18 +2,24 @@
   "name": "database",
   "version": "0.0.0",
   "description": "Database package for the Huella Latam project",
+  "private": true,
   "type": "module",
   "scripts": {
-    "db:generate": "prisma generate --no-engine",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:studio": "prisma studio"
+    "dev:generate": "prisma generate",
+    "dev:migrate": "prisma migrate dev",
+    "dev:studio": "prisma studio",
+    "dev:reset": "prisma migrate reset",
+    "prod:deploy": "prisma migrate deploy"
   },
   "devDependencies": {
-    "@types/node": "^24.10.1",
-    "dotenv": "^17.2.3",
-    "prisma": "catalog:prisma",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "@types/node": "catalog:shared",
+    "dotenv": "catalog:shared",
+    "tsx": "catalog:shared",
+    "typescript": "catalog:shared",
+    "prisma": "^7.0.0"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.0.0",
+    "pg": "^8.16.3"
   }
 }

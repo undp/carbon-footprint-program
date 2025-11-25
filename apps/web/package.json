@@ -1,17 +1,27 @@
 {
   "name": "web",
-  "private": true,
   "version": "0.0.0",
+  "description": "Web application for Huella Latam",
+  "private": true,
   "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
+    "test": "vitest",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "start": "vite preview",
+    "lint": "eslint .",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.10",
+    "@tanstack/react-router": "^1.139.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.554.0",
@@ -20,20 +30,22 @@
     "react-hook-form": "^7.66.1",
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "zod": "catalog:shared",
+    "pino": "catalog:shared"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@tanstack/react-router": "^1.136.8",
-    "@tanstack/react-router-devtools": "^1.136.8",
-    "@tanstack/router-plugin": "^1.136.8",
-    "@types/node": "^24.10.0",
-    "@types/react": "^19.2.2",
-    "@types/react-dom": "^19.2.2",
-    "@vitejs/plugin-react": "^5.1.0",
+    "@tanstack/react-router-devtools": "^1.139.3",
+    "@tanstack/router-plugin": "^1.139.3",
+    "@types/node": "catalog:shared",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.1",
     "tw-animate-css": "^1.4.0",
-    "vite": "^7.2.2",
-    "zod": "^4.1.12"
+    "vitest": "catalog:shared",
+    "typescript": "catalog:shared",
+    "vite": "^7.2.4"
   }
 }

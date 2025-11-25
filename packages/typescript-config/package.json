@@ -1,10 +1,11 @@
 {
   "name": "@repo/typescript-config",
   "version": "0.0.0",
+  "description": "Shared TypeScript configuration for the repository",
   "private": true,
   "license": "MIT",
   "devDependencies": {
-    "typescript": "^5.9.2"
+    "typescript": "catalog:shared"
   },
   "publishConfig": {
     "access": "public"

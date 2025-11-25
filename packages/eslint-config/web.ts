@@ -1,19 +1,29 @@
-import { config as baseConfig } from "./base.js";
+import { config as baseConfig } from "./base.ts";
 import reactPlugin from "eslint-plugin-react";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
-import tanstackRouterPlugin from "eslint-plugin-tanstack-router";
+import pluginRouter from "@tanstack/eslint-plugin-router";
+import pluginQuery from "@tanstack/eslint-plugin-query";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import globals from "globals";
+import tseslint from "typescript-eslint";
+import type { Linter } from "eslint";
 
 /**
- * ESLint configuration for Vite projects with React and TypeScript.
- *
- * @type {import("eslint").Linter.Config[]}
+ * ESLint configuration for web projects with React and TypeScript.
  */
-export const viteJsConfig = [
+export const webConfig: Linter.Config[] = [
   ...baseConfig,
+  ...pluginRouter.configs["flat/recommended"],
+  ...pluginQuery.configs["flat/recommended"],
+  {
+    ignores: ["**/*.gen.ts"],
+  },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
+    ...jsxA11y.flatConfigs.recommended,
     languageOptions: {
+      ...jsxA11y.flatConfigs.recommended.languageOptions,
+      parser: tseslint.parser,
       globals: {
         ...globals.browser,
         ...globals.node,
@@ -24,12 +34,14 @@ export const viteJsConfig = [
         ecmaFeatures: {
           jsx: true,
         },
+        projectService: true,
       },
     },
     plugins: {
       react: reactPlugin,
-      "react-hooks": reactHooksPlugin,
-      "tanstack-router": tanstackRouterPlugin,
+      "react-hooks": {
+        rules: reactHooksPlugin.rules,
+      },
     },
     settings: {
       react: {
@@ -42,7 +54,5 @@ export const viteJsConfig = [
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
     },
-    globalIgnores: ["**/*.gen.ts"],
   },
 ];
-

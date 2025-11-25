@@ -2,27 +2,24 @@
   "name": "@repo/eslint-config",
   "version": "0.0.0",
   "description": "Shared ESLint configuration for the repository",
+  "private": true,
   "type": "module",
   "exports": {
-    "./base": "./base.js",
-    "./vite-js": "./vite.js",
-    "./api": "./api.js"
+    "./web": "./web.ts",
+    "./api": "./api.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
-    "@next/eslint-plugin-next": "^15.5.0",
     "@tanstack/eslint-plugin-query": "^5.91.2",
-    "@typescript-eslint/eslint-plugin": "^8.47.0",
-    "@typescript-eslint/parser": "^8.47.0",
+    "@tanstack/eslint-plugin-router": "^1.139.0",
     "eslint": "^9.39.1",
-    "eslint-config-prettier": "^10.1.1",
-    "eslint-plugin-import": "^2.32.0",
-    "eslint-plugin-only-warn": "^1.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-jsx-a11y": "^6.10.2",
     "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "eslint-plugin-turbo": "^2.6.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-turbo": "^2.6.1",
     "globals": "^16.5.0",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.46.3"
+    "typescript": "catalog:shared",
+    "typescript-eslint": "^8.47.0"
   }
 }

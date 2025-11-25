@@ -2,5 +2,11 @@ packages:
   - "apps/*"
   - "packages/*"
 catalogs:
-  prisma:
-    prisma: latest
+  shared:
+    dotenv: ^17.2.3
+    pino: ^10.1.0
+    typescript: ^5.9.3
+    "@types/node": ^24.10.1
+    tsx: ^4.20.6
+    zod: ^4.1.12
+    vitest: ^4.0.13
