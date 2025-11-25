@@ -81,6 +81,7 @@ if [ -n "$EXISTING_VAULT" ]; then
   
   if [ -n "$SECRET_EXISTS" ]; then
     echo "Password secret already exists. Skipping password generation (will not overwrite)."
+    # Pass empty string to Bicep so it skips secret creation and preserves existing
     DB_PASSWORD=""
   else
     echo "No existing password secret found. Generating new password..."
