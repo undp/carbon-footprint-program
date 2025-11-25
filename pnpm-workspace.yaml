@@ -2,8 +2,6 @@ packages:
   - "apps/*"
   - "packages/*"
 catalogs:
-  prisma:
-    prisma: ^7.0.0
   shared:
     dotenv: ^17.2.3
     typescript: ^5.9.3
