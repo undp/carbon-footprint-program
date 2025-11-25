@@ -477,7 +477,7 @@ az postgres flexible-server update \
   --admin-password "$NEW_PASSWORD"
 ```
 
-**Importante**: 
+**Importante**:
 
 - La contraseña se preserva automáticamente entre deployments
 - No necesitas regenerar la contraseña en cada deployment
@@ -527,6 +527,7 @@ param availabilityZone = '1'
 ```
 
 **Importante**:
+
 - ⚠️ No todas las regiones de Azure soportan zonas de disponibilidad
 - Regiones con zonas: East US, West Europe, Southeast Asia, etc.
 - Regiones sin zonas: Central India, Brazil South (algunas), etc.
