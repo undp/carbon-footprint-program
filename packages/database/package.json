@@ -5,21 +5,21 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:deploy": "prisma migrate deploy",
-    "db:studio": "prisma studio",
-    "db:reset": "prisma migrate reset"
+    "dev:generate": "prisma generate",
+    "dev:migrate": "prisma migrate dev",
+    "dev:studio": "prisma studio",
+    "dev:reset": "prisma migrate reset",
+    "prod:deploy": "prisma migrate deploy"
   },
   "devDependencies": {
     "@types/node": "catalog:shared",
     "dotenv": "catalog:shared",
     "tsx": "catalog:shared",
-    "typescript": "catalog:shared"
+    "typescript": "catalog:shared",
+    "prisma": "^7.0.0"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.0",
-    "pg": "^8.16.3",
-    "prisma": "^7.0.0"
+    "pg": "^8.16.3"
   }
 }

@@ -6,7 +6,7 @@ Paquete de base de datos para el proyecto Huella Latam utilizando Prisma ORM con
 
 - [Requisitos Previos](#requisitos-previos)
 - [Configuración Inicial](#configuración-inicial)
-- [Base de Datos Dummy](#base-de-datos-dummy)
+- [Base de Datos para Pruebas](#base-de-datos-para-pruebas)
 - [Uso de Prisma](#uso-de-prisma)
 - [Scripts Disponibles](#scripts-disponibles)
 - [Ejemplos de Uso](#ejemplos-de-uso)
@@ -14,7 +14,7 @@ Paquete de base de datos para el proyecto Huella Latam utilizando Prisma ORM con
 
 ## 🔧 Requisitos Previos
 
-- Node.js (versión 18 o superior)
+- Node.js (versión 24 o superior)
 - Docker y Docker Compose
 - pnpm
 
@@ -34,19 +34,19 @@ Crea un archivo `.env` en la raíz del paquete `database` con la siguiente confi
 DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb?schema=public"
 ```
 
-Esta URL de conexión corresponde a la base de datos dummy configurada en `docker-compose.yml`.
+Esta URL de conexión corresponde a la base de datos para pruebas configurada en `docker-compose.yml`.
 
 ### 3. Iniciar la Base de Datos
 
 ⚠️ **Importante**: Antes de ejecutar comandos de Prisma que interactúan con la base de datos (como migraciones), debes tener la base de datos corriendo.
 
-## 🐳 Base de Datos Dummy
+## 🐳 Base de Datos para Pruebas
 
-Este paquete incluye una configuración de Docker Compose para ejecutar una base de datos PostgreSQL de desarrollo local.
+Este paquete incluye una configuración de Docker Compose para ejecutar una base de datos PostgreSQL de desarrollo local para pruebas.
 
 ### Iniciar la Base de Datos
 
-⚠️ **Requisito previo**: La base de datos debe estar corriendo antes de ejecutar comandos como `db:migrate`, `db:deploy`, `db:reset` o `db:studio`.
+⚠️ **Requisito previo**: La base de datos debe estar corriendo antes de ejecutar comandos como `dev:migrate`, `dev:reset` o `dev:studio`.
 
 ```bash
 docker-compose up -d
@@ -88,7 +88,7 @@ Deberías ver un contenedor llamado `undp-postgres` en ejecución.
 Después de hacer cambios en el schema, genera el cliente de Prisma:
 
 ```bash
-pnpm run db:generate
+pnpm run dev:generate
 ```
 
 Este comando lee el archivo `prisma/schema.prisma` y genera el cliente TypeScript tipado en `generated/client/`.
@@ -102,7 +102,7 @@ Este comando lee el archivo `prisma/schema.prisma` y genera el cliente TypeScrip
 Para crear una nueva migración basada en los cambios del schema:
 
 ```bash
-pnpm run db:migrate
+pnpm run dev:migrate
 ```
 
 Este comando:
@@ -111,47 +111,36 @@ Este comando:
 - Aplica la migración a la base de datos
 - Regenera el cliente de Prisma
 
-### 3. Aplicar Migraciones en Producción
-
-⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
-
-Para aplicar migraciones pendientes sin crear nuevas (útil en producción):
-
-```bash
-pnpm run db:deploy
-```
-
-### 4. Resetear la Base de Datos
+### 3. Resetear la Base de Datos
 
 ⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
 
 ⚠️ **Cuidado**: Esto eliminará todos los datos y volverá a aplicar todas las migraciones.
 
 ```bash
-pnpm run db:reset
+pnpm run dev:reset
 ```
 
-### 5. Abrir Prisma Studio
+### 4. Abrir Prisma Studio
 
 ⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
 
 Prisma Studio es una interfaz visual para explorar y editar datos:
 
 ```bash
-pnpm run db:studio
+pnpm run dev:studio
 ```
 
 Esto abrirá una interfaz web en `http://localhost:5555` donde podrás ver y editar los datos de tu base de datos.
 
 ## 📝 Scripts Disponibles
 
-| Script        | Descripción                                             | Requiere BD |
-| ------------- | ------------------------------------------------------- | ----------- |
-| `db:generate` | Genera el cliente de Prisma desde el schema             | ❌ No       |
-| `db:migrate`  | Crea y aplica una nueva migración                       | ✅ Sí       |
-| `db:deploy`   | Aplica migraciones pendientes (producción)              | ✅ Sí       |
-| `db:studio`   | Abre Prisma Studio para gestión visual                  | ✅ Sí       |
-| `db:reset`    | Resetea la base de datos y aplica todas las migraciones | ✅ Sí       |
+| Script         | Descripción                                             | Requiere BD |
+| -------------- | ------------------------------------------------------- | ----------- |
+| `dev:generate` | Genera el cliente de Prisma desde el schema             | ❌ No       |
+| `dev:migrate`  | Crea y aplica una nueva migración                       | ✅ Sí       |
+| `dev:studio`   | Abre Prisma Studio para gestión visual                  | ✅ Sí       |
+| `dev:reset`    | Resetea la base de datos y aplica todas las migraciones | ✅ Sí       |
 
 ## 💻 Ejemplos de Uso
 
