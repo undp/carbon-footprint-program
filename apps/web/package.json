@@ -31,7 +31,8 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.17",
     "zustand": "^5.0.8",
-    "zod": "catalog:shared"
+    "zod": "catalog:shared",
+    "pino": "catalog:shared"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
