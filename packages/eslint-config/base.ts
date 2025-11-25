@@ -16,6 +16,13 @@ export const config: Linter.Config[] = [
   ...tseslint.configs.recommendedTypeChecked,
   eslintConfigPrettier,
   {
+    settings: {
+      ts: {
+        allowDefaultProject: true,
+      },
+    },
+  },
+  {
     plugins: {
       turbo: turboPlugin,
     },
