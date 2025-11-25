@@ -36,6 +36,7 @@ fi
 # 2) Check required non-sensitive variables
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
+: "${AZURE_SUBSCRIPTION_GROUP:?AZURE_SUBSCRIPTION_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
 : "${DEVELOPER_NAME:?DEVELOPER_NAME is required}"
 : "${APP_ENV:=dev}"
