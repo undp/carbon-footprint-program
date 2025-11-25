@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== [deploy.sh] Dev deployment starting (ENV: $APP_ENV) ==="
+echo "=== [deploy.sh] Deployment starting ==="
 
 # 0) Ensure Azure CLI is logged in
 if ! az account show >/dev/null 2>&1; then
@@ -39,7 +39,7 @@ fi
 : "${AZURE_SUBSCRIPTION_GROUP:?AZURE_SUBSCRIPTION_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
 : "${DEVELOPER_NAME:?DEVELOPER_NAME is required}"
-: "${APP_ENV:=dev}"
+: "${APP_ENV:?APP_ENV is required}"
 
 echo "Environment:      $APP_ENV"
 echo "Subscription:     $AZURE_SUBSCRIPTION_ID"
