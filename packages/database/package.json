@@ -1,5 +1,5 @@
 {
-  "name": "database",
+  "name": "@repo/database",
   "version": "0.0.0",
   "description": "Database package for the Huella Latam project",
   "private": true,
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.0",
+    "@prisma/client": "^7.0.0",
     "pg": "^8.16.3"
   }
 }
