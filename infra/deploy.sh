@@ -148,7 +148,7 @@ echo "  - Key Vault:       Created/Updated"
 echo "  - Storage Account: Created/Updated"
 echo "  - PostgreSQL DB:   Created/Updated"
 echo "  - Static Web App:  Ready for content deployment"
-if [ -n "$(az deployment group show --resource-group "$AZURE_RESOURCE_GROUP" --name main --query properties.outputs.frontDoorEndpoint.value -o tsv 2>/dev/null || echo '')" ]; then
+if [ -n "$(az stack group show --name "$STACK_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query outputs.frontDoorEndpoint.value -o tsv 2>/dev/null || echo '')" ]; then
 echo "  - Front Door:      Configured"
 fi
 echo ""
