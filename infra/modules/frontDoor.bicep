@@ -19,6 +19,37 @@ param tags object = {}
 
 // Generate unique Front Door profile name
 var frontDoorProfileName = 'fd-${uniqueString(resourceGroup().id)}'
+var wafPolicyName = 'waf-${uniqueString(resourceGroup().id)}'
+
+// WAF Policy for Front Door
+resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2025-10-01' = {
+  name: wafPolicyName
+  location: 'Global'
+  tags: tags
+  sku: {
+    name: skuName
+  }
+  properties: {
+    policySettings: {
+      enabledState: 'Enabled'
+      mode: 'Prevention'
+      requestBodyCheck: 'Enabled'
+    }
+    managedRules: {
+      managedRuleSets: [
+        {
+          ruleSetType: 'Microsoft_DefaultRuleSet'
+          ruleSetVersion: '2.1'
+          ruleSetAction: 'Block'
+        }
+        {
+          ruleSetType: 'Microsoft_BotManagerRuleSet'
+          ruleSetVersion: '1.0'
+        }
+      ]
+    }
+  }
+}
 
 // Front Door Profile
 resource frontDoorProfile 'Microsoft.Cdn/profiles@2024-02-01' = {
@@ -115,6 +146,32 @@ resource customDomain 'Microsoft.Cdn/profiles/customDomains@2024-02-01' = if (cu
     tlsSettings: {
       certificateType: 'ManagedCertificate'
       minimumTlsVersion: 'TLS12'
+    }
+  }
+}
+
+// Security Policy - Associates WAF with endpoints
+resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2025-06-01' = {
+  parent: frontDoorProfile
+  name: 'security-policy'
+  properties: {
+    parameters: {
+      type: 'WebApplicationFirewall'
+      wafPolicy: {
+        id: wafPolicy.id
+      }
+      associations: [
+        {
+          domains: [
+            {
+              id: frontDoorEndpoint.id
+            }
+          ]
+          patternsToMatch: [
+            '/*'
+          ]
+        }
+      ]
     }
   }
 }
