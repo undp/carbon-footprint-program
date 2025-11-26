@@ -68,9 +68,6 @@ param staticWebAppProvider string = 'GitHub'
 @description('Enable enterprise-grade CDN built into Static Web App (requires Standard SKU)')
 param staticWebAppEnterpriseCdn bool = false
 
-@description('Custom domain for Static Web App (used only when Front Door is disabled)')
-param staticWebAppCustomDomain string = ''
-
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -151,7 +148,6 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
     allowConfigUpdates: staticWebAppAllowConfigUpdates
     provider: staticWebAppProvider
     enterpriseCdn: staticWebAppEnterpriseCdn
-    customDomain: enableFrontDoor ? '' : staticWebAppCustomDomain
     tags: tags
   }
 }

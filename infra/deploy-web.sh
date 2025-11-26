@@ -170,23 +170,6 @@ if [ -n "$FRONTDOOR_ENDPOINT" ]; then
   echo ""
   echo -e "${YELLOW}💡 Tip: The Front Door URL provides global CDN, better performance,"
   echo -e "   and additional security features.${NC}"
-elif [ -n "${STATIC_WEB_APP_CUSTOM_DOMAIN:-}" ]; then
-  echo ""
-  echo -e "${YELLOW}📝 Custom Domain Setup Required:${NC}"
-  echo -e "   To use ${BLUE}$STATIC_WEB_APP_CUSTOM_DOMAIN${NC}, run:"
-  echo ""
-  echo "   az staticwebapp hostname set \\"
-  echo "     --name $SWA_NAME \\"
-  echo "     --resource-group $AZURE_RESOURCE_GROUP \\"
-  echo "     --hostname $STATIC_WEB_APP_CUSTOM_DOMAIN"
-  echo ""
-  echo -e "   Then configure DNS CNAME:"
-  echo -e "   ${BLUE}$STATIC_WEB_APP_CUSTOM_DOMAIN${NC} → ${BLUE}$SWA_HOSTNAME${NC}"
-  echo ""
-  if [ -n "$CUSTOM_DOMAIN" ]; then
-    echo -e "   ${GREEN}✓ Custom domain already configured: https://$CUSTOM_DOMAIN${NC}"
-    echo ""
-  fi
 fi
 
 echo ""

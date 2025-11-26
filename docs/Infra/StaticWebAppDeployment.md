@@ -248,17 +248,16 @@ az afd custom-domain create \
 
 ### Configuración Automática vía Parámetros
 
-Puedes pre-configurar el dominio en `.envrc`:
+Puedes pre-configurar el dominio personalizado para Front Door en `.envrc`:
 
 ```bash
-# Para Static Web App sin Front Door
-export STATIC_WEB_APP_CUSTOM_DOMAIN='app.tudominio.com'
-
 # Para Front Door
 export FRONT_DOOR_CUSTOM_DOMAIN='app.tudominio.com'
 ```
 
 Luego ejecuta `./deploy.sh` y el dominio se configurará automáticamente.
+
+**Nota**: Para dominios personalizados en Static Web App (sin Front Door), debes configurarlos manualmente usando `az staticwebapp hostname set` después del despliegue.
 
 ## Variables de Entorno
 

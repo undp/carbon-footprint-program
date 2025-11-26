@@ -118,11 +118,6 @@ if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
   DEPLOY_PARAMS+=(--parameters frontDoorCustomDomain="$FRONT_DOOR_CUSTOM_DOMAIN")
 fi
 
-if [ -n "${STATIC_WEB_APP_CUSTOM_DOMAIN:-}" ]; then
-  echo "Using custom Static Web App domain: $STATIC_WEB_APP_CUSTOM_DOMAIN"
-  DEPLOY_PARAMS+=(--parameters staticWebAppCustomDomain="$STATIC_WEB_APP_CUSTOM_DOMAIN")
-fi
-
 deployment_result=0
 
 az stack group create \

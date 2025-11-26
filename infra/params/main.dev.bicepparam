@@ -74,15 +74,6 @@ param staticWebAppProvider = 'Custom'
 // Recommendation: Keep false and use standalone Front Door for better control
 param staticWebAppEnterpriseCdn = false
 
-// Custom domain for Static Web App (only used when Front Door is disabled)
-// - Leave empty ('') to use default Azure domain: https://swa-xyz.azurestaticapps.net
-// - Example: 'luis.huellalatam.org' or 'app.yourdomain.com'
-// - Azure provisions SSL certificate automatically
-// - You must configure DNS CNAME record pointing to Static Web App default hostname
-// - Note: If Front Door is enabled, use frontDoorCustomDomain instead
-// - Can be set via environment variable: STATIC_WEB_APP_CUSTOM_DOMAIN
-param staticWebAppCustomDomain = ''
-
 // ============================================
 // Front Door Configuration (Global CDN)
 // ============================================

@@ -26,9 +26,6 @@ param provider string = 'Custom'
 @description('Enable enterprise-grade CDN built into Static Web App (requires Standard SKU)')
 param enterpriseCdn bool = false
 
-@description('Custom domain for Static Web App (optional)')
-param customDomain string = ''
-
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -69,9 +66,6 @@ output name string = staticWebApp.name
 
 @description('Default hostname of the Static Web App')
 output defaultHostname string = staticWebApp.properties.defaultHostname
-
-@description('Custom domain configured (empty if none)')
-output customDomain string = customDomain
 
 @description('Deployment token for CI/CD (sensitive)')
 @secure()
