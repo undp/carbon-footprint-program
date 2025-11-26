@@ -99,16 +99,34 @@ echo "Running Bicep deployment using Deployment Stack..."
 
 STACK_NAME="undp-huella-latam-stack-$APP_ENV"
 
+echo "═══════════════════════════════════════════════════════════════"
+
+# Build parameters array
+DEPLOY_PARAMS=(
+  --name "$STACK_NAME"
+  --resource-group "$AZURE_RESOURCE_GROUP"
+  --template-file "$SCRIPT_DIR/main.bicep"
+  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam"
+  --parameters dbPassword="$DB_PASSWORD"
+  --parameters devGroupObjectId="$DEVS_GROUP_ID"
+  --parameters developerName="$DEVELOPER_NAME"
+)
+
+# Add optional parameters only if set
+if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
+  echo "Using custom Front Door domain: $FRONT_DOOR_CUSTOM_DOMAIN"
+  DEPLOY_PARAMS+=(--parameters frontDoorCustomDomain="$FRONT_DOOR_CUSTOM_DOMAIN")
+fi
+
+if [ -n "${STATIC_WEB_APP_CUSTOM_DOMAIN:-}" ]; then
+  echo "Using custom Static Web App domain: $STATIC_WEB_APP_CUSTOM_DOMAIN"
+  DEPLOY_PARAMS+=(--parameters staticWebAppCustomDomain="$STATIC_WEB_APP_CUSTOM_DOMAIN")
+fi
+
 deployment_result=0
 
 az stack group create \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --template-file "$SCRIPT_DIR/main.bicep" \
-  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam" \
-  --parameters dbPassword="$DB_PASSWORD" \
-  --parameters devGroupObjectId="$DEVS_GROUP_ID" \
-  --parameters developerName="$DEVELOPER_NAME" \
+  "${DEPLOY_PARAMS[@]}" \
   --deny-settings-mode "none" \
   --action-on-unmanage "detachAll" \
   --yes \
@@ -119,10 +137,38 @@ if [ $deployment_result -ne 0 ]; then
   exit $deployment_result
 fi
 
-echo "=== [deploy.sh] Deployment Stack completed successfully (ENV: $APP_ENV) ==="
-echo "Stack name: $STACK_NAME"
 echo ""
-echo "Useful commands:"
+echo "═══════════════════════════════════════════════════════════════"
+echo "✓ Infrastructure deployment completed successfully!"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "📦 Deployed Resources:"
+echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
+echo "  - Key Vault:       Created/Updated"
+echo "  - Storage Account: Created/Updated"
+echo "  - PostgreSQL DB:   Created/Updated"
+echo "  - Static Web App:  Ready for content deployment"
+if [ -n "$(az deployment group show --resource-group "$AZURE_RESOURCE_GROUP" --name main --query properties.outputs.frontDoorEndpoint.value -o tsv 2>/dev/null || echo '')" ]; then
+echo "  - Front Door:      Configured"
+fi
+echo ""
+echo "═══════════════════════════════════════════════════════════════"
+echo "📋 NEXT STEP: Deploy your web application"
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "The infrastructure is ready. Now deploy your frontend:"
+echo ""
+echo "  cd infra"
+echo "  ./deploy-web.sh"
+echo ""
+echo "This will:"
+echo "  1. Build your React/Vite application"
+echo "  2. Upload the build to Azure Static Web Apps"
+echo "  3. Make your app live on the internet"
+echo ""
+echo "═══════════════════════════════════════════════════════════════"
+echo ""
+echo "📚 Useful commands:"
 echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
 echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
 echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
