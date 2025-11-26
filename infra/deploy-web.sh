@@ -191,12 +191,13 @@ echo ""
 log "${YELLOW}[3/6] Building web app...${NC}"
 if [ "$DRY_RUN" = "true" ]; then
   log "${CYAN}[DRY RUN] Would execute: cd $WEB_APP_DIR${NC}"
-  log "${CYAN}[DRY RUN] Would execute: pnpm install${NC}"
+  log "${CYAN}[DRY RUN] Would execute: pnpm install --frozen-lockfile --prefer-offline${NC}"
   log "${CYAN}[DRY RUN] Would execute: pnpm build${NC}"
   log "${CYAN}[DRY RUN] Would execute: cd $SCRIPT_DIR${NC}"
 else
   cd "$WEB_APP_DIR"
-  pnpm install
+  # Use frozen lockfile for consistent builds and prefer offline cache for speed
+  pnpm install --frozen-lockfile --prefer-offline
   pnpm build
   cd "$SCRIPT_DIR"
 fi
@@ -211,8 +212,16 @@ if ! command -v swa &> /dev/null; then
   if [ "$DRY_RUN" = "true" ]; then
     log "${CYAN}[DRY RUN] Would execute: npm install -g @azure/static-web-apps-cli${NC}"
   else
-    npm install -g @azure/static-web-apps-cli
+    # Try global install, fall back to npx if permissions fail
+    if ! npm install -g @azure/static-web-apps-cli 2>/dev/null; then
+      log "${YELLOW}   → Global install failed (permissions?), will use npx instead${NC}"
+      SWA_CMD="npx --yes @azure/static-web-apps-cli@latest"
+    else
+      SWA_CMD="swa"
+    fi
   fi
+else
+  SWA_CMD="swa"
 fi
 log "${GREEN}   ✓ SWA CLI ready${NC}"
 echo ""
@@ -220,9 +229,12 @@ echo ""
 # Deploy using SWA CLI
 log "${YELLOW}[5/6] Deploying to Static Web App...${NC}"
 
+# Use swa command if not set (fallback from earlier check)
+SWA_CMD=${SWA_CMD:-"swa"}
+
 if [ "$DRY_RUN" = "true" ]; then
   log "${CYAN}[DRY RUN] Would execute: cd $WEB_APP_DIR${NC}"
-  log "${CYAN}[DRY RUN] Would execute: swa deploy \\${NC}"
+  log "${CYAN}[DRY RUN] Would execute: $SWA_CMD deploy \\${NC}"
   log "${CYAN}[DRY RUN]   --deployment-token [REDACTED] \\${NC}"
   log "${CYAN}[DRY RUN]   --app-location . \\${NC}"
   log "${CYAN}[DRY RUN]   --output-location $OUTPUT_LOCATION \\${NC}"
@@ -234,7 +246,7 @@ else
   # Deploy to production environment from web app directory
   cd "$WEB_APP_DIR"
   deployment_result=0
-  swa deploy \
+  $SWA_CMD deploy \
     --deployment-token "$DEPLOYMENT_TOKEN" \
     --app-location . \
     --output-location "$OUTPUT_LOCATION" \
