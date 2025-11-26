@@ -104,9 +104,11 @@ echo -e "${GREEN}Starting Web Application Deployment${NC}"
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo ""
 
-# Get the Static Web App name from the deployment
+# Get the Static Web App details from the deployment
 echo -e "${YELLOW}[1/5] Fetching Static Web App details...${NC}"
 STACK_NAME="undp-huella-latam-stack-$APP_ENV"
+
+# Get Static Web App name
 SWA_NAME=$(az stack group show \
   --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
@@ -118,7 +120,26 @@ if [ -z "$SWA_NAME" ]; then
   exit 1
 fi
 
+# Get app and output locations from deployment (to match infrastructure config)
+APP_LOCATION=$(az staticwebapp show \
+  --name "$SWA_NAME" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query properties.buildProperties.appLocation \
+  --output tsv)
+
+OUTPUT_LOCATION=$(az staticwebapp show \
+  --name "$SWA_NAME" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query properties.buildProperties.outputLocation \
+  --output tsv)
+
+# Fallback to defaults if not set
+APP_LOCATION=${APP_LOCATION:-'/apps/web'}
+OUTPUT_LOCATION=${OUTPUT_LOCATION:-'dist'}
+
 echo -e "${GREEN}   ✓ Found: $SWA_NAME${NC}"
+echo -e "${GREEN}   ✓ App location: $APP_LOCATION${NC}"
+echo -e "${GREEN}   ✓ Output location: $OUTPUT_LOCATION${NC}"
 echo ""
 
 # Get deployment token
@@ -164,7 +185,7 @@ cd "$WEB_APP_DIR"
 swa deploy \
   --deployment-token "$DEPLOYMENT_TOKEN" \
   --app-location . \
-  --output-location dist \
+  --output-location "$OUTPUT_LOCATION" \
   --env production \
   --no-use-keychain
 cd "$SCRIPT_DIR"
