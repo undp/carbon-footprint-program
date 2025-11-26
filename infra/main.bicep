@@ -68,6 +68,12 @@ param staticWebAppProvider string = 'GitHub'
 @description('Enable enterprise-grade CDN built into Static Web App (requires Standard SKU)')
 param staticWebAppEnterpriseCdn bool = false
 
+@description('Application location relative to repository root')
+param staticWebAppAppLocation string = '/apps/web'
+
+@description('Build output location relative to app location')
+param staticWebAppOutputLocation string = 'dist'
+
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -148,6 +154,8 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
     allowConfigUpdates: staticWebAppAllowConfigUpdates
     provider: staticWebAppProvider
     enterpriseCdn: staticWebAppEnterpriseCdn
+    appLocation: staticWebAppAppLocation
+    outputLocation: staticWebAppOutputLocation
     tags: tags
   }
 }

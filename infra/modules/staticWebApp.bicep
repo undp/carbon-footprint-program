@@ -26,6 +26,12 @@ param provider string = 'Custom'
 @description('Enable enterprise-grade CDN built into Static Web App (requires Standard SKU)')
 param enterpriseCdn bool = false
 
+@description('Application location relative to repository root')
+param appLocation string = '/apps/web'
+
+@description('Build output location relative to app location')
+param outputLocation string = 'dist'
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -44,8 +50,8 @@ resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
   properties: union(
     {
       buildProperties: {
-        appLocation: '/apps/web'
-        outputLocation: 'dist'
+        appLocation: appLocation
+        outputLocation: outputLocation
       }
       stagingEnvironmentPolicy: stagingEnabled ? 'Enabled' : 'Disabled'
       allowConfigFileUpdates: allowConfigUpdates

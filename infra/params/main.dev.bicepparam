@@ -74,6 +74,17 @@ param staticWebAppProvider = 'Custom'
 // Recommendation: Keep false and use standalone Front Door for better control
 param staticWebAppEnterpriseCdn = false
 
+// Application location relative to repository root
+// - For monorepo: specify path like '/apps/web' or '/packages/frontend'
+// - For single app: use '/' for root directory
+param staticWebAppAppLocation = '/apps/web'
+
+// Build output location relative to app location
+// - Vite default: 'dist'
+// - Create React App: 'build'
+// - Next.js: 'out' (for static export)
+param staticWebAppOutputLocation = 'dist'
+
 // ============================================
 // Front Door Configuration (Global CDN)
 // ============================================
