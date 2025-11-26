@@ -141,6 +141,7 @@ module postgres 'modules/postgres.bicep' = {
 
 // --------- Static Web App ---------
 module staticWebApp 'modules/staticWebApp.bicep' = {
+  name: 'staticWebAppDeployment'
   params: {
     location: location
     skuName: staticWebAppSkuName
@@ -157,6 +158,7 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
 
 // --------- Azure Front Door ---------
 module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
+  name: 'frontDoorDeployment'
   params: {
     skuName: frontDoorSkuName
     originHostname: staticWebApp.outputs.defaultHostname
