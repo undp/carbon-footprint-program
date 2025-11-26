@@ -46,6 +46,41 @@ param availabilityZone string = ''
 @description('Developer name for resource naming')
 param developerName string
 
+// --------- Static Web App parameters ---------
+@description('SKU tier for Azure Static Web Apps (Free or Standard)')
+param staticWebAppSkuName string
+
+@description('Repository URL for automatic CI/CD deployment (leave empty for manual deployment)')
+param staticWebAppRepositoryUrl string = ''
+
+@description('Git branch that triggers automatic deployment')
+param staticWebAppBranch string = 'main'
+
+@description('Enable preview environments for Pull Requests')
+param staticWebAppStagingEnabled bool = true
+
+@description('Allow Azure to update staticwebapp.config.json automatically')
+param staticWebAppAllowConfigUpdates bool = true
+
+@description('Git provider type (GitHub, GitLab, Bitbucket, or Custom for manual deployment)')
+param staticWebAppProvider string = 'GitHub'
+
+@description('Enable enterprise-grade CDN built into Static Web App (requires Standard SKU)')
+param staticWebAppEnterpriseCdn bool = false
+
+@description('Custom domain for Static Web App (used only when Front Door is disabled)')
+param staticWebAppCustomDomain string = ''
+
+// --------- Front Door parameters ---------
+@description('Enable Azure Front Door')
+param enableFrontDoor bool = false
+
+@description('SKU for Azure Front Door')
+param frontDoorSkuName string
+
+@description('Custom domain name for Front Door (optional)')
+param frontDoorCustomDomain string = ''
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: developerName
@@ -103,3 +138,48 @@ module postgres 'modules/postgres.bicep' = {
     availabilityZone: availabilityZone
   }
 }
+
+// --------- Static Web App ---------
+module staticWebApp 'modules/staticWebApp.bicep' = {
+  params: {
+    location: location
+    skuName: staticWebAppSkuName
+    repositoryUrl: staticWebAppRepositoryUrl
+    branch: staticWebAppBranch
+    stagingEnabled: staticWebAppStagingEnabled
+    allowConfigUpdates: staticWebAppAllowConfigUpdates
+    provider: staticWebAppProvider
+    enterpriseCdn: staticWebAppEnterpriseCdn
+    customDomain: enableFrontDoor ? '' : staticWebAppCustomDomain
+    tags: tags
+  }
+}
+
+// --------- Azure Front Door ---------
+module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
+  params: {
+    skuName: frontDoorSkuName
+    originHostname: staticWebApp.outputs.defaultHostname
+    customDomainName: frontDoorCustomDomain
+    tags: tags
+  }
+}
+
+// --------- Outputs ---------
+@description('Static Web App default hostname')
+output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
+
+@description('Static Web App name')
+output staticWebAppName string = staticWebApp.outputs.name
+
+@description('Front Door endpoint hostname')
+output frontDoorEndpoint string = enableFrontDoor ? frontDoor.?outputs.endpointHostname ?? '' : ''
+
+@description('Key Vault name')
+output keyVaultName string = keyVault.outputs.name
+
+@description('Postgres server name')
+output postgresServerName string = postgres.outputs.serverNameOut
+
+@description('Storage account name')
+output storageAccountName string = storage.outputs.name
