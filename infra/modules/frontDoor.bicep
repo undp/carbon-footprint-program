@@ -107,12 +107,128 @@ resource origin 'Microsoft.Cdn/profiles/originGroups/origins@2024-02-01' = {
   }
 }
 
-// Route
+// Rule Set for cache optimization
+resource ruleSet 'Microsoft.Cdn/profiles/ruleSets@2024-02-01' = {
+  parent: frontDoorProfile
+  name: 'cacheRules'
+}
+
+// Rule 1: Long cache for static assets (/assets/* from Vite)
+resource staticAssetsRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
+  parent: ruleSet
+  name: 'StaticAssetsCache'
+  properties: {
+    order: 1
+    conditions: [
+      {
+        name: 'UrlPath'
+        parameters: {
+          typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
+          operator: 'BeginsWith'
+          matchValues: [
+            '/assets/'
+          ]
+          negateCondition: false
+          transforms: []
+        }
+      }
+    ]
+    actions: [
+      {
+        name: 'CacheExpiration'
+        parameters: {
+          typeName: 'DeliveryRuleCacheExpirationActionParameters'
+          cacheBehavior: 'Override'
+          cacheType: 'All'
+          cacheDuration: '365.00:00:00' // 365 days for immutable assets
+        }
+      }
+    ]
+  }
+}
+
+// Rule 2: No cache for HTML files (index.html, SPA routes)
+resource htmlNoCacheRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
+  parent: ruleSet
+  name: 'HtmlNoCache'
+  properties: {
+    order: 2
+    conditions: [
+      {
+        name: 'UrlFileExtension'
+        parameters: {
+          typeName: 'DeliveryRuleUrlFileExtensionMatchConditionParameters'
+          operator: 'Equal'
+          matchValues: [
+            'html'
+          ]
+          negateCondition: false
+          transforms: [
+            'Lowercase'
+          ]
+        }
+      }
+    ]
+    actions: [
+      {
+        name: 'CacheExpiration'
+        parameters: {
+          typeName: 'DeliveryRuleCacheExpirationActionParameters'
+          cacheBehavior: 'BypassCache'
+          cacheType: 'All'
+        }
+      }
+    ]
+  }
+}
+
+// Rule 3: Short cache for semi-static files (manifest, robots.txt, etc.)
+resource semiStaticRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
+  parent: ruleSet
+  name: 'SemiStaticCache'
+  properties: {
+    order: 3
+    conditions: [
+      {
+        name: 'UrlPath'
+        parameters: {
+          typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
+          operator: 'Equal'
+          matchValues: [
+            '/manifest.json'
+            '/site.webmanifest'
+            '/robots.txt'
+            '/sitemap.xml'
+            '/favicon.ico'
+          ]
+          negateCondition: false
+          transforms: []
+        }
+      }
+    ]
+    actions: [
+      {
+        name: 'CacheExpiration'
+        parameters: {
+          typeName: 'DeliveryRuleCacheExpirationActionParameters'
+          cacheBehavior: 'Override'
+          cacheType: 'All'
+          cacheDuration: '1.00:00:00' // 24 hours
+        }
+      }
+    ]
+  }
+}
+
+// Default Route with compression enabled
 resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = {
   parent: frontDoorEndpoint
   name: 'route-default'
   dependsOn: [
     origin
+    staticAssetsRule
+    htmlNoCacheRule
+    semiStaticRule
   ]
   properties: {
     originGroup: {
@@ -129,6 +245,26 @@ resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = {
     linkToDefaultDomain: 'Enabled'
     httpsRedirect: 'Enabled'
     enabledState: 'Enabled'
+    cacheConfiguration: {
+      queryStringCachingBehavior: 'IgnoreQueryString'
+      compressionSettings: {
+        contentTypesToCompress: [
+          'application/javascript'
+          'application/json'
+          'application/xml'
+          'text/css'
+          'text/html'
+          'text/javascript'
+          'text/plain'
+        ]
+        isCompressionEnabled: true
+      }
+    }
+    ruleSets: [
+      {
+        id: ruleSet.id
+      }
+    ]
     customDomains: customDomainName != '' ? [
       {
         id: customDomain.id
