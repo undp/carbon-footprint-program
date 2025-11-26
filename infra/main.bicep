@@ -3,9 +3,21 @@
 param location string = resourceGroup().location
 
 @description('Key Vault SKU')
+@allowed([
+  'standard'
+  'premium'
+])
 param keyVaultSkuName string
 
 @description('Storage Account SKU')
+@allowed([
+  'Standard_LRS'
+  'Standard_GRS'
+  'Standard_RAGRS'
+  'Standard_ZRS'
+  'Premium_LRS'
+  'Premium_ZRS'
+])
 param storageSkuName string
 
 // --------- Database parameters ---------
@@ -19,15 +31,28 @@ param dbName string
 param dbSkuName string
 
 @description('Database SKU tier')
+@allowed([
+  'Burstable'
+  'GeneralPurpose'
+  'MemoryOptimized'
+])
 param dbSkuTier string
 
 @description('Storage size in GB')
+@minValue(32)
+@maxValue(16384)
 param dbStorageSizeGB int
 
 @description('Backup retention in days')
+@minValue(7)
+@maxValue(35)
 param dbBackupRetentionDays int
 
 @description('Enable geo-redundant backup')
+@allowed([
+  'Enabled'
+  'Disabled'
+])
 param dbGeoRedundantBackup string
 
 @secure()
@@ -63,6 +88,12 @@ param staticWebAppStagingEnabled bool = true
 param staticWebAppAllowConfigUpdates bool = true
 
 @description('Git provider type (GitHub, GitLab, Bitbucket, or Custom for manual deployment)')
+@allowed([
+  'GitHub'
+  'GitLab'
+  'Bitbucket'
+  'Custom'
+])
 param staticWebAppProvider string = 'GitHub'
 
 @description('Enable enterprise-grade CDN built into Static Web App (requires Standard SKU)')
@@ -79,6 +110,10 @@ param staticWebAppOutputLocation string = 'dist'
 param enableFrontDoor bool = false
 
 @description('SKU for Azure Front Door')
+@allowed([
+  'Standard_AzureFrontDoor'
+  'Premium_AzureFrontDoor'
+])
 param frontDoorSkuName string
 
 @description('Custom domain name for Front Door (optional)')
