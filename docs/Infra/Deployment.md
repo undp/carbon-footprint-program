@@ -386,6 +386,30 @@ cd infra
 
 El script creará o actualizará el Deployment Stack automáticamente.
 
+### Modo Dry Run (Simulación)
+
+Para validar la configuración sin hacer cambios reales:
+
+```bash
+cd infra
+DRY_RUN=true ./deploy.sh
+```
+
+**Características del Dry Run**:
+
+- ✅ Valida variables de entorno y configuración
+- ✅ Muestra qué comandos se ejecutarían
+- ✅ Verifica permisos y recursos existentes
+- ✅ No crea ni modifica recursos
+- ✅ Útil para debugging y validación
+
+**Cuándo usar Dry Run**:
+
+- Primera vez que configuras el proyecto
+- Antes de hacer cambios importantes
+- Para validar nuevos parámetros
+- Troubleshooting de problemas de configuración
+
 ### Pasos Ejecutados por el Script
 
 1. **Verificación de login en Azure CLI**

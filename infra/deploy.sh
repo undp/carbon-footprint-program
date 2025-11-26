@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Dry run mode (set DRY_RUN=true to simulate without executing)
+DRY_RUN=${DRY_RUN:-false}
+
 # Function to log with timestamp
 log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
@@ -8,10 +11,20 @@ log() {
 
 log "=== [deploy.sh] Deployment starting ==="
 
+# Show dry run status
+if [ "$DRY_RUN" = "true" ]; then
+  echo "═══════════════════════════════════════════════════════════════"
+  log "DRY RUN MODE - No changes will be made"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+fi
+
 # 0) Ensure Azure CLI is logged in
 if ! az account show >/dev/null 2>&1; then
   log "Not logged in to Azure CLI. Please log in."
-  az login
+  if [ "$DRY_RUN" = "false" ]; then
+    az login
+  fi
 fi
 
 # Pre-flight: ensure required tools are available
@@ -53,11 +66,19 @@ log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
 # 3) Ensure correct subscription is selected
 log "Setting Azure subscription..."
-az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az account set --subscription $AZURE_SUBSCRIPTION_ID"
+else
+  az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+fi
 
 # 4) Creating resource group if it doesn't exist...
 log "Creating resource group if it doesn't exist..."
-az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az group create --name $AZURE_RESOURCE_GROUP --location $LOCATION"
+else
+  az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
+fi
 
 # 5) Get Azure AD group Object ID for Key Vault access
 log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
@@ -127,16 +148,33 @@ fi
 deployment_result=0
 
 log "Starting deployment stack creation..."
-az stack group create \
-  "${DEPLOY_PARAMS[@]}" \
-  --deny-settings-mode "none" \
-  --action-on-unmanage "detachAll" \
-  --yes \
-  --verbose || deployment_result=$?
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az stack group create \\"
+  log "[DRY RUN]   --name $STACK_NAME \\"
+  log "[DRY RUN]   --resource-group $AZURE_RESOURCE_GROUP \\"
+  log "[DRY RUN]   --template-file $SCRIPT_DIR/main.bicep \\"
+  log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV.bicepparam \\"
+  log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
+  log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
+  log "[DRY RUN]   --parameters developerName=$DEVELOPER_NAME \\"
+  if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
+    log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
+  fi
+  log "[DRY RUN]   --deny-settings-mode none \\"
+  log "[DRY RUN]   --action-on-unmanage detachAll \\"
+  log "[DRY RUN]   --yes --verbose"
+else
+  az stack group create \
+    "${DEPLOY_PARAMS[@]}" \
+    --deny-settings-mode "none" \
+    --action-on-unmanage "detachAll" \
+    --yes \
+    --verbose || deployment_result=$?
 
-if [ $deployment_result -ne 0 ]; then
-  log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
-  exit $deployment_result
+  if [ $deployment_result -ne 0 ]; then
+    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
+    exit $deployment_result
+  fi
 fi
 
 echo ""

@@ -182,7 +182,33 @@ Este script:
 2. Recupera el token de despliegue
 3. Construye la aplicación web con `pnpm build`
 4. Despliega el contenido usando SWA CLI al ambiente de **production**
-5. Muestra las URLs de acceso
+5. Verifica que el deployment fue exitoso
+6. Muestra las URLs de acceso
+
+### Modo Dry Run (Simulación)
+
+Para validar el deployment sin hacer cambios:
+
+```bash
+cd infra
+DRY_RUN=true ./deploy-web.sh
+```
+
+**Qué hace en Dry Run**:
+
+- ✅ Verifica autenticación de Azure CLI
+- ✅ Valida variables de entorno
+- ✅ Confirma que la infraestructura existe
+- ✅ Muestra comandos que se ejecutarían (build, deploy)
+- ✅ No construye ni despliega la aplicación
+- ✅ Útil para verificar configuración antes del deployment real
+
+**Cuándo usar Dry Run**:
+
+- Antes de tu primer deployment
+- Para verificar configuración después de cambios
+- Troubleshooting de problemas de deployment
+- Validar que todas las herramientas están instaladas
 
 ### URLs Generadas
 
@@ -301,6 +327,25 @@ az staticwebapp show \
    - Request count por región
 
 ## Troubleshooting
+
+### Validar Configuración sin Deployar
+
+Usa el modo dry run para diagnosticar problemas sin hacer cambios:
+
+```bash
+# Validar infraestructura
+DRY_RUN=true ./deploy.sh
+
+# Validar deployment de aplicación
+DRY_RUN=true ./deploy-web.sh
+```
+
+Esto mostrará:
+
+- Variables de entorno configuradas
+- Recursos que se crearían/modificarían
+- Comandos que se ejecutarían
+- Posibles errores de configuración
 
 ### Error: "Could not find Static Web App name"
 

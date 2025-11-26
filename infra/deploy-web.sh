@@ -34,11 +34,15 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 WEB_APP_DIR="$PROJECT_ROOT/apps/web"
 
+# Dry run mode (set DRY_RUN=true to simulate without executing)
+DRY_RUN=${DRY_RUN:-false}
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Function to log with timestamp
@@ -46,11 +50,31 @@ log() {
   echo -e "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
+# Function to execute or simulate command
+run_cmd() {
+  if [ "$DRY_RUN" = "true" ]; then
+    log "${CYAN}[DRY RUN] Would execute: $*${NC}"
+    return 0
+  else
+    "$@"
+  fi
+}
+
+# Show dry run status
+if [ "$DRY_RUN" = "true" ]; then
+  log "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+  log "${CYAN}DRY RUN MODE - No changes will be made${NC}"
+  log "${CYAN}═══════════════════════════════════════════════════════════════${NC}"
+  echo ""
+fi
+
 # Check if logged in to Azure CLI
 log "${YELLOW}Checking Azure CLI login...${NC}"
 if ! az account show >/dev/null 2>&1; then
   log "${RED}Not logged in to Azure CLI. Please log in.${NC}"
-  az login
+  if [ "$DRY_RUN" = "false" ]; then
+    az login
+  fi
 fi
 log "${GREEN}   ✓ Azure CLI authenticated${NC}"
 echo ""
@@ -164,11 +188,18 @@ log "${GREEN}   ✓ Token retrieved${NC}"
 echo ""
 
 # Build the web app
-log "${YELLOW}[3/5] Building web app...${NC}"
-cd "$WEB_APP_DIR"
-pnpm install
-pnpm build
-cd "$SCRIPT_DIR"
+log "${YELLOW}[3/6] Building web app...${NC}"
+if [ "$DRY_RUN" = "true" ]; then
+  log "${CYAN}[DRY RUN] Would execute: cd $WEB_APP_DIR${NC}"
+  log "${CYAN}[DRY RUN] Would execute: pnpm install${NC}"
+  log "${CYAN}[DRY RUN] Would execute: pnpm build${NC}"
+  log "${CYAN}[DRY RUN] Would execute: cd $SCRIPT_DIR${NC}"
+else
+  cd "$WEB_APP_DIR"
+  pnpm install
+  pnpm build
+  cd "$SCRIPT_DIR"
+fi
 
 log "${GREEN}   ✓ Build completed${NC}"
 echo ""
@@ -177,7 +208,11 @@ echo ""
 log "${YELLOW}[4/6] Checking SWA CLI...${NC}"
 if ! command -v swa &> /dev/null; then
   log "${YELLOW}   → Installing SWA CLI...${NC}"
-  npm install -g @azure/static-web-apps-cli
+  if [ "$DRY_RUN" = "true" ]; then
+    log "${CYAN}[DRY RUN] Would execute: npm install -g @azure/static-web-apps-cli${NC}"
+  else
+    npm install -g @azure/static-web-apps-cli
+  fi
 fi
 log "${GREEN}   ✓ SWA CLI ready${NC}"
 echo ""
@@ -185,20 +220,32 @@ echo ""
 # Deploy using SWA CLI
 log "${YELLOW}[5/6] Deploying to Static Web App...${NC}"
 
-# Deploy to production environment from web app directory
-cd "$WEB_APP_DIR"
-deployment_result=0
-swa deploy \
-  --deployment-token "$DEPLOYMENT_TOKEN" \
-  --app-location . \
-  --output-location "$OUTPUT_LOCATION" \
-  --env production \
-  --no-use-keychain || deployment_result=$?
-cd "$SCRIPT_DIR"
+if [ "$DRY_RUN" = "true" ]; then
+  log "${CYAN}[DRY RUN] Would execute: cd $WEB_APP_DIR${NC}"
+  log "${CYAN}[DRY RUN] Would execute: swa deploy \\${NC}"
+  log "${CYAN}[DRY RUN]   --deployment-token [REDACTED] \\${NC}"
+  log "${CYAN}[DRY RUN]   --app-location . \\${NC}"
+  log "${CYAN}[DRY RUN]   --output-location $OUTPUT_LOCATION \\${NC}"
+  log "${CYAN}[DRY RUN]   --env production \\${NC}"
+  log "${CYAN}[DRY RUN]   --no-use-keychain${NC}"
+  log "${CYAN}[DRY RUN] Would execute: cd $SCRIPT_DIR${NC}"
+  deployment_result=0
+else
+  # Deploy to production environment from web app directory
+  cd "$WEB_APP_DIR"
+  deployment_result=0
+  swa deploy \
+    --deployment-token "$DEPLOYMENT_TOKEN" \
+    --app-location . \
+    --output-location "$OUTPUT_LOCATION" \
+    --env production \
+    --no-use-keychain || deployment_result=$?
+  cd "$SCRIPT_DIR"
 
-if [ $deployment_result -ne 0 ]; then
-  log "${RED}✗ Deployment failed with exit code $deployment_result${NC}"
-  exit $deployment_result
+  if [ $deployment_result -ne 0 ]; then
+    log "${RED}✗ Deployment failed with exit code $deployment_result${NC}"
+    exit $deployment_result
+  fi
 fi
 
 log "${GREEN}   ✓ Upload completed${NC}"
@@ -206,27 +253,32 @@ echo ""
 
 log "${YELLOW}[6/6] Verifying deployment...${NC}"
 
-# Wait a few seconds for deployment to register
-sleep 3
-
-# Get the hostname
-SWA_HOSTNAME=$(az staticwebapp show \
-  --name "$SWA_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query defaultHostname \
-  --output tsv)
-
-if [ -n "$SWA_HOSTNAME" ]; then
-  # Check if site responds (basic HTTP check)
-  HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$SWA_HOSTNAME" --max-time 10 || echo "000")
-  
-  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "304" ]; then
-    log "${GREEN}   ✓ Deployment verified - Site is accessible (HTTP $HTTP_STATUS)${NC}"
-  else
-    log "${YELLOW}   ⚠ Warning: Site returned HTTP $HTTP_STATUS. It may still be deploying.${NC}"
-  fi
+if [ "$DRY_RUN" = "true" ]; then
+  log "${CYAN}[DRY RUN] Would wait 3 seconds for deployment to register${NC}"
+  log "${CYAN}[DRY RUN] Would verify: https://$SWA_HOSTNAME${NC}"
 else
-  log "${YELLOW}   ⚠ Warning: Could not verify deployment - hostname not found${NC}"
+  # Wait a few seconds for deployment to register
+  sleep 3
+
+  # Get the hostname
+  SWA_HOSTNAME=$(az staticwebapp show \
+    --name "$SWA_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query defaultHostname \
+    --output tsv)
+
+  if [ -n "$SWA_HOSTNAME" ]; then
+    # Check if site responds (basic HTTP check)
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$SWA_HOSTNAME" --max-time 10 || echo "000")
+    
+    if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "304" ]; then
+      log "${GREEN}   ✓ Deployment verified - Site is accessible (HTTP $HTTP_STATUS)${NC}"
+    else
+      log "${YELLOW}   ⚠ Warning: Site returned HTTP $HTTP_STATUS. It may still be deploying.${NC}"
+    fi
+  else
+    log "${YELLOW}   ⚠ Warning: Could not verify deployment - hostname not found${NC}"
+  fi
 fi
 echo ""
 
