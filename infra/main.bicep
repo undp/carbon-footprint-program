@@ -207,6 +207,51 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
 }
 
 // --------- Outputs ---------
+
+// Frontend outputs
+@description('Frontend hosting endpoints and configuration')
+output frontend object = {
+  staticWebApp: {
+    name: staticWebApp.outputs.name
+    hostname: staticWebApp.outputs.defaultHostname
+    url: 'https://${staticWebApp.outputs.defaultHostname}'
+  }
+  frontDoor: enableFrontDoor ? {
+    endpoint: frontDoor.?outputs.endpointHostname ?? ''
+    url: 'https://${frontDoor.?outputs.endpointHostname ?? ''}'
+    enabled: true
+  } : {
+    endpoint: ''
+    url: ''
+    enabled: false
+  }
+}
+
+// Database outputs
+@description('Database connection information')
+output database object = {
+  serverName: postgres.outputs.serverNameOut
+  host: postgres.outputs.hostOut
+  databaseName: postgres.outputs.dbNameOut
+  username: dbUser
+  port: 5432
+}
+
+// Infrastructure outputs
+@description('Infrastructure resource names')
+output infrastructure object = {
+  keyVault: {
+    name: keyVault.outputs.name
+    uri: keyVault.outputs.vaultUri
+  }
+  storage: {
+    name: storage.outputs.name
+  }
+  resourceGroup: resourceGroup().name
+  location: location
+}
+
+// Legacy outputs (for backward compatibility)
 @description('Static Web App default hostname')
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
 
