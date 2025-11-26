@@ -29,6 +29,11 @@
 
 set -e
 
+# Get script directory for reliable paths
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+WEB_APP_DIR="$PROJECT_ROOT/apps/web"
+
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -36,11 +41,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Load environment variables
-if [ -f .envrc ]; then
-  source .envrc
+# Load environment variables from infra directory
+if [ -f "$SCRIPT_DIR/.envrc" ]; then
+  source "$SCRIPT_DIR/.envrc"
 else
-  echo -e "${RED}Error: .envrc file not found${NC}"
+  echo -e "${RED}Error: .envrc file not found in $SCRIPT_DIR${NC}"
   exit 1
 fi
 
@@ -101,9 +106,10 @@ echo ""
 
 # Build the web app
 echo -e "${YELLOW}[3/5] Building web app...${NC}"
-cd ../apps/web
+cd "$WEB_APP_DIR"
 pnpm install
 pnpm build
+cd "$SCRIPT_DIR"
 
 echo -e "${GREEN}   ✓ Build completed${NC}"
 echo ""
@@ -120,13 +126,15 @@ echo ""
 # Deploy using SWA CLI
 echo -e "${YELLOW}[5/5] Deploying to Static Web App...${NC}"
 
-# Deploy to production environment
+# Deploy to production environment from web app directory
+cd "$WEB_APP_DIR"
 swa deploy \
   --deployment-token "$DEPLOYMENT_TOKEN" \
   --app-location . \
   --output-location dist \
   --env production \
   --no-use-keychain
+cd "$SCRIPT_DIR"
 
 echo -e "${GREEN}   ✓ Upload completed${NC}"
 echo ""
