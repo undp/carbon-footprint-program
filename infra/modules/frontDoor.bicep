@@ -52,7 +52,7 @@ resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@20
 }
 
 // Front Door Profile
-resource frontDoorProfile 'Microsoft.Cdn/profiles@2024-02-01' = {
+resource frontDoorProfile 'Microsoft.Cdn/profiles@2025-06-01' = {
   name: frontDoorProfileName
   location: location
   tags: tags
@@ -62,7 +62,7 @@ resource frontDoorProfile 'Microsoft.Cdn/profiles@2024-02-01' = {
 }
 
 // Front Door Endpoint
-resource frontDoorEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2024-02-01' = {
+resource frontDoorEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2025-06-01' = {
   parent: frontDoorProfile
   name: 'endpoint-${uniqueString(resourceGroup().id)}'
   location: location
@@ -72,7 +72,7 @@ resource frontDoorEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2024-02-01' = {
 }
 
 // Origin Group
-resource originGroup 'Microsoft.Cdn/profiles/originGroups@2024-02-01' = {
+resource originGroup 'Microsoft.Cdn/profiles/originGroups@2025-06-01' = {
   parent: frontDoorProfile
   name: 'origin-group-swa'
   properties: {
@@ -92,7 +92,7 @@ resource originGroup 'Microsoft.Cdn/profiles/originGroups@2024-02-01' = {
 }
 
 // Origin (Static Web App)
-resource origin 'Microsoft.Cdn/profiles/originGroups/origins@2024-02-01' = {
+resource origin 'Microsoft.Cdn/profiles/originGroups/origins@2025-06-01' = {
   parent: originGroup
   name: 'origin-swa'
   properties: {
@@ -108,13 +108,13 @@ resource origin 'Microsoft.Cdn/profiles/originGroups/origins@2024-02-01' = {
 }
 
 // Rule Set for cache optimization
-resource ruleSet 'Microsoft.Cdn/profiles/ruleSets@2024-02-01' = {
+resource ruleSet 'Microsoft.Cdn/profiles/ruleSets@2025-06-01' = {
   parent: frontDoorProfile
   name: 'cacheRules'
 }
 
 // Rule 1: Long cache for static assets (/assets/* from Vite)
-resource staticAssetsRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
+resource staticAssetsRule 'Microsoft.Cdn/profiles/ruleSets/rules@2025-06-01' = {
   parent: ruleSet
   name: 'StaticAssetsCache'
   properties: {
@@ -148,7 +148,7 @@ resource staticAssetsRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
 }
 
 // Rule 2: No cache for HTML files (index.html, SPA routes)
-resource htmlNoCacheRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
+resource htmlNoCacheRule 'Microsoft.Cdn/profiles/ruleSets/rules@2025-06-01' = {
   parent: ruleSet
   name: 'HtmlNoCache'
   properties: {
@@ -183,7 +183,7 @@ resource htmlNoCacheRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
 }
 
 // Rule 3: Short cache for semi-static files (manifest, robots.txt, etc.)
-resource semiStaticRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
+resource semiStaticRule 'Microsoft.Cdn/profiles/ruleSets/rules@2025-06-01' = {
   parent: ruleSet
   name: 'SemiStaticCache'
   properties: {
@@ -221,7 +221,7 @@ resource semiStaticRule 'Microsoft.Cdn/profiles/ruleSets/rules@2024-02-01' = {
 }
 
 // Default Route with compression enabled
-resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = {
+resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2025-06-01' = {
   parent: frontDoorEndpoint
   name: 'route-default'
   dependsOn: [
@@ -274,7 +274,7 @@ resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = {
 }
 
 // Custom Domain (optional)
-resource customDomain 'Microsoft.Cdn/profiles/customDomains@2024-02-01' = if (customDomainName != '') {
+resource customDomain 'Microsoft.Cdn/profiles/customDomains@2025-06-01' = if (customDomainName != '') {
   parent: frontDoorProfile
   name: replace(customDomainName, '.', '-')
   properties: {

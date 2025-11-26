@@ -39,7 +39,7 @@ param tags object = {}
 var staticWebAppName = 'swa-${uniqueString(resourceGroup().id)}'
 
 // Static Web App resource
-resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
+resource staticWebApp 'Microsoft.Web/staticSites@2025-03-01' = {
   name: staticWebAppName
   location: location
   tags: tags
