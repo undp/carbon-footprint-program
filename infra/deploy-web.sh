@@ -49,6 +49,30 @@ else
   exit 1
 fi
 
+# Check required tools
+echo -e "${YELLOW}Checking prerequisites...${NC}"
+
+for cmd in az pnpm node; do
+  if ! command -v $cmd &> /dev/null; then
+    echo -e "${RED}Error: $cmd is not installed${NC}"
+    case $cmd in
+      az)
+        echo -e "${YELLOW}Install Azure CLI: https://learn.microsoft.com/cli/azure/install-azure-cli${NC}"
+        ;;
+      pnpm)
+        echo -e "${YELLOW}Install pnpm: npm install -g pnpm${NC}"
+        ;;
+      node)
+        echo -e "${YELLOW}Install Node.js: https://nodejs.org/${NC}"
+        ;;
+    esac
+    exit 1
+  fi
+done
+
+echo -e "${GREEN}   ✓ All prerequisites met${NC}"
+echo ""
+
 # Check required variables
 if [ -z "$AZURE_RESOURCE_GROUP" ]; then
   echo -e "${RED}Error: AZURE_RESOURCE_GROUP is not set in .envrc${NC}"
