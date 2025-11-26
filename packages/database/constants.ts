@@ -2,11 +2,11 @@ import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, resolve } from "path";
 
-// Obtener el directorio del archivo actual (funciona en ES modules)
+// Get the directory of the current file (works in ES modules)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-// Cargar .env desde el directorio del paquete database
+// Load .env from the database package directory
 config({ path: resolve(__dirname, ".env") });
 
 export const DATABASE_URL = process.env.DATABASE_URL;

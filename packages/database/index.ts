@@ -1,2 +1,2 @@
-export * from "./generated/client/index.js"; // optional but useful
-export { prisma } from "./client.js"; // your singleton
+export * from "./generated/client/index.js";
+export { prisma } from "./client.js";
