@@ -32,8 +32,11 @@ param availabilityZone string = ''
 @description('Tags to apply to the PostgreSQL server')
 param tags object = {}
 
+// Generate unique PostgreSQL server name (must be globally unique)
+var postgresServerName = 'psql-${uniqueString(resourceGroup().id)}'
+
 resource psql 'Microsoft.DBforPostgreSQL/flexibleServers@2025-08-01' = {
-  name: uniqueString(resourceGroup().id)
+  name: postgresServerName
   location: location
   sku: {
     name: skuName

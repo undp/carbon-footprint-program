@@ -17,9 +17,12 @@ param customDomainName string = ''
 @description('Tags to apply to resources')
 param tags object = {}
 
+// Generate unique Front Door profile name
+var frontDoorProfileName = 'fd-${uniqueString(resourceGroup().id)}'
+
 // Front Door Profile
 resource frontDoorProfile 'Microsoft.Cdn/profiles@2024-02-01' = {
-  name: 'fd-${uniqueString(resourceGroup().id)}'
+  name: frontDoorProfileName
   location: location
   tags: tags
   sku: {

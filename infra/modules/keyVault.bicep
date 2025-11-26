@@ -18,13 +18,11 @@ param networkAclDefaultAction string = 'Allow'
 @description('Services to bypass for network ACLs')
 param networkAclBypass string = 'AzureServices'
 
-@description('Name of the Key Vault (must be globally unique, 3-24 alphanumeric chars)')
-@minLength(3)
-@maxLength(24)
-param keyVaultName string = 'kv-${uniqueString(resourceGroup().id)}'
-
 @description('Tags to apply to the Key Vault')
 param tags object = {}
+
+// Generate unique Key Vault name (must be globally unique, 3-24 alphanumeric chars)
+var keyVaultName = 'kv-${uniqueString(resourceGroup().id)}'
 
 resource keyVault 'Microsoft.KeyVault/vaults@2025-05-01' = {
   name: keyVaultName

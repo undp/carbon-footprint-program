@@ -29,9 +29,12 @@ param enterpriseCdn bool = false
 @description('Tags to apply to resources')
 param tags object = {}
 
+// Generate unique Static Web App name
+var staticWebAppName = 'swa-${uniqueString(resourceGroup().id)}'
+
 // Static Web App resource
 resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
-  name: 'swa-${uniqueString(resourceGroup().id)}'
+  name: staticWebAppName
   location: location
   tags: tags
   sku: {
