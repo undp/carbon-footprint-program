@@ -41,6 +41,15 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Check if logged in to Azure CLI
+echo -e "${YELLOW}Checking Azure CLI login...${NC}"
+if ! az account show >/dev/null 2>&1; then
+  echo -e "${RED}Not logged in to Azure CLI. Please log in.${NC}"
+  az login
+fi
+echo -e "${GREEN}   ✓ Azure CLI authenticated${NC}"
+echo ""
+
 # Load environment variables from infra directory
 if [ -f "$SCRIPT_DIR/.envrc" ]; then
   source "$SCRIPT_DIR/.envrc"
