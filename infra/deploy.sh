@@ -150,8 +150,16 @@ echo "  - Key Vault:       Created/Updated"
 echo "  - Storage Account: Created/Updated"
 echo "  - PostgreSQL DB:   Created/Updated"
 echo "  - Static Web App:  Ready for content deployment"
-if [ -n "$(az stack group show --name "$STACK_NAME" --resource-group "$AZURE_RESOURCE_GROUP" --query outputs.frontDoorEndpoint.value -o tsv 2>/dev/null || echo '')" ]; then
-echo "  - Front Door:      Configured"
+
+# Check if Front Door is configured
+FRONT_DOOR_ENDPOINT=$(az stack group show \
+  --name "$STACK_NAME" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query outputs.frontDoorEndpoint.value \
+  -o tsv 2>/dev/null || echo '')
+
+if [ -n "$FRONT_DOOR_ENDPOINT" ]; then
+  echo "  - Front Door:      Configured"
 fi
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
