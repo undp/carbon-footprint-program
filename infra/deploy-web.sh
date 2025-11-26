@@ -174,7 +174,7 @@ log "${GREEN}   ✓ Build completed${NC}"
 echo ""
 
 # Check if SWA CLI is installed
-log "${YELLOW}[4/5] Checking SWA CLI...${NC}"
+log "${YELLOW}[4/6] Checking SWA CLI...${NC}"
 if ! command -v swa &> /dev/null; then
   log "${YELLOW}   → Installing SWA CLI...${NC}"
   npm install -g @azure/static-web-apps-cli
@@ -183,20 +183,31 @@ log "${GREEN}   ✓ SWA CLI ready${NC}"
 echo ""
 
 # Deploy using SWA CLI
-log "${YELLOW}[5/5] Deploying to Static Web App...${NC}"
+log "${YELLOW}[5/6] Deploying to Static Web App...${NC}"
 
 # Deploy to production environment from web app directory
 cd "$WEB_APP_DIR"
+deployment_result=0
 swa deploy \
   --deployment-token "$DEPLOYMENT_TOKEN" \
   --app-location . \
   --output-location "$OUTPUT_LOCATION" \
   --env production \
-  --no-use-keychain
+  --no-use-keychain || deployment_result=$?
 cd "$SCRIPT_DIR"
+
+if [ $deployment_result -ne 0 ]; then
+  log "${RED}✗ Deployment failed with exit code $deployment_result${NC}"
+  exit $deployment_result
+fi
 
 log "${GREEN}   ✓ Upload completed${NC}"
 echo ""
+
+log "${YELLOW}[6/6] Verifying deployment...${NC}"
+
+# Wait a few seconds for deployment to register
+sleep 3
 
 # Get the hostname
 SWA_HOSTNAME=$(az staticwebapp show \
@@ -204,6 +215,20 @@ SWA_HOSTNAME=$(az staticwebapp show \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query defaultHostname \
   --output tsv)
+
+if [ -n "$SWA_HOSTNAME" ]; then
+  # Check if site responds (basic HTTP check)
+  HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$SWA_HOSTNAME" --max-time 10 || echo "000")
+  
+  if [ "$HTTP_STATUS" = "200" ] || [ "$HTTP_STATUS" = "304" ]; then
+    log "${GREEN}   ✓ Deployment verified - Site is accessible (HTTP $HTTP_STATUS)${NC}"
+  else
+    log "${YELLOW}   ⚠ Warning: Site returned HTTP $HTTP_STATUS. It may still be deploying.${NC}"
+  fi
+else
+  log "${YELLOW}   ⚠ Warning: Could not verify deployment - hostname not found${NC}"
+fi
+echo ""
 
 # Check if Front Door is enabled
 FRONTDOOR_ENDPOINT=$(az stack group show \
