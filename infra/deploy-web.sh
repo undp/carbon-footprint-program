@@ -145,17 +145,6 @@ FRONTDOOR_ENDPOINT=$(az stack group show \
   --query outputs.frontDoorEndpoint.value \
   --output tsv 2>/dev/null || echo "")
 
-# Get custom domain if configured (only relevant when Front Door is disabled)
-CUSTOM_DOMAIN=""
-
-if [ -n "$CUSTOM_DOMAIN" ] && [ -z "$FRONTDOOR_ENDPOINT" ]; then
-  CUSTOM_DOMAIN=$(az staticwebapp hostname list \
-    --name "$SWA_NAME" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query "[0].name" \
-    --output tsv 2>/dev/null || echo "")
-fi
-
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}✓ Deployment Successful!${NC}"
