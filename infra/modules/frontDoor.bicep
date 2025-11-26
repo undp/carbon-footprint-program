@@ -95,6 +95,11 @@ resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2024-02-01' = {
     linkToDefaultDomain: 'Enabled'
     httpsRedirect: 'Enabled'
     enabledState: 'Enabled'
+    customDomains: customDomainName != '' ? [
+      {
+        id: customDomain.id
+      }
+    ] : []
   }
 }
 
