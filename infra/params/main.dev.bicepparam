@@ -1,12 +1,41 @@
+// ============================================
+// UNDP Huella Latam - Development Environment
+// ============================================
+//
+// This file contains configuration parameters for the development environment.
+// It deploys:
+//   - Key Vault (secret management)
+//   - Storage Account (file storage)
+//   - PostgreSQL Flexible Server (database)
+//   - Azure Static Web Apps (frontend hosting)
+//   - Azure Front Door (optional CDN + WAF)
+//
+// Cost optimization for development:
+//   - Static Web App: Free SKU ($0/month)
+//   - Front Door: Disabled by default (saves ~$35/month)
+//   - PostgreSQL: Burstable SKU with minimal storage
+//   - Storage: Locally-redundant (LRS)
+//
+// For production/staging, create main.prod.bicepparam or main.staging.bicepparam
+// with appropriate SKU tiers and enableFrontDoor = true
+//
+// ============================================
+
 using '../main.bicep'
 
+// ============================================
 // Storage Account
+// ============================================
 param storageSkuName = 'Standard_LRS'
 
+// ============================================
 // Key Vault
+// ============================================
 param keyVaultSkuName = 'standard'
 
-// Database
+// ============================================
+// Database Configuration
+// ============================================
 param dbUser = 'pgadmin'
 param dbName = 'huella_latam'
 param dbSkuName = 'Standard_B1ms'
