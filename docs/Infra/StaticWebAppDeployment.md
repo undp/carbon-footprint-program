@@ -343,16 +343,41 @@ Para apps SPA con client-side routing, verifica que `staticwebapp.config.json` e
 {
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*"]
+    "exclude": ["/assets/*"]
   },
   "responseOverrides": {
     "404": {
       "rewrite": "/index.html",
       "statusCode": 200
     }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.azure.com https://*.azurewebsites.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css"
   }
 }
 ```
+
+**Configuración de Seguridad**:
+
+- **Content-Security-Policy**: Controla qué recursos puede cargar la aplicación. Usa `'unsafe-inline'` para compatibilidad con Vite/React (se eliminó `'unsafe-eval'` por seguridad)
+- **Referrer-Policy**: Controla información enviada en headers de referencia
+- **Permissions-Policy**: Deshabilita APIs del navegador no utilizadas (cámara, micrófono, geolocalización)
+- **Strict-Transport-Security**: Fuerza HTTPS por 1 año (HSTS)
+- **X-Frame-Options + frame-ancestors**: Doble protección contra clickjacking
+
+**Nota sobre MIME types**: Se usa `application/javascript` (estándar moderno) en lugar de `text/javascript` (obsoleto).
+
+**Nota sobre assets**: El patrón `exclude: ["/assets/*"]` debe coincidir con tu estructura de assets. Vite usa `/assets/*` por defecto.
 
 ### Sitio muestra "Congratulations on your new site!"
 
