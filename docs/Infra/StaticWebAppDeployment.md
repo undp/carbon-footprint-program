@@ -122,9 +122,9 @@ param staticWebAppRepositoryUrl = '' // Opcional: URL del repo GitHub
 param staticWebAppBranch = 'main'
 
 // Front Door
-param enableFrontDoor = true // Cambia a false para deshabilitar Front Door
+param enableFrontDoor = false // Set to true for staging/production to enable global CDN (~$35/month)
 param frontDoorSkuName = 'Standard_AzureFrontDoor' // Usa 'Premium_AzureFrontDoor' para características avanzadas
-param frontDoorCustomDomain = '' // Opcional: tu dominio personalizado (ej: 'app.tudominio.com')
+param frontDoorCustomDomain = '' // Opcional: tu dominio personalizado (ej: 'app.tudominio.com') - automated by Bicep
 ```
 
 ### 2. SKUs Disponibles
@@ -198,9 +198,11 @@ Después del despliegue, tendrás:
 
 ## Dominio Personalizado
 
+**Automatización**: Front Door custom domains se pueden pre-configurar vía `FRONT_DOOR_CUSTOM_DOMAIN` en `.envrc` y Bicep los configurará automáticamente. Static Web App custom domains requieren configuración manual con `az staticwebapp hostname set` después del despliegue.
+
 ### Opción 1: Dominio Personalizado con Static Web App (sin Front Door)
 
-Si `enableFrontDoor = false`, puedes configurar un dominio directamente en Static Web App:
+Si `enableFrontDoor = false`, puedes configurar un dominio directamente en Static Web App (requiere pasos manuales):
 
 1. **Primero, crea el registro CNAME** en tu proveedor DNS:
    - Tipo: CNAME
@@ -336,7 +338,22 @@ Debes crear el registro CNAME en tu DNS **antes** de ejecutar el comando de Azur
 
 ### 404 en rutas de la aplicación
 
-Para apps SPA con client-side routing, verifica que `staticwebapp.config.json` esté configurado en `/apps/web/public/`:
+Para apps SPA con client-side routing, verifica que `staticwebapp.config.json` esté configurado en `/apps/web/public/`.
+
+**Configuración canónica**: Ver el archivo completo y actualizado en [`apps/web/public/staticwebapp.config.json`](../../apps/web/public/staticwebapp.config.json)
+
+**Características clave de la configuración**:
+
+- **navigationFallback**: Redirige rutas desconocidas a `/index.html` para client-side routing
+- **responseOverrides**: Convierte 404 en 200 para SPA routing
+- **globalHeaders**: Headers de seguridad modernos incluyendo:
+  - Content-Security-Policy (sin `'unsafe-eval'` por seguridad)
+  - Strict-Transport-Security (HSTS)
+  - Permissions-Policy (deshabilita APIs no usadas)
+  - X-Frame-Options + frame-ancestors (protección contra clickjacking)
+- **mimeTypes**: MIME types modernos (`application/javascript` en lugar de `text/javascript`)
+
+**Ejemplo mínimo alternativo** (solo SPA routing):
 
 ```json
 {
@@ -349,34 +366,11 @@ Para apps SPA con client-side routing, verifica que `staticwebapp.config.json` e
       "rewrite": "/index.html",
       "statusCode": 200
     }
-  },
-  "globalHeaders": {
-    "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://*.azure.com https://*.azurewebsites.net; frame-ancestors 'none'; base-uri 'self'; form-action 'self'",
-    "Referrer-Policy": "strict-origin-when-cross-origin",
-    "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
-    "Strict-Transport-Security": "max-age=31536000; includeSubDomains"
-  },
-  "mimeTypes": {
-    ".json": "application/json",
-    ".js": "application/javascript",
-    ".css": "text/css"
   }
 }
 ```
 
-**Configuración de Seguridad**:
-
-- **Content-Security-Policy**: Controla qué recursos puede cargar la aplicación. Usa `'unsafe-inline'` para compatibilidad con Vite/React (se eliminó `'unsafe-eval'` por seguridad)
-- **Referrer-Policy**: Controla información enviada en headers de referencia
-- **Permissions-Policy**: Deshabilita APIs del navegador no utilizadas (cámara, micrófono, geolocalización)
-- **Strict-Transport-Security**: Fuerza HTTPS por 1 año (HSTS)
-- **X-Frame-Options + frame-ancestors**: Doble protección contra clickjacking
-
-**Nota sobre MIME types**: Se usa `application/javascript` (estándar moderno) en lugar de `text/javascript` (obsoleto).
-
-**Nota sobre assets**: El patrón `exclude: ["/assets/*"]` debe coincidir con tu estructura de assets. Vite usa `/assets/*` por defecto.
+**Nota**: El patrón `exclude: ["/assets/*"]` debe coincidir con tu estructura. Vite usa `/assets/*` por defecto.
 
 ### Sitio muestra "Congratulations on your new site!"
 
