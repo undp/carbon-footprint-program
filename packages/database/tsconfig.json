@@ -1,5 +1,5 @@
 {
-
+  "includes": ["generated/client", "index.ts"],
   "compilerOptions": {
     "module": "nodenext",
     "target": "esnext",
@@ -15,6 +15,6 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true,
+    "skipLibCheck": true
   }
 }
