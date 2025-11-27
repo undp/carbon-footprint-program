@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:8080
+@bookId = 1
+
+### Obtener un libro por ID
+GET {{baseUrl}}/books/{{bookId}}
+Accept: application/json
+
+

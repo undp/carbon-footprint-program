@@ -1,0 +1,13 @@
+@baseUrl = http://localhost:8080
+
+### Crear un libro
+POST {{baseUrl}}/books
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Cien años de soledad",
+  "author": "Gabriel García Márquez"
+}
+
+
