@@ -273,39 +273,9 @@ Después del despliegue, tendrás:
 - **Desarrollo**: Usa la URL de Static Web App directamente (Free, sin costos)
 - **Producción**: Usa la URL de Front Door para aprovechar el CDN global (requiere Front Door habilitado)
 
-## Dominio Personalizado
+## Dominio Personalizado con Front Door
 
-**Automatización**: Front Door custom domains se pueden pre-configurar vía `FRONT_DOOR_CUSTOM_DOMAIN` en `.envrc` y Bicep los configurará automáticamente. Static Web App custom domains requieren configuración manual con `az staticwebapp hostname set` después del despliegue.
-
-### Opción 1: Dominio Personalizado con Static Web App (sin Front Door)
-
-Si `enableFrontDoor = false`, puedes configurar un dominio directamente en Static Web App (requiere pasos manuales):
-
-1. **Primero, crea el registro CNAME** en tu proveedor DNS:
-   - Tipo: CNAME
-   - Nombre: tu subdominio (ej: `app`)
-   - Valor: `[swa-name].azurestaticapps.net`
-
-2. **Verifica la propagación DNS**:
-
-```bash
-dig app.tudominio.com CNAME
-```
-
-3. **Configura el dominio en Azure**:
-
-```bash
-az staticwebapp hostname set \
-  --name [swa-name] \
-  --resource-group $AZURE_RESOURCE_GROUP \
-  --hostname app.tudominio.com
-```
-
-4. Azure validará automáticamente el dominio y provisionará el certificado SSL (puede tomar unos minutos)
-
-### Opción 2: Dominio Personalizado con Front Door
-
-Si `enableFrontDoor = true`, configura el dominio en Front Door:
+Para configurar un dominio personalizado cuando `enableFrontDoor = true`:
 
 1. **Agrega el dominio personalizado**:
 
@@ -327,16 +297,13 @@ az afd custom-domain create \
 
 ### Configuración Automática vía Parámetros
 
-Puedes pre-configurar el dominio personalizado para Front Door en `.envrc`:
+Puedes pre-configurar el dominio personalizado en `.envrc`:
 
 ```bash
-# Para Front Door
 export FRONT_DOOR_CUSTOM_DOMAIN='app.tudominio.com'
 ```
 
-Luego ejecuta `./deploy.sh` y el dominio se configurará automáticamente.
-
-**Nota**: Para dominios personalizados en Static Web App (sin Front Door), debes configurarlos manualmente usando `az staticwebapp hostname set` después del despliegue.
+Luego ejecuta `./deploy.sh` y el dominio se configurará automáticamente en Front Door.
 
 ## Variables de Entorno
 
