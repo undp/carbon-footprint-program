@@ -19,7 +19,7 @@ export const apiConfig: Linter.Config[] = [
       parserOptions: {
         sourceType: "module",
         ecmaVersion: "latest",
-        projectService: true,
+        projectService: false,
       },
     },
     rules: {

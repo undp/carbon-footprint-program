@@ -34,7 +34,7 @@ export const webConfig: Linter.Config[] = [
         ecmaFeatures: {
           jsx: true,
         },
-        projectService: true,
+        projectService: false,
       },
     },
     plugins: {
