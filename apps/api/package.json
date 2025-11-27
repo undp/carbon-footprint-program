@@ -21,6 +21,7 @@
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "@fastify/helmet": "^13.0.2",
+    "@joggr/fastify-prisma": "^6.0.1",
     "@repo/database": "workspace:*",
     "fastify": "^5.6.2",
     "fastify-type-provider-zod": "^6.1.0",
