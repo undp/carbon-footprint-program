@@ -1,6 +1,7 @@
 import fp from "fastify-plugin";
 import fastifySwagger from "@fastify/swagger";
 import { FastifyDynamicSwaggerOptions } from "@fastify/swagger";
+import { jsonSchemaTransform } from "fastify-type-provider-zod";
 
 export const autoConfig: FastifyDynamicSwaggerOptions = {
   mode: "dynamic",
@@ -12,6 +13,7 @@ export const autoConfig: FastifyDynamicSwaggerOptions = {
     },
   },
   hideUntagged: true,
+  transform: jsonSchemaTransform,
 };
 
 export default fp<FastifyDynamicSwaggerOptions>(
