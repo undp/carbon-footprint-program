@@ -1,3 +1,4 @@
+import { PrismaClient } from "@repo/database";
 import type {
   FastifyInstance,
   RawServerDefault,
@@ -19,3 +20,9 @@ export type FastifyZodInstance = FastifyInstance<
   FastifyBaseLogger,
   ZodTypeProvider
 >;
+
+declare module "fastify" {
+  interface FastifyInstance {
+    prisma: PrismaClient;
+  }
+}
