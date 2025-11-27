@@ -179,12 +179,12 @@ param staticWebAppOutputLocation = 'dist'
 // Recommendation:
 //   - false: For development (saves $35/month)
 //   - true: For staging/production (global performance + security)
-param enableFrontDoor = false
+param enableFrontDoor = true
 
 // Azure Front Door SKU tier
-// - 'Standard_AzureFrontDoor': Basic CDN, basic WAF, routing rules (~$35/month)
-// - 'Premium_AzureFrontDoor': Advanced WAF with threat intelligence, Private Link (~$330/month)
-// Most applications work well with Standard tier
+// - 'Standard_AzureFrontDoor': Basic CDN, custom WAF rules only (~$35/month)
+// - 'Premium_AzureFrontDoor': Advanced WAF with managed rules, threat intelligence (~$330/month)
+// Recommendation: Start with Standard for development
 param frontDoorSkuName = 'Standard_AzureFrontDoor'
 
 // Custom domain name for Front Door endpoint (optional)
@@ -195,3 +195,22 @@ param frontDoorSkuName = 'Standard_AzureFrontDoor'
 // - You must configure DNS CNAME record pointing to Front Door endpoint
 // ⚠️ SECURITY: Ensure DNS records are properly configured to prevent subdomain takeover
 param frontDoorCustomDomain = ''
+
+// Enable WAF managed rules (Microsoft Default RuleSet + Bot Manager)
+// - true: Requires Premium SKU, provides advanced threat protection (OWASP top 10, bot detection)
+// - false: Uses custom rules only (rate limiting), works with Standard SKU
+// Recommendation: false for development (Standard SKU), true for production (Premium SKU)
+param frontDoorEnableManagedRules = false
+
+// WAF protection mode
+// - 'Detection': Monitors and logs threats without blocking (recommended for testing)
+// - 'Prevention': Actively blocks detected threats (recommended for production)
+// Note: Start with Detection to avoid false positives, then switch to Prevention
+param frontDoorWafMode = 'Detection'
+
+// Rate limit threshold (requests per minute per IP address)
+// - Protects against DDoS and abuse
+// - Range: 10-10000 requests/minute
+// - Default: 100 (suitable for most applications)
+// - Increase for high-traffic APIs, decrease for stricter protection
+param frontDoorRateLimitThreshold = 100

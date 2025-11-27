@@ -119,6 +119,21 @@ param frontDoorSkuName string
 @description('Custom domain name for Front Door (optional)')
 param frontDoorCustomDomain string = ''
 
+@description('Enable WAF managed rules (requires Premium SKU, ignored for Standard)')
+param frontDoorEnableManagedRules bool = false
+
+@description('WAF protection mode: Prevention blocks threats, Detection only logs')
+@allowed([
+  'Prevention'
+  'Detection'
+])
+param frontDoorWafMode string = 'Detection'
+
+@description('Rate limit threshold (requests per minute per IP)')
+@minValue(10)
+@maxValue(10000)
+param frontDoorRateLimitThreshold int = 100
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: developerName
@@ -202,6 +217,9 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
     skuName: frontDoorSkuName
     originHostname: staticWebApp.outputs.defaultHostname
     customDomainName: frontDoorCustomDomain
+    enableManagedRules: frontDoorEnableManagedRules
+    wafMode: frontDoorWafMode
+    rateLimitThreshold: frontDoorRateLimitThreshold
     tags: tags
   }
 }

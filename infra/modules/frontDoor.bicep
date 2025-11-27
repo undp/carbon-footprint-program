@@ -14,6 +14,21 @@ param originHostname string
 @description('Custom domain name (optional)')
 param customDomainName string = ''
 
+@description('Enable WAF managed rules (requires Premium SKU)')
+param enableManagedRules bool = false
+
+@description('WAF mode: Prevention blocks attacks, Detection only logs')
+@allowed([
+  'Prevention'
+  'Detection'
+])
+param wafMode string = 'Detection'
+
+@description('Rate limit threshold (requests per minute per IP)')
+@minValue(10)
+@maxValue(10000)
+param rateLimitThreshold int = 100
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -21,7 +36,13 @@ param tags object = {}
 var frontDoorProfileName = 'fd-${uniqueString(resourceGroup().id)}'
 var wafPolicyName = 'waf-${uniqueString(resourceGroup().id)}'
 
+// Determine if Premium features are available
+var isPremiumSku = skuName == 'Premium_AzureFrontDoor'
+var useManagedRules = enableManagedRules && isPremiumSku
+
 // WAF Policy for Front Door
+// Standard SKU: Custom rules only (~$35/mo)
+// Premium SKU: Custom rules + Managed rules (~$330/mo)
 resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2025-10-01' = {
   name: wafPolicyName
   location: 'Global'
@@ -32,10 +53,10 @@ resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@20
   properties: {
     policySettings: {
       enabledState: 'Enabled'
-      mode: 'Prevention'
-      requestBodyCheck: 'Enabled'
+      mode: wafMode
+      requestBodyCheck: isPremiumSku ? 'Enabled' : 'Disabled'
     }
-    managedRules: {
+    managedRules: useManagedRules ? {
       managedRuleSets: [
         {
           ruleSetType: 'Microsoft_DefaultRuleSet'
@@ -45,6 +66,30 @@ resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@20
         {
           ruleSetType: 'Microsoft_BotManagerRuleSet'
           ruleSetVersion: '1.0'
+        }
+      ]
+    } : {
+      managedRuleSets: []
+    }
+    customRules: {
+      rules: [
+        {
+          name: 'RateLimitRule'
+          priority: 100
+          ruleType: 'RateLimitRule'
+          rateLimitThreshold: rateLimitThreshold
+          rateLimitDurationInMinutes: 1
+          matchConditions: [
+            {
+              matchVariable: 'RemoteAddr'
+              operator: 'IPMatch'
+              negateCondition: false
+              matchValue: [
+                '0.0.0.0/0'
+              ]
+            }
+          ]
+          action: 'Block'
         }
       ]
     }
@@ -107,128 +152,14 @@ resource origin 'Microsoft.Cdn/profiles/originGroups/origins@2025-06-01' = {
   }
 }
 
-// Rule Set for cache optimization
-resource ruleSet 'Microsoft.Cdn/profiles/ruleSets@2025-06-01' = {
-  parent: frontDoorProfile
-  name: 'cacheRules'
-}
-
-// Rule 1: Long cache for static assets (/assets/* from Vite)
-resource staticAssetsRule 'Microsoft.Cdn/profiles/ruleSets/rules@2025-06-01' = {
-  parent: ruleSet
-  name: 'StaticAssetsCache'
-  properties: {
-    order: 1
-    conditions: [
-      {
-        name: 'UrlPath'
-        parameters: {
-          typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
-          operator: 'BeginsWith'
-          matchValues: [
-            '/assets/'
-          ]
-          negateCondition: false
-          transforms: []
-        }
-      }
-    ]
-    actions: [
-      {
-        name: 'CacheExpiration'
-        parameters: {
-          typeName: 'DeliveryRuleCacheExpirationActionParameters'
-          cacheBehavior: 'Override'
-          cacheType: 'All'
-          cacheDuration: '365.00:00:00' // 365 days for immutable assets
-        }
-      }
-    ]
-  }
-}
-
-// Rule 2: No cache for HTML files (index.html, SPA routes)
-resource htmlNoCacheRule 'Microsoft.Cdn/profiles/ruleSets/rules@2025-06-01' = {
-  parent: ruleSet
-  name: 'HtmlNoCache'
-  properties: {
-    order: 2
-    conditions: [
-      {
-        name: 'UrlFileExtension'
-        parameters: {
-          typeName: 'DeliveryRuleUrlFileExtensionMatchConditionParameters'
-          operator: 'Equal'
-          matchValues: [
-            'html'
-          ]
-          negateCondition: false
-          transforms: [
-            'Lowercase'
-          ]
-        }
-      }
-    ]
-    actions: [
-      {
-        name: 'CacheExpiration'
-        parameters: {
-          typeName: 'DeliveryRuleCacheExpirationActionParameters'
-          cacheBehavior: 'BypassCache'
-          cacheType: 'All'
-        }
-      }
-    ]
-  }
-}
-
-// Rule 3: Short cache for semi-static files (manifest, robots.txt, etc.)
-resource semiStaticRule 'Microsoft.Cdn/profiles/ruleSets/rules@2025-06-01' = {
-  parent: ruleSet
-  name: 'SemiStaticCache'
-  properties: {
-    order: 3
-    conditions: [
-      {
-        name: 'UrlPath'
-        parameters: {
-          typeName: 'DeliveryRuleUrlPathMatchConditionParameters'
-          operator: 'Equal'
-          matchValues: [
-            '/manifest.json'
-            '/site.webmanifest'
-            '/robots.txt'
-            '/sitemap.xml'
-            '/favicon.ico'
-          ]
-          negateCondition: false
-          transforms: []
-        }
-      }
-    ]
-    actions: [
-      {
-        name: 'CacheExpiration'
-        parameters: {
-          typeName: 'DeliveryRuleCacheExpirationActionParameters'
-          cacheBehavior: 'Override'
-          cacheType: 'All'
-          cacheDuration: '1.00:00:00' // 24 hours
-        }
-      }
-    ]
-  }
-}
-
 // Default Route with compression enabled
+// Note: Cache rules removed due to API version incompatibility
+// Cache control is now managed via origin headers from Static Web App
 resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2025-06-01' = {
   parent: frontDoorEndpoint
   name: 'route-default'
   dependsOn: [
     origin
-    staticAssetsRule
-    htmlNoCacheRule
-    semiStaticRule
   ]
   properties: {
     originGroup: {
@@ -260,11 +191,6 @@ resource route 'Microsoft.Cdn/profiles/afdEndpoints/routes@2025-06-01' = {
         isCompressionEnabled: true
       }
     }
-    ruleSets: [
-      {
-        id: ruleSet.id
-      }
-    ]
     customDomains: customDomainName != '' ? [
       {
         id: customDomain.id
@@ -290,6 +216,9 @@ resource customDomain 'Microsoft.Cdn/profiles/customDomains@2025-06-01' = if (cu
 resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2025-06-01' = {
   parent: frontDoorProfile
   name: 'security-policy'
+  dependsOn: [
+    route
+  ]
   properties: {
     parameters: {
       type: 'WebApplicationFirewall'
