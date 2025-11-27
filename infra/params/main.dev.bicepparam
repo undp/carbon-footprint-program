@@ -179,7 +179,7 @@ param staticWebAppOutputLocation = 'dist'
 // Recommendation:
 //   - false: For development (saves $35/month)
 //   - true: For staging/production (global performance + security)
-param enableFrontDoor = true
+param enableFrontDoor = false
 
 // Azure Front Door SKU tier
 // - 'Standard_AzureFrontDoor': Basic CDN, custom WAF rules only (~$35/month)
