@@ -161,6 +161,17 @@ param frontDoorRateLimitThreshold = 100 // Requests por minuto por IP (rango: 10
   - Private Link a origins
   - Microsoft Threat Intelligence
 
+#### Optimización de Costos: Health Probes Desactivados
+
+Los **health probes están desactivados** en Front Door porque:
+
+- Solo hay un origen (Static Web App)
+- Con un solo origen, Front Door **siempre enruta el tráfico** independientemente del estado del health probe
+- Los health probes **no afectan el comportamiento** de enrutamiento en este escenario
+- Desactivarlos **ahorra costos de ancho de banda** sin impacto funcional
+
+💡 **Recomendación de Azure**: Habilita health probes solo cuando tengas dos o más orígenes para alta disponibilidad.
+
 #### Configuración del WAF (Web Application Firewall)
 
 El WAF protege tu aplicación contra ataques comunes:

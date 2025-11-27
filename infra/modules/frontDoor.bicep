@@ -117,6 +117,8 @@ resource frontDoorEndpoint 'Microsoft.Cdn/profiles/afdEndpoints@2025-06-01' = {
 }
 
 // Origin Group
+// Note: Health probes disabled - with single origin they don't affect routing
+// and only add bandwidth costs. Azure Front Door routes to the origin regardless.
 resource originGroup 'Microsoft.Cdn/profiles/originGroups@2025-06-01' = {
   parent: frontDoorProfile
   name: 'origin-group-swa'
@@ -125,12 +127,6 @@ resource originGroup 'Microsoft.Cdn/profiles/originGroups@2025-06-01' = {
       sampleSize: 4
       successfulSamplesRequired: 3
       additionalLatencyInMilliseconds: 50
-    }
-    healthProbeSettings: {
-      probePath: '/'
-      probeRequestType: 'HEAD'
-      probeProtocol: 'Https'
-      probeIntervalInSeconds: 100
     }
     sessionAffinityState: 'Disabled'
   }
