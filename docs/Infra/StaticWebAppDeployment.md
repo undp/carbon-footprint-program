@@ -125,6 +125,11 @@ param staticWebAppBranch = 'main'
 param enableFrontDoor = false // Set to true for staging/production to enable global CDN (~$35/month)
 param frontDoorSkuName = 'Standard_AzureFrontDoor' // Usa 'Premium_AzureFrontDoor' para características avanzadas
 param frontDoorCustomDomain = '' // Opcional: tu dominio personalizado (ej: 'app.tudominio.com') - automated by Bicep
+
+// WAF Configuration
+param frontDoorEnableManagedRules = false // true requiere Premium SKU - habilita Microsoft Default RuleSet + Bot Manager
+param frontDoorWafMode = 'Detection' // 'Detection' (monitorea) o 'Prevention' (bloquea)
+param frontDoorRateLimitThreshold = 100 // Requests por minuto por IP (rango: 10-10000)
 ```
 
 ### 2. SKUs Disponibles
@@ -143,14 +148,49 @@ param frontDoorCustomDomain = '' // Opcional: tu dominio personalizado (ej: 'app
 
 #### Azure Front Door
 
-- **Standard**:
-  - CDN básico
-  - WAF básico
-  - Reglas de enrutamiento
-- **Premium**:
-  - WAF avanzado con Microsoft Threat Intelligence
+- **Standard** (~$35/mes):
+  - CDN global con 118+ edge locations
+  - WAF con **custom rules** (rate limiting)
+  - Compresión automática
+  - Modo Detection (monitorea sin bloquear)
+  - **No incluye**: Managed rules (requiere Premium)
+- **Premium** (~$330/mes):
+  - Todo lo de Standard +
+  - **Managed rules**: Microsoft Default RuleSet (OWASP Top 10) + Bot Manager
+  - Request body inspection
   - Private Link a origins
-  - Reglas avanzadas
+  - Microsoft Threat Intelligence
+
+#### Configuración del WAF (Web Application Firewall)
+
+El WAF protege tu aplicación contra ataques comunes:
+
+**Con Standard SKU** (configuración por defecto):
+
+- ✅ **Custom rules**: Rate limiting configurable (100 req/min por IP por defecto)
+- ✅ **Modo Detection**: Monitorea y registra amenazas sin bloquear tráfico
+- ❌ **Managed rules**: No disponibles (requiere Premium SKU)
+
+**Con Premium SKU** (para producción):
+
+- ✅ **Managed rules**: Microsoft Default RuleSet 2.1 (protección OWASP Top 10)
+- ✅ **Bot Manager**: Detección y bloqueo de bots maliciosos
+- ✅ **Modo Prevention**: Bloquea activamente amenazas detectadas
+- ✅ **Request body inspection**: Analiza payloads de requests
+
+**Parámetros configurables**:
+
+```bicep
+param frontDoorEnableManagedRules = false  // true solo con Premium SKU
+param frontDoorWafMode = 'Detection'       // 'Detection' o 'Prevention'
+param frontDoorRateLimitThreshold = 100    // Requests/minuto por IP (10-10000)
+```
+
+**Recomendaciones**:
+
+- **Desarrollo**: Standard SKU + Detection mode + Rate limiting básico
+- **Staging**: Standard SKU + Prevention mode (si no hay falsos positivos)
+- **Producción**: Premium SKU + Managed rules + Prevention mode
 
 ## Despliegue
 
@@ -429,10 +469,11 @@ Esto significa que el deployment fue al ambiente `preview` en lugar de `producti
 - Front Door: **Deshabilitado** (`enableFrontDoor = false`)
 - **Total: $0/mes** ✅
 
-### Opción 2: Con Front Door (Desarrollo/Staging)
+### Opción 2: Con Front Door Standard (Desarrollo/Staging)
 
 - Static Web App Free: $0/mes
 - Front Door Standard: ~$35/mes (base) + ~$0.01/GB tráfico
+- WAF (incluido): Custom rules + Rate limiting
 - **Total: ~$35-40/mes**
 
 ⚠️ **Nota**: Front Door tiene un costo base incluso sin tráfico. Para desarrollo puro, desactívalo en `main.dev.bicepparam`:
@@ -441,11 +482,25 @@ Esto significa que el deployment fue al ambiente `preview` en lugar de `producti
 param enableFrontDoor = false
 ```
 
-### Opción 3: Producción (Plan Standard + Front Door)
+### Opción 3: Producción con Front Door Standard
 
 - Static Web App Standard: $9/mes
 - Front Door Standard: ~$35/mes + tráfico
+- WAF (incluido): Custom rules + Rate limiting
 - **Total: ~$44-50/mes + tráfico adicional**
+
+### Opción 4: Producción con Front Door Premium (Máxima Seguridad)
+
+- Static Web App Standard: $9/mes
+- Front Door Premium: ~$330/mes + tráfico
+- WAF Premium: Managed rules (OWASP Top 10) + Bot Manager
+- **Total: ~$339-350/mes + tráfico adicional**
+
+**Recomendación**: Usa Standard para la mayoría de casos. Premium solo si necesitas:
+
+- Protección avanzada contra bots
+- Microsoft Threat Intelligence
+- Reglas OWASP automáticas
 
 ### Comparación de Costos
 
