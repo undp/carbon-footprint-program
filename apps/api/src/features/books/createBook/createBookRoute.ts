@@ -1,5 +1,4 @@
-import type { FastifyInstance } from "fastify";
-import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import type { FastifyZodInstance } from "../../../types/fastify.js";
 import { createBookHandler } from "./createBookHandler.js";
 import {
   CreateBookBodySchema,
@@ -14,8 +13,8 @@ import {
 // for this specific feature within the Fastify application.
 // --------------------------------------------------------------------------------
 
-export const createBookRoute = (fastify: FastifyInstance) => {
-  fastify.withTypeProvider<ZodTypeProvider>().post(
+export const createBookRoute = (fastify: FastifyZodInstance) => {
+  fastify.post(
     "/",
     {
       schema: {

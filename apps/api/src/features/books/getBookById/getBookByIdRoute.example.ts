@@ -1,5 +1,4 @@
-import type { FastifyInstance } from "fastify";
-import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import type { FastifyZodInstance } from "../../../types/fastify.js";
 import { getBookByIdHandler } from "./getBookByIdHandler.example.js";
 import {
   GetBookByIdParamsSchema,
@@ -14,8 +13,8 @@ import {
 // for this specific feature within the Fastify application.
 // --------------------------------------------------------------------------------
 
-export const getBookByIdRoute = (fastify: FastifyInstance) => {
-  fastify.withTypeProvider<ZodTypeProvider>().get(
+export const getBookByIdRoute = (fastify: FastifyZodInstance) => {
+  fastify.get(
     "/:id",
     {
       schema: {
