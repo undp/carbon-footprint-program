@@ -1,9 +1,10 @@
 import fp from "fastify-plugin";
 import fastifyJwt from "@fastify/jwt";
 import { FastifyJWTOptions } from "@fastify/jwt";
+import { JWT_SECRET } from "@/config/environment.js";
 
 export const autoConfig: FastifyJWTOptions = {
-  secret: process.env.JWT_SECRET || "super-secret-key",
+  secret: JWT_SECRET,
 };
 
 export default fp<FastifyJWTOptions>(
