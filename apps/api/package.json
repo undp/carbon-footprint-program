@@ -21,10 +21,11 @@
   "dependencies": {
     "@fastify/cors": "^11.1.0",
     "@fastify/helmet": "^13.0.2",
+    "@repo/database": "workspace:*",
     "fastify": "^5.6.2",
+    "fastify-type-provider-zod": "^6.1.0",
     "pino": "catalog:shared",
-    "zod": "catalog:shared",
-    "@repo/database": "workspace:*"
+    "zod": "catalog:shared"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
