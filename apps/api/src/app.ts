@@ -1,11 +1,22 @@
+import path from "node:path";
+
+import autoload from "@fastify/autoload";
 import fp from "fastify-plugin";
-import prismaPlugin from "./plugins/external/prisma.js";
-import { registerRoutes } from "./router.js";
 
 export default fp(async (fastify) => {
-  // Registrar plugins
-  await fastify.register(prismaPlugin);
+  const baseDir = import.meta.dirname;
 
-  // Registrar rutas
-  await fastify.register(registerRoutes);
+  await fastify.register(autoload, {
+    dir: path.join(baseDir, "plugins/external"),
+  });
+
+  await fastify.register(autoload, {
+    dir: path.join(baseDir, "plugins/app"),
+  });
+
+  await fastify.register(autoload, {
+    dir: path.join(baseDir, "routes"),
+    autoHooks: true,
+    cascadeHooks: true,
+  });
 });

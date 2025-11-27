@@ -19,6 +19,7 @@
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "@fastify/autoload": "^6.3.1",
     "@fastify/cors": "^11.1.0",
     "@fastify/helmet": "^13.0.2",
     "@joggr/fastify-prisma": "^6.0.1",
