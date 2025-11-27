@@ -34,7 +34,7 @@ param tags object = {}
 
 // Generate unique Front Door profile name
 var frontDoorProfileName = 'fd-${uniqueString(resourceGroup().id)}'
-var wafPolicyName = 'waf-${uniqueString(resourceGroup().id)}'
+var wafPolicyName = 'waf${uniqueString(resourceGroup().id)}'
 
 // Determine if Premium features are available
 var isPremiumSku = skuName == 'Premium_AzureFrontDoor'
@@ -45,7 +45,7 @@ var useManagedRules = enableManagedRules && isPremiumSku
 // Premium SKU: Custom rules + Managed rules (~$330/mo)
 resource wafPolicy 'Microsoft.Network/FrontDoorWebApplicationFirewallPolicies@2025-10-01' = {
   name: wafPolicyName
-  location: 'Global'
+  location: 'global'
   tags: tags
   sku: {
     name: skuName
