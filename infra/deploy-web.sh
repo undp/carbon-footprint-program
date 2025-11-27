@@ -301,6 +301,12 @@ FRONTDOOR_ENDPOINT=$(az stack group show \
   --query outputs.frontDoorEndpoint.value \
   --output tsv 2>/dev/null || echo "")
 
+FRONTDOOR_CUSTOM_DOMAIN=$(az stack group show \
+  --name "$STACK_NAME" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query outputs.frontDoorCustomDomain.value \
+  --output tsv 2>/dev/null || echo "")
+
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
 echo -e "${GREEN}✓ Deployment Successful!${NC}"
@@ -311,10 +317,21 @@ echo ""
 echo -e "   Static Web App:  ${BLUE}https://$SWA_HOSTNAME${NC}"
 
 if [ -n "$FRONTDOOR_ENDPOINT" ]; then
-  echo -e "   Front Door CDN:  ${BLUE}https://$FRONTDOOR_ENDPOINT${NC} ${GREEN}← Use this for production${NC}"
-  echo ""
-  echo -e "${YELLOW}💡 Tip: The Front Door URL provides global CDN, better performance,"
-  echo -e "   and additional security features.${NC}"
+  echo -e "   Front Door CDN:  ${BLUE}https://$FRONTDOOR_ENDPOINT${NC}"
+  
+  if [ -n "$FRONTDOOR_CUSTOM_DOMAIN" ]; then
+    echo -e "   Custom Domain:   ${BLUE}https://$FRONTDOOR_CUSTOM_DOMAIN${NC} ${GREEN}← Use this for production${NC}"
+    echo ""
+    echo -e "${YELLOW}💡 Custom domain configured! Make sure DNS records are set:${NC}"
+    echo -e "   ${CYAN}TXT Record:${NC}   _dnsauth.$FRONTDOOR_CUSTOM_DOMAIN → [validation-token]"
+    echo -e "   ${CYAN}CNAME Record:${NC} $FRONTDOOR_CUSTOM_DOMAIN → $FRONTDOOR_ENDPOINT"
+    echo ""
+    echo -e "${YELLOW}   SSL certificate will be provisioned automatically after DNS validation.${NC}"
+  else
+    echo ""
+    echo -e "${YELLOW}💡 Tip: The Front Door URL provides global CDN, better performance,"
+    echo -e "   and additional security features.${NC}"
+  fi
 fi
 
 echo ""

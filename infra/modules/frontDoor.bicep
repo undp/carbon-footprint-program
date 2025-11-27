@@ -208,7 +208,7 @@ resource customDomain 'Microsoft.Cdn/profiles/customDomains@2025-06-01' = if (cu
   }
 }
 
-// Security Policy - Associates WAF with endpoints
+// Security Policy - Associates WAF with endpoints and custom domains
 resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2025-06-01' = {
   parent: frontDoorProfile
   name: 'security-policy'
@@ -223,11 +223,18 @@ resource securityPolicy 'Microsoft.Cdn/profiles/securityPolicies@2025-06-01' = {
       }
       associations: [
         {
-          domains: [
-            {
-              id: frontDoorEndpoint.id
-            }
-          ]
+          domains: concat(
+            [
+              {
+                id: frontDoorEndpoint.id
+              }
+            ],
+            customDomainName != '' ? [
+              {
+                id: customDomain.id
+              }
+            ] : []
+          )
           patternsToMatch: [
             '/*'
           ]
@@ -249,3 +256,6 @@ output endpointHostname string = frontDoorEndpoint.properties.hostName
 
 @description('Front Door Endpoint ID')
 output endpointId string = frontDoorEndpoint.id
+
+@description('Custom domain hostname (if configured)')
+output customDomainHostname string = customDomainName

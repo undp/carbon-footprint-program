@@ -279,6 +279,9 @@ output staticWebAppName string = staticWebApp.outputs.name
 @description('Front Door endpoint hostname')
 output frontDoorEndpoint string = enableFrontDoor ? frontDoor.?outputs.endpointHostname ?? '' : ''
 
+@description('Front Door custom domain hostname')
+output frontDoorCustomDomain string = enableFrontDoor ? frontDoor.?outputs.customDomainHostname ?? '' : ''
+
 @description('Key Vault name')
 output keyVaultName string = keyVault.outputs.name
 
