@@ -275,35 +275,173 @@ Después del despliegue, tendrás:
 
 ## Dominio Personalizado con Front Door
 
-Para configurar un dominio personalizado cuando `enableFrontDoor = true`:
+Azure Front Door requiere configuración en dos lugares: **Azure** (automático vía Bicep) y **tu proveedor DNS** (manual).
 
-1. **Agrega el dominio personalizado**:
+### Paso 1: Configuración Automática en Azure (vía Bicep)
 
-```bash
-az afd custom-domain create \
-  --resource-group $AZURE_RESOURCE_GROUP \
-  --profile-name [front-door-profile-name] \
-  --custom-domain-name [nombre-sin-puntos] \
-  --host-name app.tudominio.com \
-  --certificate-type ManagedCertificate
-```
-
-2. **Configura el DNS** en tu proveedor:
-   - Tipo: CNAME
-   - Nombre: app (o tu subdominio)
-   - Valor: `[endpoint-name].azurefd.net`
-
-3. **Validación**: Azure validará automáticamente y provisionará SSL
-
-### Configuración Automática vía Parámetros
-
-Puedes pre-configurar el dominio personalizado en `.envrc`:
+Pre-configura el dominio personalizado en `.envrc`:
 
 ```bash
 export FRONT_DOOR_CUSTOM_DOMAIN='app.tudominio.com'
 ```
 
-Luego ejecuta `./deploy.sh` y el dominio se configurará automáticamente en Front Door.
+Luego ejecuta el deployment:
+
+```bash
+cd infra
+./deploy.sh
+```
+
+Bicep creará automáticamente el recurso de custom domain en Azure Front Door.
+
+### Paso 2: Obtener el Token de Validación
+
+Después del deployment, obtén el token de validación DNS:
+
+```bash
+# Obtener el nombre del Front Door profile
+FRONT_DOOR_PROFILE=$(az deployment-stack show \
+  --name undp-huella-latam-dev \
+  --resource-group $AZURE_RESOURCE_GROUP \
+  --query "resources[?resourceType=='Microsoft.Cdn/profiles'].id" -o tsv | cut -d'/' -f9)
+
+# Obtener el validation token
+az afd custom-domain show \
+  --resource-group $AZURE_RESOURCE_GROUP \
+  --profile-name $FRONT_DOOR_PROFILE \
+  --custom-domain-name $(echo $FRONT_DOOR_CUSTOM_DOMAIN | tr '.' '-') \
+  --query "validationProperties.validationToken" -o tsv
+```
+
+**O desde Azure Portal**:
+
+1. Ve a tu Front Door Profile
+2. Navega a **Settings** > **Domains**
+3. Selecciona tu dominio personalizado
+4. Copia el **Validation token**
+
+### Paso 3: Configuración Manual en tu Proveedor DNS
+
+Debes configurar **DOS registros DNS** en tu proveedor (GoDaddy, Cloudflare, Route53, etc.):
+
+#### A. Registro TXT para Validación de Dominio
+
+Este registro prueba que eres el dueño del dominio:
+
+```
+Tipo: TXT
+Nombre: _dnsauth.app (donde "app" es tu subdominio)
+Valor: [validation-token obtenido en el paso anterior]
+TTL: 3600 (o el mínimo permitido)
+```
+
+**Ejemplo real**:
+
+```
+Nombre: _dnsauth.app.tudominio.com
+Tipo: TXT
+Valor: 1234567890abcdef1234567890abcdef
+```
+
+#### B. Registro CNAME para Enrutamiento de Tráfico
+
+Este registro dirige el tráfico hacia Front Door:
+
+```
+Tipo: CNAME
+Nombre: app (tu subdominio)
+Valor: [endpoint-name].azurefd.net
+TTL: 3600
+```
+
+**Ejemplo real**:
+
+```
+Nombre: app.tudominio.com
+Tipo: CNAME
+Valor: endpoint-abc123.azurefd.net
+```
+
+💡 **Tip**: Puedes obtener el endpoint de Front Door con:
+
+```bash
+az deployment-stack show \
+  --name undp-huella-latam-dev \
+  --resource-group $AZURE_RESOURCE_GROUP \
+  --query "outputs.frontDoorEndpointHostname.value" -o tsv
+```
+
+### Paso 4: Verificar Propagación DNS
+
+Verifica que ambos registros estén configurados correctamente:
+
+```bash
+# Verificar el TXT record de validación
+dig _dnsauth.app.tudominio.com TXT +short
+
+# Verificar el CNAME record
+dig app.tudominio.com CNAME +short
+
+# Alternativa con nslookup
+nslookup -type=TXT _dnsauth.app.tudominio.com
+nslookup -type=CNAME app.tudominio.com
+```
+
+**Tiempo de propagación**: Normalmente 5-30 minutos, pero puede tomar hasta 48 horas dependiendo del TTL de tu dominio.
+
+### Paso 5: Validación Automática de Azure
+
+Una vez que el DNS esté propagado, Azure:
+
+1. **Detecta el registro TXT** `_dnsauth` y valida que eres el propietario del dominio
+2. **Detecta el registro CNAME** y verifica la conectividad
+3. **Provisiona automáticamente** el certificado SSL/TLS gestionado
+4. **Activa el dominio** personalizado
+
+Puedes verificar el estado en Azure Portal:
+
+- Ve a **Front Door Profile** > **Domains**
+- El dominio debe mostrar estado: **Approved** y **Certificate provisioned**
+
+### Orden Recomendado de Configuración
+
+**Opción A - DNS Primero (Más Rápido)**:
+
+```bash
+# 1. Configura ambos registros DNS en tu proveedor
+# 2. Espera 5-10 minutos para propagación
+# 3. Ejecuta ./deploy.sh
+# Azure validará inmediatamente
+```
+
+**Opción B - Deployment Primero**:
+
+```bash
+# 1. Ejecuta ./deploy.sh (crea el recurso en Azure)
+# 2. Obtén el validation token
+# 3. Configura los registros DNS
+# 4. Azure validará en los siguientes 15-30 minutos
+```
+
+### Troubleshooting de Dominios Personalizados
+
+**Error: "Domain validation failed"**
+
+- Verifica que el registro TXT `_dnsauth` esté configurado correctamente
+- Confirma que el valor del token coincida exactamente (sin espacios)
+- Espera más tiempo para la propagación DNS
+
+**Error: "CNAME record not found"**
+
+- Verifica que el registro CNAME apunte al endpoint correcto `.azurefd.net`
+- No uses redirecciones o proxies (como Cloudflare proxy naranja)
+- El CNAME debe apuntar directamente al endpoint de Front Door
+
+**El certificado SSL no se provisiona**
+
+- Espera hasta 30 minutos después de la validación DNS
+- Verifica que el dominio no tenga CAA records que bloqueen DigiCert
+- Revisa el estado en Azure Portal > Front Door > Domains
 
 ## Variables de Entorno
 
