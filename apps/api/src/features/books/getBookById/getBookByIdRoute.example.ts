@@ -18,6 +18,9 @@ export const getBookByIdRoute = (fastify: FastifyZodInstance) => {
     "/:id",
     {
       schema: {
+        tags: ["books"],
+        summary: "Get a book by ID",
+        description: "Get a book by its unique identifier",
         params: GetBookByIdParamsSchema,
         response: {
           200: GetBookByIdResponseSchema,

@@ -18,6 +18,9 @@ export const createBookRoute = (fastify: FastifyZodInstance) => {
     "/",
     {
       schema: {
+        tags: ["books"],
+        summary: "Create a new book",
+        description: "Create a new book with the given title and author",
         body: CreateBookBodySchema,
         response: {
           201: CreateBookResponseSchema,
