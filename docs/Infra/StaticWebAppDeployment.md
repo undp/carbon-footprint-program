@@ -451,7 +451,7 @@ Para configurar variables de entorno en la Static Web App:
 # Vía CLI
 az staticwebapp appsettings set \
   --name [swa-name] \
-  --resource-group $RESOURCE_GROUP \
+  --resource-group $AZURE_RESOURCE_GROUP \
   --setting-names VITE_API_URL=https://api.tudominio.com
 ```
 
@@ -465,7 +465,7 @@ O configúralas en el portal de Azure: Static Web App > Configuration > Applicat
 # Logs de despliegue
 az staticwebapp show \
   --name [swa-name] \
-  --resource-group $RESOURCE_GROUP
+  --resource-group $AZURE_RESOURCE_GROUP
 ```
 
 ### Métricas en Azure Portal
