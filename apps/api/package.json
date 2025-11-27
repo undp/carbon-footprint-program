@@ -4,16 +4,16 @@
   "description": "API server for Huella Latam",
   "private": true,
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "license": "MIT",
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
     "test": "vitest",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node dist/server.js",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"

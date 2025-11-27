@@ -1,4 +1,4 @@
-import type { FastifyZodInstance } from "../../../types/fastify.js";
+import type { FastifyZodInstance } from "@/types/fastify.js";
 import { createBookHandler } from "./createBookHandler.js";
 import {
   CreateBookBodySchema,
