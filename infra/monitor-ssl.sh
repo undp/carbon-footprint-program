@@ -34,6 +34,16 @@ CYAN='\033[0;36m'
 MAGENTA='\033[0;35m'
 NC='\033[0m' # No Color
 
+# Check for DNS query tools
+DNS_TOOL=""
+if command -v dig &> /dev/null; then
+  DNS_TOOL="dig"
+elif command -v nslookup &> /dev/null; then
+  DNS_TOOL="nslookup"
+elif command -v host &> /dev/null; then
+  DNS_TOOL="host"
+fi
+
 # Load environment variables
 if [ -f "$SCRIPT_DIR/.envrc" ]; then
   source "$SCRIPT_DIR/.envrc"
@@ -102,28 +112,70 @@ log "${GREEN}✓ Custom Domain: $CUSTOM_DOMAIN${NC}"
 echo ""
 
 # Initial DNS check
-log "${YELLOW}Verifying DNS configuration...${NC}"
-echo ""
+if [ -n "$DNS_TOOL" ]; then
+  log "${YELLOW}Verifying DNS configuration...${NC}"
+  echo ""
 
-echo -e "${CYAN}TXT Record (_dnsauth):${NC}"
-TXT_RECORD=$(dig "_dnsauth.$CUSTOM_DOMAIN" TXT +short 2>/dev/null || echo "")
-if [ -n "$TXT_RECORD" ]; then
-  echo -e "  ${GREEN}✓ $TXT_RECORD${NC}"
+  echo -e "${CYAN}TXT Record (_dnsauth):${NC}"
+  TXT_RECORD=""
+  case "$DNS_TOOL" in
+    dig)
+      TXT_RECORD=$(dig "_dnsauth.$CUSTOM_DOMAIN" TXT +short 2>/dev/null || echo "")
+      ;;
+    nslookup)
+      # Windows-compatible nslookup parsing
+      TXT_RECORD=$(nslookup -type=TXT "_dnsauth.$CUSTOM_DOMAIN" 2>/dev/null | grep -i "text" | grep -v "Non-authoritative" | tail -1 | sed 's/.*"\(.*\)".*/\1/' | tr -d '\r' || echo "")
+      ;;
+    host)
+      TXT_RECORD=$(host -t TXT "_dnsauth.$CUSTOM_DOMAIN" 2>/dev/null | grep "descriptive text" | sed 's/.*descriptive text "\(.*\)"/\1/' || echo "")
+      ;;
+  esac
+  
+  if [ -n "$TXT_RECORD" ]; then
+    echo -e "  ${GREEN}✓ $TXT_RECORD${NC}"
+  else
+    echo -e "  ${RED}✗ Not found${NC}"
+  fi
+
+  echo -e "${CYAN}CNAME Record:${NC}"
+  CNAME_RECORD=""
+  case "$DNS_TOOL" in
+    dig)
+      CNAME_RECORD=$(dig "$CUSTOM_DOMAIN" CNAME +short 2>/dev/null || echo "")
+      ;;
+    nslookup)
+      # Windows-compatible nslookup parsing - handles both Unix and Windows line endings
+      CNAME_RECORD=$(nslookup -type=CNAME "$CUSTOM_DOMAIN" 2>/dev/null | grep -i "canonical name" | awk '{print $NF}' | tr -d '\r' || echo "")
+      ;;
+    host)
+      CNAME_RECORD=$(host -t CNAME "$CUSTOM_DOMAIN" 2>/dev/null | grep "is an alias" | awk '{print $NF}' || echo "")
+      ;;
+  esac
+  
+  if [ -n "$CNAME_RECORD" ]; then
+    echo -e "  ${GREEN}✓ $CNAME_RECORD${NC}"
+  else
+    echo -e "  ${RED}✗ Not found${NC}"
+  fi
+
+  echo ""
+  echo -e "${BLUE}───────────────────────────────────────────────────────────────${NC}"
+  echo ""
 else
-  echo -e "  ${RED}✗ Not found${NC}"
+  log "${YELLOW}⚠ DNS verification tools not found${NC}"
+  echo ""
+  echo -e "${CYAN}To enable DNS verification, install one of:${NC}"
+  echo -e "  - ${YELLOW}Windows:${NC} nslookup should be available by default"
+  echo -e "    If running in Git Bash/WSL, try: winget install -e --id BIND.BIND"
+  echo -e "  - ${YELLOW}macOS:${NC} brew install bind"
+  echo -e "  - ${YELLOW}Ubuntu/Debian:${NC} apt-get install dnsutils"
+  echo -e "  - ${YELLOW}RHEL/CentOS:${NC} yum install bind-utils"
+  echo ""
+  echo -e "${CYAN}Continuing without DNS verification...${NC}"
+  echo ""
+  echo -e "${BLUE}───────────────────────────────────────────────────────────────${NC}"
+  echo ""
 fi
-
-echo -e "${CYAN}CNAME Record:${NC}"
-CNAME_RECORD=$(dig "$CUSTOM_DOMAIN" CNAME +short 2>/dev/null || echo "")
-if [ -n "$CNAME_RECORD" ]; then
-  echo -e "  ${GREEN}✓ $CNAME_RECORD${NC}"
-else
-  echo -e "  ${RED}✗ Not found${NC}"
-fi
-
-echo ""
-echo -e "${BLUE}───────────────────────────────────────────────────────────────${NC}"
-echo ""
 
 # Monitoring loop
 ITERATION=0
