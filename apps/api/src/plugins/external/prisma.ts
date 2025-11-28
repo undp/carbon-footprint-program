@@ -17,7 +17,7 @@ export default fp((fastify) => {
       {
         query: e.query.replace(/"/g, ""),
         params: e.params,
-        duration: e.duration,
+        durationMs: e.duration,
       },
       "Prisma query"
     );
