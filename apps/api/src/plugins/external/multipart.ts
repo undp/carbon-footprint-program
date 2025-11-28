@@ -10,7 +10,6 @@ export const autoConfig: FastifyMultipartOptions = {
     fileSize: 20 * 1024 * 1024, // Max size per file (20MB)
     files: 5, // Max number of file fields
     headerPairs: 2000, // Keep as default, safe for normal requests
-    parts: 10, // Total number of parts (files + fields)
   },
 };
 
