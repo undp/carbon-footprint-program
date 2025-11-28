@@ -23,12 +23,14 @@ fi
 if ! az account show >/dev/null 2>&1; then
   log "Not logged in to Azure CLI. Please log in."
   if [ "$DRY_RUN" = "false" ]; then
-    az login
+    az login || { log "Error: Azure login failed."; exit 1; }
+  else
+    log "[DRY RUN] Would execute: az login"
   fi
 fi
 
 # Pre-flight: ensure required tools are available
-command -v openssl >/dev/null 2>&1 || { log "Error: openssl is required but not found."; }
+command -v openssl >/dev/null 2>&1 || { log "Error: openssl is required but not found."; exit 1; }
 
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
