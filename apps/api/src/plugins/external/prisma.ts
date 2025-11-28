@@ -52,14 +52,27 @@ export default fp((fastify) => {
 
   // Connect when server is ready
   fastify.addHook("onReady", async () => {
-    await prismaClient.$connect();
-    fastify.log.info("Prisma client connected to DB");
+    try {
+      await prismaClient.$connect();
+      fastify.log.info("Prisma client connected to DB");
+    } catch (error) {
+      fastify.log.error({ error }, "Failed to connect Prisma client to DB");
+      throw error; // Prevent app from starting if DB connection fails
+    }
   });
 
   // Disconnect when server closes
   fastify.addHook("onClose", async () => {
-    await prismaClient.$disconnect();
-    fastify.log.info("Prisma client disconnected from DB");
+    try {
+      await prismaClient.$disconnect();
+      fastify.log.info("Prisma client disconnected from DB");
+    } catch (error) {
+      fastify.log.error(
+        { error },
+        "Failed to disconnect Prisma client from DB"
+      );
+      // Don't rethrow here - allow graceful shutdown to continue
+    }
   });
 
   fastify.decorate("prisma", prismaClient);
