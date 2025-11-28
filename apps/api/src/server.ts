@@ -30,7 +30,7 @@ const server = Fastify({
       remove: true,
     },
     // Make request tracing nicer
-    genReqId: () => crypto.randomUUID?.() ?? Date.now().toString(),
+    genReqId: () => crypto.randomUUID(),
     serializers: {
       req(request) {
         return {
