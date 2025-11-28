@@ -227,7 +227,6 @@ pnpm dev:migrate
 This will:
 
 - Apply all pending migrations
-- Generate Prisma Client
 - Create the database schema
 
 Then, you must generate the full-typed client
@@ -249,7 +248,7 @@ This will start:
 
 - **API**: http://localhost:8080
 - **Web**: http://localhost:5173
-- **Swagger Docs**: http://localhost:8080/documentation
+- **Swagger Docs**: http://localhost:8080/docs
 
 Both servers support hot reload and will restart automatically on code changes.
 
@@ -272,11 +271,14 @@ export NODE_ENV="development"   # development | production
 Create `infra/.envrc` for Azure deployments:
 
 ```bash
+export APP_ENV='dev'
+# Azure Subscription
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-export AZURE_RESOURCE_GROUP="undp-huella-latam-rg"
-export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
-export APP_ENV="dev"
+# Azure Resource Group
 export DEVELOPER_NAME="your-name"
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$DEVELOPER_NAME-rg"
+export AZURE_SUBSCRIPTION_GROUP="users-group-name"
+# Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"
 ```
 
@@ -417,7 +419,6 @@ pnpm --filter api clean
 Shared packages are automatically available to apps through the workspace protocol:
 
 ```json
-// apps/api/package.json
 {
   "dependencies": {
     "@repo/database": "workspace:*",
@@ -556,8 +557,8 @@ src/features/books/
 
 The API auto-loads plugins in order:
 
-1. **External plugins** - Third-party integrations (Prisma, JWT, Swagger)
-2. **App plugins** - Custom application logic
+1. **External plugins** - Third-party integrations (CORS, JWT, Swagger)
+2. **App plugins** - Custom application logic (Prisma, Auth)
 3. **Routes** - API endpoints
 
 ### Type Safety (Full Stack)
@@ -693,8 +694,8 @@ chore: maintenance tasks
 
 When running in development:
 
-- **Swagger UI**: http://localhost:8080/documentation
-- **OpenAPI Spec**: http://localhost:8080/documentation/json
+- **Swagger UI**: http://localhost:8080/docs
+- **OpenAPI Spec**: http://localhost:8080/docs/json
 
 ### External Resources
 

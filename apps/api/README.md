@@ -57,13 +57,13 @@ apps/api/
 │   │   ├── external/             # Third-party plugins
 │   │   │   ├── cors.ts           # CORS configuration
 │   │   │   ├── jwt.ts            # JWT authentication
-│   │   │   ├── prisma.ts         # Prisma ORM plugin
 │   │   │   ├── swagger.ts        # OpenAPI spec generation
 │   │   │   ├── swagger-ui.ts     # Swagger UI
 │   │   │   ├── rate-limit.ts     # Rate limiting
 │   │   │   ├── under-pressure.ts # Health checks
 │   │   │   └── multipart.ts      # File upload
 │   │   └── app/                  # Custom application plugins
+│   │   │   ├── prisma.ts         # Prisma ORM plugin
 │   ├── routes/
 │   │   └── api/                  # API routes
 │   │       ├── index.ts          # Root API route
@@ -120,7 +120,7 @@ pnpm install
 
 # Run database migrations
 cd packages/database
-pnpm prisma migrate dev
+pnpm dev:migrate
 ```
 
 ### Development
@@ -200,18 +200,18 @@ Plugins are auto-loaded in order using `@fastify/autoload`:
 ### Loading Order
 
 1. **External Plugins** (`plugins/external/`) - Third-party integrations
-   - Database (Prisma)
    - Authentication (JWT)
    - Documentation (Swagger)
    - Security (CORS, Rate Limiting)
 2. **App Plugins** (`plugins/app/`) - Custom application plugins
+   - Database (Prisma)
 
 3. **Routes** (`routes/`) - API endpoints with autoHooks and cascadeHooks
 
 ### Plugin Example
 
 ```typescript
-// plugins/external/prisma.ts
+// plugins/app/prisma.ts
 import fp from "fastify-plugin";
 import { PrismaClient } from "@repo/database";
 
