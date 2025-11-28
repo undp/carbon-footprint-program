@@ -15,6 +15,8 @@ export const getBookByIdHandler = async (
   request: FastifyRequest<{ Params: GetBookByIdParams }>,
   reply: FastifyReply
 ) => {
+  const log = request.log.child({ module: "books" });
+  log.info("Getting book by ID...");
   const { id } = request.params;
 
   // In a real app, 'prisma' would be attached to the fastify instance
@@ -25,8 +27,10 @@ export const getBookByIdHandler = async (
   const book = await getBookByIdService(prisma, id);
 
   if (!book) {
+    log.error("Book not found");
     return reply.status(404).send({ message: "Book not found" });
   }
+  log.info("Book found successfully");
 
   return reply.status(200).send(book);
 };
