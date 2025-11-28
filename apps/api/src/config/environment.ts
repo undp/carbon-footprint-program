@@ -1,13 +1,4 @@
-import { config } from "dotenv";
-import { fileURLToPath } from "url";
-import { dirname, resolve } from "path";
-
-// Get the directory of the current file (works in ES modules)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Load .env from the database package directory
-config({ path: resolve(__dirname, ".env") });
+import "dotenv/config";
 
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
