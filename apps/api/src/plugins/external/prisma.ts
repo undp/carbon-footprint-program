@@ -1,5 +1,23 @@
 import fp from "fastify-plugin";
 import { PrismaClient, adapter, type Prisma } from "@repo/database";
+import { FastifyInstance } from "fastify";
+
+// Helper function for Prisma log events
+const createLogHandler = (
+  fastify: FastifyInstance,
+  logMethod: "error" | "warn" | "info",
+  label: string
+) => {
+  return (e: Prisma.LogEvent) => {
+    fastify.log[logMethod](
+      {
+        message: e.message,
+        target: e.target,
+      },
+      label
+    );
+  };
+};
 
 export default fp((fastify) => {
   const prismaClient = new PrismaClient({
@@ -24,37 +42,13 @@ export default fp((fastify) => {
   });
 
   // Log Prisma errors
-  prismaClient.$on("error", (e: Prisma.LogEvent) => {
-    fastify.log.error(
-      {
-        message: e.message,
-        target: e.target,
-      },
-      "Prisma Error"
-    );
-  });
+  prismaClient.$on("error", createLogHandler(fastify, "error", "Prisma Error"));
 
   // Log Prisma warnings
-  prismaClient.$on("warn", (e: Prisma.LogEvent) => {
-    fastify.log.warn(
-      {
-        message: e.message,
-        target: e.target,
-      },
-      "Prisma Warning"
-    );
-  });
+  prismaClient.$on("warn", createLogHandler(fastify, "warn", "Prisma Warning"));
 
   // Log Prisma info messages
-  prismaClient.$on("info", (e: Prisma.LogEvent) => {
-    fastify.log.info(
-      {
-        message: e.message,
-        target: e.target,
-      },
-      "Prisma Info"
-    );
-  });
+  prismaClient.$on("info", createLogHandler(fastify, "info", "Prisma Info"));
 
   // Connect when server is ready
   fastify.addHook("onReady", async () => {
