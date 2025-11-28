@@ -204,19 +204,61 @@ while true; do
   
   echo ""
   
-  # Check if deployment is complete
+  # Check if SSL certificate deployment is complete
+  SSL_READY=false
   if [ "$DEPLOYMENT_STATUS" != "InProgress" ] && [ "$VALIDATION_STATE" = "Approved" ] && [ "$PROVISIONING_STATE" = "Succeeded" ]; then
+    SSL_READY=true
+  fi
+  
+  # Test connectivity to custom domain
+  SITE_STATUS="000"
+  SITE_WORKING=false
+  if [ "$SSL_READY" = true ]; then
+    echo -e "${CYAN}Testing connectivity...${NC}"
+    SITE_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://$CUSTOM_DOMAIN" --max-time 10 -k 2>/dev/null || echo "000")
+    
+    if [ "$SITE_STATUS" = "200" ] || [ "$SITE_STATUS" = "304" ]; then
+      echo -e "  Custom Domain:  ${GREEN}✓ HTTP $SITE_STATUS - Site is live!${NC}"
+      SITE_WORKING=true
+    elif [ "$SITE_STATUS" = "404" ]; then
+      echo -e "  Custom Domain:  ${YELLOW}⚠ HTTP $SITE_STATUS - Front Door route propagating...${NC}"
+    else
+      echo -e "  Custom Domain:  ${RED}✗ HTTP $SITE_STATUS${NC}"
+    fi
+    echo ""
+  fi
+  
+  # Exit only when BOTH SSL is ready AND site is working
+  if [ "$SSL_READY" = true ] && [ "$SITE_WORKING" = true ]; then
     echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
-    echo -e "${GREEN}✓ SSL Certificate Deployment Complete!${NC}"
+    echo -e "${GREEN}✓ Custom Domain Fully Operational!${NC}"
     echo -e "${GREEN}═══════════════════════════════════════════════════════════════${NC}"
     echo ""
-    echo -e "${GREEN}🌐 Your custom domain is now live with HTTPS:${NC}"
+    echo -e "${GREEN}🌐 Your application is live at:${NC}"
     echo ""
-    echo -e "   ${BLUE}https://$CUSTOM_DOMAIN${NC}"
+    echo -e "   ${BLUE}https://$CUSTOM_DOMAIN${NC} ${GREEN}(HTTP $SITE_STATUS)${NC}"
     echo ""
-    echo -e "${CYAN}The certificate is automatically managed and will renew before expiration.${NC}"
+    echo -e "${CYAN}✓ SSL certificate is active and automatically managed${NC}"
+    echo -e "${CYAN}✓ Front Door CDN is routing traffic correctly${NC}"
+    echo -e "${CYAN}✓ Site is accessible worldwide${NC}"
     echo ""
     break
+  elif [ "$SSL_READY" = true ] && [ "$SITE_WORKING" = false ]; then
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo -e "${YELLOW}⚠ SSL Ready, but site not yet accessible${NC}"
+    echo -e "${YELLOW}═══════════════════════════════════════════════════════════════${NC}"
+    echo ""
+    echo -e "${CYAN}SSL Certificate: ${GREEN}✓ Deployed${NC}"
+    echo -e "${CYAN}Site Status:     ${YELLOW}⏳ Front Door route propagating (HTTP $SITE_STATUS)${NC}"
+    echo ""
+    echo -e "${YELLOW}The SSL certificate is ready, but Front Door is still propagating${NC}"
+    echo -e "${YELLOW}the route configuration to edge servers worldwide.${NC}"
+    echo ""
+    echo -e "${CYAN}This can take 15-60 minutes after infrastructure changes.${NC}"
+    echo -e "${CYAN}Continuing to monitor...${NC}"
+    echo ""
+    echo -e "${BLUE}Next check in 30 seconds... (Press Ctrl+C to exit)${NC}"
+    sleep 30
   fi
   
   # Check if there's an error
@@ -233,13 +275,13 @@ while true; do
     exit 1
   fi
   
-  # Show progress indicator
+  # Show progress indicator for SSL certificate
   if [ "$DEPLOYMENT_STATUS" = "InProgress" ]; then
     ELAPSED=$((ITERATION * 30))
     MINUTES=$((ELAPSED / 60))
     SECONDS=$((ELAPSED % 60))
     
-    echo -e "${YELLOW}⏳ Certificate provisioning in progress...${NC}"
+    echo -e "${YELLOW}⏳ SSL certificate provisioning in progress...${NC}"
     echo -e "   Elapsed time: ${CYAN}${MINUTES}m ${SECONDS}s${NC}"
     echo ""
     echo -e "${CYAN}ℹ️  This typically takes 15-30 minutes${NC}"
@@ -250,8 +292,13 @@ while true; do
     
     sleep 30
   else
-    # If not in progress but not complete, wait a bit and check again
-    log "${YELLOW}Waiting for status update...${NC}"
-    sleep 30
+    # If SSL is ready but site not working, wait and check again
+    if [ "$SSL_READY" = true ] && [ "$SITE_WORKING" = false ]; then
+      # Already handled above with detailed message
+      continue
+    else
+      log "${YELLOW}Waiting for status update...${NC}"
+      sleep 30
+    fi
   fi
 done
