@@ -207,11 +207,22 @@ echo ""
 
 # Check if SWA CLI is installed
 log "${YELLOW}[4/6] Checking SWA CLI...${NC}"
-if ! command -v swa &> /dev/null; then
-  log "${YELLOW}   → Installing SWA CLI...${NC}"
-  if [ "$DRY_RUN" = "true" ]; then
+
+if [ "$DRY_RUN" = "true" ]; then
+  # In dry run mode, just show what would be checked/installed
+  if ! command -v swa &> /dev/null; then
+    log "${CYAN}[DRY RUN] SWA CLI not found${NC}"
     log "${CYAN}[DRY RUN] Would execute: npm install -g @azure/static-web-apps-cli${NC}"
+    log "${CYAN}[DRY RUN] Or fallback to: npx --yes @azure/static-web-apps-cli@latest${NC}"
   else
+    log "${CYAN}[DRY RUN] SWA CLI already installed${NC}"
+  fi
+  # Set a dummy command for dry run
+  SWA_CMD="echo [DRY RUN] swa"
+else
+  # Normal execution - check and install if needed
+  if ! command -v swa &> /dev/null; then
+    log "${YELLOW}   → Installing SWA CLI...${NC}"
     # Try global install, fall back to npx if permissions fail
     if ! npm install -g @azure/static-web-apps-cli 2>/dev/null; then
       log "${YELLOW}   → Global install failed (permissions?), will use npx instead${NC}"
@@ -219,46 +230,45 @@ if ! command -v swa &> /dev/null; then
     else
       SWA_CMD="swa"
     fi
+  else
+    SWA_CMD="swa"
   fi
-else
-  SWA_CMD="swa"
 fi
+
 log "${GREEN}   ✓ SWA CLI ready${NC}"
 echo ""
 
 # Deploy using SWA CLI
 log "${YELLOW}[5/6] Deploying to Static Web App...${NC}"
 
-# Use swa command if not set (fallback from earlier check)
-SWA_CMD=${SWA_CMD:-"swa"}
+# Deploy to production environment from web app directory
+cd "$WEB_APP_DIR"
+deployment_result=0
 
 if [ "$DRY_RUN" = "true" ]; then
-  log "${CYAN}[DRY RUN] Would execute: cd $WEB_APP_DIR${NC}"
-  log "${CYAN}[DRY RUN] Would execute: $SWA_CMD deploy \\${NC}"
+  log "${CYAN}[DRY RUN] Would execute in: $WEB_APP_DIR${NC}"
+  log "${CYAN}[DRY RUN] Would execute: swa deploy \\${NC}"
   log "${CYAN}[DRY RUN]   --deployment-token [REDACTED] \\${NC}"
   log "${CYAN}[DRY RUN]   --app-location . \\${NC}"
   log "${CYAN}[DRY RUN]   --output-location $OUTPUT_LOCATION \\${NC}"
   log "${CYAN}[DRY RUN]   --env production \\${NC}"
   log "${CYAN}[DRY RUN]   --no-use-keychain${NC}"
-  log "${CYAN}[DRY RUN] Would execute: cd $SCRIPT_DIR${NC}"
-  deployment_result=0
 else
-  # Deploy to production environment from web app directory
-  cd "$WEB_APP_DIR"
-  deployment_result=0
-  $SWA_CMD deploy \
+  run_cmd $SWA_CMD deploy \
     --deployment-token "$DEPLOYMENT_TOKEN" \
     --app-location . \
     --output-location "$OUTPUT_LOCATION" \
     --env production \
     --no-use-keychain || deployment_result=$?
-  cd "$SCRIPT_DIR"
 
   if [ $deployment_result -ne 0 ]; then
     log "${RED}✗ Deployment failed with exit code $deployment_result${NC}"
+    cd "$SCRIPT_DIR"
     exit $deployment_result
   fi
 fi
+
+cd "$SCRIPT_DIR"
 
 log "${GREEN}   ✓ Upload completed${NC}"
 echo ""
