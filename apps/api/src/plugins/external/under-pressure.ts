@@ -15,6 +15,5 @@ export default fp<FastifyUnderPressureOptions>(
   },
   {
     name: "under-pressure-plugin",
-    dependencies: ["prisma-plugin"],
   }
 );
