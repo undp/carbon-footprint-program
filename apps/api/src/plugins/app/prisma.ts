@@ -19,61 +19,70 @@ const createLogHandler = (
   };
 };
 
-export default fp((fastify) => {
-  const prismaClient = new PrismaClient({
-    adapter,
-    log: [
-      { emit: "event", level: "query" },
-      { emit: "event", level: "error" },
-      { emit: "event", level: "warn" },
-      { emit: "event", level: "info" },
-    ],
-  });
+export default fp(
+  (fastify) => {
+    const prismaClient = new PrismaClient({
+      adapter,
+      log: [
+        { emit: "event", level: "query" },
+        { emit: "event", level: "error" },
+        { emit: "event", level: "warn" },
+        { emit: "event", level: "info" },
+      ],
+    });
 
-  prismaClient.$on("query", (e) => {
-    fastify.log.debug(
-      {
-        query: e.query.replace(/"/g, ""),
-        params: e.params,
-        durationMs: e.duration,
-      },
-      "Prisma query"
-    );
-  });
-
-  // Log Prisma errors
-  prismaClient.$on("error", createLogHandler(fastify, "error", "Prisma Error"));
-
-  // Log Prisma warnings
-  prismaClient.$on("warn", createLogHandler(fastify, "warn", "Prisma Warning"));
-
-  // Log Prisma info messages
-  prismaClient.$on("info", createLogHandler(fastify, "info", "Prisma Info"));
-
-  // Connect when server is ready
-  fastify.addHook("onReady", async () => {
-    try {
-      await prismaClient.$connect();
-      fastify.log.info("Prisma client connected to DB");
-    } catch (error) {
-      fastify.log.error({ error }, "Failed to connect Prisma client to DB");
-      throw error; // Prevent app from starting if DB connection fails
-    }
-  });
-
-  // Disconnect when server closes
-  fastify.addHook("onClose", async () => {
-    try {
-      await prismaClient.$disconnect();
-      fastify.log.info("Prisma client disconnected from DB");
-    } catch (error) {
-      fastify.log.error(
-        { error },
-        "Failed to disconnect Prisma client from DB"
+    prismaClient.$on("query", (e) => {
+      fastify.log.debug(
+        {
+          query: e.query.replace(/"/g, ""),
+          params: e.params,
+          durationMs: e.duration,
+        },
+        "Prisma query"
       );
-      // Don't rethrow here - allow graceful shutdown to continue
-    }
-  });
+    });
 
-  fastify.decorate("prisma", prismaClient);
-});
+    // Log Prisma errors
+    prismaClient.$on(
+      "error",
+      createLogHandler(fastify, "error", "Prisma Error")
+    );
+
+    // Log Prisma warnings
+    prismaClient.$on(
+      "warn",
+      createLogHandler(fastify, "warn", "Prisma Warning")
+    );
+
+    // Log Prisma info messages
+    prismaClient.$on("info", createLogHandler(fastify, "info", "Prisma Info"));
+
+    // Connect when server is ready
+    fastify.addHook("onReady", async () => {
+      try {
+        await prismaClient.$connect();
+        fastify.log.info("Prisma client connected to DB");
+      } catch (error) {
+        fastify.log.error({ error }, "Failed to connect Prisma client to DB");
+        throw error; // Prevent app from starting if DB connection fails
+      }
+    });
+
+    // Disconnect when server closes
+    fastify.addHook("onClose", async () => {
+      try {
+        await prismaClient.$disconnect();
+        fastify.log.info("Prisma client disconnected from DB");
+      } catch (error) {
+        fastify.log.error(
+          { error },
+          "Failed to disconnect Prisma client from DB"
+        );
+        // Don't rethrow here - allow graceful shutdown to continue
+      }
+    });
+
+    fastify.decorate("prisma", prismaClient);
+  },
+  { name: "prisma-plugin" }
+);
