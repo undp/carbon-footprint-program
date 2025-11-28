@@ -27,7 +27,7 @@ export const getBookByIdHandler = async (
   const book = await getBookByIdService(prisma, id);
 
   if (!book) {
-    log.error("Book not found");
+    log.warn({ bookId: id }, "Book not found");
     return reply.status(404).send({ message: "Book not found" });
   }
   log.info("Book found successfully");
