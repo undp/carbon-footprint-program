@@ -78,10 +78,20 @@ echo ""
 log "${YELLOW}Getting Front Door configuration...${NC}"
 STACK_NAME="undp-huella-latam-stack-$APP_ENV"
 
+# Try to get profile name from Bicep outputs (preferred method)
 FRONT_DOOR_PROFILE=$(az stack group show \
   --name "$STACK_NAME" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query "resources[?contains(id, '/providers/Microsoft.Cdn/profiles/')].id" -o tsv | head -1 | cut -d'/' -f9)
+  --query "outputs.frontDoorProfileName.value" -o tsv 2>/dev/null)
+
+# Fallback: Parse from resource IDs if output not available (for backward compatibility)
+if [ -z "$FRONT_DOOR_PROFILE" ] || [ "$FRONT_DOOR_PROFILE" = "null" ]; then
+  FRONT_DOOR_PROFILE=$(az stack group show \
+    --name "$STACK_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query "resources[?contains(id, '/providers/Microsoft.Cdn/profiles/')].id" -o json 2>/dev/null | \
+    grep -o '/profiles/[^"]*' | head -1 | cut -d'/' -f3)
+fi
 
 if [ -z "$FRONT_DOOR_PROFILE" ]; then
   log "${RED}Error: Front Door profile not found. Make sure Front Door is enabled.${NC}"

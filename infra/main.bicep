@@ -286,6 +286,9 @@ output frontDoorEndpoint string = enableFrontDoor ? frontDoor.?outputs.endpointH
 @description('Front Door custom domain hostname')
 output frontDoorCustomDomain string = enableFrontDoor ? frontDoor.?outputs.customDomainHostname ?? '' : ''
 
+@description('Front Door profile name')
+output frontDoorProfileName string = enableFrontDoor ? frontDoor.?outputs.profileName ?? '' : ''
+
 @description('Key Vault name')
 output keyVaultName string = keyVault.outputs.name
 
