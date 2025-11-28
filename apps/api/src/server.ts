@@ -9,7 +9,7 @@ import { IS_PROD, LOG_LEVEL } from "@/config/environment.js";
 
 const server = Fastify({
   logger: {
-    level: LOG_LEVEL || (IS_PROD ? "info" : "debug"),
+    level: LOG_LEVEL,
     transport: !IS_PROD
       ? {
           // Only for local dev
