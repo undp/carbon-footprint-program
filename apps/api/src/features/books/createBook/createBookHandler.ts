@@ -15,11 +15,16 @@ export const createBookHandler = async (
   request: FastifyRequest<{ Body: CreateBookBody }>,
   reply: FastifyReply
 ) => {
+  const log = request.log.child({ module: "books" });
+
+  log.info("Creating book...");
+
   const body = request.body;
 
   const prisma = request.server.prisma;
 
   const book = await createBookService(prisma, body);
+  log.info("Book created successfully");
 
   return reply.status(201).send(book);
 };
