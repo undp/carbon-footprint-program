@@ -72,6 +72,10 @@ param availabilityZone string = ''
 param developerName string
 
 // --------- Static Web App parameters ---------
+@allowed([
+  'Free'
+  'Standard'
+])
 @description('SKU tier for Azure Static Web Apps (Free or Standard)')
 param staticWebAppSkuName string
 
