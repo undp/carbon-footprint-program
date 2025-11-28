@@ -272,7 +272,7 @@ Use the REST client files in `src/rest/` to test your endpoints manually.
 When the server is running in development mode, access interactive API documentation at:
 
 ```
-http://localhost:8080/documentation
+http://localhost:8080/docs
 ```
 
 The documentation is automatically generated from:
@@ -286,7 +286,7 @@ The documentation is automatically generated from:
 Raw OpenAPI JSON specification is available at:
 
 ```
-http://localhost:8080/documentation/json
+http://localhost:8080/docs/json
 ```
 
 ## 📜 Scripts
