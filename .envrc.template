@@ -1,0 +1,7 @@
+# Database
+export DATABASE_URL=""
+
+# API
+export JWT_SECRET=""
+export LOG_LEVEL=""
+export NODE_ENV=""

@@ -1,5 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "globalEnv": ["NODE_ENV", "DATABASE_URL", "JWT_SECRET", "LOG_LEVEL"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

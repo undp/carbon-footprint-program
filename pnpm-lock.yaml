@@ -9,9 +9,6 @@ catalogs:
     '@types/node':
       specifier: ^24.10.1
       version: 24.10.1
-    dotenv:
-      specifier: ^17.2.3
-      version: 17.2.3
     pino:
       specifier: ^10.1.0
       version: 10.1.0
@@ -93,9 +90,6 @@ importers:
       '@types/node':
         specifier: catalog:shared
         version: 24.10.1
-      dotenv:
-        specifier: catalog:shared
-        version: 17.2.3
       pino-pretty:
         specifier: ^13.1.2
         version: 13.1.2
@@ -202,9 +196,6 @@ importers:
       '@prisma/client':
         specifier: ^7.0.1
         version: 7.0.1(prisma@7.0.1(@types/react@19.2.6)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(typescript@5.9.3))(typescript@5.9.3)
-      dotenv:
-        specifier: catalog:shared
-        version: 17.2.3
     devDependencies:
       '@types/node':
         specifier: catalog:shared
@@ -1603,10 +1594,6 @@ packages:
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
-    engines: {node: '>=12'}
-
-  dotenv@17.2.3:
-    resolution: {integrity: sha512-JVUnt+DUIzu87TABbhPmNfVdBDt18BLOWjMUFJMSi/Qqg7NTYtabbvSNJGOJ7afbRuv9D/lngizHtP7QyLQ+9w==}
     engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
@@ -4769,8 +4756,6 @@ snapshots:
   dotenv@16.0.3: {}
 
   dotenv@16.6.1: {}
-
-  dotenv@17.2.3: {}
 
   dunder-proto@1.0.1:
     dependencies:

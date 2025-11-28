@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 
