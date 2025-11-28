@@ -1,4 +1,5 @@
 import Fastify from "fastify";
+import { randomUUID } from "node:crypto";
 import {
   serializerCompiler,
   validatorCompiler,
@@ -30,7 +31,7 @@ const server = Fastify({
       remove: true,
     },
     // Make request tracing nicer
-    genReqId: () => crypto.randomUUID(),
+    genReqId: () => randomUUID(),
     serializers: {
       req(request) {
         return {
