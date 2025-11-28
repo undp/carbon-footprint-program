@@ -162,6 +162,11 @@ az --version      # For deployments only
 
 ## 🚀 Getting Started
 
+**Note**: This section provides a quick-start guide for the entire monorepo. For detailed app-specific setup and advanced configuration, see:
+
+- [apps/api/README.md](./apps/api/README.md) - Backend API documentation
+- [apps/web/README.md](./apps/web/README.md) - Frontend application documentation
+
 ### 1. Clone the Repository
 
 ```bash
