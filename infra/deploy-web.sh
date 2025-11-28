@@ -275,6 +275,9 @@ echo ""
 
 log "${YELLOW}[6/6] Verifying deployment...${NC}"
 
+# Initialize SWA_HOSTNAME with placeholder (always defined for final output)
+SWA_HOSTNAME="<not-available-in-dry-run>"
+
 if [ "$DRY_RUN" = "true" ]; then
   log "${CYAN}[DRY RUN] Would wait 3 seconds for deployment to register${NC}"
   log "${CYAN}[DRY RUN] Would verify: https://$SWA_HOSTNAME${NC}"
@@ -300,6 +303,7 @@ else
     fi
   else
     log "${YELLOW}   ⚠ Warning: Could not verify deployment - hostname not found${NC}"
+    SWA_HOSTNAME="<hostname-not-found>"
   fi
 fi
 echo ""
