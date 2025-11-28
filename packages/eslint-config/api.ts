@@ -23,7 +23,6 @@ export const apiConfig: Linter.Config[] = [
       },
     },
     rules: {
-      "no-console": "error",
       "no-process-exit": "error",
       "@typescript-eslint/no-misused-promises": [
         "error",

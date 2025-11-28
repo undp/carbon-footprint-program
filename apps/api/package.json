@@ -4,33 +4,41 @@
   "description": "API server for Huella Latam",
   "private": true,
   "type": "module",
-  "main": "dist/index.js",
+  "main": "dist/server.js",
   "license": "MIT",
   "engines": {
     "node": ">=24.0.0"
   },
   "scripts": {
     "test": "vitest",
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc -p tsconfig.json",
-    "start": "node dist/index.js",
+    "start": "node dist/server.js",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "@fastify/autoload": "^6.3.1",
     "@fastify/cors": "^11.1.0",
     "@fastify/helmet": "^13.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/multipart": "^9.3.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@fastify/swagger": "^9.6.1",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@fastify/under-pressure": "^9.0.3",
+    "@repo/database": "workspace:*",
     "fastify": "^5.6.2",
+    "fastify-type-provider-zod": "^6.1.0",
     "pino": "catalog:shared",
-    "zod": "catalog:shared",
-    "@repo/database": "workspace:*"
+    "zod": "catalog:shared"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:shared",
-    "dotenv": "catalog:shared",
+    "pino-pretty": "^13.1.2",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared",
     "vitest": "catalog:shared"

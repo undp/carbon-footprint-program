@@ -13,12 +13,11 @@
   },
   "devDependencies": {
     "@types/node": "catalog:shared",
+    "prisma": "^7.0.1",
     "tsx": "catalog:shared",
-    "typescript": "catalog:shared",
-    "prisma": "^7.0.1"
+    "typescript": "catalog:shared"
   },
   "dependencies": {
-    "dotenv": "catalog:shared",
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1"
   }

@@ -18,6 +18,12 @@ Paquete de base de datos para el proyecto Huella Latam utilizando Prisma ORM con
 - Docker y Docker Compose
 - pnpm
 
+**Tecnologías Utilizadas:**
+
+- Prisma ORM 7.0.1
+- PostgreSQL 18
+- @prisma/adapter-pg para conexiones optimizadas
+
 ## 🚀 Configuración Inicial
 
 ### 1. Instalar Dependencias
@@ -28,7 +34,7 @@ pnpm install
 
 ### 2. Configurar Variables de Entorno
 
-Crea un archivo `.env` en la raíz del paquete `database` con la siguiente configuración:
+Configura la variable de entorno `DATABASE_URL` en tu shell o en el archivo `.envrc` en la raíz del proyecto:
 
 ```env
 DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb?schema=public"
@@ -36,13 +42,15 @@ DATABASE_URL="postgresql://testuser:testpass@localhost:5432/testdb?schema=public
 
 Esta URL de conexión corresponde a la base de datos para pruebas configurada en `docker-compose.yml`.
 
+> **Nota**: El paquete valida automáticamente que `DATABASE_URL` esté definida a través del archivo `environment.ts`.
+
 ### 3. Iniciar la Base de Datos
 
 ⚠️ **Importante**: Antes de ejecutar comandos de Prisma que interactúan con la base de datos (como migraciones), debes tener la base de datos corriendo.
 
 ## 🐳 Base de Datos para Pruebas
 
-Este paquete incluye una configuración de Docker Compose para ejecutar una base de datos PostgreSQL de desarrollo local para pruebas.
+Este paquete incluye una configuración de Docker Compose para ejecutar una base de datos PostgreSQL 18 (Alpine) de desarrollo local para pruebas.
 
 ### Iniciar la Base de Datos
 
@@ -95,6 +103,8 @@ Este comando lee el archivo `prisma/schema.prisma` y genera el cliente TypeScrip
 
 > **Nota**: Este comando NO requiere que la base de datos esté corriendo, solo genera el cliente desde el schema.
 
+> **Configuración**: La URL de conexión a la base de datos se gestiona a través de `prisma.config.ts` usando la variable de entorno `DATABASE_URL` definida en `environment.ts`.
+
 ### 2. Crear y Aplicar Migraciones
 
 ⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
@@ -133,6 +143,34 @@ pnpm run dev:studio
 
 Esto abrirá una interfaz web en `http://localhost:5555` donde podrás ver y editar los datos de tu base de datos.
 
+### 5. Aplicar Migraciones en Producción
+
+⚠️ **Requiere base de datos corriendo**: Este comando necesita que la base de datos esté activa.
+
+Para aplicar migraciones en un entorno de producción sin reiniciar la base de datos:
+
+```bash
+pnpm run prod:deploy
+```
+
+Este comando aplica todas las migraciones pendientes sin crear nuevas migraciones ni resetear la base de datos.
+
+## 🔌 Adaptador PostgreSQL
+
+Este paquete utiliza `@prisma/adapter-pg` para proporcionar conexión optimizada a PostgreSQL. El adaptador está configurado en `adapter.ts` y se exporta para ser usado en tu aplicación:
+
+```typescript
+import { PrismaClient, adapter } from "@repo/database";
+
+const prisma = new PrismaClient({ adapter });
+```
+
+El adaptador se inicializa automáticamente con la variable de entorno `DATABASE_URL` y proporciona:
+
+- Connection pooling optimizado
+- Mejor rendimiento en entornos serverless
+- Gestión eficiente de conexiones
+
 ## 📝 Scripts Disponibles
 
 | Script         | Descripción                                             | Requiere BD |
@@ -141,16 +179,20 @@ Esto abrirá una interfaz web en `http://localhost:5555` donde podrás ver y edi
 | `dev:migrate`  | Crea y aplica una nueva migración                       | ✅ Sí       |
 | `dev:studio`   | Abre Prisma Studio para gestión visual                  | ✅ Sí       |
 | `dev:reset`    | Resetea la base de datos y aplica todas las migraciones | ✅ Sí       |
+| `prod:deploy`  | Aplica migraciones en producción sin reiniciar          | ✅ Sí       |
 
 ## 💻 Ejemplos de Uso
 
 ### Importar el Cliente de Prisma
 
 ```typescript
-import { prisma } from "@repo/database";
+import { PrismaClient, adapter } from "@repo/database";
 
-// O importar tipos específicos
-import { User, Book } from "@repo/database";
+// Crear una instancia del cliente Prisma
+const prisma = new PrismaClient({ adapter });
+
+// O importar tipos específicos (los modelos en el schema usan lowercase)
+import type { user, book } from "@repo/database";
 ```
 
 ### Ejemplo: Crear un Usuario
@@ -233,11 +275,12 @@ await prisma.user.delete({
 ```
 packages/database/
 ├── prisma/
+│   ├── migrations/            # Migraciones de la base de datos
 │   └── schema.prisma          # Schema de Prisma con los modelos
 ├── generated/
 │   └── client/                # Cliente generado de Prisma
-├── src/                       # Código fuente (si aplica)
-├── client.ts                  # Configuración del cliente Prisma
+├── adapter.ts                 # Configuración del adaptador PostgreSQL
+├── environment.ts             # Variables de entorno
 ├── index.ts                   # Exportaciones del paquete
 ├── prisma.config.ts           # Configuración de Prisma
 ├── docker-compose.yml         # Configuración de PostgreSQL
@@ -249,16 +292,18 @@ packages/database/
 
 El schema actual incluye los siguientes modelos:
 
-### User
+### user
 
 - `id`: Int (auto-incremental, clave primaria)
 - `email`: String (único)
-- `name`: String (opcional)
+- `name`: String (requerido)
+- `createdAt`: DateTime (automático)
+- `updatedAt`: DateTime (automático)
 
-### Book
+### book
 
 - `id`: Int (auto-incremental, clave primaria)
-- `title`: String
+- `title`: String (único)
 - `author`: String
 - `createdAt`: DateTime (automático)
 - `updatedAt`: DateTime (automático)
