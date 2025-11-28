@@ -15,7 +15,12 @@ export default fp<PrismaPluginOptions>(
     await fastify.register(fastifyPrisma, opts);
 
     fastify.addHook("onReady", async () => {
-      await opts.client.$connect();
+      try {
+        await opts.client.$connect();
+        fastify.log.info("Prisma client connected successfully");
+      } catch (error) {
+        fastify.log.error({ error }, "Failed to connect to Prisma client");
+      }
     });
 
     fastify.addHook("onClose", async () => {
