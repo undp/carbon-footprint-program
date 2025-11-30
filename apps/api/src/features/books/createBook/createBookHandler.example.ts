@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import type { CreateBookBody } from "./createBookSchema.js";
-import { createBookService } from "./createBookService.js";
+import type { CreateBookBody } from "./createBookSchema.example.js";
+import { createBookService } from "./createBookService.example.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Coordinate the request/response flow for creating a book.

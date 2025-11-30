@@ -1,9 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { createBookHandler } from "./createBookHandler.js";
+import { createBookHandler } from "./createBookHandler.example.js";
 import {
   CreateBookBodySchema,
   CreateBookResponseSchema,
-} from "./createBookSchema.js";
+} from "./createBookSchema.example.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Register the route for the Create Book feature.

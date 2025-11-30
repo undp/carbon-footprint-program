@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type { CreateBookBody, CreateBookResponse } from "./createBookSchema.js";
+import type {
+  CreateBookBody,
+  CreateBookResponse,
+} from "./createBookSchema.example.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Handle the business logic for creating a new book.
