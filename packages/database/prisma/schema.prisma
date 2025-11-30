@@ -16,9 +16,20 @@ model user {
 }
 
 model book {
-  id        Int      @id @default(autoincrement())
-  title     String   @unique
+  id        Int           @id @default(autoincrement())
+  title     String        @unique
   author    String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  history   bookHistory[]
+}
+
+model bookHistory {
+  id        Int      @id @default(autoincrement())
+  bookId    Int
+  action    String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  book      book     @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@index([bookId])
 }

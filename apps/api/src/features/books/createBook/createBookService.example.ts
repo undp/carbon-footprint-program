@@ -3,13 +3,14 @@ import type {
   CreateBookBody,
   CreateBookResponse,
 } from "./createBookSchema.example.js";
+import { CreateBookUseCase } from "./createBookUseCase.example.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Handle the business logic for creating a new book.
 // EXPLANATION:
-// This function interacts with the database using Prisma. It receives the
-// dependencies it needs (like the Prisma client) and the input data.
-// It returns the data in the format expected by the handler.
+// This function acts as the public interface for the create book feature.
+// It delegates the complex business logic to the UseCase, maintaining
+// a simple and consistent API for the handler.
 // Keeping this logic separate from the handler makes it easier to test
 // and reuse.
 // --------------------------------------------------------------------------------
@@ -18,12 +19,6 @@ export const createBookService = async (
   prisma: PrismaClient,
   data: CreateBookBody
 ): Promise<CreateBookResponse> => {
-  const book = await prisma.book.create({
-    data: {
-      title: data.title,
-      author: data.author,
-    },
-  });
-
-  return book;
+  const useCase = new CreateBookUseCase(prisma);
+  return useCase.execute(data);
 };
