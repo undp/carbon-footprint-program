@@ -61,13 +61,15 @@ fi
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
 : "${APP_ENV:?APP_ENV is required}"
 
-log "Environment:      $APP_ENV"
+# 2.5) Normalize APP_ENV to lowercase for consistent matching
+APP_ENV_LC=$(echo "$APP_ENV" | tr '[:upper:]' '[:lower:]')
+
+log "App Environment (lifecycle): $APP_ENV"
+log "Normalized App Environment (lifecycle): $APP_ENV_LC"
+log "Environment Name (resource/tagging): $ENVIRONMENT"
 log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
-
-# 2.5) Normalize APP_ENV to lowercase for consistent matching
-APP_ENV_LC=$(echo "$APP_ENV" | tr '[:upper:]' '[:lower:]')
 
 # 2.6) Set action-on-unmanage based on environment
 # Production/Staging: detachAll (safe - keeps unmanaged resources)
