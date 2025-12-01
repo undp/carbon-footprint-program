@@ -33,7 +33,6 @@ function getLoggerOptions() {
       ],
       remove: true,
     },
-    // Make request tracing nicer
     genReqId: () => randomUUID(),
     serializers: {
       req(request: FastifyRequest) {
@@ -51,6 +50,7 @@ function getLoggerOptions() {
 export async function createApp() {
   const app = Fastify({
     logger: getLoggerOptions(),
+    genReqId: () => randomUUID(),
   }).withTypeProvider<ZodTypeProvider>();
 
   // Configurar los compiladores de validación y serialización para Zod
