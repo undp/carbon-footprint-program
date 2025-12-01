@@ -1,6 +1,12 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "globalEnv": ["NODE_ENV", "DATABASE_URL", "JWT_SECRET", "LOG_LEVEL"],
+  "globalEnv": [
+    "API_PORT",
+    "NODE_ENV",
+    "DATABASE_URL",
+    "JWT_SECRET",
+    "LOG_LEVEL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],

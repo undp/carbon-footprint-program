@@ -1,22 +1,77 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import Fastify from "fastify";
+import type { FastifyRequest } from "fastify";
+import {
+  serializerCompiler,
+  validatorCompiler,
+  ZodTypeProvider,
+} from "fastify-type-provider-zod";
 
 import autoload from "@fastify/autoload";
-import fp from "fastify-plugin";
+import { IS_PROD, LOG_LEVEL } from "@/config/environment.js";
 
-export default fp(async (fastify) => {
+function getLoggerOptions() {
+  return {
+    level: LOG_LEVEL,
+    transport: !IS_PROD
+      ? {
+          // Only for local dev
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "SYS:standard",
+            ignore: "pid,hostname",
+          },
+        }
+      : undefined,
+    redact: {
+      paths: [
+        "req.headers.authorization",
+        "req.headers.cookie",
+        "req.body.password",
+      ],
+      remove: true,
+    },
+    genReqId: () => randomUUID(),
+    serializers: {
+      req(request: FastifyRequest) {
+        return {
+          id: request.id,
+          method: request.method,
+          url: request.url,
+          params: request.params,
+        };
+      },
+    },
+  };
+}
+
+export async function createApp() {
+  const app = Fastify({
+    logger: getLoggerOptions(),
+    genReqId: () => randomUUID(),
+  }).withTypeProvider<ZodTypeProvider>();
+
+  // set up Zod validators and serializers
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
+
   const baseDir = import.meta.dirname;
 
-  await fastify.register(autoload, {
+  await app.register(autoload, {
     dir: path.join(baseDir, "plugins/external"),
   });
 
-  await fastify.register(autoload, {
+  await app.register(autoload, {
     dir: path.join(baseDir, "plugins/app"),
   });
 
-  await fastify.register(autoload, {
+  await app.register(autoload, {
     dir: path.join(baseDir, "routes"),
     autoHooks: true,
     cascadeHooks: true,
   });
-});
+
+  return app;
+}
