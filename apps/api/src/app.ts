@@ -53,7 +53,7 @@ export async function createApp() {
     genReqId: () => randomUUID(),
   }).withTypeProvider<ZodTypeProvider>();
 
-  // Configurar los compiladores de validación y serialización para Zod
+  // set up Zod validators and serializers
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
 
