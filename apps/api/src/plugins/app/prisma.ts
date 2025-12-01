@@ -5,7 +5,7 @@ import { PrismaPg } from "@prisma/adapter-pg";
 import { DATABASE_URL } from "@/config/environment.js";
 
 interface PrismaPluginOptions {
-  databaseUrl?: string; // Opcional: permite override para tests
+  databaseUrl?: string; // optional: allows override for tests
 }
 
 // Helper function for Prisma log events
