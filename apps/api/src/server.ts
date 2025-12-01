@@ -1,8 +1,9 @@
 import { createApp } from "./app.js";
+import { PORT } from "./config/environment.js";
 
 const app = await createApp();
 
-app.listen({ port: 8080 }, (err, address) => {
+app.listen({ port: PORT }, (err, address) => {
   if (err) {
     app.log.error(err);
     throw new Error(err.message);

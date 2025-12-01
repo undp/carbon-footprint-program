@@ -13,3 +13,5 @@ export const LOG_LEVEL =
     }
     return "debug";
   })();
+
+export const PORT = parseInt(process.env.API_PORT || "8080", 10);
