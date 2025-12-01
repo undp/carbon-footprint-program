@@ -165,7 +165,7 @@ fi
 # 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
 log "Running Bicep deployment using Deployment Stack..."
 
-STACK_NAME="undp-huella-latam-stack-$APP_ENV"
+STACK_NAME="undp-huella-latam-stack-$APP_ENV_LC"
 
 echo "═══════════════════════════════════════════════════════════════"
 
@@ -174,7 +174,7 @@ DEPLOY_PARAMS=(
   --name "$STACK_NAME"
   --resource-group "$AZURE_RESOURCE_GROUP"
   --template-file "$SCRIPT_DIR/main.bicep"
-  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam"
+  --parameters "$SCRIPT_DIR/params/main.$APP_ENV_LC.bicepparam"
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
   --parameters environment="$ENVIRONMENT"
@@ -194,7 +194,7 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --name $STACK_NAME \\"
   log "[DRY RUN]   --resource-group $AZURE_RESOURCE_GROUP \\"
   log "[DRY RUN]   --template-file $SCRIPT_DIR/main.bicep \\"
-  log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV.bicepparam \\"
+  log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV_LC.bicepparam \\"
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
@@ -213,7 +213,7 @@ else
     --verbose || deployment_result=$?
 
   if [ $deployment_result -ne 0 ]; then
-    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
+    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV_LC) with exit code $deployment_result ==="
     exit $deployment_result
   fi
 fi
@@ -228,7 +228,7 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "The deployment would have configured:"
   echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
   echo "  - Stack Name:      $STACK_NAME"
-  echo "  - Environment:     $APP_ENV"
+  echo "  - Environment:     $APP_ENV_LC"
   echo ""
   echo "To execute the actual deployment, run without DRY_RUN:"
   echo "  ./deploy.sh"
