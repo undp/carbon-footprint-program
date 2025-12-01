@@ -44,6 +44,18 @@ elif command -v host &> /dev/null; then
   DNS_TOOL="host"
 fi
 
+# Check for jq binary (used to parse Azure CLI JSON output)
+if ! command -v jq >/dev/null 2>&1; then
+  echo -e "${RED}Error: 'jq' is required but was not found in PATH${NC}"
+  echo ""
+  echo -e "${YELLOW}Install jq:${NC}"
+  echo -e "  - macOS: ${YELLOW}brew install jq${NC}"
+  echo -e "  - Ubuntu/Debian: ${YELLOW}apt-get install -y jq${NC}"
+  echo -e "  - RHEL/CentOS: ${YELLOW}yum install -y jq${NC}"
+  echo ""
+  exit 1
+fi
+
 # Load environment variables
 if [ -f "$SCRIPT_DIR/.envrc" ]; then
   source "$SCRIPT_DIR/.envrc"
@@ -203,6 +215,18 @@ while true; do
   
   if [ -z "$STATUS_JSON" ]; then
     log "${RED}Error: Could not retrieve custom domain status${NC}"
+    exit 1
+  fi
+
+  # Ensure jq is available before attempting to parse STATUS_JSON
+  if ! command -v jq >/dev/null 2>&1; then
+    log "${RED}Error: 'jq' is required but not found in PATH. Parsing JSON is not possible.${NC}"
+    echo ""
+    echo -e "${YELLOW}Install jq:${NC}"
+    echo -e "  - macOS: ${YELLOW}brew install jq${NC}"
+    echo -e "  - Ubuntu/Debian: ${YELLOW}apt-get install -y jq${NC}"
+    echo -e "  - RHEL/CentOS: ${YELLOW}yum install -y jq${NC}"
+    echo ""
     exit 1
   fi
   
