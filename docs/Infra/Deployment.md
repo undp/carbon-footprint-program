@@ -27,6 +27,36 @@ Este proyecto utiliza **Azure Bicep** como lenguaje de Infrastructure as Code (I
 - **Integración nativa**: Compilación directa a ARM templates
 - **Gestión de dependencias**: Resolución automática de dependencias entre recursos
 
+### Gestión de Recursos por Ambiente
+
+El comportamiento de eliminación de recursos varía según el ambiente:
+
+#### 🔒 **Production / Staging** (`APP_ENV=prod|production|staging`)
+
+- **Modo**: `detachAll`
+- **Comportamiento**: Los recursos removidos del template **NO se eliminan automáticamente**
+- **Ventaja**: Máxima seguridad, previene eliminación accidental
+- **Limpieza**: Requiere eliminación manual de recursos no deseados
+
+#### 🧹 **Development** (`APP_ENV=dev|development` o cualquier otro valor)
+
+- **Modo**: `deleteResources`
+- **Comportamiento**: Los recursos removidos del template **SE ELIMINAN AUTOMÁTICAMENTE**
+- **Ventaja**: Ambiente limpio, ideal para experimentación
+- **Precaución**: ⚠️ Destructivo - solo usar en entornos de desarrollo
+
+**Ejemplo**:
+
+```bash
+# Desarrollo - limpieza automática
+export APP_ENV='dev'
+./deploy.sh  # Recursos no declarados serán eliminados
+
+# Producción - modo seguro
+export APP_ENV='prod'
+./deploy.sh  # Recursos no declarados se preservan
+```
+
 ---
 
 ## Estructura del Directorio `infra/`
@@ -46,6 +76,29 @@ infra/
 ```
 
 ### Descripción de Componentes
+
+#### `deploy.sh`
+
+**Propósito**: Script principal de deployment que utiliza Azure Deployment Stacks.
+
+**Responsabilidades**:
+
+- Validación de Azure CLI login y suscripción
+- Carga de variables de entorno desde `.envrc`
+- Generación automática de contraseñas seguras (primera ejecución)
+- Gestión de secretos en Key Vault
+- Configuración dinámica de `--action-on-unmanage` según ambiente:
+  - **Production/Staging**: `detachAll` (preserva recursos)
+  - **Development**: `deleteResources` (elimina automáticamente)
+- Despliegue del Deployment Stack con parámetros
+- Manejo de errores y logging detallado
+
+**Características de seguridad**:
+
+- ⚠️ Advertencia visual en modo `deleteResources`
+- Reutilización de contraseñas existentes en Key Vault
+- Modo dry-run para simulación sin cambios
+- Validación de variables requeridas
 
 #### `main.bicep`
 

@@ -66,6 +66,32 @@ log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
+# 2.5) Set action-on-unmanage based on environment
+# Production/Staging: detachAll (safe - keeps unmanaged resources)
+# Development: deleteResources (clean up automatically)
+case "$APP_ENV" in
+  prod|production|staging)
+    ACTION_ON_UNMANAGE="detachAll"
+    log "Action on unmanage: detachAll (safe mode - resources will be preserved)"
+    ;;
+  dev|development|*)
+    ACTION_ON_UNMANAGE="deleteResources"
+    echo ""
+    echo "⚠️  ═══════════════════════════════════════════════════════════════"
+    echo "⚠️  WARNING: Development Mode - Auto-Cleanup Enabled"
+    echo "⚠️  ═══════════════════════════════════════════════════════════════"
+    echo ""
+    log "Action on unmanage: deleteResources"
+    log "Resources removed from template will be AUTOMATICALLY DELETED"
+    echo ""
+    echo "   This is safe for development but destructive for production."
+    echo "   To use safe mode, set APP_ENV to 'staging' or 'prod'."
+    echo ""
+    echo "⚠️  ═══════════════════════════════════════════════════════════════"
+    echo ""
+    ;;
+esac
+
 # 3) Ensure correct subscription is selected
 log "Setting Azure subscription..."
 if [ "$DRY_RUN" = "true" ]; then
@@ -163,13 +189,13 @@ if [ "$DRY_RUN" = "true" ]; then
     log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
   fi
   log "[DRY RUN]   --deny-settings-mode none \\"
-  log "[DRY RUN]   --action-on-unmanage detachAll \\"
+  log "[DRY RUN]   --action-on-unmanage $ACTION_ON_UNMANAGE \\"
   log "[DRY RUN]   --yes --verbose"
 else
   az stack group create \
     "${DEPLOY_PARAMS[@]}" \
     --deny-settings-mode "none" \
-    --action-on-unmanage "detachAll" \
+    --action-on-unmanage "$ACTION_ON_UNMANAGE" \
     --yes \
     --verbose || deployment_result=$?
 
