@@ -4,9 +4,8 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from "fastify-type-provider-zod";
-import { PrismaClient } from "@repo/database";
-import { PrismaPg } from "@prisma/adapter-pg";
 import registerApp from "@/app.js";
+import prismaPlugin from "@/plugins/app/prisma.js";
 import type { FastifyInstance } from "fastify";
 
 /**
@@ -18,39 +17,29 @@ import type { FastifyInstance } from "fastify";
  * @returns Object containing the Fastify app instance and Prisma client
  */
 export async function createTestApp(databaseUrl: string) {
-  // Set DATABASE_URL environment variable for the Prisma plugin
-  // This ensures the plugin uses the test database
-  const originalDatabaseUrl = process.env.DATABASE_URL;
-  process.env.DATABASE_URL = databaseUrl;
+  // Create Fastify instance with minimal logging for tests
+  const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
 
-  try {
-    // Create Fastify instance with minimal logging for tests
-    const app = Fastify({
-      logger: false, // Disable logging in tests
-    }).withTypeProvider<ZodTypeProvider>();
+  // Set up Zod validators
+  app.setValidatorCompiler(validatorCompiler);
+  app.setSerializerCompiler(serializerCompiler);
 
-    // Set up Zod validators
-    app.setValidatorCompiler(validatorCompiler);
-    app.setSerializerCompiler(serializerCompiler);
+  // Registrar el plugin de Prisma directamente con la URL de prueba
+  await app.register(prismaPlugin, {
+    databaseUrl: databaseUrl,
+  });
 
-    // Register all plugins and routes (Prisma plugin will be registered here)
-    await app.register(registerApp);
+  // Registrar el resto de la app (pero el plugin de Prisma ya está registrado)
+  // Necesitarías modificar app.ts para que no registre Prisma si ya está decorado
+  await app.register(registerApp);
 
-    // Ready the app (this triggers onReady hooks, including Prisma connection)
-    await app.ready();
+  // Ready the app
+  await app.ready();
 
-    // Get Prisma client from the app (decorated by the plugin)
-    const prisma = app.prisma;
+  // Get Prisma client from the app
+  const prisma = app.prisma;
 
-    return { app, prisma };
-  } finally {
-    // Restore original DATABASE_URL if it existed
-    if (originalDatabaseUrl !== undefined) {
-      process.env.DATABASE_URL = originalDatabaseUrl;
-    } else {
-      delete process.env.DATABASE_URL;
-    }
-  }
+  return { app, prisma };
 }
 
 /**
