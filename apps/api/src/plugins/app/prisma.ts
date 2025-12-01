@@ -32,8 +32,14 @@ export default fp<PrismaPluginOptions>(
       return;
     }
     // create adapter with the provided URL or the environment variable
+    const connectionString = opts.databaseUrl ?? DATABASE_URL;
+    if (!connectionString) {
+      throw new Error(
+        "Database URL is required. Provide databaseUrl in plugin options or set DATABASE_URL environment variable."
+      );
+    }
     const adapter = new PrismaPg({
-      connectionString: opts.databaseUrl ?? DATABASE_URL,
+      connectionString,
     });
     const prismaClient = new PrismaClient({
       adapter,
