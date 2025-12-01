@@ -181,44 +181,58 @@ fi
 
 echo ""
 echo "═══════════════════════════════════════════════════════════════"
-echo "✓ Infrastructure deployment completed successfully!"
-echo "═══════════════════════════════════════════════════════════════"
-echo ""
-echo "📦 Deployed Resources:"
-echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
-echo "  - Key Vault:       Created/Updated"
-echo "  - Storage Account: Created/Updated"
-echo "  - PostgreSQL DB:   Created/Updated"
-echo "  - Static Web App:  Ready for content deployment"
 
-# Check if Front Door is configured
-FRONT_DOOR_ENDPOINT=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --query outputs.frontDoorEndpoint.value \
-  -o tsv 2>/dev/null || echo '')
+if [ "$DRY_RUN" = "true" ]; then
+  echo "✓ Dry run completed successfully (no changes applied)"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "The deployment would have configured:"
+  echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
+  echo "  - Stack Name:      $STACK_NAME"
+  echo "  - Environment:     $APP_ENV"
+  echo ""
+  echo "To execute the actual deployment, run without DRY_RUN:"
+  echo "  ./deploy.sh"
+else
+  echo "✓ Infrastructure deployment completed successfully!"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "📦 Deployed Resources:"
+  echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
+  echo "  - Key Vault:       Created/Updated"
+  echo "  - Storage Account: Created/Updated"
+  echo "  - PostgreSQL DB:   Created/Updated"
+  echo "  - Static Web App:  Ready for content deployment"
 
-if [ -n "$FRONT_DOOR_ENDPOINT" ]; then
-  echo "  - Front Door:      Configured"
+  # Check if Front Door is configured
+  FRONT_DOOR_ENDPOINT=$(az stack group show \
+    --name "$STACK_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query outputs.frontDoorEndpoint.value \
+    -o tsv 2>/dev/null || echo '')
+
+  if [ -n "$FRONT_DOOR_ENDPOINT" ]; then
+    echo "  - Front Door:      Configured"
+  fi
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════"
+  echo "📋 NEXT STEP: Deploy your web application"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "The infrastructure is ready. Now deploy your frontend:"
+  echo ""
+  echo "  cd infra"
+  echo "  ./deploy-web.sh"
+  echo ""
+  echo "This will:"
+  echo "  1. Build your React/Vite application"
+  echo "  2. Upload the build to Azure Static Web Apps"
+  echo "  3. Make your app live on the internet"
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "📚 Useful commands:"
+  echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
+  echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
+  echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
 fi
-echo ""
-echo "═══════════════════════════════════════════════════════════════"
-echo "📋 NEXT STEP: Deploy your web application"
-echo "═══════════════════════════════════════════════════════════════"
-echo ""
-echo "The infrastructure is ready. Now deploy your frontend:"
-echo ""
-echo "  cd infra"
-echo "  ./deploy-web.sh"
-echo ""
-echo "This will:"
-echo "  1. Build your React/Vite application"
-echo "  2. Upload the build to Azure Static Web Apps"
-echo "  3. Make your app live on the internet"
-echo ""
-echo "═══════════════════════════════════════════════════════════════"
-echo ""
-echo "📚 Useful commands:"
-echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
-echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
-echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
