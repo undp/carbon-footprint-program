@@ -49,7 +49,6 @@ function runPrismaMigrations(databaseUrl: string): void {
     cwd: databasePackagePath,
     stdio: "inherit" as const,
     env: {
-      ...process.env,
       DATABASE_URL: databaseUrl,
     },
   };
