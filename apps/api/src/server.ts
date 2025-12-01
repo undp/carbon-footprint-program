@@ -1,61 +1,11 @@
-import Fastify from "fastify";
-import { randomUUID } from "node:crypto";
-import {
-  serializerCompiler,
-  validatorCompiler,
-  ZodTypeProvider,
-} from "fastify-type-provider-zod";
-import registerApp from "./app.js";
-import { IS_PROD, LOG_LEVEL } from "@/config/environment.js";
+import { createApp } from "./app.js";
 
-const server = Fastify({
-  logger: {
-    level: LOG_LEVEL,
-    transport: !IS_PROD
-      ? {
-          // Only for local dev
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "SYS:standard",
-            ignore: "pid,hostname",
-          },
-        }
-      : undefined,
-    redact: {
-      paths: [
-        "req.headers.authorization",
-        "req.headers.cookie",
-        "req.body.password",
-      ],
-      remove: true,
-    },
-    // Make request tracing nicer
-    genReqId: () => randomUUID(),
-    serializers: {
-      req(request) {
-        return {
-          id: request.id,
-          method: request.method,
-          url: request.url,
-          params: request.params,
-        };
-      },
-    },
-  },
-}).withTypeProvider<ZodTypeProvider>();
+const app = await createApp();
 
-// Configurar los compiladores de validación y serialización para Zod
-server.setValidatorCompiler(validatorCompiler);
-server.setSerializerCompiler(serializerCompiler);
-
-// Registrar la aplicación completa
-await server.register(registerApp);
-
-server.listen({ port: 8080 }, (err, _address) => {
+app.listen({ port: 8080 }, (err, address) => {
   if (err) {
-    //console.error(err);
+    app.log.error(err);
     throw new Error(err.message);
   }
-  //console.log(`Server listening at ${address}`);
+  app.log.info(`Server listening at ${address}`);
 });
