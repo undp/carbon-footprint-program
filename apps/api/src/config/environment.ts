@@ -14,4 +14,13 @@ export const LOG_LEVEL =
     return "debug";
   })();
 
-export const DATABASE_URL = process.env.DATABASE_URL;
+export const DATABASE_URL =
+  process.env.DATABASE_URL ||
+  (() => {
+    if (IS_PROD) {
+      throw new Error(
+        "DATABASE_URL environment variable is required in production"
+      );
+    }
+    return undefined;
+  })();
