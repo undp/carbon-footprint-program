@@ -72,7 +72,7 @@ infra/
 │   ├── postgres.bicep           # PostgreSQL Flexible Server
 │   └── storage.bicep            # Azure Storage Account
 └── params/                       # Archivos de parámetros por entorno
-    └── main.dev.bicepparam      # Parámetros para desarrollo
+    └── main.development.bicepparam      # Parámetros para desarrollo
 ```
 
 ### Descripción de Componentes
@@ -156,7 +156,7 @@ infra/
 - **Versión**: PostgreSQL 18
 - **Alta disponibilidad**: Deshabilitada (para dev)
 - **Zona de disponibilidad**: Sin zona explícita por defecto (Azure selecciona automáticamente)
-  - Configurable mediante el parámetro `availabilityZone` en `params/main.dev.bicepparam`
+  - Configurable mediante el parámetro `availabilityZone` en `params/main.development.bicepparam`
   - Valores posibles: `'1'`, `'2'`, `'3'`, o `''` (vacío = sin zona específica)
   - ⚠️ No todas las regiones soportan zonas de disponibilidad
 - **Database**: Crea una base de datos con charset UTF8 y collation `es_ES.UTF8`
@@ -190,7 +190,7 @@ infra/
 - ✅ Solo servicios de Azure confiables pueden acceder
 - ✅ Para acceso desde IPs específicas, configura `networkAclDefaultAction` y añade reglas de IP en el módulo
 
-#### `params/main.dev.bicepparam`
+#### `params/main.development.bicepparam`
 
 **Propósito**: Archivo de parámetros para el entorno de desarrollo.
 
@@ -397,7 +397,7 @@ chmod +x infra/deploy.sh
 
 ### 3. Validar Parámetros
 
-Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades (desde el directorio raíz del proyecto):
+Revisa y ajusta `infra/params/main.development.bicepparam` según tus necesidades (desde el directorio raíz del proyecto):
 
 - **Storage**: `Standard_LRS` es la opción más económica
 - **Key Vault**: `standard` es suficiente para la mayoría de casos
@@ -531,7 +531,7 @@ az stack group create \
   --name "undp-huella-latam-stack-dev" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --template-file "main.bicep" \
-  --parameters "params/main.dev.bicepparam" \
+  --parameters "params/main.development.bicepparam" \
   --what-if
 ```
 
@@ -635,7 +635,7 @@ az postgres flexible-server update \
 
 **Configuración actual**: Sin zona explícita (Azure selecciona automáticamente)
 
-**Para especificar una zona**, edita `infra/params/main.dev.bicepparam`:
+**Para especificar una zona**, edita `infra/params/main.development.bicepparam`:
 
 ```bicep
 // Sin zona específica (default, Azure selecciona)
@@ -716,7 +716,7 @@ az ad group create --display-name "Devs-Contributors" --mail-nickname "devs-cont
 
 **Causa**: PostgreSQL Flexible Server requiere mínimo 32 GB de storage.
 
-**Solución**: Actualiza `dbStorageSizeGB` en `params/main.dev.bicepparam` a `32` o más.
+**Solución**: Actualiza `dbStorageSizeGB` en `params/main.development.bicepparam` a `32` o más.
 
 ### Error: "Resource Group does not exist"
 

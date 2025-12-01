@@ -121,7 +121,7 @@ huella-latam/
 │   │   ├── postgres.bicep         # PostgreSQL Flexible Server
 │   │   └── storage.bicep          # Azure Storage Account
 │   ├── params/                    # Environment-specific parameters
-│   │   └── main.dev.bicepparam    # Development parameters
+│   │   └── main.development.bicepparam    # Development parameters
 │   ├── deploy.sh                  # Deployment script
 │   ├── delete-stack.sh            # Stack deletion script
 │   └── view-stack.sh              # Stack inspection script
