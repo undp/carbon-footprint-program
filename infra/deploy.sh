@@ -59,30 +59,27 @@ fi
 : "${AZURE_SUBSCRIPTION_GROUP:?AZURE_SUBSCRIPTION_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
-: "${APP_ENV:?APP_ENV is required}"
 
-# 2.5) Normalize APP_ENV to lowercase for consistent matching
-APP_ENV_LC=$(echo "$APP_ENV" | tr '[:upper:]' '[:lower:]')
-
-log "App Environment (lifecycle): $APP_ENV"
-log "Normalized App Environment (lifecycle): $APP_ENV_LC"
-log "Environment Name (resource/tagging): $ENVIRONMENT"
+log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
 log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
-# 2.6) Set action-on-unmanage based on environment
+# 2.7) Set action-on-unmanage based on environment
 # Production/Staging: detachAll (safe - keeps unmanaged resources)
 # Development: deleteResources (clean up automatically)
-case "$APP_ENV_LC" in
-  prod|production|staging)
+# Also set environment parameters file based on environment
+case "$ENVIRONMENT" in
+  production|staging)
     ACTION_ON_UNMANAGE="detachAll"
     log "Action on unmanage: detachAll (safe mode - resources will be preserved)"
-    log "Validated environment: $APP_ENV_LC"
+    log "Validated environment: $ENVIRONMENT"
+
+    ENVIRONMENT_PARAMS_FILE="params/main.${ENVIRONMENT}.bicepparam"
     ;;
-  dev|development)
+  *)
     ACTION_ON_UNMANAGE="deleteResources"
-    log "Validated environment: $APP_ENV_LC"
+    log "Validated environment: $ENVIRONMENT"
     echo ""
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
     echo "⚠️  WARNING: Development Mode - Auto-Cleanup Enabled"
@@ -92,18 +89,16 @@ case "$APP_ENV_LC" in
     log "Resources removed from template will be AUTOMATICALLY DELETED"
     echo ""
     echo "   This is safe for development but destructive for production."
-    echo "   To use safe mode, set APP_ENV to 'staging' or 'prod'."
+    echo "   To use safe mode, set ENVIRONMENT to 'staging' or 'production'."
     echo ""
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
     echo ""
-    ;;
-  *)
-    log "Error: Unknown environment '$APP_ENV' (normalized: '$APP_ENV_LC')"
-    log "Allowed values: prod, production, staging, dev, development"
-    log "Please set APP_ENV to a valid environment name in .envrc"
-    exit 1
+
+    ENVIRONMENT_PARAMS_FILE="params/main.development.bicepparam"
     ;;
 esac
+
+echo "Using environment parameters file: $ENVIRONMENT_PARAMS_FILE"
 
 # 3) Ensure correct subscription is selected
 log "Setting Azure subscription..."
@@ -165,7 +160,7 @@ fi
 # 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
 log "Running Bicep deployment using Deployment Stack..."
 
-STACK_NAME="undp-huella-latam-stack-$APP_ENV_LC"
+STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 echo "═══════════════════════════════════════════════════════════════"
 
@@ -174,7 +169,7 @@ DEPLOY_PARAMS=(
   --name "$STACK_NAME"
   --resource-group "$AZURE_RESOURCE_GROUP"
   --template-file "$SCRIPT_DIR/main.bicep"
-  --parameters "$SCRIPT_DIR/params/main.$APP_ENV_LC.bicepparam"
+  --parameters "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
   --parameters environment="$ENVIRONMENT"
@@ -194,7 +189,7 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --name $STACK_NAME \\"
   log "[DRY RUN]   --resource-group $AZURE_RESOURCE_GROUP \\"
   log "[DRY RUN]   --template-file $SCRIPT_DIR/main.bicep \\"
-  log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV_LC.bicepparam \\"
+  log "[DRY RUN]   --parameters $SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE \\"
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
@@ -213,7 +208,7 @@ else
     --verbose || deployment_result=$?
 
   if [ $deployment_result -ne 0 ]; then
-    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV_LC) with exit code $deployment_result ==="
+    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $ENVIRONMENT) with exit code $deployment_result ==="
     exit $deployment_result
   fi
 fi
@@ -228,7 +223,8 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "The deployment would have configured:"
   echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
   echo "  - Stack Name:      $STACK_NAME"
-  echo "  - Environment:     $APP_ENV_LC"
+  echo "  - Environment:     $ENVIRONMENT"
+  echo "  - Parameters File: $ENVIRONMENT_PARAMS_FILE"
   echo ""
   echo "To execute the actual deployment, run without DRY_RUN:"
   echo "  ./deploy.sh"

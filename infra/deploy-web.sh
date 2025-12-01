@@ -111,21 +111,12 @@ done
 log "${GREEN}   ✓ All prerequisites met${NC}"
 echo ""
 
-# Check required variables
-if [ -z "$AZURE_RESOURCE_GROUP" ]; then
-  echo -e "${RED}Error: AZURE_RESOURCE_GROUP is not set in .envrc${NC}"
-  exit 1
-fi
+# 2) Check required non-sensitive variables
+: "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
+: "${ENVIRONMENT:?ENVIRONMENT is required}"
 
-if [ -z "$ENVIRONMENT" ]; then
-  echo -e "${RED}Error: ENVIRONMENT is not set in .envrc${NC}"
-  exit 1
-fi
-
-if [ -z "$APP_ENV" ]; then
-  echo -e "${RED}Error: APP_ENV is not set in .envrc${NC}"
-  exit 1
-fi
+log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
+log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════${NC}"
@@ -135,7 +126,7 @@ echo ""
 
 # Get the Static Web App details from the deployment
 log "${YELLOW}[1/5] Fetching Static Web App details...${NC}"
-STACK_NAME="undp-huella-latam-stack-$APP_ENV"
+STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 # Get Static Web App name
 SWA_NAME=$(az stack group show \

@@ -70,8 +70,8 @@ if [ -z "$AZURE_RESOURCE_GROUP" ]; then
   exit 1
 fi
 
-if [ -z "$APP_ENV" ]; then
-  echo -e "${RED}Error: APP_ENV is not set in .envrc${NC}"
+if [ -z "$ENVIRONMENT" ]; then
+  echo -e "${RED}Error: ENVIRONMENT is not set in .envrc${NC}"
   exit 1
 fi
 
@@ -88,7 +88,7 @@ echo ""
 
 # Get Front Door profile name
 log "${YELLOW}Getting Front Door configuration...${NC}"
-STACK_NAME="undp-huella-latam-stack-$APP_ENV"
+STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 # Try to get profile name from Bicep outputs (preferred method)
 FRONT_DOOR_PROFILE=$(az stack group show \

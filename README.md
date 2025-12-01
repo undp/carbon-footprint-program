@@ -276,11 +276,10 @@ export NODE_ENV="development"   # development | production
 Create `infra/.envrc` for Azure deployments:
 
 ```bash
-export APP_ENV='dev'
 # Azure Subscription
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 # Azure Resource Group
-export ENVIRONMENT="your-name"
+export ENVIRONMENT="development" # production, staging or development
 export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 export AZURE_SUBSCRIPTION_GROUP="users-group-name"
 # Location 'eastus' is not available for subscriptions with free trial.

@@ -20,9 +20,9 @@ fi
 
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
-: "${APP_ENV:=dev}"
+: "${ENVIRONMENT:?ENVIRONMENT is required}"
 
-STACK_NAME="undp-huella-latam-stack-$APP_ENV"
+STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 echo "Subscription:     $AZURE_SUBSCRIPTION_ID"
 echo "Resource Group:   $AZURE_RESOURCE_GROUP"
