@@ -1,22 +1,42 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "=== [deploy.sh] Deployment starting ==="
+# Dry run mode (set DRY_RUN=true to simulate without executing)
+DRY_RUN=${DRY_RUN:-false}
+
+# Function to log with timestamp
+log() {
+  echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
+}
+
+log "=== [deploy.sh] Deployment starting ==="
+
+# Show dry run status
+if [ "$DRY_RUN" = "true" ]; then
+  echo "═══════════════════════════════════════════════════════════════"
+  log "DRY RUN MODE - No changes will be made"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+fi
 
 # 0) Ensure Azure CLI is logged in
 if ! az account show >/dev/null 2>&1; then
-  echo "Not logged in to Azure CLI. Please log in."
-  az login
+  log "Not logged in to Azure CLI. Please log in."
+  if [ "$DRY_RUN" = "false" ]; then
+    az login || { log "Error: Azure login failed."; exit 1; }
+  else
+    log "[DRY RUN] Would execute: az login"
+  fi
 fi
 
 # Pre-flight: ensure required tools are available
-command -v openssl >/dev/null 2>&1 || { echo "Error: openssl is required but not found."; }
+command -v openssl >/dev/null 2>&1 || { log "Error: openssl is required but not found."; exit 1; }
 
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 if [ -f "$SCRIPT_DIR/.env" ]; then
-  echo "Loading .env..."
+  log "Loading .env..."
   # Export all variables defined in .env
   set -o allexport
   # shellcheck disable=SC1091
@@ -26,7 +46,7 @@ fi
 
 # Optional: support .envrc if you don't use direnv directly
 if [ -f "$SCRIPT_DIR/.envrc" ]; then
-  echo "Loading .envrc..."
+  log "Loading .envrc..."
   set -o allexport
   # shellcheck disable=SC1091
   source "$SCRIPT_DIR/.envrc"
@@ -41,29 +61,38 @@ fi
 : "${DEVELOPER_NAME:?DEVELOPER_NAME is required}"
 : "${APP_ENV:?APP_ENV is required}"
 
-echo "Environment:      $APP_ENV"
-echo "Subscription:     $AZURE_SUBSCRIPTION_ID"
-echo "Location:         $LOCATION"
-echo "Resource Group:   $AZURE_RESOURCE_GROUP"
+log "Environment:      $APP_ENV"
+log "Subscription:     $AZURE_SUBSCRIPTION_ID"
+log "Location:         $LOCATION"
+log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
 # 3) Ensure correct subscription is selected
-echo "Setting Azure subscription..."
-az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+log "Setting Azure subscription..."
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az account set --subscription $AZURE_SUBSCRIPTION_ID"
+else
+  az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+fi
 
 # 4) Creating resource group if it doesn't exist...
-az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
+log "Creating resource group if it doesn't exist..."
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az group create --name $AZURE_RESOURCE_GROUP --location $LOCATION"
+else
+  az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
+fi
 
 # 5) Get Azure AD group Object ID for Key Vault access
-echo "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
+log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
 DEVS_GROUP_ID=$(az ad group show --group "$AZURE_SUBSCRIPTION_GROUP" --query id -o tsv 2>/dev/null || echo "")
 
 if [ -z "$DEVS_GROUP_ID" ]; then
-  echo "Warning: $AZURE_SUBSCRIPTION_GROUP group not found. Key Vault will be created without group access."
-  echo "You can manually assign permissions later or add the group Object ID to the deployment."
+  log "Warning: $AZURE_SUBSCRIPTION_GROUP group not found. Key Vault will be created without group access."
+  log "You can manually assign permissions later or add the group Object ID to the deployment."
 fi
 
 # 6) Check if password secret already exists in Key Vault
-echo "Checking if password secret already exists..."
+log "Checking if password secret already exists..."
 EXISTING_VAULT=$(az keyvault list \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "[0].name" -o tsv 2>/dev/null || echo "")
@@ -71,7 +100,7 @@ EXISTING_VAULT=$(az keyvault list \
 DB_PASSWORD=""
 
 if [ -n "$EXISTING_VAULT" ]; then
-  echo "Found existing Key Vault: $EXISTING_VAULT"
+  log "Found existing Key Vault: $EXISTING_VAULT"
   
   # Check if secret exists (don't retrieve value, just check existence)
   SECRET_EXISTS=$(az keyvault secret show \
@@ -80,49 +109,130 @@ if [ -n "$EXISTING_VAULT" ]; then
     --query "name" -o tsv 2>/dev/null || echo "")
   
   if [ -n "$SECRET_EXISTS" ]; then
-    echo "Password secret already exists. Skipping password generation (will not overwrite)."
+    log "Password secret already exists. Skipping password generation (will not overwrite)."
     # Pass empty string to Bicep so it skips secret creation and preserves existing
     DB_PASSWORD=""
   else
-    echo "No existing password secret found. Generating new password..."
+    log "No existing password secret found. Generating new password..."
     DB_PASSWORD=$(openssl rand -base64 18)
-    echo "New password generated"
+    log "New password generated"
   fi
 else
-  echo "No existing Key Vault found. Generating new password..."
+  log "No existing Key Vault found. Generating new password..."
   DB_PASSWORD=$(openssl rand -base64 18)
-  echo "New password generated"
+  log "New password generated"
 fi
 
 # 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
-echo "Running Bicep deployment using Deployment Stack..."
+log "Running Bicep deployment using Deployment Stack..."
 
 STACK_NAME="undp-huella-latam-stack-$APP_ENV"
 
-deployment_result=0
+echo "═══════════════════════════════════════════════════════════════"
 
-az stack group create \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --template-file "$SCRIPT_DIR/main.bicep" \
-  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam" \
-  --parameters dbPassword="$DB_PASSWORD" \
-  --parameters devGroupObjectId="$DEVS_GROUP_ID" \
-  --parameters developerName="$DEVELOPER_NAME" \
-  --deny-settings-mode "none" \
-  --action-on-unmanage "detachAll" \
-  --yes \
-  --verbose || deployment_result=$?
+# Build parameters array
+DEPLOY_PARAMS=(
+  --name "$STACK_NAME"
+  --resource-group "$AZURE_RESOURCE_GROUP"
+  --template-file "$SCRIPT_DIR/main.bicep"
+  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam"
+  --parameters dbPassword="$DB_PASSWORD"
+  --parameters devGroupObjectId="$DEVS_GROUP_ID"
+  --parameters developerName="$DEVELOPER_NAME"
+)
 
-if [ $deployment_result -ne 0 ]; then
-  echo "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
-  exit $deployment_result
+# Add optional parameters only if set
+if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
+  log "Using custom Front Door domain: $FRONT_DOOR_CUSTOM_DOMAIN"
+  DEPLOY_PARAMS+=(--parameters frontDoorCustomDomain="$FRONT_DOOR_CUSTOM_DOMAIN")
 fi
 
-echo "=== [deploy.sh] Deployment Stack completed successfully (ENV: $APP_ENV) ==="
-echo "Stack name: $STACK_NAME"
+deployment_result=0
+
+log "Starting deployment stack creation..."
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az stack group create \\"
+  log "[DRY RUN]   --name $STACK_NAME \\"
+  log "[DRY RUN]   --resource-group $AZURE_RESOURCE_GROUP \\"
+  log "[DRY RUN]   --template-file $SCRIPT_DIR/main.bicep \\"
+  log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV.bicepparam \\"
+  log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
+  log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
+  log "[DRY RUN]   --parameters developerName=$DEVELOPER_NAME \\"
+  if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
+    log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
+  fi
+  log "[DRY RUN]   --deny-settings-mode none \\"
+  log "[DRY RUN]   --action-on-unmanage detachAll \\"
+  log "[DRY RUN]   --yes --verbose"
+else
+  az stack group create \
+    "${DEPLOY_PARAMS[@]}" \
+    --deny-settings-mode "none" \
+    --action-on-unmanage "detachAll" \
+    --yes \
+    --verbose || deployment_result=$?
+
+  if [ $deployment_result -ne 0 ]; then
+    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
+    exit $deployment_result
+  fi
+fi
+
 echo ""
-echo "Useful commands:"
-echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
-echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
-echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
+echo "═══════════════════════════════════════════════════════════════"
+
+if [ "$DRY_RUN" = "true" ]; then
+  echo "✓ Dry run completed successfully (no changes applied)"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "The deployment would have configured:"
+  echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
+  echo "  - Stack Name:      $STACK_NAME"
+  echo "  - Environment:     $APP_ENV"
+  echo ""
+  echo "To execute the actual deployment, run without DRY_RUN:"
+  echo "  ./deploy.sh"
+else
+  echo "✓ Infrastructure deployment completed successfully!"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "📦 Deployed Resources:"
+  echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
+  echo "  - Key Vault:       Created/Updated"
+  echo "  - Storage Account: Created/Updated"
+  echo "  - PostgreSQL DB:   Created/Updated"
+  echo "  - Static Web App:  Ready for content deployment"
+
+  # Check if Front Door is configured
+  FRONT_DOOR_ENDPOINT=$(az stack group show \
+    --name "$STACK_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query outputs.frontDoorEndpoint.value \
+    -o tsv 2>/dev/null || echo '')
+
+  if [ -n "$FRONT_DOOR_ENDPOINT" ]; then
+    echo "  - Front Door:      Configured"
+  fi
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════"
+  echo "📋 NEXT STEP: Deploy your web application"
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "The infrastructure is ready. Now deploy your frontend:"
+  echo ""
+  echo "  cd infra"
+  echo "  ./deploy-web.sh"
+  echo ""
+  echo "This will:"
+  echo "  1. Build your React/Vite application"
+  echo "  2. Upload the build to Azure Static Web Apps"
+  echo "  3. Make your app live on the internet"
+  echo ""
+  echo "═══════════════════════════════════════════════════════════════"
+  echo ""
+  echo "📚 Useful commands:"
+  echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
+  echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
+  echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
+fi

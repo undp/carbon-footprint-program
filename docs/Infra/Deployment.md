@@ -285,7 +285,51 @@ export APP_ENV="dev"
 export DEVELOPER_NAME="tu-nombre"  # Tu nombre para tagging de recursos
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"
+
+# Opcional: Custom domain para Azure Front Door (solo si usas Front Door)
+export FRONT_DOOR_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
 ```
+
+#### Variables de Entorno Disponibles
+
+| Variable                   | Requerida | Descripción                                                                  | Ejemplo                                | Usado Por                    |
+| -------------------------- | --------- | ---------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
+| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
+| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                  | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
+| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                          | `Devs-Contributors`                    | `deploy.sh`                  |
+| `APP_ENV`                  | ✅ Sí     | Entorno de deployment (dev/staging/prod)                                     | `dev`                                  | `deploy.sh`                  |
+| `DEVELOPER_NAME`           | ✅ Sí     | Tu nombre para tagging de recursos (usado en nombre de Resource Group)       | `luis`                                 | `deploy.sh`                  |
+| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                            | `eastus2`                              | `deploy.sh`                  |
+| `FRONT_DOOR_CUSTOM_DOMAIN` | ❌ No     | Dominio personalizado para Azure Front Door (solo si `enableFrontDoor=true`) | `app.huellalatam.org`                  | `deploy.sh`                  |
+
+**Notas**:
+
+- **`APP_ENV`**: Define qué archivo de parámetros usar (`params/main.{APP_ENV}.bicepparam`)
+- **`DEVELOPER_NAME`**: Se usa para crear nombres únicos de Resource Groups y como tag en todos los recursos
+- **`AZURE_SUBSCRIPTION_GROUP`**: Debe ser un grupo existente en Azure AD. Los miembros obtendrán rol "Key Vault Secrets Officer"
+- **`LOCATION`**: Algunas regiones no están disponibles en suscripciones gratuitas. Usa `eastus2` si `eastus` no funciona
+- **`FRONT_DOOR_CUSTOM_DOMAIN`**: Solo necesario si habilitas Front Door (`enableFrontDoor=true` en parámetros) y quieres usar un dominio personalizado
+
+#### Cómo se Usan las Variables
+
+**En `deploy.sh`**:
+
+- Lee todas las variables de entorno del archivo `.envrc`
+- Genera contraseña de base de datos automáticamente si no existe
+- Obtiene el Object ID del grupo de Azure AD especificado en `AZURE_SUBSCRIPTION_GROUP`
+- Pasa valores a Bicep como parámetros: `dbPassword`, `devGroupObjectId`, `developerName`, `frontDoorCustomDomain`
+
+**En `deploy-web.sh`**:
+
+- Lee `AZURE_RESOURCE_GROUP` para buscar el deployment stack
+- Obtiene el deployment token de Azure Static Web Apps
+- Usa el token para desplegar la aplicación web
+
+**En Bicep**:
+
+- Parámetros como `developerName` y `frontDoorCustomDomain` se pasan desde el script
+- `dbPassword` se genera automáticamente solo en la primera ejecución
+- Los valores se usan para configurar recursos (tags, dominios personalizados, etc.)
 
 **Importante**:
 
@@ -341,6 +385,30 @@ cd infra
 ```
 
 El script creará o actualizará el Deployment Stack automáticamente.
+
+### Modo Dry Run (Simulación)
+
+Para validar la configuración sin hacer cambios reales:
+
+```bash
+cd infra
+DRY_RUN=true ./deploy.sh
+```
+
+**Características del Dry Run**:
+
+- ✅ Valida variables de entorno y configuración
+- ✅ Muestra qué comandos se ejecutarían
+- ✅ Verifica permisos y recursos existentes
+- ✅ No crea ni modifica recursos
+- ✅ Útil para debugging y validación
+
+**Cuándo usar Dry Run**:
+
+- Primera vez que configuras el proyecto
+- Antes de hacer cambios importantes
+- Para validar nuevos parámetros
+- Troubleshooting de problemas de configuración
 
 ### Pasos Ejecutados por el Script
 
@@ -489,20 +557,20 @@ az postgres flexible-server update \
 
 ### Storage Account SKUs
 
-| SKU | Redundancia | Costo | Uso Recomendado |
-|-----|-------------|-------|-----------------|
-| `Standard_LRS` | Local | Bajo | Dev/Testing |
-| `Standard_GRS` | Geográfica | Medio | Producción básica |
-| `Standard_RAGRS` | Geo + Read Access | Alto | Producción crítica |
-| `Premium_LRS` | Local (SSD) | Alto | Alta performance |
+| SKU              | Redundancia       | Costo | Uso Recomendado    |
+| ---------------- | ----------------- | ----- | ------------------ |
+| `Standard_LRS`   | Local             | Bajo  | Dev/Testing        |
+| `Standard_GRS`   | Geográfica        | Medio | Producción básica  |
+| `Standard_RAGRS` | Geo + Read Access | Alto  | Producción crítica |
+| `Premium_LRS`    | Local (SSD)       | Alto  | Alta performance   |
 
 ### PostgreSQL SKUs (Burstable Tier)
 
-| SKU | vCores | RAM | Costo Aprox/Mes | Uso |
-|-----|--------|-----|-----------------|-----|
-| `Standard_B1ms` | 1 | 2 GB | $12-15 | Dev/Testing |
-| `Standard_B2s` | 2 | 4 GB | $25-30 | Staging |
-| `Standard_B2ms` | 2 | 8 GB | $50-60 | Small Production |
+| SKU             | vCores | RAM  | Costo Aprox/Mes | Uso              |
+| --------------- | ------ | ---- | --------------- | ---------------- |
+| `Standard_B1ms` | 1      | 2 GB | $12-15          | Dev/Testing      |
+| `Standard_B2s`  | 2      | 4 GB | $25-30          | Staging          |
+| `Standard_B2ms` | 2      | 8 GB | $50-60          | Small Production |
 
 **Nota**: Para producción se recomienda usar tiers `GeneralPurpose` o `MemoryOptimized`.
 

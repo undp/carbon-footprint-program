@@ -10,8 +10,12 @@ param networkAclBypass string = 'AzureServices'
 @description('Tags to apply to the Storage Account')
 param tags object = {}
 
+// Generate unique storage account name (must be globally unique, 3-24 lowercase alphanumeric)
+// Note: Storage account names cannot contain hyphens or uppercase letters
+var storageAccountName = 'st${uniqueString(resourceGroup().id)}'
+
 resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
-  name: uniqueString(resourceGroup().id)
+  name: storageAccountName
   location: location
   sku: {
     name: skuName
