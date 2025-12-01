@@ -12,4 +12,6 @@ catalogs:
     zod: ^4.1.12
 
 onlyBuiltDependencies:
-  - "@prisma/client"
+  - "@prisma/engines"
+  - esbuild
+  - prisma
