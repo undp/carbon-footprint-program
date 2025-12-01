@@ -66,16 +66,21 @@ log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
-# 2.5) Set action-on-unmanage based on environment
+# 2.5) Normalize APP_ENV to lowercase for consistent matching
+APP_ENV_LC=$(echo "$APP_ENV" | tr '[:upper:]' '[:lower:]')
+
+# 2.6) Set action-on-unmanage based on environment
 # Production/Staging: detachAll (safe - keeps unmanaged resources)
 # Development: deleteResources (clean up automatically)
-case "$APP_ENV" in
+case "$APP_ENV_LC" in
   prod|production|staging)
     ACTION_ON_UNMANAGE="detachAll"
     log "Action on unmanage: detachAll (safe mode - resources will be preserved)"
+    log "Validated environment: $APP_ENV_LC"
     ;;
-  dev|development|*)
+  dev|development)
     ACTION_ON_UNMANAGE="deleteResources"
+    log "Validated environment: $APP_ENV_LC"
     echo ""
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
     echo "⚠️  WARNING: Development Mode - Auto-Cleanup Enabled"
@@ -89,6 +94,12 @@ case "$APP_ENV" in
     echo ""
     echo "⚠️  ═══════════════════════════════════════════════════════════════"
     echo ""
+    ;;
+  *)
+    log "Error: Unknown environment '$APP_ENV' (normalized: '$APP_ENV_LC')"
+    log "Allowed values: prod, production, staging, dev, development"
+    log "Please set APP_ENV to a valid environment name in .envrc"
+    exit 1
     ;;
 esac
 
