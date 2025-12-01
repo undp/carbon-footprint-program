@@ -27,7 +27,7 @@ describe("POST /api/books - Integration Tests", () => {
 
     // Create test app with the test database
     const testApp = await createTestApp(databaseUrl);
-    app = testApp.app;
+    app = testApp;
     prisma = testApp.prisma;
   });
 

@@ -1,10 +1,4 @@
-import Fastify from "fastify";
-import {
-  serializerCompiler,
-  validatorCompiler,
-  ZodTypeProvider,
-} from "fastify-type-provider-zod";
-import registerApp from "@/app.js";
+import { createApp } from "@/app.js";
 import prismaPlugin from "@/plugins/app/prisma.js";
 import type { FastifyInstance } from "fastify";
 
@@ -16,30 +10,21 @@ import type { FastifyInstance } from "fastify";
  * @param databaseUrl - The database connection URL for testing
  * @returns Object containing the Fastify app instance and Prisma client
  */
-export async function createTestApp(databaseUrl: string) {
+export async function createTestApp(
+  databaseUrl: string
+): Promise<FastifyInstance> {
   // Create Fastify instance with minimal logging for tests
-  const app = Fastify({ logger: false }).withTypeProvider<ZodTypeProvider>();
-
-  // Set up Zod validators
-  app.setValidatorCompiler(validatorCompiler);
-  app.setSerializerCompiler(serializerCompiler);
-
+  const app = await createApp(false);
+  app.log.level = "silent";
   // Registrar el plugin de Prisma directamente con la URL de prueba
   await app.register(prismaPlugin, {
     databaseUrl: databaseUrl,
   });
 
-  // Registrar el resto de la app (pero el plugin de Prisma ya está registrado)
-  // Necesitarías modificar app.ts para que no registre Prisma si ya está decorado
-  await app.register(registerApp);
-
   // Ready the app
   await app.ready();
 
-  // Get Prisma client from the app
-  const prisma = app.prisma;
-
-  return { app, prisma };
+  return app;
 }
 
 /**
