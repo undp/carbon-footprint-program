@@ -58,7 +58,7 @@ fi
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
 : "${AZURE_SUBSCRIPTION_GROUP:?AZURE_SUBSCRIPTION_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
-: "${DEVELOPER_NAME:?DEVELOPER_NAME is required}"
+: "${ENVIRONMENT:?ENVIRONMENT is required}"
 : "${APP_ENV:?APP_ENV is required}"
 
 log "Environment:      $APP_ENV"
@@ -164,7 +164,7 @@ DEPLOY_PARAMS=(
   --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam"
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
-  --parameters developerName="$DEVELOPER_NAME"
+  --parameters environment="$ENVIRONMENT"
 )
 
 # Add optional parameters only if set
@@ -184,7 +184,7 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV.bicepparam \\"
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
-  log "[DRY RUN]   --parameters developerName=$DEVELOPER_NAME \\"
+  log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
   if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
     log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
   fi

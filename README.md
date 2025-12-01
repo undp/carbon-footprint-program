@@ -280,8 +280,8 @@ export APP_ENV='dev'
 # Azure Subscription
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 # Azure Resource Group
-export DEVELOPER_NAME="your-name"
-export AZURE_RESOURCE_GROUP="undp-huella-latam-$DEVELOPER_NAME-rg"
+export ENVIRONMENT="your-name"
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 export AZURE_SUBSCRIPTION_GROUP="users-group-name"
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"

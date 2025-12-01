@@ -25,7 +25,7 @@
 //
 // Some parameters are automatically set by deploy.sh from environment variables:
 //   - dbPassword: Auto-generated secure password (never commit actual passwords)
-//   - developerName: Set from DEVELOPER_NAME in .envrc
+//   - environment: Set from ENVIRONMENT in .envrc
 //   - frontDoorCustomDomain: Set from FRONT_DOOR_CUSTOM_DOMAIN in .envrc (optional)
 //
 // Configure these in your .envrc file before running deploy.sh
@@ -84,11 +84,11 @@ param dbGeoRedundantBackup = 'Disabled'
 // ⚠️ SECURITY: Never commit actual passwords to version control
 param dbPassword = ''
 
-// Developer name for resource tagging
-// - Set automatically from DEVELOPER_NAME environment variable
+// Environment name for resource tagging
+// - Set automatically from ENVIRONMENT environment variable
 // - Used to tag all resources for cost tracking and ownership
 // - Leave empty ('') - deploy.sh will populate from .envrc
-param developerName = ''
+param environment = ''
 
 // Allowed IP ranges for PostgreSQL firewall
 // - Special 0.0.0.0 range: allows access from Azure services only

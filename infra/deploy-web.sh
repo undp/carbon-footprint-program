@@ -117,8 +117,8 @@ if [ -z "$AZURE_RESOURCE_GROUP" ]; then
   exit 1
 fi
 
-if [ -z "$DEVELOPER_NAME" ]; then
-  echo -e "${RED}Error: DEVELOPER_NAME is not set in .envrc${NC}"
+if [ -z "$ENVIRONMENT" ]; then
+  echo -e "${RED}Error: ENVIRONMENT is not set in .envrc${NC}"
   exit 1
 fi
 
