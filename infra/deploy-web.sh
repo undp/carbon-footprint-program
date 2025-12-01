@@ -213,7 +213,7 @@ if [ "$DRY_RUN" = "true" ]; then
   if ! command -v swa &> /dev/null; then
     log "${CYAN}[DRY RUN] SWA CLI not found${NC}"
     log "${CYAN}[DRY RUN] Would execute: npm install -g @azure/static-web-apps-cli${NC}"
-    log "${CYAN}[DRY RUN] Or fallback to: npx --yes @azure/static-web-apps-cli@latest${NC}"
+    log "${CYAN}[DRY RUN] Or fallback to: npx --yes @azure/static-web-apps-cli@2.0.7${NC}"
   else
     log "${CYAN}[DRY RUN] SWA CLI already installed${NC}"
   fi
@@ -226,7 +226,7 @@ else
     # Try global install, fall back to npx if permissions fail
     if ! npm install -g @azure/static-web-apps-cli 2>/dev/null; then
       log "${YELLOW}   → Global install failed (permissions?), will use npx instead${NC}"
-      SWA_CMD="npx --yes @azure/static-web-apps-cli@latest"
+      SWA_CMD="npx --yes @azure/static-web-apps-cli@2.0.7"
     else
       SWA_CMD="swa"
     fi
