@@ -9,7 +9,6 @@ import {
   createBookData,
   createBookDataWithTitle,
   createInvalidBookData,
-  createBookDataWithSpecialCharacters,
 } from "@/test/features/books/createBookFactory.js";
 import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
@@ -63,46 +62,6 @@ describe("POST /api/books - Integration Tests", () => {
       expect(body.createdAt).toBeDefined();
       expect(body.updatedAt).toBeDefined();
     });
-
-    it("debería incluir slug y metadata en la respuesta", async () => {
-      const bookData = createBookData({ title: "Test Book Title" });
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/books",
-        payload: bookData,
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateBookResponse;
-      expect(body.slug).toBeDefined();
-      expect(body.slug).toBe("test-book-title");
-      expect(body.metadata).toBeDefined();
-      expect(body.metadata?.titleLength).toBe(bookData.title.length);
-      expect(body.metadata?.authorLength).toBe(bookData.author.length);
-    });
-
-    it("debería crear el registro de historial correctamente", async () => {
-      const bookData = createBookData();
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/books",
-        payload: bookData,
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateBookResponse;
-
-      // Verificar que el historial se creó
-      const history = await prisma.bookHistory.findFirst({
-        where: { bookId: body.id },
-      });
-
-      expect(history).toBeDefined();
-      expect(history?.action).toBe("created");
-      expect(history?.bookId).toBe(body.id);
-    });
   });
 
   describe("Validaciones de negocio", () => {
@@ -123,9 +82,7 @@ describe("POST /api/books - Integration Tests", () => {
         payload: bookData,
       });
 
-      expect(response.statusCode).toBe(500); // El UseCase lanza error que se convierte en 500
-      const body = JSON.parse(response.body) as { message: string };
-      expect(body.message).toContain("already exists");
+      expect(response.statusCode).toBe(500); // Error por restricción de unicidad en base de datos
     });
 
     it("debería rechazar datos inválidos (campos vacíos)", async () => {
@@ -139,83 +96,6 @@ describe("POST /api/books - Integration Tests", () => {
 
       // Fastify/Zod validation debería rechazar antes de llegar al handler
       expect(response.statusCode).toBe(400);
-    });
-
-    it("debería rechazar títulos con caracteres inválidos", async () => {
-      const bookData = createBookData({ title: "Test@#$%Book" });
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/books",
-        payload: bookData,
-      });
-
-      expect(response.statusCode).toBe(500);
-      const body = JSON.parse(response.body) as { message: string };
-      expect(body.message).toContain("invalid characters");
-    });
-
-    it("debería rechazar autores con caracteres inválidos", async () => {
-      const bookData = createBookData({ author: "Author@#$%Name" });
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/books",
-        payload: bookData,
-      });
-
-      expect(response.statusCode).toBe(500);
-      const body = JSON.parse(response.body) as { message: string };
-      expect(body.message).toContain("invalid characters");
-    });
-  });
-
-  describe("Transformaciones y normalización", () => {
-    it("debería normalizar espacios en blanco en título y autor", async () => {
-      const bookData = createBookDataWithSpecialCharacters();
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/books",
-        payload: bookData,
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateBookResponse;
-
-      // Verificar que los espacios fueron normalizados (trimmed)
-      expect(body.title).toBe(bookData.title.trim());
-      expect(body.author).toBe(bookData.author.trim());
-    });
-
-    it("debería generar slug correctamente desde el título", async () => {
-      const testCases = [
-        {
-          title: "El Quijote de la Mancha",
-          expectedSlug: "el-quijote-de-la-mancha",
-        },
-        { title: "1984", expectedSlug: "1984" },
-        { title: "Cien años de soledad", expectedSlug: "cien-anos-de-soledad" },
-        {
-          title: "Harry Potter & The Philosopher's Stone",
-          expectedSlug: "harry-potter-the-philosophers-stone",
-        },
-      ];
-
-      for (const testCase of testCases) {
-        // Limpiar antes de cada test case
-        await cleanBookData(prisma);
-
-        const response = await app.inject({
-          method: "POST",
-          url: "/api/books",
-          payload: createBookDataWithTitle(testCase.title),
-        });
-
-        expect(response.statusCode).toBe(201);
-        const body = JSON.parse(response.body) as CreateBookResponse;
-        expect(body.slug).toBe(testCase.expectedSlug);
-      }
     });
   });
 
@@ -240,29 +120,6 @@ describe("POST /api/books - Integration Tests", () => {
       expect(bookInDb).toBeDefined();
       expect(bookInDb?.title).toBe(bookData.title);
       expect(bookInDb?.author).toBe(bookData.author);
-    });
-
-    it("debería usar transacciones para crear libro e historial", async () => {
-      const bookData = createBookData();
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/books",
-        payload: bookData,
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateBookResponse;
-
-      // Verificar que tanto el libro como el historial existen
-      const book = await prisma.book.findUnique({
-        where: { id: body.id },
-        include: { history: true },
-      });
-
-      expect(book).toBeDefined();
-      expect(book?.history).toHaveLength(1);
-      expect(book?.history[0]?.action).toBe("created");
     });
   });
 

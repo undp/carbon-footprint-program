@@ -15,7 +15,6 @@ import type { PrismaClient } from "@repo/database";
  */
 export async function cleanDatabase(prisma: PrismaClient): Promise<void> {
   // Delete in order to respect foreign key constraints
-  await prisma.bookHistory.deleteMany();
   await prisma.book.deleteMany();
   await prisma.user.deleteMany();
 }
@@ -27,6 +26,5 @@ export async function cleanDatabase(prisma: PrismaClient): Promise<void> {
  * @param prisma - Prisma client instance
  */
 export async function cleanBookData(prisma: PrismaClient): Promise<void> {
-  await prisma.bookHistory.deleteMany();
   await prisma.book.deleteMany();
 }
