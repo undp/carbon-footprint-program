@@ -27,6 +27,7 @@ export default defineConfig({
     teardownTimeout: 10000,
     pool: "threads",
     maxWorkers: 1,
+    globalSetup: ["./src/test/setup/globalSetup.ts"],
     server: {
       deps: {
         inline: [

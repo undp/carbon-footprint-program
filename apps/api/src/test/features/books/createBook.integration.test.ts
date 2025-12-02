@@ -1,10 +1,13 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
 import {
-  setupTestDatabase,
-  teardownTestDatabase,
-} from "@/test/setup/testcontainers.js";
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  inject,
+} from "vitest";
 import { createTestApp } from "@/test/factories/appFactory.js";
-import { cleanBookData } from "@/test/utils/helpers.js";
 import {
   createBookData,
   createBookDataWithTitle,
@@ -13,33 +16,27 @@ import {
 import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { cleanDatabase } from "../../utils/helpers.js";
 
 describe("POST /api/books - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
-  let databaseUrl: string;
 
   beforeAll(async () => {
-    // Setup test database with TestContainers
-    const setup = await setupTestDatabase();
-    databaseUrl = setup.databaseUrl;
-
-    // Create test app with the test database
-    const testApp = await createTestApp(databaseUrl);
-    app = testApp;
-    prisma = testApp.prisma;
+    const databaseUrl = inject("databaseUrl");
+    app = await createTestApp(databaseUrl);
+    prisma = app.prisma;
   });
 
   afterAll(async () => {
     // Cleanup: close app and database connections
     await app.close();
     await prisma.$disconnect();
-    await teardownTestDatabase();
+    // Note: teardownTestDatabase() se ejecuta automáticamente en globalTeardown
   });
 
   beforeEach(async () => {
-    // Clean book data before each test to ensure isolation
-    await cleanBookData(prisma);
+    await cleanDatabase(prisma);
   });
 
   describe("Creación exitosa de libro", () => {
