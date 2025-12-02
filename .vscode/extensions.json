@@ -9,6 +9,7 @@
     "ms-azuretools.vscode-containers",
     "pflannery.vscode-versionlens",
     "prisma.prisma",
-    "yoavbls.pretty-ts-errors"
+    "yoavbls.pretty-ts-errors",
+    "vitest.explorer"
   ]
 }
