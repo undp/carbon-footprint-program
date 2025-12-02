@@ -29,18 +29,16 @@ describe("POST /api/books - Integration Tests", () => {
   });
 
   afterAll(async () => {
-    // Cleanup: close app and database connections
-    await app.close();
     await prisma.$disconnect();
-    // Note: teardownTestDatabase() se ejecuta automáticamente en globalTeardown
+    await app.close();
   });
 
   beforeEach(async () => {
     await cleanDatabase(prisma);
   });
 
-  describe("Creación exitosa de libro", () => {
-    it("debería crear un libro exitosamente con datos válidos", async () => {
+  describe("Successful book creation", () => {
+    it("should create a book successfully with valid data", async () => {
       const bookData = createBookData();
 
       const response = await app.inject({
@@ -61,28 +59,28 @@ describe("POST /api/books - Integration Tests", () => {
     });
   });
 
-  describe("Validaciones de negocio", () => {
-    it("debería rechazar un libro con título duplicado", async () => {
+  describe("Business validations", () => {
+    it("should reject a book with duplicate title", async () => {
       const bookData = createBookDataWithTitle("El Quijote");
 
-      // Crear el primer libro
+      // Create the first book
       await app.inject({
         method: "POST",
         url: "/api/books",
         payload: bookData,
       });
 
-      // Intentar crear otro con el mismo título
+      // Try to create another with the same title
       const response = await app.inject({
         method: "POST",
         url: "/api/books",
         payload: bookData,
       });
 
-      expect(response.statusCode).toBe(500); // Error por restricción de unicidad en base de datos
+      expect(response.statusCode).toBe(500); // Error due to uniqueness constraint in database
     });
 
-    it("debería rechazar datos inválidos (campos vacíos)", async () => {
+    it("should reject invalid data (empty fields)", async () => {
       const invalidData = createInvalidBookData();
 
       const response = await app.inject({
@@ -91,13 +89,13 @@ describe("POST /api/books - Integration Tests", () => {
         payload: invalidData,
       });
 
-      // Fastify/Zod validation debería rechazar antes de llegar al handler
+      // Fastify/Zod validation should reject before reaching the handler
       expect(response.statusCode).toBe(400);
     });
   });
 
-  describe("Persistencia en base de datos", () => {
-    it("debería persistir el libro en la base de datos", async () => {
+  describe("Database persistence", () => {
+    it("should persist the book in the database", async () => {
       const bookData = createBookData();
 
       const response = await app.inject({
@@ -109,7 +107,7 @@ describe("POST /api/books - Integration Tests", () => {
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateBookResponse;
 
-      // Verificar directamente en la base de datos
+      // Verify directly in the database
       const bookInDb = await prisma.book.findUnique({
         where: { id: body.id },
       });
@@ -120,12 +118,12 @@ describe("POST /api/books - Integration Tests", () => {
     });
   });
 
-  describe("Manejo de errores", () => {
-    it("debería manejar errores de validación correctamente", async () => {
+  describe("Error handling", () => {
+    it("should handle validation errors correctly", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/books",
-        payload: {}, // Datos completamente vacíos
+        payload: {}, // Completely empty data
       });
 
       expect(response.statusCode).toBe(400);
