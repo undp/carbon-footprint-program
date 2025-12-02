@@ -3,13 +3,13 @@ import {
   setupTestDatabase,
   teardownTestDatabase,
 } from "@/test/setup/testcontainers.js";
-import { createTestApp } from "@/test/utils/test-app-factory.js";
-import { cleanBookData } from "@/test/utils/test-helpers.js";
+import { createTestApp } from "@/test/factories/appFactory.js";
+import { cleanBookData } from "@/test/utils/helpers.js";
 import {
   createBookData,
   createBookDataWithTitle,
   createInvalidBookData,
-} from "@/test/factories/BookFactory.js";
+} from "@/test/factories/bookFactory.js";
 import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
