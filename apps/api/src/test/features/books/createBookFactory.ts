@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { CreateBookBody } from "./createBookSchema.example.js";
+import type { CreateBookBody } from "@/features/books/createBook/createBookSchema.example.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Provide factory functions for creating test data for books.

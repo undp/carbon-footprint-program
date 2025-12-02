@@ -10,8 +10,8 @@ import {
   createBookDataWithTitle,
   createInvalidBookData,
   createBookDataWithSpecialCharacters,
-} from "./createBookFactory.js";
-import type { CreateBookResponse } from "./createBookSchema.example.js";
+} from "@/test/features/books/createBookFactory.js";
+import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
