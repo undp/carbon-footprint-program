@@ -22,6 +22,13 @@ fi
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
 
+# Validate ENVIRONMENT format (must be lowercase)
+if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
+  echo "ERROR: ENVIRONMENT must be lowercase (got: $ENVIRONMENT)"
+  echo "Valid examples: production, staging, development"
+  exit 1
+fi
+
 STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 az account set --subscription "$AZURE_SUBSCRIPTION_ID"

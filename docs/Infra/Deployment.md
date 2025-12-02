@@ -38,7 +38,7 @@ El comportamiento de eliminación de recursos varía según el ambiente:
 - **Ventaja**: Máxima seguridad, previene eliminación accidental
 - **Limpieza**: Requiere eliminación manual de recursos no deseados
 
-#### 🧹 **Development** (`ENVIRONMENT=development` o cualquier otro valor custom)
+#### 🧹 **Development** (`ENVIRONMENT=development` o cualquier otro valor custom en minúsculas)
 
 - **Modo**: `deleteResources`
 - **Comportamiento**: Los recursos removidos del template **SE ELIMINAN AUTOMÁTICAMENTE**
@@ -49,13 +49,15 @@ El comportamiento de eliminación de recursos varía según el ambiente:
 
 ```bash
 # Desarrollo - limpieza automática
-export ENVIRONMENT='development'
+export ENVIRONMENT='development'  # DEBE estar en minúsculas
 ./deploy.sh  # Recursos no declarados serán eliminados
 
 # Producción - modo seguro
-export ENVIRONMENT='production'
+export ENVIRONMENT='production'  # DEBE estar en minúsculas
 ./deploy.sh  # Recursos no declarados se preservan
 ```
+
+**⚠️ IMPORTANTE**: Todos los valores de `ENVIRONMENT` deben estar en **minúsculas**. Los scripts rechazarán valores con letras mayúsculas como `Production`, `STAGING`, o `Development`.
 
 ---
 
@@ -331,7 +333,7 @@ Crea un archivo `.envrc` o `.env` en el directorio **`infra/`**:
 
 ```bash
 # infra/.envrc
-export ENVIRONMENT="development"  # Nombre del ambiente. Puede ser production, staging, development o cualquier otro valor custom
+export ENVIRONMENT="development"  # Nombre del ambiente (debe estar en minúsculas). Puede ser production, staging, development o cualquier otro valor custom
 
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
@@ -344,20 +346,25 @@ export LOCATION="eastus2"
 export FRONT_DOOR_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
 ```
 
+**⚠️ IMPORTANTE**: `ENVIRONMENT` debe estar en **minúsculas** (lowercase). Los scripts validarán y rechazarán valores con letras mayúsculas.
+
+Ejemplos válidos: `production`, `staging`, `development`, `dev`, `test`
+Ejemplos inválidos: `Production`, `STAGING`, `Development`
+
 #### Variables de Entorno Disponibles
 
-| Variable                   | Requerida | Descripción                                                                                   | Ejemplo                                | Usado Por                    |
-| -------------------------- | --------- | --------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
-| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                                 | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
-| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                                   | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
-| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                                           | `Devs-Contributors`                    | `deploy.sh`                  |
-| `ENVIRONMENT`              | ✅ Sí     | Nombre del ambiente para deployment y tagging de recursos (usado en nombre de Resource Group) | `development`                          | `deploy.sh`                  |
-| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                                             | `eastus2`                              | `deploy.sh`                  |
-| `FRONT_DOOR_CUSTOM_DOMAIN` | ❌ No     | Dominio personalizado para Azure Front Door (solo si `enableFrontDoor=true`)                  | `app.huellalatam.org`                  | `deploy.sh`                  |
+| Variable                   | Requerida | Descripción                                                                                                                 | Ejemplo                                | Usado Por                    |
+| -------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
+| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                                                               | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
+| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                                                                 | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
+| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                                                                         | `Devs-Contributors`                    | `deploy.sh`                  |
+| `ENVIRONMENT`              | ✅ Sí     | Nombre del ambiente para deployment y tagging de recursos (usado en nombre de Resource Group). **DEBE estar en minúsculas** | `development`                          | `deploy.sh`                  |
+| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                                                                           | `eastus2`                              | `deploy.sh`                  |
+| `FRONT_DOOR_CUSTOM_DOMAIN` | ❌ No     | Dominio personalizado para Azure Front Door (solo si `enableFrontDoor=true`)                                                | `app.huellalatam.org`                  | `deploy.sh`                  |
 
 **Notas**:
 
-- **`ENVIRONMENT`**: Se usa para crear nombres únicos de Resource Groups, para taggear todos los recursos y define qué archivo de parámetros usar (`params/main.{ENVIRONMENT}.bicepparam`)
+- **`ENVIRONMENT`**: **DEBE estar en minúsculas**. Se usa para crear nombres únicos de Resource Groups, para taggear todos los recursos y define qué archivo de parámetros usar (`params/main.{ENVIRONMENT}.bicepparam`)
 - **`AZURE_SUBSCRIPTION_GROUP`**: Debe ser un grupo existente en Azure AD. Los miembros obtendrán rol "Key Vault Secrets Officer"
 - **`LOCATION`**: Algunas regiones no están disponibles en suscripciones gratuitas. Usa `eastus2` si `eastus` no funciona
 - **`FRONT_DOOR_CUSTOM_DOMAIN`**: Solo necesario si habilitas Front Door (`enableFrontDoor=true` en parámetros) y quieres usar un dominio personalizado

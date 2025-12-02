@@ -75,6 +75,13 @@ if [ -z "$ENVIRONMENT" ]; then
   exit 1
 fi
 
+# Validate ENVIRONMENT format (must be lowercase)
+if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
+  echo -e "${RED}ERROR: ENVIRONMENT must be lowercase (got: $ENVIRONMENT)${NC}"
+  echo -e "${YELLOW}Valid examples: production, staging, development${NC}"
+  exit 1
+fi
+
 # Function to log with timestamp
 log() {
   echo -e "[$(date +'%H:%M:%S')] $*"

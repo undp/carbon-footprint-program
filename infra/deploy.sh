@@ -60,6 +60,13 @@ fi
 : "${LOCATION:?LOCATION is required}"
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
 
+# Validate ENVIRONMENT format (must be lowercase)
+if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
+  log "ERROR: ENVIRONMENT must be lowercase (got: $ENVIRONMENT)"
+  log "Valid examples: production, staging, development"
+  exit 1
+fi
+
 log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
 log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"

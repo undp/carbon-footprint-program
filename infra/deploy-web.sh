@@ -115,6 +115,13 @@ echo ""
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
 
+# Validate ENVIRONMENT format (must be lowercase)
+if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
+  log "${RED}ERROR: ENVIRONMENT must be lowercase (got: $ENVIRONMENT)${NC}"
+  log "${YELLOW}Valid examples: production, staging, development${NC}"
+  exit 1
+fi
+
 log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
 
