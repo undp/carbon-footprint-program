@@ -9,7 +9,7 @@ import {
   createBookData,
   createBookDataWithTitle,
   createInvalidBookData,
-} from "@/test/features/books/createBookFactory.js";
+} from "@/test/factories/BookFactory.js";
 import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
