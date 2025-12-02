@@ -121,7 +121,7 @@ huella-latam/
 │   │   ├── postgres.bicep         # PostgreSQL Flexible Server
 │   │   └── storage.bicep          # Azure Storage Account
 │   ├── params/                    # Environment-specific parameters
-│   │   └── main.dev.bicepparam    # Development parameters
+│   │   └── main.development.bicepparam    # Development parameters
 │   ├── deploy.sh                  # Deployment script
 │   ├── delete-stack.sh            # Stack deletion script
 │   └── view-stack.sh              # Stack inspection script
@@ -276,12 +276,11 @@ export NODE_ENV="development"   # development | production
 Create `infra/.envrc` for Azure deployments:
 
 ```bash
-export APP_ENV='dev'
 # Azure Subscription
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 # Azure Resource Group
-export DEVELOPER_NAME="your-name"
-export AZURE_RESOURCE_GROUP="undp-huella-latam-$DEVELOPER_NAME-rg"
+export ENVIRONMENT="development" # production, staging or development
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 export AZURE_SUBSCRIPTION_GROUP="users-group-name"
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"

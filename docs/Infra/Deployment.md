@@ -27,6 +27,38 @@ Este proyecto utiliza **Azure Bicep** como lenguaje de Infrastructure as Code (I
 - **Integración nativa**: Compilación directa a ARM templates
 - **Gestión de dependencias**: Resolución automática de dependencias entre recursos
 
+### Gestión de Recursos por Ambiente
+
+El comportamiento de eliminación de recursos varía según el ambiente:
+
+#### 🔒 **Production / Staging** (`ENVIRONMENT=production|staging`)
+
+- **Modo**: `detachAll`
+- **Comportamiento**: Los recursos removidos del template **NO se eliminan automáticamente**
+- **Ventaja**: Máxima seguridad, previene eliminación accidental
+- **Limpieza**: Requiere eliminación manual de recursos no deseados
+
+#### 🧹 **Development** (`ENVIRONMENT=development` o cualquier otro valor custom en minúsculas)
+
+- **Modo**: `deleteResources`
+- **Comportamiento**: Los recursos removidos del template **SE ELIMINAN AUTOMÁTICAMENTE**
+- **Ventaja**: Ambiente limpio, ideal para experimentación
+- **Precaución**: ⚠️ Destructivo - solo usar en entornos de desarrollo
+
+**Ejemplo**:
+
+```bash
+# Desarrollo - limpieza automática
+export ENVIRONMENT='development'  # DEBE estar en minúsculas
+./deploy.sh  # Recursos no declarados serán eliminados
+
+# Producción - modo seguro
+export ENVIRONMENT='production'  # DEBE estar en minúsculas
+./deploy.sh  # Recursos no declarados se preservan
+```
+
+**⚠️ IMPORTANTE**: Todos los valores de `ENVIRONMENT` deben estar en **minúsculas**. Los scripts rechazarán valores con letras mayúsculas como `Production`, `STAGING`, o `Development`.
+
 ---
 
 ## Estructura del Directorio `infra/`
@@ -42,10 +74,33 @@ infra/
 │   ├── postgres.bicep           # PostgreSQL Flexible Server
 │   └── storage.bicep            # Azure Storage Account
 └── params/                       # Archivos de parámetros por entorno
-    └── main.dev.bicepparam      # Parámetros para desarrollo
+    └── main.development.bicepparam      # Parámetros para desarrollo
 ```
 
 ### Descripción de Componentes
+
+#### `deploy.sh`
+
+**Propósito**: Script principal de deployment que utiliza Azure Deployment Stacks.
+
+**Responsabilidades**:
+
+- Validación de Azure CLI login y suscripción
+- Carga de variables de entorno desde `.envrc`
+- Generación automática de contraseñas seguras (primera ejecución)
+- Gestión de secretos en Key Vault
+- Configuración dinámica de `--action-on-unmanage` según ambiente:
+  - **Production/Staging**: `detachAll` (preserva recursos)
+  - **Development**: `deleteResources` (elimina automáticamente)
+- Despliegue del Deployment Stack con parámetros
+- Manejo de errores y logging detallado
+
+**Características de seguridad**:
+
+- ⚠️ Advertencia visual en modo `deleteResources`
+- Reutilización de contraseñas existentes en Key Vault
+- Modo dry-run para simulación sin cambios
+- Validación de variables requeridas
 
 #### `main.bicep`
 
@@ -103,7 +158,7 @@ infra/
 - **Versión**: PostgreSQL 18
 - **Alta disponibilidad**: Deshabilitada (para dev)
 - **Zona de disponibilidad**: Sin zona explícita por defecto (Azure selecciona automáticamente)
-  - Configurable mediante el parámetro `availabilityZone` en `params/main.dev.bicepparam`
+  - Configurable mediante el parámetro `availabilityZone` en `params/main.development.bicepparam`
   - Valores posibles: `'1'`, `'2'`, `'3'`, o `''` (vacío = sin zona específica)
   - ⚠️ No todas las regiones soportan zonas de disponibilidad
 - **Database**: Crea una base de datos con charset UTF8 y collation `es_ES.UTF8`
@@ -137,7 +192,7 @@ infra/
 - ✅ Solo servicios de Azure confiables pueden acceder
 - ✅ Para acceso desde IPs específicas, configura `networkAclDefaultAction` y añade reglas de IP en el módulo
 
-#### `params/main.dev.bicepparam`
+#### `params/main.development.bicepparam`
 
 **Propósito**: Archivo de parámetros para el entorno de desarrollo.
 
@@ -278,11 +333,12 @@ Crea un archivo `.envrc` o `.env` en el directorio **`infra/`**:
 
 ```bash
 # infra/.envrc
+export ENVIRONMENT="development"  # Nombre del ambiente (debe estar en minúsculas). Puede ser production, staging, development o cualquier otro valor custom
+
 export AZURE_SUBSCRIPTION_ID="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-export AZURE_RESOURCE_GROUP="undp-huella-latam-rg"
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"  # Grupo de Azure AD con acceso a Key Vault
-export APP_ENV="dev"
-export DEVELOPER_NAME="tu-nombre"  # Tu nombre para tagging de recursos
+
 # Location 'eastus' is not available for subscriptions with free trial.
 export LOCATION="eastus2"
 
@@ -290,22 +346,25 @@ export LOCATION="eastus2"
 export FRONT_DOOR_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
 ```
 
+**⚠️ IMPORTANTE**: `ENVIRONMENT` debe estar en **minúsculas** (lowercase). Los scripts validarán y rechazarán valores con letras mayúsculas.
+
+Ejemplos válidos: `production`, `staging`, `development`, `dev`, `test`
+Ejemplos inválidos: `Production`, `STAGING`, `Development`
+
 #### Variables de Entorno Disponibles
 
-| Variable                   | Requerida | Descripción                                                                  | Ejemplo                                | Usado Por                    |
-| -------------------------- | --------- | ---------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
-| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
-| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                  | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
-| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                          | `Devs-Contributors`                    | `deploy.sh`                  |
-| `APP_ENV`                  | ✅ Sí     | Entorno de deployment (dev/staging/prod)                                     | `dev`                                  | `deploy.sh`                  |
-| `DEVELOPER_NAME`           | ✅ Sí     | Tu nombre para tagging de recursos (usado en nombre de Resource Group)       | `luis`                                 | `deploy.sh`                  |
-| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                            | `eastus2`                              | `deploy.sh`                  |
-| `FRONT_DOOR_CUSTOM_DOMAIN` | ❌ No     | Dominio personalizado para Azure Front Door (solo si `enableFrontDoor=true`) | `app.huellalatam.org`                  | `deploy.sh`                  |
+| Variable                   | Requerida | Descripción                                                                                                                 | Ejemplo                                | Usado Por                    |
+| -------------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- | ---------------------------- |
+| `AZURE_SUBSCRIPTION_ID`    | ✅ Sí     | ID de tu suscripción de Azure                                                                                               | `b18fb9a2-44cf-4bdd-9b87-839296377575` | `deploy.sh`                  |
+| `AZURE_RESOURCE_GROUP`     | ✅ Sí     | Nombre del Resource Group donde se desplegarán los recursos                                                                 | `undp-huella-latam-luis-rg`            | `deploy.sh`, `deploy-web.sh` |
+| `AZURE_SUBSCRIPTION_GROUP` | ✅ Sí     | Nombre del grupo de Azure AD con acceso a Key Vault                                                                         | `Devs-Contributors`                    | `deploy.sh`                  |
+| `ENVIRONMENT`              | ✅ Sí     | Nombre del ambiente para deployment y tagging de recursos (usado en nombre de Resource Group). **DEBE estar en minúsculas** | `development`                          | `deploy.sh`                  |
+| `LOCATION`                 | ✅ Sí     | Región de Azure donde se desplegarán los recursos                                                                           | `eastus2`                              | `deploy.sh`                  |
+| `FRONT_DOOR_CUSTOM_DOMAIN` | ❌ No     | Dominio personalizado para Azure Front Door (solo si `enableFrontDoor=true`)                                                | `app.huellalatam.org`                  | `deploy.sh`                  |
 
 **Notas**:
 
-- **`APP_ENV`**: Define qué archivo de parámetros usar (`params/main.{APP_ENV}.bicepparam`)
-- **`DEVELOPER_NAME`**: Se usa para crear nombres únicos de Resource Groups y como tag en todos los recursos
+- **`ENVIRONMENT`**: **DEBE estar en minúsculas**. Se usa para crear nombres únicos de Resource Groups, para taggear todos los recursos y define qué archivo de parámetros usar (`params/main.{ENVIRONMENT}.bicepparam`)
 - **`AZURE_SUBSCRIPTION_GROUP`**: Debe ser un grupo existente en Azure AD. Los miembros obtendrán rol "Key Vault Secrets Officer"
 - **`LOCATION`**: Algunas regiones no están disponibles en suscripciones gratuitas. Usa `eastus2` si `eastus` no funciona
 - **`FRONT_DOOR_CUSTOM_DOMAIN`**: Solo necesario si habilitas Front Door (`enableFrontDoor=true` en parámetros) y quieres usar un dominio personalizado
@@ -317,7 +376,7 @@ export FRONT_DOOR_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
 - Lee todas las variables de entorno del archivo `.envrc`
 - Genera contraseña de base de datos automáticamente si no existe
 - Obtiene el Object ID del grupo de Azure AD especificado en `AZURE_SUBSCRIPTION_GROUP`
-- Pasa valores a Bicep como parámetros: `dbPassword`, `devGroupObjectId`, `developerName`, `frontDoorCustomDomain`
+- Pasa valores a Bicep como parámetros: `dbPassword`, `devGroupObjectId`, `environment`, `frontDoorCustomDomain`
 
 **En `deploy-web.sh`**:
 
@@ -327,7 +386,7 @@ export FRONT_DOOR_CUSTOM_DOMAIN=""  # Ejemplo: "app.huellalatam.org"
 
 **En Bicep**:
 
-- Parámetros como `developerName` y `frontDoorCustomDomain` se pasan desde el script
+- Parámetros como `environment` y `frontDoorCustomDomain` se pasan desde el script
 - `dbPassword` se genera automáticamente solo en la primera ejecución
 - Los valores se usan para configurar recursos (tags, dominios personalizados, etc.)
 
@@ -345,7 +404,7 @@ chmod +x infra/deploy.sh
 
 ### 3. Validar Parámetros
 
-Revisa y ajusta `infra/params/main.dev.bicepparam` según tus necesidades (desde el directorio raíz del proyecto):
+Revisa y ajusta `infra/params/main.development.bicepparam` según tus necesidades (desde el directorio raíz del proyecto):
 
 - **Storage**: `Standard_LRS` es la opción más económica
 - **Key Vault**: `standard` es suficiente para la mayoría de casos
@@ -418,8 +477,7 @@ DRY_RUN=true ./deploy.sh
    - `AZURE_SUBSCRIPTION_ID`
    - `AZURE_RESOURCE_GROUP`
    - `AZURE_SUBSCRIPTION_GROUP` (nombre del grupo de Azure AD)
-   - `APP_ENV` (default: "dev")
-   - `DEVELOPER_NAME` (tu nombre para tagging de recursos)
+   - `ENVIRONMENT` (nombre del ambiente para deployment y tagging de recursos)
    - `LOCATION` (región de Azure)
 4. **Selección de suscripción**
 5. **Creación de Resource Group** (si no existe)
@@ -431,13 +489,13 @@ DRY_RUN=true ./deploy.sh
 
    ```bash
    az stack group create \
-     --name "undp-huella-latam-stack-$APP_ENV" \
+     --name "undp-huella-latam-stack-$ENVIRONMENT" \
      --resource-group "$AZURE_RESOURCE_GROUP" \
      --template-file "main.bicep" \
-     --parameters "params/main.$APP_ENV.bicepparam" \
+     --parameters "$ENVIRONMENT_PARAMS_FILE" \
      --parameters dbPassword="$DB_PASSWORD" \
      --parameters devGroupObjectId="$DEVS_GROUP_ID" \
-     --parameters developerName="$DEVELOPER_NAME" \
+     --parameters environment="$ENVIRONMENT" \
      --deny-settings-mode "none" \
      --action-on-unmanage "detachAll" \
      --yes \
@@ -480,7 +538,7 @@ az stack group create \
   --name "undp-huella-latam-stack-dev" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --template-file "main.bicep" \
-  --parameters "params/main.dev.bicepparam" \
+  --parameters "params/main.development.bicepparam" \
   --what-if
 ```
 
@@ -584,7 +642,7 @@ az postgres flexible-server update \
 
 **Configuración actual**: Sin zona explícita (Azure selecciona automáticamente)
 
-**Para especificar una zona**, edita `infra/params/main.dev.bicepparam`:
+**Para especificar una zona**, edita `infra/params/main.development.bicepparam`:
 
 ```bicep
 // Sin zona específica (default, Azure selecciona)
@@ -665,7 +723,7 @@ az ad group create --display-name "Devs-Contributors" --mail-nickname "devs-cont
 
 **Causa**: PostgreSQL Flexible Server requiere mínimo 32 GB de storage.
 
-**Solución**: Actualiza `dbStorageSizeGB` en `params/main.dev.bicepparam` a `32` o más.
+**Solución**: Actualiza `dbStorageSizeGB` en `params/main.development.bicepparam` a `32` o más.
 
 ### Error: "Resource Group does not exist"
 

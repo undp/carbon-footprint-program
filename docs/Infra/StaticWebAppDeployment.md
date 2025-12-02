@@ -27,7 +27,7 @@ cd infra
 
 **Cuándo re-ejecutar**:
 
-- Cambias parámetros de infraestructura (`main.dev.bicepparam`)
+- Cambias parámetros de infraestructura (`main.development.bicepparam`)
 - Agregas nuevos recursos
 - Actualizas SKUs o configuraciones de Azure
 - Primera vez que despliegas
@@ -113,7 +113,7 @@ La solución utiliza:
 
 ### 1. Parámetros de Infraestructura
 
-Edita `infra/params/main.dev.bicepparam`:
+Edita `infra/params/main.development.bicepparam`:
 
 ```bicep
 // Static Web App
@@ -592,7 +592,7 @@ Esto significa que el deployment fue al ambiente `preview` en lugar de `producti
 - WAF (incluido): Custom rules + Rate limiting
 - **Total: ~$35-40/mes**
 
-⚠️ **Nota**: Front Door tiene un costo base incluso sin tráfico. Para desarrollo puro, desactívalo en `main.dev.bicepparam`:
+⚠️ **Nota**: Front Door tiene un costo base incluso sin tráfico. Para desarrollo puro, desactívalo en `main.development.bicepparam`:
 
 ```bicep
 param enableFrontDoor = false

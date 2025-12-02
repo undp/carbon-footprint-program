@@ -58,13 +58,54 @@ fi
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
 : "${AZURE_SUBSCRIPTION_GROUP:?AZURE_SUBSCRIPTION_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
-: "${DEVELOPER_NAME:?DEVELOPER_NAME is required}"
-: "${APP_ENV:?APP_ENV is required}"
+: "${ENVIRONMENT:?ENVIRONMENT is required}"
 
-log "Environment:      $APP_ENV"
+# Validate ENVIRONMENT format (must be lowercase)
+if [[ "$ENVIRONMENT" =~ [A-Z] ]]; then
+  log "ERROR: ENVIRONMENT must be lowercase (got: $ENVIRONMENT)"
+  log "Valid examples: production, staging, development"
+  exit 1
+fi
+
+log "App Environment (lifecycle/resource/tagging): $ENVIRONMENT"
 log "Subscription:     $AZURE_SUBSCRIPTION_ID"
 log "Location:         $LOCATION"
 log "Resource Group:   $AZURE_RESOURCE_GROUP"
+
+# 2.7) Set action-on-unmanage based on environment
+# Production/Staging: detachAll (safe - keeps unmanaged resources)
+# Development: deleteResources (clean up automatically)
+# Also set environment parameters file based on environment
+case "$ENVIRONMENT" in
+  production|staging)
+    ACTION_ON_UNMANAGE="detachAll"
+    log "Action on unmanage: detachAll (safe mode - resources will be preserved)"
+    log "Validated environment: $ENVIRONMENT"
+
+    ENVIRONMENT_PARAMS_FILE="params/main.${ENVIRONMENT}.bicepparam"
+    ;;
+  *)
+    ACTION_ON_UNMANAGE="deleteResources"
+    log "Validated environment: $ENVIRONMENT"
+    echo ""
+    echo "⚠️  ═══════════════════════════════════════════════════════════════"
+    echo "⚠️  WARNING: Development Mode - Auto-Cleanup Enabled"
+    echo "⚠️  ═══════════════════════════════════════════════════════════════"
+    echo ""
+    log "Action on unmanage: deleteResources"
+    log "Resources removed from template will be AUTOMATICALLY DELETED"
+    echo ""
+    echo "   This is safe for development but destructive for production."
+    echo "   To use safe mode, set ENVIRONMENT to 'staging' or 'production'."
+    echo ""
+    echo "⚠️  ═══════════════════════════════════════════════════════════════"
+    echo ""
+
+    ENVIRONMENT_PARAMS_FILE="params/main.development.bicepparam"
+    ;;
+esac
+
+echo "Using environment parameters file: $ENVIRONMENT_PARAMS_FILE"
 
 # 3) Ensure correct subscription is selected
 log "Setting Azure subscription..."
@@ -126,7 +167,7 @@ fi
 # 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
 log "Running Bicep deployment using Deployment Stack..."
 
-STACK_NAME="undp-huella-latam-stack-$APP_ENV"
+STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
 
 echo "═══════════════════════════════════════════════════════════════"
 
@@ -135,10 +176,10 @@ DEPLOY_PARAMS=(
   --name "$STACK_NAME"
   --resource-group "$AZURE_RESOURCE_GROUP"
   --template-file "$SCRIPT_DIR/main.bicep"
-  --parameters "$SCRIPT_DIR/params/main.$APP_ENV.bicepparam"
+  --parameters "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
-  --parameters developerName="$DEVELOPER_NAME"
+  --parameters environment="$ENVIRONMENT"
 )
 
 # Add optional parameters only if set
@@ -155,26 +196,26 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --name $STACK_NAME \\"
   log "[DRY RUN]   --resource-group $AZURE_RESOURCE_GROUP \\"
   log "[DRY RUN]   --template-file $SCRIPT_DIR/main.bicep \\"
-  log "[DRY RUN]   --parameters $SCRIPT_DIR/params/main.$APP_ENV.bicepparam \\"
+  log "[DRY RUN]   --parameters $SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE \\"
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
-  log "[DRY RUN]   --parameters developerName=$DEVELOPER_NAME \\"
+  log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
   if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
     log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
   fi
   log "[DRY RUN]   --deny-settings-mode none \\"
-  log "[DRY RUN]   --action-on-unmanage detachAll \\"
+  log "[DRY RUN]   --action-on-unmanage $ACTION_ON_UNMANAGE \\"
   log "[DRY RUN]   --yes --verbose"
 else
   az stack group create \
     "${DEPLOY_PARAMS[@]}" \
     --deny-settings-mode "none" \
-    --action-on-unmanage "detachAll" \
+    --action-on-unmanage "$ACTION_ON_UNMANAGE" \
     --yes \
     --verbose || deployment_result=$?
 
   if [ $deployment_result -ne 0 ]; then
-    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $APP_ENV) with exit code $deployment_result ==="
+    log "=== [deploy.sh] Deployment Stack FAILED (ENV: $ENVIRONMENT) with exit code $deployment_result ==="
     exit $deployment_result
   fi
 fi
@@ -189,7 +230,8 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "The deployment would have configured:"
   echo "  - Resource Group:  $AZURE_RESOURCE_GROUP"
   echo "  - Stack Name:      $STACK_NAME"
-  echo "  - Environment:     $APP_ENV"
+  echo "  - Environment:     $ENVIRONMENT"
+  echo "  - Parameters File: $ENVIRONMENT_PARAMS_FILE"
   echo ""
   echo "To execute the actual deployment, run without DRY_RUN:"
   echo "  ./deploy.sh"

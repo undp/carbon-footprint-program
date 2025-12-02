@@ -68,8 +68,8 @@ param dbAllowedIpRanges array = []
 @description('Availability zone for the Postgres server (1, 2, or 3). Set to empty string for regions without zones.')
 param availabilityZone string = ''
 
-@description('Developer name for resource naming')
-param developerName string
+@description('Environment name for resource naming and tagging')
+param environment string
 
 // --------- Static Web App parameters ---------
 @allowed([
@@ -140,7 +140,7 @@ param frontDoorRateLimitThreshold int = 100
 
 @description('Tags to apply to all resources')
 param tags object = {
-  Environment: developerName
+  Environment: environment
   Project: 'undp-huella-latam'
   ManagedBy: 'Bicep'
 }
