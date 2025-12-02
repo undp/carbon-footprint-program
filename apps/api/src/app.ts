@@ -67,7 +67,7 @@ export async function createApp(
 
   await app.register(autoload, {
     dir: path.join(baseDir, "plugins/app"),
-    ignoreFilter: withPrisma ? undefined : (plugin) => plugin === "prisma",
+    ignoreFilter: withPrisma ? undefined : (path) => path.includes("prisma"),
   });
 
   await app.register(autoload, {
