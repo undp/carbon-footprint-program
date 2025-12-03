@@ -20,6 +20,7 @@ export default defineConfig({
       "@screens": path.resolve(__dirname, "./src/screens"),
       "@assets": path.resolve(__dirname, "./src/assets"),
       "@icons": path.resolve(__dirname, "./src/icons"),
+      "@interfaces": path.resolve(__dirname, "./src/interfaces"),
     },
   },
 });
