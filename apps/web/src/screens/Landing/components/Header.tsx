@@ -1,27 +1,17 @@
+import { FC, useMemo } from "react";
 import { AppBar, Box, Button, Toolbar } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@icons";
-import React, { useMemo } from "react";
+import {
+  LandingHeaderRoutes,
+  LandingHeaderRoutesTranslations,
+} from "@interfaces";
 
-const PAGE_ROUTES = {
-  ABOUT_US: "/about",
-  TRANSPARENCY: "/transparency",
-  CAPINAUT: "/capinaut",
-} as const;
-
-type PageRoute = (typeof PAGE_ROUTES)[keyof typeof PAGE_ROUTES];
-
-const PAGE_ROUTES_TRANSLATIONS: Record<PageRoute, string> = {
-  [PAGE_ROUTES.ABOUT_US]: "Sobre Huella Latam",
-  [PAGE_ROUTES.TRANSPARENCY]: "Transparencia",
-  [PAGE_ROUTES.CAPINAUT]: "Capinauta",
-};
-
-export const Header: React.FC = () => {
+export const Header: FC = () => {
   const pages = useMemo(
     () =>
-      Object.values(PAGE_ROUTES).map((route) => ({
-        text: PAGE_ROUTES_TRANSLATIONS[route],
+      Object.values(LandingHeaderRoutes).map((route) => ({
+        text: LandingHeaderRoutesTranslations[route],
         route,
       })),
     []

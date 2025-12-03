@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import { FC, useMemo } from "react";
 import { Divider, Drawer, List, Toolbar } from "@mui/material";
 import {
   HomeOutlined,
@@ -9,28 +9,15 @@ import {
   EmojiEventsOutlined,
 } from "@mui/icons-material";
 import { useLocation } from "@tanstack/react-router";
-import { HuellaLatamLogo } from "../../../icons/HuellaLatamLogo";
+import { HuellaLatamLogo } from "@icons/HuellaLatamLogo";
 import { Item } from "./Item";
+import {
+  SidebarRoute,
+  SidebarRoutes,
+  SidebarRoutesTranslations,
+} from "@interfaces";
 
-enum SidebarRoutes {
-  HOME = "/home",
-  MY_COMPANY = "/my-company",
-  ORGANIZATION_FOOTPRINT = "/organization-footprint",
-  REDUCTION_PROJECTS = "/reduction-projects",
-  REDUCTION_PLAN = "/reduction-plan",
-  AWARDS = "/awards",
-}
-
-const SidebarRoutesTranslations: Record<SidebarRoutes, string> = {
-  [SidebarRoutes.HOME]: "Inicio",
-  [SidebarRoutes.MY_COMPANY]: "Mi empresa",
-  [SidebarRoutes.ORGANIZATION_FOOTPRINT]: "Huella organizacional",
-  [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
-  [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",
-  [SidebarRoutes.AWARDS]: "Premios",
-};
-
-const SidebarIcons: Record<SidebarRoutes, React.ReactNode> = {
+const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
   [SidebarRoutes.MY_COMPANY]: <Business />,
   [SidebarRoutes.ORGANIZATION_FOOTPRINT]: <SouthAmerica />,
@@ -39,7 +26,7 @@ const SidebarIcons: Record<SidebarRoutes, React.ReactNode> = {
   [SidebarRoutes.AWARDS]: <EmojiEventsOutlined />,
 };
 
-export const Sidebar: React.FC = () => {
+export const Sidebar: FC = () => {
   const location = useLocation();
 
   const Items = useMemo(
@@ -48,7 +35,7 @@ export const Sidebar: React.FC = () => {
         text: SidebarRoutesTranslations[route],
         path: route,
         icon: SidebarIcons[route],
-        selected: location.pathname == (route as string),
+        selected: location.pathname == route,
       })),
     [location.pathname]
   );
