@@ -221,23 +221,16 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
-// Get database password from Key Vault
-var dbPasswordSecret = existingKeyVault.getSecret(keyVault.outputs.postgresSecretName)
-
-// Build DATABASE_URL from postgres outputs
-var databaseUrl = 'postgresql://${dbUser}:${dbPasswordSecret}@${postgres.outputs.hostOut}:5432/${postgres.outputs.dbNameOut}?sslmode=require'
-
 // --------- App Service ---------
 module appService 'modules/appService.bicep' = {
   name: 'appServiceDeployment'
-  dependsOn: [
-    postgres
-    staticWebApp
-  ]
   params: {
     location: location
     skuName: appServiceSkuName
-    databaseUrl: databaseUrl
+    databasePassword: existingKeyVault.getSecret(keyVault.outputs.postgresSecretName)
+    databaseHost: postgres.outputs.hostOut
+    databaseName: postgres.outputs.dbNameOut
+    databaseUser: dbUser
     allowedOrigin: 'https://${staticWebApp.outputs.defaultHostname}'
     useKeyVaultForSecrets: appServiceUseKeyVaultForSecrets
     keyVaultUri: appServiceUseKeyVaultForSecrets ? keyVault.outputs.vaultUri : ''
@@ -249,8 +242,8 @@ module appService 'modules/appService.bicep' = {
 var keyVaultSecretsUserRoleId = '4633458b-17de-408a-b874-0445c86b69e6'
 
 resource appServiceKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(appService.outputs.id, existingKeyVault.id, keyVaultSecretsUserRoleId)
-  scope: existingKeyVault
+  name: guid(keyVault.outputs.name, appService.outputs.name, keyVaultSecretsUserRoleId)
+  scope: resourceId('Microsoft.KeyVault/vaults', keyVault.outputs.name)
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsUserRoleId)
     principalId: appService.outputs.principalId

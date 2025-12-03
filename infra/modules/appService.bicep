@@ -4,9 +4,18 @@ param location string = resourceGroup().location
 @description('SKU name for App Service Plan (e.g., F1, B1, S1)')
 param skuName string = 'F1'
 
-@description('Database connection URL')
+@description('Database password')
 @secure()
-param databaseUrl string
+param databasePassword string
+
+@description('Database host')
+param databaseHost string
+
+@description('Database name')
+param databaseName string
+
+@description('Database user')
+param databaseUser string
 
 @description('Allowed origin for CORS (Static Web App hostname)')
 param allowedOrigin string
@@ -85,7 +94,7 @@ resource appService 'Microsoft.Web/sites@2024-02-01' = {
           name: 'DATABASE_URL'
           value: useKeyVaultForSecrets 
             ? '@Microsoft.KeyVault(SecretUri=${keyVaultUri}/secrets/${databaseUrlSecretName}/)'
-            : databaseUrl
+            : 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
         }
       ]
       alwaysOn: skuName != 'F1' // Free tier doesn't support Always On
