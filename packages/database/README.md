@@ -57,7 +57,7 @@ Este paquete incluye una configuración de Docker Compose para ejecutar una base
 ⚠️ **Requisito previo**: La base de datos debe estar corriendo antes de ejecutar comandos como `dev:migrate`, `dev:reset` o `dev:studio`.
 
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 Esto iniciará un contenedor PostgreSQL con las siguientes credenciales:
@@ -70,13 +70,13 @@ Esto iniciará un contenedor PostgreSQL con las siguientes credenciales:
 ### Detener la Base de Datos
 
 ```bash
-docker-compose down
+docker compose down
 ```
 
 Para detener y eliminar los volúmenes (⚠️ esto eliminará todos los datos):
 
 ```bash
-docker-compose down -v
+docker compose down -v
 ```
 
 ### Verificar que la Base de Datos Está Corriendo
@@ -89,7 +89,7 @@ Deberías ver un contenedor llamado `undp-postgres` en ejecución.
 
 ## 📦 Uso de Prisma
 
-⚠️ **Requisito previo**: Asegúrate de que la base de datos esté corriendo (`docker-compose up -d`) antes de ejecutar comandos que interactúan con la base de datos.
+⚠️ **Requisito previo**: Asegúrate de que la base de datos esté corriendo (`docker compose up -d`) antes de ejecutar comandos que interactúan con la base de datos.
 
 ### 1. Generar el Cliente de Prisma
 

@@ -217,7 +217,7 @@ source .envrc
 
 ```bash
 cd packages/database
-docker-compose up -d # Run the container in detached mode
+docker compose up -d # Run the container in detached mode
 ```
 
 This starts a PostgreSQL container with the configuration from `docker-compose.yml`.
