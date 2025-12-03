@@ -4,7 +4,7 @@ import { Prisma } from "@repo/database";
 function getDmmfModels() {
   if (!Prisma.dmmf?.datamodel?.models) {
     throw new Error(
-      "No se pudo acceder al DMMF de Prisma. Asegúrate de que el cliente esté correctamente generado."
+      "Unable to access Prisma DMMF. Ensure the client is correctly generated."
     );
   }
   return Prisma.dmmf.datamodel.models;
