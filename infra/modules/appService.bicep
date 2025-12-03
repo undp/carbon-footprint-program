@@ -20,8 +20,8 @@ param databaseUser string
 @description('Allowed origin for CORS (Static Web App hostname)')
 param allowedOrigin string
 
-@description('Node.js version (e.g., 24-lts)')
-param nodeVersion string = '~24'
+@description('Node.js version (e.g., NODE|24-lts)')
+param linuxFxVersion string = 'NODE|24-lts'
 
 @description('Use Key Vault references for secrets (true) or direct env vars (false)')
 param useKeyVaultForSecrets bool = false
@@ -41,34 +41,32 @@ var appServicePlanName = 'asp-${uniqueString(resourceGroup().id)}'
 // Generate unique App Service name
 var appServiceName = 'api-${uniqueString(resourceGroup().id)}'
 
-// Determine SKU tier based on SKU name
-var skuTier = skuName == 'F1' ? 'Free' : (skuName == 'D1' ? 'Shared' : 'Basic')
-
 // App Service Plan
-resource appServicePlan 'Microsoft.Web/serverfarms@2024-02-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
   name: appServicePlanName
   location: location
-  kind: 'linux'
   properties: {
     reserved: true // Required for Linux
   }
   sku: {
     name: skuName
-    tier: skuTier
   }
+  kind: 'linux'
   tags: tags
 }
 
 // App Service
-resource appService 'Microsoft.Web/sites@2024-02-01' = {
+resource appService 'Microsoft.Web/sites@2025-03-01' = {
   name: appServiceName
   location: location
   tags: tags
-  kind: 'app,linux'
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
-      linuxFxVersion: 'NODE|${nodeVersion}'
+      linuxFxVersion: linuxFxVersion
       appSettings: [
         {
           name: 'NODE_ENV'
@@ -97,14 +95,7 @@ resource appService 'Microsoft.Web/sites@2024-02-01' = {
             : 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
         }
       ]
-      alwaysOn: skuName != 'F1' // Free tier doesn't support Always On
-      http20Enabled: true
-      minTlsVersion: '1.2'
     }
-    httpsOnly: true
-  }
-  identity: {
-    type: 'SystemAssigned'
   }
 }
 
