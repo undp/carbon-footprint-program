@@ -52,7 +52,7 @@ export const palette: PaletteOptions = {
   },
   // Background colors
   background: {
-    default: "#FFFFFF",
+    default: "#F9F9F9",
     paper: "#FFFFFF",
   },
   // Text colors
