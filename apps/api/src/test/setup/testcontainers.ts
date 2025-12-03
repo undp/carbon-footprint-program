@@ -24,7 +24,7 @@ export function runPrismaMigrations(databaseUrl: string): void {
   const command = "pnpm exec prisma migrate deploy";
   const options = {
     cwd: databasePackagePath,
-    stdio: "inherit" as const,
+    stdio: "pipe" as const,
     env: {
       DATABASE_URL: databaseUrl,
     },
