@@ -26,3 +26,5 @@ export const DATABASE_URL =
     }
     return undefined;
   })();
+
+export const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;

@@ -109,6 +109,13 @@ param staticWebAppAppLocation string = '/apps/web'
 @description('Build output location relative to app location')
 param staticWebAppOutputLocation string = 'dist'
 
+// --------- App Service parameters ---------
+@description('SKU name for App Service Plan (e.g., F1 for Free tier)')
+param appServiceSkuName string = 'F1'
+
+@description('Use Key Vault references for secrets in App Service (true) or direct env vars (false)')
+param appServiceUseKeyVaultForSecrets bool = false
+
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -214,6 +221,43 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
+// Get database password from Key Vault
+var dbPasswordSecret = existingKeyVault.getSecret(keyVault.outputs.postgresSecretName)
+
+// Build DATABASE_URL from postgres outputs
+var databaseUrl = 'postgresql://${dbUser}:${dbPasswordSecret}@${postgres.outputs.hostOut}:5432/${postgres.outputs.dbNameOut}?sslmode=require'
+
+// --------- App Service ---------
+module appService 'modules/appService.bicep' = {
+  name: 'appServiceDeployment'
+  dependsOn: [
+    postgres
+    staticWebApp
+  ]
+  params: {
+    location: location
+    skuName: appServiceSkuName
+    databaseUrl: databaseUrl
+    allowedOrigin: 'https://${staticWebApp.outputs.defaultHostname}'
+    useKeyVaultForSecrets: appServiceUseKeyVaultForSecrets
+    keyVaultUri: appServiceUseKeyVaultForSecrets ? keyVault.outputs.vaultUri : ''
+    tags: tags
+  }
+}
+
+// Assign Key Vault Secrets User role to App Service identity
+var keyVaultSecretsUserRoleId = '4633458b-17de-408a-b874-0445c86b69e6'
+
+resource appServiceKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(appService.outputs.id, existingKeyVault.id, keyVaultSecretsUserRoleId)
+  scope: existingKeyVault
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsUserRoleId)
+    principalId: appService.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // --------- Azure Front Door ---------
 module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
   name: 'frontDoorDeployment'
@@ -246,6 +290,16 @@ output frontend object = {
     endpoint: ''
     url: ''
     enabled: false
+  }
+}
+
+// API outputs
+@description('API hosting endpoints and configuration')
+output api object = {
+  appService: {
+    name: appService.outputs.name
+    hostname: appService.outputs.defaultHostname
+    url: 'https://${appService.outputs.defaultHostname}'
   }
 }
 
@@ -297,3 +351,9 @@ output postgresServerName string = postgres.outputs.serverNameOut
 
 @description('Storage account name')
 output storageAccountName string = storage.outputs.name
+
+@description('App Service name')
+output appServiceName string = appService.outputs.name
+
+@description('App Service default hostname')
+output appServiceHostname string = appService.outputs.defaultHostname
