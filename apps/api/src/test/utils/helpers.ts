@@ -1,27 +1,35 @@
 import type { PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
 
-function getDmmfModels() {
+const getDmmfModels = () => {
   if (!Prisma.dmmf?.datamodel?.models) {
     throw new Error(
       "Unable to access Prisma DMMF. Ensure the client is correctly generated."
     );
   }
   return Prisma.dmmf.datamodel.models;
-}
+};
 
-async function cleanDatabaseWithDelete(
+const cleanDatabaseWithDelete = async (
   prisma: PrismaClient,
   exclude: string[]
-): Promise<void> {
+): Promise<void> => {
   const models = getDmmfModels();
+  const normalizedExclude = exclude.map((name) => name.toLowerCase());
+
   await prisma.$transaction(
     async (tx) => {
       for (const model of models) {
-        if (exclude.includes(model.name.toLowerCase())) continue;
+        const tableName = (model.dbName ?? model.name).toLowerCase();
+        if (normalizedExclude.includes(tableName)) continue;
+
+        const delegateName =
+          model.name.charAt(0).toLowerCase() + model.name.slice(1);
+
         const prismaModel = (
           tx as Record<string, { deleteMany?: () => Promise<unknown> }>
-        )[model.name];
+        )[delegateName];
+
         if (prismaModel?.deleteMany) {
           await prismaModel.deleteMany();
         }
@@ -29,31 +37,34 @@ async function cleanDatabaseWithDelete(
     },
     { timeout: 30000 }
   );
-}
+};
 
-export async function cleanDatabase(
+export const cleanDatabase = async (
   prisma: PrismaClient,
   options: {
     exclude?: string[];
     restartIdentity?: boolean;
   } = {}
-): Promise<void> {
+): Promise<void> => {
   const { exclude = [], restartIdentity = true } = options;
+
+  const normalizedExclude = exclude.map((name) => name.toLowerCase());
 
   const models = getDmmfModels();
   const tableNames = models
-    .map((m) => m.dbName ?? m.name.toLowerCase())
-    .filter((name) => !exclude.includes(name.toLowerCase()));
+    .map((m) => m.dbName ?? m.name)
+    .map((name) => name.toLowerCase())
+    .filter((name) => !normalizedExclude.includes(name));
 
   if (tableNames.length === 0) return;
 
-  const quotedTables = tableNames.map((name) => `"${name}"`).join(", "); // quote table names
-  const restartClause = restartIdentity ? " RESTART IDENTITY" : ""; // restart id sequence
-  const sql = `TRUNCATE TABLE ${quotedTables}${restartClause} CASCADE;`; // faster than deleteMany
+  const quotedTables = tableNames.map((name) => `"${name}"`).join(", ");
+  const restartClause = restartIdentity ? " RESTART IDENTITY" : "";
+  const sql = `TRUNCATE TABLE ${quotedTables}${restartClause} CASCADE;`;
 
   try {
     await prisma.$executeRawUnsafe(sql);
   } catch {
-    await cleanDatabaseWithDelete(prisma, exclude);
+    await cleanDatabaseWithDelete(prisma, normalizedExclude);
   }
-}
+};
