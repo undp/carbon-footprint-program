@@ -46,6 +46,7 @@ export async function setupTestDatabase(): Promise<{
     .withDatabase(TEST_DATABASE_CONFIG.database)
     .withUsername(TEST_DATABASE_CONFIG.username)
     .withPassword(TEST_DATABASE_CONFIG.password)
+    .withStartupTimeout(120000) // 2 minutes
     .start();
   const databaseUrl = container.getConnectionUri();
   return { databaseUrl, container };
