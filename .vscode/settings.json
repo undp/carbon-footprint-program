@@ -42,5 +42,8 @@
     "editor.defaultFormatter": "Prisma.prisma",
     "editor.formatOnSave": true
   },
-  "telemetry.telemetryLevel": "off"
+  "telemetry.telemetryLevel": "off",
+  "vitest.nodeEnv": {
+    "ENV_VAR_NAME": "ENV_VAR_VALUE"
+  }
 }

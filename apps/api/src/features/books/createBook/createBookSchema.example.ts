@@ -26,6 +26,13 @@ export const CreateBookResponseSchema = z.object({
   author: z.string(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  slug: z.string().optional(),
+  metadata: z
+    .object({
+      titleLength: z.number(),
+      authorLength: z.number(),
+    })
+    .optional(),
 });
 
 export type CreateBookBody = z.infer<typeof CreateBookBodySchema>;

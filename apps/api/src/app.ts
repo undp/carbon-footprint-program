@@ -1,7 +1,7 @@
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import Fastify from "fastify";
-import type { FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyRequest } from "fastify";
 import {
   serializerCompiler,
   validatorCompiler,
@@ -47,7 +47,9 @@ function getLoggerOptions() {
   };
 }
 
-export async function createApp() {
+export async function createApp(
+  withPrisma: boolean = true
+): Promise<FastifyInstance> {
   const app = Fastify({
     logger: getLoggerOptions(),
     genReqId: () => randomUUID(),
@@ -65,6 +67,7 @@ export async function createApp() {
 
   await app.register(autoload, {
     dir: path.join(baseDir, "plugins/app"),
+    ignoreFilter: withPrisma ? undefined : (path) => path.includes("prisma"),
   });
 
   await app.register(autoload, {

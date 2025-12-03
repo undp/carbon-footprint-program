@@ -28,19 +28,19 @@ const createLogHandler = (
 export default fp<PrismaPluginOptions>(
   (fastify, opts) => {
     // avoid registering multiple times
-    if (fastify.hasDecorator("prisma")) {
-      return;
-    }
+    if (fastify.hasDecorator("prisma")) return;
+
     // create adapter with the provided URL or the environment variable
     const connectionString = opts.databaseUrl ?? DATABASE_URL;
-    if (!connectionString) {
+    if (!connectionString)
       throw new Error(
         "Database URL is required. Provide databaseUrl in plugin options or set DATABASE_URL environment variable."
       );
-    }
+
     const adapter = new PrismaPg({
       connectionString,
     });
+
     const prismaClient = new PrismaClient({
       adapter,
       log: [
