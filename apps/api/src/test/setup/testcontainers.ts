@@ -24,6 +24,8 @@ export function runPrismaMigrations(databaseUrl: string): void {
     cwd: databasePackagePath,
     stdio: "pipe" as const,
     env: {
+      // eslint-disable-next-line turbo/no-undeclared-env-vars
+      PATH: process.env.PATH,
       DATABASE_URL: databaseUrl,
     },
   };
