@@ -14,12 +14,10 @@ const TEST_DATABASE_CONFIG = {
   password: "testpass",
 } as const;
 
-export function getDatabasePackagePath(): string {
-  return path.resolve(__dirname, "../../../../../packages/database");
-}
-
 export function runPrismaMigrations(databaseUrl: string): void {
-  const databasePackagePath = getDatabasePackagePath();
+  const databasePackagePath = path.dirname(
+    require.resolve("@repo/database/package.json")
+  );
 
   const command = "pnpm exec prisma migrate deploy";
   const options = {
