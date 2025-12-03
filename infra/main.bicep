@@ -113,9 +113,6 @@ param staticWebAppOutputLocation string = 'dist'
 @description('SKU name for App Service Plan (e.g., F1 for Free tier)')
 param appServiceSkuName string = 'F1'
 
-@description('Use Key Vault references for secrets in App Service (true) or direct env vars (false)')
-param appServiceUseKeyVaultForSecrets bool = false
-
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -231,23 +228,8 @@ module appService 'modules/appService.bicep' = {
     databaseHost: postgres.outputs.hostOut
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
-    allowedOrigin: 'https://${staticWebApp.outputs.defaultHostname}'
-    useKeyVaultForSecrets: appServiceUseKeyVaultForSecrets
-    keyVaultUri: appServiceUseKeyVaultForSecrets ? keyVault.outputs.vaultUri : ''
+    allowedOrigin: 'https://${staticWebApp.outputs.defaultHostName}'
     tags: tags
-  }
-}
-
-// Assign Key Vault Secrets User role to App Service identity
-var keyVaultSecretsUserRoleId = '4633458b-17de-408a-b874-0445c86b69e6'
-
-resource appServiceKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(keyVault.outputs.name, appService.outputs.name, keyVaultSecretsUserRoleId)
-  scope: resourceId('Microsoft.KeyVault/vaults', keyVault.outputs.name)
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', keyVaultSecretsUserRoleId)
-    principalId: appService.outputs.principalId
-    principalType: 'ServicePrincipal'
   }
 }
 

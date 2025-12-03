@@ -23,15 +23,6 @@ param allowedOrigin string
 @description('Node.js version (e.g., NODE|24-lts)')
 param linuxFxVersion string = 'NODE|24-lts'
 
-@description('Use Key Vault references for secrets (true) or direct env vars (false)')
-param useKeyVaultForSecrets bool = false
-
-@description('Key Vault URI for secret references (only used if useKeyVaultForSecrets is true)')
-param keyVaultUri string = ''
-
-@description('Key Vault secret name for DATABASE_URL (only used if useKeyVaultForSecrets is true)')
-param databaseUrlSecretName string = 'database-url'
-
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -60,9 +51,6 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
   name: appServiceName
   location: location
   tags: tags
-  identity: {
-    type: 'SystemAssigned'
-  }
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
@@ -90,9 +78,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         }
         {
           name: 'DATABASE_URL'
-          value: useKeyVaultForSecrets 
-            ? '@Microsoft.KeyVault(SecretUri=${keyVaultUri}/secrets/${databaseUrlSecretName}/)'
-            : 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
+          value: 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
         }
       ]
     }
@@ -107,11 +93,8 @@ output id string = appService.id
 output name string = appService.name
 
 @description('Default hostname of the App Service')
-output defaultHostname string = appService.properties.defaultHostname
+output defaultHostname string = appService.properties.defaultHostName
 
 @description('App Service Plan name')
 output planName string = appServicePlan.name
-
-@description('Principal ID of the system-assigned identity')
-output principalId string = appService.identity.principalId
 
