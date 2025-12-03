@@ -14,6 +14,5 @@ export default async function setup(project: TestProject) {
 declare module "vitest" {
   export interface ProvidedContext {
     databaseUrl: string;
-    container: StartedPostgreSqlContainer;
   }
 }
