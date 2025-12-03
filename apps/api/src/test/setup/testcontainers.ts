@@ -34,7 +34,7 @@ export function runPrismaMigrations(databaseUrl: string): void {
     execSync(command, options);
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new Error(`Error al ejecutar migraciones de Prisma: ${errorMessage}`);
+    throw new Error(`Error executing Prisma migrations: ${errorMessage}`);
   }
 }
 
