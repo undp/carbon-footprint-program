@@ -5,6 +5,7 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@/test/factories/appFactory.js";
@@ -16,7 +17,6 @@ import {
 import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { cleanDatabase } from "../../utils/helpers.js";
 
 describe("POST /api/books - Integration Tests", () => {
   let app: FastifyInstance;
@@ -34,7 +34,11 @@ describe("POST /api/books - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    await cleanDatabase(prisma);
+    await prisma.$executeRawUnsafe("BEGIN");
+  });
+
+  afterEach(async () => {
+    await prisma.$executeRawUnsafe("ROLLBACK");
   });
 
   describe("Successful book creation", () => {

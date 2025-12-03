@@ -46,6 +46,11 @@ export async function setupTestDatabase(): Promise<{
     .withPassword(TEST_DATABASE_CONFIG.password)
     .withStartupTimeout(120000) // 2 minutes
     .start();
-  const databaseUrl = container.getConnectionUri();
+
+  const baseUrl = container.getConnectionUri();
+  const url = new URL(baseUrl);
+  url.searchParams.set("connection_limit", "1");
+  const databaseUrl = url.toString();
+
   return { databaseUrl, container };
 }
