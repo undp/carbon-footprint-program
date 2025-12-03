@@ -4,7 +4,12 @@ import type { TestProject } from "vitest/node";
 export default async function setup(project: TestProject) {
   const { databaseUrl, container } = await setupTestDatabase();
   project.provide("databaseUrl", databaseUrl);
-  runPrismaMigrations(databaseUrl);
+  try {
+    runPrismaMigrations(databaseUrl);
+  } catch (error) {
+    await container.stop();
+    throw error;
+  }
   return async () => {
     await container.stop();
   };
