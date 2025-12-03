@@ -5,6 +5,11 @@ declare module "@mui/material/styles" {
     hint: string;
   }
 
+  interface CommonColors {
+    deepForest: string;
+    brightGreen: string;
+  }
+
   interface Palette {
     other: {
       backdrop: string;

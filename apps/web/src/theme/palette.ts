@@ -13,7 +13,7 @@ export const palette: PaletteOptions = {
     main: "#006E4D",
     light: "#338B70",
     dark: "#004D35",
-    contrastText: "#000000",
+    contrastText: "#FFFFFF",
   },
   // Secondary colors - Accent and complementary (Aqua)
   secondary: {
@@ -104,6 +104,8 @@ export const palette: PaletteOptions = {
   common: {
     black: "#000000",
     white: "#FFFFFF",
+    deepForest: "#1C403A",
+    brightGreen: "#56F58D",
   },
   // Divider
   divider: alpha("#000000", 0.12),
