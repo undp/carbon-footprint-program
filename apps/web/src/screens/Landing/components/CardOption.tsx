@@ -1,3 +1,4 @@
+import { FC } from "react";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import {
   Card,
@@ -19,7 +20,7 @@ interface Props {
   onButtonClick?: () => void;
 }
 
-export const CardOption: React.FC<Props> = ({
+export const CardOption: FC<Props> = ({
   avatar,
   title,
   description,

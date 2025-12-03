@@ -1,9 +1,9 @@
+import { FC, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import React, { useMemo } from "react";
 import { CalculatorIcon, ApplicationFormIcon } from "@icons";
 import { CardOption } from "./CardOption";
 
-export const Options: React.FC = () => {
+export const Options: FC = () => {
   const options = useMemo(
     () => [
       {

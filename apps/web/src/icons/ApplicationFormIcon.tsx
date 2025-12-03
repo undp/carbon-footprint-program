@@ -1,6 +1,7 @@
+import { FC } from "react";
 import { SvgIcon, SvgIconProps } from "@mui/material";
 
-export const ApplicationFormIcon: React.FC<SvgIconProps> = (props) => (
+export const ApplicationFormIcon: FC<SvgIconProps> = (props) => (
   <SvgIcon
     width="21"
     height="26"

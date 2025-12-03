@@ -1,10 +1,11 @@
+import { FC } from "react";
 import { SvgIcon, SvgIconProps, useTheme } from "@mui/material";
 
 interface Props extends SvgIconProps {
   contrast?: boolean;
 }
 
-export const HuellaLatamLogo: React.FC<Props> = (props) => {
+export const HuellaLatamLogo: FC<Props> = (props) => {
   const { contrast, ...propsRest } = props;
 
   const theme = useTheme();

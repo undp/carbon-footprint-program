@@ -1,3 +1,4 @@
+import { FC } from "react";
 import {
   ListItem,
   ListItemButton,
@@ -15,7 +16,7 @@ interface Props {
   selected: boolean;
 }
 
-export const Item: React.FC<Props> = ({ icon, text, path, selected }) => {
+export const Item: FC<Props> = ({ icon, text, path, selected }) => {
   const theme = useTheme();
 
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);

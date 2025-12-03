@@ -1,6 +1,7 @@
+import { FC } from "react";
 import { SvgIconProps, SvgIcon } from "@mui/material";
 
-export const LatamFootprintIcon: React.FC<SvgIconProps> = (props) => (
+export const LatamFootprintIcon: FC<SvgIconProps> = (props) => (
   <SvgIcon
     width="953"
     height="832"
