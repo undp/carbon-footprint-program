@@ -10,9 +10,7 @@ export default async function setup(project: TestProject) {
     await container.stop();
     throw error;
   }
-  return async () => {
-    await container.stop();
-  };
+  return () => container.stop();
 }
 
 declare module "vitest" {
