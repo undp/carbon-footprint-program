@@ -1,5 +1,4 @@
 import { runPrismaMigrations, setupTestDatabase } from "./testcontainers.js";
-import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import type { TestProject } from "vitest/node";
 
 export default async function setup(project: TestProject) {
