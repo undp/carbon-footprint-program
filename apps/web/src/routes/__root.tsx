@@ -1,44 +1,18 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import viteLogo from "@/assets/vite.svg";
-import reactLogo from "@/assets/react.svg";
-import { Button } from "@/components/ui/button";
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import { theme } from "@/theme";
 
 const queryClient = new QueryClient();
 
 export const Route = createRootRoute({
-  component: RootComponent,
-});
-
-function RootComponent() {
-  const [count, setCount] = useState(0);
-  return (
+  component: () => (
     <QueryClientProvider client={queryClient}>
-      <div>
-        <div>
-          <a href="https://vite.dev" target="_blank" rel="noreferrer">
-            <img src={viteLogo} className="logo" alt="Vite logo" />
-          </a>
-          <a href="https://react.dev" target="_blank" rel="noreferrer">
-            <img src={reactLogo} className="logo react" alt="React logo" />
-          </a>
-        </div>
-        <h1 className="text-3xl font-bold underline">Vite + React</h1>
-        <div className="card">
-          <button onClick={() => setCount((count) => count + 1)}>
-            count is {count}
-          </button>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test HMR
-          </p>
-        </div>
-        <p className="read-the-docs">
-          Click on the Vite and React logos to learn more
-        </p>
-        <Button>Click me</Button>
-      </div>
-      <Outlet />
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <Outlet />
+      </ThemeProvider>
     </QueryClientProvider>
-  );
-}
+  ),
+});
