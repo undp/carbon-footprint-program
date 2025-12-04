@@ -43,16 +43,6 @@ export const Item: FC<Props> = ({ icon, text, path, selected }) => {
             mt: 0,
             mb: 0,
           },
-          "&:hover": {
-            backgroundColor,
-            "& .MuiListItemText-primary": {
-              color: selectedTextColor,
-              fontWeight: "bold",
-            },
-            "& .MuiListItemIcon-root": {
-              color: selectedTextColor,
-            },
-          },
           "&.Mui-selected": {
             borderRadius: 34,
             backgroundColor,
