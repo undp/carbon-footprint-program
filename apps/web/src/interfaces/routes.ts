@@ -12,14 +12,14 @@ export enum Routes {
   CAPINAUT = "/capinaut",
 }
 
-export const SidebarRoutes: Record<string, ToPathOption> = {
+export const SidebarRoutes = {
   HOME: Routes.HOME,
   MY_COMPANY: Routes.MY_COMPANY,
   ORGANIZATION_FOOTPRINT: Routes.ORGANIZATION_FOOTPRINT,
   REDUCTION_PROJECTS: Routes.REDUCTION_PROJECTS,
   REDUCTION_PLAN: Routes.REDUCTION_PLAN,
   AWARDS: Routes.AWARDS,
-} as const;
+} as const satisfies Record<string, ToPathOption>;
 
 export type SidebarRoute = (typeof SidebarRoutes)[keyof typeof SidebarRoutes];
 
