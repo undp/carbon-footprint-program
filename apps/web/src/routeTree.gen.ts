@@ -9,9 +9,27 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TransparencyRouteImport } from './routes/transparency'
+import { Route as CapinautRouteImport } from './routes/capinaut'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction-projects'
+import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-plan'
+import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
+import { Route as AppHomeRouteImport } from './routes/app/home'
+import { Route as AppCarbonFootprintRouteImport } from './routes/app/carbon-footprint'
+import { Route as AppAwardsRouteImport } from './routes/app/awards'
 
+const TransparencyRoute = TransparencyRouteImport.update({
+  id: '/transparency',
+  path: '/transparency',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CapinautRoute = CapinautRouteImport.update({
+  id: '/capinaut',
+  path: '/capinaut',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AboutRoute = AboutRouteImport.update({
   id: '/about',
   path: '/about',
@@ -22,35 +40,142 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppReductionProjectsRoute = AppReductionProjectsRouteImport.update({
+  id: '/app/reduction-projects',
+  path: '/app/reduction-projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppReductionPlanRoute = AppReductionPlanRouteImport.update({
+  id: '/app/reduction-plan',
+  path: '/app/reduction-plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppMyOrganizationRoute = AppMyOrganizationRouteImport.update({
+  id: '/app/my-organization',
+  path: '/app/my-organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppHomeRoute = AppHomeRouteImport.update({
+  id: '/app/home',
+  path: '/app/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCarbonFootprintRoute = AppCarbonFootprintRouteImport.update({
+  id: '/app/carbon-footprint',
+  path: '/app/carbon-footprint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAwardsRoute = AppAwardsRouteImport.update({
+  id: '/app/awards',
+  path: '/app/awards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/capinaut': typeof CapinautRoute
+  '/transparency': typeof TransparencyRoute
+  '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
+  '/app/home': typeof AppHomeRoute
+  '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/reduction-plan': typeof AppReductionPlanRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/capinaut': typeof CapinautRoute
+  '/transparency': typeof TransparencyRoute
+  '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
+  '/app/home': typeof AppHomeRoute
+  '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/reduction-plan': typeof AppReductionPlanRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/capinaut': typeof CapinautRoute
+  '/transparency': typeof TransparencyRoute
+  '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
+  '/app/home': typeof AppHomeRoute
+  '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/reduction-plan': typeof AppReductionPlanRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/capinaut'
+    | '/transparency'
+    | '/app/awards'
+    | '/app/carbon-footprint'
+    | '/app/home'
+    | '/app/my-organization'
+    | '/app/reduction-plan'
+    | '/app/reduction-projects'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about'
-  id: '__root__' | '/' | '/about'
+  to:
+    | '/'
+    | '/about'
+    | '/capinaut'
+    | '/transparency'
+    | '/app/awards'
+    | '/app/carbon-footprint'
+    | '/app/home'
+    | '/app/my-organization'
+    | '/app/reduction-plan'
+    | '/app/reduction-projects'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/capinaut'
+    | '/transparency'
+    | '/app/awards'
+    | '/app/carbon-footprint'
+    | '/app/home'
+    | '/app/my-organization'
+    | '/app/reduction-plan'
+    | '/app/reduction-projects'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  CapinautRoute: typeof CapinautRoute
+  TransparencyRoute: typeof TransparencyRoute
+  AppAwardsRoute: typeof AppAwardsRoute
+  AppCarbonFootprintRoute: typeof AppCarbonFootprintRoute
+  AppHomeRoute: typeof AppHomeRoute
+  AppMyOrganizationRoute: typeof AppMyOrganizationRoute
+  AppReductionPlanRoute: typeof AppReductionPlanRoute
+  AppReductionProjectsRoute: typeof AppReductionProjectsRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/transparency': {
+      id: '/transparency'
+      path: '/transparency'
+      fullPath: '/transparency'
+      preLoaderRoute: typeof TransparencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capinaut': {
+      id: '/capinaut'
+      path: '/capinaut'
+      fullPath: '/capinaut'
+      preLoaderRoute: typeof CapinautRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/about': {
       id: '/about'
       path: '/about'
@@ -65,12 +190,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/reduction-projects': {
+      id: '/app/reduction-projects'
+      path: '/app/reduction-projects'
+      fullPath: '/app/reduction-projects'
+      preLoaderRoute: typeof AppReductionProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/reduction-plan': {
+      id: '/app/reduction-plan'
+      path: '/app/reduction-plan'
+      fullPath: '/app/reduction-plan'
+      preLoaderRoute: typeof AppReductionPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/my-organization': {
+      id: '/app/my-organization'
+      path: '/app/my-organization'
+      fullPath: '/app/my-organization'
+      preLoaderRoute: typeof AppMyOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/home': {
+      id: '/app/home'
+      path: '/app/home'
+      fullPath: '/app/home'
+      preLoaderRoute: typeof AppHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/carbon-footprint': {
+      id: '/app/carbon-footprint'
+      path: '/app/carbon-footprint'
+      fullPath: '/app/carbon-footprint'
+      preLoaderRoute: typeof AppCarbonFootprintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/awards': {
+      id: '/app/awards'
+      path: '/app/awards'
+      fullPath: '/app/awards'
+      preLoaderRoute: typeof AppAwardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  CapinautRoute: CapinautRoute,
+  TransparencyRoute: TransparencyRoute,
+  AppAwardsRoute: AppAwardsRoute,
+  AppCarbonFootprintRoute: AppCarbonFootprintRoute,
+  AppHomeRoute: AppHomeRoute,
+  AppMyOrganizationRoute: AppMyOrganizationRoute,
+  AppReductionPlanRoute: AppReductionPlanRoute,
+  AppReductionProjectsRoute: AppReductionProjectsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
