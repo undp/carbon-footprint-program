@@ -1,0 +1,22 @@
+import { Routes } from ".";
+import { ToPathOption } from "@tanstack/react-router";
+
+export const SidebarRoutes: Record<string, ToPathOption> = {
+  HOME: Routes.HOME,
+  MY_ORGANIZATION: Routes.MY_ORGANIZATION,
+  ORGANIZATION_FOOTPRINT: Routes.ORGANIZATION_FOOTPRINT,
+  REDUCTION_PROJECTS: Routes.REDUCTION_PROJECTS,
+  REDUCTION_PLAN: Routes.REDUCTION_PLAN,
+  AWARDS: Routes.AWARDS,
+} as const;
+
+export type SidebarRoute = (typeof SidebarRoutes)[keyof typeof SidebarRoutes];
+
+export const SidebarRoutesTranslations: Record<SidebarRoute, string> = {
+  [SidebarRoutes.HOME]: "Inicio",
+  [SidebarRoutes.MY_ORGANIZATION]: "Mi empresa",
+  [SidebarRoutes.ORGANIZATION_FOOTPRINT]: "Huella organizacional",
+  [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
+  [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",
+  [SidebarRoutes.AWARDS]: "Premios",
+};
