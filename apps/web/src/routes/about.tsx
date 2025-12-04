@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MainLayout } from "@/components/layout";
+import { Routes } from "@/interfaces/routes";
 
-export const Route = createFileRoute("/about")({
-  component: () => <MainLayout>Hello &quot;/about&quot;!</MainLayout>,
+export const Route = createFileRoute(Routes.ABOUT_US)({
+  component: () => (
+    /* TODO: Replace with real About screen component */
+    <div>Hello &quot;/about&quot;!</div>
+  ),
 });

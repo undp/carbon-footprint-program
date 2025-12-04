@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MainLayout } from "@/components/layout";
+import { Routes } from "@/interfaces/routes";
 
-export const Route = createFileRoute("/capinaut")({
-  component: () => <MainLayout>Hello &quot;/capinaut&quot;!</MainLayout>,
+export const Route = createFileRoute(Routes.CAPINAUT)({
+  component: () => (
+    /* TODO: Replace with real Capinaut screen component */
+    <div>Hello &quot;/capinaut&quot;!</div>
+  ),
 });
