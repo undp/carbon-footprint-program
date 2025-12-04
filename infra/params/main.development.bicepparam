@@ -174,7 +174,7 @@ param staticWebAppOutputLocation = 'dist'
 // - 'F1': Free tier, 1 GB RAM, 1 GB storage, 60 min CPU/day, $0/month (ideal for development)
 // - 'B1': Basic tier, 1.75 GB RAM, 10 GB storage, $13/month
 // - 'S1': Standard tier, 1.75 GB RAM, 50 GB storage, $55/month
-// Recommendation: F1 for development, S1+ for production
+// Recommendation: B1 for development, S1+ for production
 param appServiceSkuName = 'F1'
 
 // ============================================
