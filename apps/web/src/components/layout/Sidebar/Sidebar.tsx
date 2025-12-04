@@ -69,7 +69,7 @@ export const Sidebar: FC = () => {
       <List sx={{ pt: 0 }}>
         {Items.map(({ text, path, icon, selected }) => (
           <Item
-            key={text}
+            key={path}
             text={text}
             path={path}
             icon={icon}
