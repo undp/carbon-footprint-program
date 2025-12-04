@@ -10,14 +10,39 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransparencyRouteImport } from './routes/transparency'
+import { Route as ReductionProjectsRouteImport } from './routes/reduction-projects'
+import { Route as ReductionPlanRouteImport } from './routes/reduction-plan'
+import { Route as OrganizationFootprintRouteImport } from './routes/organization-footprint'
+import { Route as MyCompanyRouteImport } from './routes/my-company'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as CapinautRouteImport } from './routes/capinaut'
+import { Route as AwardsRouteImport } from './routes/awards'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 
 const TransparencyRoute = TransparencyRouteImport.update({
   id: '/transparency',
   path: '/transparency',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReductionProjectsRoute = ReductionProjectsRouteImport.update({
+  id: '/reduction-projects',
+  path: '/reduction-projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReductionPlanRoute = ReductionPlanRouteImport.update({
+  id: '/reduction-plan',
+  path: '/reduction-plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrganizationFootprintRoute = OrganizationFootprintRouteImport.update({
+  id: '/organization-footprint',
+  path: '/organization-footprint',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MyCompanyRoute = MyCompanyRouteImport.update({
+  id: '/my-company',
+  path: '/my-company',
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -28,6 +53,11 @@ const HomeRoute = HomeRouteImport.update({
 const CapinautRoute = CapinautRouteImport.update({
   id: '/capinaut',
   path: '/capinaut',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AwardsRoute = AwardsRouteImport.update({
+  id: '/awards',
+  path: '/awards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -44,38 +74,89 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
   '/home': typeof HomeRoute
+  '/my-company': typeof MyCompanyRoute
+  '/organization-footprint': typeof OrganizationFootprintRoute
+  '/reduction-plan': typeof ReductionPlanRoute
+  '/reduction-projects': typeof ReductionProjectsRoute
   '/transparency': typeof TransparencyRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
   '/home': typeof HomeRoute
+  '/my-company': typeof MyCompanyRoute
+  '/organization-footprint': typeof OrganizationFootprintRoute
+  '/reduction-plan': typeof ReductionPlanRoute
+  '/reduction-projects': typeof ReductionProjectsRoute
   '/transparency': typeof TransparencyRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
   '/home': typeof HomeRoute
+  '/my-company': typeof MyCompanyRoute
+  '/organization-footprint': typeof OrganizationFootprintRoute
+  '/reduction-plan': typeof ReductionPlanRoute
+  '/reduction-projects': typeof ReductionProjectsRoute
   '/transparency': typeof TransparencyRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/capinaut' | '/home' | '/transparency'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/awards'
+    | '/capinaut'
+    | '/home'
+    | '/my-company'
+    | '/organization-footprint'
+    | '/reduction-plan'
+    | '/reduction-projects'
+    | '/transparency'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/capinaut' | '/home' | '/transparency'
-  id: '__root__' | '/' | '/about' | '/capinaut' | '/home' | '/transparency'
+  to:
+    | '/'
+    | '/about'
+    | '/awards'
+    | '/capinaut'
+    | '/home'
+    | '/my-company'
+    | '/organization-footprint'
+    | '/reduction-plan'
+    | '/reduction-projects'
+    | '/transparency'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/awards'
+    | '/capinaut'
+    | '/home'
+    | '/my-company'
+    | '/organization-footprint'
+    | '/reduction-plan'
+    | '/reduction-projects'
+    | '/transparency'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AwardsRoute: typeof AwardsRoute
   CapinautRoute: typeof CapinautRoute
   HomeRoute: typeof HomeRoute
+  MyCompanyRoute: typeof MyCompanyRoute
+  OrganizationFootprintRoute: typeof OrganizationFootprintRoute
+  ReductionPlanRoute: typeof ReductionPlanRoute
+  ReductionProjectsRoute: typeof ReductionProjectsRoute
   TransparencyRoute: typeof TransparencyRoute
 }
 
@@ -86,6 +167,34 @@ declare module '@tanstack/react-router' {
       path: '/transparency'
       fullPath: '/transparency'
       preLoaderRoute: typeof TransparencyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reduction-projects': {
+      id: '/reduction-projects'
+      path: '/reduction-projects'
+      fullPath: '/reduction-projects'
+      preLoaderRoute: typeof ReductionProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reduction-plan': {
+      id: '/reduction-plan'
+      path: '/reduction-plan'
+      fullPath: '/reduction-plan'
+      preLoaderRoute: typeof ReductionPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/organization-footprint': {
+      id: '/organization-footprint'
+      path: '/organization-footprint'
+      fullPath: '/organization-footprint'
+      preLoaderRoute: typeof OrganizationFootprintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/my-company': {
+      id: '/my-company'
+      path: '/my-company'
+      fullPath: '/my-company'
+      preLoaderRoute: typeof MyCompanyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -100,6 +209,13 @@ declare module '@tanstack/react-router' {
       path: '/capinaut'
       fullPath: '/capinaut'
       preLoaderRoute: typeof CapinautRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/awards': {
+      id: '/awards'
+      path: '/awards'
+      fullPath: '/awards'
+      preLoaderRoute: typeof AwardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -122,8 +238,13 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AwardsRoute: AwardsRoute,
   CapinautRoute: CapinautRoute,
   HomeRoute: HomeRoute,
+  MyCompanyRoute: MyCompanyRoute,
+  OrganizationFootprintRoute: OrganizationFootprintRoute,
+  ReductionPlanRoute: ReductionPlanRoute,
+  ReductionProjectsRoute: ReductionProjectsRoute,
   TransparencyRoute: TransparencyRoute,
 }
 export const routeTree = rootRouteImport
