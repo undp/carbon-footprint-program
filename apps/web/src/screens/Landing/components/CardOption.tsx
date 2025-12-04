@@ -10,10 +10,11 @@ import {
   Button,
   useTheme,
   alpha,
+  type SvgIconProps,
 } from "@mui/material";
 
 interface Props {
-  avatar: React.ReactNode;
+  AvatarIcon: React.ComponentType<SvgIconProps>;
   title: string;
   description: string;
   buttonText: string;
@@ -21,7 +22,7 @@ interface Props {
 }
 
 export const CardOption: FC<Props> = ({
-  avatar,
+  AvatarIcon,
   title,
   description,
   buttonText,
@@ -49,7 +50,7 @@ export const CardOption: FC<Props> = ({
               height: 56,
             }}
           >
-            {avatar}
+            <AvatarIcon />
           </Avatar>
         }
       />

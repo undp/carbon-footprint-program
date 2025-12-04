@@ -7,7 +7,7 @@ export const Options: FC = () => {
   const options = useMemo(
     () => [
       {
-        avatar: <CalculatorIcon />,
+        AvatarIcon: CalculatorIcon,
         title: "Quiero calcular mi huella",
         description:
           "Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos.",
@@ -18,7 +18,7 @@ export const Options: FC = () => {
         },
       },
       {
-        avatar: <ApplicationFormIcon />,
+        AvatarIcon: ApplicationFormIcon,
         title: "Ya tengo mis cálculos",
         description: "Sube tus datos y genera reportes en segundos.",
         buttonText: "SUBIR EMISIONES",
