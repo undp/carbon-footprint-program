@@ -13,7 +13,7 @@ import { Route as TransparencyRouteImport } from './routes/transparency'
 import { Route as ReductionProjectsRouteImport } from './routes/reduction-projects'
 import { Route as ReductionPlanRouteImport } from './routes/reduction-plan'
 import { Route as OrganizationFootprintRouteImport } from './routes/organization-footprint'
-import { Route as MyCompanyRouteImport } from './routes/my-company'
+import { Route as MyOrganizationRouteImport } from './routes/my-organization'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as CapinautRouteImport } from './routes/capinaut'
 import { Route as AwardsRouteImport } from './routes/awards'
@@ -40,9 +40,11 @@ const OrganizationFootprintRoute = OrganizationFootprintRouteImport.update({
   path: '/organization-footprint',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MyCompanyRoute = MyCompanyRouteImport.update({
-  id: '/my-company',
-  path: '/my-company',
+const MyOrganizationRoute = MyOrganizationRouteImport.update({
+  id: '/my-organization',
+  path: '/my-organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
   getParentRoute: () => rootRouteImport,
 } as any)
 const HomeRoute = HomeRouteImport.update({
@@ -77,7 +79,7 @@ export interface FileRoutesByFullPath {
   '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
   '/home': typeof HomeRoute
-  '/my-company': typeof MyCompanyRoute
+  '/my-organization': typeof MyOrganizationRoute
   '/organization-footprint': typeof OrganizationFootprintRoute
   '/reduction-plan': typeof ReductionPlanRoute
   '/reduction-projects': typeof ReductionProjectsRoute
@@ -89,7 +91,7 @@ export interface FileRoutesByTo {
   '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
   '/home': typeof HomeRoute
-  '/my-company': typeof MyCompanyRoute
+  '/my-organization': typeof MyOrganizationRoute
   '/organization-footprint': typeof OrganizationFootprintRoute
   '/reduction-plan': typeof ReductionPlanRoute
   '/reduction-projects': typeof ReductionProjectsRoute
@@ -102,7 +104,7 @@ export interface FileRoutesById {
   '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
   '/home': typeof HomeRoute
-  '/my-company': typeof MyCompanyRoute
+  '/my-organization': typeof MyOrganizationRoute
   '/organization-footprint': typeof OrganizationFootprintRoute
   '/reduction-plan': typeof ReductionPlanRoute
   '/reduction-projects': typeof ReductionProjectsRoute
@@ -116,7 +118,7 @@ export interface FileRouteTypes {
     | '/awards'
     | '/capinaut'
     | '/home'
-    | '/my-company'
+    | '/my-organization'
     | '/organization-footprint'
     | '/reduction-plan'
     | '/reduction-projects'
@@ -128,7 +130,7 @@ export interface FileRouteTypes {
     | '/awards'
     | '/capinaut'
     | '/home'
-    | '/my-company'
+    | '/my-organization'
     | '/organization-footprint'
     | '/reduction-plan'
     | '/reduction-projects'
@@ -140,7 +142,7 @@ export interface FileRouteTypes {
     | '/awards'
     | '/capinaut'
     | '/home'
-    | '/my-company'
+    | '/my-organization'
     | '/organization-footprint'
     | '/reduction-plan'
     | '/reduction-projects'
@@ -153,7 +155,7 @@ export interface RootRouteChildren {
   AwardsRoute: typeof AwardsRoute
   CapinautRoute: typeof CapinautRoute
   HomeRoute: typeof HomeRoute
-  MyCompanyRoute: typeof MyCompanyRoute
+  MyOrganizationRoute: typeof MyOrganizationRoute
   OrganizationFootprintRoute: typeof OrganizationFootprintRoute
   ReductionPlanRoute: typeof ReductionPlanRoute
   ReductionProjectsRoute: typeof ReductionProjectsRoute
@@ -190,11 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrganizationFootprintRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/my-company': {
-      id: '/my-company'
-      path: '/my-company'
-      fullPath: '/my-company'
-      preLoaderRoute: typeof MyCompanyRouteImport
+    '/my-organization': {
+      id: '/my-organization'
+      path: '/my-organization'
+      fullPath: '/my-organization'
+      preLoaderRoute: typeof MyOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
       parentRoute: typeof rootRouteImport
     }
     '/home': {
@@ -241,7 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   AwardsRoute: AwardsRoute,
   CapinautRoute: CapinautRoute,
   HomeRoute: HomeRoute,
-  MyCompanyRoute: MyCompanyRoute,
+  MyOrganizationRoute: MyOrganizationRoute,
   OrganizationFootprintRoute: OrganizationFootprintRoute,
   ReductionPlanRoute: ReductionPlanRoute,
   ReductionProjectsRoute: ReductionProjectsRoute,
