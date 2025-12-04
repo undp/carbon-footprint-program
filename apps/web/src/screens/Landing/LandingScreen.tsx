@@ -12,12 +12,9 @@ export const LandingScreen: FC = () => {
   return (
     <Box
       component="main"
-      flexGrow={1}
+      className="flex flex-col h-screen grow"
       sx={{
         position: "relative",
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
         background: `linear-gradient(0deg, ${alphaDeepForest} 0%, ${alphaDeepForest} 100%), 
         linear-gradient(293deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
       }}
