@@ -10,56 +10,24 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransparencyRouteImport } from './routes/transparency'
-import { Route as ReductionProjectsRouteImport } from './routes/reduction-projects'
-import { Route as ReductionPlanRouteImport } from './routes/reduction-plan'
-import { Route as OrganizationFootprintRouteImport } from './routes/organization-footprint'
-import { Route as MyOrganizationRouteImport } from './routes/my-organization'
-import { Route as HomeRouteImport } from './routes/home'
 import { Route as CapinautRouteImport } from './routes/capinaut'
-import { Route as AwardsRouteImport } from './routes/awards'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction-projects'
+import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-plan'
+import { Route as AppOrganizationFootprintRouteImport } from './routes/app/organization-footprint'
+import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
+import { Route as AppHomeRouteImport } from './routes/app/home'
+import { Route as AppAwardsRouteImport } from './routes/app/awards'
 
 const TransparencyRoute = TransparencyRouteImport.update({
   id: '/transparency',
   path: '/transparency',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ReductionProjectsRoute = ReductionProjectsRouteImport.update({
-  id: '/reduction-projects',
-  path: '/reduction-projects',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ReductionPlanRoute = ReductionPlanRouteImport.update({
-  id: '/reduction-plan',
-  path: '/reduction-plan',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const OrganizationFootprintRoute = OrganizationFootprintRouteImport.update({
-  id: '/organization-footprint',
-  path: '/organization-footprint',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MyOrganizationRoute = MyOrganizationRouteImport.update({
-  id: '/my-organization',
-  path: '/my-organization',
-  getParentRoute: () => rootRouteImport,
-} as any)
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CapinautRoute = CapinautRouteImport.update({
   id: '/capinaut',
   path: '/capinaut',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AwardsRoute = AwardsRouteImport.update({
-  id: '/awards',
-  path: '/awards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -72,94 +40,125 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppReductionProjectsRoute = AppReductionProjectsRouteImport.update({
+  id: '/app/reduction-projects',
+  path: '/app/reduction-projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppReductionPlanRoute = AppReductionPlanRouteImport.update({
+  id: '/app/reduction-plan',
+  path: '/app/reduction-plan',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppOrganizationFootprintRoute =
+  AppOrganizationFootprintRouteImport.update({
+    id: '/app/organization-footprint',
+    path: '/app/organization-footprint',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AppMyOrganizationRoute = AppMyOrganizationRouteImport.update({
+  id: '/app/my-organization',
+  path: '/app/my-organization',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppHomeRoute = AppHomeRouteImport.update({
+  id: '/app/home',
+  path: '/app/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAwardsRoute = AppAwardsRouteImport.update({
+  id: '/app/awards',
+  path: '/app/awards',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
-  '/home': typeof HomeRoute
-  '/my-organization': typeof MyOrganizationRoute
-  '/organization-footprint': typeof OrganizationFootprintRoute
-  '/reduction-plan': typeof ReductionPlanRoute
-  '/reduction-projects': typeof ReductionProjectsRoute
   '/transparency': typeof TransparencyRoute
+  '/app/awards': typeof AppAwardsRoute
+  '/app/home': typeof AppHomeRoute
+  '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/organization-footprint': typeof AppOrganizationFootprintRoute
+  '/app/reduction-plan': typeof AppReductionPlanRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
-  '/home': typeof HomeRoute
-  '/my-organization': typeof MyOrganizationRoute
-  '/organization-footprint': typeof OrganizationFootprintRoute
-  '/reduction-plan': typeof ReductionPlanRoute
-  '/reduction-projects': typeof ReductionProjectsRoute
   '/transparency': typeof TransparencyRoute
+  '/app/awards': typeof AppAwardsRoute
+  '/app/home': typeof AppHomeRoute
+  '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/organization-footprint': typeof AppOrganizationFootprintRoute
+  '/app/reduction-plan': typeof AppReductionPlanRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/awards': typeof AwardsRoute
   '/capinaut': typeof CapinautRoute
-  '/home': typeof HomeRoute
-  '/my-organization': typeof MyOrganizationRoute
-  '/organization-footprint': typeof OrganizationFootprintRoute
-  '/reduction-plan': typeof ReductionPlanRoute
-  '/reduction-projects': typeof ReductionProjectsRoute
   '/transparency': typeof TransparencyRoute
+  '/app/awards': typeof AppAwardsRoute
+  '/app/home': typeof AppHomeRoute
+  '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/organization-footprint': typeof AppOrganizationFootprintRoute
+  '/app/reduction-plan': typeof AppReductionPlanRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
-    | '/awards'
     | '/capinaut'
-    | '/home'
-    | '/my-organization'
-    | '/organization-footprint'
-    | '/reduction-plan'
-    | '/reduction-projects'
     | '/transparency'
+    | '/app/awards'
+    | '/app/home'
+    | '/app/my-organization'
+    | '/app/organization-footprint'
+    | '/app/reduction-plan'
+    | '/app/reduction-projects'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
-    | '/awards'
     | '/capinaut'
-    | '/home'
-    | '/my-organization'
-    | '/organization-footprint'
-    | '/reduction-plan'
-    | '/reduction-projects'
     | '/transparency'
+    | '/app/awards'
+    | '/app/home'
+    | '/app/my-organization'
+    | '/app/organization-footprint'
+    | '/app/reduction-plan'
+    | '/app/reduction-projects'
   id:
     | '__root__'
     | '/'
     | '/about'
-    | '/awards'
     | '/capinaut'
-    | '/home'
-    | '/my-organization'
-    | '/organization-footprint'
-    | '/reduction-plan'
-    | '/reduction-projects'
     | '/transparency'
+    | '/app/awards'
+    | '/app/home'
+    | '/app/my-organization'
+    | '/app/organization-footprint'
+    | '/app/reduction-plan'
+    | '/app/reduction-projects'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AwardsRoute: typeof AwardsRoute
   CapinautRoute: typeof CapinautRoute
-  HomeRoute: typeof HomeRoute
-  MyOrganizationRoute: typeof MyOrganizationRoute
-  OrganizationFootprintRoute: typeof OrganizationFootprintRoute
-  ReductionPlanRoute: typeof ReductionPlanRoute
-  ReductionProjectsRoute: typeof ReductionProjectsRoute
   TransparencyRoute: typeof TransparencyRoute
+  AppAwardsRoute: typeof AppAwardsRoute
+  AppHomeRoute: typeof AppHomeRoute
+  AppMyOrganizationRoute: typeof AppMyOrganizationRoute
+  AppOrganizationFootprintRoute: typeof AppOrganizationFootprintRoute
+  AppReductionPlanRoute: typeof AppReductionPlanRoute
+  AppReductionProjectsRoute: typeof AppReductionProjectsRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -171,55 +170,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TransparencyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/reduction-projects': {
-      id: '/reduction-projects'
-      path: '/reduction-projects'
-      fullPath: '/reduction-projects'
-      preLoaderRoute: typeof ReductionProjectsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/reduction-plan': {
-      id: '/reduction-plan'
-      path: '/reduction-plan'
-      fullPath: '/reduction-plan'
-      preLoaderRoute: typeof ReductionPlanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/organization-footprint': {
-      id: '/organization-footprint'
-      path: '/organization-footprint'
-      fullPath: '/organization-footprint'
-      preLoaderRoute: typeof OrganizationFootprintRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/my-organization': {
-      id: '/my-organization'
-      path: '/my-organization'
-      fullPath: '/my-organization'
-      preLoaderRoute: typeof MyOrganizationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-      parentRoute: typeof rootRouteImport
-    }
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/capinaut': {
       id: '/capinaut'
       path: '/capinaut'
       fullPath: '/capinaut'
       preLoaderRoute: typeof CapinautRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/awards': {
-      id: '/awards'
-      path: '/awards'
-      fullPath: '/awards'
-      preLoaderRoute: typeof AwardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -236,20 +191,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/reduction-projects': {
+      id: '/app/reduction-projects'
+      path: '/app/reduction-projects'
+      fullPath: '/app/reduction-projects'
+      preLoaderRoute: typeof AppReductionProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/reduction-plan': {
+      id: '/app/reduction-plan'
+      path: '/app/reduction-plan'
+      fullPath: '/app/reduction-plan'
+      preLoaderRoute: typeof AppReductionPlanRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/organization-footprint': {
+      id: '/app/organization-footprint'
+      path: '/app/organization-footprint'
+      fullPath: '/app/organization-footprint'
+      preLoaderRoute: typeof AppOrganizationFootprintRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/my-organization': {
+      id: '/app/my-organization'
+      path: '/app/my-organization'
+      fullPath: '/app/my-organization'
+      preLoaderRoute: typeof AppMyOrganizationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/home': {
+      id: '/app/home'
+      path: '/app/home'
+      fullPath: '/app/home'
+      preLoaderRoute: typeof AppHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/awards': {
+      id: '/app/awards'
+      path: '/app/awards'
+      fullPath: '/app/awards'
+      preLoaderRoute: typeof AppAwardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AwardsRoute: AwardsRoute,
   CapinautRoute: CapinautRoute,
-  HomeRoute: HomeRoute,
-  MyOrganizationRoute: MyOrganizationRoute,
-  OrganizationFootprintRoute: OrganizationFootprintRoute,
-  ReductionPlanRoute: ReductionPlanRoute,
-  ReductionProjectsRoute: ReductionProjectsRoute,
   TransparencyRoute: TransparencyRoute,
+  AppAwardsRoute: AppAwardsRoute,
+  AppHomeRoute: AppHomeRoute,
+  AppMyOrganizationRoute: AppMyOrganizationRoute,
+  AppOrganizationFootprintRoute: AppOrganizationFootprintRoute,
+  AppReductionPlanRoute: AppReductionPlanRoute,
+  AppReductionProjectsRoute: AppReductionProjectsRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
