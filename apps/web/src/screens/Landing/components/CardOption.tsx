@@ -71,8 +71,9 @@ export const CardOption: FC<Props> = ({
       </CardContent>
       <CardActions className="flex-row-reverse">
         <Button
-          endIcon={<ArrowRightAltRounded />}
+          sx={{ backgroundColor: theme.palette.common.deepForest }}
           variant="contained"
+          endIcon={<ArrowRightAltRounded />}
           onClick={onButtonClick}
         >
           {buttonText}

@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { AppBar, Box, Button, Toolbar } from "@mui/material";
+import { AppBar, Box, Button, Toolbar, useTheme } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@/icons";
 import {
@@ -8,6 +8,8 @@ import {
 } from "@/interfaces";
 
 export const Header: FC = () => {
+  const theme = useTheme();
+
   const pages = useMemo(
     () =>
       Object.values(LandingHeaderRoutes).map((route) => ({
@@ -39,7 +41,12 @@ export const Header: FC = () => {
             </Link>
           ))}
         </Box>
-        <Button variant="contained">INICIAR SESIÓN</Button>
+        <Button
+          sx={{ backgroundColor: theme.palette.common.deepForest }}
+          variant="contained"
+        >
+          INICIAR SESIÓN
+        </Button>
       </Toolbar>
     </AppBar>
   );
