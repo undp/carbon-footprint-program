@@ -29,13 +29,13 @@ const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
 export const Sidebar: FC = () => {
   const location = useLocation();
 
-  const Items = useMemo(
+  const items = useMemo(
     () =>
-      Object.values(SidebarRoutes).map((route) => ({
-        text: SidebarRoutesTranslations[route],
-        path: route,
-        icon: SidebarIcons[route],
-        selected: location.pathname == route,
+      Object.values(SidebarRoutes).map((path) => ({
+        text: SidebarRoutesTranslations[path],
+        path: path,
+        icon: SidebarIcons[path],
+        selected: location.pathname == path,
       })),
     [location.pathname]
   );
@@ -67,7 +67,7 @@ export const Sidebar: FC = () => {
       </Toolbar>
       <Divider variant="middle" />
       <List sx={{ pt: 0 }}>
-        {Items.map(({ text, path, icon, selected }) => (
+        {items.map(({ text, path, icon, selected }) => (
           <Item
             key={path}
             text={text}
