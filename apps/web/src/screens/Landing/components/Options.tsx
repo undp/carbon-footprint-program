@@ -1,6 +1,6 @@
 import { FC, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import { CalculatorIcon, ApplicationFormIcon } from "@icons";
+import { CalculatorIcon, ApplicationFormIcon } from "@/icons";
 import { CardOption } from "./CardOption";
 
 export const Options: FC = () => {

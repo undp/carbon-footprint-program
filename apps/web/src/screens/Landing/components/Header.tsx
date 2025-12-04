@@ -1,11 +1,11 @@
 import { FC, useMemo } from "react";
 import { AppBar, Box, Button, Toolbar } from "@mui/material";
 import { Link } from "@tanstack/react-router";
-import { HuellaLatamLogo } from "@icons";
+import { HuellaLatamLogo } from "@/icons";
 import {
   LandingHeaderRoutes,
   LandingHeaderRoutesTranslations,
-} from "@interfaces";
+} from "@/interfaces";
 
 export const Header: FC = () => {
   const pages = useMemo(

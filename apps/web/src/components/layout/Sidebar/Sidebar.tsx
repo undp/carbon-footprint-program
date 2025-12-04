@@ -15,7 +15,7 @@ import {
   SidebarRoute,
   SidebarRoutes,
   SidebarRoutesTranslations,
-} from "@interfaces";
+} from "@/interfaces";
 
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,

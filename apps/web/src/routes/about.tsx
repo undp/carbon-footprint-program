@@ -1,10 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { MainLayout } from "../components/layout";
+import { MainLayout } from "@/components/layout";
 
 export const Route = createFileRoute("/about")({
-  component: () => (
-    <MainLayout>
-      <div>Hello about!</div>
-    </MainLayout>
-  ),
+  component: () => <MainLayout>Hello &quot;/about&quot;!</MainLayout>,
 });
