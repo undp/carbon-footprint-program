@@ -1,65 +1,128 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: oklch(100% 0 0);
-  --color-foreground: oklch(9.8% 0 0);
-  
-  --color-card: oklch(100% 0 0);
-  --color-card-foreground: oklch(9.8% 0 0);
-  
-  --color-popover: oklch(100% 0 0);
-  --color-popover-foreground: oklch(9.8% 0 0);
-  
-  --color-primary: oklch(9.8% 0 0);
-  --color-primary-foreground: oklch(98% 0 0);
-  
-  --color-secondary: oklch(96.1% 0 0);
-  --color-secondary-foreground: oklch(9.8% 0 0);
-  
-  --color-muted: oklch(96.1% 0 0);
-  --color-muted-foreground: oklch(45.1% 0 0);
-  
-  --color-accent: oklch(96.1% 0 0);
-  --color-accent-foreground: oklch(9.8% 0 0);
-  
-  --color-destructive: oklch(62.8% 0.257 29.234);
-  --color-destructive-foreground: oklch(98% 0 0);
-  
-  --color-border: oklch(89.8% 0 0);
-  --color-input: oklch(89.8% 0 0);
-  --color-ring: oklch(9.8% 0 0);
-  
+  /* Background colors - aligned with MUI palette.background */
+  --color-background: #f9f9f9;
+  --color-foreground: #414046; /* text.primary */
+
+  /* Card colors */
+  --color-card: #ffffff; /* background.paper */
+  --color-card-foreground: #414046;
+
+  /* Popover colors */
+  --color-popover: #ffffff;
+  --color-popover-foreground: #414046;
+
+  /* Primary colors - aligned with MUI primary palette */
+  --color-primary: #006e4d; /* primary.main */
+  --color-primary-foreground: #ffffff;
+
+  /* Secondary colors - aligned with MUI secondary palette */
+  --color-secondary: #63e4cf; /* secondary.main */
+  --color-secondary-foreground: #ffffff;
+
+  /* Muted colors - using grey palette */
+  --color-muted: #f5f5f5; /* grey.100 */
+  --color-muted-foreground: #757575; /* grey.600 */
+
+  /* Accent colors - using secondary light */
+  --color-accent: #82e9d8; /* secondary.light */
+  --color-accent-foreground: #414046;
+
+  /* Destructive colors - aligned with MUI error palette */
+  --color-destructive: #d32f2f; /* error.main */
+  --color-destructive-foreground: #ffffff;
+
+  /* Border and input colors */
+  --color-border: #e0e0e0; /* grey.300 */
+  --color-input: #e0e0e0;
+  --color-ring: #006e4d; /* primary.main for focus rings */
+
+  /* Border radius */
   --radius: 0.5rem;
+
+  /* Additional MUI aligned colors */
+  --color-warning: #ed6c02; /* warning.main */
+  --color-warning-foreground: #ffffff;
+  --color-info: #0288d1; /* info.main */
+  --color-info-foreground: #ffffff;
+  --color-success: #2e7d32; /* success.main */
+  --color-success-foreground: #ffffff;
+
+  /* Typography - aligned with MUI typography system */
+  --font-sans: "Roboto", "Helvetica", "Arial", sans-serif;
+
+  /* Font sizes - aligned with MUI */
+  --font-size-xs: 0.75rem; /* 12px - caption */
+  --font-size-sm: 0.875rem; /* 14px - body2, button */
+  --font-size-base: 1rem; /* 16px - body1, subtitle1 */
+  --font-size-lg: 1.125rem; /* 18px */
+  --font-size-xl: 1.25rem; /* 20px - h6 */
+  --font-size-2xl: 1.5rem; /* 24px - h5 */
+  --font-size-3xl: 2.125rem; /* 34px - h4 */
+  --font-size-4xl: 3rem; /* 48px - h3 */
+  --font-size-5xl: 3.75rem; /* 60px - h2 */
+  --font-size-6xl: 6rem; /* 96px - h1 */
+
+  /* Font weights - aligned with MUI */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+
+  /* Line heights - aligned with MUI */
+  --line-height-tight: 1.167; /* h1, h3 */
+  --line-height-snug: 1.2; /* h2 */
+  --line-height-normal: 1.43; /* body2 */
+  --line-height-relaxed: 1.5; /* body1 */
+  --line-height-loose: 1.75; /* subtitle1 */
+
+  /* Letter spacing - aligned with MUI */
+  --letter-spacing-tighter: -0.015625em; /* -1.5px - h1 */
+  --letter-spacing-tight: -0.00833em; /* -0.5px - h2 */
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.00735em; /* 0.25px - h4 */
+  --letter-spacing-wider: 0.009375em; /* 0.15px - body1, subtitle1 */
+  --letter-spacing-widest: 0.08929em; /* 1.25px - button */
 }
 
 .dark {
-  --color-background: oklch(9.8% 0 0);
-  --color-foreground: oklch(98% 0 0);
-  
-  --color-card: oklch(9.8% 0 0);
-  --color-card-foreground: oklch(98% 0 0);
-  
-  --color-popover: oklch(9.8% 0 0);
-  --color-popover-foreground: oklch(98% 0 0);
-  
-  --color-primary: oklch(98% 0 0);
-  --color-primary-foreground: oklch(9.8% 0 0);
-  
-  --color-secondary: oklch(14.9% 0 0);
-  --color-secondary-foreground: oklch(98% 0 0);
-  
-  --color-muted: oklch(14.9% 0 0);
-  --color-muted-foreground: oklch(63.9% 0 0);
-  
-  --color-accent: oklch(14.9% 0 0);
-  --color-accent-foreground: oklch(98% 0 0);
-  
-  --color-destructive: oklch(62.8% 0.257 29.234);
-  --color-destructive-foreground: oklch(98% 0 0);
-  
-  --color-border: oklch(14.9% 0 0);
-  --color-input: oklch(14.9% 0 0);
-  --color-ring: oklch(83.1% 0 0);
+  /* Dark mode - using darker variants from MUI palette */
+  --color-background: #212121; /* grey.900 */
+  --color-foreground: #ffffff;
+
+  --color-card: #424242; /* grey.800 */
+  --color-card-foreground: #ffffff;
+
+  --color-popover: #424242;
+  --color-popover-foreground: #ffffff;
+
+  --color-primary: #338b70; /* primary.light */
+  --color-primary-foreground: #ffffff;
+
+  --color-secondary: #82e9d8; /* secondary.light */
+  --color-secondary-foreground: #212121;
+
+  --color-muted: #424242; /* grey.800 */
+  --color-muted-foreground: #bdbdbd; /* grey.400 */
+
+  --color-accent: #63e4cf; /* secondary.main */
+  --color-accent-foreground: #212121;
+
+  --color-destructive: #ef5350; /* error.light */
+  --color-destructive-foreground: #ffffff;
+
+  --color-border: #616161; /* grey.700 */
+  --color-input: #616161;
+  --color-ring: #338b70; /* primary.light */
+
+  /* Additional colors for dark mode */
+  --color-warning: #ff9800; /* warning.light */
+  --color-warning-foreground: #ffffff;
+  --color-info: #03a9f4; /* info.light */
+  --color-info-foreground: #ffffff;
+  --color-success: #4caf50; /* success.light */
+  --color-success-foreground: #ffffff;
 }
 
 * {
@@ -69,4 +132,8 @@
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-relaxed);
+  letter-spacing: var(--letter-spacing-wider);
 }
