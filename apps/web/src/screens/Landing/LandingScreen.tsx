@@ -14,6 +14,7 @@ export const LandingScreen: FC = () => {
       component="main"
       flexGrow={1}
       sx={{
+        position: "relative",
         height: "100vh",
         display: "flex",
         flexDirection: "column",
@@ -29,6 +30,7 @@ export const LandingScreen: FC = () => {
           top: 0,
           left: 0,
           zIndex: 0,
+          pointerEvents: "none",
         }}
       />
       <Header />
