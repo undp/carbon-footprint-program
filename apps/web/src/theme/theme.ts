@@ -9,14 +9,13 @@ import { typography } from "./typography";
 const themeOptions: ThemeOptions = {
   components: {
     MuiButton: {
+      defaultProps: {},
       styleOverrides: {
         root: {
-          display: "flex",
-          height: "40px",
-          padding: "0 16px",
-          justifyContent: "center",
-          alignItems: "center",
-          gap: "10px",
+          minHeight: "2.5rem", // 40px equivalent, but responsive
+          padding: "0.25rem 1rem", // 4px top/bottom, 16px left/right
+          textTransform: "none",
+          // MUI handles icon spacing automatically via startIcon/endIcon
         },
       },
     },
