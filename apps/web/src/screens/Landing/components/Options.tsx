@@ -12,14 +12,20 @@ export const Options: FC = () => {
         description:
           "Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos.",
         buttonText: "USAR CALCULADORA",
-        onButtonClick: () => {},
+        onButtonClick: () => {
+          //* TODO: Implement calculator navigation */
+          console.log("Calculator clicked");
+        },
       },
       {
         avatar: <ApplicationFormIcon />,
         title: "Ya tengo mis cálculos",
         description: "Sube tus datos y genera reportes en segundos.",
         buttonText: "SUBIR EMISIONES",
-        onButtonClick: () => {},
+        onButtonClick: () => {
+          //* TODO: Implement upload emissions navigation */
+          console.log("Upload emissions clicked");
+        },
       },
     ],
     []
