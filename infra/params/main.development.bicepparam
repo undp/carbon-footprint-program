@@ -177,12 +177,6 @@ param staticWebAppOutputLocation = 'dist'
 // Recommendation: F1 for development, S1+ for production
 param appServiceSkuName = 'F1'
 
-// Use Key Vault references for secrets in App Service
-// - false: Store DATABASE_URL as direct environment variable (simpler for development)
-// - true: Use Key Vault reference for DATABASE_URL (more secure, recommended for production)
-// Recommendation: false for development, true for production
-param appServiceUseKeyVaultForSecrets = false
-
 // ============================================
 // Front Door Configuration (Global CDN)
 // ============================================
