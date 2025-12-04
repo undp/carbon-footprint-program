@@ -15,9 +15,9 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction-projects'
 import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-plan'
-import { Route as AppOrganizationFootprintRouteImport } from './routes/app/organization-footprint'
 import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
 import { Route as AppHomeRouteImport } from './routes/app/home'
+import { Route as AppCarbonFootprintRouteImport } from './routes/app/carbon-footprint'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 
 const TransparencyRoute = TransparencyRouteImport.update({
@@ -50,12 +50,6 @@ const AppReductionPlanRoute = AppReductionPlanRouteImport.update({
   path: '/app/reduction-plan',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppOrganizationFootprintRoute =
-  AppOrganizationFootprintRouteImport.update({
-    id: '/app/organization-footprint',
-    path: '/app/organization-footprint',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AppMyOrganizationRoute = AppMyOrganizationRouteImport.update({
   id: '/app/my-organization',
   path: '/app/my-organization',
@@ -64,6 +58,11 @@ const AppMyOrganizationRoute = AppMyOrganizationRouteImport.update({
 const AppHomeRoute = AppHomeRouteImport.update({
   id: '/app/home',
   path: '/app/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppCarbonFootprintRoute = AppCarbonFootprintRouteImport.update({
+  id: '/app/carbon-footprint',
+  path: '/app/carbon-footprint',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAwardsRoute = AppAwardsRouteImport.update({
@@ -78,9 +77,9 @@ export interface FileRoutesByFullPath {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
-  '/app/organization-footprint': typeof AppOrganizationFootprintRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
@@ -90,9 +89,9 @@ export interface FileRoutesByTo {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
-  '/app/organization-footprint': typeof AppOrganizationFootprintRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
@@ -103,9 +102,9 @@ export interface FileRoutesById {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
-  '/app/organization-footprint': typeof AppOrganizationFootprintRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
 }
@@ -117,9 +116,9 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
+    | '/app/carbon-footprint'
     | '/app/home'
     | '/app/my-organization'
-    | '/app/organization-footprint'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
   fileRoutesByTo: FileRoutesByTo
@@ -129,9 +128,9 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
+    | '/app/carbon-footprint'
     | '/app/home'
     | '/app/my-organization'
-    | '/app/organization-footprint'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
   id:
@@ -141,9 +140,9 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
+    | '/app/carbon-footprint'
     | '/app/home'
     | '/app/my-organization'
-    | '/app/organization-footprint'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
   fileRoutesById: FileRoutesById
@@ -154,9 +153,9 @@ export interface RootRouteChildren {
   CapinautRoute: typeof CapinautRoute
   TransparencyRoute: typeof TransparencyRoute
   AppAwardsRoute: typeof AppAwardsRoute
+  AppCarbonFootprintRoute: typeof AppCarbonFootprintRoute
   AppHomeRoute: typeof AppHomeRoute
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
-  AppOrganizationFootprintRoute: typeof AppOrganizationFootprintRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
   AppReductionProjectsRoute: typeof AppReductionProjectsRoute
 }
@@ -205,13 +204,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReductionPlanRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/organization-footprint': {
-      id: '/app/organization-footprint'
-      path: '/app/organization-footprint'
-      fullPath: '/app/organization-footprint'
-      preLoaderRoute: typeof AppOrganizationFootprintRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/app/my-organization': {
       id: '/app/my-organization'
       path: '/app/my-organization'
@@ -224,6 +216,13 @@ declare module '@tanstack/react-router' {
       path: '/app/home'
       fullPath: '/app/home'
       preLoaderRoute: typeof AppHomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/carbon-footprint': {
+      id: '/app/carbon-footprint'
+      path: '/app/carbon-footprint'
+      fullPath: '/app/carbon-footprint'
+      preLoaderRoute: typeof AppCarbonFootprintRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/awards': {
@@ -242,9 +241,9 @@ const rootRouteChildren: RootRouteChildren = {
   CapinautRoute: CapinautRoute,
   TransparencyRoute: TransparencyRoute,
   AppAwardsRoute: AppAwardsRoute,
+  AppCarbonFootprintRoute: AppCarbonFootprintRoute,
   AppHomeRoute: AppHomeRoute,
   AppMyOrganizationRoute: AppMyOrganizationRoute,
-  AppOrganizationFootprintRoute: AppOrganizationFootprintRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,
   AppReductionProjectsRoute: AppReductionProjectsRoute,
 }

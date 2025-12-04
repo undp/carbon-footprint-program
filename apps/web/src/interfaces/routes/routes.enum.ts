@@ -1,7 +1,7 @@
 export enum Routes {
   HOME = "/app/home",
   MY_ORGANIZATION = "/app/my-organization",
-  ORGANIZATION_FOOTPRINT = "/app/organization-footprint",
+  CARBON_FOOTPRINT = "/app/carbon-footprint",
   REDUCTION_PROJECTS = "/app/reduction-projects",
   REDUCTION_PLAN = "/app/reduction-plan",
   AWARDS = "/app/awards",

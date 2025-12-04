@@ -19,8 +19,8 @@ import {
 
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
-  [SidebarRoutes.MY_COMPANY]: <Business />,
-  [SidebarRoutes.ORGANIZATION_FOOTPRINT]: <SouthAmerica />,
+  [SidebarRoutes.MY_ORGANIZATION]: <Business />,
+  [SidebarRoutes.CARBON_FOOTPRINT]: <SouthAmerica />,
   [SidebarRoutes.REDUCTION_PROJECTS]: <TrendingDown />,
   [SidebarRoutes.REDUCTION_PLAN]: <SsidChartRounded />,
   [SidebarRoutes.AWARDS]: <EmojiEventsOutlined />,
