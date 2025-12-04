@@ -3,8 +3,6 @@ import { SvgIcon, SvgIconProps } from "@mui/material";
 
 export const ApplicationFormIcon: FC<SvgIconProps> = (props) => (
   <SvgIcon
-    width="21"
-    height="26"
     viewBox="0 0 21 26"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"

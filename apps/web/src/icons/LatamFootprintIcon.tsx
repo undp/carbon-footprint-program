@@ -3,8 +3,6 @@ import { SvgIconProps, SvgIcon } from "@mui/material";
 
 export const LatamFootprintIcon: FC<SvgIconProps> = (props) => (
   <SvgIcon
-    width="953"
-    height="832"
     viewBox="0 0 953 832"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
