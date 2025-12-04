@@ -87,7 +87,7 @@ export const palette: PaletteOptions = {
     A400: "#616161",
     A700: "#303030",
   },
-  // Action colors - usando alpha() para generar transparencias automáticamente
+  // Action colors - using alpha() to generate transparencies automatically
   action: {
     active: alpha("#000000", 0.54),
     hover: alpha("#000000", 0.04),
