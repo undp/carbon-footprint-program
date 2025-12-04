@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import {
   Card,
@@ -18,7 +18,7 @@ interface Props {
   title: string;
   description: string;
   buttonText: string;
-  onButtonClick?: () => void;
+  path: string;
 }
 
 export const CardOption: FC<Props> = ({
@@ -26,10 +26,15 @@ export const CardOption: FC<Props> = ({
   title,
   description,
   buttonText,
-  onButtonClick,
+  path,
 }) => {
   const theme = useTheme();
   const backgroundColor = alpha(theme.palette.common.white, 0.1);
+
+  const onButtonClick = useCallback(() => {
+    // Implement navigation logic here using the path prop
+    console.log(`Navigating to ${path}`);
+  }, [path]);
 
   return (
     <Card
