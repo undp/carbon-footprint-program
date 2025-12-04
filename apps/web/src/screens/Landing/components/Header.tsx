@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { AppBar, Box, Button, Toolbar, useTheme } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@/icons";
@@ -7,17 +7,13 @@ import {
   LandingHeaderRoutesTranslations,
 } from "@/interfaces";
 
+const pages = Object.values(LandingHeaderRoutes).map((route) => ({
+  text: LandingHeaderRoutesTranslations[route],
+  route,
+}));
+
 export const Header: FC = () => {
   const theme = useTheme();
-
-  const pages = useMemo(
-    () =>
-      Object.values(LandingHeaderRoutes).map((route) => ({
-        text: LandingHeaderRoutesTranslations[route],
-        route,
-      })),
-    []
-  );
 
   return (
     <AppBar color="transparent" elevation={0} position="static">
