@@ -155,12 +155,12 @@ if [ -n "$EXISTING_VAULT" ]; then
     DB_PASSWORD=""
   else
     log "No existing password secret found. Generating new password..."
-    DB_PASSWORD=$(openssl rand -base64 18)
+    DB_PASSWORD=$(openssl rand -hex 32)
     log "New password generated"
   fi
 else
   log "No existing Key Vault found. Generating new password..."
-  DB_PASSWORD=$(openssl rand -base64 18)
+  DB_PASSWORD=$(openssl rand -hex 32)
   log "New password generated"
 fi
 
