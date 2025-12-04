@@ -31,8 +31,8 @@ export const Options: FC = () => {
         Elige cómo empezar
       </Typography>
       <Box className="flex gap-10">
-        {options.map((option, index) => (
-          <CardOption key={index} {...option} />
+        {options.map((option) => (
+          <CardOption key={option.title} {...option} />
         ))}
       </Box>
     </Box>
