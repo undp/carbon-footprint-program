@@ -17,9 +17,6 @@ param databaseName string
 @description('Database user')
 param databaseUser string
 
-@description('Allowed origin for CORS (Static Web App hostname)')
-param allowedOrigin string
-
 @description('Node.js version (e.g., node|24-lts)')
 param linuxFxVersion string = 'node|24-lts'
 
@@ -31,6 +28,8 @@ var appServicePlanName = 'asp-${uniqueString(resourceGroup().id)}'
 
 // Generate unique App Service name
 var appServiceName = 'api-${uniqueString(resourceGroup().id)}'
+
+var apiAllowedOrigins = frontDoorCustomDomain != '' ? frontDoorCustomDomain : 'https://${staticWebApp.outputs.defaultHostname}'
 
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
@@ -75,7 +74,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         }
         {
           name: 'ALLOWED_ORIGIN'
-          value: allowedOrigin
+          value: apiAllowedOrigins
         }
         {
           name: 'DATABASE_URL'
