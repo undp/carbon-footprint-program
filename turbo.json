@@ -5,7 +5,8 @@
     "NODE_ENV",
     "DATABASE_URL",
     "JWT_SECRET",
-    "LOG_LEVEL"
+    "LOG_LEVEL",
+    "ALLOWED_ORIGIN"
   ],
   "tasks": {
     "build": {

@@ -27,4 +27,13 @@ export const DATABASE_URL =
     return undefined;
   })();
 
-export const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN;
+export const ALLOWED_ORIGIN =
+  process.env.ALLOWED_ORIGIN ||
+  (() => {
+    if (IS_PROD) {
+      throw new Error(
+        "ALLOWED_ORIGIN environment variable is required in production"
+      );
+    }
+    return undefined;
+  })();
