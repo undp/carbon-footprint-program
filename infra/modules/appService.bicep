@@ -20,8 +20,8 @@ param databaseUser string
 @description('Allowed origin for CORS (Static Web App hostname)')
 param allowedOrigin string
 
-@description('Node.js version (e.g., NODE|24-lts)')
-param linuxFxVersion string = 'NODE|24-lts'
+@description('Node.js version (e.g., node|24-lts)')
+param linuxFxVersion string = 'node|24-lts'
 
 @description('Tags to apply to resources')
 param tags object = {}
@@ -41,6 +41,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
   }
   sku: {
     name: skuName
+
   }
   kind: 'linux'
   tags: tags
