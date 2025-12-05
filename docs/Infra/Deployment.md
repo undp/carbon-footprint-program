@@ -257,7 +257,7 @@ param dbPassword = ''                   // Sobrescrito por deploy.sh
 **Flujo de Primera Ejecución**:
 
 1. **Verificación**: `deploy.sh` verifica si existe el secreto `postgres-admin-password` en Key Vault
-2. **Generación**: Como no existe, genera una contraseña aleatoria usando `openssl rand -base64 18`
+2. **Generación**: Como no existe, genera una contraseña aleatoria usando `openssl rand -hex 32`
 3. **Paso a Bicep**: La contraseña se pasa como parámetro `@secure()` a `main.bicep`
 4. **Almacenamiento**: El módulo `keyVault` crea el secreto en Key Vault
 5. **Recuperación**: `main.bicep` usa `existingKeyVault.getSecret()` para obtener el valor
@@ -484,7 +484,7 @@ DRY_RUN=true ./deploy.sh
 6. **Obtención del Object ID del grupo de Azure AD** para permisos de Key Vault
 7. **Verificación de secreto existente** en Key Vault
    - Si existe `postgres-admin-password`: No genera nueva contraseña (preserva la existente)
-   - Si no existe: Genera nueva contraseña con `openssl rand -base64 18`
+   - Si no existe: Genera nueva contraseña con `openssl rand -hex 32`
 8. **Creación/actualización del Deployment Stack**:
 
    ```bash
@@ -584,7 +584,7 @@ KEY_VAULT_NAME=$(az keyvault list \
   --query "[0].name" -o tsv)
 
 # 2. Generar nueva contraseña
-NEW_PASSWORD=$(openssl rand -base64 18)
+NEW_PASSWORD=$(openssl rand -hex 32)
 
 # 3. Actualizar secreto en Key Vault
 az keyvault secret set \
