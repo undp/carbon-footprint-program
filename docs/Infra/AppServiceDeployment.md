@@ -46,18 +46,21 @@ El script `infra/deploy-api.sh` realiza los siguientes pasos:
 2. **Carga de configuración**: Lee variables de entorno desde `infra/.envrc`
 3. **Verificación de herramientas**: Comprueba que `az`, `pnpm` y `node` estén instalados
 4. **Obtención del App Service**: Recupera el nombre del App Service desde el Deployment Stack de Azure
-5. **Construcción de la API**:
-   - Navega al directorio `apps/api`
-   - Ejecuta `pnpm install --frozen-lockfile --prefer-offline`
-   - Ejecuta `pnpm build` para compilar el código
+5. **Preparación del código fuente**: Verifica que el código fuente existe (el build se ejecutará en Azure)
 
 6. **Creación del paquete ZIP**:
    - Crea un directorio temporal
-   - Copia `dist/` y `package.json` al directorio temporal
-   - Crea un archivo ZIP con estos archivos
+   - Copia el código fuente TypeScript (`src/`) y archivos de configuración
+   - Incluye archivos del monorepo necesarios:
+     - `package.json`, `pnpm-workspace.yaml`, `pnpm-lock.yaml`, `.npmrc` del root
+     - Paquete `packages/database` (requerido para el workspace)
+     - Código fuente y configuración de `apps/api`
+   - Crea un archivo ZIP con todos estos archivos
 
 7. **Deployment al App Service**:
    - Sube el ZIP al App Service usando `az webapp deploy`
+   - Azure ejecuta automáticamente `pnpm install` y `pnpm build` (gracias a `SCM_DO_BUILD_DURING_DEPLOYMENT: true`)
+   - Las dependencias nativas (como Prisma) se compilan para la plataforma correcta de Azure
    - Limpia el directorio temporal
 
 8. **Reinicio del App Service**: Reinicia el servicio para cargar el nuevo código
@@ -72,14 +75,18 @@ El script `infra/deploy-api.sh` realiza los siguientes pasos:
 
 #### Tiempo de Deployment
 
-- Típicamente toma 1-2 minutos
-- Depende del tamaño del código y velocidad de red
+- Típicamente toma 3-5 minutos (más tiempo que antes debido al build en Azure)
+- Incluye tiempo para instalar dependencias y compilar el código en Azure
+- Depende del tamaño del código, número de dependencias y velocidad de red
 
 #### Contenido del Paquete
 
-- Solo incluye `dist/` (código compilado) y `package.json`
-- No incluye `node_modules` (se instalan en Azure durante el deployment)
-- No incluye código fuente TypeScript
+- Incluye código fuente TypeScript completo (`src/`)
+- Incluye archivos de configuración (`package.json`, `tsconfig.json`)
+- Incluye archivos del monorepo necesarios (`pnpm-workspace.yaml`, `pnpm-lock.yaml`, `.npmrc`)
+- Incluye paquetes del workspace (`packages/database`)
+- **No incluye** `node_modules` ni `dist/` (se generan en Azure durante el deployment)
+- Azure ejecuta `pnpm install` y `pnpm build` automáticamente, asegurando compatibilidad de binarios nativos
 
 #### Reinicio del Servicio
 

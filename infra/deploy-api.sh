@@ -151,22 +151,20 @@ fi
 log "${GREEN}   ✓ Found: $APP_SERVICE_NAME${NC}"
 echo ""
 
-# Build the API
-log "${YELLOW}[2/6] Building API...${NC}"
+# Prepare source code for deployment
+# Note: Build will happen in Azure App Service, not locally
+log "${YELLOW}[2/6] Preparing source code for deployment...${NC}"
 if [ "$DRY_RUN" = "true" ]; then
-  log "${CYAN}[DRY RUN] Would execute: cd $API_APP_DIR${NC}"
-  log "${CYAN}[DRY RUN] Would execute: pnpm install --frozen-lockfile --prefer-offline${NC}"
-  log "${CYAN}[DRY RUN] Would execute: pnpm build${NC}"
-  log "${CYAN}[DRY RUN] Would execute: cd $SCRIPT_DIR${NC}"
+  log "${CYAN}[DRY RUN] Would prepare source code (build will happen in Azure)${NC}"
 else
-  cd "$API_APP_DIR"
-  # Use frozen lockfile for consistent builds and prefer offline cache for speed
-  pnpm install --frozen-lockfile --prefer-offline
-  pnpm build
-  cd "$SCRIPT_DIR"
+  # Verify source code exists
+  if [ ! -d "$API_APP_DIR/src" ]; then
+    log "${RED}Error: Source code directory not found at $API_APP_DIR/src${NC}"
+    exit 1
+  fi
 fi
 
-log "${GREEN}   ✓ Build completed${NC}"
+log "${GREEN}   ✓ Source code ready${NC}"
 echo ""
 
 # Create deployment package (ZIP)
@@ -177,15 +175,52 @@ DEPLOY_PACKAGE="$TEMP_DIR/api-deploy.zip"
 
 if [ "$DRY_RUN" = "true" ]; then
   log "${CYAN}[DRY RUN] Would create ZIP in: $TEMP_DIR${NC}"
-  log "${CYAN}[DRY RUN] Would include: dist/ and package.json${NC}"
+  log "${CYAN}[DRY RUN] Would include: src/, package.json, tsconfig.json, and monorepo files${NC}"
 else
-  # Copy dist and package.json to temp directory
-  cp -r "$API_APP_DIR/dist" "$TEMP_DIR/"
-  cp "$API_APP_DIR/package.json" "$TEMP_DIR/"
+  # Create monorepo structure in temp directory
+  # Azure will run pnpm install and build from the root
   
-  # Create ZIP file
+  # Copy monorepo configuration files (required for pnpm workspace)
+  # Note: package.json will be created below with custom build script
+  cp "$PROJECT_ROOT/pnpm-workspace.yaml" "$TEMP_DIR/"
+  cp "$PROJECT_ROOT/pnpm-lock.yaml" "$TEMP_DIR/"
+  cp "$PROJECT_ROOT/.npmrc" "$TEMP_DIR/"
+  
+  # Copy workspace packages (required for dependencies and TypeScript config)
+  mkdir -p "$TEMP_DIR/packages"
+  cp -r "$PROJECT_ROOT/packages/database" "$TEMP_DIR/packages/"
+  cp -r "$PROJECT_ROOT/packages/typescript-config" "$TEMP_DIR/packages/"
+  
+  # Copy API source code to apps/api structure
+  mkdir -p "$TEMP_DIR/apps/api"
+  cp -r "$API_APP_DIR/src" "$TEMP_DIR/apps/api/"
+  cp "$API_APP_DIR/package.json" "$TEMP_DIR/apps/api/"
+  cp "$API_APP_DIR/tsconfig.json" "$TEMP_DIR/apps/api/"
+  
+  # Create a custom build script in root package.json for Azure
+  # Azure will execute "pnpm install" then "pnpm build" from root
+  # We need to override the build script to build the API
+  cat > "$TEMP_DIR/package.json" << 'EOF'
+{
+  "name": "huella-latam",
+  "version": "0.0.0",
+  "description": "Huella Latam monorepo",
+  "private": true,
+  "packageManager": "pnpm@10.23.0",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "build": "cd apps/api && pnpm build",
+    "start": "cd apps/api && pnpm start"
+  }
+}
+EOF
+  
+  # Create ZIP file with all necessary files
   cd "$TEMP_DIR"
-  zip -r "$DEPLOY_PACKAGE" dist package.json >/dev/null
+  zip -r "$DEPLOY_PACKAGE" . >/dev/null
   cd "$SCRIPT_DIR"
 fi
 
