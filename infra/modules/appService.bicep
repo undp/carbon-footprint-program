@@ -20,6 +20,9 @@ param databaseUser string
 @description('Node.js version (e.g., node|24-lts)')
 param linuxFxVersion string = 'node|24-lts'
 
+@description('Allowed origin for API CORS (e.g., https://app.example.com)')
+param allowedOrigin string
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -28,8 +31,6 @@ var appServicePlanName = 'asp-${uniqueString(resourceGroup().id)}'
 
 // Generate unique App Service name
 var appServiceName = 'api-${uniqueString(resourceGroup().id)}'
-
-var apiAllowedOrigins = frontDoorCustomDomain != '' ? frontDoorCustomDomain : 'https://${staticWebApp.outputs.defaultHostname}'
 
 // App Service Plan
 resource appServicePlan 'Microsoft.Web/serverfarms@2025-03-01' = {
@@ -74,7 +75,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         }
         {
           name: 'ALLOWED_ORIGIN'
-          value: apiAllowedOrigins
+          value: allowedOrigin
         }
         {
           name: 'DATABASE_URL'

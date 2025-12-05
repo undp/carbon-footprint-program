@@ -228,7 +228,7 @@ module appService 'modules/appService.bicep' = {
     databaseHost: postgres.outputs.hostOut
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
-    allowedOrigin: 'https://${staticWebApp.outputs.defaultHostname}'
+    allowedOrigin: enableFrontDoor && frontDoorCustomDomain != '' ? 'https://${frontDoorCustomDomain}' : 'https://${staticWebApp.outputs.defaultHostname}'
     tags: tags
   }
 }
