@@ -54,12 +54,21 @@ if [ "$DRY_RUN" = "true" ]; then
   echo ""
 fi
 
-# Load environment variables from infra directory
+# Load environment variables from infra directory (same pattern as deploy.sh)
+if [ -f "$SCRIPT_DIR/.env" ]; then
+  log "${YELLOW}Loading .env...${NC}"
+  set -o allexport
+  # shellcheck disable=SC1091
+  source "$SCRIPT_DIR/.env"
+  set +o allexport
+fi
+
 if [ -f "$SCRIPT_DIR/.envrc" ]; then
+  log "${YELLOW}Loading .envrc...${NC}"
+  set -o allexport
+  # shellcheck disable=SC1091
   source "$SCRIPT_DIR/.envrc"
-else
-  echo -e "${RED}Error: .envrc file not found in $SCRIPT_DIR${NC}"
-  exit 1
+  set +o allexport
 fi
 
 # Check required tools
