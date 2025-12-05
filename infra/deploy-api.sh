@@ -90,7 +90,7 @@ fi
 # Check required tools
 log "${YELLOW}Checking prerequisites...${NC}"
 
-for cmd in az pnpm node; do
+for cmd in az pnpm node zip; do
   if ! command -v $cmd &> /dev/null; then
     log "${RED}Error: $cmd is not installed${NC}"
     case $cmd in
@@ -102,6 +102,9 @@ for cmd in az pnpm node; do
         ;;
       node)
         log "${YELLOW}Install Node.js: https://nodejs.org/${NC}"
+        ;;
+      zip)
+        log "${YELLOW}Install zip: use your OS package manager (e.g., apt, brew, choco)${NC}"
         ;;
     esac
     exit 1
