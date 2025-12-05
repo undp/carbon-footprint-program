@@ -54,17 +54,6 @@ if [ "$DRY_RUN" = "true" ]; then
   echo ""
 fi
 
-# Check if logged in to Azure CLI
-log "${YELLOW}Checking Azure CLI login...${NC}"
-if ! az account show >/dev/null 2>&1; then
-  log "${RED}Not logged in to Azure CLI. Please log in.${NC}"
-  if [ "$DRY_RUN" = "false" ]; then
-    az login
-  fi
-fi
-log "${GREEN}   ✓ Azure CLI authenticated${NC}"
-echo ""
-
 # Load environment variables from infra directory
 if [ -f "$SCRIPT_DIR/.envrc" ]; then
   source "$SCRIPT_DIR/.envrc"
@@ -92,6 +81,17 @@ for cmd in az pnpm; do
 done
 
 log "${GREEN}   ✓ All prerequisites met${NC}"
+echo ""
+
+# Check if logged in to Azure CLI
+log "${YELLOW}Checking Azure CLI login...${NC}"
+if ! az account show >/dev/null 2>&1; then
+  log "${RED}Not logged in to Azure CLI. Please log in.${NC}"
+  if [ "$DRY_RUN" = "false" ]; then
+    az login
+  fi
+fi
+log "${GREEN}   ✓ Azure CLI authenticated${NC}"
 echo ""
 
 # Check required environment variables
