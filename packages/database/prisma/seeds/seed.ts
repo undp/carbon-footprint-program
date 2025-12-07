@@ -1,10 +1,10 @@
 import { PrismaClient, generatePrismaAdapter } from "../../index.js";
-import { seedRoles } from "./seedRoles.js";
-import { seedMeasurementUnits } from "./seedMeasurementUnits.js";
-import { seedCountrySectorSubsectors } from "./seedCountrySectorSubsectors.js";
-import { seedCountries } from "./seedCountries.js";
-import { seedCountryJobPositions } from "./seedCountryJobPositions.js";
-import { seedCountryOrganizationSizes } from "./seedCountryOrganizationSizes.js";
+import { seedRoles } from "./scripts/seedRoles.js";
+import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
+import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";
+import { seedCountries } from "./scripts/seedCountries.js";
+import { seedCountryJobPositions } from "./scripts/seedCountryJobPositions.js";
+import { seedCountryOrganizationSizes } from "./scripts/seedCountryOrganizationSizes.js";
 
 const prisma = new PrismaClient({
   adapter: generatePrismaAdapter(),

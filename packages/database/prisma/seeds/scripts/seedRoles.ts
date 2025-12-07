@@ -1,4 +1,4 @@
-import { type PrismaClient } from "../../index.js";
+import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
