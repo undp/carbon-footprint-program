@@ -18,6 +18,7 @@
     "clean": "rm -rf dist",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
+    "dev:seed": "prisma db seed",
     "dev:studio": "prisma studio",
     "dev:reset": "prisma migrate reset",
     "prod:deploy": "prisma migrate deploy"
