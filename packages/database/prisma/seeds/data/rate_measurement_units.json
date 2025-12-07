@@ -1,0 +1,68 @@
+[
+  {
+    "name": "kg por gramo",
+    "abbreviation": "kg/g",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por kg",
+    "abbreviation": "kg/kg",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por tonelada",
+    "abbreviation": "kg/ton",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por kilómetro",
+    "abbreviation": "kg/km",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por metro",
+    "abbreviation": "kg/m",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por centímetro",
+    "abbreviation": "kg/cm",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por litro",
+    "abbreviation": "kg/L",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por metro cúbico",
+    "abbreviation": "kg/m³",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por segundo",
+    "abbreviation": "kg/s",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por minuto",
+    "abbreviation": "kg/min",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  },
+  {
+    "name": "kg por hora",
+    "abbreviation": "kg/h",
+    "numerator_measurement_unit_id": null,
+    "denominator_measurement_unit_id": null
+  }
+]

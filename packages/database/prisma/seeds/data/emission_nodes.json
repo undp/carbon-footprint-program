@@ -1,0 +1,146 @@
+[
+  {
+    "name": "Emisiones directas",
+    "parent": null,
+    "upper_description": "Categoría 1 / Alcance 1",
+    "lower_description": "Generadas dentro de tu empresa"
+  },
+  {
+    "name": "Emisiones indirectas por energías importadas",
+    "parent": null,
+    "upper_description": "Categoría 2 / Alcance 2",
+    "lower_description": "Generadas por la electricidad consumida"
+  },
+  {
+    "name": "Otras emisiones indirectas",
+    "parent": null,
+    "upper_description": "Categorías 3,4,5 Y 6 / Alcance 3",
+    "lower_description": "Producidas fuera de tu empresa"
+  },
+  {
+    "name": "Combustión estacionaria",
+    "parent": "Emisiones directas",
+    "upper_description": null,
+    "lower_description": "Uso de combustibles en equipos fijos como calderas, hornos o generadores."
+  },
+  {
+    "name": "Combustión móvil",
+    "parent": "Emisiones directas",
+    "upper_description": null,
+    "lower_description": "Uso de combustible en vehículos de reparto o camionetas de la empresa."
+  },
+  {
+    "name": "Agricultura y uso de suelos",
+    "parent": "Emisiones directas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Procesos industriales",
+    "parent": "Emisiones directas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Emisiones fugitivas",
+    "parent": "Emisiones directas",
+    "upper_description": null,
+    "lower_description": "Fugas o recargas de gas refrigerantes en A/C de oficinas o vehículos."
+  },
+  {
+    "name": "Remociones",
+    "parent": "Emisiones directas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Electricidad general",
+    "parent": "Emisiones indirectas por energías importadas",
+    "upper_description": null,
+    "lower_description": "Electricidad usada en oficinas, bodegas y centros operativos"
+  },
+  {
+    "name": "Energía térmica o de vapor para calefacción",
+    "parent": "Emisiones indirectas por energías importadas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Agua consumida",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Aguas servidas",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Energía indirecta",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Combustiones estacionariass",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Transporte empleados o contratistas",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Trabajo remoto",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Estadía en hotel",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Bienes adquiridos",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": "Material utilizado en embalaje de tus productos (cartón, plástico, papel, etc.)"
+  },
+  {
+    "name": "Residuos generados",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": "Residuos de la operación (oficinas o bodegas) que se envían a relleno sanitario o reciclaje."
+  },
+  {
+    "name": "Transporte logístico",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Uso de artículos vendidos",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Fin vida útil artículos vendidos",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  },
+  {
+    "name": "Otros",
+    "parent": "Otras emisiones indirectas",
+    "upper_description": null,
+    "lower_description": null
+  }
+]
