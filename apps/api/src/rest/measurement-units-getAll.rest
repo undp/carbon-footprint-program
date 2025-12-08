@@ -1,4 +1,4 @@
-@baseUrl = http://localhost:3000
+@baseUrl = http://localhost:8080
 
 ### Get All Measurement Units
 GET {{baseUrl}}/api/measurement-units HTTP/1.1
