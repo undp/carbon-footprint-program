@@ -14,6 +14,7 @@ export const LOG_LEVEL =
     return "debug";
   })();
 
+export const HOST = process.env.API_HOST ?? "localhost";
 export const PORT = parseInt(process.env.API_PORT || "8080", 10);
 
 export const DATABASE_URL =

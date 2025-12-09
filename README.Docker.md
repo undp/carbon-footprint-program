@@ -21,6 +21,7 @@ Create a `.env` file in the project root:
 NODE_ENV=development
 
 # API Configuration
+API_HOST=0.0.0.0
 API_PORT=8080
 
 # PostgreSQL Configuration
