@@ -17,7 +17,7 @@ export async function seedCountries(prisma: PrismaClient) {
 
   // Read countries
   const countriesData: CountryData[] = JSON.parse(
-    readFileSync(join(__dirname, "data/countries.json"), "utf-8")
+    readFileSync(join(__dirname, "../data/countries.json"), "utf-8")
   );
 
   // Seed countries

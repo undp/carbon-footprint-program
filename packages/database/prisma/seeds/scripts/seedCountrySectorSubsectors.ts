@@ -21,7 +21,7 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
   // Read country sector subsectors
   const countrySectorSubsectorsData: CountrySectorSubsectorData[] = JSON.parse(
     readFileSync(
-      join(__dirname, "data/country_sector_subsectors.json"),
+      join(__dirname, "../data/country_sector_subsectors.json"),
       "utf-8"
     )
   );

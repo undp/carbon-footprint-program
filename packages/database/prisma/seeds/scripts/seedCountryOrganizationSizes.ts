@@ -20,7 +20,7 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
   // Read country organization sizes
   const organizationSizesData: OrganizationSizeData[] = JSON.parse(
     readFileSync(
-      join(__dirname, "data/country_organization_size.json"),
+      join(__dirname, "../data/country_organization_size.json"),
       "utf-8"
     )
   );

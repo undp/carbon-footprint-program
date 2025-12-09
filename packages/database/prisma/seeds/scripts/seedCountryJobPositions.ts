@@ -19,7 +19,7 @@ export async function seedCountryJobPositions(prisma: PrismaClient) {
 
   // Read country job positions
   const jobPositionsData: JobPositionData[] = JSON.parse(
-    readFileSync(join(__dirname, "data/country_job_positions.json"), "utf-8")
+    readFileSync(join(__dirname, "../data/country_job_positions.json"), "utf-8")
   );
 
   // Seed job positions

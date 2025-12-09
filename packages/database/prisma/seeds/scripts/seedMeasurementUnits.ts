@@ -26,7 +26,7 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
 
   // Read measurement units
   const measurementUnitsData: MeasurementUnitData[] = JSON.parse(
-    readFileSync(join(__dirname, "data/measurement_units.json"), "utf-8")
+    readFileSync(join(__dirname, "../data/measurement_units.json"), "utf-8")
   );
 
   // Seed measurement units
@@ -57,7 +57,10 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
 
   // Seed rate measurement units
   const rateMeasurementUnitsData: RateMeasurementUnitData[] = JSON.parse(
-    readFileSync(join(__dirname, "data/rate_measurement_units.json"), "utf-8")
+    readFileSync(
+      join(__dirname, "../data/rate_measurement_units.json"),
+      "utf-8"
+    )
   );
 
   const rateMeasurementUnits = await Promise.all(

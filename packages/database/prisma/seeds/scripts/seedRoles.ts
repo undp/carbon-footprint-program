@@ -16,12 +16,12 @@ export async function seedRoles(prisma: PrismaClient) {
 
   // Read organization roles
   const organizationRolesData: RoleData[] = JSON.parse(
-    readFileSync(join(__dirname, "data/organization_roles.json"), "utf-8")
+    readFileSync(join(__dirname, "../data/organization_roles.json"), "utf-8")
   );
 
   // Read system roles
   const systemRolesData: RoleData[] = JSON.parse(
-    readFileSync(join(__dirname, "data/system_roles.json"), "utf-8")
+    readFileSync(join(__dirname, "../data/system_roles.json"), "utf-8")
   );
 
   // Seed organization roles
