@@ -110,7 +110,7 @@ Request → Fastify → Route → Handler → Service → Database
 
 - Node.js >= 24.0.0
 - pnpm (workspace package manager)
-- PostgreSQL database (configured in `@repo/database`)
+- PostgreSQL database (configured in `prisma/` directory)
 
 ### Installation
 
@@ -213,7 +213,7 @@ Plugins are auto-loaded in order using `@fastify/autoload`:
 ```typescript
 // plugins/app/prisma.ts
 import fp from "fastify-plugin";
-import { PrismaClient } from "@repo/database";
+import { PrismaClient } from "@prisma/client";
 
 export default fp((fastify) => {
   const prismaClient = new PrismaClient();
@@ -373,4 +373,4 @@ src/features/books/createBook/
 - **Path Aliases**: `@/` points to `src/` (configured in `tsconfig.json`)
 - **Module System**: Uses ES modules (`.js` extensions in imports required)
 - **Type Safety**: Full type inference from Zod schemas to TypeScript
-- **Monorepo**: Shares code with `@repo/database` and `@repo/eslint-config`
+- **Monorepo**: Shares code with `@repo/eslint-config`

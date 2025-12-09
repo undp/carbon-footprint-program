@@ -1,5 +1,5 @@
 import fp from "fastify-plugin";
-import { PrismaClient, type Prisma } from "@repo/database";
+import { PrismaClient, type Prisma } from "@prisma/client";
 import { FastifyInstance } from "fastify";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { DATABASE_URL } from "@/config/environment.js";

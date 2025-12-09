@@ -1,5 +1,5 @@
-import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import type { PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 
 const getDmmfModels = () => {
   if (!Prisma.dmmf?.datamodel?.models) {

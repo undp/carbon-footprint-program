@@ -25,3 +25,4 @@ CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "book_title_key" ON "book"("title");
+

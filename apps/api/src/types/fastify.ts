@@ -1,4 +1,4 @@
-import { PrismaClient } from "@repo/database";
+import { PrismaClient } from "@prisma/client";
 import type {
   FastifyInstance,
   RawServerDefault,

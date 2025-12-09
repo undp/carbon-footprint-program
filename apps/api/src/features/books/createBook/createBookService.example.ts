@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient } from "@prisma/client";
 import type {
   CreateBookBody,
   CreateBookResponse,

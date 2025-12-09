@@ -15,13 +15,14 @@ const TEST_DATABASE_CONFIG = {
 } as const;
 
 export function runPrismaMigrations(databaseUrl: string): void {
-  const databasePackagePath = path.dirname(
-    require.resolve("@repo/database/package.json")
-  );
+  // Calculate path to prisma directory relative to this test file
+  // From: apps/api/src/test/setup/testcontainers.ts
+  // To: apps/api/prisma
+  const prismaPath = path.resolve(__dirname, "../../../prisma");
 
   const command = "pnpm exec prisma migrate deploy";
   const options = {
-    cwd: databasePackagePath,
+    cwd: prismaPath,
     stdio: "pipe" as const,
     env: {
       // eslint-disable-next-line turbo/no-undeclared-env-vars
