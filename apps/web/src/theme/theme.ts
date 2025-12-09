@@ -8,6 +8,21 @@ import { typography } from "./typography";
 // Define the theme options
 const themeOptions: ThemeOptions = {
   components: {
+    MuiAppBar: {
+      defaultProps: {
+        elevation: 0,
+        color: "transparent",
+      },
+    },
+    MuiToolbar: {
+      defaultProps: {},
+      styleOverrides: {
+        root: {
+          paddingTop: 16,
+          paddingBottom: 16,
+        },
+      },
+    },
     MuiButton: {
       defaultProps: {},
       styleOverrides: {
