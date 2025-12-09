@@ -137,7 +137,10 @@ else
   if [ "$DRY_RUN" = "true" ]; then
     log "[DRY RUN] Would execute: az group create --name $SHARED_RG --location $LOCATION"
   else
-    az group create --name "$SHARED_RG" --location "$LOCATION" 2>/dev/null || log "Shared resource group already exists or creation failed"
+    if ! az group create --name "$SHARED_RG" --location "$LOCATION"; then
+      log "Error: failed to create or verify shared resource group '$SHARED_RG'. Aborting before deployment."
+      exit 1
+    fi
   fi
 fi
 
