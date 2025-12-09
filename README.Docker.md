@@ -31,7 +31,7 @@ POSTGRES_DB=huella_latam
 POSTGRES_PORT=5432
 
 # Database Connection String
-DOCKER_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@huella-latam-postgres:5432/${POSTGRES_DB}?schema=public
+DOCKER_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
 
 # Security
 JWT_SECRET=your-secret-key-change-in-production
