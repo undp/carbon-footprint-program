@@ -1,0 +1,62 @@
+# This is a root-level .dockerignore template
+# If building from project root, copy this to the root directory
+
+# Dependencies
+**/node_modules
+**/.pnpm-store
+.pnpm-store
+
+# Build outputs
+**/dist
+**/.turbo
+.turbo
+**/*.tsbuildinfo
+
+# Development files
+**/.env
+**/.env.local
+**/.env.development
+**/.env.test
+
+# Testing
+**/coverage
+**/.vitest
+
+# IDE
+.vscode
+.idea
+**/*.swp
+**/*.swo
+**/*~
+
+# Logs
+**/logs
+**/*.log
+
+# OS files
+.DS_Store
+**/Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+**/*.md
+docs
+
+# Infra
+infra
+
+# Other apps (if building from root)
+apps/web
+
+# Rest client files
+**/*.rest
+
+# Test files
+**/test
+**/*.test.ts
+**/*.spec.ts
+**/vitest.config.ts
+
