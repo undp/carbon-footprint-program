@@ -41,8 +41,6 @@ COPY apps/api ./apps/api
 
 # Generate Prisma Client
 WORKDIR /app/packages/database
-# Set a dummy DATABASE_URL for prisma generate (doesn't need actual DB connection)
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy?schema=public"
 RUN pnpm exec prisma generate
 
 # Compile database package (output .js files in-place next to .ts files)
