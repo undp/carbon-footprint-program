@@ -142,6 +142,21 @@ param frontDoorWafMode string = 'Detection'
 @maxValue(10000)
 param frontDoorRateLimitThreshold int = 100
 
+// --------- Container Registry parameters ---------
+@description('Azure Container Registry name (must be globally unique)')
+param acrName string
+
+@description('Container Registry SKU tier (used by deploy.sh to create ACR)')
+@allowed([
+  'Basic'
+  'Standard'
+  'Premium'
+])
+param acrSku string = 'Basic'
+
+@description('Shared resource group name where ACR is located')
+param sharedResourceGroupName string
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
@@ -229,7 +244,19 @@ module appService 'modules/appService.bicep' = {
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
     allowedOrigin: enableFrontDoor && frontDoorCustomDomain != '' ? 'https://${frontDoorCustomDomain}' : 'https://${staticWebApp.outputs.defaultHostname}'
+    containerRegistryId: sharedAcr.id
     tags: tags
+  }
+}
+
+// Role assignment for App Service to pull from ACR (deployed in shared RG)
+module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = {
+  name: 'appServiceAcrPull'
+  scope: resourceGroup(sharedResourceGroupName)
+  params: {
+    acrName: acrName
+    principalId: appService.outputs.principalId
+    appServiceName: appService.outputs.name
   }
 }
 
@@ -245,6 +272,14 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
     rateLimitThreshold: frontDoorRateLimitThreshold
     tags: tags
   }
+}
+
+// --------- Container Registry (Shared) ---------
+// Reference to existing ACR in shared resource group
+// The ACR is created/verified by deploy.sh before this deployment
+resource sharedAcr 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
+  name: acrName
+  scope: resourceGroup(sharedResourceGroupName)
 }
 
 // --------- Outputs ---------
@@ -300,6 +335,12 @@ output infrastructure object = {
   }
   resourceGroup: resourceGroup().name
   location: location
+  containerRegistry: {
+    id: sharedAcr.id
+    loginServer: sharedAcr.properties.loginServer
+    name: sharedAcr.name
+    sku: acrSku
+  }
 }
 
 // Legacy outputs (for backward compatibility)
@@ -332,3 +373,9 @@ output appServiceName string = appService.outputs.name
 
 @description('App Service default hostname')
 output appServiceHostname string = appService.outputs.defaultHostname
+
+@description('Container Registry resource ID')
+output containerRegistryId string = sharedAcr.id
+
+@description('Container Registry login server')
+output acrLoginServer string = sharedAcr.properties.loginServer

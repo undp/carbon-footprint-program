@@ -166,6 +166,27 @@ param staticWebAppAppLocation = '/apps/web'
 param staticWebAppOutputLocation = 'dist'
 
 // ============================================
+// Container Registry Configuration
+// ============================================
+
+// Azure Container Registry name (must be globally unique, lowercase, alphanumeric)
+// - Shared across all developers in the subscription
+// - Example: 'undphuellalatamacr'
+param acrName = 'huellalatamacr'
+
+// Container Registry SKU tier
+// - 'Basic': Cost-effective for development, 10GB storage, 1GB/day pull bandwidth (~$5/month)
+// - 'Standard': 100GB storage, 10GB/day pull bandwidth (~$20/month)
+// - 'Premium': 500GB storage, 50GB/day pull bandwidth, geo-replication (~$50/month)
+// Recommendation: Basic for development, Standard/Premium for production
+param acrSku = 'Basic'
+
+// Shared resource group name for ACR
+// - All developers share this resource group for the ACR
+// - Example: 'undp-huella-latam-shared-rg'
+param sharedResourceGroupName = 'undp-huella-latam-shared-rg'
+
+// ============================================
 // App Service Configuration (API Backend)
 // ============================================
 
