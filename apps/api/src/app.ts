@@ -12,19 +12,8 @@ import autoload from "@fastify/autoload";
 import { IS_PROD, LOG_LEVEL } from "@/config/environment.js";
 
 function getLoggerOptions() {
-  return {
+  const baseOptions = {
     level: LOG_LEVEL,
-    transport: !IS_PROD
-      ? {
-          // Only for local dev
-          target: "pino-pretty",
-          options: {
-            colorize: true,
-            translateTime: "SYS:standard",
-            ignore: "pid,hostname",
-          },
-        }
-      : undefined,
     redact: {
       paths: [
         "req.headers.authorization",
@@ -45,6 +34,23 @@ function getLoggerOptions() {
       },
     },
   };
+
+  // Only add transport in development
+  if (!IS_PROD) {
+    return {
+      ...baseOptions,
+      transport: {
+        target: "pino-pretty",
+        options: {
+          colorize: true,
+          translateTime: "SYS:standard",
+          ignore: "pid,hostname",
+        },
+      },
+    };
+  }
+
+  return baseOptions;
 }
 
 export async function createApp(
