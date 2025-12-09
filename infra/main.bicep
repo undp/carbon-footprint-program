@@ -255,7 +255,9 @@ module appService 'modules/appService.bicep' = {
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
     allowedOrigin: enableFrontDoor
-      ? (frontDoorCustomDomain != '' ? 'https://${frontDoorCustomDomain}' : 'https://${frontDoor.outputs.endpointHostname}')
+      ? (frontDoorCustomDomain != ''
+        ? 'https://${frontDoorCustomDomain}'
+        : 'https://${frontDoor!.outputs.endpointHostname}')
       : 'https://${staticWebApp.outputs.defaultHostname}'
     useAcrManagedIdentity: true
     tags: tags
