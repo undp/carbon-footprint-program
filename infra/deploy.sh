@@ -123,6 +123,57 @@ else
   az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
 fi
 
+# 4.5) Create/verify shared resource group and ACR
+# Read shared resource group name and ACR name from parameters file
+log "Reading ACR configuration from parameters file..."
+# Extract parameter values, handling comments and whitespace
+ACR_NAME=$(grep -E "^\s*param acrName\s*=" "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" | head -1 | sed -E "s/.*=\s*['\"]([^'\"]+)['\"].*/\1/" | sed 's/\/\/.*$//' | xargs || echo "")
+SHARED_RG=$(grep -E "^\s*param sharedResourceGroupName\s*=" "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" | head -1 | sed -E "s/.*=\s*['\"]([^'\"]+)['\"].*/\1/" | sed 's/\/\/.*$//' | xargs || echo "")
+ACR_SKU=$(grep -E "^\s*param acrSku\s*=" "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" | head -1 | sed -E "s/.*=\s*['\"]([^'\"]+)['\"].*/\1/" | sed 's/\/\/.*$//' | xargs || echo "Basic")
+
+if [ -z "$ACR_NAME" ] || [ -z "$SHARED_RG" ]; then
+  log "Warning: ACR configuration not found in parameters file. Skipping ACR setup."
+  ACR_ID=""
+  ACR_LOGIN_SERVER=""
+else
+  log "ACR Name: $ACR_NAME"
+  log "Shared Resource Group: $SHARED_RG"
+  log "ACR SKU: $ACR_SKU"
+  
+  # Create shared resource group if it doesn't exist
+  log "Creating shared resource group if it doesn't exist..."
+  if [ "$DRY_RUN" = "true" ]; then
+    log "[DRY RUN] Would execute: az group create --name $SHARED_RG --location $LOCATION"
+  else
+    az group create --name "$SHARED_RG" --location "$LOCATION" 2>/dev/null || log "Shared resource group already exists or creation failed"
+  fi
+  
+  # Check if ACR exists, create if it doesn't
+  log "Checking if ACR exists..."
+  if [ "$DRY_RUN" = "true" ]; then
+    log "[DRY RUN] Would check: az acr show --name $ACR_NAME --resource-group $SHARED_RG"
+    log "[DRY RUN] Would create if not exists: az acr create --name $ACR_NAME --resource-group $SHARED_RG --sku $ACR_SKU --admin-enabled false"
+    ACR_ID="/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/$SHARED_RG/providers/Microsoft.ContainerRegistry/registries/$ACR_NAME"
+    ACR_LOGIN_SERVER="${ACR_NAME}.azurecr.io"
+  else
+    if az acr show --name "$ACR_NAME" --resource-group "$SHARED_RG" >/dev/null 2>&1; then
+      log "ACR already exists: $ACR_NAME"
+    else
+      log "Creating ACR: $ACR_NAME (SKU: $ACR_SKU)"
+      az acr create --name "$ACR_NAME" --resource-group "$SHARED_RG" --sku "$ACR_SKU" --admin-enabled false || {
+        log "Error: Failed to create ACR"
+        exit 1
+      }
+    fi
+    
+    # Get ACR ID and login server
+    ACR_ID=$(az acr show --name "$ACR_NAME" --resource-group "$SHARED_RG" --query id -o tsv)
+    ACR_LOGIN_SERVER=$(az acr show --name "$ACR_NAME" --resource-group "$SHARED_RG" --query loginServer -o tsv)
+    log "ACR ID: $ACR_ID"
+    log "ACR Login Server: $ACR_LOGIN_SERVER"
+  fi
+fi
+
 # 5) Get Azure AD group Object ID for Key Vault access
 log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
 DEVS_GROUP_ID=$(az ad group show --group "$AZURE_SUBSCRIPTION_GROUP" --query id -o tsv 2>/dev/null || echo "")
@@ -246,6 +297,9 @@ else
   echo "  - PostgreSQL DB:   Created/Updated"
   echo "  - Static Web App:  Ready for content deployment"
   echo "  - App Service:     Ready for deployment"
+  if [ -n "$ACR_NAME" ]; then
+    echo "  - Container Registry: $ACR_NAME (shared, AcrPull configured)"
+  fi
 
   # Check if Front Door is configured
   FRONT_DOOR_ENDPOINT=$(az stack group show \

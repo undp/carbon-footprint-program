@@ -23,6 +23,9 @@ param linuxFxVersion string = 'node|24-lts'
 @description('Allowed origin for API CORS (e.g., https://app.example.com)')
 param allowedOrigin string
 
+@description('Container Registry resource ID for AcrPull role assignment (optional)')
+param containerRegistryId string = ''
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -52,10 +55,14 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
   name: appServiceName
   location: location
   tags: tags
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: linuxFxVersion
+      acrUseManagedIdentityCreds: containerRegistryId != ''
       appSettings: [
         {
           name: 'NODE_ENV'
@@ -94,4 +101,7 @@ output defaultHostname string = appService.properties.defaultHostName
 
 @description('App Service Plan name')
 output planName string = appServicePlan.name
+
+@description('App Service managed identity principal ID')
+output principalId string = appService.identity.principalId
 
