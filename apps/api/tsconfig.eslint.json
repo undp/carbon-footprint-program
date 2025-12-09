@@ -4,7 +4,7 @@
     "src",
     "eslint.config.ts",
     "vitest.config.ts",
-    "prisma/prisma.config.ts"
+    "prisma.config.ts"
   ],
   "compilerOptions": {
     "noEmit": true
