@@ -1,8 +1,10 @@
 import fp from "fastify-plugin";
-import { PrismaClient, type Prisma } from "@repo/database";
+import {
+  PrismaClient,
+  type Prisma,
+  generatePrismaAdapter,
+} from "@repo/database";
 import { FastifyInstance } from "fastify";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { DATABASE_URL } from "@/config/environment.js";
 
 interface PrismaPluginOptions {
   databaseUrl?: string; // optional: allows override for tests
@@ -30,19 +32,8 @@ export default fp<PrismaPluginOptions>(
     // avoid registering multiple times
     if (fastify.hasDecorator("prisma")) return;
 
-    // create adapter with the provided URL or the environment variable
-    const connectionString = opts.databaseUrl ?? DATABASE_URL;
-    if (!connectionString)
-      throw new Error(
-        "Database URL is required. Provide databaseUrl in plugin options or set DATABASE_URL environment variable."
-      );
-
-    const adapter = new PrismaPg({
-      connectionString,
-    });
-
     const prismaClient = new PrismaClient({
-      adapter,
+      adapter: generatePrismaAdapter(opts.databaseUrl),
       log: [
         { emit: "event", level: "query" },
         { emit: "event", level: "error" },
