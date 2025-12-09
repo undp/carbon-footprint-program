@@ -30,6 +30,7 @@
     "@fastify/under-pressure": "^9.0.3",
     "@repo/database": "workspace:*",
     "fastify": "^5.6.2",
+    "fastify-plugin": "^5.1.0",
     "fastify-type-provider-zod": "^6.1.0",
     "pino": "catalog:shared",
     "zod": "catalog:shared"
