@@ -3,7 +3,7 @@ import { PORT } from "./config/environment.js";
 
 const app = await createApp();
 
-app.listen({ port: PORT }, (err, address) => {
+app.listen({ port: PORT, host: "0.0.0.0" }, (err, address) => {
   if (err) {
     app.log.error(err);
     throw new Error(err.message);
