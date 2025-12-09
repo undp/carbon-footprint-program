@@ -21,6 +21,8 @@ export const LandingScreen: FC = () => {
     >
       <LatamFootprintIcon
         sx={{
+          fill: theme.palette.common.white,
+          opacity: 0.06,
           width: "100%",
           height: "100%",
           position: "absolute",
