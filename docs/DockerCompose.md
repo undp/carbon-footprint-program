@@ -31,7 +31,7 @@ POSTGRES_DB=huella_latam
 POSTGRES_PORT=5432
 
 # Database Connection String
-DOCKER_DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?schema=public
+DOCKER_DATABASE_URL=postgresql://huella_user:huella_password@postgres:5432/huella_latam?schema=public
 
 # Security
 JWT_SECRET=your-secret-key-change-in-production
@@ -74,10 +74,10 @@ curl http://localhost:8080/health
 
 ```bash
 # Stop and remove containers
-docker compose down
+docker compose --env-file docker-compose.env down
 
 # Stop and remove containers + volumes (removes database data)
-docker compose down -v
+docker compose --env-file docker-compose.env down -v
 ```
 
 ## Building the Docker Image Manually
