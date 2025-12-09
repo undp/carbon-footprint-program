@@ -1,0 +1,106 @@
+# Stage 1: Base image with pnpm
+FROM node:24-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+# Stage 2: Install dependencies
+FROM base AS deps
+WORKDIR /app
+
+# Copy workspace configuration files
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+
+# Copy necessary package.json files for dependency resolution
+COPY apps/api/package.json ./apps/api/
+COPY packages/database/package.json ./packages/database/
+COPY packages/typescript-config/package.json ./packages/typescript-config/
+
+# Install dependencies for the entire workspace
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    pnpm install --frozen-lockfile --filter api...
+
+# Stage 3: Build the application
+FROM base AS builder
+WORKDIR /app
+
+# Copy workspace configuration
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY turbo.json ./
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=deps /app/packages/typescript-config/node_modules ./packages/typescript-config/node_modules
+
+# Copy all necessary source files
+COPY packages/database ./packages/database
+COPY packages/typescript-config ./packages/typescript-config
+COPY apps/api ./apps/api
+
+# Generate Prisma Client
+WORKDIR /app/packages/database
+RUN pnpm exec prisma generate
+
+# Compile database package (output .js files in-place next to .ts files)
+RUN pnpm exec tsc
+
+# Build the API application
+WORKDIR /app
+RUN pnpm --filter api build
+
+# Stage 4: Production image
+FROM node:24-alpine AS runner
+WORKDIR /app
+
+# Set environment to production
+ENV NODE_ENV=production
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+# Enable pnpm
+RUN corepack enable
+
+# Install curl for health checks and debugging
+RUN apk add --no-cache curl
+
+# Create a non-root user
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 fastify
+
+# Copy workspace configuration
+COPY --chown=fastify:nodejs pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
+COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
+
+# Copy database package files
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.js ./packages/database/
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.d.ts ./packages/database/
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/generated ./packages/database/generated
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma ./packages/database/prisma
+
+# Copy node_modules from builder (includes all dependencies properly resolved)
+COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
+COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules ./packages/database/node_modules
+
+# Copy built application
+COPY --from=builder --chown=fastify:nodejs /app/apps/api/dist ./apps/api/dist
+
+# Switch to non-root user
+USER fastify
+
+# Expose the API port (default 8080, can be overridden with API_PORT env var)
+EXPOSE 8080
+
+# Change to api directory
+WORKDIR /app/apps/api
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Start the application
+CMD ["node", "dist/server.js"]
+

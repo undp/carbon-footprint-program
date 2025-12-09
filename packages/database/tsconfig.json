@@ -1,5 +1,6 @@
 {
-  "includes": ["generated/client", "index.ts"],
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "prisma/seeds", "generated"],
   "compilerOptions": {
     "module": "nodenext",
     "target": "esnext",

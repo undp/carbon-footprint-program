@@ -17,6 +17,7 @@ packages/database/generated/**
 .turbo
 
 # Environment variables
+*.env
 .env
 .env*.local
 .env.production

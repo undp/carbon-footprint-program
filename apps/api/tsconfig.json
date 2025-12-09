@@ -1,6 +1,15 @@
 {
   "extends": "@repo/typescript-config/api.json",
   "include": ["src"],
+  "exclude": [
+    "src/test/**",
+    "**/*.example.ts",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "node_modules",
+    "dist",
+    ".turbo"
+  ],
   "compilerOptions": {
     "baseUrl": ".",
     "outDir": "./dist",

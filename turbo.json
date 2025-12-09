@@ -1,6 +1,7 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "globalEnv": [
+    "API_HOST",
     "API_PORT",
     "NODE_ENV",
     "DATABASE_URL",

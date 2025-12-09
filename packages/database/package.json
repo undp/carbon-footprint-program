@@ -4,7 +4,11 @@
   "description": "Database package for the Huella Latam project",
   "private": true,
   "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": "./index.js",
   "scripts": {
+    "build": "tsc",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
     "dev:studio": "prisma studio",
@@ -19,6 +23,7 @@
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.1",
-    "@prisma/client": "^7.0.1"
+    "@prisma/client": "^7.0.1",
+    "@prisma/client-runtime-utils": "^7.0.1"
   }
 }
