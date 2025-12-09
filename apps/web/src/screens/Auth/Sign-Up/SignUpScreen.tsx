@@ -10,7 +10,6 @@ import {
   Select,
   MenuItem,
   InputLabel,
-  useTheme,
 } from "@mui/material";
 import { Link } from "@tanstack/react-router";
 import { AuthenticationLayout } from "@/components/layout";
@@ -24,7 +23,6 @@ type SignUpValues = {
 };
 
 export const SignUpScreen: FC = () => {
-  const theme = useTheme();
   const {
     handleSubmit,
     control,
