@@ -14,17 +14,17 @@ The easiest way to run the full stack (API + PostgreSQL) is using Docker Compose
 
 ### 1. Configure Environment Variables
 
-Create a `.env` file in the project root:
+Create a `docker-compose.env` file in the project root:
 
 ```bash
 # Node Environment
-NODE_ENV=development
+NODE_ENV=production
 
 # API Configuration
 API_HOST=0.0.0.0
 API_PORT=8080
 
-# PostgreSQL Configuration
+# PostgreSQL Container Configuration
 POSTGRES_USER=huella_user
 POSTGRES_PASSWORD=huella_password
 POSTGRES_DB=huella_latam
@@ -44,7 +44,7 @@ LOG_LEVEL=info
 
 ```bash
 # Start both API and PostgreSQL
-docker compose up -d
+docker compose --env-file docker-compose.env up -d
 
 # View logs
 docker compose logs -f
@@ -68,9 +68,6 @@ docker compose exec api sh -c "cd /app/packages/database && npx tsx prisma/seeds
 ```bash
 # Check health endpoint
 curl http://localhost:8080/health
-
-# Check liveness endpoint
-curl http://localhost:8080/live
 ```
 
 ### 5. Stop the Services
@@ -158,23 +155,6 @@ Response (unhealthy):
   "uptime": 123.456,
   "database": "disconnected",
   "error": "connection refused"
-}
-```
-
-### /live
-
-Simple liveness probe that checks if the service is running:
-
-```bash
-curl http://localhost:8080/live
-```
-
-Response:
-
-```json
-{
-  "status": "ok",
-  "timestamp": "2024-12-09T10:30:00.000Z"
 }
 ```
 
@@ -387,7 +367,7 @@ pnpm dev
 3. **Health Checks**:
    - Configure your orchestrator (Kubernetes, ECS, etc.) to use `/health` endpoint
    - Set appropriate thresholds for retries and timeouts
-   - Use `/live` for liveness probes and `/health` for readiness probes
+   - Use `/health` for readiness probe
 
 4. **Logging**:
    - Set `LOG_LEVEL=info` or `LOG_LEVEL=warn` in production
