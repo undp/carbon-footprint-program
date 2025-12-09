@@ -118,6 +118,7 @@ docker run -d \
 | Variable       | Description                               | Default      | Required |
 | -------------- | ----------------------------------------- | ------------ | -------- |
 | `NODE_ENV`     | Node environment (development/production) | `production` | No       |
+| `API_HOST`     | Host for the API server                   | `localhost`  | No       |
 | `API_PORT`     | Port for the API server                   | `8080`       | No       |
 | `DATABASE_URL` | PostgreSQL connection string              | -            | Yes\*    |
 | `JWT_SECRET`   | Secret key for JWT tokens                 | -            | Yes\*    |
