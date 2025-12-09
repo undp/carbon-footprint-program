@@ -1,11 +1,12 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { AppBar, Box, Button, Toolbar, useTheme } from "@mui/material";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@/icons";
 import {
   LandingHeaderRoutes,
   LandingHeaderRoutesTranslations,
 } from "@/interfaces";
+import { Route as SignInRoute } from "@/routes/auth/sign-in";
 
 const pages = Object.values(LandingHeaderRoutes).map((route) => ({
   text: LandingHeaderRoutesTranslations[route],
@@ -14,6 +15,12 @@ const pages = Object.values(LandingHeaderRoutes).map((route) => ({
 
 export const Header: FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+
+  const onClickSignIn = useCallback(
+    () => void navigate({ to: SignInRoute.to }),
+    [navigate]
+  );
 
   return (
     <AppBar color="transparent" elevation={0} position="static">
@@ -40,6 +47,7 @@ export const Header: FC = () => {
         <Button
           sx={{ backgroundColor: theme.palette.common.deepForest }}
           variant="contained"
+          onClick={onClickSignIn}
         >
           INICIAR SESIÓN
         </Button>
