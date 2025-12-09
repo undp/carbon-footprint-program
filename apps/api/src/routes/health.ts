@@ -44,12 +44,4 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
       });
     }
   });
-
-  // Liveness probe - basic check that the service is running
-  fastify.get("/live", async (_request, reply) => {
-    return reply.status(200).send({
-      status: "ok",
-      timestamp: new Date().toISOString(),
-    });
-  });
 }
