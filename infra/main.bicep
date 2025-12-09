@@ -109,6 +109,10 @@ param staticWebAppAppLocation string = '/apps/web'
 @description('Build output location relative to app location')
 param staticWebAppOutputLocation string = 'dist'
 
+// --------- App Service parameters ---------
+@description('SKU name for App Service Plan (e.g., F1 for Free tier)')
+param appServiceSkuName string = 'F1'
+
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -214,6 +218,21 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
+// --------- App Service ---------
+module appService 'modules/appService.bicep' = {
+  name: 'appServiceDeployment'
+  params: {
+    location: location
+    skuName: appServiceSkuName
+    databasePassword: existingKeyVault.getSecret(keyVault.outputs.postgresSecretName)
+    databaseHost: postgres.outputs.hostOut
+    databaseName: postgres.outputs.dbNameOut
+    databaseUser: dbUser
+    allowedOrigin: enableFrontDoor && frontDoorCustomDomain != '' ? 'https://${frontDoorCustomDomain}' : 'https://${staticWebApp.outputs.defaultHostname}'
+    tags: tags
+  }
+}
+
 // --------- Azure Front Door ---------
 module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
   name: 'frontDoorDeployment'
@@ -246,6 +265,16 @@ output frontend object = {
     endpoint: ''
     url: ''
     enabled: false
+  }
+}
+
+// API outputs
+@description('API hosting endpoints and configuration')
+output api object = {
+  appService: {
+    name: appService.outputs.name
+    hostname: appService.outputs.defaultHostname
+    url: 'https://${appService.outputs.defaultHostname}'
   }
 }
 
@@ -297,3 +326,9 @@ output postgresServerName string = postgres.outputs.serverNameOut
 
 @description('Storage account name')
 output storageAccountName string = storage.outputs.name
+
+@description('App Service name')
+output appServiceName string = appService.outputs.name
+
+@description('App Service default hostname')
+output appServiceHostname string = appService.outputs.defaultHostname

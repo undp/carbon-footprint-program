@@ -245,6 +245,7 @@ else
   echo "  - Storage Account: Created/Updated"
   echo "  - PostgreSQL DB:   Created/Updated"
   echo "  - Static Web App:  Ready for content deployment"
+  echo "  - App Service:     Ready for deployment"
 
   # Check if Front Door is configured
   FRONT_DOOR_ENDPOINT=$(az stack group show \

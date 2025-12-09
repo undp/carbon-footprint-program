@@ -8,6 +8,7 @@
 //   - Storage Account (file storage)
 //   - PostgreSQL Flexible Server (database)
 //   - Azure Static Web Apps (frontend hosting)
+//   - Azure App Service (API backend)
 //   - Azure Front Door (optional CDN + WAF)
 //
 // Cost optimization for development:
@@ -163,6 +164,17 @@ param staticWebAppAppLocation = '/apps/web'
 // - Create React App: 'build'
 // - Next.js: 'out' (for static export)
 param staticWebAppOutputLocation = 'dist'
+
+// ============================================
+// App Service Configuration (API Backend)
+// ============================================
+
+// SKU name for App Service Plan
+// - 'F1': Free tier, 1 GB RAM, 1 GB storage, 60 min CPU/day, $0/month (ideal for development)
+// - 'B1': Basic tier, 1.75 GB RAM, 10 GB storage, $13/month
+// - 'S1': Standard tier, 1.75 GB RAM, 50 GB storage, $55/month
+// Recommendation: B1 for development, S1+ for production
+param appServiceSkuName = 'F1'
 
 // ============================================
 // Front Door Configuration (Global CDN)
