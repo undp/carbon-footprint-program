@@ -65,16 +65,20 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
       acrUseManagedIdentityCreds: containerRegistryId != ''
       appSettings: [
         {
-          name: 'NODE_ENV'
-          value: 'development'
-        }
-        {
           name: 'API_PORT'
           value: '8080'
         }
         {
+          name: 'WEBSITES_PORT'
+          value: '8080'
+        }
+        {
+          name: 'LOG_LEVEL'
+          value: 'info'
+        }
+        {
           name: 'SCM_DO_BUILD_DURING_DEPLOYMENT'
-          value: 'true'
+          value: 'false'
         }
         {
           name: 'ALLOWED_ORIGIN'
