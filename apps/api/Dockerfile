@@ -77,7 +77,6 @@ COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
 COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 
 # Copy database package files
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.ts ./packages/database/
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.js ./packages/database/
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.d.ts ./packages/database/
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/generated ./packages/database/generated
