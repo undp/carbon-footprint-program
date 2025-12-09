@@ -233,6 +233,17 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
+// --------- Container Registry (Shared RG) ---------
+module sharedAcr 'modules/acr.bicep' = {
+  name: 'sharedAcrDeployment'
+  scope: resourceGroup(sharedResourceGroupName)
+  params: {
+    acrName: acrName
+    acrSku: acrSku
+    tags: tags
+  }
+}
+
 // --------- App Service ---------
 module appService 'modules/appService.bicep' = {
   name: 'appServiceDeployment'
@@ -244,7 +255,7 @@ module appService 'modules/appService.bicep' = {
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
     allowedOrigin: enableFrontDoor && frontDoorCustomDomain != '' ? 'https://${frontDoorCustomDomain}' : 'https://${staticWebApp.outputs.defaultHostname}'
-    containerRegistryId: sharedAcr.id
+    containerRegistryId: sharedAcr.outputs.id
     tags: tags
   }
 }
@@ -272,14 +283,6 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
     rateLimitThreshold: frontDoorRateLimitThreshold
     tags: tags
   }
-}
-
-// --------- Container Registry (Shared) ---------
-// Reference to existing ACR in shared resource group
-// The ACR is created/verified by deploy.sh before this deployment
-resource sharedAcr 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
-  name: acrName
-  scope: resourceGroup(sharedResourceGroupName)
 }
 
 // --------- Outputs ---------
@@ -336,10 +339,10 @@ output infrastructure object = {
   resourceGroup: resourceGroup().name
   location: location
   containerRegistry: {
-    id: sharedAcr.id
-    loginServer: sharedAcr.properties.loginServer
-    name: sharedAcr.name
-    sku: acrSku
+    id: sharedAcr.outputs.id
+    loginServer: sharedAcr.outputs.loginServer
+    name: sharedAcr.outputs.name
+    sku: sharedAcr.outputs.sku
   }
 }
 
@@ -375,7 +378,7 @@ output appServiceName string = appService.outputs.name
 output appServiceHostname string = appService.outputs.defaultHostname
 
 @description('Container Registry resource ID')
-output containerRegistryId string = sharedAcr.id
+output containerRegistryId string = sharedAcr.outputs.id
 
 @description('Container Registry login server')
-output acrLoginServer string = sharedAcr.properties.loginServer
+output acrLoginServer string = sharedAcr.outputs.loginServer
