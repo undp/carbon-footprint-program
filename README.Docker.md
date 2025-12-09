@@ -448,6 +448,15 @@ docker run -d \
   huellalatam.azurecr.io/api:1.0.0
 ```
 
+The resource limits (512MB RAM, 1 CPU) are starting points and should be adjusted based on:
+
+- Application performance monitoring
+- Expected load and traffic patterns
+- Database query complexity
+- Number of concurrent connections
+
+Organizations should benchmark their specific workload to determine optimal resource allocation.
+
 ### Using with Azure Container Instances
 
 ```bash
