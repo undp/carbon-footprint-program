@@ -4,7 +4,11 @@
   "description": "Database package for the Huella Latam project",
   "private": true,
   "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": "./index.js",
   "scripts": {
+    "build": "tsc",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
     "dev:studio": "prisma studio",
