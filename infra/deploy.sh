@@ -31,6 +31,11 @@ fi
 
 # Pre-flight: ensure required tools are available
 command -v openssl >/dev/null 2>&1 || { log "Error: openssl is required but not found."; exit 1; }
+command -v jq >/dev/null 2>&1 || { log "Error: jq is required but not found."; exit 1; }
+if ! az bicep version >/dev/null 2>&1; then
+  log "Error: Azure CLI Bicep extension is required but not found (run: az bicep install)."
+  exit 1
+fi
 
 # 1) Load .env / .envrc if present (non-sensitive config only)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -126,21 +131,40 @@ fi
 # 4.5) Create/verify shared resource group
 # Read shared resource group name from parameters file
 log "Reading shared resource group from parameters file..."
-# Extract parameter value, handling comments and whitespace
-SHARED_RG=$(grep -E "^\s*param sharedResourceGroupName\s*=" "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" | head -1 | sed -E "s/.*=\s*['\"]([^'\"]+)['\"].*/\1/" | sed 's/\/\/.*$//' | xargs || echo "")
+if [ ! -f "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" ]; then
+  log "Error: parameters file not found at $SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
+  exit 1
+fi
+
+# Parse sharedResourceGroupName using Azure CLI bicep to avoid format assumptions
+PARAMS_JSON=$(az bicep build-params --file "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" --stdout) || {
+  log "Error: failed to run 'az bicep build-params' on $ENVIRONMENT_PARAMS_FILE"
+  exit 1
+}
+
+SHARED_RG=$(echo "$PARAMS_JSON" | jq -r '
+  if .parameters then
+    .parameters.sharedResourceGroupName.value // empty
+  elif .parametersJson then
+    (.parametersJson | fromjson | .parameters.sharedResourceGroupName.value // empty)
+  else empty end
+')
 
 if [ -z "$SHARED_RG" ]; then
-  log "Warning: sharedResourceGroupName not found in parameters file. Skipping shared RG setup."
+  log "Error: sharedResourceGroupName no encontrado en $ENVIRONMENT_PARAMS_FILE"
+  log "Salida de az bicep build-params (para depurar):"
+  echo "$PARAMS_JSON"
+  exit 1
+fi
+
+log "Shared Resource Group: $SHARED_RG"
+log "Creating shared resource group if it doesn't exist..."
+if [ "$DRY_RUN" = "true" ]; then
+  log "[DRY RUN] Would execute: az group create --name $SHARED_RG --location $LOCATION"
 else
-  log "Shared Resource Group: $SHARED_RG"
-  log "Creating shared resource group if it doesn't exist..."
-  if [ "$DRY_RUN" = "true" ]; then
-    log "[DRY RUN] Would execute: az group create --name $SHARED_RG --location $LOCATION"
-  else
-    if ! az group create --name "$SHARED_RG" --location "$LOCATION"; then
-      log "Error: failed to create or verify shared resource group '$SHARED_RG'. Aborting before deployment."
-      exit 1
-    fi
+  if ! az group create --name "$SHARED_RG" --location "$LOCATION"; then
+    log "Error: failed to create or verify shared resource group '$SHARED_RG'. Aborting before deployment."
+    exit 1
   fi
 fi
 
