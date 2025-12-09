@@ -5,6 +5,9 @@ import type { FastifyZodInstance } from "@/types/fastify.js";
  */
 export default function healthRoutes(fastify: FastifyZodInstance) {
   fastify.get("/health", async (_request, reply) => {
+    const timestamp = new Date().toISOString();
+    const uptime = process.uptime();
+
     // Check if Prisma is connected by doing a simple query
     try {
       // Prisma is essential for the API - if not available, fail the health check
@@ -12,8 +15,8 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
         fastify.log.error("Health check failed - Prisma not configured");
         return reply.status(503).send({
           status: "degraded",
-          timestamp: new Date().toISOString(),
-          uptime: process.uptime(),
+          timestamp,
+          uptime,
           database: "not configured",
           error: "Database connection not configured",
         });
@@ -24,8 +27,8 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
 
       return reply.status(200).send({
         status: "ok",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
+        timestamp,
+        uptime,
         database: "connected",
       });
     } catch (error) {
@@ -37,8 +40,8 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
 
       return reply.status(503).send({
         status: "degraded",
-        timestamp: new Date().toISOString(),
-        uptime: process.uptime(),
+        timestamp,
+        uptime,
         database: "disconnected",
         error: error instanceof Error ? error.message : "Unknown error",
       });
