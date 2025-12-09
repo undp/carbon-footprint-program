@@ -257,7 +257,7 @@ module appService 'modules/appService.bicep' = {
     allowedOrigin: enableFrontDoor
       ? (frontDoorCustomDomain != '' ? 'https://${frontDoorCustomDomain}' : 'https://${frontDoor.outputs.endpointHostname}')
       : 'https://${staticWebApp.outputs.defaultHostname}'
-    containerRegistryId: sharedAcr.outputs.id
+    useAcrManagedIdentity: true
     tags: tags
   }
 }

@@ -23,8 +23,8 @@ param linuxFxVersion string = 'node|24-lts'
 @description('Allowed origin for API CORS (e.g., https://app.example.com)')
 param allowedOrigin string
 
-@description('Container Registry resource ID for AcrPull role assignment (optional)')
-param containerRegistryId string = ''
+@description('Enable managed identity credentials for container registry')
+param useAcrManagedIdentity bool = false
 
 @description('Tags to apply to resources')
 param tags object = {}
@@ -62,7 +62,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: linuxFxVersion
-      acrUseManagedIdentityCreds: containerRegistryId != ''
+      acrUseManagedIdentityCreds: useAcrManagedIdentity
       appSettings: [
         {
           name: 'API_PORT'
