@@ -2,6 +2,7 @@ import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { checkForDuplicates } from "../../utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,10 +20,16 @@ export async function seedRoles(prisma: PrismaClient) {
     readFileSync(join(__dirname, "../data/organization_roles.json"), "utf-8")
   );
 
+  // Check the data has no duplicated based on name
+  checkForDuplicates(organizationRolesData, ["name"]);
+
   // Read system roles
   const systemRolesData: RoleData[] = JSON.parse(
     readFileSync(join(__dirname, "../data/system_roles.json"), "utf-8")
   );
+
+  // Check the data has no duplicated based on name
+  checkForDuplicates(systemRolesData, ["name"]);
 
   // Seed organization roles
   const organizationRoles = await Promise.all(

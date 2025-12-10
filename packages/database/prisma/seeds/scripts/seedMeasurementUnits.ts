@@ -2,6 +2,7 @@ import { type PrismaClient, Magnitude } from "../../../index.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { checkForDuplicates } from "../../utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -28,6 +29,9 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
   const measurementUnitsData: MeasurementUnitData[] = JSON.parse(
     readFileSync(join(__dirname, "../data/measurement_units.json"), "utf-8")
   );
+
+  // Check the data has no duplicated based on abbreviation
+  checkForDuplicates(measurementUnitsData, ["abbreviation"]);
 
   // Seed measurement units
   const measurementUnits = await Promise.all(
@@ -62,6 +66,9 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
       "utf-8"
     )
   );
+
+  // Check the data has no duplicated based on abbreviation
+  checkForDuplicates(rateMeasurementUnitsData, ["abbreviation"]);
 
   const rateMeasurementUnits = await Promise.all(
     rateMeasurementUnitsData.map((rmu) => {

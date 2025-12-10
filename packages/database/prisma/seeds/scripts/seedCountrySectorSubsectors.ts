@@ -2,6 +2,10 @@ import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import {
+  checkForDuplicates,
+  checkForPrimitiveDuplicates,
+} from "../../utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -25,6 +29,17 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
       "utf-8"
     )
   );
+
+  checkForDuplicates(countrySectorSubsectorsData, [
+    "country_iso_code",
+    "sector",
+  ]);
+  for (const item of countrySectorSubsectorsData) {
+    checkForPrimitiveDuplicates(
+      item.subsectors,
+      `subsectors in ${item.country_iso_code} - ${item.sector}`
+    );
+  }
 
   let totalSectors = 0;
   let totalSubsectors = 0;

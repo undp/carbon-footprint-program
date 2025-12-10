@@ -2,6 +2,7 @@ import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { checkForDuplicates } from "../../utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -24,6 +25,8 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
       "utf-8"
     )
   );
+
+  checkForDuplicates(organizationSizesData, ["country_iso_code", "name"]);
 
   // Seed organization sizes
   const organizationSizes = await Promise.all(
