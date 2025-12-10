@@ -8,7 +8,7 @@
 - Variables de entorno obligatorias cargadas:
   - `AZURE_SUBSCRIPTION_ID`
   - `AZURE_RESOURCE_GROUP`
-  - `ENVIRONMENT` (ej.: `dev`, `stg`, `prod`)
+  - `ENVIRONMENT` (ej.: `development`, `staging`, `production`)
 - Variables opcionales:
   - `IMAGE_NAME` (default: `api`)
   - `IMAGE_TAG` (default: `git rev-parse --short HEAD` o `latest` si no hay git)
@@ -21,7 +21,7 @@ Desde la raíz del repo:
 ```bash
 export AZURE_SUBSCRIPTION_ID="..."   # requerido
 export AZURE_RESOURCE_GROUP="..."    # requerido
-export ENVIRONMENT="dev"             # requerido
+export ENVIRONMENT="development"             # requerido
 # Opcionales:
 # export IMAGE_NAME="api"
 # export IMAGE_TAG="v1.2.3"
@@ -38,7 +38,7 @@ El script:
 4. Construye la imagen usando `apps/api/Dockerfile` con tag `$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG`.
 5. Hace push de la imagen al ACR.
 6. Configura el contenedor del App Service para usar esa imagen y habilita `acrUseManagedIdentityCreds`.
-7. Setea app settings (`WEBSITES_PORT=$API_PORT`, `NODE_ENV=production`).
+7. Setea app settings (`API_PORT=$API_PORT`).
 8. Reinicia el App Service.
 
 ### Resultado esperado
