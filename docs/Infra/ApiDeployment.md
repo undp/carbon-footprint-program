@@ -16,7 +16,7 @@
 
 ### Forma de uso
 
-Desde la raíz del repo:
+En el .envrc de la carpeta infra:
 
 ```bash
 export AZURE_SUBSCRIPTION_ID="..."   # requerido
@@ -27,10 +27,9 @@ export ENVIRONMENT="development"             # requerido
 # export IMAGE_TAG="v1.2.3"
 # export API_PORT="8080"
 
-./infra/deploy-api.sh
 ```
 
-El script:
+El script `./deploy-api.sh`:
 
 1. Selecciona la suscripción de Azure indicada.
 2. Obtiene de la Azure Deployment Stack (`undp-huella-latam-stack-$ENVIRONMENT`) el nombre del App Service y el login server del ACR.
