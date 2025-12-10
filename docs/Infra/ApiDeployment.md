@@ -43,3 +43,11 @@ El script `./deploy-api.sh`:
 ### Resultado esperado
 
 Al finalizar, verás en la salida el `defaultHostName` del App Service. La API queda desplegada con la imagen recién construida y referenciada desde el ACR, lista para responder en el puerto configurado (`API_PORT`). Una buena prueba rápida es abrir `https://<defaultHostName>/api/docs` y verificar que carga el Swagger. Si falla la obtención de outputs de la stack o el login al ACR, el script termina con error y sin cambios en el App Service.
+
+### Idempotencia del `deploy-api.sh`
+
+- El script no crea recursos; solo reutiliza los generados por `deploy.sh` (ACR y App Service con identidad administrada). Si esos recursos no existen, falla antes de aplicar cambios.
+- Cada ejecución vuelve a configurar la misma app: asigna la imagen `ACR_LOGIN_SERVER/IMAGE_NAME:IMAGE_TAG`, habilita `acrUseManagedIdentityCreds` y actualiza `WEBSITES_PORT`/`NODE_ENV`. Estos comandos son declarativos, por lo que múltiples corridas dejan la app en el mismo estado.
+- Siempre construye y hace push de la imagen. Si usas el mismo `IMAGE_TAG`, la imagen se sobreescribe; con un tag distinto, se publica una nueva versión pero la app se actualiza a ese tag.
+- No borra imágenes antiguas en el ACR ni revierte cambios previos; simplemente apunta la app a la imagen indicada.
+- Si no defines `IMAGE_NAME` ni `IMAGE_TAG` en `.envrc`, usa `IMAGE_NAME=api` y `IMAGE_TAG=$(git rev-parse --short HEAD || latest)`. Con el mismo commit, reejecutar el script deja la app igual (`api:<sha>`). Si cambia el commit, el tag cambia y la app apunta a la nueva imagen. Sin git, siempre usa `api:latest`, sobreescribiéndola en cada corrida (el estado final es la última ejecución).
