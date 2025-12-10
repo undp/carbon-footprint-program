@@ -84,19 +84,13 @@ docker build -f "$REPO_ROOT/apps/api/Dockerfile" -t "$FULL_IMAGE" "$REPO_ROOT"
 log "Pushing image..."
 docker push "$FULL_IMAGE"
 
-log "Configuring App Service container..."
-az webapp config container set \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
-  --name "$APP_SERVICE_NAME" \
-  --docker-custom-image-name "$FULL_IMAGE" \
-  --docker-registry-server-url "https://$ACR_LOGIN_SERVER"
-
-log "Enabling managed identity pull..."
+log "Configurando contenedor con identidad administrada..."
 az resource update \
   --resource-group "$AZURE_RESOURCE_GROUP" \
-  --name "$APP_SERVICE_NAME" \
-  --resource-type Microsoft.Web/sites \
-  --set properties.siteConfig.acrUseManagedIdentityCreds=true >/dev/null
+  --name "$APP_SERVICE_NAME/config/web" \
+  --resource-type "Microsoft.Web/sites/config" \
+  --set properties.linuxFxVersion="DOCKER|$FULL_IMAGE" \
+  --set properties.acrUseManagedIdentityCreds=true >/dev/null
 
 log "Setting app settings..."
 az webapp config appsettings set \
@@ -107,6 +101,15 @@ az webapp config appsettings set \
 log "Restarting app..."
 az webapp restart -g "$AZURE_RESOURCE_GROUP" -n "$APP_SERVICE_NAME"
 
-log "Deployment complete. App Service hostname:"
-az webapp show -g "$AZURE_RESOURCE_GROUP" -n "$APP_SERVICE_NAME" --query defaultHostName -o tsv
+log "Obteniendo hostname del App Service..."
+HOSTNAME=$(az webapp show \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "$APP_SERVICE_NAME" \
+  --query defaultHostName -o tsv 2>/dev/null || echo "")
+
+if [ -z "$HOSTNAME" ] || [ "$HOSTNAME" = "null" ]; then
+  log "Warning: no se pudo obtener el hostname. Verifica que el App Service exista y que tengas permisos en la suscripción/RG."
+else
+  log "Deployment complete. App Service hostname: https://$HOSTNAME"
+fi
 
