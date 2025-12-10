@@ -142,13 +142,21 @@ PARAMS_JSON=$(az bicep build-params --file "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE
   exit 1
 }
 
-SHARED_RG=$(echo "$PARAMS_JSON" | jq -r '
-  if .parameters then
-    .parameters.sharedResourceGroupName.value // empty
-  elif .parametersJson then
-    (.parametersJson | fromjson | .parameters.sharedResourceGroupName.value // empty)
-  else empty end
-')
+# Helper function to extract parameter from PARAMS_JSON
+get_param() {
+  local param_name="$1"
+  echo "$PARAMS_JSON" | jq -r "
+    if .parameters then
+      .parameters.${param_name}.value // empty
+    elif .parametersJson then
+      (.parametersJson | fromjson | .parameters.${param_name}.value // empty)
+    else empty end
+  "
+}
+
+SHARED_RG=$(get_param "sharedResourceGroupName")
+ACR_NAME=$(get_param "acrName")
+ACR_SKU=$(get_param "acrSku")
 
 if [ -z "$SHARED_RG" ]; then
   log "Error: sharedResourceGroupName no encontrado en $ENVIRONMENT_PARAMS_FILE"
@@ -156,6 +164,13 @@ if [ -z "$SHARED_RG" ]; then
   echo "$PARAMS_JSON"
   exit 1
 fi
+
+if [ -z "$ACR_NAME" ]; then
+  log "Error: acrName no encontrado en $ENVIRONMENT_PARAMS_FILE"
+  exit 1
+fi
+
+ACR_SKU="${ACR_SKU:-Basic}"  # Default to Basic if not specified
 
 log "Shared Resource Group: $SHARED_RG"
 log "Creating shared resource group if it doesn't exist..."
@@ -167,6 +182,54 @@ else
     exit 1
   fi
 fi
+
+# 4.6) Create/verify shared ACR stack (only for development environments)
+# This stack lives in the shared RG and provides ACR outputs for all developers
+# Parameters (acrName, acrSku) are read from the environment params file above
+SHARED_ACR_STACK_NAME="undp-huella-latam-stack-development"
+
+# Only create shared stack for non-production/staging environments
+case "$ENVIRONMENT" in
+  production|staging)
+    log "Production/Staging environment: shared ACR stack not needed (ACR outputs come from main stack)"
+    ;;
+  *)
+    log "Checking if shared ACR stack exists in $SHARED_RG..."
+    SHARED_STACK_EXISTS=$(az stack group show \
+      --name "$SHARED_ACR_STACK_NAME" \
+      --resource-group "$SHARED_RG" \
+      --query "name" -o tsv 2>/dev/null || echo "")
+
+    if [ -z "$SHARED_STACK_EXISTS" ]; then
+      log "Shared ACR stack not found. Creating '$SHARED_ACR_STACK_NAME' in $SHARED_RG..."
+      log "  ACR Name: $ACR_NAME"
+      log "  ACR SKU: $ACR_SKU"
+      if [ "$DRY_RUN" = "true" ]; then
+        log "[DRY RUN] Would create shared ACR stack: $SHARED_ACR_STACK_NAME"
+        log "[DRY RUN]   --template-file main.shared.bicep"
+        log "[DRY RUN]   --parameters acrName=$ACR_NAME acrSku=$ACR_SKU"
+      else
+        az stack group create \
+          --name "$SHARED_ACR_STACK_NAME" \
+          --resource-group "$SHARED_RG" \
+          --template-file "$SCRIPT_DIR/main.shared.bicep" \
+          --parameters acrName="$ACR_NAME" \
+          --parameters acrSku="$ACR_SKU" \
+          --deny-settings-mode "none" \
+          --action-on-unmanage "detachAll" \
+          --yes || {
+            log "Warning: Failed to create shared ACR stack. The ACR might already exist but the stack doesn't."
+            log "You can manually create it with:"
+            log "  az stack group create --name $SHARED_ACR_STACK_NAME --resource-group $SHARED_RG \\"
+            log "    --template-file $SCRIPT_DIR/main.shared.bicep \\"
+            log "    --parameters acrName=$ACR_NAME acrSku=$ACR_SKU --yes"
+          }
+      fi
+    else
+      log "Shared ACR stack already exists: $SHARED_ACR_STACK_NAME in $SHARED_RG"
+    fi
+    ;;
+esac
 
 # 5) Get Azure AD group Object ID for Key Vault access
 log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
