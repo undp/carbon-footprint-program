@@ -14,7 +14,7 @@ log() {
 command -v az >/dev/null 2>&1 || { log "Error: Azure CLI (az) is required but not found in PATH."; exit 1; }
 command -v docker >/dev/null 2>&1 || { log "Error: Docker CLI is required but not found in PATH."; exit 1; }
 if ! az account show >/dev/null 2>&1; then
-  log "Error: Azure CLI not logged in. Ejecuta 'az login' antes de continuar."
+  log "Error: Azure CLI not logged in. Run 'az login' before continuing."
   exit 1
 fi
 
@@ -91,7 +91,7 @@ docker build -f "$REPO_ROOT/apps/api/Dockerfile" -t "$FULL_IMAGE" "$REPO_ROOT"
 log "Pushing image..."
 docker push "$FULL_IMAGE"
 
-log "Configurando contenedor con identidad administrada..."
+log "Configuring container with managed identity..."
 az resource update \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --name "$APP_SERVICE_NAME/config/web" \
@@ -108,14 +108,14 @@ az webapp config appsettings set \
 log "Restarting app..."
 az webapp restart -g "$AZURE_RESOURCE_GROUP" -n "$APP_SERVICE_NAME"
 
-log "Obteniendo hostname del App Service..."
+log "Retrieving App Service hostname..."
 HOSTNAME=$(az webapp show \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --name "$APP_SERVICE_NAME" \
   --query defaultHostName -o tsv 2>/dev/null || echo "")
 
 if [ -z "$HOSTNAME" ] || [ "$HOSTNAME" = "null" ]; then
-  log "Warning: no se pudo obtener el hostname. Verifica que el App Service exista y que tengas permisos en la suscripción/RG."
+  log "Warning: could not retrieve hostname. Verify the App Service exists and that you have subscription/RG permissions."
 else
   log "Deployment complete. App Service hostname: https://$HOSTNAME"
 fi

@@ -159,14 +159,14 @@ ACR_NAME=$(get_param "acrName")
 ACR_SKU=$(get_param "acrSku")
 
 if [ -z "$SHARED_RG" ]; then
-  log "Error: sharedResourceGroupName no encontrado en $ENVIRONMENT_PARAMS_FILE"
-  log "Salida de az bicep build-params (para depurar):"
+  log "Error: sharedResourceGroupName not found in $ENVIRONMENT_PARAMS_FILE"
+  log "Output from az bicep build-params (for debugging):"
   echo "$PARAMS_JSON"
   exit 1
 fi
 
 if [ -z "$ACR_NAME" ]; then
-  log "Error: acrName no encontrado en $ENVIRONMENT_PARAMS_FILE"
+  log "Error: acrName not found in $ENVIRONMENT_PARAMS_FILE"
   exit 1
 fi
 
