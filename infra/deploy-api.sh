@@ -24,29 +24,47 @@ IMAGE_NAME="${IMAGE_NAME:-api}"
 IMAGE_TAG="${IMAGE_TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo latest)}"
 API_PORT="${API_PORT:-8080}"
 
-STACK_NAME="undp-huella-latam-stack-$ENVIRONMENT"
+# Stack for the current environment (App Service, DB, etc.)
+STACK_NAME_ENV="undp-huella-latam-stack-$ENVIRONMENT"
+
+# Derive shared stack and RG for ACR based on environment
+# - production/staging: use same stack (ACR outputs are in main stack)
+# - development (any dev name): use shared stack in shared RG
+case "$ENVIRONMENT" in
+  production|staging)
+    STACK_NAME_SHARED="$STACK_NAME_ENV"
+    SHARED_RESOURCE_GROUP="$AZURE_RESOURCE_GROUP"
+    ;;
+  *)
+    STACK_NAME_SHARED="undp-huella-latam-stack-development"
+    SHARED_RESOURCE_GROUP="undp-huella-latam-shared-rg"
+    ;;
+esac
 
 log "Setting subscription..."
 az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 
-log "Fetching stack outputs..."
+log "Fetching App Service from environment stack: $STACK_NAME_ENV (RG: $AZURE_RESOURCE_GROUP)"
 APP_SERVICE_NAME=$(az stack group show \
-  --name "$STACK_NAME" \
+  --name "$STACK_NAME_ENV" \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "outputs.api.value.appService.name" -o tsv 2>/dev/null || echo "")
 
+log "Fetching ACR from shared stack: $STACK_NAME_SHARED (RG: $SHARED_RESOURCE_GROUP)"
 ACR_LOGIN_SERVER=$(az stack group show \
-  --name "$STACK_NAME" \
-  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "$STACK_NAME_SHARED" \
+  --resource-group "$SHARED_RESOURCE_GROUP" \
   --query "outputs.acrLoginServer.value" -o tsv 2>/dev/null || echo "")
 
 if [ -z "$APP_SERVICE_NAME" ] || [ "$APP_SERVICE_NAME" = "null" ]; then
-  log "Error: App Service name not found in stack outputs."
+  log "Error: App Service name not found in stack '$STACK_NAME_ENV' (resource group: $AZURE_RESOURCE_GROUP)."
+  log "Make sure you have deployed the infrastructure with: ./deploy.sh"
   exit 1
 fi
 
 if [ -z "$ACR_LOGIN_SERVER" ] || [ "$ACR_LOGIN_SERVER" = "null" ]; then
-  log "Error: ACR login server not found in stack outputs."
+  log "Error: ACR login server not found in shared stack '$STACK_NAME_SHARED' (resource group: $SHARED_RESOURCE_GROUP)."
+  log "Make sure the shared ACR stack exists. Run ./deploy.sh to create it automatically."
   exit 1
 fi
 
