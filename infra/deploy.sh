@@ -218,11 +218,12 @@ case "$ENVIRONMENT" in
           --deny-settings-mode "none" \
           --action-on-unmanage "detachAll" \
           --yes || {
-            log "Warning: Failed to create shared ACR stack. The ACR might already exist but the stack doesn't."
+            log "Error: Failed to create shared ACR stack '$SHARED_ACR_STACK_NAME' in '$SHARED_RG'. Aborting before main deployment."
             log "You can manually create it with:"
             log "  az stack group create --name $SHARED_ACR_STACK_NAME --resource-group $SHARED_RG \\"
             log "    --template-file $SCRIPT_DIR/main.shared.bicep \\"
             log "    --parameters acrName=$ACR_NAME acrSku=$ACR_SKU --yes"
+            exit 1
           }
       fi
     else
