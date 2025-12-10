@@ -8,7 +8,7 @@
 - Variables de entorno obligatorias cargadas:
   - `AZURE_SUBSCRIPTION_ID`
   - `AZURE_RESOURCE_GROUP`
-  - `ENVIRONMENT` (ej.: `development`, `staging`, `production`)
+  - `ENVIRONMENT` (ej.: `matias`, `luis`, `staging`, `production`)
 - Variables opcionales:
   - `IMAGE_NAME` (default: `api`)
   - `IMAGE_TAG` (default: `git rev-parse --short HEAD` o `latest` si no hay git)
@@ -21,7 +21,7 @@ En el .envrc de la carpeta infra:
 ```bash
 export AZURE_SUBSCRIPTION_ID="..."   # requerido
 export AZURE_RESOURCE_GROUP="..."    # requerido
-export ENVIRONMENT="development"             # requerido
+export ENVIRONMENT="matias"          # requerido (nombre del desarrollador o production/staging)
 # Opcionales:
 # export IMAGE_NAME="api"
 # export IMAGE_TAG="v1.2.3"
@@ -29,16 +29,45 @@ export ENVIRONMENT="development"             # requerido
 
 ```
 
+### Arquitectura de Stacks para ACR
+
+El script maneja dos casos según el valor de `ENVIRONMENT`:
+
+**Para desarrollo** (`ENVIRONMENT` != `production` y != `staging`):
+
+- **App Service**: Se obtiene del stack del desarrollador (`undp-huella-latam-stack-$ENVIRONMENT`)
+- **ACR**: Se obtiene del stack compartido (`undp-huella-latam-stack-development` en `undp-huella-latam-shared-rg`)
+
+**Para producción/staging** (`ENVIRONMENT` = `production` o `staging`):
+
+- **App Service y ACR**: Ambos se obtienen del mismo stack (`undp-huella-latam-stack-$ENVIRONMENT`)
+
+```
+ENVIRONMENT=matias (desarrollo)
+├── App Service ← undp-huella-latam-stack-matias (undp-huella-latam-matias-rg)
+└── ACR         ← undp-huella-latam-stack-development (undp-huella-latam-shared-rg)
+
+ENVIRONMENT=production
+├── App Service ← undp-huella-latam-stack-production
+└── ACR         ← undp-huella-latam-stack-production (mismo stack)
+```
+
+### Flujo del script
+
 El script `./deploy-api.sh`:
 
 1. Selecciona la suscripción de Azure indicada.
-2. Obtiene de la Azure Deployment Stack (`undp-huella-latam-stack-$ENVIRONMENT`) el nombre del App Service y el login server del ACR.
-3. Hace login en el ACR.
-4. Construye la imagen usando `apps/api/Dockerfile` con tag `$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG`.
-5. Hace push de la imagen al ACR.
-6. Configura el contenedor del App Service para usar esa imagen y habilita `acrUseManagedIdentityCreds`.
-7. Setea app settings (`API_PORT=$API_PORT`).
-8. Reinicia el App Service.
+2. Determina qué stack usar para el ACR según `ENVIRONMENT`:
+   - Desarrollo: stack compartido `undp-huella-latam-stack-development` en `undp-huella-latam-shared-rg`
+   - Producción/Staging: mismo stack del environment
+3. Obtiene el nombre del App Service del stack del environment (`undp-huella-latam-stack-$ENVIRONMENT`).
+4. Obtiene el login server del ACR del stack correspondiente (compartido o del environment).
+5. Hace login en el ACR.
+6. Construye la imagen usando `apps/api/Dockerfile` con tag `$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG`.
+7. Hace push de la imagen al ACR.
+8. Configura el contenedor del App Service para usar esa imagen y habilita `acrUseManagedIdentityCreds`.
+9. Setea app settings (`API_PORT=$API_PORT`).
+10. Reinicia el App Service.
 
 ### Resultado esperado
 

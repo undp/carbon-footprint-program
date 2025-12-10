@@ -61,18 +61,113 @@ export ENVIRONMENT='production'  # DEBE estar en minúsculas
 
 ---
 
+## Arquitectura de Resource Groups y Stacks
+
+El proyecto usa una arquitectura de recursos que separa los componentes compartidos de los individuales por desarrollador/ambiente:
+
+### Resource Groups
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Suscripción Azure                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-shared-rg         │  ← Recursos compartidos   │
+│  │ ├── Azure Container Registry (ACR)  │                           │
+│  │ └── Stack: undp-huella-latam-stack-development                  │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-matias-rg         │  ← Recursos de Matías     │
+│  │ ├── Key Vault, Storage, Postgres    │                           │
+│  │ ├── Static Web App, App Service     │                           │
+│  │ └── Stack: undp-huella-latam-stack-matias                       │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-luis-rg           │  ← Recursos de Luis       │
+│  │ ├── Key Vault, Storage, Postgres    │                           │
+│  │ ├── Static Web App, App Service     │                           │
+│  │ └── Stack: undp-huella-latam-stack-luis                         │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-production-rg     │  ← Recursos de Producción │
+│  │ ├── Key Vault, Storage, Postgres    │                           │
+│  │ ├── Static Web App, App Service     │                           │
+│  │ ├── Front Door, ACR (en shared-rg)  │                           │
+│  │ └── Stack: undp-huella-latam-stack-production                   │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Convención de Nombres de ENVIRONMENT
+
+| ENVIRONMENT  | Tipo       | Stack Name                           | Resource Group                    |
+| ------------ | ---------- | ------------------------------------ | --------------------------------- |
+| `matias`     | Desarrollo | `undp-huella-latam-stack-matias`     | `undp-huella-latam-matias-rg`     |
+| `luis`       | Desarrollo | `undp-huella-latam-stack-luis`       | `undp-huella-latam-luis-rg`       |
+| `staging`    | Staging    | `undp-huella-latam-stack-staging`    | `undp-huella-latam-staging-rg`    |
+| `production` | Producción | `undp-huella-latam-stack-production` | `undp-huella-latam-production-rg` |
+
+### Stack Compartido para ACR
+
+Para entornos de desarrollo (cualquier `ENVIRONMENT` que no sea `production` o `staging`), el Azure Container Registry (ACR) se comparte entre todos los desarrolladores. Esto se logra mediante:
+
+1. **`main.shared.bicep`**: Plantilla mínima para recursos compartidos (hoy solo ACR)
+2. **Stack compartido**: `undp-huella-latam-stack-development` en `undp-huella-latam-shared-rg`
+3. **Creación automática**: `deploy.sh` crea este stack automáticamente si no existe
+
+**¿Por qué dos archivos `.bicep`?**
+
+- `main.bicep`: Despliega TODOS los recursos (KV, Storage, Postgres, SWA, App Service, ACR, Front Door)
+- `main.shared.bicep`: Solo despliega recursos compartidos (hoy solo ACR)
+
+Si usáramos `main.bicep` para crear el stack compartido, se crearían TODOS los recursos en el RG compartido, no solo el ACR.
+
+**Flujo de `deploy-api.sh`**:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                      deploy-api.sh                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│ ENVIRONMENT=matias (desarrollo)                                     │
+│ ├── App Service ← undp-huella-latam-stack-matias                   │
+│ │                  (undp-huella-latam-matias-rg)                   │
+│ └── ACR         ← undp-huella-latam-stack-development              │
+│                    (undp-huella-latam-shared-rg)                   │
+├─────────────────────────────────────────────────────────────────────┤
+│ ENVIRONMENT=production                                              │
+│ ├── App Service ← undp-huella-latam-stack-production               │
+│ └── ACR         ← undp-huella-latam-stack-production               │
+│                    (mismo stack, ACR en shared-rg vía scope)       │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Estructura del Directorio `infra/`
 
 ```plaintext
 infra/
 ├── deploy.sh                     # Script principal de deployment (Deployment Stacks)
+├── deploy-api.sh                # Script para desplegar la API (Docker → ACR → App Service)
+├── deploy-web.sh                # Script para desplegar el frontend (Static Web App)
 ├── delete-stack.sh              # Script para eliminar Deployment Stacks
 ├── view-stack.sh                # Script para inspeccionar Deployment Stacks
-├── main.bicep                    # Orquestador principal
+├── main.bicep                    # Orquestador principal (todos los recursos)
+├── main.shared.bicep            # Plantilla mínima para recursos compartidos (ACR)
 ├── modules/                      # Módulos reutilizables
 │   ├── keyVault.bicep           # Azure Key Vault + secretos
 │   ├── postgres.bicep           # PostgreSQL Flexible Server
-│   └── storage.bicep            # Azure Storage Account
+│   ├── storage.bicep            # Azure Storage Account
+│   ├── acr.bicep                # Azure Container Registry
+│   ├── appService.bicep         # Azure App Service (API)
+│   ├── staticWebApp.bicep       # Azure Static Web App (frontend)
+│   ├── frontDoor.bicep          # Azure Front Door (CDN + WAF)
+│   └── acrRoleAssignment.bicep  # Role assignment para ACR pull
 └── params/                       # Archivos de parámetros por entorno
     └── main.development.bicepparam      # Parámetros para desarrollo
 ```
