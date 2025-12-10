@@ -23,3 +23,9 @@ export const GetAllJobPositionsResponseSchema = z.array(
 export type GetAllJobPositionsResponse = z.infer<
   typeof GetAllJobPositionsResponseSchema
 >;
+
+export const GetAllJobPositionsNotFoundErrorSchema = z
+  .object({
+    message: z.string(),
+  })
+  .describe("Not found error response");
