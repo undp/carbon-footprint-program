@@ -29,6 +29,8 @@ Para permitir que tu máquina local se conecte a la base de datos, necesitas agr
    - Haz clic en el botón **"Save"** (Guardar) para aplicar los cambios
    - Espera a que se confirme que la regla se agregó correctamente
 
+> Nota: debes repetir estos pasos cada vez que trabajes desde una red distinta o cuando elimines y vuelvas a desplegar el servidor PostgreSQL Flexible Server, ya que las reglas anteriores dejan de ser válidas.
+
 ## Funcionamiento del Script `run-migrations.sh`
 
 El script `infra/run-migrations.sh` automatiza la ejecución de migraciones de Prisma contra la base de datos PostgreSQL en Azure. Realiza los siguientes pasos:
