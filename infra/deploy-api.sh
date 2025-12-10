@@ -11,6 +11,13 @@ log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
 }
 
+command -v az >/dev/null 2>&1 || { log "Error: Azure CLI (az) is required but not found in PATH."; exit 1; }
+command -v docker >/dev/null 2>&1 || { log "Error: Docker CLI is required but not found in PATH."; exit 1; }
+if ! az account show >/dev/null 2>&1; then
+  log "Error: Azure CLI not logged in. Ejecuta 'az login' antes de continuar."
+  exit 1
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
