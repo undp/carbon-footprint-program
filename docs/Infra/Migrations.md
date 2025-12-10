@@ -37,7 +37,7 @@ El script `infra/run-migrations.sh` automatiza la ejecución de migraciones de P
 
 1. **Autenticación**: Verifica que estés autenticado en Azure CLI. Si no lo estás, te solicitará iniciar sesión.
 
-2. **Carga de configuración**: Lee las variables de entorno necesarias desde `infra/.envrc`, incluyendo:
+2. **Carga de configuración**: Lee las variables de entorno necesarias desde `infra/.envrc` o el archivo `.env` correspondiente, incluyendo:
    - `AZURE_RESOURCE_GROUP`: El nombre del grupo de recursos donde está desplegada la infraestructura
    - `ENVIRONMENT`: El entorno (development, staging, production)
 
