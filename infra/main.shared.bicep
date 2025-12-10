@@ -17,9 +17,6 @@ param acrSku string = 'Basic'
 @description('Environment name for tagging')
 param environment string = 'shared'
 
-@description('Location for resources')
-param location string = resourceGroup().location
-
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
