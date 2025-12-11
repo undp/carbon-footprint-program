@@ -3,9 +3,6 @@ import {
   Box,
   Button,
   FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
   TextField,
   Typography,
   useTheme,
@@ -14,6 +11,7 @@ import { HuellaLatamLogo } from "@/icons";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { FormSelectField } from "./components/form/FormSelectField";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
@@ -23,7 +21,7 @@ const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
 
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
-  const { control, handleSubmit } = useForm({
+  const { control } = useForm({
     defaultValues: {
       year: "",
       companyName: "",
@@ -62,70 +60,35 @@ export const BusinessProfilingScreen: FC = () => {
           </Box>
           <Box className="flex flex-row gap-6">
             <Box className="flex-1 flex flex-col gap-8">
-              {/* ! TODO: evaluate encapsulating the form control in a component */}
-              <FormControl fullWidth>
-                <InputLabel id="year-label">
-                  Año del inventario a calcular
-                </InputLabel>
+              <FormSelectField
+                name="year"
+                control={control}
+                label="Año del inventario a calcular"
+                labelId="year-label"
+                options={YEARS.map((year) => ({ label: year, value: year }))}
+              />
 
-                <Controller
-                  name="year"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="year-label"
-                      label="Año del inventario a calcular"
-                    >
-                      {YEARS.map((year) => (
-                        <MenuItem key={year} value={year}>
-                          {year}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
+              <FormSelectField
+                name="sector"
+                control={control}
+                label="Rubro"
+                labelId="sector-label"
+                options={INDUSTRIES.map((industry) => ({
+                  label: industry,
+                  value: industry,
+                }))}
+              />
 
-              <FormControl fullWidth>
-                <InputLabel id="sector-label">Rubro</InputLabel>
-
-                <Controller
-                  name="sector"
-                  control={control}
-                  render={({ field }) => (
-                    <Select {...field} labelId="sector-label" label="Rubro">
-                      {INDUSTRIES.map((industry) => (
-                        <MenuItem key={industry} value={industry}>
-                          {industry}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
-
-              <FormControl fullWidth>
-                <InputLabel id="company-size-label">Tamaño</InputLabel>
-
-                <Controller
-                  name="companySize"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="company-size-label"
-                      label="Tamaño"
-                    >
-                      {COMPANY_SIZES.map((companySize) => (
-                        <MenuItem key={companySize} value={companySize}>
-                          {companySize}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
+              <FormSelectField
+                name="companySize"
+                control={control}
+                label="Tamaño"
+                labelId="company-size-label"
+                options={COMPANY_SIZES.map((companySize) => ({
+                  label: companySize,
+                  value: companySize,
+                }))}
+              />
             </Box>
             <Box className="flex-1 flex flex-col gap-8">
               <FormControl fullWidth>
@@ -141,56 +104,32 @@ export const BusinessProfilingScreen: FC = () => {
                 />
               </FormControl>
 
-              <FormControl fullWidth>
-                <InputLabel id="sub-sector-label">Sub-rubro</InputLabel>
-
-                <Controller
-                  name="subSector"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="sub-sector-label"
-                      label="Sub-rubro"
-                    >
-                      {SUB_INDUSTRIES.map((subIndustry) => (
-                        <MenuItem key={subIndustry} value={subIndustry}>
-                          {subIndustry}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
+              <FormSelectField
+                name="subSector"
+                control={control}
+                label="Sub-rubro"
+                labelId="sub-sector-label"
+                options={SUB_INDUSTRIES.map((subIndustry) => ({
+                  label: subIndustry,
+                  value: subIndustry,
+                }))}
+              />
             </Box>
           </Box>
         </Box>
         <Box className="flex flex-col p-6 rounded-lg bg-white gap-8">
           <Box className="flex flex-row gap-6 mt-6">
             <Box className="flex-1 flex flex-row gap-6">
-              <FormControl fullWidth>
-                <InputLabel id="activity-label">
-                  Actividad principal del negocio
-                </InputLabel>
-
-                <Controller
-                  name="activity"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="activity-label"
-                      label="Actividad principal del negocio"
-                    >
-                      {ACTIVITIES.map((activity) => (
-                        <MenuItem key={activity} value={activity}>
-                          {activity}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
+              <FormSelectField
+                name="activity"
+                control={control}
+                label="Actividad principal del negocio"
+                labelId="activity-label"
+                options={ACTIVITIES.map((activity) => ({
+                  label: activity,
+                  value: activity,
+                }))}
+              />
 
               <FormControl fullWidth>
                 <Controller
