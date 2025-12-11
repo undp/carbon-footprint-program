@@ -6,7 +6,6 @@ CREATE TABLE "country" (
     "id" BIGSERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "iso_code" TEXT NOT NULL,
-    "active_methodology_version_id" INTEGER,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 

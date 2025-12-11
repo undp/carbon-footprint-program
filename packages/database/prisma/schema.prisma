@@ -8,16 +8,15 @@ datasource db {
 }
 
 model country {
-  id                            BigInt                      @id @default(autoincrement())
-  name                          String
-  iso_code                      String                      @unique
-  active_methodology_version_id Int?
-  created_at                    DateTime                    @default(now())
-  updated_at                    DateTime                    @updatedAt
-  country_job_positions         country_job_position[]
-  country_organization_sizes    country_organization_size[]
-  country_sectors               country_sector[]
-  country_parameters            country_parameter[]
+  id                         BigInt                      @id @default(autoincrement())
+  name                       String
+  iso_code                   String                      @unique
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @updatedAt
+  country_job_positions      country_job_position[]
+  country_organization_sizes country_organization_size[]
+  country_sectors            country_sector[]
+  country_parameters         country_parameter[]
 }
 
 model country_parameter {
