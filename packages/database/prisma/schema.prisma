@@ -12,7 +12,7 @@ model country {
   name                       String
   iso_code                   String                      @unique
   created_at                 DateTime                    @default(now())
-  updated_at                 DateTime                    @updatedAt
+  updated_at                 DateTime                    @default(now()) @updatedAt
   country_job_positions      country_job_position[]
   country_organization_sizes country_organization_size[]
   country_sectors            country_sector[]
@@ -27,7 +27,7 @@ model country_parameter {
   description   String
   type          String
   created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  updated_at    DateTime @default(now()) @updatedAt
   created_by_id BigInt
   updated_by_id BigInt
 
@@ -43,7 +43,7 @@ model system_parameter {
   description   String
   type          String
   created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  updated_at    DateTime @default(now()) @updatedAt
   created_by_id BigInt
   updated_by_id BigInt
 
@@ -56,7 +56,7 @@ model country_organization_size {
   country_id BigInt
   name       String
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   country country @relation(fields: [country_id], references: [id])
 
@@ -68,7 +68,7 @@ model country_sector {
   country_id    BigInt
   name          String
   created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  updated_at    DateTime @default(now()) @updatedAt
   created_by_id BigInt?
   updated_by_id BigInt?
 
@@ -85,7 +85,7 @@ model country_subsector {
   country_sector_id BigInt
   name              String
   created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  updated_at        DateTime @default(now()) @updatedAt
   created_by_id     BigInt?
   updated_by_id     BigInt?
 
@@ -101,7 +101,7 @@ model country_job_position {
   country_id BigInt
   name       String
   created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  updated_at DateTime @default(now()) @updatedAt
 
   country country @relation(fields: [country_id], references: [id])
   users   user[]
@@ -114,7 +114,7 @@ model role {
   name               String              @unique
   description        String
   created_at         DateTime            @default(now())
-  updated_at         DateTime            @updatedAt
+  updated_at         DateTime            @default(now()) @updatedAt
   organization_roles organization_role[]
   system_roles       system_role[]
 }
@@ -139,7 +139,7 @@ model user {
   first_name              String?
   last_name               String?
   created_at              DateTime @default(now())
-  updated_at              DateTime @updatedAt
+  updated_at              DateTime @default(now()) @updatedAt
   created_by_id           BigInt
   updated_by_id           BigInt
 
