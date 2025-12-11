@@ -275,7 +275,7 @@ export const BusinessProfilingScreen: FC = () => {
               />
             </FormControl>
 
-            <FormControl fullWidth sx={{ visibility: "hidden" }}>
+            <FormControl fullWidth>
               <Controller
                 name="quantity"
                 control={control}
@@ -331,7 +331,7 @@ export const BusinessProfilingScreen: FC = () => {
                 )}
               />
             </FormControl>
-            <Box className="flex items-center justify-center">
+            <Box className="flex items-center justify-center h-14">
               <Button
                 variant="outlined"
                 color="primary"
