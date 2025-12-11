@@ -13,6 +13,14 @@ export const GetAllJobPositionsParamsSchema = z
   .void()
   .describe("No parameters required");
 
+export const GetAllJobPositionsBodySchema = z
+  .void()
+  .describe("No body required");
+
+export const GetAllJobPositionsQuerystringSchema = z
+  .void()
+  .describe("No querystring required");
+
 export const GetAllJobPositionsResponseSchema = z.array(
   z.object({
     id: z.string(),
@@ -23,9 +31,3 @@ export const GetAllJobPositionsResponseSchema = z.array(
 export type GetAllJobPositionsResponse = z.infer<
   typeof GetAllJobPositionsResponseSchema
 >;
-
-export const GetAllJobPositionsNotFoundErrorSchema = z
-  .object({
-    message: z.string(),
-  })
-  .describe("Not found error response");
