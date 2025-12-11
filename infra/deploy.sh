@@ -200,12 +200,27 @@ case "$ENVIRONMENT" in
       --resource-group "$SHARED_RG" \
       --query "name" -o tsv 2>/dev/null || echo "")
 
+    ACR_EXISTS=$(az acr show \
+      --name "$ACR_NAME" \
+      --resource-group "$SHARED_RG" \
+      --query "name" -o tsv 2>/dev/null || echo "")
+
+    NEED_ACR_STACK="false"
     if [ -z "$SHARED_STACK_EXISTS" ]; then
-      log "Shared ACR stack not found. Creating '$SHARED_ACR_STACK_NAME' in $SHARED_RG..."
+      log "Shared ACR stack not found. Will create '$SHARED_ACR_STACK_NAME' in $SHARED_RG..."
+      NEED_ACR_STACK="true"
+    elif [ -z "$ACR_EXISTS" ]; then
+      log "Shared ACR stack exists but ACR '$ACR_NAME' is missing. Recreating stack to restore ACR."
+      NEED_ACR_STACK="true"
+    else
+      log "Shared ACR stack already exists: $SHARED_ACR_STACK_NAME in $SHARED_RG (ACR present: $ACR_NAME)"
+    fi
+
+    if [ "$NEED_ACR_STACK" = "true" ]; then
       log "  ACR Name: $ACR_NAME"
       log "  ACR SKU: $ACR_SKU"
       if [ "$DRY_RUN" = "true" ]; then
-        log "[DRY RUN] Would create shared ACR stack: $SHARED_ACR_STACK_NAME"
+        log "[DRY RUN] Would create/update shared ACR stack: $SHARED_ACR_STACK_NAME"
         log "[DRY RUN]   --template-file main.shared.bicep"
         log "[DRY RUN]   --parameters acrName=$ACR_NAME acrSku=$ACR_SKU"
       else
@@ -218,7 +233,7 @@ case "$ENVIRONMENT" in
           --deny-settings-mode "none" \
           --action-on-unmanage "detachAll" \
           --yes || {
-            log "Error: Failed to create shared ACR stack '$SHARED_ACR_STACK_NAME' in '$SHARED_RG'. Aborting before main deployment."
+            log "Error: Failed to create/update shared ACR stack '$SHARED_ACR_STACK_NAME' in '$SHARED_RG'. Aborting before main deployment."
             log "You can manually create it with:"
             log "  az stack group create --name $SHARED_ACR_STACK_NAME --resource-group $SHARED_RG \\"
             log "    --template-file $SCRIPT_DIR/main.shared.bicep \\"
@@ -226,8 +241,6 @@ case "$ENVIRONMENT" in
             exit 1
           }
       fi
-    else
-      log "Shared ACR stack already exists: $SHARED_ACR_STACK_NAME in $SHARED_RG"
     fi
     ;;
 esac
