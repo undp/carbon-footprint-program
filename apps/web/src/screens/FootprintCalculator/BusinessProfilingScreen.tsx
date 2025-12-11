@@ -8,10 +8,12 @@ import {
   Select,
   TextField,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { Controller, useForm } from "react-hook-form";
 import { AddIcon } from "@/icons/AddIcon";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
@@ -21,6 +23,7 @@ const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
 const MEDITION_MODES = ["Sedes", "Sucursales", "Establecimientos"];
 
 export const BusinessProfilingScreen: FC = () => {
+  const theme = useTheme();
   const { control, handleSubmit } = useForm({
     defaultValues: {
       year: "",
@@ -223,7 +226,7 @@ export const BusinessProfilingScreen: FC = () => {
           </Box>
         </Box>
       </Box>
-      <Box className="flex flex-col m-6 p-4 rounded-lg bg-white">
+      <Box className="flex flex-col m-6 p-4 rounded-lg bg-white gap-8">
         <Box className="flex flex-row gap-6 mt-6">
           <Box className="flex-1 flex flex-col gap-6">
             {/* ! TODO: evaluate encapsulating the form control in a component */}
@@ -327,6 +330,53 @@ export const BusinessProfilingScreen: FC = () => {
               </Button>
             </Box>
           </Box>
+        </Box>
+        <Box
+          className="flex flex-row w-full h-20 p-2 bg-red-500 rounded"
+          sx={{
+            background: `linear-gradient(90deg, rgba(86, 245, 141, 0.20) 0%, rgba(99, 228, 207, 0.20) 100%)`,
+          }}
+        >
+          <Box className="h-10 w-10" />
+          <Box>
+            <Typography variant="body1" fontWeight="fontWeightBold">
+              ¿Cuál es la actividad principal de tu negocio?
+            </Typography>
+            <Typography variant="body1">
+              Es la forma más simple y representativa de medir lo que hace tu
+              empresa. Te permite ver tu huella por unidad de servicio o
+              producto.
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Ejemplo: Actividad principal del negocio → cómo mides tu operación
+              (ej: paquetes entregados). Actividad principal al año → cuántos
+              hiciste el último año (ej: 220.000 paquetes).{" "}
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+
+      <Box
+        className="flex flex-row justify-end items-center gap-6 h-20 px-4 py-6 bg-white"
+        sx={{
+          boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)",
+        }}
+      >
+        <Box className="flex flex-row gap-6">
+          <Button
+            startIcon={
+              <ArrowRightAltRounded sx={{ transform: "scaleX(-1)" }} />
+            }
+          >
+            Volver
+          </Button>
+          <Button
+            sx={{ backgroundColor: theme.palette.primary.main }}
+            variant="contained"
+            endIcon={<ArrowRightAltRounded />}
+          >
+            Siguiente
+          </Button>
         </Box>
       </Box>
     </Box>
