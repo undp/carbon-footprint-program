@@ -159,6 +159,12 @@ CREATE TABLE "rate_measurement_unit" (
 CREATE UNIQUE INDEX "country_iso_code_key" ON "country"("iso_code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "country_parameter_country_id_key_key" ON "country_parameter"("country_id", "key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "system_parameter_key_key" ON "system_parameter"("key");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "country_organization_size_country_id_name_key" ON "country_organization_size"("country_id", "name");
 
 -- CreateIndex

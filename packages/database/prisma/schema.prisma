@@ -34,11 +34,13 @@ model country_parameter {
   country country @relation(fields: [country_id], references: [id])
   creator user?   @relation("country_parameter_created_by", fields: [created_by_id], references: [id])
   updater user?   @relation("country_parameter_updated_by", fields: [updated_by_id], references: [id])
+
+  @@unique([country_id, key])
 }
 
 model system_parameter {
   id            BigInt   @id @default(autoincrement())
-  key           String
+  key           String   @unique
   value         String
   description   String
   type          String
