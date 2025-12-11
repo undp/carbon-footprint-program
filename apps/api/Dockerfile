@@ -43,8 +43,8 @@ COPY apps/api ./apps/api
 WORKDIR /app/packages/database
 RUN pnpm exec prisma generate
 
-# Compile database package (output .js files in-place next to .ts files)
-RUN pnpm exec tsc
+# Build database package (compiles TypeScript and copies generated client to dist)
+RUN pnpm build
 
 # Build the API application
 WORKDIR /app
@@ -74,11 +74,12 @@ COPY --chown=fastify:nodejs pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
 COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 
-# Copy database package files
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.js ./packages/database/
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/*.d.ts ./packages/database/
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/generated ./packages/database/generated
+# Copy database package dist folder (includes compiled code and generated client)
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma ./packages/database/prisma
+# Copy compiled prisma config and its dependency to root so `prisma migrate deploy` can find it
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist/prisma.config.js ./packages/database/
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist/environment.js ./packages/database/
 
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
