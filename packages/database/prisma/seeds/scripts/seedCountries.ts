@@ -10,7 +10,6 @@ const __dirname = dirname(__filename);
 type CountryData = {
   name: string;
   iso_code: string;
-  active_methodology_version_id: number | null;
 };
 
 export async function seedCountries(prisma: PrismaClient) {
