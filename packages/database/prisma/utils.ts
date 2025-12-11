@@ -16,8 +16,16 @@ export const checkForDuplicates = <T>(
 
   const duplicates = findDuplicates<T>(data, uniqueKeys);
   if (duplicates.length > 0) {
+    const seen = new Set<string>();
+    const uniqueCombinations = duplicates
+      .map((item) => uniqueKeys.map((key) => item[key as keyof T]).join(", "))
+      .filter((combo) => {
+        if (seen.has(combo)) return false;
+        seen.add(combo);
+        return true;
+      });
     throw new Error(
-      `Duplicated data found: ${duplicates.map((item) => uniqueKeys.map((key) => item[key as keyof T]).join(", ")).join(", ")}. Please remove the duplicates and try again.`
+      `Duplicated data found: ${uniqueCombinations.join("; ")}. Please remove the duplicates and try again.`
     );
   }
 };
