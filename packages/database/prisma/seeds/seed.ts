@@ -26,7 +26,8 @@ main()
   })
   .catch(async (e) => {
     console.error(e);
-    process.exit(1);
+    // Let Node exit after pending tasks (like $disconnect) finish
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();
