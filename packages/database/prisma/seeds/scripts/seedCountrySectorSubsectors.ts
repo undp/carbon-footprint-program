@@ -21,6 +21,7 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
+  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country sector subsectors
   const countrySectorSubsectorsData: CountrySectorSubsectorData[] = JSON.parse(
@@ -46,7 +47,7 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
 
   // Process each country's sectors and subsectors
   for (const item of countrySectorSubsectorsData) {
-    const country = countries.find((c) => c.iso_code === item.country_iso_code);
+    const country = countryByIso.get(item.country_iso_code);
     if (!country) {
       throw new Error(`Country '${item.country_iso_code}' not found`);
     }

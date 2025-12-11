@@ -17,6 +17,7 @@ export async function seedCountryJobPositions(prisma: PrismaClient) {
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
+  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country job positions
   const jobPositionsData: JobPositionData[] = JSON.parse(
@@ -29,7 +30,7 @@ export async function seedCountryJobPositions(prisma: PrismaClient) {
   // Seed job positions
   const jobPositions = await Promise.all(
     jobPositionsData.map((jp) => {
-      const country = countries.find((c) => c.iso_code === jp.country_iso_code);
+      const country = countryByIso.get(jp.country_iso_code);
       if (!country) {
         throw new Error(`Country '${jp.country_iso_code}' not found`);
       }
