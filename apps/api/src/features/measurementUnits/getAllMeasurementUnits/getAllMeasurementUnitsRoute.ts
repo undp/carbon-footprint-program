@@ -3,14 +3,6 @@ import { getAllMeasurementUnitsHandler } from "./getAllMeasurementUnitsHandler.j
 import { GetAllMeasurementUnitsResponseSchema } from "./getAllMeasurementUnitsSchema.js";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-// --------------------------------------------------------------------------------
-// OBJECTIVE: Register the route for the Get All Measurement Units feature.
-// EXPLANATION:
-// This file connects the URL path to the handler.
-// It also registers the Zod schemas for validation. This is the entry point
-// for this specific feature within the Fastify application.
-// --------------------------------------------------------------------------------
-
 export const getAllMeasurementUnitsRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
     "/",

@@ -3,14 +3,6 @@ import { getAllJobPositionsHandler } from "./getAllJobPositionsHandler.js";
 import { GetAllJobPositionsResponseSchema } from "./getAllJobPositionsSchema.js";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-// --------------------------------------------------------------------------------
-// OBJECTIVE: Register the route for the Get Book By ID feature.
-// EXPLANATION:
-// This file connects the URL path (e.g., /books/:id) to the handler.
-// It also registers the Zod schemas for validation. This is the entry point
-// for this specific feature within the Fastify application.
-// --------------------------------------------------------------------------------
-
 export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
     "/",
