@@ -13,7 +13,7 @@ import type { GetAllRateMeasurementUnitsResponse } from "./getAllRateMeasurement
 
 export const getAllRateMeasurementUnitsService = async (
   prismaClient: PrismaClient
-): Promise<GetAllRateMeasurementUnitsResponse | null> => {
+): Promise<GetAllRateMeasurementUnitsResponse> => {
   const data = await prismaClient.rate_measurement_unit.findMany({
     include: {
       numerator_measurement_unit: true,

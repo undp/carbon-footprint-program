@@ -13,7 +13,7 @@ import type { GetAllMeasurementUnitsResponse } from "./getAllMeasurementUnitsSch
 
 export const getAllMeasurementUnitsService = async (
   prismaClient: PrismaClient
-): Promise<GetAllMeasurementUnitsResponse | null> => {
+): Promise<GetAllMeasurementUnitsResponse> => {
   const data = await prismaClient.measurement_unit.findMany({
     orderBy: [
       {

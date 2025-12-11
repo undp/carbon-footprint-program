@@ -13,7 +13,7 @@ import type { GetAllCountryOrganizationSizesResponse } from "./getAllCountryOrga
 
 export const getAllCountryOrganizationSizesService = async (
   prismaClient: PrismaClient
-): Promise<GetAllCountryOrganizationSizesResponse | null> => {
+): Promise<GetAllCountryOrganizationSizesResponse> => {
   const data = await prismaClient.country_organization_size.findMany({
     orderBy: {
       name: "asc",

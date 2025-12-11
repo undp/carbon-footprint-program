@@ -13,7 +13,7 @@ import type { GetAllCountrySectorsResponse } from "./getAllCountrySectorsSchema.
 
 export const getAllCountrySectorsService = async (
   prismaClient: PrismaClient
-): Promise<GetAllCountrySectorsResponse | null> => {
+): Promise<GetAllCountrySectorsResponse> => {
   const data = await prismaClient.country_sector.findMany({
     include: {
       country_subsectors: {
@@ -26,7 +26,7 @@ export const getAllCountrySectorsService = async (
       name: "asc",
     },
   });
-  console.log(data.length);
+
   return data.map((item) => ({
     id: item.id.toString(),
     name: item.name,
