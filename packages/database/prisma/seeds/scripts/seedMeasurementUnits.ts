@@ -54,7 +54,7 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
   );
 
   console.log(
-    `✓ Created ${measurementUnits.length} measurement units: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")}`
+    `✓ Ensured ${measurementUnits.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")}`
   );
 
   const measurementUnitsByAbbreviation = new Map(
@@ -105,7 +105,7 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
   );
 
   console.log(
-    `✓ Created ${rateMeasurementUnits.length} rate measurement units: ${rateMeasurementUnits.map((rmu) => rmu.abbreviation).join(", ")}`
+    `✓ Ensured ${rateMeasurementUnits.length} rate measurement units exist: ${rateMeasurementUnits.map((rmu) => rmu.abbreviation).join(", ")}`
   );
 
   console.log("✓ Measurement units seeded successfully!");

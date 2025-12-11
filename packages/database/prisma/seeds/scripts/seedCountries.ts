@@ -42,7 +42,7 @@ export async function seedCountries(prisma: PrismaClient) {
     )
   );
 
-  console.log(`✓ Created ${countries.length} countries`);
+  console.log(`✓ Ensured ${countries.length} countries exist`);
 
   return countries;
 }

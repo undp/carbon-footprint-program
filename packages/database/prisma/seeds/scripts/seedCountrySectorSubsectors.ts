@@ -89,7 +89,7 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
     }
   }
 
-  console.log(`✓ Created ${totalSectors} sectors`);
-  console.log(`✓ Created ${totalSubsectors} subsectors`);
+  console.log(`✓ Ensured ${totalSectors} sectors exist`);
+  console.log(`✓ Ensured ${totalSubsectors} subsectors exist`);
   console.log("✓ Country sectors and subsectors seeded successfully!");
 }

@@ -44,7 +44,7 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
     })
   );
 
-  console.log(`✓ Created ${organizationSizes.length} organization sizes`);
+  console.log(`✓ Ensured ${organizationSizes.length} organization sizes exist`);
 
   return organizationSizes;
 }

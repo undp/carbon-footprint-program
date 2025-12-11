@@ -56,7 +56,7 @@ export async function seedRoles(prisma: PrismaClient) {
   });
 
   console.log(
-    `✓ Created ${organizationRoles.length} organization roles: ${organizationRoles.map((r) => r.name).join(", ")}`
+    `✓ Ensured ${organizationRoles.length} organization roles exist: ${organizationRoles.map((r) => r.name).join(", ")}`
   );
 
   // Seed system roles
@@ -69,7 +69,7 @@ export async function seedRoles(prisma: PrismaClient) {
   });
 
   console.log(
-    `✓ Created ${systemRoles.length} system roles: ${systemRoles.map((r) => r.name).join(", ")}`
+    `✓ Ensured ${systemRoles.length} system roles exist: ${systemRoles.map((r) => r.name).join(", ")}`
   );
 
   console.log("✓ Roles seeded successfully!");

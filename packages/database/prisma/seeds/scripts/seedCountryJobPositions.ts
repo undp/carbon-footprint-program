@@ -42,7 +42,7 @@ export async function seedCountryJobPositions(prisma: PrismaClient) {
     })
   );
 
-  console.log(`✓ Created ${jobPositions.length} job positions`);
+  console.log(`✓ Ensured ${jobPositions.length} job positions exist`);
 
   return jobPositions;
 }
