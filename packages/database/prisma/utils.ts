@@ -11,6 +11,9 @@ export const checkForDuplicates = <T>(
   data: T[],
   uniqueKeys: (keyof T)[]
 ): void => {
+  if (uniqueKeys.length === 0)
+    throw new Error("checkForDuplicates: uniqueKeys must not be empty");
+
   const duplicates = findDuplicates<T>(data, uniqueKeys);
   if (duplicates.length > 0) {
     throw new Error(
