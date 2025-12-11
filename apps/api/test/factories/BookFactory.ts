@@ -1,5 +1,5 @@
 import { faker } from "@faker-js/faker";
-import type { CreateBookBody } from "../../src/features/books/createBook/createBookSchema.example.js";
+import type { CreateBookBody } from "@/features/books/createBook/createBookSchema.example.js";
 
 export function createBookData(
   overrides?: Partial<CreateBookBody>
