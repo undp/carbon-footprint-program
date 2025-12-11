@@ -1,5 +1,5 @@
-import { createApp } from "@/app.js";
-import prismaPlugin from "@/plugins/app/prisma.js";
+import { createApp } from "../../src/app.js";
+import prismaPlugin from "../../src/plugins/app/prisma.js";
 import type { FastifyInstance } from "fastify";
 
 export async function createTestApp(
