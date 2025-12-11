@@ -18,8 +18,6 @@ type MeasurementUnitData = {
 type RateMeasurementUnitData = {
   name: string;
   abbreviation: string;
-  numerator_measurement_unit_id: number;
-  denominator_measurement_unit_id: number;
 };
 
 export async function seedMeasurementUnits(prisma: PrismaClient) {
@@ -59,6 +57,10 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
     `✓ Created ${measurementUnits.length} measurement units: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")}`
   );
 
+  const measurementUnitsByAbbreviation = new Map(
+    measurementUnits.map((mu) => [mu.abbreviation, mu])
+  );
+
   // Seed rate measurement units
   const rateMeasurementUnitsData: RateMeasurementUnitData[] = JSON.parse(
     readFileSync(
@@ -74,16 +76,13 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
     rateMeasurementUnitsData.map((rmu) => {
       const [upper, lower] = rmu.abbreviation.split("/");
 
-      const numeratorMeasurementUnit = measurementUnits.find(
-        (mu) => mu.abbreviation === upper
-      );
+      const numeratorMeasurementUnit =
+        measurementUnitsByAbbreviation.get(upper);
       if (!numeratorMeasurementUnit) {
         throw new Error(`Numerator measurement unit '${upper}' not found`);
       }
-
-      const denominatorMeasurementUnit = measurementUnits.find(
-        (mu) => mu.abbreviation === lower
-      );
+      const denominatorMeasurementUnit =
+        measurementUnitsByAbbreviation.get(lower);
       if (!denominatorMeasurementUnit) {
         throw new Error(`Denominator measurement unit '${lower}' not found`);
       }
