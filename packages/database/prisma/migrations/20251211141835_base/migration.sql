@@ -22,8 +22,8 @@ CREATE TABLE "country_parameter" (
     "type" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "created_by_id" BIGINT NOT NULL,
-    "updated_by_id" BIGINT NOT NULL,
+    "created_by_id" BIGINT,
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "country_parameter_pkey" PRIMARY KEY ("id")
 );
@@ -37,8 +37,8 @@ CREATE TABLE "system_parameter" (
     "type" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "created_by_id" BIGINT NOT NULL,
-    "updated_by_id" BIGINT NOT NULL,
+    "created_by_id" BIGINT,
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "system_parameter_pkey" PRIMARY KEY ("id")
 );
@@ -126,8 +126,8 @@ CREATE TABLE "user" (
     "last_name" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "created_by_id" BIGINT NOT NULL,
-    "updated_by_id" BIGINT NOT NULL,
+    "created_by_id" BIGINT,
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
@@ -189,16 +189,16 @@ CREATE UNIQUE INDEX "rate_measurement_unit_abbreviation_key" ON "rate_measuremen
 ALTER TABLE "country_parameter" ADD CONSTRAINT "country_parameter_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "country_parameter" ADD CONSTRAINT "country_parameter_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "country_parameter" ADD CONSTRAINT "country_parameter_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "country_parameter" ADD CONSTRAINT "country_parameter_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "country_parameter" ADD CONSTRAINT "country_parameter_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "system_parameter" ADD CONSTRAINT "system_parameter_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "system_parameter" ADD CONSTRAINT "system_parameter_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "system_parameter" ADD CONSTRAINT "system_parameter_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "system_parameter" ADD CONSTRAINT "system_parameter_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "country_organization_size" ADD CONSTRAINT "country_organization_size_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -231,10 +231,10 @@ ALTER TABLE "organization_role" ADD CONSTRAINT "organization_role_id_fkey" FOREI
 ALTER TABLE "system_role" ADD CONSTRAINT "system_role_id_fkey" FOREIGN KEY ("id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user" ADD CONSTRAINT "user_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user" ADD CONSTRAINT "user_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_country_job_position_id_fkey" FOREIGN KEY ("country_job_position_id") REFERENCES "country_job_position"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

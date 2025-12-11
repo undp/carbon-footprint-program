@@ -28,12 +28,12 @@ model country_parameter {
   type          String
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
-  created_by_id BigInt
-  updated_by_id BigInt
+  created_by_id BigInt?
+  updated_by_id BigInt?
 
   country country @relation(fields: [country_id], references: [id])
-  creator user    @relation("country_parameter_created_by", fields: [created_by_id], references: [id])
-  updater user    @relation("country_parameter_updated_by", fields: [updated_by_id], references: [id])
+  creator user?   @relation("country_parameter_created_by", fields: [created_by_id], references: [id])
+  updater user?   @relation("country_parameter_updated_by", fields: [updated_by_id], references: [id])
 }
 
 model system_parameter {
@@ -44,11 +44,11 @@ model system_parameter {
   type          String
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
-  created_by_id BigInt
-  updated_by_id BigInt
+  created_by_id BigInt?
+  updated_by_id BigInt?
 
-  creator user @relation("system_parameter_created_by", fields: [created_by_id], references: [id])
-  updater user @relation("system_parameter_updated_by", fields: [updated_by_id], references: [id])
+  creator user? @relation("system_parameter_created_by", fields: [created_by_id], references: [id])
+  updater user? @relation("system_parameter_updated_by", fields: [updated_by_id], references: [id])
 }
 
 model country_organization_size {
@@ -140,11 +140,11 @@ model user {
   last_name               String?
   created_at              DateTime @default(now())
   updated_at              DateTime @default(now()) @updatedAt
-  created_by_id           BigInt
-  updated_by_id           BigInt
+  created_by_id           BigInt?
+  updated_by_id           BigInt?
 
-  creator                    user                 @relation("user_created_by", fields: [created_by_id], references: [id])
-  updater                    user                 @relation("user_updated_by", fields: [updated_by_id], references: [id])
+  creator                    user?                @relation("user_created_by", fields: [created_by_id], references: [id])
+  updater                    user?                @relation("user_updated_by", fields: [updated_by_id], references: [id])
   country_job_position       country_job_position @relation(fields: [country_job_position_id], references: [id])
   users_created              user[]               @relation("user_created_by")
   users_updated              user[]               @relation("user_updated_by")
