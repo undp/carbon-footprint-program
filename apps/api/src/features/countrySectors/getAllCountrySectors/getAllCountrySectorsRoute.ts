@@ -1,9 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCountrySectorsHandler } from "./getAllCountrySectorsHandler.js";
-import {
-  GetAllCountrySectorsResponseSchema,
-  GetAllCountrySectorsNotFoundErrorSchema,
-} from "./getAllCountrySectorsSchema.js";
+import { GetAllCountrySectorsResponseSchema } from "./getAllCountrySectorsSchema.js";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Register the route for the Get All Country Sectors feature.
@@ -23,7 +21,7 @@ export const getAllCountrySectorsRoute = (fastify: FastifyZodInstance) => {
         description: "Retrieves all country sectors with their details",
         response: {
           200: GetAllCountrySectorsResponseSchema,
-          404: GetAllCountrySectorsNotFoundErrorSchema,
+          404: NotFoundErrorResponseSchema,
         },
       },
     },

@@ -5,6 +5,7 @@ import {
   GetAllJobPositionsParamsSchema,
   GetAllJobPositionsResponseSchema,
 } from "./getAllJobPositionsSchema.js";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Register the route for the Get Book By ID feature.
@@ -24,7 +25,7 @@ export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
         description: "Get all job positions",
         response: {
           200: GetAllJobPositionsResponseSchema,
-          404: GetAllJobPositionsNotFoundErrorSchema,
+          404: NotFoundErrorResponseSchema,
         },
       },
     },

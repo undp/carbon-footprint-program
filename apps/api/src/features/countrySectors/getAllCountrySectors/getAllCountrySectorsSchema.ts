@@ -29,9 +29,3 @@ export const GetAllCountrySectorsResponseSchema = z.array(
 export type GetAllCountrySectorsResponse = z.infer<
   typeof GetAllCountrySectorsResponseSchema
 >;
-
-export const GetAllCountrySectorsNotFoundErrorSchema = z
-  .object({
-    message: z.string(),
-  })
-  .describe("Not found error response");

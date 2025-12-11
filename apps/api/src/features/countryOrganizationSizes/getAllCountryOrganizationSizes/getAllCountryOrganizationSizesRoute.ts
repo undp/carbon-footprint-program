@@ -1,9 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCountryOrganizationSizesHandler } from "./getAllCountryOrganizationSizesHandler.js";
-import {
-  GetAllCountryOrganizationSizesResponseSchema,
-  GetAllCountryOrganizationSizesNotFoundErrorSchema,
-} from "./getAllCountryOrganizationSizesSchema.js";
+import { GetAllCountryOrganizationSizesResponseSchema } from "./getAllCountryOrganizationSizesSchema.js";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Register the route for the Get All Country Organization Sizes feature.
@@ -26,7 +24,7 @@ export const getAllCountryOrganizationSizesRoute = (
           "Retrieves all country organization sizes with their details",
         response: {
           200: GetAllCountryOrganizationSizesResponseSchema,
-          404: GetAllCountryOrganizationSizesNotFoundErrorSchema,
+          404: NotFoundErrorResponseSchema,
         },
       },
     },
