@@ -15,9 +15,9 @@ async function main() {
   await seedRoles(prisma);
   await seedMeasurementUnits(prisma);
   await seedCountries(prisma);
-  await seedCountryJobPositions(prisma);
-  await seedCountryOrganizationSizes(prisma);
-  await seedCountrySectorSubsectors(prisma);
+  await seedCountryJobPositions(prisma); // needs the countries to be seeded first
+  await seedCountryOrganizationSizes(prisma); // needs the countries to be seeded first
+  await seedCountrySectorSubsectors(prisma); // needs the countries to be seeded first
 }
 
 main()
