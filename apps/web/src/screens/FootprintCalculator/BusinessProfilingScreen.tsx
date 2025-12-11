@@ -13,7 +13,6 @@ import {
 import { HuellaLatamLogo } from "@/icons";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
-import { AddIcon } from "@/icons/AddIcon";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
@@ -21,7 +20,6 @@ const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
 const SUB_INDUSTRIES = ["Logística", "Tecnología", "Alimentos", "Retail"];
 const COMPANY_SIZES = ["Micro", "Pequeña", "Mediana", "Grande"];
 const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
-const MEDITION_MODES = ["Sedes", "Sucursales", "Establecimientos"];
 
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
