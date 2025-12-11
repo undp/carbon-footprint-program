@@ -9,7 +9,7 @@
   },
   {
     "name": "GUEST",
-    "description": "Guest role. Only can read the organization and its data."
+    "description": "Guest role. Can only read the organization and its data."
   },
   {
     "name": "VERIFIER",
