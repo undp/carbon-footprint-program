@@ -31,12 +31,10 @@ export async function seedCountries(prisma: PrismaClient) {
         where: { iso_code: country.iso_code },
         update: {
           name: country.name,
-          active_methodology_version_id: country.active_methodology_version_id,
         },
         create: {
           name: country.name,
           iso_code: country.iso_code,
-          active_methodology_version_id: country.active_methodology_version_id,
         },
       })
     )
