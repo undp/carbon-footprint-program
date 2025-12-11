@@ -1,6 +1,7 @@
 import { FC } from "react";
 import {
   Box,
+  Button,
   FormControl,
   InputLabel,
   MenuItem,
@@ -10,13 +11,14 @@ import {
 } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { Controller, useForm } from "react-hook-form";
+import { AddIcon } from "@/icons/AddIcon";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
 const SUB_INDUSTRIES = ["Logística", "Tecnología", "Alimentos", "Retail"];
 const COMPANY_SIZES = ["Micro", "Pequeña", "Mediana", "Grande"];
 const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
-const MEDITION_MODES = ["Manual", "Automático"];
+const MEDITION_MODES = ["Sedes", "Sucursales", "Establecimientos"];
 
 export const BusinessProfilingScreen: FC = () => {
   const { control, handleSubmit } = useForm({
@@ -28,6 +30,7 @@ export const BusinessProfilingScreen: FC = () => {
       companySize: "",
       activity: "",
       meditionMode: "",
+      quantity: "",
     },
   });
   return (
@@ -271,6 +274,28 @@ export const BusinessProfilingScreen: FC = () => {
                 )}
               />
             </FormControl>
+
+            <FormControl fullWidth sx={{ visibility: "hidden" }}>
+              <Controller
+                name="quantity"
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label="Cantidad de {activity} al año"
+                    placeholder="Indica la cantidad de {activity} al año"
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                      htmlInput: {
+                        sx: {
+                          "&::placeholder": { color: "#41404699", opacity: 1 },
+                        },
+                      },
+                    }}
+                  />
+                )}
+              />
+            </FormControl>
           </Box>
           <Box className="flex-1 flex flex-col gap-6">
             <FormControl fullWidth>
@@ -306,6 +331,22 @@ export const BusinessProfilingScreen: FC = () => {
                 )}
               />
             </FormControl>
+            <Box className="flex items-center justify-center">
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<AddIcon sx={{ width: 14, height: 14 }} />}
+              >
+                {/* <Typography
+                  fontWeight={500}
+                  fontSize="0.75rem"
+                  lineHeight="1.43"
+                  letterSpacing="0em"
+                > */}
+                Agregar Sede/sucursal/establecimiento
+                {/* </Typography> */}
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
