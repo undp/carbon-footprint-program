@@ -11,6 +11,7 @@ import {
   useTheme,
 } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
+import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
 import { AddIcon } from "@/icons/AddIcon";
 import { ArrowRightAltRounded } from "@mui/icons-material";
@@ -337,7 +338,14 @@ export const BusinessProfilingScreen: FC = () => {
             background: `linear-gradient(90deg, rgba(86, 245, 141, 0.20) 0%, rgba(99, 228, 207, 0.20) 100%)`,
           }}
         >
-          <Box className="h-10 w-10" />
+          <Box className="h-full w-10 flex items-center justify-center">
+            <Box
+              component="img"
+              src={capinautPointing}
+              alt="Actividad principal"
+            />
+          </Box>
+
           <Box>
             <Typography variant="body1" fontWeight="fontWeightBold">
               ¿Cuál es la actividad principal de tu negocio?
