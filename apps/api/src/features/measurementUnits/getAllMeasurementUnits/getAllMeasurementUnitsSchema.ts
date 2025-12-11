@@ -28,9 +28,3 @@ export const GetAllMeasurementUnitsResponseSchema = z.array(
 export type GetAllMeasurementUnitsResponse = z.infer<
   typeof GetAllMeasurementUnitsResponseSchema
 >;
-
-export const GetAllMeasurementUnitsNotFoundErrorSchema = z
-  .object({
-    message: z.string(),
-  })
-  .describe("Not found error response");

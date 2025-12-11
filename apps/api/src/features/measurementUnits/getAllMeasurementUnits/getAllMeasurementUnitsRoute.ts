@@ -1,9 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllMeasurementUnitsHandler } from "./getAllMeasurementUnitsHandler.js";
-import {
-  GetAllMeasurementUnitsResponseSchema,
-  GetAllMeasurementUnitsNotFoundErrorSchema,
-} from "./getAllMeasurementUnitsSchema.js";
+import { GetAllMeasurementUnitsResponseSchema } from "./getAllMeasurementUnitsSchema.js";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Register the route for the Get All Measurement Units feature.
@@ -23,7 +21,7 @@ export const getAllMeasurementUnitsRoute = (fastify: FastifyZodInstance) => {
         description: "Retrieves all measurement units with their details",
         response: {
           200: GetAllMeasurementUnitsResponseSchema,
-          404: GetAllMeasurementUnitsNotFoundErrorSchema,
+          404: NotFoundErrorResponseSchema,
         },
       },
     },
