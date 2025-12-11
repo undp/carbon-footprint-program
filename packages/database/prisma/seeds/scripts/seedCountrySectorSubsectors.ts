@@ -70,23 +70,25 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
     totalSectors++;
 
     // Create or update subsectors for this sector
-    for (const subsectorName of item.subsectors) {
-      await prisma.country_subsector.upsert({
-        where: {
-          country_sector_id_name: {
+    await Promise.all(
+      item.subsectors.map((subsectorName) =>
+        prisma.country_subsector.upsert({
+          where: {
+            country_sector_id_name: {
+              country_sector_id: sector.id,
+              name: subsectorName,
+            },
+          },
+          update: {},
+          create: {
             country_sector_id: sector.id,
             name: subsectorName,
           },
-        },
-        update: {},
-        create: {
-          country_sector_id: sector.id,
-          name: subsectorName,
-        },
-      });
+        })
+      )
+    );
 
-      totalSubsectors++;
-    }
+    totalSubsectors += item.subsectors.length;
   }
 
   console.log(`✓ Ensured ${totalSectors} sectors exist`);
