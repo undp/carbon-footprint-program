@@ -12,6 +12,21 @@ type RoleData = {
   description: string;
 };
 
+async function upsertRoles(prisma: PrismaClient, data: RoleData[]) {
+  return Promise.all(
+    data.map((d) =>
+      prisma.role.upsert({
+        where: { name: d.name },
+        update: { description: d.description },
+        create: {
+          name: d.name,
+          description: d.description,
+        },
+      })
+    )
+  );
+}
+
 export async function seedRoles(prisma: PrismaClient) {
   console.log("Seeding roles...");
 
@@ -32,18 +47,7 @@ export async function seedRoles(prisma: PrismaClient) {
   checkForDuplicates(systemRolesData, ["name"]);
 
   // Seed organization roles
-  const organizationRoles = await Promise.all(
-    organizationRolesData.map((roleData) =>
-      prisma.role.upsert({
-        where: { name: roleData.name },
-        update: { description: roleData.description },
-        create: {
-          name: roleData.name,
-          description: roleData.description,
-        },
-      })
-    )
-  );
+  const organizationRoles = await upsertRoles(prisma, organizationRolesData);
 
   // Bulk insert organization_role entries
   await prisma.organization_role.createMany({
@@ -56,18 +60,7 @@ export async function seedRoles(prisma: PrismaClient) {
   );
 
   // Seed system roles
-  const systemRoles = await Promise.all(
-    systemRolesData.map((roleData) =>
-      prisma.role.upsert({
-        where: { name: roleData.name },
-        update: { description: roleData.description },
-        create: {
-          name: roleData.name,
-          description: roleData.description,
-        },
-      })
-    )
-  );
+  const systemRoles = await upsertRoles(prisma, systemRolesData);
 
   // Bulk insert system_role entries
   await prisma.system_role.createMany({
