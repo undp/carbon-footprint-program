@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MagnitudeSchema } from "../shared/schemas.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Define the validation schema for the Get All Measurement Units feature.
@@ -12,8 +13,6 @@ import { z } from "zod";
 export const GetAllMeasurementUnitsParamsSchema = z
   .void()
   .describe("No parameters required");
-
-export const MagnitudeSchema = z.enum(["MASS", "VOLUME", "DISTANCE", "TIME"]);
 
 export const GetAllMeasurementUnitsResponseSchema = z.array(
   z.object({
