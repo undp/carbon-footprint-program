@@ -9,18 +9,6 @@ import { z } from "zod";
 // serialize outgoing responses. This ensures type safety and documentation.
 // --------------------------------------------------------------------------------
 
-export const GetAllJobPositionsParamsSchema = z
-  .void()
-  .describe("No parameters required");
-
-export const GetAllJobPositionsBodySchema = z
-  .void()
-  .describe("No body required");
-
-export const GetAllJobPositionsQuerystringSchema = z
-  .void()
-  .describe("No querystring required");
-
 export const GetAllJobPositionsResponseSchema = z.array(
   z.object({
     id: z.string(),
