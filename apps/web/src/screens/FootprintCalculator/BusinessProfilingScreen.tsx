@@ -40,9 +40,8 @@ export const BusinessProfilingScreen: FC = () => {
   return (
     <Box className="flex flex-col min-h-screen">
       <Box
-        className="flex flex-row justify-start items-center gap-6 h-20 bg-white"
+        className="flex flex-row justify-start px-6 py-4 items-center gap-6 h-20 bg-white"
         sx={{
-          padding: "16px 24px",
           boxShadow: "0px 4px 8px rgba(0,0,0,0.04)",
         }}
       >
