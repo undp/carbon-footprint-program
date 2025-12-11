@@ -17,6 +17,7 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
+  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country organization sizes
   const organizationSizesData: OrganizationSizeData[] = JSON.parse(
@@ -31,7 +32,7 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
   // Seed organization sizes
   const organizationSizes = await Promise.all(
     organizationSizesData.map((os) => {
-      const country = countries.find((c) => c.iso_code === os.country_iso_code);
+      const country = countryByIso.get(os.country_iso_code);
       if (!country) {
         throw new Error(`Country '${os.country_iso_code}' not found`);
       }
