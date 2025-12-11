@@ -8,12 +8,12 @@ import {
   afterEach,
   inject,
 } from "vitest";
-import { createTestApp } from "@/test/factories/appFactory.js";
+import { createTestApp } from "@test/factories/appFactory.js";
 import {
   createBookData,
   createBookDataWithTitle,
   createInvalidBookData,
-} from "@/test/factories/bookFactory.js";
+} from "@test/factories/BookFactory.js";
 import type { CreateBookResponse } from "@/features/books/createBook/createBookSchema.example.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";

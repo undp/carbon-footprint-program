@@ -15,6 +15,14 @@ const TEST_DATABASE_CONFIG = {
 } as const;
 
 export function runPrismaMigrations(databaseUrl: string): void {
+  // Navigate from this file to the workspace root, then to the database package
+  // Current path: apps/api/src/test/setup/testcontainers.ts
+  // Target path: packages/database
+  // const databasePackagePath = path.resolve(
+  //   __dirname,
+  //   "../../../../../packages/database"
+  // );
+
   const databasePackagePath = path.dirname(
     require.resolve("@repo/database/package.json")
   );

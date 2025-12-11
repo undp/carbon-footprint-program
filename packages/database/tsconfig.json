@@ -1,7 +1,9 @@
 {
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "prisma/seeds", "generated"],
+  "exclude": ["node_modules", "dist", "prisma/seeds", "generated"],
   "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": ".",
     "module": "nodenext",
     "target": "esnext",
     "types": ["node"],

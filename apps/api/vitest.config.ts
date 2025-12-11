@@ -16,18 +16,19 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@test": path.resolve(__dirname, "./test"),
     },
   },
   test: {
     globals: true,
     environment: "node",
-    include: ["src/**/*.{test,spec}.{js,ts}"],
+    include: ["test/**/*.{test,spec}.{js,ts}"],
     testTimeout: 30000,
     hookTimeout: 30000,
     teardownTimeout: 10000,
     pool: "threads",
     maxWorkers: 1,
-    globalSetup: ["./src/test/setup/globalSetup.ts"],
+    globalSetup: ["./test/setup/globalSetup.ts"],
     server: {
       deps: {
         inline: [
@@ -48,7 +49,7 @@ export default defineConfig({
       reporter: ["text", "json", "html"],
       exclude: [
         "node_modules/",
-        "src/test/",
+        "test/",
         "**/*.test.ts",
         "**/*.spec.ts",
         "**/*.example.ts",

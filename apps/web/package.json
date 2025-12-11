@@ -9,7 +9,7 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "test": "vitest",
+    "test": "echo 'Not implemented yet'",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "start": "vite preview",

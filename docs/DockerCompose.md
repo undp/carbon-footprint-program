@@ -28,10 +28,7 @@ API_PORT=8080
 POSTGRES_USER=huella_user
 POSTGRES_PASSWORD=huella_password
 POSTGRES_DB=huella_latam
-POSTGRES_PORT=5432
-
-# Database Connection String
-DOCKER_DATABASE_URL=postgresql://huella_user:huella_password@postgres:5432/huella_latam?schema=public
+POSTGRES_PORT_HOST_MAPPING=5432
 
 # Security
 JWT_SECRET=your-secret-key-change-in-production
@@ -57,10 +54,10 @@ docker compose logs -f api
 
 ```bash
 # Run database migrations
-docker compose exec api sh -c "cd /app/packages/database && npx prisma migrate deploy"
+docker compose --env-file docker-compose.env exec api sh -c "cd /app/packages/database && npx prisma migrate deploy"
 
 # Seed the database with initial data
-docker compose exec api sh -c "cd /app/packages/database && npx tsx prisma/seeds/seed.ts"
+docker compose --env-file docker-compose.env exec api sh -c "cd /app/packages/database && npx tsx prisma/seeds/seed.ts"
 ```
 
 ### 4. Verify the Setup
