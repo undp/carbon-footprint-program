@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
+import { createGetAllHandler } from "@/handlerFactory/index.js";
 import { getAllMeasurementUnitsService } from "./getAllMeasurementUnitsService.js";
 
 // --------------------------------------------------------------------------------
@@ -10,22 +10,8 @@ import { getAllMeasurementUnitsService } from "./getAllMeasurementUnitsService.j
 // and error handling (though global error handling is preferred).
 // --------------------------------------------------------------------------------
 
-export const getAllMeasurementUnitsHandler = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "measurementUnits" });
-  log.info("Getting all measurement units...");
-
-  const prisma = request.server.prisma;
-
-  const measurementUnits = await getAllMeasurementUnitsService(prisma);
-
-  if (!measurementUnits.length) {
-    log.warn("Measurement units not found");
-    return reply.status(404).send({ message: "Measurement units not found" });
-  }
-  log.info("Measurement units found successfully");
-
-  return reply.status(200).send(measurementUnits);
-};
+export const getAllMeasurementUnitsHandler = createGetAllHandler(
+  "measurementUnits",
+  getAllMeasurementUnitsService,
+  "Measurement units"
+);

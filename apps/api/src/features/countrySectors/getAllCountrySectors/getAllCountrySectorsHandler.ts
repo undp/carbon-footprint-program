@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
+import { createGetAllHandler } from "@/handlerFactory/index.js";
 import { getAllCountrySectorsService } from "./getAllCountrySectorsService.js";
 
 // --------------------------------------------------------------------------------
@@ -10,22 +10,8 @@ import { getAllCountrySectorsService } from "./getAllCountrySectorsService.js";
 // and error handling (though global error handling is preferred).
 // --------------------------------------------------------------------------------
 
-export const getAllCountrySectorsHandler = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "countrySectors" });
-  log.info("Getting all country sectors...");
-
-  const prisma = request.server.prisma;
-
-  const countrySectors = await getAllCountrySectorsService(prisma);
-
-  if (!countrySectors.length) {
-    log.warn("Country sectors not found");
-    return reply.status(404).send({ message: "Country sectors not found" });
-  }
-  log.info("Country sectors found successfully");
-
-  return reply.status(200).send(countrySectors);
-};
+export const getAllCountrySectorsHandler = createGetAllHandler(
+  "countrySectors",
+  getAllCountrySectorsService,
+  "Country sectors"
+);

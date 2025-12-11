@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
+import { createGetAllHandler } from "@/handlerFactory/index.js";
 import { getAllCountryOrganizationSizesService } from "./getAllCountryOrganizationSizesService.js";
 
 // --------------------------------------------------------------------------------
@@ -10,25 +10,8 @@ import { getAllCountryOrganizationSizesService } from "./getAllCountryOrganizati
 // and error handling (though global error handling is preferred).
 // --------------------------------------------------------------------------------
 
-export const getAllCountryOrganizationSizesHandler = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "countryOrganizationSizes" });
-  log.info("Getting all country organization sizes...");
-
-  const prisma = request.server.prisma;
-
-  const countryOrganizationSizes =
-    await getAllCountryOrganizationSizesService(prisma);
-
-  if (!countryOrganizationSizes.length) {
-    log.warn("Country organization sizes not found");
-    return reply
-      .status(404)
-      .send({ message: "Country organization sizes not found" });
-  }
-  log.info("Country organization sizes found successfully");
-
-  return reply.status(200).send(countryOrganizationSizes);
-};
+export const getAllCountryOrganizationSizesHandler = createGetAllHandler(
+  "countryOrganizationSizes",
+  getAllCountryOrganizationSizesService,
+  "Country organization sizes"
+);

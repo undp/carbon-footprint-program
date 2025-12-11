@@ -1,4 +1,4 @@
-import type { FastifyReply, FastifyRequest } from "fastify";
+import { createGetAllHandler } from "@/handlerFactory/index.js";
 import { getAllJobPositionsService } from "./getAllJobPositionsService.js";
 
 // --------------------------------------------------------------------------------
@@ -10,25 +10,8 @@ import { getAllJobPositionsService } from "./getAllJobPositionsService.js";
 // and error handling (though global error handling is preferred).
 // --------------------------------------------------------------------------------
 
-export const getAllJobPositionsHandler = async (
-  request: FastifyRequest,
-  reply: FastifyReply
-) => {
-  const log = request.log.child({ module: "jobPositions" });
-  log.info("Getting all job positions...");
-
-  // In a real app, 'prisma' would be attached to the fastify instance
-  // e.g., const { prisma } = request.server;
-  // For this example, we assume it's available.
-  const prisma = request.server.prisma;
-
-  const jobPositions = await getAllJobPositionsService(prisma);
-
-  if (!jobPositions.length) {
-    log.warn("Job positions not found");
-    return reply.status(404).send({ message: "Job positions not found" });
-  }
-  log.info("Job positions found successfully");
-
-  return reply.status(200).send(jobPositions);
-};
+export const getAllJobPositionsHandler = createGetAllHandler(
+  "jobPositions",
+  getAllJobPositionsService,
+  "Job positions"
+);
