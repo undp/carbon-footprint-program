@@ -51,14 +51,7 @@ export const BusinessProfilingScreen: FC = () => {
         <Typography variant="body1">Inventario Organizacional</Typography>
       </Box>
 
-      <Box
-        sx={{
-          margin: "24px",
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#FFFFFF",
-        }}
-      >
+      <Box className="flex flex-col m-6 p-4 rounded-lg bg-white">
         <Box>
           <Typography variant="h6">Paso 1: Perfil de empresa</Typography>
           <Typography variant="subtitle2" color="text.secondary">
@@ -230,14 +223,7 @@ export const BusinessProfilingScreen: FC = () => {
           </Box>
         </Box>
       </Box>
-      <Box
-        sx={{
-          margin: "24px",
-          padding: "16px",
-          borderRadius: "8px",
-          backgroundColor: "#FFFFFF",
-        }}
-      >
+      <Box className="flex flex-col m-6 p-4 rounded-lg bg-white">
         <Box className="flex flex-row gap-6 mt-6">
           <Box className="flex-1 flex flex-col gap-6">
             {/* ! TODO: evaluate encapsulating the form control in a component */}
