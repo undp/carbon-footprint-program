@@ -15,8 +15,8 @@ export const GetAllCountryOrganizationSizesParamsSchema = z
 
 export const GetAllCountryOrganizationSizesResponseSchema = z.array(
   z.object({
-    id: z.string(),
-    name: z.string(),
+    id: z.string().regex(/^\d+$/).describe("The ID of organization size"),
+    name: z.string().min(1).describe("The name of organization size"),
   })
 );
 
