@@ -22,7 +22,7 @@ export const getAllCountryOrganizationSizesHandler = async (
   const countryOrganizationSizes =
     await getAllCountryOrganizationSizesService(prisma);
 
-  if (!countryOrganizationSizes) {
+  if (!countryOrganizationSizes.length) {
     log.warn("Country organization sizes not found");
     return reply
       .status(404)

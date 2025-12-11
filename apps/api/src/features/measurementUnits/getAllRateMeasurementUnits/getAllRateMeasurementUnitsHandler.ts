@@ -21,7 +21,7 @@ export const getAllRateMeasurementUnitsHandler = async (
 
   const rateMeasurementUnits = await getAllRateMeasurementUnitsService(prisma);
 
-  if (!rateMeasurementUnits) {
+  if (!rateMeasurementUnits.length) {
     log.warn("Rate measurement units not found");
     return reply
       .status(404)

@@ -21,7 +21,7 @@ export const getAllMeasurementUnitsHandler = async (
 
   const measurementUnits = await getAllMeasurementUnitsService(prisma);
 
-  if (!measurementUnits) {
+  if (!measurementUnits.length) {
     log.warn("Measurement units not found");
     return reply.status(404).send({ message: "Measurement units not found" });
   }

@@ -21,7 +21,7 @@ export const getAllCountrySectorsHandler = async (
 
   const countrySectors = await getAllCountrySectorsService(prisma);
 
-  if (!countrySectors) {
+  if (!countrySectors.length) {
     log.warn("Country sectors not found");
     return reply.status(404).send({ message: "Country sectors not found" });
   }

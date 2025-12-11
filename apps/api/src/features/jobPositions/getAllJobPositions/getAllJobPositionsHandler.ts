@@ -24,7 +24,7 @@ export const getAllJobPositionsHandler = async (
 
   const jobPositions = await getAllJobPositionsService(prisma);
 
-  if (!jobPositions) {
+  if (!jobPositions.length) {
     log.warn("Job positions not found");
     return reply.status(404).send({ message: "Job positions not found" });
   }
