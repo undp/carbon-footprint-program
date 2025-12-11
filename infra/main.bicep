@@ -268,6 +268,10 @@ module appService 'modules/appService.bicep' = {
 module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = {
   name: 'appServiceAcrPull'
   scope: resourceGroup(sharedResourceGroupName)
+  dependsOn: [
+    appService
+    sharedAcr
+  ]
   params: {
     acrName: acrName
     principalId: appService.outputs.principalId
