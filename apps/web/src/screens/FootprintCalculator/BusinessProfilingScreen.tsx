@@ -54,7 +54,7 @@ export const BusinessProfilingScreen: FC = () => {
         <Typography variant="body1">Inventario Organizacional</Typography>
       </Box>
       <Box className="flex flex-col flex-1 gap-6 p-6">
-        <Box className="flex flex-col p-4 rounded-lg bg-white gap-6">
+        <Box className="flex flex-col p-6 rounded-lg bg-white gap-6">
           <Box>
             <Typography variant="h6">Paso 1: Perfil de empresa</Typography>
             <Typography variant="subtitle2" color="text.secondary">
@@ -63,10 +63,10 @@ export const BusinessProfilingScreen: FC = () => {
             </Typography>
           </Box>
           <Box className="flex flex-row gap-6">
-            <Box className="flex-1 flex flex-col gap-6">
+            <Box className="flex-1 flex flex-col gap-8">
               {/* ! TODO: evaluate encapsulating the form control in a component */}
               <FormControl fullWidth>
-                <InputLabel id="year-label" shrink>
+                <InputLabel id="year-label">
                   Año del inventario a calcular
                 </InputLabel>
 
@@ -78,16 +78,6 @@ export const BusinessProfilingScreen: FC = () => {
                       {...field}
                       labelId="year-label"
                       label="Año del inventario a calcular"
-                      displayEmpty
-                      renderValue={(selected) =>
-                        selected ? (
-                          selected
-                        ) : (
-                          <Typography color="#41404699">
-                            Selecciona un año
-                          </Typography>
-                        )
-                      }
                     >
                       {YEARS.map((year) => (
                         <MenuItem key={year} value={year}>
@@ -100,29 +90,13 @@ export const BusinessProfilingScreen: FC = () => {
               </FormControl>
 
               <FormControl fullWidth>
-                <InputLabel id="sector-label" shrink>
-                  Rubro
-                </InputLabel>
+                <InputLabel id="sector-label">Rubro</InputLabel>
 
                 <Controller
                   name="sector"
                   control={control}
                   render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="sector-label"
-                      label="Rubro"
-                      displayEmpty
-                      renderValue={(selected) =>
-                        selected ? (
-                          selected
-                        ) : (
-                          <Typography color="#41404699">
-                            Selecciona el rubro de tu empresa
-                          </Typography>
-                        )
-                      }
-                    >
+                    <Select {...field} labelId="sector-label" label="Rubro">
                       {INDUSTRIES.map((industry) => (
                         <MenuItem key={industry} value={industry}>
                           {industry}
@@ -134,9 +108,7 @@ export const BusinessProfilingScreen: FC = () => {
               </FormControl>
 
               <FormControl fullWidth>
-                <InputLabel id="company-size-label" shrink>
-                  Tamaño
-                </InputLabel>
+                <InputLabel id="company-size-label">Tamaño</InputLabel>
 
                 <Controller
                   name="companySize"
@@ -146,16 +118,6 @@ export const BusinessProfilingScreen: FC = () => {
                       {...field}
                       labelId="company-size-label"
                       label="Tamaño"
-                      displayEmpty
-                      renderValue={(selected) =>
-                        selected ? (
-                          selected
-                        ) : (
-                          <Typography color="#41404699">
-                            Selecciona el tamaño de tu empresa
-                          </Typography>
-                        )
-                      }
                     >
                       {COMPANY_SIZES.map((companySize) => (
                         <MenuItem key={companySize} value={companySize}>
@@ -167,7 +129,7 @@ export const BusinessProfilingScreen: FC = () => {
                 />
               </FormControl>
             </Box>
-            <Box className="flex-1 flex flex-col gap-6">
+            <Box className="flex-1 flex flex-col gap-8">
               <FormControl fullWidth>
                 <Controller
                   name="companyName"
@@ -176,27 +138,13 @@ export const BusinessProfilingScreen: FC = () => {
                     <TextField
                       {...field}
                       label="Nombre de la empresa (Opcional)"
-                      placeholder="Indica el nombre de la empresa"
-                      slotProps={{
-                        inputLabel: { shrink: true },
-                        htmlInput: {
-                          sx: {
-                            "&::placeholder": {
-                              color: "#41404699",
-                              opacity: 1,
-                            },
-                          },
-                        },
-                      }}
                     />
                   )}
                 />
               </FormControl>
 
               <FormControl fullWidth>
-                <InputLabel id="sub-sector-label" shrink>
-                  Sub-rubro
-                </InputLabel>
+                <InputLabel id="sub-sector-label">Sub-rubro</InputLabel>
 
                 <Controller
                   name="subSector"
@@ -206,16 +154,6 @@ export const BusinessProfilingScreen: FC = () => {
                       {...field}
                       labelId="sub-sector-label"
                       label="Sub-rubro"
-                      displayEmpty
-                      renderValue={(selected) =>
-                        selected ? (
-                          selected
-                        ) : (
-                          <Typography color="#41404699">
-                            Selecciona el sub-rubro de tu empresa
-                          </Typography>
-                        )
-                      }
                     >
                       {SUB_INDUSTRIES.map((subIndustry) => (
                         <MenuItem key={subIndustry} value={subIndustry}>
@@ -229,12 +167,11 @@ export const BusinessProfilingScreen: FC = () => {
             </Box>
           </Box>
         </Box>
-        <Box className="flex flex-col p-4 rounded-lg bg-white gap-8">
+        <Box className="flex flex-col p-6 rounded-lg bg-white gap-8">
           <Box className="flex flex-row gap-6 mt-6">
-            <Box className="flex-1 flex flex-col gap-6">
-              {/* ! TODO: evaluate encapsulating the form control in a component */}
+            <Box className="flex-1 flex flex-row gap-6">
               <FormControl fullWidth>
-                <InputLabel id="activity-label" shrink>
+                <InputLabel id="activity-label">
                   Actividad principal del negocio
                 </InputLabel>
 
@@ -246,16 +183,6 @@ export const BusinessProfilingScreen: FC = () => {
                       {...field}
                       labelId="activity-label"
                       label="Actividad principal del negocio"
-                      displayEmpty
-                      renderValue={(selected) =>
-                        selected ? (
-                          selected
-                        ) : (
-                          <Typography color="#41404699">
-                            Indica tu actividad principal
-                          </Typography>
-                        )
-                      }
                     >
                       {ACTIVITIES.map((activity) => (
                         <MenuItem key={activity} value={activity}>
@@ -275,66 +202,10 @@ export const BusinessProfilingScreen: FC = () => {
                     <TextField
                       {...field}
                       label="Cantidad de {activity} al año"
-                      placeholder="Indica la cantidad de {activity} al año"
-                      slotProps={{
-                        inputLabel: { shrink: true },
-                        htmlInput: {
-                          sx: {
-                            "&::placeholder": {
-                              color: "#41404699",
-                              opacity: 1,
-                            },
-                          },
-                        },
-                      }}
                     />
                   )}
                 />
               </FormControl>
-            </Box>
-            <Box className="flex-1 flex flex-col gap-6">
-              <FormControl fullWidth>
-                <InputLabel id="medition-mode-label" shrink>
-                  Sedes/sucursales/establecimientos
-                </InputLabel>
-
-                <Controller
-                  name="meditionMode"
-                  control={control}
-                  render={({ field }) => (
-                    <Select
-                      {...field}
-                      labelId="medition-mode-label"
-                      label="Sedes/sucursales/establecimientos"
-                      displayEmpty
-                      renderValue={(selected) =>
-                        selected ? (
-                          selected
-                        ) : (
-                          <Typography color="#41404699">
-                            Selecciona el modo de medición
-                          </Typography>
-                        )
-                      }
-                    >
-                      {MEDITION_MODES.map((meditionMode) => (
-                        <MenuItem key={meditionMode} value={meditionMode}>
-                          {meditionMode}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-              </FormControl>
-              <Box className="flex items-center justify-center h-14">
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  startIcon={<AddIcon sx={{ width: 14, height: 14 }} />}
-                >
-                  Agregar Sede/sucursal/establecimiento
-                </Button>
-              </Box>
             </Box>
           </Box>
           <Box
