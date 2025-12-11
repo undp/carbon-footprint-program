@@ -1,9 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllRateMeasurementUnitsHandler } from "./getAllRateMeasurementUnitsHandler.js";
-import {
-  GetAllRateMeasurementUnitsResponseSchema,
-  GetAllRateMeasurementUnitsNotFoundErrorSchema,
-} from "./getAllRateMeasurementUnitsSchema.js";
+import { GetAllRateMeasurementUnitsResponseSchema } from "./getAllRateMeasurementUnitsSchema.js";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 // --------------------------------------------------------------------------------
 // OBJECTIVE: Register the route for the Get All Rate Measurement Units feature.
@@ -26,7 +24,7 @@ export const getAllRateMeasurementUnitsRoute = (
           "Retrieves all rate measurement units with their numerator and denominator units",
         response: {
           200: GetAllRateMeasurementUnitsResponseSchema,
-          404: GetAllRateMeasurementUnitsNotFoundErrorSchema,
+          404: NotFoundErrorResponseSchema,
         },
       },
     },

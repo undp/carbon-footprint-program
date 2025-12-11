@@ -37,9 +37,3 @@ export const GetAllRateMeasurementUnitsResponseSchema = z.array(
 export type GetAllRateMeasurementUnitsResponse = z.infer<
   typeof GetAllRateMeasurementUnitsResponseSchema
 >;
-
-export const GetAllRateMeasurementUnitsNotFoundErrorSchema = z
-  .object({
-    message: z.string(),
-  })
-  .describe("Not found error response");
