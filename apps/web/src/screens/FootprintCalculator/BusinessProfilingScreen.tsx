@@ -337,14 +337,7 @@ export const BusinessProfilingScreen: FC = () => {
                 color="primary"
                 startIcon={<AddIcon sx={{ width: 14, height: 14 }} />}
               >
-                {/* <Typography
-                  fontWeight={500}
-                  fontSize="0.75rem"
-                  lineHeight="1.43"
-                  letterSpacing="0em"
-                > */}
                 Agregar Sede/sucursal/establecimiento
-                {/* </Typography> */}
               </Button>
             </Box>
           </Box>
