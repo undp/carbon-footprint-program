@@ -1,19 +1,19 @@
 [
   {
-    "name": "ACREDITED_MEMBER",
-    "description": "Acredited member role. Can create emission records and submit them for verification."
+    "name": "ACCREDITED_MEMBER",
+    "description": "Accredited member role. Can create emission records and submit them for verification."
   },
   {
-    "name": "UNACREDITED_MEMBER",
-    "description": "Unacredited member role. Can create emission records but cannot submit them for verification."
+    "name": "UNACCREDITED_MEMBER",
+    "description": "Unaccredited member role. Can create emission records but cannot submit them for verification."
   },
   {
     "name": "GUEST",
     "description": "Guest role. Only can read the organization and its data."
   },
   {
-    "name": "VERIFICATOR",
-    "description": "Verificator role. Can read the organization and its data and suggest changes to the emission records."
+    "name": "VERIFIER",
+    "description": "Verifier role. Can read the organization and its data and suggest changes to the emission records."
   },
   {
     "name": "CONSULTANT",

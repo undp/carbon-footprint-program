@@ -9,6 +9,6 @@
   },
   {
     "name": "USER",
-    "description": "User role. The only one who can use the carbon footprint calculator features."
+    "description": "User role. Can use the carbon footprint calculator features"
   }
 ]
