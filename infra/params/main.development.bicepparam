@@ -8,6 +8,7 @@
 //   - Storage Account (file storage)
 //   - PostgreSQL Flexible Server (database)
 //   - Azure Static Web Apps (frontend hosting)
+//   - Azure App Service (API backend)
 //   - Azure Front Door (optional CDN + WAF)
 //
 // Cost optimization for development:
@@ -163,6 +164,41 @@ param staticWebAppAppLocation = '/apps/web'
 // - Create React App: 'build'
 // - Next.js: 'out' (for static export)
 param staticWebAppOutputLocation = 'dist'
+
+// ============================================
+// Container Registry Configuration
+// ============================================
+
+// Use shared ACR (dev) to save costs; set to false in prod/stg
+param useSharedAcr = true
+
+// Azure Container Registry name (must be globally unique, lowercase, alphanumeric)
+// - Shared across all developers in the subscription
+// - Example: 'undphuellalatamacr'
+param acrName = 'huellalatamacr'
+
+// Container Registry SKU tier
+// - 'Basic': Cost-effective for development, 10GB storage, 1GB/day pull bandwidth (~$5/month)
+// - 'Standard': 100GB storage, 10GB/day pull bandwidth (~$20/month)
+// - 'Premium': 500GB storage, 50GB/day pull bandwidth, geo-replication (~$50/month)
+// Recommendation: Basic for development, Standard/Premium for production
+param acrSku = 'Basic'
+
+// Shared resource group name for ACR
+// - All developers share this resource group for the ACR
+// - Example: 'undp-huella-latam-shared-rg'
+param sharedResourceGroupName = 'undp-huella-latam-shared-rg'
+
+// ============================================
+// App Service Configuration (API Backend)
+// ============================================
+
+// SKU name for App Service Plan
+// - 'F1': Free tier, 1 GB RAM, 1 GB storage, 60 min CPU/day, $0/month (ideal for development)
+// - 'B1': Basic tier, 1.75 GB RAM, 10 GB storage, $13/month
+// - 'S1': Standard tier, 1.75 GB RAM, 50 GB storage, $55/month
+// Recommendation: B1 for development, S1+ for production
+param appServiceSkuName = 'F1'
 
 // ============================================
 // Front Door Configuration (Global CDN)

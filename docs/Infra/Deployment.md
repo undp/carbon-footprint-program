@@ -61,18 +61,89 @@ export ENVIRONMENT='production'  # DEBE estar en minúsculas
 
 ---
 
+## Arquitectura de Resource Groups y Stacks
+
+El proyecto usa una arquitectura de recursos que separa los componentes compartidos de los individuales por desarrollador/ambiente:
+
+### Resource Groups
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Suscripción Azure                                │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-shared-rg         │  ← Recursos compartidos   │
+│  │ ├── Azure Container Registry (ACR)  │                           │
+│  │ └── Stack: undp-huella-latam-stack-development                  │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-matias-rg         │  ← Recursos de Matías     │
+│  │ ├── Key Vault, Storage, Postgres    │                           │
+│  │ ├── Static Web App, App Service     │                           │
+│  │ └── Stack: undp-huella-latam-stack-matias                       │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-luis-rg           │  ← Recursos de Luis       │
+│  │ ├── Key Vault, Storage, Postgres    │                           │
+│  │ ├── Static Web App, App Service     │                           │
+│  │ └── Stack: undp-huella-latam-stack-luis                         │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+│  ┌─────────────────────────────────────┐                           │
+│  │ undp-huella-latam-production-rg     │  ← Recursos de Producción │
+│  │ ├── Key Vault, Storage, Postgres    │                           │
+│  │ ├── Static Web App, App Service     │                           │
+│  │ ├── Front Door, ACR (local al RG)   │                           │
+│  │ └── Stack: undp-huella-latam-stack-production                   │
+│  └─────────────────────────────────────┘                           │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Convención de Nombres de ENVIRONMENT
+
+| ENVIRONMENT  | Tipo       | Stack Name                           | Resource Group                    |
+| ------------ | ---------- | ------------------------------------ | --------------------------------- |
+| `matias`     | Desarrollo | `undp-huella-latam-stack-matias`     | `undp-huella-latam-matias-rg`     |
+| `luis`       | Desarrollo | `undp-huella-latam-stack-luis`       | `undp-huella-latam-luis-rg`       |
+| `staging`    | Staging    | `undp-huella-latam-stack-staging`    | `undp-huella-latam-staging-rg`    |
+| `production` | Producción | `undp-huella-latam-stack-production` | `undp-huella-latam-production-rg` |
+
+### Stack y ACR (flujo actual)
+
+- `main.bicep` tiene una bandera `useSharedAcr`:
+  - `useSharedAcr=true` (dev por defecto en `main.development.bicepparam`): el ACR vive en `undp-huella-latam-shared-rg` y se crea/actualiza con `main.shared.bicep` vía `deploy-shared.sh`; el stack principal lo referencia y expone los outputs (`containerRegistryId`, `acrLoginServer`).
+  - `useSharedAcr=false` (staging/prod): el ACR se crea en el mismo RG del stack principal.
+- `deploy.sh` lee `useSharedAcr` del `.bicepparam` (o `USE_SHARED_ACR` env):
+  - Si es `true`, ejecuta `deploy-shared.sh` primero y luego el stack principal pasando `useSharedAcr=true` y `sharedResourceGroupName`.
+  - Si es `false`, solo ejecuta el stack principal y el ACR se crea allí.
+- `deploy-api.sh` siempre toma `acrLoginServer` y `containerRegistryId` de los outputs del stack del entorno (`undp-huella-latam-stack-$ENVIRONMENT`), sin hardcodear RG compartido. Usa identidad gestionada + rol `AcrPull` que se asigna en `main.bicep`.
+
+---
+
 ## Estructura del Directorio `infra/`
 
 ```plaintext
 infra/
 ├── deploy.sh                     # Script principal de deployment (Deployment Stacks)
+├── deploy-api.sh                # Script para desplegar la API (Docker → ACR → App Service)
+├── deploy-web.sh                # Script para desplegar el frontend (Static Web App)
 ├── delete-stack.sh              # Script para eliminar Deployment Stacks
 ├── view-stack.sh                # Script para inspeccionar Deployment Stacks
-├── main.bicep                    # Orquestador principal
+├── main.bicep                    # Orquestador principal (todos los recursos)
+├── main.shared.bicep            # Plantilla mínima para recursos compartidos (ACR)
 ├── modules/                      # Módulos reutilizables
 │   ├── keyVault.bicep           # Azure Key Vault + secretos
 │   ├── postgres.bicep           # PostgreSQL Flexible Server
-│   └── storage.bicep            # Azure Storage Account
+│   ├── storage.bicep            # Azure Storage Account
+│   ├── acr.bicep                # Azure Container Registry
+│   ├── appService.bicep         # Azure App Service (API)
+│   ├── staticWebApp.bicep       # Azure Static Web App (frontend)
+│   ├── frontDoor.bicep          # Azure Front Door (CDN + WAF)
+│   └── acrRoleAssignment.bicep  # Role assignment para ACR pull
 └── params/                       # Archivos de parámetros por entorno
     └── main.development.bicepparam      # Parámetros para desarrollo
 ```

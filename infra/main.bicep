@@ -109,6 +109,10 @@ param staticWebAppAppLocation string = '/apps/web'
 @description('Build output location relative to app location')
 param staticWebAppOutputLocation string = 'dist'
 
+// --------- App Service parameters ---------
+@description('SKU name for App Service Plan (e.g., F1 for Free tier)')
+param appServiceSkuName string = 'F1'
+
 // --------- Front Door parameters ---------
 @description('Enable Azure Front Door')
 param enableFrontDoor bool = false
@@ -137,6 +141,24 @@ param frontDoorWafMode string = 'Detection'
 @minValue(10)
 @maxValue(10000)
 param frontDoorRateLimitThreshold int = 100
+
+// --------- Container Registry parameters ---------
+@description('Azure Container Registry name (must be globally unique)')
+param acrName string
+
+@description('Container Registry SKU tier (used by deploy.sh to create ACR)')
+@allowed([
+  'Basic'
+  'Standard'
+  'Premium'
+])
+param acrSku string = 'Basic'
+
+@description('Use a shared ACR in another resource group (e.g., dev shared registry)')
+param useSharedAcr bool = false
+
+@description('Shared resource group name where ACR is located (required when useSharedAcr = true)')
+param sharedResourceGroupName string = ''
 
 @description('Tags to apply to all resources')
 param tags object = {
@@ -214,6 +236,87 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
+// --------- Container Registry ---------
+module acrLocal 'modules/acr.bicep' = if (!useSharedAcr) {
+  name: 'acrLocalDeployment'
+  params: {
+    acrName: acrName
+    acrSku: acrSku
+    tags: tags
+  }
+}
+
+// Reference to shared ACR (created by deploy-shared.sh) when applicable
+resource sharedAcrExisting 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = if (useSharedAcr) {
+  name: acrName
+  scope: resourceGroup(sharedResourceGroupName)
+}
+
+var acrInfo = useSharedAcr ? {
+  id: sharedAcrExisting.id
+  loginServer: sharedAcrExisting.properties.loginServer
+  name: sharedAcrExisting.name
+  sku: sharedAcrExisting.sku.name
+} : {
+  id: acrLocal.outputs.id
+  loginServer: acrLocal.outputs.loginServer
+  name: acrLocal.outputs.name
+  sku: acrLocal.outputs.sku
+}
+
+var acrId = acrInfo.id
+var acrLoginServer = acrInfo.loginServer
+var acrNameOut = acrInfo.name
+var acrSkuOut = acrInfo.sku
+
+// --------- App Service ---------
+module appService 'modules/appService.bicep' = {
+  name: 'appServiceDeployment'
+  params: {
+    location: location
+    skuName: appServiceSkuName
+    databasePassword: existingKeyVault.getSecret(keyVault.outputs.postgresSecretName)
+    databaseHost: postgres.outputs.hostOut
+    databaseName: postgres.outputs.dbNameOut
+    databaseUser: dbUser
+    allowedOrigin: enableFrontDoor
+      ? (frontDoorCustomDomain != ''
+        ? 'https://${frontDoorCustomDomain}'
+        : 'https://${frontDoor!.outputs.endpointHostname}')
+      : 'https://${staticWebApp.outputs.defaultHostname}'
+    useAcrManagedIdentity: true
+    tags: tags
+  }
+}
+
+// Role assignment to allow App Service to pull the correct ACR
+module appServiceAcrPullShared 'modules/acrRoleAssignment.bicep' = if (useSharedAcr) {
+  name: 'appServiceAcrPullShared'
+  scope: resourceGroup(sharedResourceGroupName)
+  #disable-next-line no-unnecessary-dependson
+  dependsOn: [
+    appService
+  ]
+  params: {
+    acrName: acrNameOut
+    principalId: appService.outputs.principalId
+  }
+}
+
+module appServiceAcrPullLocal 'modules/acrRoleAssignment.bicep' = if (!useSharedAcr) {
+  name: 'appServiceAcrPullLocal'
+  scope: resourceGroup()
+  #disable-next-line no-unnecessary-dependson
+  dependsOn: [
+    appService
+    acrLocal
+  ]
+  params: {
+    acrName: acrNameOut
+    principalId: appService.outputs.principalId
+  }
+}
+
 // --------- Azure Front Door ---------
 module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
   name: 'frontDoorDeployment'
@@ -249,6 +352,16 @@ output frontend object = {
   }
 }
 
+// API outputs
+@description('API hosting endpoints and configuration')
+output api object = {
+  appService: {
+    name: appService.outputs.name
+    hostname: appService.outputs.defaultHostname
+    url: 'https://${appService.outputs.defaultHostname}'
+  }
+}
+
 // Database outputs
 @description('Database connection information')
 output database object = {
@@ -271,6 +384,12 @@ output infrastructure object = {
   }
   resourceGroup: resourceGroup().name
   location: location
+  containerRegistry: {
+    id: acrId
+    loginServer: acrLoginServer
+    name: acrNameOut
+    sku: acrSkuOut
+  }
 }
 
 // Legacy outputs (for backward compatibility)
@@ -297,3 +416,16 @@ output postgresServerName string = postgres.outputs.serverNameOut
 
 @description('Storage account name')
 output storageAccountName string = storage.outputs.name
+
+@description('App Service name')
+output appServiceName string = appService.outputs.name
+
+@description('App Service default hostname')
+output appServiceHostname string = appService.outputs.defaultHostname
+
+@description('Container Registry resource ID')
+output containerRegistryId string = acrId
+
+@description('Container Registry login server')
+output acrLoginServer string = acrLoginServer
+
