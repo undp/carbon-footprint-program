@@ -2,10 +2,6 @@ import { PostgreSqlContainer } from "@testcontainers/postgresql";
 import type { StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { execSync } from "node:child_process";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const TEST_DATABASE_CONFIG = {
   image: "postgres:18-alpine",
@@ -14,22 +10,13 @@ const TEST_DATABASE_CONFIG = {
   password: "testpass",
 } as const;
 
-export function runPrismaMigrations(databaseUrl: string): void {
-  // Navigate from this file to the workspace root, then to the database package
-  // Current path: apps/api/src/test/setup/testcontainers.ts
-  // Target path: packages/database
-  // const databasePackagePath = path.resolve(
-  //   __dirname,
-  //   "../../../../../packages/database"
-  // );
+function getDatabasePackagePath(): string {
+  return path.dirname(require.resolve("@repo/database/package.json"));
+}
 
-  const databasePackagePath = path.dirname(
-    require.resolve("@repo/database/package.json")
-  );
-
-  const command = "pnpm exec prisma migrate deploy";
-  const options = {
-    cwd: databasePackagePath,
+function createPrismaExecOptions(databaseUrl: string) {
+  return {
+    cwd: getDatabasePackagePath(),
     stdio: "pipe" as const,
     env: {
       // eslint-disable-next-line turbo/no-undeclared-env-vars
@@ -37,12 +24,33 @@ export function runPrismaMigrations(databaseUrl: string): void {
       DATABASE_URL: databaseUrl,
     },
   };
+}
+
+export function runPrismaMigrations(databaseUrl: string): void {
+  const command = "pnpm exec prisma migrate deploy";
+  const opts = createPrismaExecOptions(databaseUrl);
 
   try {
-    execSync(command, options);
+    execSync(command, opts);
+    // eslint-disable-next-line no-console
+    console.log("Prisma migrations executed successfully");
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
     throw new Error(`Error executing Prisma migrations: ${errorMessage}`);
+  }
+}
+
+export function runPrismaSeeds(databaseUrl: string): void {
+  const command = "pnpm exec prisma db seed";
+  const opts = createPrismaExecOptions(databaseUrl);
+
+  try {
+    execSync(command, opts);
+    // eslint-disable-next-line no-console
+    console.log("Prisma seeds executed successfully");
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error(`Error executing Prisma seeds: ${errorMessage}`);
   }
 }
 

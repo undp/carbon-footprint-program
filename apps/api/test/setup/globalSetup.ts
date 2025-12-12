@@ -1,4 +1,8 @@
-import { runPrismaMigrations, setupTestDatabase } from "./testcontainers.js";
+import {
+  runPrismaMigrations,
+  runPrismaSeeds,
+  setupTestDatabase,
+} from "./testcontainers.js";
 import type { TestProject } from "vitest/node";
 
 export default async function setup(project: TestProject) {
@@ -6,6 +10,7 @@ export default async function setup(project: TestProject) {
   project.provide("databaseUrl", databaseUrl);
   try {
     runPrismaMigrations(databaseUrl);
+    runPrismaSeeds(databaseUrl);
   } catch (error) {
     await container.stop();
     throw error;
