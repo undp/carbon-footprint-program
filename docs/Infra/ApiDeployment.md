@@ -29,45 +29,30 @@ export ENVIRONMENT="matias"          # requerido (nombre del desarrollador o pro
 
 ```
 
-### Arquitectura de Stacks para ACR
+### Arquitectura de Stacks para ACR (flujo actual)
 
-El script maneja dos casos según el valor de `ENVIRONMENT`:
+El stack principal (`undp-huella-latam-stack-$ENVIRONMENT`) siempre expone los outputs de ACR (`containerRegistryId`, `acrLoginServer`), sea que el ACR viva en el mismo RG o en el RG compartido. La selección se hace con `useSharedAcr`:
 
-**Para desarrollo** (`ENVIRONMENT` != `production` y != `staging`):
+- `useSharedAcr=true` (dev): el ACR está en el RG compartido (`undp-huella-latam-shared-rg`) y se crea/actualiza con `deploy-shared.sh`; el stack principal lo referencia y publica los outputs.
+- `useSharedAcr=false` (staging/prod): el ACR se crea en el mismo RG del stack principal.
 
-- **App Service**: Se obtiene del stack del desarrollador (`undp-huella-latam-stack-$ENVIRONMENT`)
-- **ACR**: Se obtiene del stack compartido (`undp-huella-latam-stack-development` en `undp-huella-latam-shared-rg`)
-
-**Para producción/staging** (`ENVIRONMENT` = `production` o `staging`):
-
-- **App Service y ACR**: Ambos se obtienen del mismo stack (`undp-huella-latam-stack-$ENVIRONMENT`)
-
-```
-ENVIRONMENT=matias (desarrollo)
-├── App Service ← undp-huella-latam-stack-matias (undp-huella-latam-matias-rg)
-└── ACR         ← undp-huella-latam-stack-development (undp-huella-latam-shared-rg)
-
-ENVIRONMENT=production
-├── App Service ← undp-huella-latam-stack-production
-└── ACR         ← undp-huella-latam-stack-production (mismo stack)
-```
+`deploy-api.sh` siempre lee los outputs del stack del entorno (`undp-huella-latam-stack-$ENVIRONMENT`) y de ahí obtiene el `acrLoginServer` (y `containerRegistryId` si lo necesitas). Ya no se hace lógica separada ni se hardcodea el RG compartido en el script.
 
 ### Flujo del script
 
-El script `./deploy-api.sh`:
+`./deploy-api.sh` (flujo actual):
 
-1. Selecciona la suscripción de Azure indicada.
-2. Determina qué stack usar para el ACR según `ENVIRONMENT`:
-   - Desarrollo: stack compartido `undp-huella-latam-stack-development` en `undp-huella-latam-shared-rg`
-   - Producción/Staging: mismo stack del environment
-3. Obtiene el nombre del App Service del stack del environment (`undp-huella-latam-stack-$ENVIRONMENT`).
-4. Obtiene el login server del ACR del stack correspondiente (compartido o del environment).
-5. Hace login en el ACR.
-6. Construye la imagen usando `apps/api/Dockerfile` con tag `$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG`.
-7. Hace push de la imagen al ACR.
-8. Configura el contenedor del App Service para usar esa imagen y habilita `acrUseManagedIdentityCreds`.
-9. Setea app settings (`API_PORT=$API_PORT`).
-10. Reinicia el App Service.
+1. Selecciona la suscripción de Azure.
+2. Lee del stack del entorno (`undp-huella-latam-stack-$ENVIRONMENT`, RG = `$AZURE_RESOURCE_GROUP`):
+   - `APP_SERVICE_NAME` desde `outputs.api.value.appService.name`
+   - `ACR_ID` y `ACR_LOGIN_SERVER` desde `outputs.containerRegistryId` y `outputs.acrLoginServer`
+3. Deriva `ACR_NAME` y (para logs) `ACR_RG` desde `ACR_ID`.
+4. Login en ACR (`az acr login -n $ACR_NAME`).
+5. Build de la imagen con `apps/api/Dockerfile` → tag `$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG`.
+6. Push al ACR.
+7. Configura App Service para usar la imagen y `acrUseManagedIdentityCreds=true`.
+8. Setea app settings (`WEBSITES_PORT=$API_PORT`, `NODE_ENV=production`).
+9. Reinicia App Service y muestra `defaultHostName`.
 
 ### Resultado esperado
 
@@ -75,8 +60,8 @@ Al finalizar, verás en la salida el `defaultHostName` del App Service. La API q
 
 ### Idempotencia del `deploy-api.sh`
 
-- El script no crea recursos; solo reutiliza los generados por `deploy.sh` (ACR y App Service con identidad administrada). Si esos recursos no existen, falla antes de aplicar cambios.
-- Cada ejecución vuelve a configurar la misma app: asigna la imagen `ACR_LOGIN_SERVER/IMAGE_NAME:IMAGE_TAG`, habilita `acrUseManagedIdentityCreds` y actualiza `WEBSITES_PORT`/`NODE_ENV`. Estos comandos son declarativos, por lo que múltiples corridas dejan la app en el mismo estado.
-- Siempre construye y hace push de la imagen. Si usas el mismo `IMAGE_TAG`, la imagen se sobreescribe; con un tag distinto, se publica una nueva versión pero la app se actualiza a ese tag.
-- No borra imágenes antiguas en el ACR ni revierte cambios previos; simplemente apunta la app a la imagen indicada.
-- Si no defines `IMAGE_NAME` ni `IMAGE_TAG` en `.envrc`, usa `IMAGE_NAME=api` y `IMAGE_TAG=$(git rev-parse --short HEAD || latest)`. Con el mismo commit, reejecutar el script deja la app igual (`api:<sha>`). Si cambia el commit, el tag cambia y la app apunta a la nueva imagen. Sin git, siempre usa `api:latest`, sobreescribiéndola en cada corrida (el estado final es la última ejecución).
+- No crea recursos; reutiliza los generados por `deploy.sh` (ACR y App Service con identidad gestionada). Si faltan, falla antes de aplicar cambios.
+- Cada ejecución deja la app apuntando a `ACR_LOGIN_SERVER/IMAGE_NAME:IMAGE_TAG` y con MI + `acrUseManagedIdentityCreds=true`.
+- Siempre build/push. Con mismo `IMAGE_TAG` sobreescribes; con tag nuevo, publicas versión nueva y la app se actualiza a ese tag.
+- No limpia imágenes antiguas en ACR; solo avanza el puntero de la app.
+- Defaults: `IMAGE_NAME=api`, `IMAGE_TAG=$(git rev-parse --short HEAD || latest)`. Sin git usa `latest` (se sobreescribe cada vez).
