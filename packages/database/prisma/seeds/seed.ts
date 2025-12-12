@@ -1,5 +1,5 @@
 import { PrismaClient, generatePrismaAdapter } from "../../index.js";
-import { ENVIRONMENT } from "../../environment.js";
+import { SEEDS_DATASET } from "../../environment.js";
 import { seedRoles } from "./scripts/seedRoles.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
 import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";
@@ -11,22 +11,20 @@ const prisma = new PrismaClient({
   adapter: generatePrismaAdapter(),
 });
 
-const environment = ENVIRONMENT === "testing" ? "testing" : "base";
-
 async function main() {
   await prisma.$connect();
-  await seedRoles(prisma, environment);
-  await seedMeasurementUnits(prisma, environment);
-  await seedCountries(prisma, environment);
-  await seedCountryJobPositions(prisma, environment); // needs the countries to be seeded first
-  await seedCountryOrganizationSizes(prisma, environment); // needs the countries to be seeded first
-  await seedCountrySectorSubsectors(prisma, environment); // needs the countries to be seeded first
+  await seedRoles(prisma, SEEDS_DATASET);
+  await seedMeasurementUnits(prisma, SEEDS_DATASET);
+  await seedCountries(prisma, SEEDS_DATASET);
+  await seedCountryJobPositions(prisma, SEEDS_DATASET); // needs the countries to be seeded first
+  await seedCountryOrganizationSizes(prisma, SEEDS_DATASET); // needs the countries to be seeded first
+  await seedCountrySectorSubsectors(prisma, SEEDS_DATASET); // needs the countries to be seeded first
 }
 
 main()
   .then(async () => {
     console.log(
-      `Seeding completed successfully for environment: ${environment}`
+      `Seeding completed successfully for dataset: '${SEEDS_DATASET}'`
     );
   })
   .catch(async (e) => {

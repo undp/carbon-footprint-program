@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import {
   checkForDuplicates,
   generateSeedDataPath,
-  type SeedEnvironment,
+  type SeedsDataset,
 } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -26,14 +26,14 @@ type RateMeasurementUnitData = {
 
 export async function seedMeasurementUnits(
   prisma: PrismaClient,
-  environment: SeedEnvironment
+  dataset: SeedsDataset
 ) {
   console.log("Seeding measurement units...");
 
   // Read measurement units
   const measurementUnitsData: MeasurementUnitData[] = JSON.parse(
     readFileSync(
-      generateSeedDataPath(__dirname, "measurement_units.json", environment),
+      generateSeedDataPath(__dirname, "measurement_units.json", dataset),
       "utf-8"
     )
   );
@@ -74,11 +74,7 @@ export async function seedMeasurementUnits(
   // Seed rate measurement units
   const rateMeasurementUnitsData: RateMeasurementUnitData[] = JSON.parse(
     readFileSync(
-      generateSeedDataPath(
-        __dirname,
-        "rate_measurement_units.json",
-        environment
-      ),
+      generateSeedDataPath(__dirname, "rate_measurement_units.json", dataset),
       "utf-8"
     )
   );

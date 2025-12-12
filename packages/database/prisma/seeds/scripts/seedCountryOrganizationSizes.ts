@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import {
   checkForDuplicates,
   generateSeedDataPath,
-  type SeedEnvironment,
+  type SeedsDataset,
 } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +18,7 @@ type OrganizationSizeData = {
 
 export async function seedCountryOrganizationSizes(
   prisma: PrismaClient,
-  environment: SeedEnvironment
+  dataset: SeedsDataset
 ) {
   console.log("Seeding country organization sizes...");
 
@@ -32,7 +32,7 @@ export async function seedCountryOrganizationSizes(
       generateSeedDataPath(
         __dirname,
         "country_organization_size.json",
-        environment
+        dataset
       ),
       "utf-8"
     )

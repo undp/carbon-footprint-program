@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import {
   checkForDuplicates,
   generateSeedDataPath,
-  type SeedEnvironment,
+  type SeedsDataset,
 } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,7 +18,7 @@ type JobPositionData = {
 
 export async function seedCountryJobPositions(
   prisma: PrismaClient,
-  environment: SeedEnvironment
+  dataset: SeedsDataset
 ) {
   console.log("Seeding country job positions...");
 
@@ -29,11 +29,7 @@ export async function seedCountryJobPositions(
   // Read country job positions
   const jobPositionsData: JobPositionData[] = JSON.parse(
     readFileSync(
-      generateSeedDataPath(
-        __dirname,
-        "country_job_positions.json",
-        environment
-      ),
+      generateSeedDataPath(__dirname, "country_job_positions.json", dataset),
       "utf-8"
     )
   );

@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import {
   checkForDuplicates,
   generateSeedDataPath,
-  type SeedEnvironment,
+  type SeedsDataset,
 } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -18,14 +18,14 @@ type CountryData = {
 
 export async function seedCountries(
   prisma: PrismaClient,
-  environment: SeedEnvironment
+  dataset: SeedsDataset
 ) {
   console.log("Seeding countries...");
 
   // Read countries
   const countriesData: CountryData[] = JSON.parse(
     readFileSync(
-      generateSeedDataPath(__dirname, "countries.json", environment),
+      generateSeedDataPath(__dirname, "countries.json", dataset),
       "utf-8"
     )
   );

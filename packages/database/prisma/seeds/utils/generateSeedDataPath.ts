@@ -1,10 +1,10 @@
 import { join, basename } from "path";
-import { type SeedEnvironment } from "./SeedEnvironment.type.js";
+import { type SeedsDataset } from "./SeedsDataset.type.js";
 
 export const generateSeedDataPath = (
   dirname: string,
   fileName: string,
-  environment: SeedEnvironment
+  environment: SeedsDataset
 ): string => {
   if (fileName !== basename(fileName))
     throw new Error(`Invalid seed fileName: '${fileName}'`);

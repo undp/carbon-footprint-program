@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import {
   checkForDuplicates,
   generateSeedDataPath,
-  type SeedEnvironment,
+  type SeedsDataset,
 } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -31,16 +31,13 @@ async function upsertRoles(prisma: PrismaClient, data: RoleData[]) {
   );
 }
 
-export async function seedRoles(
-  prisma: PrismaClient,
-  environment: SeedEnvironment
-) {
+export async function seedRoles(prisma: PrismaClient, dataset: SeedsDataset) {
   console.log("Seeding roles...");
 
   // Read organization roles
   const organizationRolesData: RoleData[] = JSON.parse(
     readFileSync(
-      generateSeedDataPath(__dirname, "organization_roles.json", environment),
+      generateSeedDataPath(__dirname, "organization_roles.json", dataset),
       "utf-8"
     )
   );
@@ -51,7 +48,7 @@ export async function seedRoles(
   // Read system roles
   const systemRolesData: RoleData[] = JSON.parse(
     readFileSync(
-      generateSeedDataPath(__dirname, "system_roles.json", environment),
+      generateSeedDataPath(__dirname, "system_roles.json", dataset),
       "utf-8"
     )
   );
