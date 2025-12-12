@@ -247,7 +247,7 @@ module acrLocal 'modules/acr.bicep' = if (!useSharedAcr) {
 }
 
 // Reference to shared ACR (created by deploy-shared.sh) when applicable
-resource sharedAcrExisting 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
+resource sharedAcrExisting 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = if (useSharedAcr) {
   name: acrName
   scope: resourceGroup(sharedResourceGroupName)
 }
