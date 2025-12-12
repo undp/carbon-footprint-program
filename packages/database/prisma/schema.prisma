@@ -7,18 +7,185 @@ datasource db {
   provider = "postgresql"
 }
 
-model user {
-  id        Int      @id @default(autoincrement())
-  email     String   @unique
-  name      String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model country {
+  id                         BigInt                      @id @default(autoincrement())
+  name                       String
+  iso_code                   String                      @unique
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @default(now()) @updatedAt
+  country_job_positions      country_job_position[]
+  country_organization_sizes country_organization_size[]
+  country_sectors            country_sector[]
+  country_parameters         country_parameter[]
 }
 
-model book {
-  id        Int      @id @default(autoincrement())
-  title     String   @unique
-  author    String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model country_parameter {
+  id            BigInt   @id @default(autoincrement())
+  country_id    BigInt
+  key           String
+  value         String
+  description   String
+  type          String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+  created_by_id BigInt?
+  updated_by_id BigInt?
+
+  country country @relation(fields: [country_id], references: [id])
+  creator user?   @relation("country_parameter_created_by", fields: [created_by_id], references: [id])
+  updater user?   @relation("country_parameter_updated_by", fields: [updated_by_id], references: [id])
+
+  @@unique([country_id, key])
+}
+
+model system_parameter {
+  id            BigInt   @id @default(autoincrement())
+  key           String   @unique
+  value         String
+  description   String
+  type          String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+  created_by_id BigInt?
+  updated_by_id BigInt?
+
+  creator user? @relation("system_parameter_created_by", fields: [created_by_id], references: [id])
+  updater user? @relation("system_parameter_updated_by", fields: [updated_by_id], references: [id])
+}
+
+model country_organization_size {
+  id         BigInt   @id @default(autoincrement())
+  country_id BigInt
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  country country @relation(fields: [country_id], references: [id])
+
+  @@unique([country_id, name])
+}
+
+model country_sector {
+  id            BigInt   @id @default(autoincrement())
+  country_id    BigInt
+  name          String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+  created_by_id BigInt?
+  updated_by_id BigInt?
+
+  country            country             @relation(fields: [country_id], references: [id])
+  creator            user?               @relation("country_sector_created_by", fields: [created_by_id], references: [id])
+  updater            user?               @relation("country_sector_updated_by", fields: [updated_by_id], references: [id])
+  country_subsectors country_subsector[]
+
+  @@unique([country_id, name])
+}
+
+model country_subsector {
+  id                BigInt   @id @default(autoincrement())
+  country_sector_id BigInt
+  name              String
+  created_at        DateTime @default(now())
+  updated_at        DateTime @default(now()) @updatedAt
+  created_by_id     BigInt?
+  updated_by_id     BigInt?
+
+  country_sector country_sector @relation(fields: [country_sector_id], references: [id])
+  creator        user?          @relation("country_subsector_created_by", fields: [created_by_id], references: [id])
+  updater        user?          @relation("country_subsector_updated_by", fields: [updated_by_id], references: [id])
+
+  @@unique([country_sector_id, name])
+}
+
+model country_job_position {
+  id         BigInt   @id @default(autoincrement())
+  country_id BigInt
+  name       String
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  country country @relation(fields: [country_id], references: [id])
+  users   user[]
+
+  @@unique([country_id, name])
+}
+
+model role {
+  id                 BigInt              @id @default(autoincrement())
+  name               String              @unique
+  description        String
+  created_at         DateTime            @default(now())
+  updated_at         DateTime            @default(now()) @updatedAt
+  organization_roles organization_role[]
+  system_roles       system_role[]
+}
+
+model organization_role {
+  id BigInt @id
+
+  role role @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model system_role {
+  id BigInt @id
+
+  role role @relation(fields: [id], references: [id], onDelete: Cascade)
+}
+
+model user {
+  id                      BigInt   @id @default(autoincrement())
+  uuid                    String   @unique @default(uuid()) @db.Uuid
+  email                   String   @unique
+  country_job_position_id BigInt
+  first_name              String?
+  last_name               String?
+  created_at              DateTime @default(now())
+  updated_at              DateTime @default(now()) @updatedAt
+  created_by_id           BigInt?
+  updated_by_id           BigInt?
+
+  creator                    user?                @relation("user_created_by", fields: [created_by_id], references: [id])
+  updater                    user?                @relation("user_updated_by", fields: [updated_by_id], references: [id])
+  country_job_position       country_job_position @relation(fields: [country_job_position_id], references: [id])
+  users_created              user[]               @relation("user_created_by")
+  users_updated              user[]               @relation("user_updated_by")
+  country_sectors_created    country_sector[]     @relation("country_sector_created_by")
+  country_sectors_updated    country_sector[]     @relation("country_sector_updated_by")
+  country_subsectors_created country_subsector[]  @relation("country_subsector_created_by")
+  country_subsectors_updated country_subsector[]  @relation("country_subsector_updated_by")
+  country_parameters_created country_parameter[]  @relation("country_parameter_created_by")
+  country_parameters_updated country_parameter[]  @relation("country_parameter_updated_by")
+  system_parameters_created  system_parameter[]   @relation("system_parameter_created_by")
+  system_parameters_updated  system_parameter[]   @relation("system_parameter_updated_by")
+}
+
+enum Magnitude {
+  MASS
+  VOLUME
+  DISTANCE
+  TIME
+}
+
+model measurement_unit {
+  id           BigInt    @id @default(autoincrement())
+  name         String
+  magnitude    Magnitude
+  abbreviation String    @unique
+  base_factor  Float
+  is_base      Boolean
+
+  rate_units_as_numerator   rate_measurement_unit[] @relation("numerator_measurement_unit")
+  rate_units_as_denominator rate_measurement_unit[] @relation("denominator_measurement_unit")
+}
+
+model rate_measurement_unit {
+  id                              BigInt @id @default(autoincrement())
+  name                            String
+  abbreviation                    String @unique
+  numerator_measurement_unit_id   BigInt
+  denominator_measurement_unit_id BigInt
+
+  numerator_measurement_unit   measurement_unit @relation("numerator_measurement_unit", fields: [numerator_measurement_unit_id], references: [id])
+  denominator_measurement_unit measurement_unit @relation("denominator_measurement_unit", fields: [denominator_measurement_unit_id], references: [id])
 }

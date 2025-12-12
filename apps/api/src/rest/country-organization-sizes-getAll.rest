@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:8080
+
+### Get All Country Organization Sizes
+GET {{baseUrl}}/api/country-organization-sizes HTTP/1.1
+

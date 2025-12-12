@@ -1,0 +1,14 @@
+[
+  {
+    "name": "SUPERADMIN",
+    "description": "Super administrator role. The only one who can update parameters and add other administrators."
+  },
+  {
+    "name": "ADMIN",
+    "description": "Administrator role"
+  },
+  {
+    "name": "USER",
+    "description": "User role. Can use the carbon footprint calculator features"
+  }
+]
