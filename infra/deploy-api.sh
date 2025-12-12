@@ -31,7 +31,7 @@ IMAGE_NAME="${IMAGE_NAME:-api}"
 IMAGE_TAG="${IMAGE_TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo latest)}"
 API_PORT="${API_PORT:-8080}"
 
-# Stack for the current environment (App Service, DB, etc.)
+# Stack for the current environment (App Service, DB, ACR, etc.)
 STACK_NAME_ENV="undp-huella-latam-stack-$ENVIRONMENT"
 
 log "Setting subscription..."

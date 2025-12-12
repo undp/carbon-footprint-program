@@ -142,7 +142,7 @@ PARAMS_JSON=$(az bicep build-params --file "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE
   exit 1
 }
 
-# Helper function to extract parameter from PARAMS_JSON
+# Helper function to extract parameter from PARAMS_JSON (sharedResourceGroupName, acrName, acrSku, useSharedAcr)
 get_param() {
   local param_name="$1"
   echo "$PARAMS_JSON" | jq -r "
