@@ -1,17 +1,9 @@
 import { FC } from "react";
-import {
-  Box,
-  Button,
-  FormControl,
-  TextField,
-  Typography,
-  useTheme,
-} from "@mui/material";
-import { HuellaLatamLogo } from "@/icons";
+import { Box, FormControl, TextField, Typography } from "@mui/material";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
-import { ArrowRightAltRounded } from "@mui/icons-material";
 import { FormSelectField } from "./components/form/FormSelectField";
+import { FootprintCalculatorLayout } from "./layout";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
@@ -20,7 +12,6 @@ const COMPANY_SIZES = ["Micro", "Pequeña", "Mediana", "Grande"];
 const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
 
 export const BusinessProfilingScreen: FC = () => {
-  const theme = useTheme();
   const { control } = useForm({
     defaultValues: {
       year: "",
@@ -33,22 +24,17 @@ export const BusinessProfilingScreen: FC = () => {
       quantity: "",
     },
   });
+
   return (
-    <Box className="flex flex-col min-h-screen">
-      <Box
-        className="flex flex-row justify-start px-6 py-4 items-center gap-6 h-20 bg-white"
-        sx={{
-          boxShadow: "0px 4px 8px rgba(0,0,0,0.04)",
-        }}
-      >
-        <HuellaLatamLogo
-          sx={{
-            width: 117,
-            height: 50,
-          }}
-        />
-        <Typography variant="body1">Inventario Organizacional</Typography>
-      </Box>
+    <FootprintCalculatorLayout
+      headerProps={{
+        title: "Inventario Organizacional",
+      }}
+      footerProps={{
+        nextText: "Siguiente",
+        showBack: true,
+      }}
+    >
       <Box className="flex flex-col flex-1 gap-6 p-6">
         <Box className="flex flex-col p-6 rounded-lg bg-white gap-6">
           <Box>
@@ -177,30 +163,6 @@ export const BusinessProfilingScreen: FC = () => {
           </Box>
         </Box>
       </Box>
-
-      <Box
-        className="fixed bottom-0 left-0 right-0 flex flex-row justify-end items-center gap-6 h-20 px-4 py-6 bg-white"
-        sx={{
-          boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)",
-        }}
-      >
-        <Box className="flex flex-row gap-6">
-          <Button
-            startIcon={
-              <ArrowRightAltRounded sx={{ transform: "scaleX(-1)" }} />
-            }
-          >
-            Volver
-          </Button>
-          <Button
-            sx={{ backgroundColor: theme.palette.primary.main }}
-            variant="contained"
-            endIcon={<ArrowRightAltRounded />}
-          >
-            Siguiente
-          </Button>
-        </Box>
-      </Box>
-    </Box>
+    </FootprintCalculatorLayout>
   );
 };
