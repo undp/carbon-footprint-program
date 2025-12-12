@@ -246,16 +246,28 @@ module acrLocal 'modules/acr.bicep' = if (!useSharedAcr) {
   }
 }
 
-// Referencia a ACR compartido (creado por deploy-shared.sh) cuando aplique
+// Reference to shared ACR (created by deploy-shared.sh) when applicable
 resource sharedAcrExisting 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
   name: acrName
   scope: resourceGroup(sharedResourceGroupName)
 }
 
-var acrId = useSharedAcr ? sharedAcrExisting.id : acrLocal.outputs.id
-var acrLoginServer = useSharedAcr ? sharedAcrExisting.properties.loginServer : acrLocal.outputs.loginServer
-var acrNameOut = useSharedAcr ? sharedAcrExisting.name : acrLocal.outputs.name
-var acrSkuOut = useSharedAcr ? sharedAcrExisting.sku.name : acrLocal.outputs.sku
+var acrInfo = useSharedAcr ? {
+  id: sharedAcrExisting.id
+  loginServer: sharedAcrExisting.properties.loginServer
+  name: sharedAcrExisting.name
+  sku: sharedAcrExisting.sku.name
+} : {
+  id: acrLocal.outputs.id
+  loginServer: acrLocal.outputs.loginServer
+  name: acrLocal.outputs.name
+  sku: acrLocal.outputs.sku
+}
+
+var acrId = acrInfo.id
+var acrLoginServer = acrInfo.loginServer
+var acrNameOut = acrInfo.name
+var acrSkuOut = acrInfo.sku
 
 // --------- App Service ---------
 module appService 'modules/appService.bicep' = {
@@ -277,10 +289,11 @@ module appService 'modules/appService.bicep' = {
   }
 }
 
-// Role assignment para que App Service haga pull del ACR correcto
+// Role assignment to allow App Service to pull the correct ACR
 module appServiceAcrPullShared 'modules/acrRoleAssignment.bicep' = if (useSharedAcr) {
   name: 'appServiceAcrPullShared'
   scope: resourceGroup(sharedResourceGroupName)
+  #disable-next-line no-unnecessary-dependson
   dependsOn: [
     appService
   ]
@@ -293,6 +306,7 @@ module appServiceAcrPullShared 'modules/acrRoleAssignment.bicep' = if (useShared
 module appServiceAcrPullLocal 'modules/acrRoleAssignment.bicep' = if (!useSharedAcr) {
   name: 'appServiceAcrPullLocal'
   scope: resourceGroup()
+  #disable-next-line no-unnecessary-dependson
   dependsOn: [
     appService
     acrLocal
