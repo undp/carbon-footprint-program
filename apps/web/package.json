@@ -15,7 +15,7 @@
     "start": "vite preview",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "clean": "rm -rf dist .turbo tsconfig.tsbuildinfo"
+    "clean": "rimraf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

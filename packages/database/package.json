@@ -15,8 +15,8 @@
   },
   "scripts": {
     "prebuild": "prisma generate",
-    "build": "rm -rf dist && tsc && cp -r generated dist/",
-    "clean": "rm -rf dist",
+    "build": "rimraf dist && tsc && cpy generated dist --flat=false",
+    "clean": "rimraf dist",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
     "dev:seed": "prisma db seed",
