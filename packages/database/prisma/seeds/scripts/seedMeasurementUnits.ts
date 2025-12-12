@@ -2,7 +2,7 @@ import { type PrismaClient, Magnitude } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates, generateSeedDataPath } from "../utils";
+import { checkForDuplicates, generateSeedDataPath } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
