@@ -6,6 +6,7 @@ import {
   checkForDuplicates,
   checkForPrimitiveDuplicates,
   generateSeedDataPath,
+  type SeedEnvironment,
 } from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -19,7 +20,7 @@ type CountrySectorSubsectorData = {
 
 export async function seedCountrySectorSubsectors(
   prisma: PrismaClient,
-  environment: "base" | "testing"
+  environment: SeedEnvironment
 ) {
   console.log("Seeding country sectors and subsectors...");
 

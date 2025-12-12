@@ -2,7 +2,11 @@ import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates, generateSeedDataPath } from "../utils/index.js";
+import {
+  checkForDuplicates,
+  generateSeedDataPath,
+  type SeedEnvironment,
+} from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -14,7 +18,7 @@ type JobPositionData = {
 
 export async function seedCountryJobPositions(
   prisma: PrismaClient,
-  environment: "base" | "testing"
+  environment: SeedEnvironment
 ) {
   console.log("Seeding country job positions...");
 
