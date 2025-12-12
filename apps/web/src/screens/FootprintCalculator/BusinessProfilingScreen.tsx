@@ -146,7 +146,7 @@ export const BusinessProfilingScreen: FC = () => {
             </Box>
           </Box>
           <Box
-            className="flex flex-row w-full h-20 p-2 bg-red-500 rounded"
+            className="flex flex-row w-full h-20 p-2"
             sx={{
               background: `linear-gradient(90deg, rgba(86, 245, 141, 0.20) 0%, rgba(99, 228, 207, 0.20) 100%)`,
             }}
