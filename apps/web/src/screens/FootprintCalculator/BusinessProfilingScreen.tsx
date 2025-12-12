@@ -4,6 +4,7 @@ import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
 import { FormSelectField } from "./components/form/FormSelectField";
 import { FootprintCalculatorLayout } from "./layout";
+import { Routes } from "@/interfaces";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
@@ -33,6 +34,7 @@ export const BusinessProfilingScreen: FC = () => {
       footerProps={{
         nextText: "Siguiente",
         showBack: true,
+        backRoute: Routes.HOME,
       }}
     >
       <Box className="flex flex-col flex-1 gap-6 p-6">
