@@ -13,7 +13,7 @@ DRY_RUN=${DRY_RUN:-false}
 SHARED_PARAMS_FILE=${SHARED_PARAMS_FILE:-params/main.development.shared.bicepparam}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Load .env / .envrc if they exist (same pattern as deploy.sh)
+# Load .env / .envrc if they exist
 if [ -f "$SCRIPT_DIR/.env" ]; then
   set -o allexport
   # shellcheck disable=SC1091
