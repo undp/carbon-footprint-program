@@ -1,0 +1,123 @@
+[
+  {
+    "magnitude": "MASS",
+    "name": "Gramo",
+    "abbreviation": "g",
+    "base_factor": 1,
+    "is_base": true
+  },
+  {
+    "magnitude": "MASS",
+    "name": "Kilogramo",
+    "abbreviation": "kg",
+    "base_factor": 1000,
+    "is_base": false
+  },
+  {
+    "magnitude": "MASS",
+    "name": "Tonelada",
+    "abbreviation": "ton",
+    "base_factor": 1000000,
+    "is_base": false
+  },
+  {
+    "magnitude": "MASS",
+    "name": "Miligramo",
+    "abbreviation": "mg",
+    "base_factor": 0.001,
+    "is_base": false
+  },
+  {
+    "magnitude": "VOLUME",
+    "name": "Litro",
+    "abbreviation": "L",
+    "base_factor": 1,
+    "is_base": true
+  },
+  {
+    "magnitude": "VOLUME",
+    "name": "Mililitro",
+    "abbreviation": "mL",
+    "base_factor": 0.001,
+    "is_base": false
+  },
+  {
+    "magnitude": "VOLUME",
+    "name": "Metro cúbico",
+    "abbreviation": "m³",
+    "base_factor": 1000,
+    "is_base": false
+  },
+  {
+    "magnitude": "VOLUME",
+    "name": "Galón",
+    "abbreviation": "gal",
+    "base_factor": 3.78541,
+    "is_base": false
+  },
+
+  {
+    "magnitude": "DISTANCE",
+    "name": "Metro",
+    "abbreviation": "m",
+    "base_factor": 1,
+    "is_base": true
+  },
+  {
+    "magnitude": "DISTANCE",
+    "name": "Kilómetro",
+    "abbreviation": "km",
+    "base_factor": 1000,
+    "is_base": false
+  },
+  {
+    "magnitude": "DISTANCE",
+    "name": "Centímetro",
+    "abbreviation": "cm",
+    "base_factor": 0.01,
+    "is_base": false
+  },
+  {
+    "magnitude": "DISTANCE",
+    "name": "Milímetro",
+    "abbreviation": "mm",
+    "base_factor": 0.001,
+    "is_base": false
+  },
+  {
+    "magnitude": "DISTANCE",
+    "name": "Milla",
+    "abbreviation": "mi",
+    "base_factor": 1609.34,
+    "is_base": false
+  },
+
+  {
+    "magnitude": "TIME",
+    "name": "Segundo",
+    "abbreviation": "s",
+    "base_factor": 1,
+    "is_base": true
+  },
+  {
+    "magnitude": "TIME",
+    "name": "Minuto",
+    "abbreviation": "min",
+    "base_factor": 60,
+    "is_base": false
+  },
+  {
+    "magnitude": "TIME",
+    "name": "Hora",
+    "abbreviation": "h",
+    "base_factor": 3600,
+    "is_base": false
+  },
+  {
+    "magnitude": "TIME",
+    "name": "Día",
+    "abbreviation": "d",
+    "base_factor": 86400,
+    "is_base": false
+  }
+]

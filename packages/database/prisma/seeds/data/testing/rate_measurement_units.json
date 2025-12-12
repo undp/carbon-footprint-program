@@ -1,0 +1,46 @@
+[
+  {
+    "name": "kg por gramo",
+    "abbreviation": "kg/g"
+  },
+  {
+    "name": "kg por kg",
+    "abbreviation": "kg/kg"
+  },
+  {
+    "name": "kg por tonelada",
+    "abbreviation": "kg/ton"
+  },
+  {
+    "name": "kg por kilómetro",
+    "abbreviation": "kg/km"
+  },
+  {
+    "name": "kg por metro",
+    "abbreviation": "kg/m"
+  },
+  {
+    "name": "kg por centímetro",
+    "abbreviation": "kg/cm"
+  },
+  {
+    "name": "kg por litro",
+    "abbreviation": "kg/L"
+  },
+  {
+    "name": "kg por metro cúbico",
+    "abbreviation": "kg/m³"
+  },
+  {
+    "name": "kg por segundo",
+    "abbreviation": "kg/s"
+  },
+  {
+    "name": "kg por minuto",
+    "abbreviation": "kg/min"
+  },
+  {
+    "name": "kg por hora",
+    "abbreviation": "kg/h"
+  }
+]
