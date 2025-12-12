@@ -154,8 +154,11 @@ param acrName string
 ])
 param acrSku string = 'Basic'
 
-@description('Shared resource group name where ACR is located')
-param sharedResourceGroupName string
+@description('Use a shared ACR in another resource group (e.g., dev shared registry)')
+param useSharedAcr bool = false
+
+@description('Shared resource group name where ACR is located (required when useSharedAcr = true)')
+param sharedResourceGroupName string = ''
 
 @description('Tags to apply to all resources')
 param tags object = {
@@ -233,16 +236,26 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
-// --------- Container Registry (Shared RG) ---------
-module sharedAcr 'modules/acr.bicep' = {
-  name: 'sharedAcrDeployment'
-  scope: resourceGroup(sharedResourceGroupName)
+// --------- Container Registry ---------
+module acrLocal 'modules/acr.bicep' = if (!useSharedAcr) {
+  name: 'acrLocalDeployment'
   params: {
     acrName: acrName
     acrSku: acrSku
     tags: tags
   }
 }
+
+// Referencia a ACR compartido (creado por deploy-shared.sh) cuando aplique
+resource sharedAcrExisting 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
+  name: acrName
+  scope: resourceGroup(sharedResourceGroupName)
+}
+
+var acrId = useSharedAcr ? sharedAcrExisting.id : acrLocal.outputs.id
+var acrLoginServer = useSharedAcr ? sharedAcrExisting.properties.loginServer : acrLocal.outputs.loginServer
+var acrNameOut = useSharedAcr ? sharedAcrExisting.name : acrLocal.outputs.name
+var acrSkuOut = useSharedAcr ? sharedAcrExisting.sku.name : acrLocal.outputs.sku
 
 // --------- App Service ---------
 module appService 'modules/appService.bicep' = {
@@ -264,18 +277,29 @@ module appService 'modules/appService.bicep' = {
   }
 }
 
-// Role assignment for App Service to pull from ACR (deployed in shared RG)
-module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = {
-  name: 'appServiceAcrPull'
+// Role assignment para que App Service haga pull del ACR correcto
+module appServiceAcrPullShared 'modules/acrRoleAssignment.bicep' = if (useSharedAcr) {
+  name: 'appServiceAcrPullShared'
   scope: resourceGroup(sharedResourceGroupName)
   dependsOn: [
     appService
-    sharedAcr
   ]
   params: {
-    acrName: acrName
+    acrName: acrNameOut
     principalId: appService.outputs.principalId
-    appServiceName: appService.outputs.name
+  }
+}
+
+module appServiceAcrPullLocal 'modules/acrRoleAssignment.bicep' = if (!useSharedAcr) {
+  name: 'appServiceAcrPullLocal'
+  scope: resourceGroup()
+  dependsOn: [
+    appService
+    acrLocal
+  ]
+  params: {
+    acrName: acrNameOut
+    principalId: appService.outputs.principalId
   }
 }
 
@@ -347,10 +371,10 @@ output infrastructure object = {
   resourceGroup: resourceGroup().name
   location: location
   containerRegistry: {
-    id: sharedAcr.outputs.id
-    loginServer: sharedAcr.outputs.loginServer
-    name: sharedAcr.outputs.name
-    sku: sharedAcr.outputs.sku
+    id: acrId
+    loginServer: acrLoginServer
+    name: acrNameOut
+    sku: acrSkuOut
   }
 }
 
@@ -386,7 +410,8 @@ output appServiceName string = appService.outputs.name
 output appServiceHostname string = appService.outputs.defaultHostname
 
 @description('Container Registry resource ID')
-output containerRegistryId string = sharedAcr.outputs.id
+output containerRegistryId string = acrId
 
 @description('Container Registry login server')
-output acrLoginServer string = sharedAcr.outputs.loginServer
+output acrLoginServer string = acrLoginServer
+

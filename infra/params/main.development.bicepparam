@@ -169,6 +169,9 @@ param staticWebAppOutputLocation = 'dist'
 // Container Registry Configuration
 // ============================================
 
+// Use shared ACR (dev) to ahorrar costos; set to false en prod/stg
+param useSharedAcr = true
+
 // Azure Container Registry name (must be globally unique, lowercase, alphanumeric)
 // - Shared across all developers in the subscription
 // - Example: 'undphuellalatamacr'

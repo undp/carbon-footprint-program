@@ -158,12 +158,8 @@ SHARED_RG=$(get_param "sharedResourceGroupName")
 ACR_NAME=$(get_param "acrName")
 ACR_SKU=$(get_param "acrSku")
 
-if [ -z "$SHARED_RG" ]; then
-  log "Error: sharedResourceGroupName not found in $ENVIRONMENT_PARAMS_FILE"
-  log "Output from az bicep build-params (for debugging):"
-  echo "$PARAMS_JSON"
-  exit 1
-fi
+USE_SHARED_ACR="${USE_SHARED_ACR:-$(get_param "useSharedAcr")}"
+USE_SHARED_ACR="${USE_SHARED_ACR:-false}"
 
 if [ -z "$ACR_NAME" ]; then
   log "Error: acrName not found in $ENVIRONMENT_PARAMS_FILE"
@@ -172,78 +168,26 @@ fi
 
 ACR_SKU="${ACR_SKU:-Basic}"  # Default to Basic if not specified
 
-log "Shared Resource Group: $SHARED_RG"
-log "Creating shared resource group if it doesn't exist..."
-if [ "$DRY_RUN" = "true" ]; then
-  log "[DRY RUN] Would execute: az group create --name $SHARED_RG --location $LOCATION"
-else
-  if ! az group create --name "$SHARED_RG" --location "$LOCATION"; then
-    log "Error: failed to create or verify shared resource group '$SHARED_RG'. Aborting before deployment."
+if [ "$USE_SHARED_ACR" = "true" ]; then
+  if [ -z "$SHARED_RG" ]; then
+    log "Error: sharedResourceGroupName not found in $ENVIRONMENT_PARAMS_FILE (required when USE_SHARED_ACR=true)"
+    log "Output from az bicep build-params (for debugging):"
+    echo "$PARAMS_JSON"
     exit 1
   fi
+
+  log "Using shared ACR flow (useSharedAcr=true)"
+  log "Shared Resource Group: $SHARED_RG"
+
+  if [ "$DRY_RUN" = "true" ]; then
+    log "[DRY RUN] Would execute: SHARED_RESOURCE_GROUP_NAME=$SHARED_RG ACR_NAME=$ACR_NAME ACR_SKU=$ACR_SKU LOCATION=$LOCATION ./deploy-shared.sh"
+  else
+    SHARED_RESOURCE_GROUP_NAME="$SHARED_RG" ACR_NAME="$ACR_NAME" ACR_SKU="$ACR_SKU" LOCATION="$LOCATION" "$SCRIPT_DIR/deploy-shared.sh"
+  fi
+else
+  log "Using ACR local to application resource group (useSharedAcr=false)"
+  SHARED_RG=""
 fi
-
-# 4.6) Create/verify shared ACR stack (only for development environments)
-# This stack lives in the shared RG and provides ACR outputs for all developers
-# Parameters (acrName, acrSku) are read from the environment params file above
-SHARED_ACR_STACK_NAME="undp-huella-latam-stack-development"
-
-# Only create shared stack for non-production/staging environments
-case "$ENVIRONMENT" in
-  production|staging)
-    log "Production/Staging environment: shared ACR stack not needed (ACR outputs come from main stack)"
-    ;;
-  *)
-    log "Checking if shared ACR stack exists in $SHARED_RG..."
-    SHARED_STACK_EXISTS=$(az stack group show \
-      --name "$SHARED_ACR_STACK_NAME" \
-      --resource-group "$SHARED_RG" \
-      --query "name" -o tsv 2>/dev/null || echo "")
-
-    ACR_EXISTS=$(az acr show \
-      --name "$ACR_NAME" \
-      --resource-group "$SHARED_RG" \
-      --query "name" -o tsv 2>/dev/null || echo "")
-
-    NEED_ACR_STACK="false"
-    if [ -z "$SHARED_STACK_EXISTS" ]; then
-      log "Shared ACR stack not found. Will create '$SHARED_ACR_STACK_NAME' in $SHARED_RG..."
-      NEED_ACR_STACK="true"
-    elif [ -z "$ACR_EXISTS" ]; then
-      log "Shared ACR stack exists but ACR '$ACR_NAME' is missing. Recreating stack to restore ACR."
-      NEED_ACR_STACK="true"
-    else
-      log "Shared ACR stack already exists: $SHARED_ACR_STACK_NAME in $SHARED_RG (ACR present: $ACR_NAME)"
-    fi
-
-    if [ "$NEED_ACR_STACK" = "true" ]; then
-      log "  ACR Name: $ACR_NAME"
-      log "  ACR SKU: $ACR_SKU"
-      if [ "$DRY_RUN" = "true" ]; then
-        log "[DRY RUN] Would create/update shared ACR stack: $SHARED_ACR_STACK_NAME"
-        log "[DRY RUN]   --template-file main.shared.bicep"
-        log "[DRY RUN]   --parameters acrName=$ACR_NAME acrSku=$ACR_SKU"
-      else
-        az stack group create \
-          --name "$SHARED_ACR_STACK_NAME" \
-          --resource-group "$SHARED_RG" \
-          --template-file "$SCRIPT_DIR/main.shared.bicep" \
-          --parameters acrName="$ACR_NAME" \
-          --parameters acrSku="$ACR_SKU" \
-          --deny-settings-mode "none" \
-          --action-on-unmanage "detachAll" \
-          --yes || {
-            log "Error: Failed to create/update shared ACR stack '$SHARED_ACR_STACK_NAME' in '$SHARED_RG'. Aborting before main deployment."
-            log "You can manually create it with:"
-            log "  az stack group create --name $SHARED_ACR_STACK_NAME --resource-group $SHARED_RG \\"
-            log "    --template-file $SCRIPT_DIR/main.shared.bicep \\"
-            log "    --parameters acrName=$ACR_NAME acrSku=$ACR_SKU --yes"
-            exit 1
-          }
-      fi
-    fi
-    ;;
-esac
 
 # 5) Get Azure AD group Object ID for Key Vault access
 log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
@@ -302,6 +246,8 @@ DEPLOY_PARAMS=(
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
   --parameters environment="$ENVIRONMENT"
+  --parameters useSharedAcr="$USE_SHARED_ACR"
+  --parameters sharedResourceGroupName="$SHARED_RG"
 )
 
 # Add optional parameters only if set
@@ -322,6 +268,8 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
+  log "[DRY RUN]   --parameters useSharedAcr=$USE_SHARED_ACR \\"
+  log "[DRY RUN]   --parameters sharedResourceGroupName=$SHARED_RG \\"
   if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
     log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
   fi
