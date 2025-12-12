@@ -1,5 +1,5 @@
 # Stage 1: Base image with pnpm
-FROM node:24-alpine AS base
+FROM --platform=linux/amd64 node:24-alpine AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 RUN corepack enable
@@ -51,7 +51,7 @@ WORKDIR /app
 RUN pnpm --filter api build
 
 # Stage 4: Production image
-FROM node:24-alpine AS runner
+FROM --platform=linux/amd64 node:24-alpine AS runner
 WORKDIR /app
 
 # Set environment to production

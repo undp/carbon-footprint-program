@@ -76,8 +76,8 @@ log "Image: $FULL_IMAGE"
 log "Logging into ACR..."
 az acr login -n "$ACR_NAME"
 
-log "Building image..."
-docker build -f "$REPO_ROOT/apps/api/Dockerfile" -t "$FULL_IMAGE" "$REPO_ROOT"
+log "Building image for linux/amd64..."
+docker build --platform linux/amd64 -f "$REPO_ROOT/apps/api/Dockerfile" -t "$FULL_IMAGE" "$REPO_ROOT"
 
 log "Pushing image..."
 docker push "$FULL_IMAGE"
