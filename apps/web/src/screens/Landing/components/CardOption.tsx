@@ -26,15 +26,15 @@ export const CardOption: FC<Props> = ({
   title,
   description,
   buttonText,
-  path,
+  path: _path,
 }) => {
   const theme = useTheme();
   const backgroundColor = alpha(theme.palette.common.white, 0.1);
 
   const onButtonClick = useCallback(() => {
     // Implement navigation logic here using the path prop
-    console.log(`Navigating to ${path}`);
-  }, [path]);
+    // console.log(`Navigating to ${path}`);
+  }, []);
 
   return (
     <Card
