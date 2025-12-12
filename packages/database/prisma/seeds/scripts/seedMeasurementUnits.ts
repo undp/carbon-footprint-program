@@ -84,7 +84,13 @@ export async function seedMeasurementUnits(
 
   const rateMeasurementUnits = await Promise.all(
     rateMeasurementUnitsData.map((rmu) => {
-      const [upper, lower] = rmu.abbreviation.split("/");
+      const parts = rmu.abbreviation.split("/").map((p) => p.trim());
+      if (parts.length !== 2 || !parts[0] || !parts[1]) {
+        throw new Error(
+          `Invalid rate measurement unit abbreviation '${rmu.abbreviation}'. Expected format 'NUM/DEN'`
+        );
+      }
+      const [upper, lower] = parts;
 
       const numeratorMeasurementUnit =
         measurementUnitsByAbbreviation.get(upper);
