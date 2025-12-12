@@ -13,7 +13,7 @@ export const getAllMeasurementUnitsService = async (
     name: item.name,
     magnitude: item.magnitude,
     abbreviation: item.abbreviation,
-    base_factor: item.factor_base,
+    base_factor: item.base_factor,
     is_base: item.is_base,
   }));
 };

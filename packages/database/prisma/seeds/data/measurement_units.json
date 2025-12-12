@@ -1,123 +1,123 @@
 [
   {
-    "magnitude": "mass",
+    "magnitude": "MASS",
     "name": "Gramo",
     "abbreviation": "g",
-    "factor_base": 1,
+    "base_factor": 1,
     "is_base": true
   },
   {
-    "magnitude": "mass",
+    "magnitude": "MASS",
     "name": "Kilogramo",
     "abbreviation": "kg",
-    "factor_base": 1000,
+    "base_factor": 1000,
     "is_base": false
   },
   {
-    "magnitude": "mass",
+    "magnitude": "MASS",
     "name": "Tonelada",
     "abbreviation": "ton",
-    "factor_base": 1000000,
+    "base_factor": 1000000,
     "is_base": false
   },
   {
-    "magnitude": "mass",
+    "magnitude": "MASS",
     "name": "Miligramo",
     "abbreviation": "mg",
-    "factor_base": 0.001,
+    "base_factor": 0.001,
     "is_base": false
   },
   {
-    "magnitude": "volume",
+    "magnitude": "VOLUME",
     "name": "Litro",
     "abbreviation": "L",
-    "factor_base": 1,
+    "base_factor": 1,
     "is_base": true
   },
   {
-    "magnitude": "volume",
+    "magnitude": "VOLUME",
     "name": "Mililitro",
     "abbreviation": "mL",
-    "factor_base": 0.001,
+    "base_factor": 0.001,
     "is_base": false
   },
   {
-    "magnitude": "volume",
+    "magnitude": "VOLUME",
     "name": "Metro cúbico",
     "abbreviation": "m³",
-    "factor_base": 1000,
+    "base_factor": 1000,
     "is_base": false
   },
   {
-    "magnitude": "volume",
+    "magnitude": "VOLUME",
     "name": "Galón",
     "abbreviation": "gal",
-    "factor_base": 3.78541,
+    "base_factor": 3.78541,
     "is_base": false
   },
 
   {
-    "magnitude": "distance",
+    "magnitude": "DISTANCE",
     "name": "Metro",
     "abbreviation": "m",
-    "factor_base": 1,
+    "base_factor": 1,
     "is_base": true
   },
   {
-    "magnitude": "distance",
+    "magnitude": "DISTANCE",
     "name": "Kilómetro",
     "abbreviation": "km",
-    "factor_base": 1000,
+    "base_factor": 1000,
     "is_base": false
   },
   {
-    "magnitude": "distance",
+    "magnitude": "DISTANCE",
     "name": "Centímetro",
     "abbreviation": "cm",
-    "factor_base": 0.01,
+    "base_factor": 0.01,
     "is_base": false
   },
   {
-    "magnitude": "distance",
+    "magnitude": "DISTANCE",
     "name": "Milímetro",
     "abbreviation": "mm",
-    "factor_base": 0.001,
+    "base_factor": 0.001,
     "is_base": false
   },
   {
-    "magnitude": "distance",
+    "magnitude": "DISTANCE",
     "name": "Milla",
     "abbreviation": "mi",
-    "factor_base": 1609.34,
+    "base_factor": 1609.34,
     "is_base": false
   },
 
   {
-    "magnitude": "time",
+    "magnitude": "TIME",
     "name": "Segundo",
     "abbreviation": "s",
-    "factor_base": 1,
+    "base_factor": 1,
     "is_base": true
   },
   {
-    "magnitude": "time",
+    "magnitude": "TIME",
     "name": "Minuto",
     "abbreviation": "min",
-    "factor_base": 60,
+    "base_factor": 60,
     "is_base": false
   },
   {
-    "magnitude": "time",
+    "magnitude": "TIME",
     "name": "Hora",
     "abbreviation": "h",
-    "factor_base": 3600,
+    "base_factor": 3600,
     "is_base": false
   },
   {
-    "magnitude": "time",
+    "magnitude": "TIME",
     "name": "Día",
     "abbreviation": "d",
-    "factor_base": 86400,
+    "base_factor": 86400,
     "is_base": false
   }
 ]

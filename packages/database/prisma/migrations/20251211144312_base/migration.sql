@@ -138,7 +138,7 @@ CREATE TABLE "measurement_unit" (
     "name" TEXT NOT NULL,
     "magnitude" "Magnitude" NOT NULL,
     "abbreviation" TEXT NOT NULL,
-    "factor_base" DOUBLE PRECISION NOT NULL,
+    "base_factor" DOUBLE PRECISION NOT NULL,
     "is_base" BOOLEAN NOT NULL,
 
     CONSTRAINT "measurement_unit_pkey" PRIMARY KEY ("id")

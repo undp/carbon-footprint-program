@@ -11,7 +11,7 @@ type MeasurementUnitData = {
   magnitude: string;
   name: string;
   abbreviation: string;
-  factor_base: number;
+  base_factor: number;
   is_base: boolean;
 };
 
@@ -39,14 +39,14 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
         update: {
           magnitude: mu.magnitude.toUpperCase() as Magnitude,
           name: mu.name,
-          factor_base: mu.factor_base,
+          base_factor: mu.base_factor,
           is_base: mu.is_base,
         },
         create: {
           magnitude: mu.magnitude.toUpperCase() as Magnitude,
           name: mu.name,
           abbreviation: mu.abbreviation,
-          factor_base: mu.factor_base,
+          base_factor: mu.base_factor,
           is_base: mu.is_base,
         },
       })

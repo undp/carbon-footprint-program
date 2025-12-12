@@ -172,7 +172,7 @@ model measurement_unit {
   name         String
   magnitude    Magnitude
   abbreviation String    @unique
-  factor_base  Float
+  base_factor  Float
   is_base      Boolean
 
   rate_units_as_numerator   rate_measurement_unit[] @relation("numerator_measurement_unit")
