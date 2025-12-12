@@ -1,8 +1,8 @@
 import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import { checkForDuplicates, generateSeedDataPath } from "../utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,7 +12,10 @@ type OrganizationSizeData = {
   country_iso_code: string;
 };
 
-export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
+export async function seedCountryOrganizationSizes(
+  prisma: PrismaClient,
+  environment: "base" | "testing"
+) {
   console.log("Seeding country organization sizes...");
 
   // Get all countries from database
@@ -22,7 +25,11 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
   // Read country organization sizes
   const organizationSizesData: OrganizationSizeData[] = JSON.parse(
     readFileSync(
-      join(__dirname, "../data/country_organization_size.json"),
+      generateSeedDataPath(
+        __dirname,
+        "country_organization_size.json",
+        environment
+      ),
       "utf-8"
     )
   );

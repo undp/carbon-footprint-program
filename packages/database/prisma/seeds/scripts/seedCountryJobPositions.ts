@@ -1,8 +1,8 @@
 import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import { checkForDuplicates, generateSeedDataPath } from "../utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,7 +12,10 @@ type JobPositionData = {
   country_iso_code: string;
 };
 
-export async function seedCountryJobPositions(prisma: PrismaClient) {
+export async function seedCountryJobPositions(
+  prisma: PrismaClient,
+  environment: "base" | "testing"
+) {
   console.log("Seeding country job positions...");
 
   // Get all countries from database
@@ -21,7 +24,14 @@ export async function seedCountryJobPositions(prisma: PrismaClient) {
 
   // Read country job positions
   const jobPositionsData: JobPositionData[] = JSON.parse(
-    readFileSync(join(__dirname, "../data/country_job_positions.json"), "utf-8")
+    readFileSync(
+      generateSeedDataPath(
+        __dirname,
+        "country_job_positions.json",
+        environment
+      ),
+      "utf-8"
+    )
   );
 
   // Check the data has no duplicated based on country_iso_code and name

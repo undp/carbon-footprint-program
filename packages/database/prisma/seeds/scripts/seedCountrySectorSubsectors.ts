@@ -1,11 +1,12 @@
 import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
 import {
   checkForDuplicates,
   checkForPrimitiveDuplicates,
-} from "../../utils.js";
+  generateSeedDataPath,
+} from "../utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -16,7 +17,10 @@ type CountrySectorSubsectorData = {
   subsectors: string[];
 };
 
-export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
+export async function seedCountrySectorSubsectors(
+  prisma: PrismaClient,
+  environment: "base" | "testing"
+) {
   console.log("Seeding country sectors and subsectors...");
 
   // Get all countries from database
@@ -26,7 +30,11 @@ export async function seedCountrySectorSubsectors(prisma: PrismaClient) {
   // Read country sector subsectors
   const countrySectorSubsectorsData: CountrySectorSubsectorData[] = JSON.parse(
     readFileSync(
-      join(__dirname, "../data/country_sector_subsectors.json"),
+      generateSeedDataPath(
+        __dirname,
+        "country_sector_subsectors.json",
+        environment
+      ),
       "utf-8"
     )
   );

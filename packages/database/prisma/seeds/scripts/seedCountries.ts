@@ -1,8 +1,8 @@
 import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import { checkForDuplicates, generateSeedDataPath } from "../utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,12 +12,18 @@ type CountryData = {
   iso_code: string;
 };
 
-export async function seedCountries(prisma: PrismaClient) {
+export async function seedCountries(
+  prisma: PrismaClient,
+  environment: "base" | "testing"
+) {
   console.log("Seeding countries...");
 
   // Read countries
   const countriesData: CountryData[] = JSON.parse(
-    readFileSync(join(__dirname, "../data/countries.json"), "utf-8")
+    readFileSync(
+      generateSeedDataPath(__dirname, "countries.json", environment),
+      "utf-8"
+    )
   );
 
   // Check the data has no duplicated based iso_code

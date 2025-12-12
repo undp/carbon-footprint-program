@@ -1,8 +1,8 @@
 import { type PrismaClient, Magnitude } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import { checkForDuplicates, generateSeedDataPath } from "../utils";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -20,12 +20,18 @@ type RateMeasurementUnitData = {
   abbreviation: string;
 };
 
-export async function seedMeasurementUnits(prisma: PrismaClient) {
+export async function seedMeasurementUnits(
+  prisma: PrismaClient,
+  environment: "base" | "testing"
+) {
   console.log("Seeding measurement units...");
 
   // Read measurement units
   const measurementUnitsData: MeasurementUnitData[] = JSON.parse(
-    readFileSync(join(__dirname, "../data/measurement_units.json"), "utf-8")
+    readFileSync(
+      generateSeedDataPath(__dirname, "measurement_units.json", environment),
+      "utf-8"
+    )
   );
 
   // Check the data has no duplicated based on abbreviation
@@ -64,7 +70,11 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
   // Seed rate measurement units
   const rateMeasurementUnitsData: RateMeasurementUnitData[] = JSON.parse(
     readFileSync(
-      join(__dirname, "../data/rate_measurement_units.json"),
+      generateSeedDataPath(
+        __dirname,
+        "rate_measurement_units.json",
+        environment
+      ),
       "utf-8"
     )
   );
