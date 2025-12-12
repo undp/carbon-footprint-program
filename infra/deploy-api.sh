@@ -34,20 +34,6 @@ API_PORT="${API_PORT:-8080}"
 # Stack for the current environment (App Service, DB, etc.)
 STACK_NAME_ENV="undp-huella-latam-stack-$ENVIRONMENT"
 
-# Derive shared stack and RG for ACR based on environment
-# - production/staging: use same stack (ACR outputs are in main stack)
-# - development (any dev name): use shared stack in shared RG
-case "$ENVIRONMENT" in
-  production|staging)
-    STACK_NAME_SHARED="$STACK_NAME_ENV"
-    SHARED_RESOURCE_GROUP="$AZURE_RESOURCE_GROUP"
-    ;;
-  *)
-    STACK_NAME_SHARED="undp-huella-latam-stack-development"
-    SHARED_RESOURCE_GROUP="undp-huella-latam-shared-rg"
-    ;;
-esac
-
 log "Setting subscription..."
 az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 
@@ -57,10 +43,14 @@ APP_SERVICE_NAME=$(az stack group show \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "outputs.api.value.appService.name" -o tsv 2>/dev/null || echo "")
 
-log "Fetching ACR from shared stack: $STACK_NAME_SHARED (RG: $SHARED_RESOURCE_GROUP)"
+log "Fetching ACR outputs from environment stack: $STACK_NAME_ENV (RG: $AZURE_RESOURCE_GROUP)"
+ACR_ID=$(az stack group show \
+  --name "$STACK_NAME_ENV" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query "outputs.containerRegistryId.value" -o tsv 2>/dev/null || echo "")
 ACR_LOGIN_SERVER=$(az stack group show \
-  --name "$STACK_NAME_SHARED" \
-  --resource-group "$SHARED_RESOURCE_GROUP" \
+  --name "$STACK_NAME_ENV" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
   --query "outputs.acrLoginServer.value" -o tsv 2>/dev/null || echo "")
 
 if [ -z "$APP_SERVICE_NAME" ] || [ "$APP_SERVICE_NAME" = "null" ]; then
@@ -70,16 +60,17 @@ if [ -z "$APP_SERVICE_NAME" ] || [ "$APP_SERVICE_NAME" = "null" ]; then
 fi
 
 if [ -z "$ACR_LOGIN_SERVER" ] || [ "$ACR_LOGIN_SERVER" = "null" ]; then
-  log "Error: ACR login server not found in shared stack '$STACK_NAME_SHARED' (resource group: $SHARED_RESOURCE_GROUP)."
-  log "Make sure the shared ACR stack exists. Run ./deploy.sh to create it automatically."
+  log "Error: ACR login server not found in stack '$STACK_NAME_ENV' (resource group: $AZURE_RESOURCE_GROUP)."
+  log "Make sure the infrastructure stack is deployed and outputs.acrLoginServer is present. Run ./deploy.sh."
   exit 1
 fi
 
+ACR_RG=$(echo "$ACR_ID" | awk -F/ '{print $5}')
 ACR_NAME="${ACR_LOGIN_SERVER%%.azurecr.io}"
 FULL_IMAGE="$ACR_LOGIN_SERVER/$IMAGE_NAME:$IMAGE_TAG"
 
 log "App Service: $APP_SERVICE_NAME"
-log "ACR: $ACR_NAME ($ACR_LOGIN_SERVER)"
+log "ACR: $ACR_NAME ($ACR_LOGIN_SERVER) RG: ${ACR_RG:-unknown}"
 log "Image: $FULL_IMAGE"
 
 log "Logging into ACR..."
