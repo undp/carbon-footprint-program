@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Despliega/actualiza el stack compartido (ACR) en el RG compartido.
-# Requiere: AZURE_SUBSCRIPTION_ID, LOCATION, SHARED_RESOURCE_GROUP_NAME.
-# Opcionales: DRY_RUN=true, SHARED_PARAMS_FILE (por defecto params/main.development.shared.bicepparam).
+# Deploy/update the shared stack (ACR) in the shared resource group.
+# Requires: AZURE_SUBSCRIPTION_ID, LOCATION, SHARED_RESOURCE_GROUP_NAME.
+# Optional: DRY_RUN=true, SHARED_PARAMS_FILE (default params/main.development.shared.bicepparam).
 
 log() {
   echo "[$(date +'%Y-%m-%d %H:%M:%S')] $*"
@@ -13,7 +13,7 @@ DRY_RUN=${DRY_RUN:-false}
 SHARED_PARAMS_FILE=${SHARED_PARAMS_FILE:-params/main.development.shared.bicepparam}
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# Cargar .env / .envrc si existen (mismo patrón que deploy.sh)
+# Load .env / .envrc if they exist (same pattern as deploy.sh)
 if [ -f "$SCRIPT_DIR/.env" ]; then
   set -o allexport
   # shellcheck disable=SC1091
@@ -38,21 +38,21 @@ log "Location:     $LOCATION"
 log "Shared RG:    $SHARED_RESOURCE_GROUP_NAME"
 log "Params file:  $SHARED_PARAMS_FILE"
 
-# Validaciones básicas
+# Basic validations
 command -v jq >/dev/null 2>&1 || { log "Error: jq is required but not found."; exit 1; }
 if ! az bicep version >/dev/null 2>&1; then
   log "Error: Azure CLI Bicep extension is required (run: az bicep install)."
   exit 1
 fi
 
-# Seleccionar suscripción
+# Select subscription
 if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN] Would execute: az account set --subscription $AZURE_SUBSCRIPTION_ID"
 else
   az account set --subscription "$AZURE_SUBSCRIPTION_ID"
 fi
 
-# Crear/verificar RG compartido
+# Create/verify shared resource group
 log "Ensuring shared resource group exists..."
 if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN] Would execute: az group create --name $SHARED_RESOURCE_GROUP_NAME --location $LOCATION"
@@ -60,7 +60,7 @@ else
   az group create --name "$SHARED_RESOURCE_GROUP_NAME" --location "$LOCATION" >/dev/null
 fi
 
-# Leer parámetros de ACR desde el bicepparam del stack compartido
+# Read ACR parameters from the shared stack bicepparam file
 PARAMS_JSON=$(az bicep build-params --file "$SCRIPT_DIR/$SHARED_PARAMS_FILE" --stdout)
 
 get_param() {
