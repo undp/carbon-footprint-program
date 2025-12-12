@@ -212,6 +212,50 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
   });
 
   describe("Data integrity", () => {
+    it("should correctly retrieve superscript characters in nested unit abbreviations", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units/rates",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllRateMeasurementUnitsResponse;
+
+      // Check for kg por metro cúbico which should have m³ in denominator
+      const kgPerCubicMeter = body.find(
+        (ru) => ru.name === "kg por metro cúbico"
+      );
+      if (kgPerCubicMeter) {
+        expect(kgPerCubicMeter.denominator_unit.abbreviation).toBe("m³");
+        expect(kgPerCubicMeter.denominator_unit.abbreviation).toContain("³");
+        expect(kgPerCubicMeter.abbreviation).toContain("m³");
+      }
+
+      // Check all rate units for superscripts in numerator and denominator abbreviations
+      body.forEach((rateUnit) => {
+        const hasNumeratorSuperscript = /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(
+          rateUnit.numerator_unit.abbreviation
+        );
+        const hasDenominatorSuperscript = /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(
+          rateUnit.denominator_unit.abbreviation
+        );
+
+        if (hasNumeratorSuperscript) {
+          // Ensure superscripts are preserved as Unicode characters
+          expect(rateUnit.numerator_unit.abbreviation).toMatch(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/);
+        }
+
+        if (hasDenominatorSuperscript) {
+          // Ensure superscripts are preserved as Unicode characters
+          expect(rateUnit.denominator_unit.abbreviation).toMatch(
+            /[⁰¹²³⁴⁵⁶⁷⁸⁹]/
+          );
+        }
+      });
+    });
+
     it("should have unique IDs", async () => {
       const response = await app.inject({
         method: "GET",

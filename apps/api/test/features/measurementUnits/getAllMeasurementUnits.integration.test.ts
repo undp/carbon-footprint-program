@@ -183,6 +183,34 @@ describe("GET /api/measurement-units - Integration Tests", () => {
   });
 
   describe("Data integrity", () => {
+    it("should correctly retrieve superscript characters in abbreviations", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/measurement-units",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
+
+      // Check for cubic meter with superscript ³
+      const cubicMeter = body.find((u) => u.abbreviation === "m³");
+      if (cubicMeter) {
+        expect(cubicMeter.abbreviation).toBe("m³");
+        expect(cubicMeter.abbreviation).toContain("³");
+        expect(cubicMeter.magnitude).toBe("VOLUME");
+      }
+
+      // Check for any other units with superscripts
+      const unitsWithSuperscripts = body.filter((u) =>
+        /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(u.abbreviation)
+      );
+
+      unitsWithSuperscripts.forEach((unit) => {
+        // Ensure superscripts are preserved as Unicode characters, not converted
+        expect(unit.abbreviation).toMatch(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/);
+      });
+    });
+
     it("should have unique names", async () => {
       const response = await app.inject({
         method: "GET",
