@@ -6,9 +6,6 @@ param acrName string
 @description('Principal ID to grant AcrPull')
 param principalId string
 
-@description('App Service name (used to generate deterministic role assignment name)')
-param appServiceName string
-
 // Existing Container Registry in this resource group
 resource sharedAcr 'Microsoft.ContainerRegistry/registries@2025-11-01' existing = {
   name: acrName
