@@ -23,7 +23,8 @@
       "Electrónica y Eléctrica - Equipos electrónicos",
       "Electrónica y Eléctrica - Componentes eléctricos",
       "Plásticos y Caucho - Productos plásticos",
-      "Plásticos y Caucho - Neumáticos"
+      "Plásticos y Caucho - Neumáticos",
+      "Otro"
     ]
   },
   {
@@ -36,7 +37,8 @@
       "Comercialización de Energía",
       "Petróleo y Gas - Exploración",
       "Petróleo y Gas - Producción",
-      "Petróleo y Gas - Refinería"
+      "Petróleo y Gas - Refinería",
+      "Otro"
     ]
   },
   {
@@ -56,7 +58,8 @@
       "Silvicultura - Reforestación",
       "Pesca y Acuicultura - Pesca artesanal",
       "Pesca y Acuicultura - Pesca industrial",
-      "Pesca y Acuicultura - Piscicultura"
+      "Pesca y Acuicultura - Piscicultura",
+      "Otro"
     ]
   },
   {
@@ -71,7 +74,8 @@
       "Obras Civiles - Infraestructura hídrica",
       "Instalaciones Especializadas - Eléctricas",
       "Instalaciones Especializadas - Sanitarias",
-      "Instalaciones Especializadas - Climatización"
+      "Instalaciones Especializadas - Climatización",
+      "Otro"
     ]
   },
   {
@@ -87,7 +91,8 @@
       "Transporte Aéreo - Carga aérea",
       "Logística y Distribución - Centros de distribución",
       "Logística y Distribución - Couriers",
-      "Logística y Distribución - Almacenamiento y bodegaje"
+      "Logística y Distribución - Almacenamiento y bodegaje",
+      "Otro"
     ]
   },
   {
@@ -99,7 +104,8 @@
       "Comercio Mayorista - Insumos industriales",
       "Comercio Minorista - Supermercados",
       "Comercio Minorista - Tiendas especializadas",
-      "Comercio Minorista - E-commerce"
+      "Comercio Minorista - E-commerce",
+      "Otro"
     ]
   },
   {
@@ -113,7 +119,8 @@
       "Fintech - Pagos",
       "Fintech - Préstamos digitales",
       "Administración de Activos - Fondos de inversión",
-      "Administración de Activos - Pensiones"
+      "Administración de Activos - Pensiones",
+      "Otro"
     ]
   },
   {
@@ -128,7 +135,8 @@
       "Servicios Gastronómicos - Catering",
       "Agencias de Viajes y Tour Operadores",
       "Entretenimiento - Casinos",
-      "Entretenimiento - Parques temáticos"
+      "Entretenimiento - Parques temáticos",
+      "Otro"
     ]
   },
   {
@@ -142,7 +150,8 @@
       "Servicios de Salud - Servicios odontológicos",
       "Servicios de Salud - Laboratorios",
       "Farmacéuticas",
-      "Fabricación de Dispositivos Médicos"
+      "Fabricación de Dispositivos Médicos",
+      "Otro"
     ]
   },
   {
@@ -153,7 +162,8 @@
       "Educación Escolar - Media",
       "Educación Superior - Universidades",
       "Educación Superior - Institutos técnicos",
-      "Capacitación y Formación Profesional"
+      "Capacitación y Formación Profesional",
+      "Otro"
     ]
   },
   {
@@ -168,7 +178,8 @@
       "Publicidad y Marketing",
       "Servicios TI - Desarrollo",
       "Servicios TI - Consultoría TI",
-      "Servicios TI - Ciberseguridad"
+      "Servicios TI - Ciberseguridad",
+      "Otro"
     ]
   },
   {
@@ -177,7 +188,8 @@
     "subsectors": [
       "Gobierno Central",
       "Gobiernos Locales",
-      "Agencias Reguladoras"
+      "Agencias Reguladoras",
+      "Otro"
     ]
   },
   {
@@ -189,7 +201,8 @@
       "Extracción - Hierro",
       "Extracción - Minerales no metálicos",
       "Procesamiento - Fundición",
-      "Procesamiento - Refinería"
+      "Procesamiento - Refinería",
+      "Otro"
     ]
   },
   {
@@ -198,7 +211,8 @@
     "subsectors": [
       "Telefonía Móvil",
       "Proveedores de Internet",
-      "Televisión y Radio"
+      "Televisión y Radio",
+      "Otro"
     ]
   },
   {
@@ -207,7 +221,8 @@
     "subsectors": [
       "Desarrollo Inmobiliario",
       "Corretaje",
-      "Administración de Propiedades"
+      "Administración de Propiedades",
+      "Otro"
     ]
   },
   {
@@ -216,7 +231,8 @@
     "subsectors": [
       "Recolección de Residuos",
       "Plantas de Reciclaje",
-      "Disposición Final"
+      "Disposición Final",
+      "Otro"
     ]
   },
   {
@@ -224,7 +240,8 @@
     "sector": "Agua y Saneamiento",
     "subsectors": [
       "Producción y Distribución de Agua",
-      "Tratamiento de Aguas Servidas"
+      "Tratamiento de Aguas Servidas",
+      "Otro"
     ]
   }
 ]
