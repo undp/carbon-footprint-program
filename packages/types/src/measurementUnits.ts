@@ -3,7 +3,7 @@ import { z } from "zod";
 export const MagnitudeSchema = z.enum(["MASS", "VOLUME", "DISTANCE", "TIME"]);
 
 export const MeasurementUnitSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of measurement unit"),
+  id: z.string().regex(/^\d+$/).describe("The ID of the measurement unit"),
   name: z.string().min(1).describe("The name of measurement unit"),
   magnitude: MagnitudeSchema,
   abbreviation: z
