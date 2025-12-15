@@ -82,7 +82,7 @@ describe("GET /api/country-sectors - Integration Tests", () => {
 
       const testSector = body.find((s) => s.name.includes("Energía"));
       expect(testSector).toBeDefined();
-      expect(testSector?.name).toBe("Energía");
+      expect(testSector!.name).toBe("Energía");
     });
   });
 

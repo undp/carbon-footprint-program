@@ -1,60 +1,69 @@
-import { type PrismaClient, Magnitude } from "../../../index.js";
+import { type PrismaClient, type Prisma, Magnitude } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import {
+  checkForDuplicates,
+  generateSeedDataPath,
+  type SeedsDataset,
+} from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type MeasurementUnitData = {
-  magnitude: string;
-  name: string;
-  abbreviation: string;
-  base_factor: number;
-  is_base: boolean;
-};
+type MeasurementUnitData = Pick<
+  Prisma.measurement_unitCreateInput,
+  "magnitude" | "name" | "abbreviation" | "base_factor" | "is_base"
+>[];
 
-type RateMeasurementUnitData = {
-  name: string;
-  abbreviation: string;
-};
+type RateMeasurementUnitData = Pick<
+  Prisma.rate_measurement_unitCreateInput,
+  "name" | "abbreviation"
+>[];
 
-export async function seedMeasurementUnits(prisma: PrismaClient) {
+export async function seedMeasurementUnits(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
   console.log("Seeding measurement units...");
 
   // Read measurement units
-  const measurementUnitsData: MeasurementUnitData[] = JSON.parse(
-    readFileSync(join(__dirname, "../data/measurement_units.json"), "utf-8")
+  const measurementUnitsData: MeasurementUnitData = JSON.parse(
+    readFileSync(
+      generateSeedDataPath(__dirname, "measurement_units.json", dataset),
+      "utf-8"
+    )
   );
 
   // Check the data has no duplicated based on abbreviation
   checkForDuplicates(measurementUnitsData, ["abbreviation"]);
 
-  // Seed measurement units
-  const measurementUnits = await Promise.all(
-    measurementUnitsData.map((mu) =>
-      prisma.measurement_unit.upsert({
-        where: { abbreviation: mu.abbreviation },
-        update: {
-          magnitude: mu.magnitude.toUpperCase() as Magnitude,
-          name: mu.name,
-          base_factor: mu.base_factor,
-          is_base: mu.is_base,
-        },
-        create: {
-          magnitude: mu.magnitude.toUpperCase() as Magnitude,
-          name: mu.name,
-          abbreviation: mu.abbreviation,
-          base_factor: mu.base_factor,
-          is_base: mu.is_base,
-        },
-      })
-    )
-  );
+  // Prepare measurement units data
+  const measurementUnitsToCreate = measurementUnitsData.map((mu) => ({
+    magnitude: mu.magnitude.toUpperCase() as Magnitude,
+    name: mu.name,
+    abbreviation: mu.abbreviation,
+    base_factor: mu.base_factor,
+    is_base: mu.is_base,
+  }));
+
+  // Batch create measurement units (skips duplicates)
+  await prisma.measurement_unit.createMany({
+    data: measurementUnitsToCreate,
+    skipDuplicates: true,
+  });
+
+  // Fetch all measurement units to use for rate measurement units
+  const measurementUnits = await prisma.measurement_unit.findMany();
+
+  // Verify all measurement units were created
+  if (measurementUnits.length !== measurementUnitsData.length)
+    throw new Error(
+      `Expected ${measurementUnitsData.length} measurement units but found ${measurementUnits.length} for dataset ${dataset}`
+    );
 
   console.log(
-    `✓ Ensured ${measurementUnits.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")}`
+    `✓ Ensured ${measurementUnitsData.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")} for dataset ${dataset}`
   );
 
   const measurementUnitsByAbbreviation = new Map(
@@ -62,9 +71,9 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
   );
 
   // Seed rate measurement units
-  const rateMeasurementUnitsData: RateMeasurementUnitData[] = JSON.parse(
+  const rateMeasurementUnitsData: RateMeasurementUnitData = JSON.parse(
     readFileSync(
-      join(__dirname, "../data/rate_measurement_units.json"),
+      generateSeedDataPath(__dirname, "rate_measurement_units.json", dataset),
       "utf-8"
     )
   );
@@ -72,40 +81,54 @@ export async function seedMeasurementUnits(prisma: PrismaClient) {
   // Check the data has no duplicated based on abbreviation
   checkForDuplicates(rateMeasurementUnitsData, ["abbreviation"]);
 
-  const rateMeasurementUnits = await Promise.all(
-    rateMeasurementUnitsData.map((rmu) => {
-      const [upper, lower] = rmu.abbreviation.split("/");
+  // Prepare rate measurement units data
+  const rateMeasurementUnitsToCreate = rateMeasurementUnitsData.map((rmu) => {
+    const parts = rmu.abbreviation.split("/").map((p) => p.trim());
+    if (parts.length !== 2 || !parts[0] || !parts[1]) {
+      throw new Error(
+        `Invalid rate measurement unit abbreviation '${rmu.abbreviation}'. Expected format 'NUM/DEN' for dataset ${dataset}`
+      );
+    }
+    const [upper, lower] = parts;
 
-      const numeratorMeasurementUnit =
-        measurementUnitsByAbbreviation.get(upper);
-      if (!numeratorMeasurementUnit) {
-        throw new Error(`Numerator measurement unit '${upper}' not found`);
-      }
-      const denominatorMeasurementUnit =
-        measurementUnitsByAbbreviation.get(lower);
-      if (!denominatorMeasurementUnit) {
-        throw new Error(`Denominator measurement unit '${lower}' not found`);
-      }
+    const numeratorMeasurementUnit = measurementUnitsByAbbreviation.get(upper);
+    if (!numeratorMeasurementUnit) {
+      throw new Error(
+        `Numerator measurement unit '${upper}' not found in dataset ${dataset}`
+      );
+    }
+    const denominatorMeasurementUnit =
+      measurementUnitsByAbbreviation.get(lower);
+    if (!denominatorMeasurementUnit) {
+      throw new Error(
+        `Denominator measurement unit '${lower}' not found in dataset ${dataset}`
+      );
+    }
 
-      return prisma.rate_measurement_unit.upsert({
-        where: { abbreviation: rmu.abbreviation },
-        update: {
-          name: rmu.name,
-          numerator_measurement_unit_id: numeratorMeasurementUnit.id,
-          denominator_measurement_unit_id: denominatorMeasurementUnit.id,
-        },
-        create: {
-          name: rmu.name,
-          abbreviation: rmu.abbreviation,
-          numerator_measurement_unit_id: numeratorMeasurementUnit.id,
-          denominator_measurement_unit_id: denominatorMeasurementUnit.id,
-        },
-      });
-    })
-  );
+    return {
+      name: rmu.name,
+      abbreviation: rmu.abbreviation,
+      numerator_measurement_unit_id: numeratorMeasurementUnit.id,
+      denominator_measurement_unit_id: denominatorMeasurementUnit.id,
+    };
+  });
+
+  // Batch create rate measurement units (skips duplicates)
+  await prisma.rate_measurement_unit.createMany({
+    data: rateMeasurementUnitsToCreate,
+    skipDuplicates: true,
+  });
+
+  // Verify all rate measurement units were created
+  const rateMeasurementUnits = await prisma.rate_measurement_unit.findMany();
+
+  if (rateMeasurementUnits.length !== rateMeasurementUnitsData.length)
+    throw new Error(
+      `Expected ${rateMeasurementUnitsData.length} rate measurement units but found ${rateMeasurementUnits.length} for dataset ${dataset}`
+    );
 
   console.log(
-    `✓ Ensured ${rateMeasurementUnits.length} rate measurement units exist: ${rateMeasurementUnits.map((rmu) => rmu.abbreviation).join(", ")}`
+    `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsToCreate.map((rmu) => rmu.abbreviation).join(", ")} for dataset ${dataset}`
   );
 
   console.log("✓ Measurement units seeded successfully!");

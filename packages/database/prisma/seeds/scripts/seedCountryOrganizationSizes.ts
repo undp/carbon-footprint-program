@@ -1,18 +1,27 @@
-import { type PrismaClient } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import {
+  checkForDuplicates,
+  generateSeedDataPath,
+  type SeedsDataset,
+} from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type OrganizationSizeData = {
-  name: string;
-  country_iso_code: string;
-};
+type OrganizationSizeData = (Pick<
+  Prisma.country_organization_sizeCreateInput,
+  "name"
+> & {
+  country_iso_code: Prisma.countryCreateInput["iso_code"];
+})[];
 
-export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
+export async function seedCountryOrganizationSizes(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
   console.log("Seeding country organization sizes...");
 
   // Get all countries from database
@@ -20,31 +29,44 @@ export async function seedCountryOrganizationSizes(prisma: PrismaClient) {
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country organization sizes
-  const organizationSizesData: OrganizationSizeData[] = JSON.parse(
+  const organizationSizesData: OrganizationSizeData = JSON.parse(
     readFileSync(
-      join(__dirname, "../data/country_organization_size.json"),
+      generateSeedDataPath(
+        __dirname,
+        "country_organization_size.json",
+        dataset
+      ),
       "utf-8"
     )
   );
 
   checkForDuplicates(organizationSizesData, ["country_iso_code", "name"]);
 
-  // Seed organization sizes
-  const organizationSizes = await Promise.all(
-    organizationSizesData.map((os) => {
-      const country = countryByIso.get(os.country_iso_code);
-      if (!country) {
-        throw new Error(`Country '${os.country_iso_code}' not found`);
-      }
-      return prisma.country_organization_size.upsert({
-        where: { country_id_name: { country_id: country.id, name: os.name } },
-        update: {},
-        create: { name: os.name, country_id: country.id },
-      });
-    })
+  // Prepare organization sizes data with country_id
+  const organizationSizesToCreate = organizationSizesData.map((os) => {
+    const country = countryByIso.get(os.country_iso_code);
+    if (!country)
+      throw new Error(
+        `Country '${os.country_iso_code}' not found in dataset ${dataset}`
+      );
+    return { name: os.name, country_id: country.id };
+  });
+
+  // Batch create organization sizes (skips duplicates)
+  await prisma.country_organization_size.createMany({
+    data: organizationSizesToCreate,
+    skipDuplicates: true,
+  });
+
+  // Verify all organization sizes were created
+  const organizationSizes = await prisma.country_organization_size.findMany();
+
+  if (organizationSizes.length !== organizationSizesData.length)
+    throw new Error(
+      `Expected ${organizationSizesData.length} organization sizes but found ${organizationSizes.length} for dataset ${dataset}`
+    );
+
+  console.log(
+    `✓ Ensured ${organizationSizesData.length} organization sizes exist for dataset ${dataset}`
   );
-
-  console.log(`✓ Ensured ${organizationSizes.length} organization sizes exist`);
-
-  return organizationSizes;
 }

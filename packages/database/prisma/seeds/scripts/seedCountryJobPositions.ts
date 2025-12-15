@@ -1,18 +1,24 @@
-import { type PrismaClient } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { checkForDuplicates } from "../../utils.js";
+import {
+  checkForDuplicates,
+  generateSeedDataPath,
+  type SeedsDataset,
+} from "../utils/index.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type JobPositionData = {
-  name: string;
-  country_iso_code: string;
-};
+type JobPositionData = (Pick<Prisma.country_job_positionCreateInput, "name"> & {
+  country_iso_code: Prisma.countryCreateInput["iso_code"];
+})[];
 
-export async function seedCountryJobPositions(prisma: PrismaClient) {
+export async function seedCountryJobPositions(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
   console.log("Seeding country job positions...");
 
   // Get all countries from database
@@ -20,29 +26,41 @@ export async function seedCountryJobPositions(prisma: PrismaClient) {
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country job positions
-  const jobPositionsData: JobPositionData[] = JSON.parse(
-    readFileSync(join(__dirname, "../data/country_job_positions.json"), "utf-8")
+  const jobPositionsData: JobPositionData = JSON.parse(
+    readFileSync(
+      generateSeedDataPath(__dirname, "country_job_positions.json", dataset),
+      "utf-8"
+    )
   );
 
   // Check the data has no duplicated based on country_iso_code and name
   checkForDuplicates(jobPositionsData, ["country_iso_code", "name"]);
 
-  // Seed job positions
-  const jobPositions = await Promise.all(
-    jobPositionsData.map((jp) => {
-      const country = countryByIso.get(jp.country_iso_code);
-      if (!country) {
-        throw new Error(`Country '${jp.country_iso_code}' not found`);
-      }
-      return prisma.country_job_position.upsert({
-        where: { country_id_name: { country_id: country.id, name: jp.name } },
-        update: {},
-        create: { name: jp.name, country_id: country.id },
-      });
-    })
+  // Prepare job positions data with country_id
+  const jobPositionsToCreate = jobPositionsData.map((jp) => {
+    const country = countryByIso.get(jp.country_iso_code);
+    if (!country)
+      throw new Error(
+        `Country '${jp.country_iso_code}' not found in dataset ${dataset}`
+      );
+    return { name: jp.name, country_id: country.id };
+  });
+
+  // Batch create job positions (skips duplicates)
+  await prisma.country_job_position.createMany({
+    data: jobPositionsToCreate,
+    skipDuplicates: true,
+  });
+
+  // Verify all job positions were created
+  const jobPositions = await prisma.country_job_position.findMany();
+
+  if (jobPositions.length !== jobPositionsData.length)
+    throw new Error(
+      `Expected ${jobPositionsData.length} job positions but found ${jobPositions.length} for dataset ${dataset}`
+    );
+
+  console.log(
+    `✓ Ensured ${jobPositionsData.length} job positions exist for dataset ${dataset}`
   );
-
-  console.log(`✓ Ensured ${jobPositions.length} job positions exist`);
-
-  return jobPositions;
 }

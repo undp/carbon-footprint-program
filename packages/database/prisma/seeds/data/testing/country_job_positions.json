@@ -1,0 +1,314 @@
+[
+  {
+    "name": "Otro",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Administrador de Bases de Datos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Administrador de Finca",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Administrador de Oficina",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Administrador de Sistemas",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Agrónomo",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista Ambiental",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Aseguramiento de Calidad",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Cadena de Suministro",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Datos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Energía",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Huella de Carbono",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Negocios",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista de Sostenibilidad",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista ESG",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista Financiero",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Analista GIS",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Asesor Legal",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Asistente Administrativo",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Asistente Ejecutivo",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Asistente Legal / Paralegal",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Auditor",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Auditor Interno",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Científico de Datos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Contador",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Coordinador Ambiental",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Coordinador de Logística",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Coordinador de Operaciones",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Coordinador de Recursos Humanos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Coordinador HSE",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Director de Operaciones (COO)",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Director de Sostenibilidad (CSO)",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Director Ejecutivo (CEO)",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista Ambiental",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista de Recursos Humanos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Asuntos Regulatorios",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Cambio Climático",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Capacitación y Desarrollo",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Responsabilidad Social Corporativa (RSC)",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Salud, Seguridad y Medio Ambiente (HSE)",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Soporte TI",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Sostenibilidad",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Especialista en Verificación",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente Ambiental",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Auditoría",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Cadena de Suministro",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Cumplimiento",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Energía",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Finanzas",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Flota",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Operaciones",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Planta",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Programas",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Proyectos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Recursos Humanos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente de Sostenibilidad",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente ESG",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente General",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Gerente HSE",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Ingeniero de Procesos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Ingeniero de Proyectos",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Ingeniero de Software",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Ingeniero Industrial",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Oficial de Acreditación",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Oficial de Cumplimiento",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Oficial de Cumplimiento Ambiental",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Reclutador",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Revisor de Cumplimiento",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico Ambiental",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico de Campo",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico de Control de Calidad",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico de Datos (para lecturas, inventarios o recolección de datos de actividad)",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico de Mantenimiento",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico Forestal",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Técnico GIS",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Verificador",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Verificador Interno",
+    "country_iso_code": "CL"
+  },
+  {
+    "name": "Verificador Líder",
+    "country_iso_code": "CL"
+  }
+]

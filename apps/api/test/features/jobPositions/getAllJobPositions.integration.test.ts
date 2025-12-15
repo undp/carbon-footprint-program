@@ -83,7 +83,7 @@ describe("GET /api/job-positions - Integration Tests", () => {
         jp.name.includes("Gerente de Sostenibilidad")
       );
       expect(testJobPosition).toBeDefined();
-      expect(testJobPosition?.name).toBe("Gerente de Sostenibilidad");
+      expect(testJobPosition!.name).toBe("Gerente de Sostenibilidad");
     });
   });
 
