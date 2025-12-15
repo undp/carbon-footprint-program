@@ -57,6 +57,6 @@ export async function seedSystemRoles(
     );
 
   console.log(
-    `✓ Ensured ${systemRolesData.length} system role entries exist: ${systemRoles.map((r) => r.name).join(", ")}`
+    `✓ Ensured ${systemRolesData.length} system role entries exist: ${systemRoles.map((r) => r.name).join(", ")} for dataset ${dataset}`
   );
 }

@@ -59,6 +59,6 @@ export async function seedAllRoles(
     );
 
   console.log(
-    `✓ Ensured ${allRolesData.length} roles exist (${organizationRolesData.length} organization + ${systemRolesData.length} system)`
+    `✓ Ensured ${allRolesData.length} roles exist (${organizationRolesData.length} organization + ${systemRolesData.length} system) for dataset ${dataset}`
   );
 }

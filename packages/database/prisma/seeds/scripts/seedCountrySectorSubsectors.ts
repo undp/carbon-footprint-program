@@ -122,7 +122,11 @@ export async function seedCountrySectorSubsectors(
       `Expected ${subsectorsToCreate.length} subsectors but found ${subsectors.length}`
     );
 
-  console.log(`✓ Ensured ${sectorsToCreate.length} sectors exist`);
-  console.log(`✓ Ensured ${subsectorsToCreate.length} subsectors exist`);
+  console.log(
+    `✓ Ensured ${sectorsToCreate.length} sectors exist for dataset ${dataset}`
+  );
+  console.log(
+    `✓ Ensured ${subsectorsToCreate.length} subsectors exist for dataset ${dataset}`
+  );
   console.log("✓ Country sectors and subsectors seeded successfully!");
 }

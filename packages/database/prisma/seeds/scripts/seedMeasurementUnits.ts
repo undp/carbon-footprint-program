@@ -63,7 +63,7 @@ export async function seedMeasurementUnits(
     );
 
   console.log(
-    `✓ Ensured ${measurementUnitsData.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")}`
+    `✓ Ensured ${measurementUnitsData.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")} for dataset ${dataset}`
   );
 
   const measurementUnitsByAbbreviation = new Map(
@@ -128,7 +128,7 @@ export async function seedMeasurementUnits(
     );
 
   console.log(
-    `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsToCreate.map((rmu) => rmu.abbreviation).join(", ")}`
+    `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsToCreate.map((rmu) => rmu.abbreviation).join(", ")} for dataset ${dataset}`
   );
 
   console.log("✓ Measurement units seeded successfully!");

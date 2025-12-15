@@ -60,5 +60,7 @@ export async function seedCountryJobPositions(
       `Expected ${jobPositionsData.length} job positions but found ${jobPositions.length}`
     );
 
-  console.log(`✓ Ensured ${jobPositionsData.length} job positions exist`);
+  console.log(
+    `✓ Ensured ${jobPositionsData.length} job positions exist for dataset ${dataset}`
+  );
 }

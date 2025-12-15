@@ -47,5 +47,7 @@ export async function seedCountries(
       `Expected ${countriesData.length} countries but found ${countries.length}`
     );
 
-  console.log(`✓ Ensured ${countriesData.length} countries exist`);
+  console.log(
+    `✓ Ensured ${countriesData.length} countries exist for dataset ${dataset}`
+  );
 }

@@ -57,6 +57,6 @@ export async function seedOrganizationRoles(
     );
 
   console.log(
-    `✓ Ensured ${organizationRolesData.length} organization role entries exist: ${organizationRoles.map((r) => r.name).join(", ")}`
+    `✓ Ensured ${organizationRolesData.length} organization role entries exist: ${organizationRoles.map((r) => r.name).join(", ")} for dataset ${dataset}`
   );
 }

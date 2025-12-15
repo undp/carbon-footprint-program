@@ -67,6 +67,6 @@ export async function seedCountryOrganizationSizes(
     );
 
   console.log(
-    `✓ Ensured ${organizationSizesData.length} organization sizes exist`
+    `✓ Ensured ${organizationSizesData.length} organization sizes exist for dataset ${dataset}`
   );
 }
