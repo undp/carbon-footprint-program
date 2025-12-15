@@ -7,14 +7,10 @@ import {
   generateSeedDataPath,
   type SeedsDataset,
 } from "../utils/index.js";
+import type { RoleData } from "./seedAllRoles.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-type RoleData = {
-  name: string;
-  description: string;
-};
 
 export async function seedOrganizationRoles(
   prisma: PrismaClient,
@@ -23,7 +19,7 @@ export async function seedOrganizationRoles(
   console.log("Seeding organization role entries...");
 
   // Read organization roles
-  const organizationRolesData: RoleData[] = JSON.parse(
+  const organizationRolesData: RoleData = JSON.parse(
     readFileSync(
       generateSeedDataPath(__dirname, "organization_roles.json", dataset),
       "utf-8"

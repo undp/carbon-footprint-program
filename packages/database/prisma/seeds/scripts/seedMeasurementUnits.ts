@@ -1,4 +1,4 @@
-import { type PrismaClient, Magnitude } from "../../../index.js";
+import { type PrismaClient, type Prisma, Magnitude } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -11,18 +11,15 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type MeasurementUnitData = {
-  magnitude: string;
-  name: string;
-  abbreviation: string;
-  base_factor: number;
-  is_base: boolean;
-};
+type MeasurementUnitData = Pick<
+  Prisma.measurement_unitCreateInput,
+  "magnitude" | "name" | "abbreviation" | "base_factor" | "is_base"
+>[];
 
-type RateMeasurementUnitData = {
-  name: string;
-  abbreviation: string;
-};
+type RateMeasurementUnitData = Pick<
+  Prisma.rate_measurement_unitCreateInput,
+  "name" | "abbreviation"
+>[];
 
 export async function seedMeasurementUnits(
   prisma: PrismaClient,
@@ -31,7 +28,7 @@ export async function seedMeasurementUnits(
   console.log("Seeding measurement units...");
 
   // Read measurement units
-  const measurementUnitsData: MeasurementUnitData[] = JSON.parse(
+  const measurementUnitsData: MeasurementUnitData = JSON.parse(
     readFileSync(
       generateSeedDataPath(__dirname, "measurement_units.json", dataset),
       "utf-8"
@@ -74,7 +71,7 @@ export async function seedMeasurementUnits(
   );
 
   // Seed rate measurement units
-  const rateMeasurementUnitsData: RateMeasurementUnitData[] = JSON.parse(
+  const rateMeasurementUnitsData: RateMeasurementUnitData = JSON.parse(
     readFileSync(
       generateSeedDataPath(__dirname, "rate_measurement_units.json", dataset),
       "utf-8"

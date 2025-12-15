@@ -1,4 +1,4 @@
-import { type PrismaClient } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -11,10 +11,12 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type OrganizationSizeData = {
-  name: string;
-  country_iso_code: string;
-};
+type OrganizationSizeData = (Pick<
+  Prisma.country_organization_sizeCreateInput,
+  "name"
+> & {
+  country_iso_code: Prisma.countryCreateInput["iso_code"];
+})[];
 
 export async function seedCountryOrganizationSizes(
   prisma: PrismaClient,
@@ -27,7 +29,7 @@ export async function seedCountryOrganizationSizes(
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country organization sizes
-  const organizationSizesData: OrganizationSizeData[] = JSON.parse(
+  const organizationSizesData: OrganizationSizeData = JSON.parse(
     readFileSync(
       generateSeedDataPath(
         __dirname,

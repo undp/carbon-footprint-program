@@ -1,4 +1,4 @@
-import { type PrismaClient } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -11,10 +11,7 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type CountryData = {
-  name: string;
-  iso_code: string;
-};
+type CountryData = Pick<Prisma.countryCreateInput, "name" | "iso_code">[];
 
 export async function seedCountries(
   prisma: PrismaClient,
@@ -23,7 +20,7 @@ export async function seedCountries(
   console.log("Seeding countries...");
 
   // Read countries
-  const countriesData: CountryData[] = JSON.parse(
+  const countriesData: CountryData = JSON.parse(
     readFileSync(
       generateSeedDataPath(__dirname, "countries.json", dataset),
       "utf-8"

@@ -1,4 +1,4 @@
-import { type PrismaClient } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -11,10 +11,9 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type JobPositionData = {
-  name: string;
-  country_iso_code: string;
-};
+type JobPositionData = (Pick<Prisma.country_job_positionCreateInput, "name"> & {
+  country_iso_code: Prisma.countryCreateInput["iso_code"];
+})[];
 
 export async function seedCountryJobPositions(
   prisma: PrismaClient,
@@ -27,7 +26,7 @@ export async function seedCountryJobPositions(
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country job positions
-  const jobPositionsData: JobPositionData[] = JSON.parse(
+  const jobPositionsData: JobPositionData = JSON.parse(
     readFileSync(
       generateSeedDataPath(__dirname, "country_job_positions.json", dataset),
       "utf-8"

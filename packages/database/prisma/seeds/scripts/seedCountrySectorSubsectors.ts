@@ -1,4 +1,4 @@
-import { type PrismaClient } from "../../../index.js";
+import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -13,10 +13,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type CountrySectorSubsectorData = {
-  country_iso_code: string;
-  sector: string;
-  subsectors: string[];
-};
+  country_iso_code: Prisma.countryCreateInput["iso_code"];
+  sector: Prisma.country_sectorCreateInput["name"];
+  subsectors: Prisma.country_subsectorCreateInput["name"][];
+}[];
 
 export async function seedCountrySectorSubsectors(
   prisma: PrismaClient,
@@ -29,7 +29,7 @@ export async function seedCountrySectorSubsectors(
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country sector subsectors
-  const countrySectorSubsectorsData: CountrySectorSubsectorData[] = JSON.parse(
+  const countrySectorSubsectorsData: CountrySectorSubsectorData = JSON.parse(
     readFileSync(
       generateSeedDataPath(
         __dirname,
