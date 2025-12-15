@@ -40,22 +40,20 @@ export async function seedCountryOrganizationSizes(
 
   checkForDuplicates(organizationSizesData, ["country_iso_code", "name"]);
 
-  // Seed organization sizes
-  const organizationSizes = await Promise.all(
-    organizationSizesData.map((os) => {
-      const country = countryByIso.get(os.country_iso_code);
-      if (!country) {
-        throw new Error(`Country '${os.country_iso_code}' not found`);
-      }
-      return prisma.country_organization_size.upsert({
-        where: { country_id_name: { country_id: country.id, name: os.name } },
-        update: {},
-        create: { name: os.name, country_id: country.id },
-      });
-    })
+  // Prepare organization sizes data with country_id
+  const organizationSizesToCreate = organizationSizesData.map((os) => {
+    const country = countryByIso.get(os.country_iso_code);
+    if (!country) throw new Error(`Country '${os.country_iso_code}' not found`);
+    return { name: os.name, country_id: country.id };
+  });
+
+  // Batch create organization sizes (skips duplicates)
+  await prisma.country_organization_size.createMany({
+    data: organizationSizesToCreate,
+    skipDuplicates: true,
+  });
+
+  console.log(
+    `✓ Ensured ${organizationSizesData.length} organization sizes exist`
   );
-
-  console.log(`✓ Ensured ${organizationSizes.length} organization sizes exist`);
-
-  return organizationSizes;
 }

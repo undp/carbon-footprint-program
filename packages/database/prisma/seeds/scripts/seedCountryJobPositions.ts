@@ -37,22 +37,18 @@ export async function seedCountryJobPositions(
   // Check the data has no duplicated based on country_iso_code and name
   checkForDuplicates(jobPositionsData, ["country_iso_code", "name"]);
 
-  // Seed job positions
-  const jobPositions = await Promise.all(
-    jobPositionsData.map((jp) => {
-      const country = countryByIso.get(jp.country_iso_code);
-      if (!country) {
-        throw new Error(`Country '${jp.country_iso_code}' not found`);
-      }
-      return prisma.country_job_position.upsert({
-        where: { country_id_name: { country_id: country.id, name: jp.name } },
-        update: {},
-        create: { name: jp.name, country_id: country.id },
-      });
-    })
-  );
+  // Prepare job positions data with country_id
+  const jobPositionsToCreate = jobPositionsData.map((jp) => {
+    const country = countryByIso.get(jp.country_iso_code);
+    if (!country) throw new Error(`Country '${jp.country_iso_code}' not found`);
+    return { name: jp.name, country_id: country.id };
+  });
 
-  console.log(`✓ Ensured ${jobPositions.length} job positions exist`);
+  // Batch create job positions (skips duplicates)
+  await prisma.country_job_position.createMany({
+    data: jobPositionsToCreate,
+    skipDuplicates: true,
+  });
 
-  return jobPositions;
+  console.log(`✓ Ensured ${jobPositionsData.length} job positions exist`);
 }

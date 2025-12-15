@@ -51,56 +51,67 @@ export async function seedCountrySectorSubsectors(
     );
   }
 
-  let totalSectors = 0;
-  let totalSubsectors = 0;
-
-  // Process each country's sectors and subsectors
-  for (const item of countrySectorSubsectorsData) {
+  // Prepare sectors data with country_id
+  const sectorsToCreate = countrySectorSubsectorsData.map((item) => {
     const country = countryByIso.get(item.country_iso_code);
     if (!country) {
       throw new Error(`Country '${item.country_iso_code}' not found`);
     }
+    return {
+      country_id: country.id,
+      name: item.sector,
+    };
+  });
 
-    // Create or update the sector
-    const sector = await prisma.country_sector.upsert({
-      where: {
-        country_id_name: {
-          country_id: country.id,
-          name: item.sector,
-        },
-      },
-      update: {},
-      create: {
-        country_id: country.id,
-        name: item.sector,
-      },
-    });
+  // Batch create sectors (skips duplicates)
+  await prisma.country_sector.createMany({
+    data: sectorsToCreate,
+    skipDuplicates: true,
+  });
 
-    totalSectors++;
+  // Fetch all sectors to get their IDs for subsectors
+  const sectors = await prisma.country_sector.findMany({
+    where: {
+      OR: sectorsToCreate.map((s) => ({
+        country_id: s.country_id,
+        name: s.name,
+      })),
+    },
+  });
 
-    // Create or update subsectors for this sector
-    await Promise.all(
-      item.subsectors.map((subsectorName) =>
-        prisma.country_subsector.upsert({
-          where: {
-            country_sector_id_name: {
-              country_sector_id: sector.id,
-              name: subsectorName,
-            },
-          },
-          update: {},
-          create: {
-            country_sector_id: sector.id,
-            name: subsectorName,
-          },
-        })
-      )
-    );
+  // Create a map for quick sector lookup
+  const sectorMap = new Map(
+    sectors.map((s) => [`${s.country_id}_${s.name}`, s])
+  );
 
-    totalSubsectors += item.subsectors.length;
+  // Prepare subsectors data
+  const subsectorsToCreate: { country_sector_id: bigint; name: string }[] = [];
+  for (const item of countrySectorSubsectorsData) {
+    const country = countryByIso.get(item.country_iso_code);
+    if (!country)
+      throw new Error(`Country '${item.country_iso_code}' not found`);
+
+    const sector = sectorMap.get(`${country.id}_${item.sector}`);
+    if (!sector)
+      throw new Error(
+        `Sector '${item.sector}' not found for country '${item.country_iso_code}'`
+      );
+
+    for (const subsectorName of item.subsectors) {
+      subsectorsToCreate.push({
+        country_sector_id: sector.id,
+        name: subsectorName,
+      });
+    }
   }
 
-  console.log(`✓ Ensured ${totalSectors} sectors exist`);
-  console.log(`✓ Ensured ${totalSubsectors} subsectors exist`);
+  // Batch create subsectors (skips duplicates)
+  await prisma.country_subsector.createMany({
+    data: subsectorsToCreate,
+    skipDuplicates: true,
+  });
+
+  console.log(`✓ Ensured ${sectorsToCreate.length} sectors exist`);
+  console.log(`✓ Ensured ${subsectorsToCreate.length} subsectors exist`);
   console.log("✓ Country sectors and subsectors seeded successfully!");
 }

@@ -16,21 +16,6 @@ type RoleData = {
   description: string;
 };
 
-async function upsertRoles(prisma: PrismaClient, data: RoleData[]) {
-  return Promise.all(
-    data.map((d) =>
-      prisma.role.upsert({
-        where: { name: d.name },
-        update: { description: d.description },
-        create: {
-          name: d.name,
-          description: d.description,
-        },
-      })
-    )
-  );
-}
-
 export async function seedRoles(prisma: PrismaClient, dataset: SeedsDataset) {
   console.log("Seeding roles...");
 
@@ -56,8 +41,18 @@ export async function seedRoles(prisma: PrismaClient, dataset: SeedsDataset) {
   // Check the data has no duplicated based on name
   checkForDuplicates(systemRolesData, ["name"]);
 
-  // Seed organization roles
-  const organizationRoles = await upsertRoles(prisma, organizationRolesData);
+  // Batch create organization roles (skips duplicates)
+  await prisma.role.createMany({
+    data: organizationRolesData,
+    skipDuplicates: true,
+  });
+
+  // Fetch organization roles to get their IDs
+  const organizationRoles = await prisma.role.findMany({
+    where: {
+      name: { in: organizationRolesData.map((r) => r.name) },
+    },
+  });
 
   // Bulk insert organization_role entries
   await prisma.organization_role.createMany({
@@ -66,11 +61,21 @@ export async function seedRoles(prisma: PrismaClient, dataset: SeedsDataset) {
   });
 
   console.log(
-    `✓ Ensured ${organizationRoles.length} organization roles exist: ${organizationRoles.map((r) => r.name).join(", ")}`
+    `✓ Ensured ${organizationRolesData.length} organization roles exist: ${organizationRoles.map((r) => r.name).join(", ")}`
   );
 
-  // Seed system roles
-  const systemRoles = await upsertRoles(prisma, systemRolesData);
+  // Batch create system roles (skips duplicates)
+  await prisma.role.createMany({
+    data: systemRolesData,
+    skipDuplicates: true,
+  });
+
+  // Fetch system roles to get their IDs
+  const systemRoles = await prisma.role.findMany({
+    where: {
+      name: { in: systemRolesData.map((r) => r.name) },
+    },
+  });
 
   // Bulk insert system_role entries
   await prisma.system_role.createMany({
@@ -79,7 +84,7 @@ export async function seedRoles(prisma: PrismaClient, dataset: SeedsDataset) {
   });
 
   console.log(
-    `✓ Ensured ${systemRoles.length} system roles exist: ${systemRoles.map((r) => r.name).join(", ")}`
+    `✓ Ensured ${systemRolesData.length} system roles exist: ${systemRoles.map((r) => r.name).join(", ")}`
   );
 
   console.log("✓ Roles seeded successfully!");
