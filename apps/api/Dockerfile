@@ -78,8 +78,7 @@ COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma ./packages/database/prisma
 # Copy compiled prisma config and its dependency to root so `prisma migrate deploy` can find it
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist/prisma.config.js ./packages/database/
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist/environment.js ./packages/database/
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/
 
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
