@@ -1,0 +1,212 @@
+[
+  {
+    "country_iso_code": "CL",
+    "sector": null,
+    "main_activities": [
+      "millones de CLP de ingresos",
+      "millones de CLP facturados",
+      "millones de CLP de costos operacionales",
+      "millones de CLP de EBITDA",
+      "millones de CLP de presupuesto ejecutado",
+      "empleados",
+      "FTE (Full-Time Equivalent)",
+      "horas trabajadas",
+      "personas contratadas",
+      "m² construidos",
+      "m² operados",
+      "edificios",
+      "oficinas",
+      "instalaciones operativas",
+      "clientes",
+      "usuarios activos",
+      "contratos",
+      "transacciones",
+      "proyectos",
+      "años de operación",
+      "meses de operación",
+      "días de operación",
+      "horas de operación",
+      "vehículos",
+      "activos operativos",
+      "equipos",
+      "máquinas",
+      "unidades gestionadas",
+      "toneladas gestionadas",
+      "lotes",
+      "envíos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Manufactura / Industria Manufacturera",
+    "main_activities": [
+      "toneladas producidas",
+      "unidades fabricadas",
+      "kg de productos",
+      "litros producidos",
+      "lotes de producción",
+      "horas de operación de planta"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Energía",
+    "main_activities": [
+      "MWh generados",
+      "GWh generados",
+      "MWh distribuidos",
+      "clientes abastecidos",
+      "km de red operada"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
+    "main_activities": [
+      "toneladas producidas",
+      "kg de productos",
+      "litros producidos",
+      "hectáreas productivas",
+      "animales (ciclo/año)",
+      "m³ de madera",
+      "toneladas desembarcadas"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Construcción",
+    "main_activities": ["viviendas", "obras ejecutadas", "UF construidas"]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Transporte y Logística",
+    "main_activities": [
+      "km recorridos",
+      "toneladas-km",
+      "pasajeros-km",
+      "viajes",
+      "vehículos operativos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Comercio",
+    "main_activities": [
+      "unidades vendidas",
+      "clientes atendidos",
+      "tickets de venta",
+      "tiendas",
+      "m² de sala de ventas",
+      "millones de CLP vendidos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Servicios Financieros",
+    "main_activities": ["cuentas gestionadas", "millones de CLP administrados"]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Turismo, Hotelería y Restaurantes",
+    "main_activities": [
+      "noches de alojamiento",
+      "huéspedes",
+      "habitaciones ocupadas",
+      "comidas servidas",
+      "mesas atendidas",
+      "eventos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Salud",
+    "main_activities": [
+      "pacientes atendidos",
+      "consultas médicas",
+      "camas ocupadas",
+      "procedimientos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Educación",
+    "main_activities": [
+      "estudiantes",
+      "matrículas",
+      "cursos dictados",
+      "años académicos",
+      "m² de infraestructura educativa"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Servicios Profesionales y Empresariales",
+    "main_activities": ["horas facturables"]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Administración Pública",
+    "main_activities": [
+      "funcionarios",
+      "ciudadanos atendidos",
+      "trámites realizados",
+      "edificios públicos",
+      "m² de infraestructura",
+      "millones de CLP presupuestados"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Minería",
+    "main_activities": [
+      "toneladas extraídas",
+      "toneladas procesadas",
+      "kg de mineral fino",
+      "MWh consumidos",
+      "faenas"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Telecomunicaciones",
+    "main_activities": [
+      "líneas activas",
+      "GB de datos transmitidos",
+      "antenas o sitios",
+      "km de red"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Bienes Raíces",
+    "main_activities": [
+      "m² administrados",
+      "unidades habitacionales",
+      "arrendatarios",
+      "proyectos inmobiliarios",
+      "millones de CLP de ingresos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Gestión de Residuos",
+    "main_activities": [
+      "toneladas de residuos tratados",
+      "toneladas recicladas",
+      "toneladas dispuestas",
+      "rutas de recolección",
+      "instalaciones operadas"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Agua y Saneamiento",
+    "main_activities": [
+      "m³ de agua producidos",
+      "m³ de agua distribuidos",
+      "m³ de aguas servidas tratadas",
+      "km de red",
+      "plantas operadas"
+    ]
+  }
+]
