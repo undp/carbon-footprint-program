@@ -4,7 +4,10 @@ import {
   GetAllOrganizationMainActivitiesResponseSchema,
   GetAllOrganizationMainActivitiesQuerySchema,
 } from "./getAllOrganizationMainActivitiesSchema.js";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import {
+  NotFoundErrorResponseSchema,
+  ValidationErrorResponseSchema,
+} from "@/commonSchemas/errors.js";
 
 export const getAllOrganizationMainActivitiesRoute = (
   fastify: FastifyZodInstance
@@ -25,6 +28,7 @@ export const getAllOrganizationMainActivitiesRoute = (
         querystring: GetAllOrganizationMainActivitiesQuerySchema,
         response: {
           200: GetAllOrganizationMainActivitiesResponseSchema,
+          400: ValidationErrorResponseSchema,
           404: NotFoundErrorResponseSchema,
         },
       },
