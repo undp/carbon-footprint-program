@@ -89,7 +89,7 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
         os.name.includes("Microempresa (1-10 empleados)")
       );
       expect(testOrgSize).toBeDefined();
-      expect(testOrgSize?.name).toBe("Microempresa (1-10 empleados)");
+      expect(testOrgSize!.name).toBe("Microempresa (1-10 empleados)");
     });
   });
 

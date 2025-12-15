@@ -86,11 +86,11 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
       const energySector = body.find((s) => s.name === "Energía");
       expect(energySector).toBeDefined();
 
-      const solarSubsector = energySector?.subsectors.find((sub) =>
+      const solarSubsector = energySector!.subsectors.find((sub) =>
         sub.name.includes("Renovable")
       );
       expect(solarSubsector).toBeDefined();
-      expect(solarSubsector?.name).toBe(
+      expect(solarSubsector!.name).toBe(
         "Generación de Energía - Renovable (solar, eólica, hidro, biomasa)"
       );
     });
@@ -129,7 +129,7 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
       Object.entries(expectedCounts).forEach(([sectorName, expectedCount]) => {
         const sector = body.find((s) => s.name === sectorName);
         expect(sector).toBeDefined();
-        expect(sector?.subsectors.length).toBe(expectedCount);
+        expect(sector!.subsectors.length).toBe(expectedCount);
       });
     });
 
