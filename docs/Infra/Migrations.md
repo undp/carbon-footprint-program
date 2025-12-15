@@ -4,6 +4,25 @@ Este documento explica cómo ejecutar las migraciones de Prisma contra la base d
 
 ## Requisitos Previos
 
+### Versión de PostgreSQL
+
+> ⚠️ **IMPORTANTE**: Este proyecto requiere **PostgreSQL 15 o superior** debido al uso de la sintaxis `NULLS NOT DISTINCT` en las migraciones de base de datos.
+
+**Versión actual en uso**: PostgreSQL 18
+
+**Razón técnica**: La migración `20251215191534_create_organization_main_acitivty_unique_constraint` utiliza la sintaxis `NULLS NOT DISTINCT` para índices únicos, que fue introducida en PostgreSQL 15. Esta sintaxis permite que múltiples valores NULL sean tratados como iguales en una restricción de unicidad.
+
+**Impacto**:
+
+- ✅ PostgreSQL 15, 16, 17, 18: Compatibles
+- ❌ PostgreSQL 14 o anterior: Las migraciones **fallarán** con un error de sintaxis
+
+Si intentas ejecutar migraciones en PostgreSQL 14 o anterior, verás un error similar a:
+
+```
+ERROR: syntax error at or near "NULLS"
+```
+
 ### Infraestructura Desplegada
 
 PostgreSQL Flexible Server debe estar desplegado y funcionando. Si aún no lo has hecho, ejecuta primero `./deploy.sh` desde el directorio `infra/`.
@@ -49,7 +68,9 @@ El script `infra/run-migrations.sh` automatiza la ejecución de migraciones de P
 
 5. **Prueba de conexión**: Verifica la conectividad a la base de datos (si `psql` está disponible en tu sistema)
 
-6. **Ejecución de migraciones**: Ejecuta `pnpm prod:deploy` en el directorio `packages/database`, que aplica todas las migraciones pendientes usando `prisma migrate deploy`
+6. **Validación de versión de PostgreSQL**: 🆕 Ejecuta automáticamente `pnpm validate:version` para verificar que la base de datos sea PostgreSQL 15 o superior. Si la versión es incompatible, el script se detiene con un mensaje de error detallado.
+
+7. **Ejecución de migraciones**: Ejecuta `pnpm prod:deploy` en el directorio `packages/database`, que aplica todas las migraciones pendientes usando `prisma migrate deploy`
 
 ### Uso
 

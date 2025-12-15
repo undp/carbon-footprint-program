@@ -188,7 +188,7 @@ echo ""
 DATABASE_URL="postgresql://${DB_USER}:${DB_PASSWORD}@${DB_HOST}:5432/${DB_NAME}?sslmode=require"
 
 # Test database connection
-log "${YELLOW}[3/4] Testing database connection...${NC}"
+log "${YELLOW}[3/5] Testing database connection...${NC}"
 
 if [ "$DRY_RUN" = "true" ]; then
   log "${CYAN}[DRY RUN] Would test connection to: ${DB_HOST}:5432${NC}"
@@ -208,8 +208,34 @@ else
 fi
 echo ""
 
+# Validate PostgreSQL version
+log "${YELLOW}[4/5] Validating PostgreSQL version...${NC}"
+
+if [ "$DRY_RUN" = "true" ]; then
+  log "${CYAN}[DRY RUN] Would validate PostgreSQL version (requires PostgreSQL 15+)${NC}"
+else
+  cd "$DATABASE_PACKAGE_DIR"
+  
+  # Export DATABASE_URL for the validation script
+  export DATABASE_URL
+  validation_result=0
+  
+  pnpm validate:version || validation_result=$?
+  
+  if [ $validation_result -ne 0 ]; then
+    cd "$SCRIPT_DIR"
+    log "${RED}✗ PostgreSQL version validation failed${NC}"
+    log "${YELLOW}This project requires PostgreSQL 15 or higher.${NC}"
+    log "${YELLOW}Please upgrade your database before running migrations.${NC}"
+    exit $validation_result
+  fi
+  
+  cd "$SCRIPT_DIR"
+fi
+echo ""
+
 # Run migrations
-log "${YELLOW}[4/4] Running database migrations...${NC}"
+log "${YELLOW}[5/5] Running database migrations...${NC}"
 
 if [ "$DRY_RUN" = "true" ]; then
   log "${CYAN}[DRY RUN] Would execute: cd $DATABASE_PACKAGE_DIR${NC}"
