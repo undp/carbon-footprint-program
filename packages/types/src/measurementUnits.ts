@@ -14,6 +14,16 @@ export const MeasurementUnitSchema = z.object({
   is_base: z.boolean().describe("Whether the measurement unit is a base unit"),
 });
 
+const RateUnitComponentSchema = z.object({
+  id: z.string().regex(/^\d+$/).describe("The ID of the measurement unit"),
+  name: z.string().min(1).describe("The name of the measurement unit"),
+  magnitude: MagnitudeSchema,
+  abbreviation: z
+    .string()
+    .min(1)
+    .describe("The abbreviation of the measurement unit"),
+});
+
 export const RateMeasurementUnitSchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of rate measurement unit"),
   name: z.string().min(1).describe("The name of rate measurement unit"),
@@ -21,33 +31,12 @@ export const RateMeasurementUnitSchema = z.object({
     .string()
     .min(1)
     .describe("The abbreviation of rate measurement unit"),
-  numerator_unit: z.object({
-    id: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of numerator measurement unit"),
-    name: z.string().min(1).describe("The name of numerator measurement unit"),
-    magnitude: MagnitudeSchema,
-    abbreviation: z
-      .string()
-      .min(1)
-      .describe("The abbreviation of numerator measurement unit"),
-  }),
-  denominator_unit: z.object({
-    id: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of denominator measurement unit"),
-    name: z
-      .string()
-      .min(1)
-      .describe("The name of denominator measurement unit"),
-    magnitude: MagnitudeSchema,
-    abbreviation: z
-      .string()
-      .min(1)
-      .describe("The abbreviation of denominator measurement unit"),
-  }),
+  numerator_unit: RateUnitComponentSchema.describe(
+    "The numerator measurement unit"
+  ),
+  denominator_unit: RateUnitComponentSchema.describe(
+    "The denominator measurement unit"
+  ),
 });
 
 export const GetAllMeasurementUnitsResponseSchema = z.array(
