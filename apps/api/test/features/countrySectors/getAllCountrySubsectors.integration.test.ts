@@ -37,7 +37,7 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
   });
 
   describe("Successful retrieval", () => {
-    it("should return exactly 126 subsectors across all sectors", async () => {
+    it("should return exactly 143 subsectors across all sectors", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/country-sectors",
@@ -50,7 +50,7 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
         (acc, sector) => acc + sector.subsectors.length,
         0
       );
-      expect(totalSubsectors).toBe(126);
+      expect(totalSubsectors).toBe(143);
     });
 
     it("should return subsectors with valid structure", async () => {
@@ -107,23 +107,23 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
       const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
 
       const expectedCounts: Record<string, number> = {
-        "Manufactura / Industria Manufacturera": 21,
-        Energía: 7,
-        "Agricultura, Ganadería, Silvicultura y Pesca": 14,
-        Construcción: 9,
-        "Transporte y Logística": 10,
-        Comercio: 6,
-        "Servicios Financieros": 8,
-        "Turismo, Hotelería y Restaurantes": 9,
-        Salud: 8,
-        Educación: 5,
-        "Servicios Profesionales y Empresariales": 9,
-        "Administración Pública": 3,
-        Minería: 6,
-        Telecomunicaciones: 3,
-        "Bienes Raíces": 3,
-        "Gestión de Residuos": 3,
-        "Agua y Saneamiento": 2,
+        "Manufactura / Industria Manufacturera": 22,
+        Energía: 8,
+        "Agricultura, Ganadería, Silvicultura y Pesca": 15,
+        Construcción: 10,
+        "Transporte y Logística": 11,
+        Comercio: 7,
+        "Servicios Financieros": 9,
+        "Turismo, Hotelería y Restaurantes": 10,
+        Salud: 9,
+        Educación: 6,
+        "Servicios Profesionales y Empresariales": 10,
+        "Administración Pública": 4,
+        Minería: 7,
+        Telecomunicaciones: 4,
+        "Bienes Raíces": 4,
+        "Gestión de Residuos": 4,
+        "Agua y Saneamiento": 3,
       };
 
       Object.entries(expectedCounts).forEach(([sectorName, expectedCount]) => {
