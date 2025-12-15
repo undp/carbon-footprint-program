@@ -22,6 +22,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "node",
+    // Multiple reporters for better visibility
+    reporters: process.env.CI ? ["default", "html"] : ["verbose", "html"],
     include: ["test/**/*.{test,spec}.{js,ts}"],
     testTimeout: 30000,
     hookTimeout: 30000,
@@ -29,6 +31,12 @@ export default defineConfig({
     pool: "threads",
     maxWorkers: 1,
     globalSetup: ["./test/setup/globalSetup.ts"],
+    // Better logging for UI
+    logHeapUsage: true,
+    // Detailed output
+    outputFile: {
+      html: "./coverage/index.html",
+    },
     server: {
       deps: {
         inline: [
@@ -45,15 +53,41 @@ export default defineConfig({
       },
     },
     coverage: {
+      enabled: true,
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      // Multiple reporters for comprehensive coverage view
+      reporter: [
+        "text",
+        "text-summary",
+        "json",
+        "json-summary",
+        "html",
+        "lcov",
+      ],
+      include: ["src/**/*.{js,ts}"],
       exclude: [
         "node_modules/",
         "test/",
         "**/*.test.ts",
         "**/*.spec.ts",
         "**/*.example.ts",
+        "**/types/**",
+        "**/*.d.ts",
+        "**/dist/**",
+        "**/*.config.{js,ts}",
+        "**/server.ts", // Entry point, often hard to test
       ],
+      // Coverage thresholds - will show in UI
+      thresholds: {
+        lines: 80,
+        functions: 80,
+        branches: 80,
+        statements: 80,
+      },
+      // More detailed reporting
+      reportsDirectory: "./coverage",
+      clean: true,
+      cleanOnRerun: true,
     },
   },
 });
