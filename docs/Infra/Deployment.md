@@ -226,7 +226,11 @@ infra/
 
 **Configuración**:
 
-- **Versión**: PostgreSQL 18
+- **Versión**: PostgreSQL 18 ⚠️ **Mínimo requerido: PostgreSQL 15**
+  - El proyecto utiliza la sintaxis `NULLS NOT DISTINCT` en las migraciones de base de datos
+  - Esta sintaxis fue introducida en PostgreSQL 15
+  - **No desplegar en PostgreSQL 14 o anterior** - las migraciones fallarán
+  - Versiones compatibles: 15, 16, 17, 18
 - **Alta disponibilidad**: Deshabilitada (para dev)
 - **Zona de disponibilidad**: Sin zona explícita por defecto (Azure selecciona automáticamente)
   - Configurable mediante el parámetro `availabilityZone` en `params/main.development.bicepparam`

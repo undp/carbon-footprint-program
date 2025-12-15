@@ -1,0 +1,22 @@
+[
+  {
+    "country_iso_code": "CL",
+    "sector": null,
+    "main_activities": [
+      "millones de CLP de ingresos",
+      "empleados",
+      "clientes",
+      "proyectos"
+    ]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Manufactura / Industria Manufacturera",
+    "main_activities": ["toneladas producidas", "unidades fabricadas"]
+  },
+  {
+    "country_iso_code": "CL",
+    "sector": "Energía",
+    "main_activities": ["MWh generados", "clientes abastecidos"]
+  }
+]

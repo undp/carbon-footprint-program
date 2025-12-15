@@ -24,6 +24,8 @@ Paquete de base de datos para el proyecto Huella Latam utilizando Prisma ORM con
 - PostgreSQL 18
 - @prisma/adapter-pg para conexiones optimizadas
 
+> ⚠️ **Requisito de PostgreSQL**: Este proyecto requiere **PostgreSQL 15 o superior** debido al uso de la sintaxis `NULLS NOT DISTINCT` en las migraciones de base de datos. La versión actual recomendada es PostgreSQL 18. Si intentas desplegar en PostgreSQL 14 o anterior, las migraciones fallarán.
+
 ## 🚀 Configuración Inicial
 
 ### 1. Instalar Dependencias
@@ -173,13 +175,66 @@ El adaptador se inicializa automáticamente con la variable de entorno `DATABASE
 
 ## 📝 Scripts Disponibles
 
-| Script         | Descripción                                             | Requiere BD |
-| -------------- | ------------------------------------------------------- | ----------- |
-| `dev:generate` | Genera el cliente de Prisma desde el schema             | ❌ No       |
-| `dev:migrate`  | Crea y aplica una nueva migración                       | ✅ Sí       |
-| `dev:studio`   | Abre Prisma Studio para gestión visual                  | ✅ Sí       |
-| `dev:reset`    | Resetea la base de datos y aplica todas las migraciones | ✅ Sí       |
-| `prod:deploy`  | Aplica migraciones en producción sin reiniciar          | ✅ Sí       |
+| Script             | Descripción                                             | Requiere BD |
+| ------------------ | ------------------------------------------------------- | ----------- |
+| `dev:generate`     | Genera el cliente de Prisma desde el schema             | ❌ No       |
+| `dev:migrate`      | Crea y aplica una nueva migración                       | ✅ Sí       |
+| `dev:studio`       | Abre Prisma Studio para gestión visual                  | ✅ Sí       |
+| `dev:reset`        | Resetea la base de datos y aplica todas las migraciones | ✅ Sí       |
+| `prod:deploy`      | Aplica migraciones en producción sin reiniciar          | ✅ Sí       |
+| `validate:version` | Valida que PostgreSQL sea versión 15 o superior         | ✅ Sí       |
+
+### Validación de Versión de PostgreSQL
+
+Este paquete incluye un script de validación que verifica que la base de datos esté ejecutando PostgreSQL 15 o superior, requisito necesario para las migraciones que usan la sintaxis `NULLS NOT DISTINCT`.
+
+**Uso manual:**
+
+```bash
+pnpm run validate:version
+```
+
+El script:
+
+- ✅ Verifica la versión de PostgreSQL conectándose a la base de datos
+- ✅ Valida que sea versión 15 o superior
+- ✅ Proporciona mensajes de error detallados si la versión es incompatible
+- ✅ Se ejecuta automáticamente antes de aplicar migraciones en producción (vía `infra/run-migrations.sh`)
+
+**Variables de entorno requeridas:**
+
+- `DATABASE_URL`: URL de conexión a PostgreSQL
+
+**Ejemplo de salida exitosa:**
+
+```
+🔍 Validating PostgreSQL version...
+
+📊 Database Information:
+   Raw version: PostgreSQL 18.1 on x86_64-pc-linux-musl...
+   PostgreSQL version: 18.1
+   Major version: 18
+
+✅ PostgreSQL version check PASSED
+   PostgreSQL 18.1 is compatible (>= 15.0)
+```
+
+**Ejemplo de error:**
+
+```
+❌ INCOMPATIBLE PostgreSQL VERSION DETECTED!
+
+   Current version: PostgreSQL 14.5
+   Minimum required: PostgreSQL 15.0
+
+⚠️  REASON:
+   This project uses the NULLS NOT DISTINCT syntax in database migrations,
+   which was introduced in PostgreSQL 15.
+
+📋 SOLUTION:
+   - Upgrade your PostgreSQL server to version 15 or higher
+   - Recommended versions: 15, 16, 17, or 18
+```
 
 ## 💻 Ejemplos de Uso
 

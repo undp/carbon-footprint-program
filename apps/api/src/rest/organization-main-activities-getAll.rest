@@ -1,0 +1,22 @@
+@baseUrl = http://localhost:8080
+
+### Get all organization main activities (no filter)
+# Returns ONLY generic activities (NULL sector & NULL subsector)
+GET {{baseUrl}}/api/organization-main-activities HTTP/1.1
+Content-Type: application/json
+
+### Get organization main activities filtered by sectorId
+# Returns sector-specific activities + generic activities
+GET {{baseUrl}}/api/organization-main-activities?sectorId=1 HTTP/1.1
+Content-Type: application/json
+
+### FORBIDDEN: Get organization main activities filtered by subsectorId only
+# This will return 400 error - subsectorId requires sectorId
+GET {{baseUrl}}/api/organization-main-activities?subsectorId=1 HTTP/1.1
+Content-Type: application/json
+
+### Get organization main activities filtered by both sectorId and subsectorId
+# Returns activities matching both filters + generic activities
+GET {{baseUrl}}/api/organization-main-activities?sectorId=1&subsectorId=1 HTTP/1.1
+Content-Type: application/json
+

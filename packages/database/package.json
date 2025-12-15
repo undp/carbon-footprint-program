@@ -22,7 +22,8 @@
     "dev:seed": "prisma db seed",
     "dev:studio": "prisma studio",
     "dev:reset": "prisma migrate reset",
-    "prod:deploy": "prisma migrate deploy"
+    "prod:deploy": "prisma migrate deploy",
+    "validate:version": "tsx validate-postgres-version.ts"
   },
   "devDependencies": {
     "@types/node": "catalog:shared",
