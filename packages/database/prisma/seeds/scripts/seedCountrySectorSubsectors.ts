@@ -77,7 +77,7 @@ export async function seedCountrySectorSubsectors(
   // Verify all sectors were created
   if (sectors.length !== sectorsToCreate.length)
     throw new Error(
-      `Expected ${sectorsToCreate.length} sectors but found ${sectors.length}`
+      `Expected ${sectorsToCreate.length} sectors but found ${sectors.length} for dataset ${dataset}`
     );
 
   // Create a map for quick sector lookup
@@ -119,7 +119,7 @@ export async function seedCountrySectorSubsectors(
 
   if (subsectors.length !== subsectorsToCreate.length)
     throw new Error(
-      `Expected ${subsectorsToCreate.length} subsectors but found ${subsectors.length}`
+      `Expected ${subsectorsToCreate.length} subsectors but found ${subsectors.length} for dataset ${dataset}`
     );
 
   console.log(

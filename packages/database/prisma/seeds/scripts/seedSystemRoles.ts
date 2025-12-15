@@ -39,7 +39,7 @@ export async function seedSystemRoles(
   // Verify all system roles exist
   if (systemRoles.length !== systemRolesData.length)
     throw new Error(
-      `Expected ${systemRolesData.length} system roles but found ${systemRoles.length}`
+      `Expected ${systemRolesData.length} system roles but found ${systemRoles.length} for dataset ${dataset}`
     );
 
   // Bulk insert system_role entries
@@ -53,7 +53,7 @@ export async function seedSystemRoles(
 
   if (systemRoleEntries.length !== systemRoles.length)
     throw new Error(
-      `Expected ${systemRoles.length} system_role entries but found ${systemRoleEntries.length}`
+      `Expected ${systemRoles.length} system_role entries but found ${systemRoleEntries.length} for dataset ${dataset}`
     );
 
   console.log(

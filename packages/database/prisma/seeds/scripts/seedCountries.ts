@@ -44,7 +44,7 @@ export async function seedCountries(
 
   if (countries.length !== countriesData.length)
     throw new Error(
-      `Expected ${countriesData.length} countries but found ${countries.length}`
+      `Expected ${countriesData.length} countries but found ${countries.length} for dataset ${dataset}`
     );
 
   console.log(

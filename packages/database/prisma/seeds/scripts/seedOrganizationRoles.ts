@@ -39,7 +39,7 @@ export async function seedOrganizationRoles(
   // Verify all organization roles exist
   if (organizationRoles.length !== organizationRolesData.length)
     throw new Error(
-      `Expected ${organizationRolesData.length} organization roles but found ${organizationRoles.length}`
+      `Expected ${organizationRolesData.length} organization roles but found ${organizationRoles.length} for dataset ${dataset}`
     );
 
   // Bulk insert organization_role entries
@@ -53,7 +53,7 @@ export async function seedOrganizationRoles(
 
   if (organizationRoleEntries.length !== organizationRoles.length)
     throw new Error(
-      `Expected ${organizationRoles.length} organization_role entries but found ${organizationRoleEntries.length}`
+      `Expected ${organizationRoles.length} organization_role entries but found ${organizationRoleEntries.length} for dataset ${dataset}`
     );
 
   console.log(

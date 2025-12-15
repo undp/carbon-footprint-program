@@ -57,7 +57,7 @@ export async function seedCountryJobPositions(
 
   if (jobPositions.length !== jobPositionsData.length)
     throw new Error(
-      `Expected ${jobPositionsData.length} job positions but found ${jobPositions.length}`
+      `Expected ${jobPositionsData.length} job positions but found ${jobPositions.length} for dataset ${dataset}`
     );
 
   console.log(

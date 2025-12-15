@@ -55,7 +55,7 @@ export async function seedAllRoles(
 
   if (allRoles.length !== allRolesData.length)
     throw new Error(
-      `Expected ${allRolesData.length} roles but found ${allRoles.length}`
+      `Expected ${allRolesData.length} roles but found ${allRoles.length} for dataset ${dataset}`
     );
 
   console.log(

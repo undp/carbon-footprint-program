@@ -59,7 +59,7 @@ export async function seedMeasurementUnits(
   // Verify all measurement units were created
   if (measurementUnits.length !== measurementUnitsData.length)
     throw new Error(
-      `Expected ${measurementUnitsData.length} measurement units but found ${measurementUnits.length}`
+      `Expected ${measurementUnitsData.length} measurement units but found ${measurementUnits.length} for dataset ${dataset}`
     );
 
   console.log(
@@ -86,7 +86,7 @@ export async function seedMeasurementUnits(
     const parts = rmu.abbreviation.split("/").map((p) => p.trim());
     if (parts.length !== 2 || !parts[0] || !parts[1]) {
       throw new Error(
-        `Invalid rate measurement unit abbreviation '${rmu.abbreviation}'. Expected format 'NUM/DEN'`
+        `Invalid rate measurement unit abbreviation '${rmu.abbreviation}'. Expected format 'NUM/DEN' for dataset ${dataset}`
       );
     }
     const [upper, lower] = parts;
@@ -124,7 +124,7 @@ export async function seedMeasurementUnits(
 
   if (rateMeasurementUnits.length !== rateMeasurementUnitsData.length)
     throw new Error(
-      `Expected ${rateMeasurementUnitsData.length} rate measurement units but found ${rateMeasurementUnits.length}`
+      `Expected ${rateMeasurementUnitsData.length} rate measurement units but found ${rateMeasurementUnits.length} for dataset ${dataset}`
     );
 
   console.log(

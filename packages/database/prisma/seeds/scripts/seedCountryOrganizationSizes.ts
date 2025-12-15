@@ -63,7 +63,7 @@ export async function seedCountryOrganizationSizes(
 
   if (organizationSizes.length !== organizationSizesData.length)
     throw new Error(
-      `Expected ${organizationSizesData.length} organization sizes but found ${organizationSizes.length}`
+      `Expected ${organizationSizesData.length} organization sizes but found ${organizationSizes.length} for dataset ${dataset}`
     );
 
   console.log(

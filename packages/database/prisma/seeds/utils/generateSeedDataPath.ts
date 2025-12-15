@@ -7,7 +7,9 @@ export const generateSeedDataPath = (
   environment: SeedsDataset
 ): string => {
   if (fileName !== basename(fileName))
-    throw new Error(`Invalid seed fileName: '${fileName}'`);
+    throw new Error(
+      `Invalid seed fileName: '${fileName}' for dataset ${environment}`
+    );
 
   return join(dirname, `../data/${environment}/${fileName}`);
 };
