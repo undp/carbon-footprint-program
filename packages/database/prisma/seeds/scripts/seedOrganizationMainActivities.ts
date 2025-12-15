@@ -3,7 +3,6 @@ import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import {
-  checkForDuplicates,
   checkForPrimitiveDuplicates,
   generateSeedDataPath,
   type SeedsDataset,
