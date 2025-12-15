@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllJobPositionsHandler } from "./getAllJobPositionsHandler.js";
-import { GetAllJobPositionsResponseSchema } from "./getAllJobPositionsSchema.js";
+import { GetAllJobPositionsResponseSchema } from "@repo/types";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
