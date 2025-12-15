@@ -287,36 +287,36 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
         (s: { subsectors: unknown[] }) => s.subsectors.length > 0
       );
 
-      if (sectorWithSubsectors) {
-        const subsector = sectorWithSubsectors.subsectors[0];
+      expect(sectorWithSubsectors).toBeDefined();
+      const subsector = sectorWithSubsectors.subsectors[0];
+      expect(subsector).toBeDefined();
 
-        // Get activities from DB for this sector/subsector combo
-        const subsectorActivitiesDb =
-          await prisma.organization_main_activity.findMany({
-            where: {
-              country_sector_id: BigInt(sectorWithSubsectors.id),
-              country_subsector_id: BigInt(subsector.id),
-            },
-          });
-
-        // Filter by both sector and subsector
-        const response = await app.inject({
-          method: "GET",
-          url: `/api/organization-main-activities?sectorId=${sectorWithSubsectors.id}&subsectorId=${subsector.id}`,
+      // Get activities from DB for this sector/subsector combo
+      const subsectorActivitiesDb =
+        await prisma.organization_main_activity.findMany({
+          where: {
+            country_sector_id: BigInt(sectorWithSubsectors.id),
+            country_subsector_id: BigInt(subsector.id),
+          },
         });
 
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(
-          response.body
-        ) as GetAllOrganizationMainActivitiesResponse;
+      // Filter by both sector and subsector
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/organization-main-activities?sectorId=${sectorWithSubsectors.id}&subsectorId=${subsector.id}`,
+      });
 
-        // Should include generic activities + subsector-specific activities
-        expect(body.length).toBe(genericCount + subsectorActivitiesDb.length);
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAllOrganizationMainActivitiesResponse;
 
-        // Verify it includes generic activities
-        const activityNames = body.map((a) => a.name);
-        expect(activityNames).toContain("empleados"); // generic
-      }
+      // Should include generic activities + subsector-specific activities
+      expect(body.length).toBe(genericCount + subsectorActivitiesDb.length);
+
+      // Verify it includes generic activities
+      const activityNames = body.map((a) => a.name);
+      expect(activityNames).toContain("empleados"); // generic
     });
   });
 
