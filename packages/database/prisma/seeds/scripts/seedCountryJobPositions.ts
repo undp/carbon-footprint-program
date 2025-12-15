@@ -53,5 +53,13 @@ export async function seedCountryJobPositions(
     skipDuplicates: true,
   });
 
+  // Verify all job positions were created
+  const jobPositions = await prisma.country_job_position.findMany();
+
+  if (jobPositions.length !== jobPositionsData.length)
+    throw new Error(
+      `Expected ${jobPositionsData.length} job positions but found ${jobPositions.length}`
+    );
+
   console.log(`✓ Ensured ${jobPositionsData.length} job positions exist`);
 }

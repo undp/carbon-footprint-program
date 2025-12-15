@@ -72,14 +72,13 @@ export async function seedCountrySectorSubsectors(
   });
 
   // Fetch all sectors to get their IDs for subsectors
-  const sectors = await prisma.country_sector.findMany({
-    where: {
-      OR: sectorsToCreate.map((s) => ({
-        country_id: s.country_id,
-        name: s.name,
-      })),
-    },
-  });
+  const sectors = await prisma.country_sector.findMany();
+
+  // Verify all sectors were created
+  if (sectors.length !== sectorsToCreate.length)
+    throw new Error(
+      `Expected ${sectorsToCreate.length} sectors but found ${sectors.length}`
+    );
 
   // Create a map for quick sector lookup
   const sectorMap = new Map(
@@ -114,6 +113,14 @@ export async function seedCountrySectorSubsectors(
     data: subsectorsToCreate,
     skipDuplicates: true,
   });
+
+  // Verify all subsectors were created
+  const subsectors = await prisma.country_subsector.findMany();
+
+  if (subsectors.length !== subsectorsToCreate.length)
+    throw new Error(
+      `Expected ${subsectorsToCreate.length} subsectors but found ${subsectors.length}`
+    );
 
   console.log(`✓ Ensured ${sectorsToCreate.length} sectors exist`);
   console.log(`✓ Ensured ${subsectorsToCreate.length} subsectors exist`);

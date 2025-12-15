@@ -56,6 +56,14 @@ export async function seedCountryOrganizationSizes(
     skipDuplicates: true,
   });
 
+  // Verify all organization sizes were created
+  const organizationSizes = await prisma.country_organization_size.findMany();
+
+  if (organizationSizes.length !== organizationSizesData.length)
+    throw new Error(
+      `Expected ${organizationSizesData.length} organization sizes but found ${organizationSizes.length}`
+    );
+
   console.log(
     `✓ Ensured ${organizationSizesData.length} organization sizes exist`
   );

@@ -57,11 +57,13 @@ export async function seedMeasurementUnits(
   });
 
   // Fetch all measurement units to use for rate measurement units
-  const measurementUnits = await prisma.measurement_unit.findMany({
-    where: {
-      abbreviation: { in: measurementUnitsData.map((mu) => mu.abbreviation) },
-    },
-  });
+  const measurementUnits = await prisma.measurement_unit.findMany();
+
+  // Verify all measurement units were created
+  if (measurementUnits.length !== measurementUnitsData.length)
+    throw new Error(
+      `Expected ${measurementUnitsData.length} measurement units but found ${measurementUnits.length}`
+    );
 
   console.log(
     `✓ Ensured ${measurementUnitsData.length} measurement units exist: ${measurementUnits.map((mu) => mu.abbreviation).join(", ")}`
@@ -119,6 +121,14 @@ export async function seedMeasurementUnits(
     data: rateMeasurementUnitsToCreate,
     skipDuplicates: true,
   });
+
+  // Verify all rate measurement units were created
+  const rateMeasurementUnits = await prisma.rate_measurement_unit.findMany();
+
+  if (rateMeasurementUnits.length !== rateMeasurementUnitsData.length)
+    throw new Error(
+      `Expected ${rateMeasurementUnitsData.length} rate measurement units but found ${rateMeasurementUnits.length}`
+    );
 
   console.log(
     `✓ Ensured ${rateMeasurementUnitsData.length} rate measurement units exist: ${rateMeasurementUnitsToCreate.map((rmu) => rmu.abbreviation).join(", ")}`

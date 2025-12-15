@@ -42,5 +42,13 @@ export async function seedCountries(
     skipDuplicates: true,
   });
 
+  // Verify all countries were created
+  const countries = await prisma.country.findMany();
+
+  if (countries.length !== countriesData.length)
+    throw new Error(
+      `Expected ${countriesData.length} countries but found ${countries.length}`
+    );
+
   console.log(`✓ Ensured ${countriesData.length} countries exist`);
 }
