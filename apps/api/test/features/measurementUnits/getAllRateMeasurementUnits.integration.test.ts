@@ -233,26 +233,10 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         expect(kgPerCubicMeter.abbreviation).toContain("m³");
       }
 
-      // Check all rate units for superscripts in numerator and denominator abbreviations
+      // Ensure superscripts haven't been corrupted to ASCII equivalents
       body.forEach((rateUnit) => {
-        const hasNumeratorSuperscript = /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(
-          rateUnit.numerator_unit.abbreviation
-        );
-        const hasDenominatorSuperscript = /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(
-          rateUnit.denominator_unit.abbreviation
-        );
-
-        if (hasNumeratorSuperscript) {
-          // Ensure superscripts are preserved as Unicode characters
-          expect(rateUnit.numerator_unit.abbreviation).toMatch(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/);
-        }
-
-        if (hasDenominatorSuperscript) {
-          // Ensure superscripts are preserved as Unicode characters
-          expect(rateUnit.denominator_unit.abbreviation).toMatch(
-            /[⁰¹²³⁴⁵⁶⁷⁸⁹]/
-          );
-        }
+        expect(rateUnit.numerator_unit.abbreviation).not.toMatch(/\^[0-9]/);
+        expect(rateUnit.denominator_unit.abbreviation).not.toMatch(/\^[0-9]/);
       });
     });
 
