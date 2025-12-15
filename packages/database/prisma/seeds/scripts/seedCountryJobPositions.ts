@@ -40,7 +40,10 @@ export async function seedCountryJobPositions(
   // Prepare job positions data with country_id
   const jobPositionsToCreate = jobPositionsData.map((jp) => {
     const country = countryByIso.get(jp.country_iso_code);
-    if (!country) throw new Error(`Country '${jp.country_iso_code}' not found`);
+    if (!country)
+      throw new Error(
+        `Country '${jp.country_iso_code}' not found in dataset ${dataset}`
+      );
     return { name: jp.name, country_id: country.id };
   });
 

@@ -55,7 +55,9 @@ export async function seedCountrySectorSubsectors(
   const sectorsToCreate = countrySectorSubsectorsData.map((item) => {
     const country = countryByIso.get(item.country_iso_code);
     if (!country) {
-      throw new Error(`Country '${item.country_iso_code}' not found`);
+      throw new Error(
+        `Country '${item.country_iso_code}' not found in dataset ${dataset}`
+      );
     }
     return {
       country_id: country.id,
@@ -89,12 +91,14 @@ export async function seedCountrySectorSubsectors(
   for (const item of countrySectorSubsectorsData) {
     const country = countryByIso.get(item.country_iso_code);
     if (!country)
-      throw new Error(`Country '${item.country_iso_code}' not found`);
+      throw new Error(
+        `Country '${item.country_iso_code}' not found in dataset ${dataset}`
+      );
 
     const sector = sectorMap.get(`${country.id}_${item.sector}`);
     if (!sector)
       throw new Error(
-        `Sector '${item.sector}' not found for country '${item.country_iso_code}'`
+        `Sector '${item.sector}' not found for country '${item.country_iso_code}' in dataset ${dataset}`
       );
 
     for (const subsectorName of item.subsectors) {

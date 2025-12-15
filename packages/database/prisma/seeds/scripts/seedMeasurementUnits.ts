@@ -94,12 +94,16 @@ export async function seedMeasurementUnits(
 
     const numeratorMeasurementUnit = measurementUnitsByAbbreviation.get(upper);
     if (!numeratorMeasurementUnit) {
-      throw new Error(`Numerator measurement unit '${upper}' not found`);
+      throw new Error(
+        `Numerator measurement unit '${upper}' not found in dataset ${dataset}`
+      );
     }
     const denominatorMeasurementUnit =
       measurementUnitsByAbbreviation.get(lower);
     if (!denominatorMeasurementUnit) {
-      throw new Error(`Denominator measurement unit '${lower}' not found`);
+      throw new Error(
+        `Denominator measurement unit '${lower}' not found in dataset ${dataset}`
+      );
     }
 
     return {

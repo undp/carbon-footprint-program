@@ -43,7 +43,10 @@ export async function seedCountryOrganizationSizes(
   // Prepare organization sizes data with country_id
   const organizationSizesToCreate = organizationSizesData.map((os) => {
     const country = countryByIso.get(os.country_iso_code);
-    if (!country) throw new Error(`Country '${os.country_iso_code}' not found`);
+    if (!country)
+      throw new Error(
+        `Country '${os.country_iso_code}' not found in dataset ${dataset}`
+      );
     return { name: os.name, country_id: country.id };
   });
 
