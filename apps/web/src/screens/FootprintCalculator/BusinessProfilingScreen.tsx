@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { Box, FormControl, TextField, Typography } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
 import { FormSelectField } from "./components/form/FormSelectField";
@@ -13,6 +14,11 @@ const COMPANY_SIZES = ["Micro", "Pequeña", "Mediana", "Grande"];
 const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
 
 export const BusinessProfilingScreen: FC = () => {
+  const theme = useTheme();
+  const gradient = `linear-gradient(90deg, ${alpha(
+    theme.palette.common.brightGreen,
+    0.2
+  )} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`;
   const { control } = useForm({
     defaultValues: {
       year: "",
@@ -136,7 +142,7 @@ export const BusinessProfilingScreen: FC = () => {
           <Box
             className="flex flex-row w-full h-20 p-2"
             sx={{
-              background: `linear-gradient(90deg, rgba(86, 245, 141, 0.20) 0%, rgba(99, 228, 207, 0.20) 100%)`,
+              background: gradient,
             }}
           >
             <Box className="h-full w-10 flex items-center justify-center">
