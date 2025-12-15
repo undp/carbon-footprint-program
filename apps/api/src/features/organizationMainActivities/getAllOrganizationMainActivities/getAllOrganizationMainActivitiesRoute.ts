@@ -3,7 +3,7 @@ import { getAllOrganizationMainActivitiesHandler } from "./getAllOrganizationMai
 import {
   GetAllOrganizationMainActivitiesResponseSchema,
   GetAllOrganizationMainActivitiesQuerySchema,
-} from "./getAllOrganizationMainActivitiesSchema.js";
+} from "@repo/types";
 import {
   NotFoundErrorResponseSchema,
   ValidationErrorResponseSchema,

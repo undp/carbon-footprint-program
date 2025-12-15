@@ -2,7 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type {
   GetAllOrganizationMainActivitiesResponse,
   GetAllOrganizationMainActivitiesQuery,
-} from "./getAllOrganizationMainActivitiesSchema.js";
+} from "@repo/types";
 
 export const getAllOrganizationMainActivitiesService = async (
   prismaClient: PrismaClient,

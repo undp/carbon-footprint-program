@@ -43,3 +43,4 @@ export const GetAllOrganizationMainActivitiesResponseSchema = z.array(
 export type GetAllOrganizationMainActivitiesResponse = z.infer<
   typeof GetAllOrganizationMainActivitiesResponseSchema
 >;
+
