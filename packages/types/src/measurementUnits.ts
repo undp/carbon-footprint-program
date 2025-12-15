@@ -4,13 +4,13 @@ export const MagnitudeSchema = z.enum(["MASS", "VOLUME", "DISTANCE", "TIME"]);
 
 export const MeasurementUnitSchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of the measurement unit"),
-  name: z.string().min(1).describe("The name of measurement unit"),
+  name: z.string().min(1).describe("The name of the measurement unit"),
   magnitude: MagnitudeSchema,
   abbreviation: z
     .string()
     .min(1)
-    .describe("The abbreviation of measurement unit"),
-  base_factor: z.number().describe("The base factor of measurement unit"),
+    .describe("The abbreviation of the measurement unit"),
+  base_factor: z.number().describe("The base factor of the measurement unit"),
   is_base: z.boolean().describe("Whether the measurement unit is a base unit"),
 });
 
@@ -25,17 +25,17 @@ const RateUnitComponentSchema = z.object({
 });
 
 export const RateMeasurementUnitSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of rate measurement unit"),
-  name: z.string().min(1).describe("The name of rate measurement unit"),
+  id: z.string().regex(/^\d+$/).describe("The ID of the rate measurement unit"),
+  name: z.string().min(1).describe("The name of the rate measurement unit"),
   abbreviation: z
     .string()
     .min(1)
-    .describe("The abbreviation of rate measurement unit"),
+    .describe("The abbreviation of the rate measurement unit"),
   numerator_unit: RateUnitComponentSchema.describe(
-    "The numerator measurement unit"
+    "The numerator measurement unit of the rate measurement unit"
   ),
   denominator_unit: RateUnitComponentSchema.describe(
-    "The denominator measurement unit"
+    "The denominator measurement unit of the rate measurement unit"
   ),
 });
 
