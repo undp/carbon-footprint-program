@@ -1,15 +1,10 @@
 {
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"],
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
     "module": "nodenext",
     "target": "esnext",
     "types": ["node"],
-    "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+    "noEmit": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "strict": true,
