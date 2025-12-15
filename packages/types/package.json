@@ -1,0 +1,27 @@
+{
+  "name": "@repo/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:shared"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:shared",
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "catalog:shared"
+  }
+}

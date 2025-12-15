@@ -31,6 +31,7 @@
     "@fastify/swagger-ui": "^5.2.3",
     "@fastify/under-pressure": "^9.0.3",
     "@repo/database": "workspace:*",
+    "@repo/types": "workspace:*",
     "fastify": "^5.6.2",
     "fastify-plugin": "^5.1.0",
     "fastify-type-provider-zod": "^6.1.0",

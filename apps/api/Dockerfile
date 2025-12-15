@@ -14,6 +14,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 # Copy necessary package.json files for dependency resolution
 COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
+COPY packages/types/package.json ./packages/types/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install dependencies for the entire workspace
@@ -32,10 +33,12 @@ COPY turbo.json ./
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
 COPY --from=deps /app/packages/typescript-config/node_modules ./packages/typescript-config/node_modules
 
 # Copy all necessary source files
 COPY packages/database ./packages/database
+COPY packages/types ./packages/types
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
 
@@ -44,6 +47,10 @@ WORKDIR /app/packages/database
 RUN pnpm exec prisma generate
 
 # Build database package (compiles TypeScript and copies generated client to dist)
+RUN pnpm build
+
+# Build types package
+WORKDIR /app/packages/types
 RUN pnpm build
 
 # Build the API application
@@ -73,6 +80,7 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --chown=fastify:nodejs pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
 COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
+COPY --chown=fastify:nodejs packages/types/package.json ./packages/types/
 
 # Copy database package dist folder (includes compiled code and generated client)
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
@@ -80,10 +88,17 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma ./packa
 # Copy compiled prisma config and its dependency to root so `prisma migrate deploy` can find it
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/
 
+# Copy types package dist folder
+COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./packages/types/dist
+
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules ./packages/database/node_modules
+COPY --from=builder --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
+# Ensure @repo/types is available inside api node_modules (ESM resolution)
+COPY --from=builder --chown=fastify:nodejs /app/packages/types/package.json ./apps/api/node_modules/@repo/types/package.json
+COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./apps/api/node_modules/@repo/types/dist
 
 # Copy built application
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/dist ./apps/api/dist

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetAllRateMeasurementUnitsResponse } from "./getAllRateMeasurementUnitsSchema.js";
+import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 
 export const getAllRateMeasurementUnitsService = async (
   prismaClient: PrismaClient

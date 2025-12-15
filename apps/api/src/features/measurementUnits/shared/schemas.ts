@@ -1,3 +1,4 @@
-import { z } from "zod";
+import { MagnitudeSchema } from "@repo/types";
 
-export const MagnitudeSchema = z.enum(["MASS", "VOLUME", "DISTANCE", "TIME"]);
+// Re-export for backward compatibility
+export { MagnitudeSchema };

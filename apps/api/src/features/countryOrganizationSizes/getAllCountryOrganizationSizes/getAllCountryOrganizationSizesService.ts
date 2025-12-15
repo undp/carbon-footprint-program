@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetAllCountryOrganizationSizesResponse } from "./getAllCountryOrganizationSizesSchema.js";
+import type { GetAllCountryOrganizationSizesResponse } from "@repo/types";
 
 export const getAllCountryOrganizationSizesService = async (
   prismaClient: PrismaClient
