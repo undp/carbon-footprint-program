@@ -162,26 +162,26 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
         (s: { name: string }) => s.name === "Energía"
       );
 
-      if (testSector) {
-        // Filter by sector
-        const sectorResponse = await app.inject({
-          method: "GET",
-          url: `/api/organization-main-activities?sectorId=${testSector.id}`,
-        });
+      expect(testSector).toBeDefined();
 
-        expect(sectorResponse.statusCode).toBe(200);
-        const sectorBody = JSON.parse(
-          sectorResponse.body
-        ) as GetAllOrganizationMainActivitiesResponse;
+      // Filter by sector
+      const sectorResponse = await app.inject({
+        method: "GET",
+        url: `/api/organization-main-activities?sectorId=${testSector.id}`,
+      });
 
-        // Should include more activities than generic alone
-        expect(sectorBody.length).toBeGreaterThanOrEqual(genericCount);
+      expect(sectorResponse.statusCode).toBe(200);
+      const sectorBody = JSON.parse(
+        sectorResponse.body
+      ) as GetAllOrganizationMainActivitiesResponse;
 
-        // Verify generic activities are included
-        const activityNames = sectorBody.map((a) => a.name);
-        expect(activityNames).toContain("empleados"); // generic activity
-        expect(activityNames).toContain("clientes"); // generic activity
-      }
+      // Should include more activities than generic alone
+      expect(sectorBody.length).toBeGreaterThanOrEqual(genericCount);
+
+      // Verify generic activities are included
+      const activityNames = sectorBody.map((a) => a.name);
+      expect(activityNames).toContain("empleados"); // generic activity
+      expect(activityNames).toContain("clientes"); // generic activity
     });
   });
 
