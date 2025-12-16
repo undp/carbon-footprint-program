@@ -12,8 +12,6 @@ export const apiClient = ky.create({
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
         }
-
-        request.headers.set("Content-Type", "application/json");
       },
     ],
     afterResponse: [
@@ -29,4 +27,5 @@ export const apiClient = ky.create({
   retry: {
     limit: 1,
   },
+  timeout: 30000, // 30 seconds
 });
