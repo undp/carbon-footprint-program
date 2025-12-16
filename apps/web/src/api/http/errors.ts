@@ -1,7 +1,6 @@
 export type AppError =
   | { kind: "auth"; message: string; status: number }
   | { kind: "validation"; message: string; details?: unknown; status: number }
-  | { kind: "network"; message: string }
   | { kind: "unknown"; message: string; status?: number };
 
 export type NormalizedError = AppError & {
@@ -22,7 +21,7 @@ type ErrorBody = {
 };
 
 function isErrorBody(value: unknown): value is ErrorBody {
-  return typeof value === "object" && value !== null;
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 export async function normalizeError(
@@ -50,7 +49,7 @@ export async function normalizeError(
   if (status === 401 || status === 403) {
     return {
       kind: "auth",
-      message: "No autorizado",
+      message: status === 401 ? "Sesión expirada" : "Acceso denegado",
       status,
       request: { url: request.url, method: request.method },
       body,
