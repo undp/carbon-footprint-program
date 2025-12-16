@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 export const CountryOrganizationSizeSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of organization size"),
-  name: z.string().min(1).describe("The name of organization size"),
+  id: z.string().regex(/^\d+$/).describe("The ID of the organization size"),
+  name: z.string().min(1).describe("The name of the organization size"),
 });
 
 export const GetAllCountryOrganizationSizesResponseSchema = z.array(

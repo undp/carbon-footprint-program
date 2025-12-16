@@ -1,13 +1,13 @@
 import { z } from "zod";
 
 const CountrySubsectorSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of subsector"),
-  name: z.string().min(1).describe("The name of subsector"),
+  id: z.string().regex(/^\d+$/).describe("The ID of the subsector"),
+  name: z.string().min(1).describe("The name of the subsector"),
 });
 
 export const CountrySectorSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of sector"),
-  name: z.string().min(1).describe("The name of sector"),
+  id: z.string().regex(/^\d+$/).describe("The ID of the sector"),
+  name: z.string().min(1).describe("The name of the sector"),
   subsectors: z.array(CountrySubsectorSchema),
 });
 
