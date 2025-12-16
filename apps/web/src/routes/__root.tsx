@@ -1,10 +1,9 @@
 import { Outlet, createRootRoute } from "@tanstack/react-router";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import { theme } from "@/theme";
-
-const queryClient = new QueryClient();
+import { queryClient } from "@/api/query/client";
 
 export const Route = createRootRoute({
   component: () => (
