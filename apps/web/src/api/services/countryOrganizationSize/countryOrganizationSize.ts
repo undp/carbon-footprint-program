@@ -4,7 +4,7 @@ import { CountryOrganizationSize } from "./countryOrganizationSize.types";
 export async function fetchCountryOrganizationSizes(): Promise<
   CountryOrganizationSize[]
 > {
-  return await apiClient
+  return apiClient
     .get("country-organization-sizes")
     .json<CountryOrganizationSize[]>();
 }
