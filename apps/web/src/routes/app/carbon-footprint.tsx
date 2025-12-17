@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MainLayout } from "@/components/layout";
 import { Routes } from "@/interfaces/routes";
-import { useCountryOrganizationSizes } from "@/api/query/countryOrganizationSize";
+import { useCountryOrganizationSizes } from "@/api/query";
 
 export const Route = createFileRoute(Routes.CARBON_FOOTPRINT)({
   component: () => {
