@@ -3,7 +3,7 @@ import { Box, FormControl, TextField, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
-import { FormSelectField } from "./components/form/FormSelectField";
+import { FormAutocompleteField } from "./components/form/FormAutocompleteField";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
 
@@ -54,7 +54,7 @@ export const BusinessProfilingScreen: FC = () => {
           </Box>
           <Box className="flex flex-row gap-6">
             <Box className="flex-1 flex flex-col gap-8">
-              <FormSelectField
+              <FormAutocompleteField
                 name="year"
                 control={control}
                 label="Año del inventario a calcular"
@@ -62,7 +62,7 @@ export const BusinessProfilingScreen: FC = () => {
                 options={YEARS.map((year) => ({ label: year, value: year }))}
               />
 
-              <FormSelectField
+              <FormAutocompleteField
                 name="sector"
                 control={control}
                 label="Rubro"
@@ -73,7 +73,7 @@ export const BusinessProfilingScreen: FC = () => {
                 }))}
               />
 
-              <FormSelectField
+              <FormAutocompleteField
                 name="companySize"
                 control={control}
                 label="Tamaño"
@@ -98,7 +98,7 @@ export const BusinessProfilingScreen: FC = () => {
                 />
               </FormControl>
 
-              <FormSelectField
+              <FormAutocompleteField
                 name="subSector"
                 control={control}
                 label="Sub-rubro"
@@ -114,7 +114,7 @@ export const BusinessProfilingScreen: FC = () => {
         <Box className="flex flex-col p-6 rounded-lg bg-white gap-8">
           <Box className="flex flex-row gap-6 mt-6">
             <Box className="flex-1 flex flex-row gap-6">
-              <FormSelectField
+              <FormAutocompleteField
                 name="activity"
                 control={control}
                 label="Actividad principal del negocio"
