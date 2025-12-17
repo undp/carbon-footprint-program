@@ -10,12 +10,12 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "pretest": "pnpm --filter @repo/database run build",
+    "pretest": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "predev": "pnpm --filter @repo/types run build",
+    "predev": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "dev": "tsx watch src/server.ts",
-    "prebuild": "pnpm --filter @repo/types run build",
+    "prebuild": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/server.js",
     "lint": "eslint .",
