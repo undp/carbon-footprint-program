@@ -447,7 +447,7 @@ Puedes verificar el estado en Azure Portal:
 
 ### VITE_API_BASE_URL
 
-La variable de entorno `VITE_API_BASE_URL` configura la URL base de la API que utiliza la aplicación web para realizar peticiones HTTP.
+La variable de entorno `VITE_API_BASE_URL` configura la URL base de la API que utiliza la aplicación web para realizar peticiones HTTP. Esta variable **es obligatoria** en el build de la aplicación web; define un valor explícito para cada entorno (incluido desarrollo local).
 
 #### Resolución Automática durante el Despliegue
 
@@ -491,13 +491,22 @@ az staticwebapp appsettings set \
 
 **⚠️ Importante**: Las variables de entorno en Azure Static Web App se inyectan en runtime, pero `VITE_API_BASE_URL` debe estar disponible durante el **build** de Vite. Por eso es crucial establecerla antes de ejecutar `deploy-web.sh` o dejar que el script la resuelva automáticamente.
 
-#### Valor por Defecto en Desarrollo Local
+Para desarrollo local, define la variable en `.envrc` en la raíz del monorepo (usa `.envrc.template` como base) o expórtala antes de ejecutar `pnpm --filter web dev`:
 
-En desarrollo local, si la variable no está definida, la aplicación usa el valor por defecto:
+```bash
+# .envrc en la raíz
+export VITE_API_BASE_URL="http://localhost:8080/api"
+```
+
+#### Comportamiento en la Aplicación
+
+El archivo de configuración de la web exige que la variable esté definida; el build fallará si falta:
 
 ```typescript
 // apps/web/src/config/environment.ts
-export const API_BASE_URL = VITE_API_BASE_URL ?? "http://localhost:8080/api";
+const { VITE_API_BASE_URL } = import.meta.env;
+
+export const API_BASE_URL = VITE_API_BASE_URL!;
 ```
 
 #### Uso en el Código
@@ -509,19 +518,19 @@ La variable se utiliza en el cliente HTTP de la aplicación:
 import { API_BASE_URL } from "@/config/environment";
 
 export const apiClient = ky.create({
-  prefixUrl: API_BASE_URL,  // Usa VITE_API_BASE_URL o el valor por defecto
+  prefixUrl: API_BASE_URL, // Usa el valor obligatorio definido en el entorno
   // ...
 });
 ```
 
 #### Configuración Recomendada por Ambiente
 
-| Ambiente | Configuración | Método |
-|----------|---------------|--------|
-| **Desarrollo Local** | `http://localhost:8080/api` | Valor por defecto (no requiere configuración) |
-| **Despliegue Automático** | Resuelto desde stack outputs | Automático en `deploy-web.sh` |
-| **Despliegue Manual** | `export VITE_API_BASE_URL="..."` | Variable de entorno antes del build |
-| **Producción con dominio personalizado** | `https://api.tudominio.com/api` | Establecer antes de `deploy-web.sh` |
+| Ambiente                                 | Configuración                    | Método                                                      |
+| ---------------------------------------- | -------------------------------- | ----------------------------------------------------------- |
+| **Desarrollo Local**                     | `http://localhost:8080/api`      | Definir `VITE_API_BASE_URL` en `.envrc` en la raíz          |
+| **Despliegue Automático**                | Resuelto desde stack outputs     | Automático en `deploy-web.sh`                               |
+| **Despliegue Manual**                    | `export VITE_API_BASE_URL="..."` | Variable de entorno antes del build en el `.envrc` de infra |
+| **Producción con dominio personalizado** | `https://api.tudominio.com/api`  | Establecer antes de `deploy-web.sh`                         |
 
 ### Otras Variables de Entorno
 
