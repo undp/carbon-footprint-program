@@ -3,10 +3,11 @@ import { Box, FormControl, TextField, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm } from "react-hook-form";
-import { FormAutocompleteField } from "./components/form/FormAutocompleteField";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
+import { FormAutocompleteField } from "./components/form/FormAutocompleteField";
 import { FormSelectField } from "./components/form/FormSelectField";
+import { StepHeader } from "./components/StepHeader";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
@@ -40,19 +41,17 @@ export const BusinessProfilingScreen: FC = () => {
       }}
       footerProps={{
         nextText: "Siguiente",
+        nextRoute: Routes.FOOTPRINT_CALCULATOR_SUB_CATEGORY_PRESELECTION,
         showBack: true,
         backRoute: Routes.HOME,
       }}
     >
       <Box className="flex flex-col flex-1 gap-6 p-6">
         <Box className="flex flex-col p-6 rounded-lg bg-white gap-6">
-          <Box>
-            <Typography variant="h6">Paso 1: Perfil de empresa</Typography>
-            <Typography variant="subtitle2" color="text.secondary">
-              Esta información nos ayudará a sugerir automáticamente las fuentes
-              y actividades más relevantes según tu rubro.
-            </Typography>
-          </Box>
+          <StepHeader
+            title="Paso 1: Perfil de empresa"
+            description="Esta información nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
+          />
           <Box className="flex flex-row gap-6">
             <Box className="flex-1 flex flex-col gap-8">
               <FormSelectField

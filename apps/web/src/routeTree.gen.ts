@@ -19,6 +19,8 @@ import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organizat
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonFootprintRouteImport } from './routes/app/carbon-footprint'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
+import { Route as AppFootprintCalculatorSubCategoryPreselectionRouteImport } from './routes/app/footprint-calculator/sub-category-preselection'
+import { Route as AppFootprintCalculatorBusinessProfilingRouteImport } from './routes/app/footprint-calculator/business-profiling'
 
 const TransparencyRoute = TransparencyRouteImport.update({
   id: '/transparency',
@@ -70,6 +72,18 @@ const AppAwardsRoute = AppAwardsRouteImport.update({
   path: '/app/awards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppFootprintCalculatorSubCategoryPreselectionRoute =
+  AppFootprintCalculatorSubCategoryPreselectionRouteImport.update({
+    id: '/app/footprint-calculator/sub-category-preselection',
+    path: '/app/footprint-calculator/sub-category-preselection',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AppFootprintCalculatorBusinessProfilingRoute =
+  AppFootprintCalculatorBusinessProfilingRouteImport.update({
+    id: '/app/footprint-calculator/business-profiling',
+    path: '/app/footprint-calculator/business-profiling',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -82,6 +96,8 @@ export interface FileRoutesByFullPath {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/footprint-calculator/business-profiling': typeof AppFootprintCalculatorBusinessProfilingRoute
+  '/app/footprint-calculator/sub-category-preselection': typeof AppFootprintCalculatorSubCategoryPreselectionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -94,6 +110,8 @@ export interface FileRoutesByTo {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/footprint-calculator/business-profiling': typeof AppFootprintCalculatorBusinessProfilingRoute
+  '/app/footprint-calculator/sub-category-preselection': typeof AppFootprintCalculatorSubCategoryPreselectionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -107,6 +125,8 @@ export interface FileRoutesById {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/footprint-calculator/business-profiling': typeof AppFootprintCalculatorBusinessProfilingRoute
+  '/app/footprint-calculator/sub-category-preselection': typeof AppFootprintCalculatorSubCategoryPreselectionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -121,6 +141,8 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/footprint-calculator/business-profiling'
+    | '/app/footprint-calculator/sub-category-preselection'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +155,8 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/footprint-calculator/business-profiling'
+    | '/app/footprint-calculator/sub-category-preselection'
   id:
     | '__root__'
     | '/'
@@ -145,6 +169,8 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/footprint-calculator/business-profiling'
+    | '/app/footprint-calculator/sub-category-preselection'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -158,6 +184,8 @@ export interface RootRouteChildren {
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
   AppReductionProjectsRoute: typeof AppReductionProjectsRoute
+  AppFootprintCalculatorBusinessProfilingRoute: typeof AppFootprintCalculatorBusinessProfilingRoute
+  AppFootprintCalculatorSubCategoryPreselectionRoute: typeof AppFootprintCalculatorSubCategoryPreselectionRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -232,6 +260,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAwardsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/footprint-calculator/sub-category-preselection': {
+      id: '/app/footprint-calculator/sub-category-preselection'
+      path: '/app/footprint-calculator/sub-category-preselection'
+      fullPath: '/app/footprint-calculator/sub-category-preselection'
+      preLoaderRoute: typeof AppFootprintCalculatorSubCategoryPreselectionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app/footprint-calculator/business-profiling': {
+      id: '/app/footprint-calculator/business-profiling'
+      path: '/app/footprint-calculator/business-profiling'
+      fullPath: '/app/footprint-calculator/business-profiling'
+      preLoaderRoute: typeof AppFootprintCalculatorBusinessProfilingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -246,6 +288,10 @@ const rootRouteChildren: RootRouteChildren = {
   AppMyOrganizationRoute: AppMyOrganizationRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,
   AppReductionProjectsRoute: AppReductionProjectsRoute,
+  AppFootprintCalculatorBusinessProfilingRoute:
+    AppFootprintCalculatorBusinessProfilingRoute,
+  AppFootprintCalculatorSubCategoryPreselectionRoute:
+    AppFootprintCalculatorSubCategoryPreselectionRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
