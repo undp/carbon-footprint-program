@@ -1,10 +1,10 @@
 import ky from "ky";
-import { environment } from "@/config/environment";
+import { API_BASE_URL } from "@/config/environment";
 import { getAuthToken } from "./auth";
 import { AppHttpError, normalizeError } from "./errors";
 
 export const apiClient = ky.create({
-  prefixUrl: environment.apiBaseUrl,
+  prefixUrl: API_BASE_URL,
   hooks: {
     beforeRequest: [
       (request) => {
