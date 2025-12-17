@@ -6,6 +6,7 @@ import { Controller, useForm } from "react-hook-form";
 import { FormAutocompleteField } from "./components/form/FormAutocompleteField";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
+import { FormSelectField } from "./components/form/FormSelectField";
 
 const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
 const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
@@ -54,7 +55,7 @@ export const BusinessProfilingScreen: FC = () => {
           </Box>
           <Box className="flex flex-row gap-6">
             <Box className="flex-1 flex flex-col gap-8">
-              <FormAutocompleteField
+              <FormSelectField
                 name="year"
                 control={control}
                 label="Año del inventario a calcular"
@@ -73,7 +74,7 @@ export const BusinessProfilingScreen: FC = () => {
                 }))}
               />
 
-              <FormAutocompleteField
+              <FormSelectField
                 name="companySize"
                 control={control}
                 label="Tamaño"
