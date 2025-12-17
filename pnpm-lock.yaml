@@ -74,6 +74,9 @@ importers:
       '@repo/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@repo/types':
+        specifier: workspace:*
+        version: link:../../packages/types
       fastify:
         specifier: ^5.6.2
         version: 5.6.2
@@ -293,6 +296,22 @@ importers:
       typescript-eslint:
         specifier: ^8.47.0
         version: 8.47.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.3)
+
+  packages/types:
+    dependencies:
+      zod:
+        specifier: catalog:shared
+        version: 4.1.12
+    devDependencies:
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: catalog:shared
+        version: 24.10.1
+      typescript:
+        specifier: catalog:shared
+        version: 5.9.3
 
   packages/typescript-config:
     devDependencies:

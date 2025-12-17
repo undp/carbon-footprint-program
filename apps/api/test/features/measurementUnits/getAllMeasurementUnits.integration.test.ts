@@ -9,7 +9,7 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import type { GetAllMeasurementUnitsResponse } from "@/features/measurementUnits/getAllMeasurementUnits/getAllMeasurementUnitsSchema.js";
+import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 

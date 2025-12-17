@@ -10,10 +10,12 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "pretest": "pnpm --filter @repo/database run build",
+    "pretest": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "predev": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "dev": "tsx watch src/server.ts",
+    "prebuild": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
     "start": "node dist/server.js",
     "lint": "eslint .",
@@ -31,6 +33,7 @@
     "@fastify/swagger-ui": "^5.2.3",
     "@fastify/under-pressure": "^9.0.3",
     "@repo/database": "workspace:*",
+    "@repo/types": "workspace:*",
     "fastify": "^5.6.2",
     "fastify-plugin": "^5.1.0",
     "fastify-type-provider-zod": "^6.1.0",

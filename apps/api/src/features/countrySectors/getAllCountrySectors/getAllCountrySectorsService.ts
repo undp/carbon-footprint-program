@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetAllCountrySectorsResponse } from "./getAllCountrySectorsSchema.js";
+import type { GetAllCountrySectorsResponse } from "@repo/types";
 
 export const getAllCountrySectorsService = async (
   prismaClient: PrismaClient

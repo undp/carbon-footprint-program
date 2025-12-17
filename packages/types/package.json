@@ -1,0 +1,24 @@
+{
+  "name": "@repo/types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "catalog:shared"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:shared",
+    "@repo/typescript-config": "workspace:*",
+    "typescript": "catalog:shared"
+  }
+}

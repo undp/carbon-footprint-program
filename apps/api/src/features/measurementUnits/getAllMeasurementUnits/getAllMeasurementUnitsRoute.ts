@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllMeasurementUnitsHandler } from "./getAllMeasurementUnitsHandler.js";
-import { GetAllMeasurementUnitsResponseSchema } from "./getAllMeasurementUnitsSchema.js";
+import { GetAllMeasurementUnitsResponseSchema } from "@repo/types";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getAllMeasurementUnitsRoute = (fastify: FastifyZodInstance) => {

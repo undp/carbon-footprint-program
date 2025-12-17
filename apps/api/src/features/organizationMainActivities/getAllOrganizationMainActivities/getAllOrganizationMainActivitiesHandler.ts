@@ -1,6 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getAllOrganizationMainActivitiesService } from "./getAllOrganizationMainActivitiesService.js";
-import type { GetAllOrganizationMainActivitiesQuery } from "./getAllOrganizationMainActivitiesSchema.js";
+import type { GetAllOrganizationMainActivitiesQuery } from "@repo/types";
 
 export const getAllOrganizationMainActivitiesHandler = async (
   request: FastifyRequest<{

@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCountrySectorsHandler } from "./getAllCountrySectorsHandler.js";
-import { GetAllCountrySectorsResponseSchema } from "./getAllCountrySectorsSchema.js";
+import { GetAllCountrySectorsResponseSchema } from "@repo/types";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getAllCountrySectorsRoute = (fastify: FastifyZodInstance) => {
