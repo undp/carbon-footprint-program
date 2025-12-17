@@ -25,7 +25,7 @@ export const apiClient = ky.create({
     ],
   },
   retry: {
-    limit: 1,
+    limit: 0,
   },
   timeout: 30000, // 30 seconds
 });
