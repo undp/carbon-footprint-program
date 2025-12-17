@@ -1,4 +1,6 @@
 export enum Routes {
+  FOOTPRINT_CALCULATOR_BUSINESS_PROFILING = "/app/footprint-calculator/business-profiling",
+  FOOTPRINT_CALCULATOR_SUB_CATEGORY_PRESELECTION = "/app/footprint-calculator/sub-category-preselection",
   HOME = "/app/home",
   MY_ORGANIZATION = "/app/my-organization",
   CARBON_FOOTPRINT = "/app/carbon-footprint",
