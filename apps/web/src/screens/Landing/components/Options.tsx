@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { CalculatorIcon, ApplicationFormIcon } from "@/icons";
 import { CardOption } from "./CardOption";
+import { Routes } from "@/interfaces";
 
 const options = [
   {
@@ -10,14 +11,14 @@ const options = [
     description:
       "Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos.",
     buttonText: "USAR CALCULADORA",
-    path: "/calculator",
+    route: Routes.FOOTPRINT_CALCULATOR_BUSINESS_PROFILING,
   },
   {
     AvatarIcon: ApplicationFormIcon,
     title: "Ya tengo mis cálculos",
     description: "Sube tus datos y genera reportes en segundos.",
     buttonText: "SUBIR EMISIONES",
-    path: "/register-organization",
+    route: Routes.HOME,
   },
 ];
 
