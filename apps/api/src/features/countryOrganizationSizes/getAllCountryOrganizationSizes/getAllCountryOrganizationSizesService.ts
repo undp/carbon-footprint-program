@@ -6,7 +6,7 @@ export const getAllCountryOrganizationSizesService = async (
 ): Promise<GetAllCountryOrganizationSizesResponse> => {
   const data = await prismaClient.country_organization_size.findMany({
     orderBy: {
-      name: "asc",
+      id: "asc",
     },
   });
 
