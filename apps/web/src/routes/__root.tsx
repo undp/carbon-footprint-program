@@ -11,7 +11,7 @@ export const Route = createRootRoute({
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <SnackbarProvider>
+        <SnackbarProvider preventDuplicate>
           <Outlet />
         </SnackbarProvider>
       </ThemeProvider>
