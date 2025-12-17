@@ -169,6 +169,29 @@ log "${GREEN}   ✓ App location: $APP_LOCATION${NC}"
 log "${GREEN}   ✓ Output location: $OUTPUT_LOCATION${NC}"
 echo ""
 
+# Resolve API base URL (used by Vite build)
+if [ -n "${VITE_API_BASE_URL:-}" ]; then
+  log "${GREEN}   ✓ Using existing VITE_API_BASE_URL=${VITE_API_BASE_URL}${NC}"
+else
+  log "${YELLOW}[1b/5] Resolving API base URL from stack outputs...${NC}"
+  API_URL=$(az stack group show \
+    --name "$STACK_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query "outputs.api.value.appService.url" \
+    --output tsv)
+
+  if [ -z "$API_URL" ]; then
+    log "${RED}Error: Could not resolve API URL from stack outputs. Ensure deploy.sh created the App Service and outputs are available.${NC}"
+    exit 1
+  fi
+
+  # Ensure no trailing slash before appending /api
+  VITE_API_BASE_URL="${API_URL%/}/api"
+  export VITE_API_BASE_URL
+  log "${GREEN}   ✓ VITE_API_BASE_URL set to ${VITE_API_BASE_URL}${NC}"
+fi
+echo ""
+
 # Get deployment token
 log "${YELLOW}[2/5] Getting deployment token...${NC}"
 DEPLOYMENT_TOKEN=$(az staticwebapp secrets list \

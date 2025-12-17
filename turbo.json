@@ -9,11 +9,6 @@
     "LOG_LEVEL"
   ],
   "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": ["dist/**"]
-    },
     "clean": {
       "cache": false,
       "inputs": ["$TURBO_DEFAULT$"],
@@ -25,17 +20,26 @@
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
-    "lint": {
-      "inputs": ["$TURBO_DEFAULT$", "*.ts"],
-      "outputs": []
+    "build": {
+      "cache": false,
+      "dependsOn": ["^build"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["dist/**"]
     },
     "start": {
+      "cache": false,
+      "persistent": true,
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": []
     },
     "test": {
+      "cache": false,
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
+      "outputs": []
+    },
+    "lint": {
+      "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
     "type-check": {

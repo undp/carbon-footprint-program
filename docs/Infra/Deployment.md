@@ -456,8 +456,12 @@ Ejemplos inválidos: `Production`, `STAGING`, `Development`
 **En `deploy-web.sh`**:
 
 - Lee `AZURE_RESOURCE_GROUP` para buscar el deployment stack
+- Resuelve `VITE_API_BASE_URL` automáticamente desde los outputs del stack (o usa el valor si ya está definido)
 - Obtiene el deployment token de Azure Static Web Apps
+- Construye la aplicación web con `pnpm build` (usando `VITE_API_BASE_URL` en el build)
 - Usa el token para desplegar la aplicación web
+
+**Nota**: Para más detalles sobre `VITE_API_BASE_URL` y su configuración, consulta la sección "Variables de Entorno" en [`docs/Infra/StaticWebAppDeployment.md`](../Infra/StaticWebAppDeployment.md#variables-de-entorno).
 
 **En Bicep**:
 

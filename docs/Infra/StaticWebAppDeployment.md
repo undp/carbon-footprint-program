@@ -445,14 +445,103 @@ Puedes verificar el estado en Azure Portal:
 
 ## Variables de Entorno
 
-Para configurar variables de entorno en la Static Web App:
+### VITE_API_BASE_URL
+
+La variable de entorno `VITE_API_BASE_URL` configura la URL base de la API que utiliza la aplicación web para realizar peticiones HTTP. Esta variable **es obligatoria** en el build de la aplicación web; define un valor explícito para cada entorno (incluido desarrollo local).
+
+#### Resolución Automática durante el Despliegue
+
+El script `deploy-web.sh` resuelve automáticamente esta variable de dos formas:
+
+1. **Si ya está definida**: Si `VITE_API_BASE_URL` está establecida como variable de entorno antes de ejecutar el script, se utiliza ese valor.
+
+2. **Resolución automática desde Azure**: Si no está definida, el script:
+   - Obtiene la URL del App Service desde los outputs del deployment stack
+   - Añade el sufijo `/api` automáticamente
+   - Establece `VITE_API_BASE_URL` para el build de Vite
+
+**Ejemplo de resolución automática**:
+
+```bash
+# El script detecta que no existe VITE_API_BASE_URL
+# Obtiene: https://huella-latam-api.azurewebsites.net
+# Establece: VITE_API_BASE_URL=https://huella-latam-api.azurewebsites.net/api
+```
+
+#### Configuración Manual
+
+Puedes establecer `VITE_API_BASE_URL` manualmente antes de ejecutar `deploy-web.sh`:
+
+```bash
+# Establecer antes del despliegue
+export VITE_API_BASE_URL="https://api.tudominio.com/api"
+cd infra
+./deploy-web.sh
+```
+
+O configurarla directamente en Azure Static Web App (aunque esto no afecta el build, solo runtime):
+
+```bash
+# Vía CLI (para runtime, no para build)
+az staticwebapp appsettings set \
+  --name [swa-name] \
+  --resource-group $AZURE_RESOURCE_GROUP \
+  --setting-names VITE_API_BASE_URL=https://api.tudominio.com/api
+```
+
+**⚠️ Importante**: Las variables de entorno en Azure Static Web App se inyectan en runtime, pero `VITE_API_BASE_URL` debe estar disponible durante el **build** de Vite. Por eso es crucial establecerla antes de ejecutar `deploy-web.sh` o dejar que el script la resuelva automáticamente.
+
+Para desarrollo local, define la variable en `.envrc` en la raíz del monorepo (usa `.envrc.template` como base) o expórtala antes de ejecutar `pnpm --filter web dev`:
+
+```bash
+# .envrc en la raíz
+export VITE_API_BASE_URL="http://localhost:8080/api"
+```
+
+#### Comportamiento en la Aplicación
+
+El archivo de configuración de la web exige que la variable esté definida; el build fallará si falta:
+
+```typescript
+// apps/web/src/config/environment.ts
+const { VITE_API_BASE_URL } = import.meta.env;
+
+export const API_BASE_URL = VITE_API_BASE_URL!;
+```
+
+#### Uso en el Código
+
+La variable se utiliza en el cliente HTTP de la aplicación:
+
+```typescript
+// apps/web/src/api/http/client.ts
+import { API_BASE_URL } from "@/config/environment";
+
+export const apiClient = ky.create({
+  prefixUrl: API_BASE_URL, // Usa el valor obligatorio definido en el entorno
+  // ...
+});
+```
+
+#### Configuración Recomendada por Ambiente
+
+| Ambiente                                 | Configuración                    | Método                                                      |
+| ---------------------------------------- | -------------------------------- | ----------------------------------------------------------- |
+| **Desarrollo Local**                     | `http://localhost:8080/api`      | Definir `VITE_API_BASE_URL` en `.envrc` en la raíz          |
+| **Despliegue Automático**                | Resuelto desde stack outputs     | Automático en `deploy-web.sh`                               |
+| **Despliegue Manual**                    | `export VITE_API_BASE_URL="..."` | Variable de entorno antes del build en el `.envrc` de infra |
+| **Producción con dominio personalizado** | `https://api.tudominio.com/api`  | Establecer antes de `deploy-web.sh`                         |
+
+### Otras Variables de Entorno
+
+Para configurar otras variables de entorno en la Static Web App:
 
 ```bash
 # Vía CLI
 az staticwebapp appsettings set \
   --name [swa-name] \
   --resource-group $AZURE_RESOURCE_GROUP \
-  --setting-names VITE_API_URL=https://api.tudominio.com
+  --setting-names VARIABLE_NAME=valor
 ```
 
 O configúralas en el portal de Azure: Static Web App > Configuration > Application settings
