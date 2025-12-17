@@ -1,19 +1,38 @@
-import { FC } from "react";
+import { FC, useEffect, useMemo } from "react";
 import { Box, FormControl, TextField, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import capinautPointing from "@assets/capinaut-pointing.png";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { FormAutocompleteField } from "./components/form/FormAutocompleteField";
 import { FormSelectField } from "./components/form/FormSelectField";
 import { StepHeader } from "./components/StepHeader";
+import {
+  useCountryOrganizationSizes,
+  useCountrySectors,
+  useOrganizationMainActivities,
+} from "@/api/query";
+import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 
-const YEARS = ["2020", "2021", "2022", "2023", "2024", "2025"];
-const INDUSTRIES = ["Servicios", "Manufactura", "Agropecuario", "Comercio"];
-const SUB_INDUSTRIES = ["Logística", "Tecnología", "Alimentos", "Retail"];
-const COMPANY_SIZES = ["Micro", "Pequeña", "Mediana", "Grande"];
-const ACTIVITIES = ["Producción", "Distribución", "Consumo", "Otros"];
+const YEARS = Array.from(
+  { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
+  (_, index) => {
+    const year = new Date().getFullYear() - index;
+    return year.toString();
+  }
+).reverse();
+
+type FormValues = {
+  year: string;
+  companyName: string;
+  sector: string;
+  subSector: string;
+  companySize: string;
+  activity: string;
+  meditionMode: string;
+  quantity: string;
+};
 
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
@@ -21,7 +40,7 @@ export const BusinessProfilingScreen: FC = () => {
     theme.palette.common.brightGreen,
     0.2
   )} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`;
-  const { control } = useForm({
+  const { control, setValue } = useForm<FormValues>({
     defaultValues: {
       year: "",
       companyName: "",
@@ -33,6 +52,100 @@ export const BusinessProfilingScreen: FC = () => {
       quantity: "",
     },
   });
+
+  // Form field watchers
+  const selectedSectorId = useWatch({ control, name: "sector" });
+  const selectedSubsectorId = useWatch({ control, name: "subSector" });
+  const selectedActivityId = useWatch({ control, name: "activity" });
+
+  // Data fetching
+  const { data: sectors = [], isLoading: sectorsLoading } = useCountrySectors();
+  const { data: organizationSizes = [], isLoading: organizationSizesLoading } =
+    useCountryOrganizationSizes();
+
+  // Derived data
+  const selectedSector = useMemo(
+    () => sectors.find((sector) => sector.id === selectedSectorId),
+    [sectors, selectedSectorId]
+  );
+
+  const subsectorOptions = useMemo(
+    () => selectedSector?.subsectors ?? [],
+    [selectedSector]
+  );
+
+  const activityFilters = useMemo(
+    () => ({
+      sectorId: selectedSectorId || undefined,
+      subsectorId: selectedSubsectorId || undefined,
+    }),
+    [selectedSectorId, selectedSubsectorId]
+  );
+
+  const { data: activities = [], isLoading: activitiesLoading } =
+    useOrganizationMainActivities(activityFilters);
+
+  // Business logic effects
+  useEffect(() => {
+    if (
+      selectedSubsectorId &&
+      !selectedSector?.subsectors.some(
+        (subsector) => subsector.id === selectedSubsectorId
+      )
+    ) {
+      setValue("subSector", "");
+    }
+  }, [selectedSector, selectedSubsectorId, setValue]);
+
+  useEffect(() => {
+    if (!selectedActivityId) {
+      setValue("quantity", "");
+    }
+  }, [selectedActivityId, setValue]);
+
+  // UI options (all select options together)
+  const sectorOptions = useMemo(
+    () => sectors.map(({ id, name }) => ({ label: name, value: id })),
+    [sectors]
+  );
+
+  const subsectorSelectOptions = useMemo(
+    () =>
+      subsectorOptions.map(({ id, name }) => ({
+        label: name,
+        value: id,
+      })),
+    [subsectorOptions]
+  );
+
+  const companySizeOptions = useMemo(
+    () =>
+      organizationSizes.map(({ id, name }) => ({
+        label: name,
+        value: id,
+      })),
+    [organizationSizes]
+  );
+
+  const activityOptions = useMemo(
+    () =>
+      activities.map(({ id, name }) => ({
+        label: name,
+        value: id,
+      })),
+    [activities]
+  );
+
+  // Computed display values
+  const selectedActivityLabel = useMemo(
+    () =>
+      activities.find((activity) => activity.id === selectedActivityId)?.name,
+    [activities, selectedActivityId]
+  );
+
+  const quantityLabel = selectedActivityLabel
+    ? `Cantidad de ${selectedActivityLabel} al año`
+    : "Selecciona la actividad principal";
 
   return (
     <FootprintCalculatorLayout
@@ -67,10 +180,8 @@ export const BusinessProfilingScreen: FC = () => {
                 control={control}
                 label="Rubro"
                 labelId="sector-label"
-                options={INDUSTRIES.map((industry) => ({
-                  label: industry,
-                  value: industry,
-                }))}
+                options={sectorOptions}
+                loading={sectorsLoading}
               />
 
               <FormSelectField
@@ -78,10 +189,8 @@ export const BusinessProfilingScreen: FC = () => {
                 control={control}
                 label="Tamaño"
                 labelId="company-size-label"
-                options={COMPANY_SIZES.map((companySize) => ({
-                  label: companySize,
-                  value: companySize,
-                }))}
+                options={companySizeOptions}
+                disabled={organizationSizesLoading}
               />
             </Box>
             <Box className="flex-1 flex flex-col gap-8">
@@ -103,10 +212,13 @@ export const BusinessProfilingScreen: FC = () => {
                 control={control}
                 label="Sub-rubro"
                 labelId="sub-sector-label"
-                options={SUB_INDUSTRIES.map((subIndustry) => ({
-                  label: subIndustry,
-                  value: subIndustry,
-                }))}
+                options={subsectorSelectOptions}
+                loading={sectorsLoading}
+                disabled={
+                  !selectedSector ||
+                  subsectorSelectOptions.length === 0 ||
+                  sectorsLoading
+                }
               />
             </Box>
           </Box>
@@ -119,10 +231,9 @@ export const BusinessProfilingScreen: FC = () => {
                 control={control}
                 label="Actividad principal del negocio"
                 labelId="activity-label"
-                options={ACTIVITIES.map((activity) => ({
-                  label: activity,
-                  value: activity,
-                }))}
+                options={activityOptions}
+                loading={activitiesLoading}
+                disabled={activitiesLoading || activityOptions.length === 0}
               />
 
               <FormControl fullWidth>
@@ -132,7 +243,8 @@ export const BusinessProfilingScreen: FC = () => {
                   render={({ field }) => (
                     <TextField
                       {...field}
-                      label="Cantidad de {activity} al año"
+                      label={quantityLabel}
+                      disabled={!selectedActivityId}
                     />
                   )}
                 />
