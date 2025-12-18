@@ -5,16 +5,15 @@ export const GetAllOrganizationMainActivitiesQuerySchema = z
     sectorId: z
       .string()
       .regex(/^\d+$/)
-      .optional()
       .describe("Optional country sector ID to filter by"),
     subsectorId: z
       .string()
       .regex(/^\d+$/)
-      .optional()
       .describe(
         "Optional country subsector ID to filter by (requires sectorId)"
       ),
   })
+  .partial()
   .refine(
     (data) => {
       // If subsectorId is provided, sectorId must also be provided
@@ -43,4 +42,3 @@ export const GetAllOrganizationMainActivitiesResponseSchema = z.array(
 export type GetAllOrganizationMainActivitiesResponse = z.infer<
   typeof GetAllOrganizationMainActivitiesResponseSchema
 >;
-

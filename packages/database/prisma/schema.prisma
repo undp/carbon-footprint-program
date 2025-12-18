@@ -165,6 +165,8 @@ model user {
   organization_main_activities_updated organization_main_activity[] @relation("organization_main_activity_updated_by")
   system_parameters_created            system_parameter[]           @relation("system_parameter_created_by")
   system_parameters_updated            system_parameter[]           @relation("system_parameter_updated_by")
+  carbon_inventories_created           carbon_inventory[]           @relation("carbon_inventory_created_by")
+  carbon_inventories_updated           carbon_inventory[]           @relation("carbon_inventory_updated_by")
   country_job_position                 country_job_position         @relation(fields: [country_job_position_id], references: [id])
   creator                              user?                        @relation("user_created_by", fields: [created_by_id], references: [id])
   users_created                        user[]                       @relation("user_created_by")
@@ -198,4 +200,35 @@ enum Magnitude {
   VOLUME
   DISTANCE
   TIME
+}
+
+enum inventory_status {
+  DRAFT
+  SUBMITTED
+  VERIFIED
+  DELETED
+}
+
+enum usage_mode {
+  SIMPLIFIED
+  EXPERT
+}
+
+model carbon_inventory {
+  id                     BigInt           @id @default(autoincrement())
+  organization_id        BigInt?
+  organization_branch_id BigInt?
+  organization_data      Json?            @db.JsonB
+  year                   Int
+  status                 inventory_status @default(DRAFT)
+  usage_mode             usage_mode
+  methodology_version_id BigInt?
+  preselected_nodes_id   BigInt?
+  is_editable            Boolean          @default(true)
+  created_at             DateTime         @default(now())
+  updated_at             DateTime         @default(now()) @updatedAt
+  created_by_id          BigInt?
+  updated_by_id          BigInt?
+  creator                user?            @relation("carbon_inventory_created_by", fields: [created_by_id], references: [id])
+  updater                user?            @relation("carbon_inventory_updated_by", fields: [updated_by_id], references: [id])
 }

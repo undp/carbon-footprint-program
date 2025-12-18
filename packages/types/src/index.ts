@@ -1,4 +1,4 @@
-// API Response types - Zod schemas and inferred types
+export * from "./carbonInventories/index.js";
 export * from "./countryOrganizationSizes.js";
 export * from "./countrySectors.js";
 export * from "./jobPositions.js";
