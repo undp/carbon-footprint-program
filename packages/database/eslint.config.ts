@@ -18,4 +18,9 @@ export default [
       },
     },
   },
+  {
+    rules: {
+      "no-console": "off",
+    },
+  },
 ] satisfies Linter.Config[];
