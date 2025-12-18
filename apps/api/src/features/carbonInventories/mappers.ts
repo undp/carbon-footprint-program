@@ -11,7 +11,8 @@ export const mapCarbonInventoryToResponse = (
     id: item.id.toString(),
     organizationId: item.organization_id?.toString() ?? null,
     organizationBranchId: item.organization_branch_id?.toString() ?? null,
-    organizationData: item.organization_data as OrganizationData,
+    organizationData:
+      (item.organization_data as OrganizationData | null) ?? null,
     year: item.year,
     status: item.status,
     usageMode: item.usage_mode,
