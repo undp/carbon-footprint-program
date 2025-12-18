@@ -51,53 +51,57 @@ export const OrganizationDataSchema = z
   .strict();
 
 // Base Carbon Inventory Schema
-export const CarbonInventorySchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the carbon inventory"),
-  organizationId: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the organization"),
-  organizationBranchId: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the organization branch"),
-  organizationData: OrganizationDataSchema.describe(
-    "Organization data as JSON object"
-  ),
-  year: z
-    .number()
-    .int()
-    .min(2000)
-    .max(2100)
-    .describe("The year of the inventory"),
-  status: InventoryStatusSchema.describe("The status of the inventory"),
-  usageMode: UsageModeSchema.describe("The usage mode (simplified or expert)"),
-  methodologyVersionId: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the methodology version"),
-  preselectedNodesId: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the preselected nodes"),
-  isEditable: z.boolean().describe("Whether the inventory is editable"),
-  createdAt: z.string().datetime().describe("The creation timestamp"),
-  updatedAt: z.string().datetime().describe("The last update timestamp"),
-  createdById: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the user who created the inventory"),
-  updatedById: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the user who last updated the inventory"),
-});
+export const CarbonInventorySchema = z
+  .object({
+    id: z.string().regex(/^\d+$/).describe("The ID of the carbon inventory"),
+    organizationId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the organization"),
+    organizationBranchId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the organization branch"),
+    organizationData: OrganizationDataSchema.describe(
+      "Organization data as JSON object"
+    ),
+    year: z
+      .number()
+      .int()
+      .min(2000)
+      .max(2100)
+      .describe("The year of the inventory"),
+    status: InventoryStatusSchema.describe("The status of the inventory"),
+    usageMode: UsageModeSchema.describe(
+      "The usage mode (simplified or expert)"
+    ),
+    methodologyVersionId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the methodology version"),
+    preselectedNodesId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the preselected nodes"),
+    isEditable: z.boolean().describe("Whether the inventory is editable"),
+    createdAt: z.string().datetime().describe("The creation timestamp"),
+    updatedAt: z.string().datetime().describe("The last update timestamp"),
+    createdById: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the user who created the inventory"),
+    updatedById: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the user who last updated the inventory"),
+  })
+  .strict();
 
 // Create Carbon Inventory Request Schema
 export const CreateCarbonInventoryRequestSchema = z
