@@ -58,6 +58,9 @@ export const FormAutocompleteField = <T extends FieldValues>({
     <Controller
       name={name}
       control={control}
+      rules={{
+        required: required ? "Este campo es obligatorio" : false,
+      }}
       render={({ field, fieldState }) => {
         return (
           <Autocomplete<Option, false, false, false>
@@ -78,9 +81,17 @@ export const FormAutocompleteField = <T extends FieldValues>({
               <TextField
                 {...params}
                 label={label}
-                required={required}
-                error={!!fieldState.error}
+                error={!!fieldState.error && !autocompleteProps.disabled}
+                helperText={fieldState.error?.message}
                 slotProps={{
+                  formHelperText: {
+                    sx: {
+                      position: "absolute",
+                      bottom: -20,
+                      left: 0,
+                      margin: 0,
+                    },
+                  },
                   htmlInput: {
                     ...params.inputProps,
                     id: computedLabelId,
