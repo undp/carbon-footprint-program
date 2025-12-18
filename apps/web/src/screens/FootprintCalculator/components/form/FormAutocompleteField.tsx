@@ -1,5 +1,12 @@
 import { useMemo } from "react";
-import { Autocomplete, AutocompleteProps, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  AutocompleteProps,
+  TextField,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import { Clear as ClearIcon } from "@mui/icons-material";
 import {
   Control,
   Controller,
@@ -78,6 +85,29 @@ export const FormAutocompleteField = <T extends FieldValues>({
                     ...params.inputProps,
                     id: computedLabelId,
                     autoComplete: "new-password",
+                  },
+                  input: {
+                    ...params.InputProps,
+                    endAdornment: (
+                      <>
+                        {params.inputProps.value && !fieldValue && (
+                          <InputAdornment position="end">
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                params.inputProps.onChange?.({
+                                  target: { value: "" },
+                                } as React.ChangeEvent<HTMLInputElement>);
+                              }}
+                              edge="end"
+                            >
+                              <ClearIcon fontSize="small" />
+                            </IconButton>
+                          </InputAdornment>
+                        )}
+                        {params.InputProps.endAdornment}
+                      </>
+                    ),
                   },
                 }}
               />
