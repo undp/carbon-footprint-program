@@ -14,9 +14,9 @@
     "./package.json": "./package.json"
   },
   "scripts": {
-    "dev": "tsc --watch",
+    "dev": "tsc -p tsconfig.build.json --watch",
     "prebuild": "prisma generate",
-    "build": "rimraf dist && tsc && cpy generated dist --flat=false",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && cpy generated dist --flat=false",
     "clean": "rimraf dist",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
