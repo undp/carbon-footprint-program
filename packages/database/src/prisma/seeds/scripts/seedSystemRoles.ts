@@ -2,23 +2,15 @@ import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { z } from "zod";
 import {
   checkForDuplicates,
   generateSeedDataPath,
   type SeedsDataset,
 } from "../utils/index.js";
-import type { RoleData } from "./seedAllRoles.js";
+import { RoleDataSchema } from "./shared.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-const RoleDataSchema: z.ZodType<RoleData> = z.array(
-  z.object({
-    name: z.string().min(1),
-    description: z.string().min(1),
-  })
-);
 
 export async function seedSystemRoles(
   prisma: PrismaClient,
