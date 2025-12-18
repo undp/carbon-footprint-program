@@ -1,7 +1,8 @@
 {
   "include": ["**/*.ts"],
-  "exclude": ["node_modules", "dist", "generated"],
+  "exclude": ["node_modules", "dist", "generated", ".turbo"],
   "compilerOptions": {
+    "noEmit": true,
     "outDir": "./dist",
     "rootDir": ".",
     "module": "nodenext",
