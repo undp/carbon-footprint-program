@@ -4,7 +4,7 @@ packages:
 
 catalogs:
   shared:
-    "@types/node": 22.13.14
+    "@types/node": ^24.10.1
     pino: ^10.1.0
     tsx: ^4.20.6
     typescript: ^5.9.3

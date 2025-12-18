@@ -448,7 +448,7 @@ The workspace uses pnpm catalogs for shared dependencies:
 # pnpm-workspace.yaml
 catalogs:
   shared:
-    "@types/node": 22.13.14
+    "@types/node": ^24.10.1
     typescript: ^5.9.3
     zod: ^4.1.12
     # ... more shared versions
