@@ -13,13 +13,14 @@ import {
   type SvgIconProps,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
+import { Routes } from "@/interfaces";
 
 interface Props {
   AvatarIcon: React.ComponentType<SvgIconProps>;
   title: string;
   description: string;
   buttonText: string;
-  route: string;
+  route: Routes;
 }
 
 export const CardOption: FC<Props> = ({
@@ -33,7 +34,7 @@ export const CardOption: FC<Props> = ({
   const backgroundColor = alpha(theme.palette.common.white, 0.1);
   const navigate = useNavigate();
   const handleNavigate = useCallback(() => {
-    void navigate({ to: route });
+    void navigate({ to: route as string });
   }, [route, navigate]);
 
   return (
