@@ -82,11 +82,14 @@ COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
 COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 COPY --chown=fastify:nodejs packages/types/package.json ./packages/types/
 
-# Copy database package dist folder (includes compiled code and generated client)
+# Copy database package dist folder (includes compiled code, generated client, and compiled seeds)
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma ./packages/database/prisma
-# Copy compiled prisma config and its dependency to root so `prisma migrate deploy` can find it
-COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/
+
+# Copy prisma source files needed for migrations and seeds
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/src/prisma ./packages/database/src/prisma
+
+# Copy prisma config needed for prisma commands
+COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma.config.ts ./packages/database/prisma.config.ts
 
 # Copy types package dist folder
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./packages/types/dist
