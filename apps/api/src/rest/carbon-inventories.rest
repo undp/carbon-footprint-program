@@ -27,11 +27,11 @@ Content-Type: application/json
     "organizationBranchId": "1",
     "organizationData": {
         "name": "My Organization",
-        "sector_id": "1",
-        "subsector_id": "1",
-        "size_id": "1",
-        "main_activity_id": "1",
-        "main_activity_quantity": 0
+        "sectorId": "1",
+        "subsectorId": "1",
+        "sizeId": "1",
+        "mainActivityId": "1",
+        "mainActivityQuantity": 0
     },
     "year": 2020,
     "usageMode": "SIMPLIFIED",
@@ -49,11 +49,11 @@ Content-Type: application/json
     "organizationBranchId": null,
     "organizationData": {
         "name": null,
-        "sector_id": null,
-        "subsector_id": null,
-        "size_id": null,
-        "main_activity_id": null,
-        "main_activity_quantity": null
+        "sectorId": null,
+        "subsectorId": null,
+        "sizeId": null,
+        "mainActivityId": null,
+        "mainActivityQuantity": null
     },
     "year": 2020,
     "usageMode": "SIMPLIFIED",

@@ -16,20 +16,20 @@ export const OrganizationDataSchema = makeAllFieldsNullable(
   z
     .object({
       name: z.string().describe("The name of the organization"),
-      sector_id: z.string().regex(/^\d+$/).describe("The ID of the sector"),
-      subsector_id: z
+      sectorId: z.string().regex(/^\d+$/).describe("The ID of the sector"),
+      subsectorId: z
         .string()
         .regex(/^\d+$/)
         .describe("The ID of the subsector"),
-      size_id: z
+      sizeId: z
         .string()
         .regex(/^\d+$/)
         .describe("The ID of the organization size"),
-      main_activity_id: z
+      mainActivityId: z
         .string()
         .regex(/^\d+$/)
         .describe("The ID of the main activity"),
-      main_activity_quantity: z
+      mainActivityQuantity: z
         .int()
         .describe("The quantity of the main activity"),
     })
