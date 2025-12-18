@@ -9,9 +9,13 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import type { GetAllOrganizationMainActivitiesResponse } from "@repo/types";
+import {
+  type GetAllOrganizationMainActivitiesResponse,
+  type GetAllCountrySectorsResponse,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 describe("GET /api/organization-main-activities - Integration Tests", () => {
   let app: FastifyInstance;
@@ -157,17 +161,17 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
         method: "GET",
         url: "/api/country-sectors",
       });
-      const sectors = JSON.parse(sectorsResponse.body);
-      const testSector = sectors.find(
-        (s: { name: string }) => s.name === "Energía"
-      );
+      const sectors = JSON.parse(
+        sectorsResponse.body
+      ) as GetAllCountrySectorsResponse;
+      const testSector = sectors.find((s) => s.name === "Energía");
 
       expect(testSector).toBeDefined();
 
       // Filter by sector
       const sectorResponse = await app.inject({
         method: "GET",
-        url: `/api/organization-main-activities?sectorId=${testSector.id}`,
+        url: `/api/organization-main-activities?sectorId=${testSector!.id}`,
       });
 
       expect(sectorResponse.statusCode).toBe(200);
@@ -202,7 +206,9 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
         method: "GET",
         url: "/api/country-sectors",
       });
-      const sectors = JSON.parse(sectorsResponse.body);
+      const sectors = JSON.parse(
+        sectorsResponse.body
+      ) as GetAllCountrySectorsResponse;
       const energiaSector = sectors.find(
         (s: { name: string }) => s.name === "Energía"
       );
@@ -211,13 +217,13 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       // Get activities from DB for this sector
       const sectorActivitiesDb =
         await prisma.organization_main_activity.findMany({
-          where: { country_sector_id: BigInt(energiaSector.id) },
+          where: { country_sector_id: BigInt(energiaSector!.id) },
         });
 
       // Now filter activities by this sector
       const response = await app.inject({
         method: "GET",
-        url: `/api/organization-main-activities?sectorId=${energiaSector.id}`,
+        url: `/api/organization-main-activities?sectorId=${energiaSector!.id}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -282,20 +288,20 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
         method: "GET",
         url: "/api/country-sectors",
       });
-      const sectors = JSON.parse(sectorsResponse.body);
-      const sectorWithSubsectors = sectors.find(
-        (s: { subsectors: unknown[] }) => s.subsectors.length > 0
-      );
+      const sectors = JSON.parse(
+        sectorsResponse.body
+      ) as GetAllCountrySectorsResponse;
+      const sectorWithSubsectors = sectors.find((s) => s.subsectors.length > 0);
 
       expect(sectorWithSubsectors).toBeDefined();
-      const subsector = sectorWithSubsectors.subsectors[0];
+      const subsector = sectorWithSubsectors!.subsectors[0];
       expect(subsector).toBeDefined();
 
       // Get activities from DB for this sector/subsector combo
       const subsectorActivitiesDb =
         await prisma.organization_main_activity.findMany({
           where: {
-            country_sector_id: BigInt(sectorWithSubsectors.id),
+            country_sector_id: BigInt(sectorWithSubsectors!.id),
             country_subsector_id: BigInt(subsector.id),
           },
         });
@@ -303,7 +309,7 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       // Filter by both sector and subsector
       const response = await app.inject({
         method: "GET",
-        url: `/api/organization-main-activities?sectorId=${sectorWithSubsectors.id}&subsectorId=${subsector.id}`,
+        url: `/api/organization-main-activities?sectorId=${sectorWithSubsectors!.id}&subsectorId=${subsector.id}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -337,7 +343,7 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body);
+      const body = NotFoundErrorResponseSchema.parse(JSON.parse(response.body));
       expect(body.message).toContain(
         "subsectorId cannot be provided without sectorId"
       );
