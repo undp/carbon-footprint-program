@@ -1,3 +1,4 @@
+export * from "./carbonInventories";
 export * from "./client";
 export * from "./countryOrganizationSize";
 export * from "./countrySector";
