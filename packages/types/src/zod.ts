@@ -1,6 +1,20 @@
 import { z } from "zod";
 
-// Helper function to make all fields in an object schema nullable
+/**
+ * Returns a new Zod object schema with all fields of the input schema made nullable.
+ *
+ * This is useful when you want to accept `null` as a valid value for every property in an object schema.
+ *
+ * @template T - The shape of the Zod object schema.
+ * @param schema - The Zod object schema to transform.
+ * @returns A new Zod object schema where every field is nullable.
+ *
+ * @example
+ * const UserSchema = z.object({ name: z.string(), age: z.number() });
+ * const NullableUserSchema = makeAllFieldsNullable(UserSchema);
+ * // NullableUserSchema parses:
+ * // { name: null, age: null }, { name: "Alice", age: null }, etc.
+ */
 export const makeAllFieldsNullable = <T extends z.ZodRawShape>(
   schema: z.ZodObject<T>
 ) => {
