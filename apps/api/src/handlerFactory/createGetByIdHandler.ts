@@ -2,9 +2,9 @@ import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 // Generic handler factory for getting a single resource by ID
-export const createGetByIdHandler = <T>(
+export const createGetByIdHandler = <TResponse>(
   moduleName: string,
-  serviceFn: (prisma: PrismaClient, id: string) => Promise<T | null>,
+  serviceFn: (prisma: PrismaClient, id: string) => Promise<TResponse | null>,
   resourceName: string
 ) => {
   return async (

@@ -2,9 +2,9 @@ import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 // Generic handler factory
-export const createGetAllHandler = <T>(
+export const createGetAllHandler = <TResponse extends Array<unknown>>(
   moduleName: string,
-  serviceFn: (prisma: PrismaClient) => Promise<T[]>,
+  serviceFn: (prisma: PrismaClient) => Promise<TResponse>,
   resourceName: string,
   throwErrorIfNotFound: boolean = true
 ) => {
