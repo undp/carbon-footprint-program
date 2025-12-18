@@ -1,11 +1,7 @@
 {
   "extends": "./tsconfig.json",
-  "include": [
-    "src/**/*.ts",
-    "src/prisma/**/*.ts",
-    "scripts",
-    "eslint.config.ts"
-  ],
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/generated"],
   "compilerOptions": {
     "noEmit": true,
     "composite": false,
