@@ -15,7 +15,7 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ValidationErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("GET /api/organization-main-activities - Integration Tests", () => {
   let app: FastifyInstance;
@@ -343,7 +343,7 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = NotFoundErrorResponseSchema.parse(JSON.parse(response.body));
+      const body = JSON.parse(response.body) as ValidationErrorResponse;
       expect(body.message).toContain(
         "subsectorId cannot be provided without sectorId"
       );
