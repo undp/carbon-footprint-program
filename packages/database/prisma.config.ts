@@ -1,11 +1,11 @@
 import { defineConfig } from "prisma/config";
-import { DATABASE_URL } from "./environment.js";
+import { DATABASE_URL } from "./src/environment.js";
 
 export default defineConfig({
-  schema: "prisma/schema.prisma",
+  schema: "src/prisma/schema.prisma",
   migrations: {
-    path: "prisma/migrations",
-    seed: "tsx prisma/seeds/seed.ts",
+    path: "src/prisma/migrations",
+    seed: "tsx src/prisma/seeds/seed.ts",
   },
   datasource: {
     url: DATABASE_URL,

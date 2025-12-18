@@ -7,7 +7,7 @@
  * which is required for the NULLS NOT DISTINCT syntax used in migrations.
  *
  * Usage:
- *   tsx validate-postgres-version.ts
+ *   tsx scripts/validate-postgres-version.ts
  *
  * Environment Variables:
  *   DATABASE_URL - PostgreSQL connection string (required)
@@ -17,8 +17,8 @@
  *   1 - PostgreSQL version is incompatible (<15) or validation failed
  */
 
-import { PrismaClient } from "./generated/client/index.js";
-import { generatePrismaAdapter } from "./adapter.js";
+import { PrismaClient } from "../generated/client/index.js";
+import { generatePrismaAdapter } from "../src/adapter.js";
 
 const MINIMUM_MAJOR_VERSION = 15;
 const MINIMUM_FULL_VERSION = "15.0";

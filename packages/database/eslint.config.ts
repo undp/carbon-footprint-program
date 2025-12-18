@@ -8,6 +8,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default [
   ...baseConfig,
   {
+    ignores: ["src/generated"],
+  },
+  {
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: __dirname,

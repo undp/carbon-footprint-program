@@ -1,7 +1,14 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["*.ts", "prisma/seeds"],
+  "include": [
+    "src/**/*.ts",
+    "src/prisma/**/*.ts",
+    "scripts",
+    "eslint.config.ts"
+  ],
   "compilerOptions": {
-    "noEmit": true
+    "noEmit": true,
+    "composite": false,
+    "incremental": false
   }
 }
