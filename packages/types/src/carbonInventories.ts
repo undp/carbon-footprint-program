@@ -118,9 +118,9 @@ export const CreateCarbonInventoryRequestSchema = z
       .nullable()
       .optional()
       .describe("The ID of the organization branch"),
-    organizationData: OrganizationDataSchema.describe(
-      "Organization data as JSON object"
-    ),
+    organizationData: OrganizationDataSchema.nullable()
+      .optional()
+      .describe("Organization data as JSON object"),
     year: z
       .number()
       .int()

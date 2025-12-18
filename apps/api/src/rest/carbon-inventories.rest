@@ -15,18 +15,12 @@ Content-Type: application/json
 {
   "organizationId": "1",
   "organizationData": {
-    "name": "Acme Corporation",
-    "sector": "Manufacturing",
-    "employees": 250,
-    "address": {
-      "street": "123 Main St",
-      "city": "San José",
-      "country": "Costa Rica"
-    },
-    "contact": {
-      "email": "contact@acme.com",
-      "phone": "+506-1234-5678"
-    }
+    "name": "Inventures",
+    "sector_id": "1",
+    "subsector_id": "1",
+    "size_id": "1",
+    "main_activity_id": "1",
+    "main_activity_quantity": 0
   },
   "year": 2024,
   "usageMode": "SIMPLIFIED",
@@ -41,10 +35,7 @@ Content-Type: application/json
 {
   "organizationBranchId": "5",
   "organizationData": {
-    "name": "Tech Startup Inc.",
-    "type": "Technology",
-    "employees": 50,
-    "revenue": 1500000
+    "name": "Inventures"
   },
   "year": 2024,
   "usageMode": "EXPERT",
@@ -58,10 +49,6 @@ POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
 Content-Type: application/json
 
 {
-  "organizationData": {
-    "name": "Test Organization",
-    "type": "SME"
-  },
   "year": 2024,
   "usageMode": "SIMPLIFIED"
 }
