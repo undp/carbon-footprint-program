@@ -9,16 +9,12 @@ export default [
   ...baseConfig,
   {
     ignores: ["src/generated"],
-  },
-  {
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: __dirname,
         project: "./tsconfig.eslint.json",
       },
     },
-  },
-  {
     rules: {
       "no-console": "off",
     },
