@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "tsc -p tsconfig.build.json --watch",
     "prebuild": "prisma generate",
-    "build": "rimraf dist && tsc -p tsconfig.build.json && cpy src/generated dist --flat=false",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && cpy \"src/generated/**\" dist/generated",
     "clean": "rimraf dist",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
