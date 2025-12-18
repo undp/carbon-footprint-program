@@ -16,6 +16,7 @@ import {
   useOrganizationMainActivities,
 } from "@/api/query";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
+import { useSelectorOptions } from "@/hooks";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -129,37 +130,21 @@ export const BusinessProfilingScreen: FC = () => {
   }, [selectedActivityId, setValue]);
 
   // UI options (all select options together)
-  const sectorOptions = useMemo(
-    () => sectors.map(({ id, name }) => ({ label: name, value: id })),
-    [sectors]
+  const sectorOptions = useSelectorOptions(sectors, "name", "id");
+
+  const subsectorSelectOptions = useSelectorOptions(
+    subsectorOptions,
+    "name",
+    "id"
   );
 
-  const subsectorSelectOptions = useMemo(
-    () =>
-      subsectorOptions.map(({ id, name }) => ({
-        label: name,
-        value: id,
-      })),
-    [subsectorOptions]
+  const companySizeOptions = useSelectorOptions(
+    organizationSizes,
+    "name",
+    "id"
   );
 
-  const companySizeOptions = useMemo(
-    () =>
-      organizationSizes.map(({ id, name }) => ({
-        label: name,
-        value: id,
-      })),
-    [organizationSizes]
-  );
-
-  const activityOptions = useMemo(
-    () =>
-      activities.map(({ id, name }) => ({
-        label: name,
-        value: id,
-      })),
-    [activities]
-  );
+  const activityOptions = useSelectorOptions(activities, "name", "id");
 
   // Computed display values
   const selectedActivityLabel = useMemo(
