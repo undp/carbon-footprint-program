@@ -13,28 +13,21 @@ export const UsageModeSchema = z.enum(["SIMPLIFIED", "EXPERT"]);
 
 // Entities
 export const OrganizationDataSchema = makeAllFieldsNullable(
-  z
-    .object({
-      name: z.string().describe("The name of the organization"),
-      sectorId: z.string().regex(/^\d+$/).describe("The ID of the sector"),
-      subsectorId: z
-        .string()
-        .regex(/^\d+$/)
-        .describe("The ID of the subsector"),
-      sizeId: z
-        .string()
-        .regex(/^\d+$/)
-        .describe("The ID of the organization size"),
-      mainActivityId: z
-        .string()
-        .regex(/^\d+$/)
-        .describe("The ID of the main activity"),
-      mainActivityQuantity: z
-        .int()
-        .describe("The quantity of the main activity"),
-    })
-    .strict()
-);
+  z.object({
+    name: z.string().describe("The name of the organization"),
+    sectorId: z.string().regex(/^\d+$/).describe("The ID of the sector"),
+    subsectorId: z.string().regex(/^\d+$/).describe("The ID of the subsector"),
+    sizeId: z
+      .string()
+      .regex(/^\d+$/)
+      .describe("The ID of the organization size"),
+    mainActivityId: z
+      .string()
+      .regex(/^\d+$/)
+      .describe("The ID of the main activity"),
+    mainActivityQuantity: z.int().describe("The quantity of the main activity"),
+  })
+).strict();
 
 export const CarbonInventorySchema = z
   .object({
