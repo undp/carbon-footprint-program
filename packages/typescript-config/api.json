@@ -4,7 +4,7 @@
   "compilerOptions": {
     "incremental": true,
     "module": "nodenext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "nodenext",
     "noFallthroughCasesInSwitch": false,
     "sourceMap": true,
     "strictBindCallApply": false
