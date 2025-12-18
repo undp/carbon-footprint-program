@@ -2,6 +2,7 @@ import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import {
   checkForDuplicates,
   generateSeedDataPath,
@@ -12,6 +13,13 @@ import type { RoleData } from "./seedAllRoles.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const RoleDataSchema: z.ZodType<RoleData> = z.array(
+  z.object({
+    name: z.string().min(1),
+    description: z.string().min(1),
+  })
+);
+
 export async function seedOrganizationRoles(
   prisma: PrismaClient,
   dataset: SeedsDataset
@@ -19,10 +27,12 @@ export async function seedOrganizationRoles(
   console.log("Seeding organization role entries...");
 
   // Read organization roles
-  const organizationRolesData: RoleData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "organization_roles.json", dataset),
-      "utf-8"
+  const organizationRolesData = RoleDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "organization_roles.json", dataset),
+        "utf-8"
+      )
     )
   );
 
