@@ -12,28 +12,28 @@ export const InventoryStatusSchema = z.enum([
 export const UsageModeSchema = z.enum(["SIMPLIFIED", "EXPERT"]);
 
 // Entities
-const _OrganizationDataSchema = z
-  .object({
-    name: z.string().describe("The name of the organization"),
-    sector_id: z.string().regex(/^\d+$/).describe("The ID of the sector"),
-    subsector_id: z.string().regex(/^\d+$/).describe("The ID of the subsector"),
-    size_id: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of the organization size"),
-    main_activity_id: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of the main activity"),
-    main_activity_quantity: z
-      .int()
-      .describe("The quantity of the main activity"),
-  })
-  .partial()
-  .strict();
-
 export const OrganizationDataSchema = makeAllFieldsNullable(
-  _OrganizationDataSchema
+  z
+    .object({
+      name: z.string().describe("The name of the organization"),
+      sector_id: z.string().regex(/^\d+$/).describe("The ID of the sector"),
+      subsector_id: z
+        .string()
+        .regex(/^\d+$/)
+        .describe("The ID of the subsector"),
+      size_id: z
+        .string()
+        .regex(/^\d+$/)
+        .describe("The ID of the organization size"),
+      main_activity_id: z
+        .string()
+        .regex(/^\d+$/)
+        .describe("The ID of the main activity"),
+      main_activity_quantity: z
+        .int()
+        .describe("The quantity of the main activity"),
+    })
+    .strict()
 );
 
 export const CarbonInventorySchema = z
@@ -49,7 +49,7 @@ export const CarbonInventorySchema = z
       .regex(/^\d+$/)
       .nullable()
       .describe("The ID of the organization branch"),
-    organizationData: OrganizationDataSchema.describe(
+    organizationData: OrganizationDataSchema.nullable().describe(
       "Organization data as JSON object"
     ),
     year: z
