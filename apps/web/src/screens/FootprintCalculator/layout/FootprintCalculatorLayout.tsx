@@ -3,6 +3,8 @@ import { Box, Button, Typography, useTheme } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { Routes } from "../../../interfaces/routes/routes.enum";
+import { useNavigate } from "@tanstack/react-router";
 
 // Componente para el header reutilizable
 interface FootprintCalculatorHeaderProps {
@@ -12,6 +14,8 @@ interface FootprintCalculatorHeaderProps {
 export const FootprintCalculatorHeader: FC<FootprintCalculatorHeaderProps> = ({
   title = "Inventario Organizacional",
 }) => {
+  const navigate = useNavigate();
+
   return (
     <Box
       className="flex flex-row justify-start px-6 py-4 items-center gap-6 h-20 bg-white"
@@ -19,12 +23,19 @@ export const FootprintCalculatorHeader: FC<FootprintCalculatorHeaderProps> = ({
         boxShadow: "0px 4px 8px rgba(0,0,0,0.04)",
       }}
     >
-      <HuellaLatamLogo
-        sx={{
-          width: 117,
-          height: 50,
+      <Box
+        sx={{ cursor: "pointer" }}
+        onClick={() => {
+          void navigate({ to: Routes.HOME as string });
         }}
-      />
+      >
+        <HuellaLatamLogo
+          sx={{
+            width: 117,
+            height: 50,
+          }}
+        />
+      </Box>
       <Typography variant="body1">{title}</Typography>
     </Box>
   );
