@@ -9,7 +9,13 @@ export const CreateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
   usageMode: true,
   methodologyVersionId: true,
   preselectedNodesId: true,
-}).partial();
+}).partial({
+  organizationId: true,
+  organizationBranchId: true,
+  organizationData: true,
+  methodologyVersionId: true,
+  preselectedNodesId: true,
+});
 
 export const CreateCarbonInventoryResponseSchema = CarbonInventorySchema;
 

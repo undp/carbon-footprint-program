@@ -9,7 +9,7 @@ CREATE TABLE "carbon_inventory" (
     "id" BIGSERIAL NOT NULL,
     "organization_id" BIGINT,
     "organization_branch_id" BIGINT,
-    "organization_data" JSONB NOT NULL,
+    "organization_data" JSONB,
     "year" INTEGER NOT NULL,
     "status" "inventory_status" NOT NULL DEFAULT 'DRAFT',
     "usage_mode" "usage_mode" NOT NULL,
