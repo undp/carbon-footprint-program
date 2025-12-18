@@ -7,6 +7,7 @@ import {
   FieldValues,
   useWatch,
 } from "react-hook-form";
+import { useFuzzySearch } from "@/hooks";
 
 type Option = { label: string; value: string | number };
 
@@ -44,6 +45,8 @@ export const FormAutocompleteField = <T extends FieldValues>({
     [options, fieldValue]
   );
 
+  const { search } = useFuzzySearch<Option>(options, { keys: ["label"] });
+
   return (
     <Controller
       name={name}
@@ -54,6 +57,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
             {...autocompleteProps}
             fullWidth={fullWidth}
             options={options}
+            filterOptions={(_, state) => search(state.inputValue)}
             value={selectedOption}
             onChange={(_, newValue) => {
               field.onChange(newValue?.value ?? "");
