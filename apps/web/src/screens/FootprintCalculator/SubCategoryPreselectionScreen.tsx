@@ -1,19 +1,25 @@
 import { FC } from "react";
 import { Box, Button } from "@mui/material";
+import { useNavigate } from "@tanstack/react-router";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 
 export const SubCategoryPreselectionScreen: FC = () => {
+  const navigate = useNavigate();
+
   return (
     <FootprintCalculatorLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
       }}
       footerProps={{
-        nextText: "Siguiente",
-        showBack: true,
-        backRoute: Routes.FOOTPRINT_CALCULATOR_BUSINESS_PROFILING,
+        backButtonProps: {
+          onClick: () =>
+            void navigate({
+              to: Routes.FOOTPRINT_CALCULATOR_BUSINESS_PROFILING as string,
+            }),
+        },
       }}
     >
       <Box className="flex flex-col flex-1 gap-6 p-6">

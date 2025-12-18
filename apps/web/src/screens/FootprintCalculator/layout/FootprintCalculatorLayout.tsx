@@ -1,8 +1,8 @@
 import { FC, ReactNode } from "react";
 import { Box, Button, Typography, useTheme } from "@mui/material";
+import type { ButtonProps } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
-import { useNavigate } from "@tanstack/react-router";
 
 // Componente para el header reutilizable
 interface FootprintCalculatorHeaderProps {
@@ -34,44 +34,19 @@ export const FootprintCalculatorHeader: FC<FootprintCalculatorHeaderProps> = ({
 interface FootprintCalculatorFooterProps {
   backText?: string;
   nextText?: string;
-  backRoute?: string;
-  nextRoute?: string;
-  onBack?: () => void;
-  onNext?: () => void;
   showBack?: boolean;
-  backDisabled?: boolean;
-  nextDisabled?: boolean;
+  backButtonProps?: Partial<ButtonProps>;
+  nextButtonProps?: Partial<ButtonProps>;
 }
 
 export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
   backText = "Volver",
   nextText = "Siguiente",
-  backRoute,
-  nextRoute,
-  onBack,
-  onNext,
   showBack = true,
-  backDisabled = false,
-  nextDisabled = false,
+  backButtonProps = {},
+  nextButtonProps = {},
 }) => {
   const theme = useTheme();
-  const navigate = useNavigate();
-
-  const handleBack = () => {
-    if (onBack) {
-      onBack();
-    } else if (backRoute) {
-      void navigate({ to: backRoute });
-    }
-  };
-
-  const handleNext = () => {
-    if (onNext) {
-      onNext();
-    } else if (nextRoute) {
-      void navigate({ to: nextRoute });
-    }
-  };
 
   return (
     <Box
@@ -86,8 +61,7 @@ export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
             startIcon={
               <ArrowRightAltRounded sx={{ transform: "scaleX(-1)" }} />
             }
-            disabled={backDisabled}
-            onClick={handleBack}
+            {...backButtonProps}
           >
             {backText}
           </Button>
@@ -96,8 +70,7 @@ export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
           sx={{ backgroundColor: theme.palette.primary.main }}
           variant="contained"
           endIcon={<ArrowRightAltRounded />}
-          disabled={nextDisabled}
-          onClick={handleNext}
+          {...nextButtonProps}
         >
           {nextText}
         </Button>
