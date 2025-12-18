@@ -42,13 +42,18 @@ export const FormSelectField = <T extends FieldValues>({
     <Controller
       name={name}
       control={control}
+      rules={{
+        required: required ? "Este campo es obligatorio" : false,
+      }}
       render={({ field, fieldState }) => (
         <FormControl
           fullWidth={fullWidth}
-          required={required}
+          required={required} // solo visual
           error={!!fieldState.error}
+          sx={{ position: "relative" }}
         >
           <InputLabel id={computedLabelId}>{label}</InputLabel>
+
           <Select
             {...field}
             labelId={computedLabelId}
@@ -61,8 +66,16 @@ export const FormSelectField = <T extends FieldValues>({
               </MenuItem>
             ))}
           </Select>
+
           {(fieldState.error?.message || helperText) && (
-            <FormHelperText>
+            <FormHelperText
+              sx={{
+                position: "absolute",
+                bottom: -20,
+                left: 0,
+                margin: 0,
+              }}
+            >
               {fieldState.error?.message ?? helperText}
             </FormHelperText>
           )}

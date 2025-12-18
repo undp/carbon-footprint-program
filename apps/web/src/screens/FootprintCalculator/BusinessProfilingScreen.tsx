@@ -161,9 +161,15 @@ export const BusinessProfilingScreen: FC = () => {
     ? `Cantidad de ${selectedActivityLabel} al año`
     : "Selecciona la actividad principal";
 
+  const subSectorLabel = selectedSector ? "Sub-rubro" : "Selecciona el rubro";
+
   return (
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
-    <form id="business-profiling-form" onSubmit={handleSubmit(onSubmit)}>
+    <form
+      id="business-profiling-form"
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+    >
       <FootprintCalculatorLayout
         headerProps={{
           title: "Simulador de Inventario Organizacional",
@@ -233,7 +239,7 @@ export const BusinessProfilingScreen: FC = () => {
                 <FormAutocompleteField
                   name="subSector"
                   control={control}
-                  label="Sub-rubro"
+                  label={subSectorLabel}
                   labelId="sub-sector-label"
                   options={subsectorSelectOptions}
                   loading={sectorsLoading}
