@@ -1,4 +1,4 @@
-import type { PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
 import type {
   CreateCarbonInventoryRequest,
   CreateCarbonInventoryResponse,
@@ -15,7 +15,9 @@ export const createCarbonInventoryService = async (
       organization_branch_id: data.organizationBranchId
         ? BigInt(data.organizationBranchId)
         : null,
-      organization_data: (data.organizationData ?? {}) as Prisma.InputJsonValue,
+      organization_data: data.organizationData
+        ? (data.organizationData as Prisma.InputJsonValue)
+        : Prisma.JsonNull,
       year: data.year,
       status: "DRAFT", // Default status
       usage_mode: data.usageMode,
