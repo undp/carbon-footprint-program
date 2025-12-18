@@ -71,7 +71,11 @@ export const BusinessProfilingScreen: FC = () => {
 
     try {
       // TODO: Replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate API call
+      // Simulate API call that randomly fails 50% of the time
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      if (Math.random() < 0.5) {
+        throw new Error("Simulated random failure");
+      }
 
       enqueueSnackbar("Inventario organizacional guardado exitosamente", {
         variant: "success",
