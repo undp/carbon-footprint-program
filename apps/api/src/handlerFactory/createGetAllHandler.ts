@@ -6,7 +6,7 @@ export const createGetAllHandler = <TResponse extends Array<unknown>>(
   moduleName: string,
   serviceFn: (prisma: PrismaClient) => Promise<TResponse>,
   resourceName: string,
-  throwErrorIfNotFound: boolean = true
+  treatEmptyAsNotFound: boolean = true
 ) => {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     const log = request.log.child({ module: moduleName });
@@ -15,7 +15,7 @@ export const createGetAllHandler = <TResponse extends Array<unknown>>(
     const prisma = request.server.prisma;
     const data = await serviceFn(prisma);
 
-    if (throwErrorIfNotFound && (!data || data.length === 0)) {
+    if (treatEmptyAsNotFound && (!data || data.length === 0)) {
       log.warn(`${resourceName} not found`);
       return reply.status(404).send({ message: `${resourceName} not found` });
     }
