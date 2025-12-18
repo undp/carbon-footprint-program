@@ -1,16 +1,12 @@
 {
+  "exclude": ["node_modules", "dist", ".turbo"],
   "compilerOptions": {
-    "noEmit": true,
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": false,
-    "incremental": false,
     "verbatimModuleSyntax": true,
     "types": ["node"]
-  },
-  "include": ["src", "eslint.config.ts"],
-  "exclude": ["node_modules", "dist", ".turbo"]
+  }
 }

@@ -1,11 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src", "eslint.config.ts"],
-  "exclude": ["node_modules", "dist", ".turbo"],
   "compilerOptions": {
     "noEmit": true,
-    "module": "NodeNext",
-    "moduleResolution": "nodenext",
-    "types": ["node"]
+    "composite": false,
+    "incremental": false
   }
 }
