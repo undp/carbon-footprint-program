@@ -3,7 +3,7 @@
   "extends": "./base.json",
   "compilerOptions": {
     "incremental": true,
-    "module": "NodeNext",
+    "module": "nodenext",
     "moduleResolution": "NodeNext",
     "noFallthroughCasesInSwitch": false,
     "sourceMap": true,

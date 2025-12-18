@@ -1,7 +1,7 @@
 {
   "exclude": ["node_modules", "dist", ".turbo"],
   "compilerOptions": {
-    "module": "NodeNext",
+    "module": "nodenext",
     "moduleResolution": "nodenext",
     "strict": true,
     "skipLibCheck": true,
