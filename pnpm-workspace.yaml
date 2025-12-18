@@ -5,12 +5,12 @@ packages:
 catalogs:
   shared:
     "@types/node": ^24.10.1
+    eslint: ^9.39.1
     pino: ^10.1.0
     tsx: ^4.20.6
     typescript: ^5.9.3
     vitest: ^4.0.15
     zod: ^4.1.12
-    eslint: ^9.39.1
 
 onlyBuiltDependencies:
   - "@prisma/engines"
