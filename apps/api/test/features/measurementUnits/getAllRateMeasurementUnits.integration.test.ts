@@ -50,45 +50,6 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       expect(body).toHaveLength(11);
     });
 
-    it("should return rate measurement units with valid structure", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/measurement-units/rates",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllRateMeasurementUnitsResponse;
-      expect(Array.isArray(body)).toBe(true);
-
-      if (body.length > 0) {
-        body.forEach((rateUnit) => {
-          expect(rateUnit).toHaveProperty("id");
-          expect(rateUnit).toHaveProperty("name");
-          expect(rateUnit).toHaveProperty("abbreviation");
-          expect(rateUnit).toHaveProperty("numerator_unit");
-          expect(rateUnit).toHaveProperty("denominator_unit");
-
-          expect(typeof rateUnit.id).toBe("string");
-          expect(typeof rateUnit.name).toBe("string");
-          expect(typeof rateUnit.abbreviation).toBe("string");
-
-          // Validate numerator unit
-          expect(rateUnit.numerator_unit).toHaveProperty("id");
-          expect(rateUnit.numerator_unit).toHaveProperty("name");
-          expect(rateUnit.numerator_unit).toHaveProperty("magnitude");
-          expect(rateUnit.numerator_unit).toHaveProperty("abbreviation");
-
-          // Validate denominator unit
-          expect(rateUnit.denominator_unit).toHaveProperty("id");
-          expect(rateUnit.denominator_unit).toHaveProperty("name");
-          expect(rateUnit.denominator_unit).toHaveProperty("magnitude");
-          expect(rateUnit.denominator_unit).toHaveProperty("abbreviation");
-        });
-      }
-    });
-
     it("should return rate measurement units with expected attributes", async () => {
       const response = await app.inject({
         method: "GET",
