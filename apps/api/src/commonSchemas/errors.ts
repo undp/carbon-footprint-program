@@ -11,3 +11,9 @@ export const NotFoundErrorResponseSchema = z
     message: z.string().describe("The error message"),
   })
   .describe("Not found error response");
+
+// Typescript
+export type ValidationErrorResponse = z.infer<
+  typeof ValidationErrorResponseSchema
+>;
+export type NotFoundErrorResponse = z.infer<typeof NotFoundErrorResponseSchema>;

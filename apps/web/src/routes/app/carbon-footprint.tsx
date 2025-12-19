@@ -5,6 +5,7 @@ import { useCountryOrganizationSizes } from "@/api/query";
 
 export const Route = createFileRoute(Routes.CARBON_FOOTPRINT)({
   component: () => {
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     const { data: countryOrganizationSizes } = useCountryOrganizationSizes();
     return (
       <MainLayout>

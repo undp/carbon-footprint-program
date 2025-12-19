@@ -2,6 +2,7 @@ import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import {
   checkForDuplicates,
   generateSeedDataPath,
@@ -15,6 +16,13 @@ type JobPositionData = (Pick<Prisma.country_job_positionCreateInput, "name"> & {
   country_iso_code: Prisma.countryCreateInput["iso_code"];
 })[];
 
+const JobPositionDataSchema: z.ZodType<JobPositionData> = z.array(
+  z.object({
+    name: z.string().min(1),
+    country_iso_code: z.string().min(1),
+  })
+);
+
 export async function seedCountryJobPositions(
   prisma: PrismaClient,
   dataset: SeedsDataset
@@ -26,10 +34,12 @@ export async function seedCountryJobPositions(
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country job positions
-  const jobPositionsData: JobPositionData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "country_job_positions.json", dataset),
-      "utf-8"
+  const jobPositionsData = JobPositionDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "country_job_positions.json", dataset),
+        "utf-8"
+      )
     )
   );
 

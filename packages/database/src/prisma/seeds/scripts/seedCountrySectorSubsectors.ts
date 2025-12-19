@@ -2,6 +2,7 @@ import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import {
   checkForDuplicates,
   checkForPrimitiveDuplicates,
@@ -18,6 +19,15 @@ type CountrySectorSubsectorData = {
   subsectors: Prisma.country_subsectorCreateInput["name"][];
 }[];
 
+const CountrySectorSubsectorDataSchema: z.ZodType<CountrySectorSubsectorData> =
+  z.array(
+    z.object({
+      country_iso_code: z.string().min(1),
+      sector: z.string().min(1),
+      subsectors: z.array(z.string().min(1)),
+    })
+  );
+
 export async function seedCountrySectorSubsectors(
   prisma: PrismaClient,
   dataset: SeedsDataset
@@ -29,14 +39,16 @@ export async function seedCountrySectorSubsectors(
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country sector subsectors
-  const countrySectorSubsectorsData: CountrySectorSubsectorData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(
-        __dirname,
-        "country_sector_subsectors.json",
-        dataset
-      ),
-      "utf-8"
+  const countrySectorSubsectorsData = CountrySectorSubsectorDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(
+          __dirname,
+          "country_sector_subsectors.json",
+          dataset
+        ),
+        "utf-8"
+      )
     )
   );
 

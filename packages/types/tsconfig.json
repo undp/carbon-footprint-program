@@ -1,15 +1,12 @@
 {
+  "exclude": ["node_modules", "dist", ".turbo"],
   "compilerOptions": {
-    "noEmit": true,
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "strict": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "composite": false,
-    "incremental": false,
-    "verbatimModuleSyntax": true
-  },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", ".turbo"]
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  }
 }

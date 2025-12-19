@@ -1,0 +1,10 @@
+{
+  "extends": "./tsconfig.json",
+  "include": ["**/*.ts"],
+  "exclude": ["node_modules", "dist", "src/generated"],
+  "compilerOptions": {
+    "noEmit": true,
+    "composite": false,
+    "incremental": false
+  }
+}

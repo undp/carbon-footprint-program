@@ -28,12 +28,12 @@ async function main() {
 }
 
 main()
-  .then(async () => {
+  .then(() => {
     console.log(
       `Seeding completed successfully for dataset: '${SEEDS_DATASET}'`
     );
   })
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
     // Let Node exit after pending tasks (like $disconnect) finish
     process.exitCode = 1;

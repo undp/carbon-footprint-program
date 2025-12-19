@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "tsc -p tsconfig.build.json --watch",
     "prebuild": "prisma generate",
-    "build": "rimraf dist && tsc -p tsconfig.build.json && cpy generated dist --flat=false",
+    "build": "rimraf dist && tsc -p tsconfig.build.json && cpy \"src/generated/**\" dist/generated",
     "clean": "rimraf dist",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
@@ -24,10 +24,14 @@
     "dev:studio": "prisma studio",
     "dev:reset": "prisma migrate reset",
     "prod:deploy": "prisma migrate deploy",
-    "validate:version": "tsx validate-postgres-version.ts"
+    "validate:version": "tsx scripts/validate-postgres-version.ts",
+    "lint": "eslint ."
   },
   "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/types": "workspace:*",
     "@types/node": "catalog:shared",
+    "eslint": "catalog:shared",
     "prisma": "^7.0.1",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared"
@@ -35,6 +39,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
-    "@prisma/client-runtime-utils": "^7.0.1"
+    "@prisma/client-runtime-utils": "^7.0.1",
+    "zod": "catalog:shared"
   }
 }

@@ -3,8 +3,8 @@
   "extends": "./base.json",
   "compilerOptions": {
     "incremental": true,
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "noFallthroughCasesInSwitch": false,
     "sourceMap": true,
     "strictBindCallApply": false

@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -7,11 +7,10 @@ import {
   generateSeedDataPath,
   type SeedsDataset,
 } from "../utils/index.js";
+import { RoleDataSchema } from "./shared.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-
-export type RoleData = Pick<Prisma.roleCreateInput, "name" | "description">[];
 
 export async function seedAllRoles(
   prisma: PrismaClient,
@@ -20,10 +19,12 @@ export async function seedAllRoles(
   console.log("Seeding all roles...");
 
   // Read organization roles
-  const organizationRolesData: RoleData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "organization_roles.json", dataset),
-      "utf-8"
+  const organizationRolesData = RoleDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "organization_roles.json", dataset),
+        "utf-8"
+      )
     )
   );
 
@@ -31,10 +32,12 @@ export async function seedAllRoles(
   checkForDuplicates(organizationRolesData, ["name"]);
 
   // Read system roles
-  const systemRolesData: RoleData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "system_roles.json", dataset),
-      "utf-8"
+  const systemRolesData = RoleDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "system_roles.json", dataset),
+        "utf-8"
+      )
     )
   );
 

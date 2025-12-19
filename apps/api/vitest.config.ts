@@ -23,6 +23,7 @@ export default defineConfig({
     globals: true,
     environment: "node",
     // Multiple reporters for better visibility
+    // eslint-disable-next-line turbo/no-undeclared-env-vars
     reporters: process.env.CI ? ["default", "html"] : ["verbose", "html"],
     include: ["test/**/*.{test,spec}.{js,ts}"],
     testTimeout: 30000,

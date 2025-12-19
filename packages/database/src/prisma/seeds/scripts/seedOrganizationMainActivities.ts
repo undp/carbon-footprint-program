@@ -2,6 +2,7 @@ import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import {
   checkForPrimitiveDuplicates,
   generateSeedDataPath,
@@ -16,6 +17,15 @@ type OrganizationMainActivityData = {
   sector: Prisma.country_sectorCreateInput["name"] | null;
   main_activities: Prisma.organization_main_activityCreateManyInput["name"][];
 }[];
+
+const OrganizationMainActivityDataSchema: z.ZodType<OrganizationMainActivityData> =
+  z.array(
+    z.object({
+      country_iso_code: z.string().min(1),
+      sector: z.string().min(1).nullable(),
+      main_activities: z.array(z.string().min(1)),
+    })
+  );
 
 export async function seedOrganizationMainActivities(
   prisma: PrismaClient,
@@ -34,15 +44,17 @@ export async function seedOrganizationMainActivities(
   );
 
   // Read organization main activities data
-  const organizationMainActivitiesData: OrganizationMainActivityData =
-    JSON.parse(
-      readFileSync(
-        generateSeedDataPath(
-          __dirname,
-          "organization_main_activities.json",
-          dataset
-        ),
-        "utf-8"
+  const organizationMainActivitiesData =
+    OrganizationMainActivityDataSchema.parse(
+      JSON.parse(
+        readFileSync(
+          generateSeedDataPath(
+            __dirname,
+            "organization_main_activities.json",
+            dataset
+          ),
+          "utf-8"
+        )
       )
     );
 

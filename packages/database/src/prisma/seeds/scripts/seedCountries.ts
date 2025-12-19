@@ -2,6 +2,7 @@ import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import {
   checkForDuplicates,
   generateSeedDataPath,
@@ -13,6 +14,13 @@ const __dirname = dirname(__filename);
 
 type CountryData = Pick<Prisma.countryCreateInput, "name" | "iso_code">[];
 
+const CountryDataSchema: z.ZodType<CountryData> = z.array(
+  z.object({
+    name: z.string().min(1),
+    iso_code: z.string().min(1),
+  })
+);
+
 export async function seedCountries(
   prisma: PrismaClient,
   dataset: SeedsDataset
@@ -20,10 +28,12 @@ export async function seedCountries(
   console.log("Seeding countries...");
 
   // Read countries
-  const countriesData: CountryData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "countries.json", dataset),
-      "utf-8"
+  const countriesData = CountryDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "countries.json", dataset),
+        "utf-8"
+      )
     )
   );
 

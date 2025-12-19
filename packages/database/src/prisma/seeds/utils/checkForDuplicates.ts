@@ -1,9 +1,8 @@
 const findDuplicates = <T>(data: T[], uniqueKeys: (keyof T)[]): T[] => {
   return data.filter(
     (item, index, self) =>
-      self.findIndex((t) =>
-        uniqueKeys.every((key) => t[key as keyof T] === item[key as keyof T])
-      ) !== index
+      self.findIndex((t) => uniqueKeys.every((key) => t[key] === item[key])) !==
+      index
   );
 };
 
@@ -18,7 +17,7 @@ export const checkForDuplicates = <T>(
   if (duplicates.length > 0) {
     const seen = new Set<string>();
     const uniqueCombinations = duplicates
-      .map((item) => uniqueKeys.map((key) => item[key as keyof T]).join(", "))
+      .map((item) => uniqueKeys.map((key) => item[key]).join(", "))
       .filter((combo) => {
         if (seen.has(combo)) return false;
         seen.add(combo);

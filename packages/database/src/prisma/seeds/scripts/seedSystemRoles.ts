@@ -7,7 +7,7 @@ import {
   generateSeedDataPath,
   type SeedsDataset,
 } from "../utils/index.js";
-import type { RoleData } from "./seedAllRoles.js";
+import { RoleDataSchema } from "./shared.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -19,10 +19,12 @@ export async function seedSystemRoles(
   console.log("Seeding system role entries...");
 
   // Read system roles
-  const systemRolesData: RoleData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "system_roles.json", dataset),
-      "utf-8"
+  const systemRolesData = RoleDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "system_roles.json", dataset),
+        "utf-8"
+      )
     )
   );
 

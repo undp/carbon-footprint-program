@@ -2,6 +2,7 @@ import { type PrismaClient, type Prisma } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
 import {
   checkForDuplicates,
   generateSeedDataPath,
@@ -18,6 +19,13 @@ type OrganizationSizeData = (Pick<
   country_iso_code: Prisma.countryCreateInput["iso_code"];
 })[];
 
+const OrganizationSizeDataSchema: z.ZodType<OrganizationSizeData> = z.array(
+  z.object({
+    name: z.string().min(1),
+    country_iso_code: z.string().min(1),
+  })
+);
+
 export async function seedCountryOrganizationSizes(
   prisma: PrismaClient,
   dataset: SeedsDataset
@@ -29,14 +37,16 @@ export async function seedCountryOrganizationSizes(
   const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
 
   // Read country organization sizes
-  const organizationSizesData: OrganizationSizeData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(
-        __dirname,
-        "country_organization_size.json",
-        dataset
-      ),
-      "utf-8"
+  const organizationSizesData = OrganizationSizeDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(
+          __dirname,
+          "country_organization_size.json",
+          dataset
+        ),
+        "utf-8"
+      )
     )
   );
 

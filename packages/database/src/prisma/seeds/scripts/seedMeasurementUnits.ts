@@ -2,6 +2,8 @@ import { type PrismaClient, type Prisma, Magnitude } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
+import { z } from "zod";
+import { MagnitudeSchema } from "@repo/types";
 import {
   checkForDuplicates,
   generateSeedDataPath,
@@ -16,10 +18,28 @@ type MeasurementUnitData = Pick<
   "magnitude" | "name" | "abbreviation" | "base_factor" | "is_base"
 >[];
 
+const MeasurementUnitDataSchema: z.ZodType<MeasurementUnitData> = z.array(
+  z.object({
+    magnitude: MagnitudeSchema,
+    name: z.string().min(1),
+    abbreviation: z.string().min(1),
+    base_factor: z.number(),
+    is_base: z.boolean(),
+  })
+);
+
 type RateMeasurementUnitData = Pick<
   Prisma.rate_measurement_unitCreateInput,
   "name" | "abbreviation"
 >[];
+
+const RateMeasurementUnitDataSchema: z.ZodType<RateMeasurementUnitData> =
+  z.array(
+    z.object({
+      name: z.string().min(1),
+      abbreviation: z.string().min(1),
+    })
+  );
 
 export async function seedMeasurementUnits(
   prisma: PrismaClient,
@@ -28,10 +48,12 @@ export async function seedMeasurementUnits(
   console.log("Seeding measurement units...");
 
   // Read measurement units
-  const measurementUnitsData: MeasurementUnitData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "measurement_units.json", dataset),
-      "utf-8"
+  const measurementUnitsData = MeasurementUnitDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "measurement_units.json", dataset),
+        "utf-8"
+      )
     )
   );
 
@@ -71,10 +93,12 @@ export async function seedMeasurementUnits(
   );
 
   // Seed rate measurement units
-  const rateMeasurementUnitsData: RateMeasurementUnitData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "rate_measurement_units.json", dataset),
-      "utf-8"
+  const rateMeasurementUnitsData = RateMeasurementUnitDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "rate_measurement_units.json", dataset),
+        "utf-8"
+      )
     )
   );
 
