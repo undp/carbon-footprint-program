@@ -44,6 +44,6 @@
   },
   "telemetry.telemetryLevel": "off",
   "vitest.nodeEnv": {
-    "ENV_VAR_NAME": "ENV_VAR_VALUE"
+    "VITE_API_BASE_URL": "localhost:8080/api"
   }
 }
