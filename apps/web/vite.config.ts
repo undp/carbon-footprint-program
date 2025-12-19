@@ -38,5 +38,8 @@ export default defineConfig(({ mode }) => {
         "@interfaces": path.resolve(__dirname, "./src/interfaces"),
       },
     },
+    optimizeDeps: {
+      include: ["@mui/material", "@emotion/react", "@emotion/styled"],
+    },
   };
 });
