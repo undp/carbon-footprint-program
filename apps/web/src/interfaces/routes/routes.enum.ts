@@ -1,9 +1,9 @@
 export enum Routes {
-  FOOTPRINT_CALCULATOR_BUSINESS_PROFILING = "/app/footprint-calculator/business-profiling",
-  FOOTPRINT_CALCULATOR_SUB_CATEGORY_PRESELECTION = "/app/footprint-calculator/sub-category-preselection",
+  CARBON_INVENTORY_BUSINESS_PROFILING = "/app/carbon-inventory/business-profiling",
+  CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION = "/app/carbon-inventory/sub-category-preselection",
   HOME = "/app/home",
   MY_ORGANIZATION = "/app/my-organization",
-  CARBON_FOOTPRINT = "/app/carbon-footprint",
+  CARBON_INVENTORY = "/app/carbon-inventory",
   REDUCTION_PROJECTS = "/app/reduction-projects",
   REDUCTION_PLAN = "/app/reduction-plan",
   AWARDS = "/app/awards",

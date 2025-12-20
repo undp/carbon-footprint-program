@@ -11,7 +11,7 @@ const options = [
     description:
       "Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos.",
     buttonText: "USAR CALCULADORA",
-    route: Routes.FOOTPRINT_CALCULATOR_BUSINESS_PROFILING,
+    route: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
   },
   {
     AvatarIcon: ApplicationFormIcon,
