@@ -20,8 +20,8 @@ import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoryRouteImport } from './routes/app/carbon-inventory'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
-import { Route as AppCarbonInventorySubCategoryPreselectionRouteImport } from './routes/app/carbon-inventory/sub-category-preselection'
-import { Route as AppCarbonInventoryBusinessProfilingRouteImport } from './routes/app/carbon-inventory/business-profiling'
+import { Route as AppCarbonInventoryInventoryIdSubCategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/sub-category-preselection'
+import { Route as AppCarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/app/carbon-inventory/$inventoryId/business-profiling'
 
 const TransparencyRoute = TransparencyRouteImport.update({
   id: '/transparency',
@@ -78,16 +78,16 @@ const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppCarbonInventoryRoute,
 } as any)
-const AppCarbonInventorySubCategoryPreselectionRoute =
-  AppCarbonInventorySubCategoryPreselectionRouteImport.update({
-    id: '/sub-category-preselection',
-    path: '/sub-category-preselection',
+const AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute =
+  AppCarbonInventoryInventoryIdSubCategoryPreselectionRouteImport.update({
+    id: '/$inventoryId/sub-category-preselection',
+    path: '/$inventoryId/sub-category-preselection',
     getParentRoute: () => AppCarbonInventoryRoute,
   } as any)
-const AppCarbonInventoryBusinessProfilingRoute =
-  AppCarbonInventoryBusinessProfilingRouteImport.update({
-    id: '/business-profiling',
-    path: '/business-profiling',
+const AppCarbonInventoryInventoryIdBusinessProfilingRoute =
+  AppCarbonInventoryInventoryIdBusinessProfilingRouteImport.update({
+    id: '/$inventoryId/business-profiling',
+    path: '/$inventoryId/business-profiling',
     getParentRoute: () => AppCarbonInventoryRoute,
   } as any)
 
@@ -102,9 +102,9 @@ export interface FileRoutesByFullPath {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
-  '/app/carbon-inventory/business-profiling': typeof AppCarbonInventoryBusinessProfilingRoute
-  '/app/carbon-inventory/sub-category-preselection': typeof AppCarbonInventorySubCategoryPreselectionRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
+  '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  '/app/carbon-inventory/$inventoryId/sub-category-preselection': typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -116,9 +116,9 @@ export interface FileRoutesByTo {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
-  '/app/carbon-inventory/business-profiling': typeof AppCarbonInventoryBusinessProfilingRoute
-  '/app/carbon-inventory/sub-category-preselection': typeof AppCarbonInventorySubCategoryPreselectionRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
+  '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  '/app/carbon-inventory/$inventoryId/sub-category-preselection': typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -132,9 +132,9 @@ export interface FileRoutesById {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
-  '/app/carbon-inventory/business-profiling': typeof AppCarbonInventoryBusinessProfilingRoute
-  '/app/carbon-inventory/sub-category-preselection': typeof AppCarbonInventorySubCategoryPreselectionRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
+  '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  '/app/carbon-inventory/$inventoryId/sub-category-preselection': typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -149,9 +149,9 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
-    | '/app/carbon-inventory/business-profiling'
-    | '/app/carbon-inventory/sub-category-preselection'
     | '/app/carbon-inventory/'
+    | '/app/carbon-inventory/$inventoryId/business-profiling'
+    | '/app/carbon-inventory/$inventoryId/sub-category-preselection'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -163,9 +163,9 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
-    | '/app/carbon-inventory/business-profiling'
-    | '/app/carbon-inventory/sub-category-preselection'
     | '/app/carbon-inventory'
+    | '/app/carbon-inventory/$inventoryId/business-profiling'
+    | '/app/carbon-inventory/$inventoryId/sub-category-preselection'
   id:
     | '__root__'
     | '/'
@@ -178,9 +178,9 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
-    | '/app/carbon-inventory/business-profiling'
-    | '/app/carbon-inventory/sub-category-preselection'
     | '/app/carbon-inventory/'
+    | '/app/carbon-inventory/$inventoryId/business-profiling'
+    | '/app/carbon-inventory/$inventoryId/sub-category-preselection'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -275,35 +275,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarbonInventoryIndexRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
     }
-    '/app/carbon-inventory/sub-category-preselection': {
-      id: '/app/carbon-inventory/sub-category-preselection'
-      path: '/sub-category-preselection'
-      fullPath: '/app/carbon-inventory/sub-category-preselection'
-      preLoaderRoute: typeof AppCarbonInventorySubCategoryPreselectionRouteImport
+    '/app/carbon-inventory/$inventoryId/sub-category-preselection': {
+      id: '/app/carbon-inventory/$inventoryId/sub-category-preselection'
+      path: '/$inventoryId/sub-category-preselection'
+      fullPath: '/app/carbon-inventory/$inventoryId/sub-category-preselection'
+      preLoaderRoute: typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
     }
-    '/app/carbon-inventory/business-profiling': {
-      id: '/app/carbon-inventory/business-profiling'
-      path: '/business-profiling'
-      fullPath: '/app/carbon-inventory/business-profiling'
-      preLoaderRoute: typeof AppCarbonInventoryBusinessProfilingRouteImport
+    '/app/carbon-inventory/$inventoryId/business-profiling': {
+      id: '/app/carbon-inventory/$inventoryId/business-profiling'
+      path: '/$inventoryId/business-profiling'
+      fullPath: '/app/carbon-inventory/$inventoryId/business-profiling'
+      preLoaderRoute: typeof AppCarbonInventoryInventoryIdBusinessProfilingRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
     }
   }
 }
 
 interface AppCarbonInventoryRouteChildren {
-  AppCarbonInventoryBusinessProfilingRoute: typeof AppCarbonInventoryBusinessProfilingRoute
-  AppCarbonInventorySubCategoryPreselectionRoute: typeof AppCarbonInventorySubCategoryPreselectionRoute
   AppCarbonInventoryIndexRoute: typeof AppCarbonInventoryIndexRoute
+  AppCarbonInventoryInventoryIdBusinessProfilingRoute: typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute: typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 
 const AppCarbonInventoryRouteChildren: AppCarbonInventoryRouteChildren = {
-  AppCarbonInventoryBusinessProfilingRoute:
-    AppCarbonInventoryBusinessProfilingRoute,
-  AppCarbonInventorySubCategoryPreselectionRoute:
-    AppCarbonInventorySubCategoryPreselectionRoute,
   AppCarbonInventoryIndexRoute: AppCarbonInventoryIndexRoute,
+  AppCarbonInventoryInventoryIdBusinessProfilingRoute:
+    AppCarbonInventoryInventoryIdBusinessProfilingRoute,
+  AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute:
+    AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute,
 }
 
 const AppCarbonInventoryRouteWithChildren =

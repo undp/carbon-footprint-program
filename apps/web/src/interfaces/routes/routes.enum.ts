@@ -1,6 +1,6 @@
 export enum Routes {
-  CARBON_INVENTORY_BUSINESS_PROFILING = "/app/carbon-inventory/business-profiling",
-  CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION = "/app/carbon-inventory/sub-category-preselection",
+  CARBON_INVENTORY_BUSINESS_PROFILING = "/app/carbon-inventory/$inventoryId/business-profiling",
+  CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION = "/app/carbon-inventory/$inventoryId/sub-category-preselection",
   HOME = "/app/home",
   MY_ORGANIZATION = "/app/my-organization",
   CARBON_INVENTORY = "/app/carbon-inventory",

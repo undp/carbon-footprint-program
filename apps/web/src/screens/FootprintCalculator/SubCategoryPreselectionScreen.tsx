@@ -1,12 +1,15 @@
 import { FC } from "react";
 import { Box, Button } from "@mui/material";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 
 export const SubCategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();
+  const { inventoryId } = useParams({
+    from: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
+  });
 
   return (
     <FootprintCalculatorLayout
@@ -18,6 +21,7 @@ export const SubCategoryPreselectionScreen: FC = () => {
           onClick: () =>
             void navigate({
               to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+              params: { inventoryId },
             }),
         },
       }}
