@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import {
   Card,
@@ -13,14 +13,16 @@ import {
   type SvgIconProps,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
 import { Routes } from "@/interfaces";
+import { useCreateCarbonInventory } from "@/api/query";
 
 interface Props {
   AvatarIcon: React.ComponentType<SvgIconProps>;
   title: string;
   description: string;
   buttonText: string;
-  route: Routes;
+  createUsageMode: "SIMPLIFIED" | "EXPERT";
 }
 
 export const CardOption: FC<Props> = ({
@@ -28,14 +30,36 @@ export const CardOption: FC<Props> = ({
   title,
   description,
   buttonText,
-  route,
+  createUsageMode,
 }) => {
   const theme = useTheme();
   const backgroundColor = alpha(theme.palette.common.white, 0.1);
   const navigate = useNavigate();
-  const handleNavigate = useCallback(() => {
-    void navigate({ to: route as string });
-  }, [route, navigate]);
+  const { enqueueSnackbar } = useSnackbar();
+  const createInventory = useCreateCarbonInventory();
+  const [loading, setLoading] = useState(false);
+
+  const handleNavigate = useCallback(async () => {
+    try {
+      setLoading(true);
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      setLoading(false);
+
+      const created = await createInventory.mutateAsync({
+        year: new Date().getFullYear(),
+        usageMode: createUsageMode,
+      });
+
+      void navigate({
+        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+        params: { inventoryId: created.id },
+      });
+    } catch (error) {
+      console.error("Error creating carbon inventory:", error);
+      enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
+    }
+    return;
+  }, [createUsageMode, createInventory, navigate, enqueueSnackbar]);
 
   return (
     <Card
@@ -82,6 +106,8 @@ export const CardOption: FC<Props> = ({
           variant="contained"
           endIcon={<ArrowRightAltRounded />}
           onClick={handleNavigate}
+          disabled={loading || createInventory.isPending}
+          loading={loading || createInventory.isPending}
         >
           {buttonText}
         </Button>
