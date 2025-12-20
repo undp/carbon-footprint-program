@@ -253,16 +253,6 @@ export const BusinessProfilingScreen: FC = () => {
                   required
                 />
 
-                <FormAutocompleteField
-                  name="sector"
-                  control={control}
-                  label="Rubro"
-                  labelId="sector-label"
-                  options={sectorOptions}
-                  loading={sectorsLoading}
-                  required
-                />
-
                 <FormSelectField
                   name="companySize"
                   control={control}
@@ -285,26 +275,36 @@ export const BusinessProfilingScreen: FC = () => {
                     )}
                   />
                 </FormControl>
-
-                <FormAutocompleteField
-                  name="subSector"
-                  control={control}
-                  label={subSectorLabel}
-                  labelId="sub-sector-label"
-                  options={subsectorSelectOptions}
-                  loading={sectorsLoading}
-                  disabled={
-                    !selectedSector ||
-                    subsectorSelectOptions.length === 0 ||
-                    sectorsLoading
-                  }
-                  required
-                />
               </Box>
             </Box>
           </Box>
           <Box className="flex flex-col p-6 rounded-lg bg-white gap-8">
-            <Box className="flex flex-row gap-6 mt-6">
+            <Box className="flex-1 flex flex-row gap-6">
+              <FormAutocompleteField
+                name="sector"
+                control={control}
+                label="Rubro"
+                labelId="sector-label"
+                options={sectorOptions}
+                loading={sectorsLoading}
+                required
+              />
+              <FormAutocompleteField
+                name="subSector"
+                control={control}
+                label={subSectorLabel}
+                labelId="sub-sector-label"
+                options={subsectorSelectOptions}
+                loading={sectorsLoading}
+                disabled={
+                  !selectedSector ||
+                  subsectorSelectOptions.length === 0 ||
+                  sectorsLoading
+                }
+                required
+              />
+            </Box>
+            <Box className="flex flex-col gap-8">
               <Box className="flex-1 flex flex-row gap-6">
                 <FormAutocompleteField
                   name="activity"
