@@ -17,7 +17,7 @@ export const SubCategoryPreselectionScreen: FC = () => {
         backButtonProps: {
           onClick: () =>
             void navigate({
-              to: Routes.FOOTPRINT_CALCULATOR_BUSINESS_PROFILING as string,
+              to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
             }),
         },
       }}
