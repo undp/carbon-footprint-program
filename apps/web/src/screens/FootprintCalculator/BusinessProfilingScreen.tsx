@@ -1,7 +1,7 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { Box, FormControl, TextField, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { Controller, useForm, useWatch } from "react-hook-form";
@@ -14,6 +14,8 @@ import {
   useCountryOrganizationSizes,
   useCountrySectors,
   useOrganizationMainActivities,
+  useCarbonInventory,
+  useUpdateCarbonInventory,
 } from "@/api/query";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { useSelectorOptions } from "@/hooks";
@@ -42,6 +44,9 @@ export const BusinessProfilingScreen: FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { inventoryId } = useParams({
+    from: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
+  });
 
   const gradient = `linear-gradient(90deg, ${alpha(
     theme.palette.common.brightGreen,
@@ -66,25 +71,47 @@ export const BusinessProfilingScreen: FC = () => {
   const selectedActivityId = useWatch({ control, name: "activity" });
 
   // Form submission handler
-  const onSubmit = async (_data: FormValues) => {
+  const onSubmit = async (data: FormValues) => {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call
-      // Simulate API call that randomly fails 50% of the time
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      if (Math.random() < 0.5) {
-        throw new Error("Simulated random failure");
+      if (!inventoryId) {
+        enqueueSnackbar("No se encontró el inventario a editar", {
+          variant: "error",
+        });
+        return;
       }
+
+      const requestData = {
+        year: parseInt(data.year),
+        usageMode: (data.meditionMode === "simplified"
+          ? "SIMPLIFIED"
+          : "EXPERT") as "SIMPLIFIED" | "EXPERT",
+        organizationData: {
+          name: data.companyName || null,
+          sectorId: data.sector || null,
+          subsectorId: data.subSector || null,
+          sizeId: data.companySize || null,
+          mainActivityId: data.activity || null,
+          mainActivityQuantity: data.quantity ? parseInt(data.quantity) : null,
+        },
+      };
+
+      await updateCarbonInventoryMutation.mutateAsync({
+        id: inventoryId,
+        data: requestData,
+      });
 
       enqueueSnackbar("Inventario organizacional guardado exitosamente", {
         variant: "success",
       });
 
       void navigate({
-        to: Routes.FOOTPRINT_CALCULATOR_SUB_CATEGORY_PRESELECTION as string,
+        to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION as string,
+        params: { inventoryId },
       });
-    } catch {
+    } catch (error) {
+      console.error("Error updating carbon inventory:", error);
       enqueueSnackbar("Error al guardar el inventario organizacional", {
         variant: "error",
       });
@@ -97,6 +124,11 @@ export const BusinessProfilingScreen: FC = () => {
   const { data: sectors = [], isLoading: sectorsLoading } = useCountrySectors();
   const { data: organizationSizes = [], isLoading: organizationSizesLoading } =
     useCountryOrganizationSizes();
+
+  // Carbon inventory hooks
+  const { data: existingInventory, isLoading: inventoryLoading } =
+    useCarbonInventory(inventoryId || "");
+  const updateCarbonInventoryMutation = useUpdateCarbonInventory();
 
   // Derived data
   const selectedSector = useMemo(
@@ -132,6 +164,24 @@ export const BusinessProfilingScreen: FC = () => {
       setValue("quantity", "");
     }
   }, [selectedActivityId, setValue]);
+
+  // Fill form when existing inventory is loaded
+  useEffect(() => {
+    if (existingInventory) {
+      const data = existingInventory.organizationData;
+      setValue("year", String(existingInventory.year || ""));
+      setValue(
+        "meditionMode",
+        existingInventory.usageMode === "SIMPLIFIED" ? "simplified" : "expert"
+      );
+      setValue("companyName", String(data?.name || ""));
+      setValue("sector", String(data?.sectorId || ""));
+      setValue("subSector", String(data?.subsectorId || ""));
+      setValue("companySize", String(data?.sizeId || ""));
+      setValue("activity", String(data?.mainActivityId || ""));
+      setValue("quantity", String(data?.mainActivityQuantity || ""));
+    }
+  }, [existingInventory, setValue]);
 
   // UI options (all select options together)
   const sectorOptions = useSelectorOptions(sectors, "name", "id");
@@ -181,8 +231,8 @@ export const BusinessProfilingScreen: FC = () => {
           nextButtonProps: {
             type: "submit",
             form: "business-profiling-form",
-            loading: isSubmitting,
-            disabled: isSubmitting,
+            loading: isSubmitting || inventoryLoading,
+            disabled: isSubmitting || inventoryLoading,
           },
         }}
       >

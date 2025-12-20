@@ -8,27 +8,43 @@ import {
   Chip,
 } from "@mui/material";
 import { useNavigate } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
 import { MainLayout } from "@/components/layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
-import { useCarbonInventories } from "@/api/query";
+import { useCarbonInventories, useCreateCarbonInventory } from "@/api/query";
 import { CarbonInventory } from "@repo/types";
 
 export const CarbonInventoriesListScreen: FC = () => {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const { data: inventories = [], isLoading } = useCarbonInventories();
+  const createInventoryMutation = useCreateCarbonInventory();
 
   const handleSelectInventory = (inventory: CarbonInventory) => {
     void navigate({
       to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
-      search: { inventoryId: inventory.id },
+      params: { inventoryId: inventory.id },
     });
   };
 
-  const handleCreateNew = () => {
-    void navigate({
-      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
-    });
+  const handleCreateNew = async () => {
+    const currentYear = new Date().getFullYear();
+
+    try {
+      const createdInventory = await createInventoryMutation.mutateAsync({
+        year: currentYear,
+        usageMode: "SIMPLIFIED",
+      });
+
+      void navigate({
+        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+        params: { inventoryId: createdInventory.id },
+      });
+    } catch (error) {
+      console.error("Error creating carbon inventory:", error);
+      enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -62,8 +78,11 @@ export const CarbonInventoriesListScreen: FC = () => {
                 variant="contained"
                 color="primary"
                 onClick={handleCreateNew}
+                disabled={createInventoryMutation.isPending}
               >
-                Crear Nuevo Inventario
+                {createInventoryMutation.isPending
+                  ? "Creando..."
+                  : "Crear Nuevo Inventario"}
               </Button>
             }
           />
