@@ -11,7 +11,16 @@ const normalizeQuery = (query: string): string => {
   return query.trim();
 };
 
-export function useFuzzySearch<T>(options: T[], fuseOptions?: IFuseOptions<T>) {
+/**
+ * Hook for fuzzy searching over an array of options using Fuse.js
+ * @param options - Array of items to search
+ * @param fuseOptions - Fuse.js configuration (should be memoized or stable)
+ * @returns Object with search function
+ */
+export const useFuzzySearch = <T,>(
+  options: T[],
+  fuseOptions?: IFuseOptions<T>
+) => {
   const fuse = useMemo(() => {
     return new Fuse(options, {
       ...defaultOptions,
@@ -30,4 +39,4 @@ export function useFuzzySearch<T>(options: T[], fuseOptions?: IFuseOptions<T>) {
   );
 
   return { search };
-}
+};
