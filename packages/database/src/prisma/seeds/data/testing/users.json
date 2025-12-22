@@ -1,0 +1,17 @@
+[
+  {
+    "email": "creator@test.com",
+    "country_job_position_name": "Otro",
+    "country_iso_code": "CL",
+    "first_name": "Test",
+    "last_name": "Creator"
+  },
+  {
+    "email": "updater@test.com",
+    "country_job_position_name": "Otro",
+    "country_iso_code": "CL",
+    "first_name": "Test",
+    "last_name": "Updater"
+  }
+]
+
