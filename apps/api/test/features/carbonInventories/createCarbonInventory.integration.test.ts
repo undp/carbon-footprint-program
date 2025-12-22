@@ -9,6 +9,7 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { cleanupTestData } from "@test/factories/carbonInventorySeeder.js";
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -30,15 +31,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    // Clean up carbon inventories and test users before each test
-    await prisma.carbon_inventory.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          endsWith: "@test.com",
-        },
-      },
-    });
+    await cleanupTestData(prisma);
   });
 
   afterEach(async () => {

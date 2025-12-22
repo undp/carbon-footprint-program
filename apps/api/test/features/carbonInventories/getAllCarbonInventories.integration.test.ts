@@ -39,10 +39,6 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
     await cleanupTestData(prisma);
   });
 
-  afterEach(async () => {
-    await cleanupTestData(prisma);
-  });
-
   describe("Successful retrieval", () => {
     it("should return an empty array when no carbon inventories exist", async () => {
       const response = await app.inject({

@@ -39,10 +39,6 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     await cleanupTestData(prisma);
   });
 
-  afterEach(async () => {
-    await cleanupTestData(prisma);
-  });
-
   describe("Successful retrieval", () => {
     it("should return a carbon inventory by valid ID", async () => {
       const testInventory = await createInventoryFromPattern(
