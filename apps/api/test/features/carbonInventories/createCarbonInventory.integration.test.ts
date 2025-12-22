@@ -5,7 +5,6 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
-  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -32,11 +31,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
   beforeEach(async () => {
     await cleanupTestData(prisma);
-  });
-
-  afterEach(async () => {
-    // Clean up carbon inventories after each test
-    await prisma.carbon_inventory.deleteMany({});
   });
 
   describe("Successful creation", () => {
