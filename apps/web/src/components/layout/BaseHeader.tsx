@@ -4,40 +4,35 @@ import { HuellaLatamLogo } from "@/icons";
 import clsx from "clsx";
 
 interface Props extends AppBarProps {
+  className?: string;
   showLogo?: boolean;
-  onLogoClick?: () => void;
   titleComponent?: React.ReactNode;
+  elevation?: number;
 }
 
 export const BaseHeader: FC<PropsWithChildren<Props>> = ({
+  className,
   showLogo,
-  onLogoClick,
   titleComponent,
   children,
-  className,
   ...props
 }) => {
   return (
     <AppBar
-      {...props}
       color="transparent"
       className={clsx("bg-white", className)}
       position="static"
+      {...props}
     >
       <Toolbar className="px-6 py-4">
         {showLogo && (
-          <Box
-            className="flex cursor-pointer items-center"
-            onClick={onLogoClick}
-          >
-            <HuellaLatamLogo
-              sx={{
-                width: 116,
-                height: 50,
-                mr: 5,
-              }}
-            />
-          </Box>
+          <HuellaLatamLogo
+            sx={{
+              width: 116,
+              height: 50,
+              mr: 5,
+            }}
+          />
         )}
         <Box className="flex flex-1 gap-12">{titleComponent}</Box>
         {children}
