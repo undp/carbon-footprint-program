@@ -31,7 +31,7 @@ export const FormSelectField = <T extends FieldValues>({
   required,
   helperText,
   fullWidth = true,
-  ...selectProps
+  ...props
 }: Props<T>) => {
   const computedLabelId = useMemo(
     () => labelId ?? `${name}-label`,
@@ -54,12 +54,7 @@ export const FormSelectField = <T extends FieldValues>({
         >
           <InputLabel id={computedLabelId}>{label}</InputLabel>
 
-          <Select
-            {...field}
-            labelId={computedLabelId}
-            label={label}
-            {...selectProps}
-          >
+          <Select {...field} labelId={computedLabelId} label={label} {...props}>
             {options.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}

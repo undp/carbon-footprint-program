@@ -39,7 +39,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
   options,
   required,
   fullWidth = true,
-  ...autocompleteProps
+  ...props
 }: Props<T>) => {
   const computedLabelId = useMemo(
     () => labelId ?? `${name}-label`,
@@ -64,7 +64,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
       render={({ field, fieldState }) => {
         return (
           <Autocomplete<Option, false, false, false>
-            {...autocompleteProps}
+            {...props}
             fullWidth={fullWidth}
             options={options}
             filterOptions={(_, state) => search(state.inputValue)}
@@ -81,7 +81,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
               <TextField
                 {...params}
                 label={label}
-                error={!!fieldState.error && !autocompleteProps.disabled}
+                error={!!fieldState.error && !props.disabled}
                 helperText={fieldState.error?.message}
                 slotProps={{
                   formHelperText: {

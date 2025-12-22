@@ -18,7 +18,7 @@ export const FormTextField = <T extends FieldValues>({
   helperText,
   required,
   fullWidth = true,
-  ...textFieldProps
+  ...props
 }: Props<T>) => {
   return (
     <Controller
@@ -30,7 +30,7 @@ export const FormTextField = <T extends FieldValues>({
       render={({ field, fieldState }) => (
         <TextField
           {...field}
-          {...textFieldProps}
+          {...props}
           required={required}
           error={!!fieldState.error}
           helperText={fieldState.error?.message ?? helperText}
