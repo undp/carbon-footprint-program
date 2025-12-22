@@ -9,10 +9,18 @@ export async function createTestUser(
   email: string
 ): Promise<{ id: bigint; email: string }> {
   const jobPosition = await prisma.country_job_position.findFirst();
+
+  if (!jobPosition) {
+    throw new Error(
+      "Cannot create test user: No country_job_position records found in database. " +
+        "Please ensure the database is properly seeded before running tests."
+    );
+  }
+
   return prisma.user.create({
     data: {
       email,
-      country_job_position_id: jobPosition!.id,
+      country_job_position_id: jobPosition.id,
     },
   });
 }
