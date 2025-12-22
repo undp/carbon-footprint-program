@@ -48,7 +48,7 @@ export const FormSelectField = <T extends FieldValues>({
       render={({ field, fieldState }) => (
         <FormControl
           fullWidth={fullWidth}
-          required={required} // solo visual
+          required={required}
           error={!!fieldState.error}
         >
           <InputLabel id={computedLabelId}>{label}</InputLabel>

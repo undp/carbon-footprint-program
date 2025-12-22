@@ -87,6 +87,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
                   htmlInput: {
                     ...params.inputProps,
                     id: computedLabelId,
+                    // This is to prevent the browser from suggesting the options
                     autoComplete: "new-password",
                   },
                   input: {
