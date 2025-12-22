@@ -13,7 +13,7 @@ import { cleanupTestData } from "@test/factories/carbonInventorySeeder.js";
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { ValidationErrorResponse } from "@/commonSchemas/errors.js";
+import type { ValidationErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("POST /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
