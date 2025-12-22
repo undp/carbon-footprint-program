@@ -84,14 +84,6 @@ export const FormAutocompleteField = <T extends FieldValues>({
                 error={!!fieldState.error && !props.disabled}
                 helperText={fieldState.error?.message}
                 slotProps={{
-                  formHelperText: {
-                    sx: {
-                      position: "absolute",
-                      bottom: -20,
-                      left: 0,
-                      margin: 0,
-                    },
-                  },
                   htmlInput: {
                     ...params.inputProps,
                     id: computedLabelId,

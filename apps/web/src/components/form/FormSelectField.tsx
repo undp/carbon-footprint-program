@@ -50,7 +50,6 @@ export const FormSelectField = <T extends FieldValues>({
           fullWidth={fullWidth}
           required={required} // solo visual
           error={!!fieldState.error}
-          sx={{ position: "relative" }}
         >
           <InputLabel id={computedLabelId}>{label}</InputLabel>
 
@@ -63,14 +62,7 @@ export const FormSelectField = <T extends FieldValues>({
           </Select>
 
           {(fieldState.error?.message || helperText) && (
-            <FormHelperText
-              sx={{
-                position: "absolute",
-                bottom: -20,
-                left: 0,
-                margin: 0,
-              }}
-            >
+            <FormHelperText>
               {fieldState.error?.message ?? helperText}
             </FormHelperText>
           )}

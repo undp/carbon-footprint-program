@@ -35,16 +35,6 @@ export const FormTextField = <T extends FieldValues>({
           error={!!fieldState.error}
           helperText={fieldState.error?.message ?? helperText}
           fullWidth={fullWidth}
-          slotProps={{
-            formHelperText: {
-              sx: {
-                position: "absolute",
-                bottom: -20,
-                left: 0,
-                margin: 0,
-              },
-            },
-          }}
         />
       )}
     />
