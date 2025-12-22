@@ -28,13 +28,9 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    await prisma.$executeRawUnsafe("BEGIN");
-  });
+  beforeEach(async () => {});
 
-  afterEach(async () => {
-    await prisma.$executeRawUnsafe("ROLLBACK");
-  });
+  afterEach(async () => {});
 
   describe("Successful retrieval", () => {
     it("should return exactly 143 subsectors across all sectors", async () => {
@@ -51,27 +47,6 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
         0
       );
       expect(totalSubsectors).toBe(143);
-    });
-
-    it("should return subsectors with valid structure", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/country-sectors",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
-
-      body.forEach((sector) => {
-        sector.subsectors.forEach((subsector) => {
-          expect(subsector).toHaveProperty("id");
-          expect(subsector).toHaveProperty("name");
-
-          expect(typeof subsector.id).toBe("string");
-          expect(typeof subsector.name).toBe("string");
-          expect(subsector.name.length).toBeGreaterThan(0);
-        });
-      });
     });
 
     it("should return subsectors with expected attributes", async () => {

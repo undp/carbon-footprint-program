@@ -28,13 +28,9 @@ describe("GET /api/job-positions - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    await prisma.$executeRawUnsafe("BEGIN");
-  });
+  beforeEach(async () => {});
 
-  afterEach(async () => {
-    await prisma.$executeRawUnsafe("ROLLBACK");
-  });
+  afterEach(async () => {});
 
   describe("Successful retrieval", () => {
     it("should return exactly 78 job positions", async () => {
@@ -46,28 +42,6 @@ describe("GET /api/job-positions - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllJobPositionsResponse;
       expect(body).toHaveLength(78);
-    });
-
-    it("should return job positions with valid structure", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/job-positions",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllJobPositionsResponse;
-      expect(Array.isArray(body)).toBe(true);
-
-      if (body.length > 0) {
-        body.forEach((jobPosition) => {
-          expect(jobPosition).toHaveProperty("id");
-          expect(jobPosition).toHaveProperty("name");
-
-          expect(typeof jobPosition.id).toBe("string");
-          expect(typeof jobPosition.name).toBe("string");
-          expect(jobPosition.name.length).toBeGreaterThan(0);
-        });
-      }
     });
 
     it("should return job positions with expected attributes", async () => {

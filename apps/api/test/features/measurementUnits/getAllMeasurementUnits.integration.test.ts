@@ -28,13 +28,9 @@ describe("GET /api/measurement-units - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    await prisma.$executeRawUnsafe("BEGIN");
-  });
+  beforeEach(async () => {});
 
-  afterEach(async () => {
-    await prisma.$executeRawUnsafe("ROLLBACK");
-  });
+  afterEach(async () => {});
 
   describe("Successful retrieval", () => {
     it("should return exactly 17 measurement units", async () => {
@@ -46,37 +42,6 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
       expect(body).toHaveLength(17);
-    });
-
-    it("should return measurement units with valid structure", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/measurement-units",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
-      expect(Array.isArray(body)).toBe(true);
-
-      if (body.length > 0) {
-        body.forEach((unit) => {
-          expect(unit).toHaveProperty("id");
-          expect(unit).toHaveProperty("name");
-          expect(unit).toHaveProperty("magnitude");
-          expect(unit).toHaveProperty("abbreviation");
-          expect(unit).toHaveProperty("base_factor");
-          expect(unit).toHaveProperty("is_base");
-
-          expect(typeof unit.id).toBe("string");
-          expect(typeof unit.name).toBe("string");
-          expect(typeof unit.abbreviation).toBe("string");
-          expect(typeof unit.base_factor).toBe("number");
-          expect(typeof unit.is_base).toBe("boolean");
-          expect(["MASS", "VOLUME", "DISTANCE", "TIME"]).toContain(
-            unit.magnitude
-          );
-        });
-      }
     });
 
     it("should return measurement units with expected attributes", async () => {

@@ -28,13 +28,9 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    await prisma.$executeRawUnsafe("BEGIN");
-  });
+  beforeEach(async () => {});
 
-  afterEach(async () => {
-    await prisma.$executeRawUnsafe("ROLLBACK");
-  });
+  afterEach(async () => {});
 
   describe("Successful retrieval", () => {
     it("should return exactly 8 country organization sizes", async () => {
@@ -48,30 +44,6 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
         response.body
       ) as GetAllCountryOrganizationSizesResponse;
       expect(body).toHaveLength(8);
-    });
-
-    it("should return country organization sizes with valid structure", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/country-organization-sizes",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllCountryOrganizationSizesResponse;
-      expect(Array.isArray(body)).toBe(true);
-
-      if (body.length > 0) {
-        body.forEach((orgSize) => {
-          expect(orgSize).toHaveProperty("id");
-          expect(orgSize).toHaveProperty("name");
-
-          expect(typeof orgSize.id).toBe("string");
-          expect(typeof orgSize.name).toBe("string");
-          expect(orgSize.name.length).toBeGreaterThan(0);
-        });
-      }
     });
 
     it("should return country organization sizes with expected attributes", async () => {

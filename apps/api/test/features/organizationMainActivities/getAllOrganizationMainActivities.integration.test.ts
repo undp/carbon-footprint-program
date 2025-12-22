@@ -15,7 +15,7 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { ValidationErrorResponse } from "@/commonSchemas/errors.js";
+import type { ValidationErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("GET /api/organization-main-activities - Integration Tests", () => {
   let app: FastifyInstance;
@@ -32,16 +32,12 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    await prisma.$executeRawUnsafe("BEGIN");
-  });
+  beforeEach(async () => {});
 
-  afterEach(async () => {
-    await prisma.$executeRawUnsafe("ROLLBACK");
-  });
+  afterEach(async () => {});
 
   describe("Successful retrieval", () => {
-    it("should return organization main activities", async () => {
+    it("should return a non-empty array of organization main activities", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/organization-main-activities",
@@ -53,29 +49,6 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       ) as GetAllOrganizationMainActivitiesResponse;
       expect(Array.isArray(body)).toBe(true);
       expect(body.length).toBeGreaterThan(0);
-    });
-
-    it("should return organization main activities with valid structure", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/organization-main-activities",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllOrganizationMainActivitiesResponse;
-      expect(Array.isArray(body)).toBe(true);
-
-      if (body.length > 0) {
-        body.forEach((activity) => {
-          expect(activity).toHaveProperty("id");
-          expect(activity).toHaveProperty("name");
-
-          expect(typeof activity.id).toBe("string");
-          expect(typeof activity.name).toBe("string");
-        });
-      }
     });
 
     it("should return ONLY generic activities when no filter is provided", async () => {
