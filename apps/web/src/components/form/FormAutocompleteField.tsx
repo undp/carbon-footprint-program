@@ -41,6 +41,8 @@ export const FormAutocompleteField = <T extends FieldValues>({
   fullWidth = true,
   ...props
 }: Props<T>) => {
+  const fuseOptions = useMemo(() => ({ keys: ["label"] }), []);
+
   const computedLabelId = useMemo(
     () => labelId ?? `${name}-label`,
     [labelId, name]
@@ -52,7 +54,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
     [options, fieldValue]
   );
 
-  const { search } = useFuzzySearch<Option>(options, { keys: ["label"] });
+  const { search } = useFuzzySearch<Option>(options, fuseOptions);
 
   return (
     <Controller
