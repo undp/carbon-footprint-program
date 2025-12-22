@@ -120,7 +120,7 @@ export const BusinessProfilingScreen: FC = () => {
         }}
       >
         <Box className="flex flex-col flex-1 gap-6 p-6">
-          <Box className="flex flex-col p-6 rounded-lg bg-white gap-6">
+          <Box className="flex flex-col p-6 pb-2 rounded-lg bg-white gap-6">
             <StepHeader
               title="Paso 1: Perfil de empresa"
               description="Esta información nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
