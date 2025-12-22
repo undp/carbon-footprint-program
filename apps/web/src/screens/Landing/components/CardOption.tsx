@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback } from "react";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import {
   Card,
@@ -37,28 +37,31 @@ export const CardOption: FC<Props> = ({
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const createInventory = useCreateCarbonInventory();
-  const [loading, setLoading] = useState(false);
 
-  const handleNavigate = useCallback(async () => {
+  const handleCreateInventory = useCallback(() => {
     try {
-      setLoading(true);
-      await new Promise((resolve) => setTimeout(resolve, 4000));
-      setLoading(false);
-
-      const created = await createInventory.mutateAsync({
+      const created = createInventory.mutateAsync({
         year: new Date().getFullYear(),
         usageMode,
       });
 
+      return created;
+    } catch {
+      enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
+      return null;
+    }
+  }, [createInventory, usageMode, enqueueSnackbar]);
+
+  const handleNavigate = useCallback(async () => {
+    const created = await handleCreateInventory();
+
+    if (created) {
       void navigate({
         to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
         params: { inventoryId: created.id },
       });
-    } catch {
-      enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
     }
-    return;
-  }, [usageMode, createInventory, navigate, enqueueSnackbar]);
+  }, [handleCreateInventory, navigate]);
 
   return (
     <Card
@@ -105,8 +108,8 @@ export const CardOption: FC<Props> = ({
           variant="contained"
           endIcon={<ArrowRightAltRounded />}
           onClick={() => void handleNavigate()}
-          disabled={loading || createInventory.isPending}
-          loading={loading || createInventory.isPending}
+          disabled={createInventory.isPending}
+          loading={createInventory.isPending}
         >
           {buttonText}
         </Button>
