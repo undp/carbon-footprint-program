@@ -9,6 +9,13 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import {
+  carbonInventoryPatterns,
+  createInventoryFromPattern,
+  createCarbonInventories,
+  createTestUsers,
+  cleanupTestData,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { GetAllCarbonInventoriesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -29,27 +36,11 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    // Clean up carbon inventories and test users before each test
-    await prisma.carbon_inventory.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          endsWith: "@test.com",
-        },
-      },
-    });
+    await cleanupTestData(prisma);
   });
 
   afterEach(async () => {
-    // Clean up carbon inventories and test users after each test
-    await prisma.carbon_inventory.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          endsWith: "@test.com",
-        },
-      },
-    });
+    await cleanupTestData(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -67,14 +58,10 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
     it("should return carbon inventories when they exist", async () => {
       // Create test carbon inventories
-      await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -91,37 +78,28 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
   describe("Ordering", () => {
     it("should return inventories ordered by creation date (newest first)", async () => {
       // Create multiple inventories with different creation times
-      const inventory1 = await prisma.carbon_inventory.create({
-        data: {
-          year: 2022,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const inventory1 = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { year: 2022 }
+      );
 
       // Wait a bit to ensure different timestamps
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const inventory2 = await prisma.carbon_inventory.create({
-        data: {
-          year: 2023,
-          status: "DRAFT",
-          usage_mode: "EXPERT",
-          is_editable: true,
-        },
-      });
+      const inventory2 = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.expertDraft,
+        { year: 2023 }
+      );
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const inventory3 = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "SUBMITTED",
-          usage_mode: "SIMPLIFIED",
-          is_editable: false,
-        },
-      });
+      const inventory3 = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.submitted,
+        { year: 2024 }
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -150,28 +128,11 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
   describe("Data integrity", () => {
     it("should have unique IDs", async () => {
       // Create multiple inventories
-      await prisma.carbon_inventory.createMany({
-        data: [
-          {
-            year: 2022,
-            status: "DRAFT",
-            usage_mode: "SIMPLIFIED",
-            is_editable: true,
-          },
-          {
-            year: 2023,
-            status: "SUBMITTED",
-            usage_mode: "EXPERT",
-            is_editable: false,
-          },
-          {
-            year: 2024,
-            status: "VERIFIED",
-            usage_mode: "SIMPLIFIED",
-            is_editable: false,
-          },
-        ],
-      });
+      await createCarbonInventories(prisma, [
+        { ...carbonInventoryPatterns.simplifiedDraft(), year: 2022 },
+        { ...carbonInventoryPatterns.submitted(), year: 2023 },
+        { ...carbonInventoryPatterns.verified(), year: 2024 },
+      ]);
 
       const response = await app.inject({
         method: "GET",
@@ -190,42 +151,31 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
   describe("Response data mapping", () => {
     it("should correctly map all fields including nullable ones", async () => {
       // Create test users first to satisfy foreign key constraints
-      const jobPosition = await prisma.country_job_position.findFirst();
-      const creatorUser = await prisma.user.create({
-        data: {
-          email: "creator@test.com",
-          country_job_position_id: jobPosition!.id,
-        },
-      });
-      const updaterUser = await prisma.user.create({
-        data: {
-          email: "updater@test.com",
-          country_job_position_id: jobPosition!.id,
-        },
-      });
+      const [creatorUser, updaterUser] = await createTestUsers(prisma, [
+        "creator@test.com",
+        "updater@test.com",
+      ]);
 
-      const testInventory = await prisma.carbon_inventory.create({
-        data: {
-          organization_id: BigInt(123),
-          organization_branch_id: BigInt(456),
-          organization_data: {
-            name: "Test Org",
-            sectorId: "1",
-            subsectorId: "2",
-            sizeId: "3",
-            mainActivityId: "4",
-            mainActivityQuantity: 100,
-          },
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "EXPERT",
-          methodology_version_id: BigInt(789),
-          preselected_nodes_id: BigInt(111),
-          is_editable: true,
-          created_by_id: creatorUser.id,
-          updated_by_id: updaterUser.id,
+      const testInventory = await createInventoryFromPattern(prisma, () => ({
+        organization_id: BigInt(123),
+        organization_branch_id: BigInt(456),
+        organization_data: {
+          name: "Test Org",
+          sectorId: "1",
+          subsectorId: "2",
+          sizeId: "3",
+          mainActivityId: "4",
+          mainActivityQuantity: 100,
         },
-      });
+        year: 2024,
+        status: "DRAFT",
+        usage_mode: "EXPERT",
+        methodology_version_id: BigInt(789),
+        preselected_nodes_id: BigInt(111),
+        is_editable: true,
+        created_by_id: creatorUser.id,
+        updated_by_id: updaterUser.id,
+      }));
 
       const response = await app.inject({
         method: "GET",
@@ -261,12 +211,10 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
     });
 
     it("should correctly handle null values", async () => {
-      const testInventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          usage_mode: "SIMPLIFIED",
-        },
-      });
+      const testInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -291,30 +239,12 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
   describe("Different inventory statuses", () => {
     it("should return inventories with all different statuses", async () => {
-      await prisma.carbon_inventory.createMany({
-        data: [
-          {
-            year: 2024,
-            status: "DRAFT",
-            usage_mode: "SIMPLIFIED",
-          },
-          {
-            year: 2024,
-            status: "SUBMITTED",
-            usage_mode: "SIMPLIFIED",
-          },
-          {
-            year: 2024,
-            status: "VERIFIED",
-            usage_mode: "SIMPLIFIED",
-          },
-          {
-            year: 2024,
-            status: "DELETED",
-            usage_mode: "SIMPLIFIED",
-          },
-        ],
-      });
+      await createCarbonInventories(prisma, [
+        carbonInventoryPatterns.simplifiedDraft(),
+        carbonInventoryPatterns.submitted(),
+        carbonInventoryPatterns.verified(),
+        carbonInventoryPatterns.deleted(),
+      ]);
 
       const response = await app.inject({
         method: "GET",
@@ -335,18 +265,10 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
   describe("Different usage modes", () => {
     it("should return inventories with different usage modes", async () => {
-      await prisma.carbon_inventory.createMany({
-        data: [
-          {
-            year: 2024,
-            usage_mode: "SIMPLIFIED",
-          },
-          {
-            year: 2024,
-            usage_mode: "EXPERT",
-          },
-        ],
-      });
+      await createCarbonInventories(prisma, [
+        carbonInventoryPatterns.simplifiedDraft(),
+        carbonInventoryPatterns.expertDraft(),
+      ]);
 
       const response = await app.inject({
         method: "GET",

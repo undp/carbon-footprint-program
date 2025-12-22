@@ -9,6 +9,12 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import {
+  carbonInventoryPatterns,
+  createInventoryFromPattern,
+  createTestUsers,
+  cleanupTestData,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -30,39 +36,19 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    // Clean up carbon inventories and test users before each test
-    await prisma.carbon_inventory.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          endsWith: "@test.com",
-        },
-      },
-    });
+    await cleanupTestData(prisma);
   });
 
   afterEach(async () => {
-    // Clean up carbon inventories and test users after each test
-    await prisma.carbon_inventory.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          endsWith: "@test.com",
-        },
-      },
-    });
+    await cleanupTestData(prisma);
   });
 
   describe("Successful retrieval", () => {
     it("should return a carbon inventory by valid ID", async () => {
-      const testInventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const testInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -80,42 +66,21 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return complete data including all nullable fields when populated", async () => {
       // Create test users first to satisfy foreign key constraints
-      const jobPosition = await prisma.country_job_position.findFirst();
-      const creatorUser = await prisma.user.create({
-        data: {
-          email: "creator@test.com",
-          country_job_position_id: jobPosition!.id,
-        },
-      });
-      const updaterUser = await prisma.user.create({
-        data: {
-          email: "updater@test.com",
-          country_job_position_id: jobPosition!.id,
-        },
-      });
+      const [creatorUser, updaterUser] = await createTestUsers(prisma, [
+        "creator@test.com",
+        "updater@test.com",
+      ]);
 
-      const testInventory = await prisma.carbon_inventory.create({
-        data: {
-          organization_id: BigInt(123),
-          organization_branch_id: BigInt(456),
-          organization_data: {
-            name: "Test Organization",
-            sectorId: "10",
-            subsectorId: "20",
-            sizeId: "5",
-            mainActivityId: "15",
-            mainActivityQuantity: 250,
-          },
-          year: 2023,
-          status: "VERIFIED",
-          usage_mode: "EXPERT",
-          methodology_version_id: BigInt(789),
-          preselected_nodes_id: BigInt(111),
-          is_editable: false,
-          created_by_id: creatorUser.id,
-          updated_by_id: updaterUser.id,
-        },
-      });
+      const testInventory = await createInventoryFromPattern(prisma, () =>
+        carbonInventoryPatterns.complete(
+          BigInt(123),
+          BigInt(456),
+          BigInt(789),
+          BigInt(111),
+          creatorUser.id,
+          updaterUser.id
+        )
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -149,14 +114,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should return null for nullable fields when not populated", async () => {
-      const testInventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const testInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -218,14 +179,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   describe("Different inventory statuses", () => {
     it("should retrieve inventory with DRAFT status", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -238,14 +195,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should retrieve inventory with SUBMITTED status", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "SUBMITTED",
-          usage_mode: "SIMPLIFIED",
-          is_editable: false,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.submitted
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -258,14 +211,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should retrieve inventory with VERIFIED status", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "VERIFIED",
-          usage_mode: "EXPERT",
-          is_editable: false,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.verified
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -278,14 +227,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should retrieve inventory with DELETED status", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DELETED",
-          usage_mode: "SIMPLIFIED",
-          is_editable: false,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.deleted
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -300,14 +245,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   describe("Different usage modes", () => {
     it("should retrieve inventory with SIMPLIFIED mode", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -320,14 +261,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should retrieve inventory with EXPERT mode", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "EXPERT",
-          is_editable: true,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.expertDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -342,22 +279,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   describe("Organization data validation", () => {
     it("should correctly return valid organization data", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          organization_data: {
-            name: "Acme Corp",
-            sectorId: "5",
-            subsectorId: "12",
-            sizeId: "3",
-            mainActivityId: "8",
-            mainActivityQuantity: 500,
-          },
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.withOrganizationData
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -379,14 +304,11 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   describe("Year validation", () => {
     it("should retrieve inventory with valid year", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2022,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { year: 2022 }
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -403,14 +325,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   describe("Editability", () => {
     it("should retrieve editable inventory", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "DRAFT",
-          usage_mode: "SIMPLIFIED",
-          is_editable: true,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -423,14 +341,10 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should retrieve non-editable inventory", async () => {
-      const inventory = await prisma.carbon_inventory.create({
-        data: {
-          year: 2024,
-          status: "SUBMITTED",
-          usage_mode: "SIMPLIFIED",
-          is_editable: false,
-        },
-      });
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.submitted
+      );
 
       const response = await app.inject({
         method: "GET",
