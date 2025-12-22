@@ -12,7 +12,7 @@ import {
   carbonInventoryPatterns,
   createInventoryFromPattern,
   getTestUsers,
-  cleanupTestData,
+  cleanupCarbonInventoryTestData,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -35,7 +35,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    await cleanupTestData(prisma);
+    await cleanupCarbonInventoryTestData(prisma);
   });
 
   describe("Successful retrieval", () => {

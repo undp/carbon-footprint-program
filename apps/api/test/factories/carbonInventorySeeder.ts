@@ -233,6 +233,8 @@ export async function createInventoryFromPattern(
  * Cleans up test carbon inventories
  * Note: Users are seeded once and reused across tests
  */
-export async function cleanupTestData(prisma: PrismaClient): Promise<void> {
+export async function cleanupCarbonInventoryTestData(
+  prisma: PrismaClient
+): Promise<void> {
   await prisma.carbon_inventory.deleteMany({});
 }

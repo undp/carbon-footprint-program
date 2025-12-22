@@ -8,7 +8,7 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import { cleanupTestData } from "@test/factories/carbonInventorySeeder.js";
+import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -30,7 +30,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    await cleanupTestData(prisma);
+    await cleanupCarbonInventoryTestData(prisma);
   });
 
   describe("Successful creation", () => {
