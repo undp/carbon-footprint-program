@@ -14,14 +14,14 @@ export const Options: FC = () => (
         title="Quiero calcular mi huella"
         description="Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos."
         buttonText="USAR CALCULADORA"
-        createUsageMode="SIMPLIFIED"
+        usageMode="SIMPLIFIED"
       />
       <CardOption
         AvatarIcon={ApplicationFormIcon}
         title="Ya tengo mis cálculos"
         description="Sube tus datos y genera reportes en segundos."
         buttonText="SUBIR EMISIONES"
-        createUsageMode="EXPERT"
+        usageMode="EXPERT"
       />
     </Box>
   </Box>

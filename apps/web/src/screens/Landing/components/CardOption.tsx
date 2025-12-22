@@ -22,7 +22,7 @@ interface Props {
   title: string;
   description: string;
   buttonText: string;
-  createUsageMode: "SIMPLIFIED" | "EXPERT";
+  usageMode: "SIMPLIFIED" | "EXPERT";
 }
 
 export const CardOption: FC<Props> = ({
@@ -30,7 +30,7 @@ export const CardOption: FC<Props> = ({
   title,
   description,
   buttonText,
-  createUsageMode,
+  usageMode,
 }) => {
   const theme = useTheme();
   const backgroundColor = alpha(theme.palette.common.white, 0.1);
@@ -47,19 +47,18 @@ export const CardOption: FC<Props> = ({
 
       const created = await createInventory.mutateAsync({
         year: new Date().getFullYear(),
-        usageMode: createUsageMode,
+        usageMode,
       });
 
       void navigate({
         to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
         params: { inventoryId: created.id },
       });
-    } catch (error) {
-      console.error("Error creating carbon inventory:", error);
+    } catch {
       enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
     }
     return;
-  }, [createUsageMode, createInventory, navigate, enqueueSnackbar]);
+  }, [usageMode, createInventory, navigate, enqueueSnackbar]);
 
   return (
     <Card
@@ -105,7 +104,7 @@ export const CardOption: FC<Props> = ({
           sx={{ backgroundColor: theme.palette.common.deepForest }}
           variant="contained"
           endIcon={<ArrowRightAltRounded />}
-          onClick={handleNavigate}
+          onClick={() => void handleNavigate()}
           disabled={loading || createInventory.isPending}
           loading={loading || createInventory.isPending}
         >
