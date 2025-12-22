@@ -2,37 +2,35 @@ import type { PrismaClient } from "@repo/database";
 import type { Prisma } from "@repo/database";
 
 /**
- * Creates a test user with the given email
+ * Gets a pre-seeded test user by email
  */
-export async function createTestUser(
+export async function getTestUser(
   prisma: PrismaClient,
   email: string
 ): Promise<{ id: bigint; email: string }> {
-  const jobPosition = await prisma.country_job_position.findFirst();
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, email: true },
+  });
 
-  if (!jobPosition) {
+  if (!user) {
     throw new Error(
-      "Cannot create test user: No country_job_position records found in database. " +
-        "Please ensure the database is properly seeded before running tests."
+      `Test user with email '${email}' not found in database. ` +
+        "Please ensure the database is properly seeded with test users before running tests."
     );
   }
 
-  return prisma.user.create({
-    data: {
-      email,
-      country_job_position_id: jobPosition.id,
-    },
-  });
+  return user;
 }
 
 /**
- * Creates multiple test users at once
+ * Gets multiple pre-seeded test users at once
  */
-export async function createTestUsers(
+export async function getTestUsers(
   prisma: PrismaClient,
   emails: string[]
 ): Promise<Array<{ id: bigint; email: string }>> {
-  return Promise.all(emails.map((email) => createTestUser(prisma, email)));
+  return Promise.all(emails.map((email) => getTestUser(prisma, email)));
 }
 
 /**
@@ -233,15 +231,9 @@ export async function createInventoryFromPattern(
 }
 
 /**
- * Cleans up test carbon inventories and users
+ * Cleans up test carbon inventories
+ * Note: Users are seeded once and reused across tests
  */
 export async function cleanupTestData(prisma: PrismaClient): Promise<void> {
   await prisma.carbon_inventory.deleteMany({});
-  await prisma.user.deleteMany({
-    where: {
-      email: {
-        endsWith: "@test.com",
-      },
-    },
-  });
 }

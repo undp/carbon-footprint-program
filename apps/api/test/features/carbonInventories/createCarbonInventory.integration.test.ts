@@ -35,15 +35,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
   });
 
   afterEach(async () => {
-    // Clean up carbon inventories and test users after each test
+    // Clean up carbon inventories after each test
     await prisma.carbon_inventory.deleteMany({});
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          endsWith: "@test.com",
-        },
-      },
-    });
   });
 
   describe("Successful creation", () => {

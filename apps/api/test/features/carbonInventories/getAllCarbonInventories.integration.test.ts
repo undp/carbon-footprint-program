@@ -5,7 +5,6 @@ import {
   beforeAll,
   afterAll,
   beforeEach,
-  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -13,7 +12,7 @@ import {
   carbonInventoryPatterns,
   createInventoryFromPattern,
   createCarbonInventories,
-  createTestUsers,
+  getTestUsers,
   cleanupTestData,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetAllCarbonInventoriesResponse } from "@repo/types";
@@ -146,8 +145,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
   describe("Response data mapping", () => {
     it("should correctly map all fields including nullable ones", async () => {
-      // Create test users first to satisfy foreign key constraints
-      const [creatorUser, updaterUser] = await createTestUsers(prisma, [
+      // Get pre-seeded test users to satisfy foreign key constraints
+      const [creatorUser, updaterUser] = await getTestUsers(prisma, [
         "creator@test.com",
         "updater@test.com",
       ]);
