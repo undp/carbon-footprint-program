@@ -5,9 +5,11 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import capinautPointing from "@assets/capinaut-pointing.png";
 import { FootprintCalculatorLayout } from "./layout";
 import { Routes } from "@/interfaces";
-import { FormAutocompleteField } from "./components/form/FormAutocompleteField";
-import { FormSelectField } from "./components/form/FormSelectField";
-import { FormTextField } from "./components/form/FormTextField";
+import {
+  FormAutocompleteField,
+  FormSelectField,
+  FormTextField,
+} from "@/components";
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventory } from "@/api/query";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
@@ -124,7 +126,7 @@ export const BusinessProfilingScreen: FC = () => {
               description="Esta información nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
             />
             <Box className="flex flex-row gap-6">
-              <Box className="flex-1 flex flex-col gap-8">
+              <Box className="flex-1 flex flex-col gap-2">
                 <FormSelectField
                   name="year"
                   control={control}
@@ -155,7 +157,7 @@ export const BusinessProfilingScreen: FC = () => {
               </Box>
             </Box>
           </Box>
-          <Box className="flex flex-col p-6 rounded-lg bg-white gap-8">
+          <Box className="flex flex-col p-6 rounded-lg bg-white gap-2">
             <Box className="flex-1 flex flex-row gap-6">
               <FormAutocompleteField
                 name="sector"
