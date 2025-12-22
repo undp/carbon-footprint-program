@@ -207,15 +207,14 @@ export async function createCarbonInventory(
 }
 
 /**
- * Creates multiple carbon inventories at once
+ * Creates multiple carbon inventories at once using a single batch operation.
+ * Note: Does not return the created records. Use createCarbonInventory() if you need the returned record.
  */
 export async function createCarbonInventories(
   prisma: PrismaClient,
   dataArray: Prisma.carbon_inventoryUncheckedCreateInput[]
 ) {
-  return Promise.all(
-    dataArray.map((data) => prisma.carbon_inventory.create({ data }))
-  );
+  await prisma.carbon_inventory.createMany({ data: dataArray });
 }
 
 /**
