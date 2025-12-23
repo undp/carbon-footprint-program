@@ -54,7 +54,8 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
 
   useEffect(() => {
     if (existingInventory) {
-      reset(mapInventoryToFormValues(existingInventory));
+      const mappedInventory = mapInventoryToFormValues(existingInventory);
+      reset(mappedInventory);
     }
   }, [existingInventory, reset]);
 

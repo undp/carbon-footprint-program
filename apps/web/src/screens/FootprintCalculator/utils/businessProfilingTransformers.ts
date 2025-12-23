@@ -5,16 +5,27 @@ export const mapInventoryToFormValues = (
   inventory: CarbonInventory
 ): BusinessProfilingFormValues => {
   const organizationData = inventory.organizationData;
+  const toSafeString = (value: unknown) => {
+    if (value === null || value === undefined) {
+      return "";
+    }
+
+    if (typeof value === "string" || typeof value === "number") {
+      return String(value);
+    }
+
+    return "";
+  };
 
   return {
-    year: String(inventory.year ?? ""),
+    year: toSafeString(inventory.year),
     usageMode: inventory.usageMode ?? "EXPERT",
-    companyName: String(organizationData?.name ?? ""),
-    sector: String(organizationData?.sectorId ?? ""),
-    subSector: String(organizationData?.subsectorId ?? ""),
-    companySize: String(organizationData?.sizeId ?? ""),
-    activity: String(organizationData?.mainActivityId ?? ""),
-    quantity: String(organizationData?.mainActivityQuantity ?? ""),
+    companyName: toSafeString(organizationData?.name),
+    sector: toSafeString(organizationData?.sectorId),
+    subSector: toSafeString(organizationData?.subsectorId),
+    companySize: toSafeString(organizationData?.sizeId),
+    activity: toSafeString(organizationData?.mainActivityId),
+    quantity: toSafeString(organizationData?.mainActivityQuantity),
   };
 };
 
