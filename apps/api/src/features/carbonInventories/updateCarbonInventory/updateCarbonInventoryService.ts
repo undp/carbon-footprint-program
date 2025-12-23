@@ -5,6 +5,22 @@ import type {
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 
+/**
+ * Helper to map optional string ID fields to BigInt or null.
+ * - Returns undefined if value is undefined (field not provided)
+ * - Returns null if value is null or empty string
+ * - Returns BigInt(value) otherwise
+ */
+const mapBigIntField = (
+  value: string | null | undefined
+): bigint | null | undefined => {
+  if (value === undefined) return undefined;
+
+  if (value === null || value === "") return null;
+
+  return BigInt(value);
+};
+
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,
   id: string,
@@ -22,16 +38,14 @@ export const updateCarbonInventoryService = async (
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.carbon_inventoryUncheckedUpdateInput = {};
 
-  if (data.organizationId !== undefined) {
-    updateData.organization_id = data.organizationId
-      ? BigInt(data.organizationId)
-      : null;
+  const organizationId = mapBigIntField(data.organizationId);
+  if (organizationId !== undefined) {
+    updateData.organization_id = organizationId;
   }
 
-  if (data.organizationBranchId !== undefined) {
-    updateData.organization_branch_id = data.organizationBranchId
-      ? BigInt(data.organizationBranchId)
-      : null;
+  const organizationBranchId = mapBigIntField(data.organizationBranchId);
+  if (organizationBranchId !== undefined) {
+    updateData.organization_branch_id = organizationBranchId;
   }
 
   if (data.organizationData !== undefined) {
@@ -48,16 +62,14 @@ export const updateCarbonInventoryService = async (
     updateData.usage_mode = data.usageMode;
   }
 
-  if (data.methodologyVersionId !== undefined) {
-    updateData.methodology_version_id = data.methodologyVersionId
-      ? BigInt(data.methodologyVersionId)
-      : null;
+  const methodologyVersionId = mapBigIntField(data.methodologyVersionId);
+  if (methodologyVersionId !== undefined) {
+    updateData.methodology_version_id = methodologyVersionId;
   }
 
-  if (data.preselectedNodesId !== undefined) {
-    updateData.preselected_nodes_id = data.preselectedNodesId
-      ? BigInt(data.preselectedNodesId)
-      : null;
+  const preselectedNodesId = mapBigIntField(data.preselectedNodesId);
+  if (preselectedNodesId !== undefined) {
+    updateData.preselected_nodes_id = preselectedNodesId;
   }
 
   if (data.status !== undefined) {
