@@ -111,7 +111,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.isEditable).toBe(true);
     });
 
-    it("should set year to current year by default", async () => {
+    it("should set year to null by default", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",

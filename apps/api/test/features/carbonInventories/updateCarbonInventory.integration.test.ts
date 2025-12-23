@@ -332,7 +332,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it("should return 404 for non-numeric id", async () => {
+    it("should return 400 (validation error) for non-numeric id", async () => {
       const response = await app.inject({
         method: "PATCH",
         url: "/api/carbon-inventories/invalid",
