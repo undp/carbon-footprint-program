@@ -67,10 +67,12 @@ export async function createApp(
 
   const baseDir = import.meta.dirname;
 
+  // Load external plugins (cors, helmet, etc.)
   await app.register(autoload, {
     dir: path.join(baseDir, "plugins/external"),
   });
 
+  // Load app plugins (prisma, error handler, etc.)
   await app.register(autoload, {
     dir: path.join(baseDir, "plugins/app"),
     ignoreFilter: withPrisma ? undefined : (path) => path.includes("prisma"),

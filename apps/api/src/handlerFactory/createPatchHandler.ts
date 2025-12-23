@@ -6,6 +6,7 @@ interface WithId {
 }
 
 // Generic handler factory for patching/updating a resource
+// Note: Errors are handled by the global error handler in app.ts
 export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
   moduleName: string,
   serviceFn: (
