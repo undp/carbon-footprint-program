@@ -106,7 +106,7 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
       const body = JSON.parse(
         response.body
       ) as GetAllCountryOrganizationSizesResponse;
-      const ids = body.map((os) => os.id);
+      const ids = body.map((os) => Number(os.id));
       const sortedIds = [...ids].sort();
       expect(ids).toEqual(sortedIds);
     });
