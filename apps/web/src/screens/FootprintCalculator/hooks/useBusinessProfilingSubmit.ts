@@ -35,8 +35,7 @@ export function useBusinessProfilingSubmit({ inventoryId, onSuccess }: Params) {
       });
 
       onSuccess?.();
-    } catch (error) {
-      console.error("Error updating carbon inventory:", error);
+    } catch {
       enqueueSnackbar("Error al guardar el inventario organizacional", {
         variant: "error",
       });

@@ -20,7 +20,7 @@ export function useUpdateCarbonInventory() {
     UpdateCarbonInventoryVariables
   >({
     mutationFn: ({ id, data }) =>
-      apiClient.put(`carbon-inventories/${id}`, { json: data }).json(),
+      apiClient.patch(`carbon-inventories/${id}`, { json: data }).json(),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.all,
@@ -31,4 +31,3 @@ export function useUpdateCarbonInventory() {
     },
   });
 }
-

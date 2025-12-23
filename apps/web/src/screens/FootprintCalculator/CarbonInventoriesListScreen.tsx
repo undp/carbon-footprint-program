@@ -29,11 +29,8 @@ export const CarbonInventoriesListScreen: FC = () => {
   };
 
   const handleCreateNew = async () => {
-    const currentYear = new Date().getFullYear();
-
     try {
       const createdInventory = await createInventoryMutation.mutateAsync({
-        year: currentYear,
         usageMode: "SIMPLIFIED",
       });
 
@@ -41,8 +38,7 @@ export const CarbonInventoriesListScreen: FC = () => {
         to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
         params: { inventoryId: createdInventory.id },
       });
-    } catch (error) {
-      console.error("Error creating carbon inventory:", error);
+    } catch {
       enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
     }
   };
@@ -66,6 +62,9 @@ export const CarbonInventoriesListScreen: FC = () => {
     return mode === "SIMPLIFIED" ? "Simplificado" : "Experto";
   };
 
+  const getYearLabel = (year: number | null | undefined) =>
+    year ?? "Sin definir";
+
   return (
     <MainLayout>
       <Box className="flex flex-col flex-1 gap-6 p-6">
@@ -77,7 +76,7 @@ export const CarbonInventoriesListScreen: FC = () => {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={handleCreateNew}
+                onClick={() => void handleCreateNew()}
                 disabled={createInventoryMutation.isPending}
               >
                 {createInventoryMutation.isPending
@@ -100,41 +99,46 @@ export const CarbonInventoriesListScreen: FC = () => {
             </Box>
           ) : (
             <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {inventories.map((inventory) => (
-                <Card
-                  key={inventory.id}
-                  className="cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handleSelectInventory(inventory)}
-                >
-                  <CardContent className="p-4">
-                    <Box className="flex justify-between items-start mb-2">
-                      <Typography variant="h6" component="div">
-                        {String(
-                          inventory.organizationData?.name || "Sin nombre"
-                        )}
-                      </Typography>
-                      <Chip
-                        label={inventory.status}
-                        color={getStatusColor(inventory.status)}
-                        size="small"
-                      />
-                    </Box>
+              {inventories.map((inventory) => {
+                const organizationName =
+                  typeof inventory.organizationData?.name === "string"
+                    ? inventory.organizationData.name
+                    : "Sin nombre";
 
-                    <Box className="space-y-1">
-                      <Typography variant="body2" color="text.secondary">
-                        Año: {inventory.year}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Modo: {getUsageModeLabel(inventory.usageMode)}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        Creado:{" "}
-                        {new Date(inventory.createdAt).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                  </CardContent>
-                </Card>
-              ))}
+                return (
+                  <Card
+                    key={inventory.id}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleSelectInventory(inventory)}
+                  >
+                    <CardContent className="p-4">
+                      <Box className="flex justify-between items-start mb-2">
+                        <Typography variant="h6" component="div">
+                          {organizationName}
+                        </Typography>
+                        <Chip
+                          label={inventory.status}
+                          color={getStatusColor(inventory.status)}
+                          size="small"
+                        />
+                      </Box>
+
+                      <Box className="space-y-1">
+                        <Typography variant="body2" color="text.secondary">
+                          Año: {getYearLabel(inventory.year)}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Modo: {getUsageModeLabel(inventory.usageMode)}
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          Creado:{" "}
+                          {new Date(inventory.createdAt).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </Box>
           )}
         </Box>

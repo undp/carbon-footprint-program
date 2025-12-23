@@ -38,10 +38,9 @@ export const CardOption: FC<Props> = ({
   const { enqueueSnackbar } = useSnackbar();
   const createInventory = useCreateCarbonInventory();
 
-  const handleCreateInventory = useCallback(() => {
+  const handleCreateInventory = useCallback(async () => {
     try {
-      const created = createInventory.mutateAsync({
-        year: new Date().getFullYear(),
+      const created = await createInventory.mutateAsync({
         usageMode,
       });
 
