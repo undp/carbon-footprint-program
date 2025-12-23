@@ -27,10 +27,10 @@ declare module "@mui/material/styles" {
       ratingFull: string;
       fluor: string;
     };
-    categories?: {
-      category1?: CategoryColors;
-      category2?: CategoryColors;
-      category3?: CategoryColors;
+    category?: {
+      one?: CategoryColors;
+      two?: CategoryColors;
+      three?: CategoryColors;
     };
   }
 
@@ -43,10 +43,10 @@ declare module "@mui/material/styles" {
       ratingFull?: string;
       fluor?: string;
     };
-    categories?: {
-      category1?: CategoryColors;
-      category2?: CategoryColors;
-      category3?: CategoryColors;
+    category?: {
+      one?: CategoryColors;
+      two?: CategoryColors;
+      three?: CategoryColors;
     };
   }
 }
