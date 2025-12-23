@@ -219,7 +219,7 @@ model carbon_inventory {
   organization_id        BigInt?
   organization_branch_id BigInt?
   organization_data      Json?            @db.JsonB
-  year                   Int
+  year                   Int?
   status                 inventory_status @default(DRAFT)
   usage_mode             usage_mode
   methodology_version_id BigInt?

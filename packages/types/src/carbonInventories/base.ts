@@ -50,6 +50,7 @@ export const CarbonInventorySchema = z
       .int()
       .min(2000)
       .max(2100)
+      .nullable()
       .describe("The year of the inventory"),
     status: InventoryStatusSchema.describe("The status of the inventory"),
     usageMode: UsageModeSchema.describe(
