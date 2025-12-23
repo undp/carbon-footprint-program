@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { Box, Button, Typography, useTheme } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
@@ -57,8 +57,6 @@ export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
   backButtonProps = {},
   nextButtonProps = {},
 }) => {
-  const theme = useTheme();
-
   return (
     <Box
       className="fixed bottom-0 left-0 right-0 flex flex-row justify-end items-center gap-6 h-20 px-4 py-6 bg-white"
@@ -78,7 +76,6 @@ export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
           </Button>
         )}
         <Button
-          sx={{ backgroundColor: theme.palette.primary.main }}
           variant="contained"
           endIcon={<ArrowRightAltRounded />}
           {...nextButtonProps}
