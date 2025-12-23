@@ -6,19 +6,19 @@ type Option<Value extends string | number = string> = {
 };
 
 export function useSelectorOptions<
-  T,
   KLabel extends keyof T,
   KValue extends keyof T,
+  T extends Record<KLabel, unknown> & Record<KValue, string | number>,
 >(
   items: T[] | undefined,
   labelKey: KLabel,
   valueKey: KValue
-): Option<T[KValue] & (string | number)>[] {
+): Option<T[KValue]>[] {
   return useMemo(
     () =>
       (items ?? []).map((item) => ({
         label: String(item[labelKey]),
-        value: item[valueKey] as T[KValue] & (string | number),
+        value: item[valueKey],
       })),
     [items, labelKey, valueKey]
   );
