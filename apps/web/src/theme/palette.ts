@@ -69,6 +69,7 @@ export const palette: PaletteOptions = {
     tooltip: alpha("#616161", 0.9),
     snackbar: "#323232",
     ratingFull: "#FFB400",
+    fluor: "#63E4CF",
   },
   // Grey scale (Material Design standard)
   grey: {
@@ -109,4 +110,27 @@ export const palette: PaletteOptions = {
   },
   // Divider
   divider: alpha("#000000", 0.12),
+  category: {
+    one: {
+      main: "#FFB74D",
+      dark: "#66491F",
+      light: alpha("#FFB74D", 0.3),
+      background: alpha("#FFB74D", 0.8),
+      contrastText: "#414046",
+    },
+    two: {
+      main: "#64B5F6",
+      dark: "#284862",
+      light: alpha("#64B5F6", 0.3),
+      background: alpha("#64B5F6", 0.8),
+      contrastText: "#414046",
+    },
+    three: {
+      main: "#82C784",
+      dark: "#345035",
+      light: alpha("#82C784", 0.3),
+      background: alpha("#82C784", 0.8),
+      contrastText: "#414046",
+    },
+  },
 } as const;

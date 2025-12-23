@@ -10,6 +10,14 @@ declare module "@mui/material/styles" {
     brightGreen: string;
   }
 
+  interface CategoryColors {
+    main: string;
+    light: string;
+    dark: string;
+    contrastText: string;
+    background: string;
+  }
+
   interface Palette {
     other: {
       backdrop: string;
@@ -17,6 +25,12 @@ declare module "@mui/material/styles" {
       tooltip: string;
       snackbar: string;
       ratingFull: string;
+      fluor: string;
+    };
+    category: {
+      one: CategoryColors;
+      two: CategoryColors;
+      three: CategoryColors;
     };
   }
 
@@ -27,6 +41,12 @@ declare module "@mui/material/styles" {
       tooltip?: string;
       snackbar?: string;
       ratingFull?: string;
+      fluor?: string;
+    };
+    category?: {
+      one?: CategoryColors;
+      two?: CategoryColors;
+      three?: CategoryColors;
     };
   }
 }
