@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { SubCategoryPreselectionScreen } from "@/screens/FootprintCalculator/SubCategoryPreselectionScreen";
+import { SubCategoryPreselectionScreen } from "@/screens/CarbonInventory/SubCategoryPreselectionScreen";
 import { Routes } from "@/interfaces";
 
 export const Route = createFileRoute(

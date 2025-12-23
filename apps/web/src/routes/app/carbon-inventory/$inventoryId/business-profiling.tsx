@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BusinessProfilingScreen } from "@/screens/FootprintCalculator/BusinessProfilingScreen";
+import { BusinessProfilingScreen } from "@/screens/CarbonInventory/BusinessProfilingScreen";
 import { Routes } from "@/interfaces";
 
 export const Route = createFileRoute(
