@@ -11,23 +11,15 @@ export const createCarbonInventoryService = async (
 ): Promise<CreateCarbonInventoryResponse> => {
   const item = await prismaClient.carbon_inventory.create({
     data: {
-      organization_id: data.organizationId ? BigInt(data.organizationId) : null,
-      organization_branch_id: data.organizationBranchId
-        ? BigInt(data.organizationBranchId)
-        : null,
-      organization_data: data.organizationData
-        ? (data.organizationData as Prisma.InputJsonValue)
-        : Prisma.JsonNull,
-      year: data.year,
+      year: null,
       status: "DRAFT", // Default status
       usage_mode: data.usageMode,
-      methodology_version_id: data.methodologyVersionId
-        ? BigInt(data.methodologyVersionId)
-        : null,
-      preselected_nodes_id: data.preselectedNodesId
-        ? BigInt(data.preselectedNodesId)
-        : null,
       is_editable: true, // Default to editable
+      organization_id: null,
+      organization_branch_id: null,
+      organization_data: Prisma.JsonNull,
+      methodology_version_id: null,
+      preselected_nodes_id: null,
       created_by_id: null, // TODO: Add created by id from logged in user
       updated_by_id: null, // TODO: Add updated by id from logged in user
     },

@@ -34,12 +34,11 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
   });
 
   describe("Successful creation", () => {
-    it("should create carbon inventory with only required fields", async () => {
+    it("should create carbon inventory with SIMPLIFIED usage mode", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -48,7 +47,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
 
       expect(body.id).toBeTruthy();
-      expect(body.year).toBe(2024);
+      expect(body.year).toBeNull(); // Defaults to null
       expect(body.usageMode).toBe("SIMPLIFIED");
       expect(body.status).toBe("DRAFT"); // Default value
       expect(body.isEditable).toBe(true); // Default value
@@ -60,66 +59,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         where: { id: BigInt(body.id) },
       });
       expect(dbInventory).toBeDefined();
-      expect(dbInventory?.year).toBe(2024);
-    });
-
-    it("should create carbon inventory with all fields", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          organizationId: "123",
-          organizationBranchId: "456",
-          organizationData: {
-            name: "Test Organization",
-            sectorId: "10",
-            subsectorId: "20",
-            sizeId: "5",
-            mainActivityId: "15",
-            mainActivityQuantity: 250,
-          },
-          year: 2023,
-          usageMode: "EXPERT",
-          methodologyVersionId: "789",
-          preselectedNodesId: "111",
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-
-      expect(body.id).toBeTruthy();
-      expect(body.organizationId).toBe("123");
-      expect(body.organizationBranchId).toBe("456");
-      expect(body.organizationData).toEqual({
-        name: "Test Organization",
-        sectorId: "10",
-        subsectorId: "20",
-        sizeId: "5",
-        mainActivityId: "15",
-        mainActivityQuantity: 250,
-      });
-      expect(body.year).toBe(2023);
-      expect(body.usageMode).toBe("EXPERT");
-      expect(body.methodologyVersionId).toBe("789");
-      expect(body.preselectedNodesId).toBe("111");
-      expect(body.status).toBe("DRAFT");
-      expect(body.isEditable).toBe(true);
-    });
-
-    it("should create carbon inventory with SIMPLIFIED usage mode", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.usageMode).toBe("SIMPLIFIED");
+      expect(dbInventory?.year).toBeNull();
     });
 
     it("should create carbon inventory with EXPERT usage mode", async () => {
@@ -127,38 +67,18 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "EXPERT",
         },
       });
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
+
+      expect(body.id).toBeTruthy();
+      expect(body.year).toBeNull();
       expect(body.usageMode).toBe("EXPERT");
-    });
-
-    it("should create carbon inventory with partial organization data", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          organizationData: {
-            name: "Partial Org",
-            sectorId: null,
-            subsectorId: null,
-            sizeId: "3",
-            mainActivityId: null,
-            mainActivityQuantity: null,
-          },
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.organizationData?.name).toBe("Partial Org");
-      expect(body.organizationData?.sectorId).toBeNull();
+      expect(body.status).toBe("DRAFT");
+      expect(body.isEditable).toBe(true);
     });
   });
 
@@ -168,7 +88,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -183,7 +102,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -193,12 +111,25 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.isEditable).toBe(true);
     });
 
+    it("should set year to current year by default", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
+          usageMode: "SIMPLIFIED",
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
+      expect(body.year).toBeNull();
+    });
+
     it("should set nullable fields to null by default", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -216,151 +147,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
   });
 
   describe("Validation errors", () => {
-    it("should return 400 when year is missing", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
-      expect(body.message).toBeTruthy();
-    });
-
     it("should return 400 when usageMode is missing", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when year is below minimum (2000)", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 1999,
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when year is above maximum (2100)", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2101,
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when year is not an integer", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024.5,
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when usageMode is invalid", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "INVALID",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when organizationId is not numeric string", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          organizationId: "invalid",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 when organizationBranchId is not numeric string", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          organizationBranchId: "not-a-number",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 when methodologyVersionId is not numeric string", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          methodologyVersionId: "abc",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 when preselectedNodesId is not numeric string", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          preselectedNodesId: "xyz",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 with empty payload", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",
@@ -370,19 +157,59 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
       expect(body.message).toBeTruthy();
+      expect(body.message).toContain("usageMode");
     });
 
-    it("should return 400 when organizationData has invalid structure", async () => {
+    it("should return 400 when usageMode is invalid", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
+          usageMode: "INVALID",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.message).toBeTruthy();
+    });
+
+    it("should return 400 when extra fields are provided", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
+          usageMode: "SIMPLIFIED",
           year: 2024,
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when organizationId is provided", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
+          usageMode: "SIMPLIFIED",
+          organizationId: "123",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when organizationData is provided", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories",
+        payload: {
           usageMode: "SIMPLIFIED",
           organizationData: {
             name: "Test",
-            sectorId: "invalid", // Should be numeric string
-            subsectorId: "10",
+            sectorId: "10",
+            subsectorId: "20",
             sizeId: "5",
             mainActivityId: "15",
             mainActivityQuantity: 250,
@@ -392,129 +219,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
     });
-
-    it("should return 400 when organizationData.mainActivityQuantity is not an integer", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          organizationData: {
-            name: "Test",
-            sectorId: "10",
-            subsectorId: "20",
-            sizeId: "5",
-            mainActivityId: "15",
-            mainActivityQuantity: 250.5, // Should be integer
-          },
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 when extra fields are provided", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          extraField: "should not be here",
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-  });
-
-  describe("Year boundary tests", () => {
-    it("should accept year 2000 (minimum boundary)", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2000,
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.year).toBe(2000);
-    });
-
-    it("should accept year 2100 (maximum boundary)", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2100,
-          usageMode: "SIMPLIFIED",
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.year).toBe(2100);
-    });
-  });
-
-  describe("Organization data validation", () => {
-    it("should accept complete valid organization data", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          organizationData: {
-            name: "Complete Organization",
-            sectorId: "10",
-            subsectorId: "20",
-            sizeId: "5",
-            mainActivityId: "15",
-            mainActivityQuantity: 1000,
-          },
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.organizationData).toEqual({
-        name: "Complete Organization",
-        sectorId: "10",
-        subsectorId: "20",
-        sizeId: "5",
-        mainActivityId: "15",
-        mainActivityQuantity: 1000,
-      });
-    });
-
-    it("should accept organization data with all null values", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          year: 2024,
-          usageMode: "SIMPLIFIED",
-          organizationData: {
-            name: null,
-            sectorId: null,
-            subsectorId: null,
-            sizeId: null,
-            mainActivityId: null,
-            mainActivityQuantity: null,
-          },
-        },
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.organizationData?.name).toBeNull();
-      expect(body.organizationData?.sectorId).toBeNull();
-    });
   });
 
   describe("Multiple creations", () => {
@@ -523,7 +227,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2022,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -532,7 +235,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2023,
           usageMode: "EXPERT",
         },
       });
@@ -541,7 +243,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -559,12 +260,11 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body1.id).not.toBe(body3.id);
     });
 
-    it("should allow creating multiple inventories for the same year", async () => {
+    it("should allow creating multiple inventories with the same usageMode", async () => {
       const response1 = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
@@ -573,8 +273,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
-          usageMode: "EXPERT",
+          usageMode: "SIMPLIFIED",
         },
       });
 
@@ -584,8 +283,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       const body1 = JSON.parse(response1.body) as CreateCarbonInventoryResponse;
       const body2 = JSON.parse(response2.body) as CreateCarbonInventoryResponse;
 
-      expect(body1.year).toBe(2024);
-      expect(body2.year).toBe(2024);
+      expect(body1.usageMode).toBe("SIMPLIFIED");
+      expect(body2.usageMode).toBe("SIMPLIFIED");
       expect(body1.id).not.toBe(body2.id);
     });
   });
@@ -598,7 +297,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          year: 2024,
           usageMode: "SIMPLIFIED",
         },
       });
