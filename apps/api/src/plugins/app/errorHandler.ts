@@ -41,7 +41,25 @@ export default fp(
         }
 
         // Handle Prisma-specific errors
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (
+          error instanceof Prisma.PrismaClientKnownRequestError ||
+          error instanceof Prisma.PrismaClientRustPanicError ||
+          error instanceof Prisma.PrismaClientValidationError ||
+          error instanceof Prisma.PrismaClientInitializationError ||
+          error instanceof Prisma.PrismaClientUnknownRequestError
+        ) {
+          console.log("------");
+          console.log("error", error);
+          console.log("error.code", error.code);
+          console.log("error.name", error.name);
+          console.log("error.message", error.message);
+          console.log("error.meta", error.meta);
+          console.log("error.clientVersion", error.clientVersion);
+          console.log("error.serverVersion", error.serverVersion);
+          console.log("error.cause", error.cause);
+          console.log("error.stack", error.stack);
+          console.log("error.trace", error.trace);
+          console.log("------");
           // P2002: Unique constraint violation
           if (error.code === "P2002") {
             return reply.status(409).send({
