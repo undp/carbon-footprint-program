@@ -80,8 +80,11 @@ export const updateCarbonInventoryService = async (
     updateData.is_editable = data.isEditable;
   }
 
-  // TODO: Add updated by id from logged in user
-  updateData.updated_by_id = null;
+  // Only set updated_by_id if there are actual fields to update
+  // TODO: Replace null with actual logged-in user ID when auth is implemented
+  if (Object.keys(updateData).length > 0) {
+    updateData.updated_by_id = null;
+  }
 
   const item = await prismaClient.carbon_inventory.update({
     where: { id: BigInt(id) },
