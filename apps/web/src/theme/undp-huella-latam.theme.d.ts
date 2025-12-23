@@ -27,10 +27,10 @@ declare module "@mui/material/styles" {
       ratingFull: string;
       fluor: string;
     };
-    category?: {
-      one?: CategoryColors;
-      two?: CategoryColors;
-      three?: CategoryColors;
+    category: {
+      one: CategoryColors;
+      two: CategoryColors;
+      three: CategoryColors;
     };
   }
 
