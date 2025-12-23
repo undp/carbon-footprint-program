@@ -53,7 +53,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
       expect(body.id).toBe(testInventory.id.toString());
-      expect(body.year).toBe(2024);
+      expect(body.year).toBeNull();
       expect(body.status).toBe("DRAFT");
       expect(body.usageMode).toBe("SIMPLIFIED");
       expect(body.isEditable).toBe(true);
