@@ -8,81 +8,93 @@ GET {{baseUrl}}/api/carbon-inventories HTTP/1.1
 GET {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 
 
-### Create Carbon Inventory - Minimal (Required fields only)
+### Create Carbon Inventory - Minimal (SIMPLIFIED mode)
 POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
 Content-Type: application/json
 
 {
-  "year": 2024,
   "usageMode": "SIMPLIFIED"
 }
 
 
-### Create Carbon Inventory - Test validation with every field with non-null values
+### Create Carbon Inventory - EXPERT mode
 POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
 Content-Type: application/json
 
 {
-    "organizationId": "1",
-    "organizationBranchId": "1",
-    "organizationData": {
-        "name": "My Organization",
-        "sectorId": "1",
-        "subsectorId": "1",
-        "sizeId": "1",
-        "mainActivityId": "1",
-        "mainActivityQuantity": 0
-    },
-    "year": 2020,
-    "usageMode": "SIMPLIFIED",
-    "methodologyVersionId": "3",
-    "preselectedNodesId": "11"
+  "usageMode": "EXPERT"
 }
 
 
-### Create Carbon Inventory - Test validation with explicit nulls for all optional fields
-POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
+### Update Carbon Inventory - Update all fields
+PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 Content-Type: application/json
 
 {
-    "organizationId": null,
-    "organizationBranchId": null,
-    "organizationData": {
-        "name": null,
-        "sectorId": null,
-        "subsectorId": null,
-        "sizeId": null,
-        "mainActivityId": null,
-        "mainActivityQuantity": null
-    },
-    "year": 2020,
-    "usageMode": "SIMPLIFIED",
-    "methodologyVersionId": null,
-    "preselectedNodesId": null
+  "organizationId": "1",
+  "organizationBranchId": "1",
+  "organizationData": {
+    "name": "Updated Organization",
+    "sectorId": "2",
+    "subsectorId": "3",
+    "sizeId": "1",
+    "mainActivityId": "1",
+    "mainActivityQuantity": 100
+  },
+  "year": 2024,
+  "usageMode": "SIMPLIFIED",
+  "methodologyVersionId": "1",
+  "preselectedNodesId": "1",
+  "status": "DRAFT",
+  "isEditable": true
 }
 
 
-### Create Carbon Inventory - Test validation with organizationData is null
-POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
+### Update Carbon Inventory - Partial update (only year and usageMode)
+PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 Content-Type: application/json
 
 {
-    "organizationId": null,
-    "organizationBranchId": null,
-    "organizationData": null,
-    "year": 2020,
-    "usageMode": "EXPERT",
-    "methodologyVersionId": null,
-    "preselectedNodesId": null
+  "year": 2024,
+  "usageMode": "EXPERT"
 }
 
 
-### Create Carbon Inventory - Test validation with the minimal required fields
-POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
+### Update Carbon Inventory - Set nullable fields to null
+PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 Content-Type: application/json
 
 {
-    "year": 2023,
-    "usageMode": "EXPERT"
+  "organizationId": null,
+  "organizationBranchId": null,
+  "organizationData": null,
+  "year": null,
+  "methodologyVersionId": null,
+  "preselectedNodesId": null
+}
+
+
+### Update Carbon Inventory - Update organization data only
+PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "organizationData": {
+    "name": "My Company",
+    "sectorId": "1",
+    "subsectorId": "1",
+    "sizeId": "2",
+    "mainActivityId": "3",
+    "mainActivityQuantity": 50
+  }
+}
+
+
+### Update Carbon Inventory - Update status
+PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
+Content-Type: application/json
+
+{
+  "status": "SUBMITTED"
 }
 
