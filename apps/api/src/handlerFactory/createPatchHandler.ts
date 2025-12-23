@@ -1,8 +1,12 @@
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
+interface WithId {
+  id: string;
+}
+
 // Generic handler factory for patching/updating a resource
-export const createPatchHandler = <TParams, TBody, TResponse>(
+export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
   moduleName: string,
   serviceFn: (
     prisma: PrismaClient,
@@ -16,11 +20,14 @@ export const createPatchHandler = <TParams, TBody, TResponse>(
     reply: FastifyReply
   ) => {
     const log = request.log.child({ module: moduleName });
-    const id = (request.params as { id: string }).id;
+    // Safe to cast because TParams extends WithId, guaranteeing id exists
+    const params = request.params as TParams;
+    const body = request.body as TBody;
+    const { id } = params;
     log.info(`Updating ${resourceName} ${id}...`);
 
     const prisma = request.server.prisma;
-    const data = await serviceFn(prisma, id, request.body as TBody);
+    const data = await serviceFn(prisma, id, body);
 
     if (!data) {
       log.warn(`${resourceName} with ID ${id} not found`);
