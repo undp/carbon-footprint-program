@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
-import type { Prisma } from "@repo/database";
+import { Prisma } from "@repo/database";
+import { mapBigIntField } from "@/utils/bigint.js";
 
 /**
  * Gets a pre-seeded test user by email
@@ -39,30 +40,18 @@ export async function getTestUsers(
 export const carbonInventoryPatterns = {
   /**
    * Returns a minimal draft carbon inventory input object with SIMPLIFIED mode.
-   *   - year: 2024
-   *   - status: "DRAFT"
    *   - usage_mode: "SIMPLIFIED"
-   *   - is_editable: true
    */
   simplifiedDraft: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "DRAFT",
     usage_mode: "SIMPLIFIED",
-    is_editable: true,
   }),
 
   /**
    * Returns a minimal draft carbon inventory input object with EXPERT mode.
-   *   - year: 2024
-   *   - status: "DRAFT"
    *   - usage_mode: "EXPERT"
-   *   - is_editable: true
    */
   expertDraft: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "DRAFT",
     usage_mode: "EXPERT",
-    is_editable: true,
   }),
 
   /**
@@ -227,6 +216,34 @@ export async function createInventoryFromPattern(
 ) {
   const data = { ...pattern(), ...overrides };
   return createCarbonInventory(prisma, data);
+}
+
+/**
+ * Seeds a carbon inventory with common defaults and optional overrides
+ * This is a convenience function for test setup
+ */
+export async function seedCarbonInventory(
+  prisma: PrismaClient,
+  data: Prisma.carbon_inventoryUncheckedCreateInput
+) {
+  return prisma.carbon_inventory.create({
+    data: {
+      year: data.year,
+      usage_mode: data.usage_mode,
+      status: data.status,
+      is_editable: data.is_editable,
+      organization_id: mapBigIntField(data.organization_id?.toString()) ?? null,
+      organization_branch_id:
+        mapBigIntField(data.organization_branch_id?.toString()) ?? null,
+      organization_data: data.organization_data ?? Prisma.JsonNull,
+      methodology_version_id:
+        mapBigIntField(data.methodology_version_id?.toString()) ?? null,
+      preselected_nodes_id:
+        mapBigIntField(data.preselected_nodes_id?.toString()) ?? null,
+      created_by_id: data.created_by_id ?? null,
+      updated_by_id: data.updated_by_id ?? null,
+    },
+  });
 }
 
 /**

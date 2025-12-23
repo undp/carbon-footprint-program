@@ -10,7 +10,7 @@ CREATE TABLE "carbon_inventory" (
     "organization_id" BIGINT,
     "organization_branch_id" BIGINT,
     "organization_data" JSONB,
-    "year" INTEGER NOT NULL,
+    "year" INTEGER,
     "status" "inventory_status" NOT NULL DEFAULT 'DRAFT',
     "usage_mode" "usage_mode" NOT NULL,
     "methodology_version_id" BIGINT,
