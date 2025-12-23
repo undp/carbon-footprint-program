@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { Prisma } from "@repo/database";
+import { Prisma } from "@repo/database";
 
 /**
  * Gets a pre-seeded test user by email
@@ -39,30 +39,18 @@ export async function getTestUsers(
 export const carbonInventoryPatterns = {
   /**
    * Returns a minimal draft carbon inventory input object with SIMPLIFIED mode.
-   *   - year: 2024
-   *   - status: "DRAFT"
    *   - usage_mode: "SIMPLIFIED"
-   *   - is_editable: true
    */
   simplifiedDraft: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "DRAFT",
     usage_mode: "SIMPLIFIED",
-    is_editable: true,
   }),
 
   /**
    * Returns a minimal draft carbon inventory input object with EXPERT mode.
-   *   - year: 2024
-   *   - status: "DRAFT"
    *   - usage_mode: "EXPERT"
-   *   - is_editable: true
    */
   expertDraft: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "DRAFT",
     usage_mode: "EXPERT",
-    is_editable: true,
   }),
 
   /**
@@ -227,6 +215,48 @@ export async function createInventoryFromPattern(
 ) {
   const data = { ...pattern(), ...overrides };
   return createCarbonInventory(prisma, data);
+}
+
+/**
+ * Seeds a carbon inventory with common defaults and optional overrides
+ * This is a convenience function for test setup
+ */
+export async function seedCarbonInventory(
+  prisma: PrismaClient,
+  data: Prisma.carbon_inventoryUncheckedCreateInput
+) {
+  return prisma.carbon_inventory.create({
+    data: {
+      year: data.year,
+      usage_mode: data.usage_mode,
+      status: data.status,
+      is_editable: data.is_editable,
+      organization_id: data.organization_id
+        ? BigInt(data.organization_id)
+        : data.organization_id
+          ? BigInt(data.organization_id)
+          : null,
+      organization_branch_id: data.organization_branch_id
+        ? BigInt(data.organization_branch_id)
+        : data.organization_branch_id
+          ? BigInt(data.organization_branch_id)
+          : null,
+      organization_data:
+        data.organization_data ?? data.organization_data ?? Prisma.JsonNull,
+      methodology_version_id: data.methodology_version_id
+        ? BigInt(data.methodology_version_id)
+        : data.methodology_version_id
+          ? BigInt(data.methodology_version_id)
+          : null,
+      preselected_nodes_id: data.preselected_nodes_id
+        ? BigInt(data.preselected_nodes_id)
+        : data.preselected_nodes_id
+          ? BigInt(data.preselected_nodes_id)
+          : null,
+      created_by_id: data.created_by_id ?? null,
+      updated_by_id: data.updated_by_id ?? null,
+    },
+  });
 }
 
 /**
