@@ -23,13 +23,14 @@ export const getAllOrganizationMainActivitiesService = async (
 
   // Add filter-specific conditions (generic activities already added above)
   if (filters?.sectorId) {
-    // Only sectorId is provided
+    // Add sector-specific activities
     orConditions.push({
       country_sector_id: BigInt(filters.sectorId),
     });
   }
 
   if (filters?.subsectorId) {
+    // Add subsector-specific activities
     orConditions.push({
       country_subsector_id: BigInt(filters.subsectorId),
     });
