@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import type {
   CreateCarbonInventoryRequest,
   CreateCarbonInventoryResponse,
