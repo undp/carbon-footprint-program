@@ -4,22 +4,7 @@ import type {
   UpdateCarbonInventoryResponse,
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
-
-/**
- * Helper to map optional string ID fields to BigInt or null.
- * - Returns undefined if value is undefined (field not provided)
- * - Returns null if value is null or empty string
- * - Returns BigInt(value) otherwise
- */
-const mapBigIntField = (
-  value: string | null | undefined
-): bigint | null | undefined => {
-  if (value === undefined) return undefined;
-
-  if (value === null || value === "") return null;
-
-  return BigInt(value);
-};
+import { mapBigIntField } from "@/utils/bigint.js";
 
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,

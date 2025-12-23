@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
+import { mapBigIntField } from "@/utils/bigint.js";
 
 /**
  * Gets a pre-seeded test user by email
@@ -231,19 +232,14 @@ export async function seedCarbonInventory(
       usage_mode: data.usage_mode,
       status: data.status,
       is_editable: data.is_editable,
-      organization_id: data.organization_id
-        ? BigInt(data.organization_id)
-        : null,
-      organization_branch_id: data.organization_branch_id
-        ? BigInt(data.organization_branch_id)
-        : null,
+      organization_id: mapBigIntField(data.organization_id?.toString()) ?? null,
+      organization_branch_id:
+        mapBigIntField(data.organization_branch_id?.toString()) ?? null,
       organization_data: data.organization_data ?? Prisma.JsonNull,
-      methodology_version_id: data.methodology_version_id
-        ? BigInt(data.methodology_version_id)
-        : null,
-      preselected_nodes_id: data.preselected_nodes_id
-        ? BigInt(data.preselected_nodes_id)
-        : null,
+      methodology_version_id:
+        mapBigIntField(data.methodology_version_id?.toString()) ?? null,
+      preselected_nodes_id:
+        mapBigIntField(data.preselected_nodes_id?.toString()) ?? null,
       created_by_id: data.created_by_id ?? null,
       updated_by_id: data.updated_by_id ?? null,
     },
