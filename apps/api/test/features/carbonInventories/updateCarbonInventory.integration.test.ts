@@ -505,7 +505,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         payload: {
           organizationData: {
             name: "Test",
-            sectorId: "invalid", // Should be numeric string
+            sectorId: "invalid", // non-numeric string should fail numeric-id validation
             subsectorId: "10",
             sizeId: "5",
             mainActivityId: "15",
