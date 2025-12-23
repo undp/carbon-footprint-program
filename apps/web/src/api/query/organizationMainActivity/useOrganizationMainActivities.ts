@@ -28,6 +28,6 @@ export function useOrganizationMainActivities(filters?: Filters) {
         .json();
     },
     staleTime: STALE_TIME_MS,
-    enabled: filters?.subsectorId ? !!filters?.sectorId : true,
+    enabled: !filters?.subsectorId || !!filters?.sectorId,
   });
 }
