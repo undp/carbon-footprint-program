@@ -20,6 +20,7 @@ import {
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
+import { useSnackbar } from "notistack";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -31,6 +32,7 @@ const YEARS = Array.from(
 
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
@@ -95,6 +97,12 @@ export const BusinessProfilingScreen: FC = () => {
   const onSubmit = async (data: BusinessProfilingFormValues) => {
     await submit(data);
   };
+
+  if (!inventoryId) {
+    enqueueSnackbar("No se encontró el inventario", { variant: "error" });
+    void navigate({ to: Routes.CARBON_INVENTORY as string });
+    return null;
+  }
 
   return (
     <form
