@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { CarbonInventory, UsageMode } from "@repo/types";
 import { mapInventoryToFormValues } from "../utils/businessProfilingTransformers";
@@ -40,11 +40,37 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
   const selectedSubsectorId = useWatch({ control, name: "subSector" });
   const selectedActivityId = useWatch({ control, name: "activity" });
 
+  const prevSectorIdRef = useRef<string | undefined>(undefined);
+  const prevSubsectorIdRef = useRef<string | undefined>(undefined);
+  const isSettingFormDataRef = useRef<boolean>(true);
+
   useEffect(() => {
-    if (!selectedSectorId) {
-      setValue("subSector", "");
+    if (isSettingFormDataRef.current) {
+      prevSectorIdRef.current = selectedSectorId;
+      isSettingFormDataRef.current = false;
+      return;
     }
+
+    if (selectedSectorId !== prevSectorIdRef.current) {
+      setValue("subSector", "");
+      setValue("activity", "");
+      setValue("quantity", "");
+    }
+    prevSectorIdRef.current = selectedSectorId;
   }, [selectedSectorId, setValue]);
+
+  useEffect(() => {
+    if (isSettingFormDataRef.current) {
+      prevSubsectorIdRef.current = selectedSubsectorId;
+      return;
+    }
+
+    if (selectedSubsectorId !== prevSubsectorIdRef.current) {
+      setValue("activity", "");
+      setValue("quantity", "");
+    }
+    prevSubsectorIdRef.current = selectedSubsectorId;
+  }, [selectedSubsectorId, setValue]);
 
   useEffect(() => {
     if (!selectedActivityId) {
@@ -54,8 +80,11 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
 
   useEffect(() => {
     if (existingInventory) {
+      isSettingFormDataRef.current = true;
       const mappedInventory = mapInventoryToFormValues(existingInventory);
       reset(mappedInventory);
+    } else {
+      isSettingFormDataRef.current = false;
     }
   }, [existingInventory, reset]);
 
