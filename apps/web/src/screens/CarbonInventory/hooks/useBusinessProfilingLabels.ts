@@ -7,7 +7,6 @@ const BASE_LABELS = {
   companyNameLabel: "Nombre de la empresa (Opcional)",
   companySizeLabel: "Tamaño",
   sectorLabel: "Rubro",
-  subSectorLabel: "Sub-rubro",
   activityLabel: "Actividad principal del negocio",
   quantityLabel: "Cantidad de actividad principal al año",
 } as const;
@@ -20,7 +19,7 @@ export function useBusinessProfilingLabels({
   selectedActivity?: NamedItem;
 }) {
   const subSectorLabel = useMemo(
-    () => (selectedSector ? BASE_LABELS.subSectorLabel : "Selecciona el rubro"),
+    () => (selectedSector ? "Sub-rubro" : "Selecciona el rubro"),
     [selectedSector]
   );
 
