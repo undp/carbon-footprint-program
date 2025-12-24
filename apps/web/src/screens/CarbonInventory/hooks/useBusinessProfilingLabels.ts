@@ -11,13 +11,13 @@ const BASE_LABELS = {
   quantityLabel: "Cantidad de actividad principal al año",
 } as const;
 
-export function useBusinessProfilingLabels({
+export const useBusinessProfilingLabels = ({
   selectedSector,
   selectedActivity,
 }: {
   selectedSector?: NamedItem;
   selectedActivity?: NamedItem;
-}) {
+}) => {
   const subSectorLabel = useMemo(
     () => (selectedSector ? "Sub-rubro" : "Selecciona el rubro"),
     [selectedSector]
@@ -32,4 +32,4 @@ export function useBusinessProfilingLabels({
   );
 
   return { ...BASE_LABELS, subSectorLabel, quantityLabel };
-}
+};

@@ -5,7 +5,7 @@ type Option<Value extends string | number = string> = {
   value: Value;
 };
 
-export function useSelectorOptions<
+export const useSelectorOptions = <
   KLabel extends keyof T,
   KValue extends keyof T,
   T extends Record<KLabel, unknown> & Record<KValue, string | number>,
@@ -13,7 +13,7 @@ export function useSelectorOptions<
   items: T[] | undefined,
   labelKey: KLabel,
   valueKey: KValue
-): Option<T[KValue]>[] {
+): Option<T[KValue]>[] => {
   return useMemo(
     () =>
       (items ?? []).map((item) => ({
@@ -22,4 +22,4 @@ export function useSelectorOptions<
       })),
     [items, labelKey, valueKey]
   );
-}
+};

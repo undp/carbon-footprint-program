@@ -9,7 +9,7 @@ import { STALE_TIME_MS } from "@/config/constants";
 
 type Filters = GetAllOrganizationMainActivitiesQuery;
 
-export function useOrganizationMainActivities(filters?: Filters) {
+export const useOrganizationMainActivities = (filters?: Filters) => {
   return useQuery<GetAllOrganizationMainActivitiesResponse>({
     queryKey: organizationMainActivityKeys.list(filters),
     queryFn: () => {
@@ -30,4 +30,4 @@ export function useOrganizationMainActivities(filters?: Filters) {
     staleTime: STALE_TIME_MS,
     enabled: !filters?.subsectorId || !!filters?.sectorId,
   });
-}
+};

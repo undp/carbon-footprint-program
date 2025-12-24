@@ -1,9 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { CreateCarbonInventoryRequest, CreateCarbonInventoryResponse } from "@repo/types";
+import {
+  CreateCarbonInventoryRequest,
+  CreateCarbonInventoryResponse,
+} from "@repo/types";
 import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http";
 
-export function useCreateCarbonInventory() {
+export const useCreateCarbonInventory = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -20,4 +23,4 @@ export function useCreateCarbonInventory() {
       });
     },
   });
-}
+};

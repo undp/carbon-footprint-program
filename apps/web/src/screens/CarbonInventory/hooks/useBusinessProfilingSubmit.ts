@@ -8,7 +8,10 @@ type Params = {
   onSuccess?: () => void;
 };
 
-export function useBusinessProfilingSubmit({ inventoryId, onSuccess }: Params) {
+export const useBusinessProfilingSubmit = ({
+  inventoryId,
+  onSuccess,
+}: Params) => {
   const { enqueueSnackbar } = useSnackbar();
   const updateCarbonInventoryMutation = useUpdateCarbonInventory();
 
@@ -40,4 +43,4 @@ export function useBusinessProfilingSubmit({ inventoryId, onSuccess }: Params) {
   };
 
   return { submit, isSubmitting: updateCarbonInventoryMutation.isPending };
-}
+};

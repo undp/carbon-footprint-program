@@ -4,11 +4,11 @@ import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import { STALE_TIME_MS } from "@/config/constants";
 
-export function useCarbonInventory(id: string) {
+export const useCarbonInventory = (id: string) => {
   return useQuery<GetCarbonInventoryByIdResponse>({
     queryKey: carbonInventoryKeys.detail(id),
     queryFn: () => apiClient.get(`carbon-inventories/${id}`).json(),
     staleTime: STALE_TIME_MS,
     enabled: !!id,
   });
-}
+};

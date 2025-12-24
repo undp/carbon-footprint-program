@@ -11,7 +11,7 @@ type UpdateCarbonInventoryVariables = {
   data: UpdateCarbonInventoryRequest;
 };
 
-export function useUpdateCarbonInventory() {
+export const useUpdateCarbonInventory = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
@@ -30,4 +30,4 @@ export function useUpdateCarbonInventory() {
       });
     },
   });
-}
+};

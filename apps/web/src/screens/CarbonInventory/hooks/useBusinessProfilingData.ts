@@ -12,11 +12,11 @@ type Params = {
   selectedActivityId?: string;
 };
 
-export function useBusinessProfilingData({
+export const useBusinessProfilingData = ({
   selectedSectorId,
   selectedSubsectorId,
   selectedActivityId,
-}: Params) {
+}: Params) => {
   const { data: sectors = [], isLoading: sectorsLoading } = useCountrySectors();
   const { data: organizationSizes = [], isLoading: organizationSizesLoading } =
     useCountryOrganizationSizes();
@@ -75,4 +75,4 @@ export function useBusinessProfilingData({
     organizationSizesLoading,
     activitiesLoading,
   };
-}
+};
