@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import capinautPointing from "@assets/capinaut-pointing.png";
-import { FootprintCalculatorLayout } from "./layout";
+import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import {
   FormAutocompleteField,
@@ -103,7 +103,7 @@ export const BusinessProfilingScreen: FC = () => {
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >
-      <FootprintCalculatorLayout
+      <CarbonInventoryLayout
         headerProps={{
           title: "Simulador de Inventario Organizacional",
         }}
@@ -236,7 +236,7 @@ export const BusinessProfilingScreen: FC = () => {
             </Box>
           </Box>
         </Box>
-      </FootprintCalculatorLayout>
+      </CarbonInventoryLayout>
     </form>
   );
 };

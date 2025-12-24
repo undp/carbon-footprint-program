@@ -1,5 +1,5 @@
 export {
-  FootprintCalculatorLayout,
-  FootprintCalculatorHeader,
-  FootprintCalculatorFooter,
+  CarbonInventoryLayout,
+  CarbonInventoryHeader,
+  CarbonInventoryFooter,
 } from "./CarbonInventoryLayout";

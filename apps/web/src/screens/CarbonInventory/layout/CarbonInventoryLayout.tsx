@@ -7,11 +7,11 @@ import { Routes } from "@/interfaces/routes";
 import { useNavigate } from "@tanstack/react-router";
 
 // Componente para el header reutilizable
-interface FootprintCalculatorHeaderProps {
+interface CarbonInventoryHeaderProps {
   title?: string;
 }
 
-export const FootprintCalculatorHeader: FC<FootprintCalculatorHeaderProps> = ({
+export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   title = "Inventario Organizacional",
 }) => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ export const FootprintCalculatorHeader: FC<FootprintCalculatorHeaderProps> = ({
 };
 
 // Componente para el footer reutilizable
-interface FootprintCalculatorFooterProps {
+interface CarbonInventoryFooterProps {
   backText?: string;
   nextText?: string;
   showBack?: boolean;
@@ -50,7 +50,7 @@ interface FootprintCalculatorFooterProps {
   nextButtonProps?: Partial<ButtonProps>;
 }
 
-export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
+export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
   backText = "Volver",
   nextText = "Siguiente",
   showBack = true,
@@ -88,25 +88,25 @@ export const FootprintCalculatorFooter: FC<FootprintCalculatorFooterProps> = ({
 };
 
 // Layout principal que combina todo
-interface FootprintCalculatorLayoutProps {
+interface CarbonInventoryLayoutProps {
   children: ReactNode;
-  headerProps?: FootprintCalculatorHeaderProps;
-  footerProps?: FootprintCalculatorFooterProps;
+  headerProps?: CarbonInventoryHeaderProps;
+  footerProps?: CarbonInventoryFooterProps;
 }
 
-export const FootprintCalculatorLayout: FC<FootprintCalculatorLayoutProps> = ({
+export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
   children,
   headerProps,
   footerProps,
 }) => {
   return (
     <Box className="flex flex-col min-h-screen">
-      <FootprintCalculatorHeader {...headerProps} />
+      <CarbonInventoryHeader {...headerProps} />
 
       {/* Content */}
       {children}
 
-      <FootprintCalculatorFooter {...footerProps} />
+      <CarbonInventoryFooter {...footerProps} />
     </Box>
   );
 };

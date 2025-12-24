@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Button } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { FootprintCalculatorLayout } from "./layout";
+import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 
@@ -12,7 +12,7 @@ export const SubCategoryPreselectionScreen: FC = () => {
   });
 
   return (
-    <FootprintCalculatorLayout
+    <CarbonInventoryLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
       }}
@@ -47,6 +47,6 @@ export const SubCategoryPreselectionScreen: FC = () => {
           </Box>
         </Box>
       </Box>
-    </FootprintCalculatorLayout>
+    </CarbonInventoryLayout>
   );
 };
