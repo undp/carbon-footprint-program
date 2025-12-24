@@ -24,7 +24,7 @@ export const FootprintCalculatorHeader: FC<FootprintCalculatorHeaderProps> = ({
       }}
     >
       <Box
-        sx={{ cursor: "pointer" }}
+        className="cursor-pointer"
         onClick={() => {
           void navigate({ to: Routes.HOME as string });
         }}
