@@ -33,7 +33,7 @@ export const mapFormValuesToRequest = (
   values: BusinessProfilingFormValues
 ): UpdateCarbonInventoryRequest => {
   return {
-    year: values.year ? Number(values.year) : undefined,
+    year: values.year !== "" ? Number(values.year) : undefined,
     usageMode: values.usageMode,
     organizationData: {
       name: values.companyName || null,
