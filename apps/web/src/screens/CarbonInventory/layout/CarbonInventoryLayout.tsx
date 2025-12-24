@@ -3,7 +3,7 @@ import { Box, Button, Typography } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
-import { Routes } from "../../../interfaces/routes/routes.enum";
+import { Routes } from "@/interfaces/routes";
 import { useNavigate } from "@tanstack/react-router";
 
 // Componente para el header reutilizable
