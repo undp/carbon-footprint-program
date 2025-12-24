@@ -47,7 +47,6 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
   useEffect(() => {
     if (isSettingFormDataRef.current) {
       prevSectorIdRef.current = selectedSectorId;
-      isSettingFormDataRef.current = false;
       return;
     }
 
@@ -62,7 +61,6 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
   useEffect(() => {
     if (isSettingFormDataRef.current) {
       prevSubsectorIdRef.current = selectedSubsectorId;
-      return;
     }
 
     if (selectedSubsectorId !== prevSubsectorIdRef.current) {
@@ -83,7 +81,18 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
       isSettingFormDataRef.current = true;
       const mappedInventory = mapInventoryToFormValues(existingInventory);
       reset(mappedInventory);
+
+      // Mantén refs alineadas con los valores iniciales antes de habilitar efectos
+      prevSectorIdRef.current = mappedInventory.sector || undefined;
+      prevSubsectorIdRef.current = mappedInventory.subSector || undefined;
+
+      // Libera los efectos luego de que RHF propague los valores
+      queueMicrotask(() => {
+        isSettingFormDataRef.current = false;
+      });
     } else {
+      prevSectorIdRef.current = undefined;
+      prevSubsectorIdRef.current = undefined;
       isSettingFormDataRef.current = false;
     }
   }, [existingInventory, reset]);
