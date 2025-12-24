@@ -42,6 +42,7 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
 
   const prevSectorIdRef = useRef<string | undefined>(undefined);
   const prevSubsectorIdRef = useRef<string | undefined>(undefined);
+  const prevActivityIdRef = useRef<string | undefined>(undefined);
   const isSettingFormDataRef = useRef<boolean>(true);
 
   useEffect(() => {
@@ -61,6 +62,7 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
   useEffect(() => {
     if (isSettingFormDataRef.current) {
       prevSubsectorIdRef.current = selectedSubsectorId;
+      return;
     }
 
     if (selectedSubsectorId !== prevSubsectorIdRef.current) {
@@ -71,9 +73,16 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
   }, [selectedSubsectorId, setValue]);
 
   useEffect(() => {
-    if (!selectedActivityId) {
+    if (isSettingFormDataRef.current) {
+      prevActivityIdRef.current = selectedActivityId;
+      return;
+    }
+
+    if (selectedActivityId !== prevActivityIdRef.current) {
       setValue("quantity", "");
     }
+
+    prevActivityIdRef.current = selectedActivityId;
   }, [selectedActivityId, setValue]);
 
   useEffect(() => {
@@ -82,17 +91,19 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
       const mappedInventory = mapInventoryToFormValues(existingInventory);
       reset(mappedInventory);
 
-      // Mantén refs alineadas con los valores iniciales antes de habilitar efectos
+      // Keeps refs aligned with initial values before enabling effects
       prevSectorIdRef.current = mappedInventory.sector || undefined;
       prevSubsectorIdRef.current = mappedInventory.subSector || undefined;
+      prevActivityIdRef.current = mappedInventory.activity || undefined;
 
-      // Libera los efectos luego de que RHF propague los valores
+      // Releases effects after React Hook Form propagates the values
       queueMicrotask(() => {
         isSettingFormDataRef.current = false;
       });
     } else {
       prevSectorIdRef.current = undefined;
       prevSubsectorIdRef.current = undefined;
+      prevActivityIdRef.current = undefined;
       isSettingFormDataRef.current = false;
     }
   }, [existingInventory, reset]);
