@@ -41,7 +41,8 @@ export const mapFormValuesToRequest = (
       subsectorId: values.subSector || null,
       sizeId: values.companySize || null,
       mainActivityId: values.activity || null,
-      mainActivityQuantity: values.quantity ? Number(values.quantity) : null,
+      mainActivityQuantity:
+        values.quantity !== "" ? Number(values.quantity) : null,
     },
   };
 };
