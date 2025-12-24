@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { CarbonInventory, UsageMode } from "@repo/types";
 import { mapInventoryToFormValues } from "../utils/businessProfilingTransformers";
+import { useResetOnChange } from "@/hooks";
 
 export type BusinessProfilingFormValues = {
   year: string;
@@ -29,7 +30,7 @@ const defaultValues: BusinessProfilingFormValues = {
   quantity: "",
 };
 
-export function useBusinessProfilingForm({ existingInventory }: Params) {
+export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
   const form = useForm<BusinessProfilingFormValues>({
     defaultValues,
   });
@@ -45,45 +46,35 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
   const prevActivityIdRef = useRef<string | undefined>(undefined);
   const isSettingFormDataRef = useRef<boolean>(true);
 
-  useEffect(() => {
-    if (isSettingFormDataRef.current) {
-      prevSectorIdRef.current = selectedSectorId;
-      return;
-    }
-
-    if (selectedSectorId !== prevSectorIdRef.current) {
+  useResetOnChange(
+    isSettingFormDataRef,
+    selectedSectorId,
+    prevSectorIdRef,
+    () => {
       setValue("subSector", "");
       setValue("activity", "");
       setValue("quantity", "");
     }
-    prevSectorIdRef.current = selectedSectorId;
-  }, [selectedSectorId, setValue]);
+  );
 
-  useEffect(() => {
-    if (isSettingFormDataRef.current) {
-      prevSubsectorIdRef.current = selectedSubsectorId;
-      return;
-    }
-
-    if (selectedSubsectorId !== prevSubsectorIdRef.current) {
+  useResetOnChange(
+    isSettingFormDataRef,
+    selectedSubsectorId,
+    prevSubsectorIdRef,
+    () => {
       setValue("activity", "");
       setValue("quantity", "");
     }
-    prevSubsectorIdRef.current = selectedSubsectorId;
-  }, [selectedSubsectorId, setValue]);
+  );
 
-  useEffect(() => {
-    if (isSettingFormDataRef.current) {
-      prevActivityIdRef.current = selectedActivityId;
-      return;
-    }
-
-    if (selectedActivityId !== prevActivityIdRef.current) {
+  useResetOnChange(
+    isSettingFormDataRef,
+    selectedActivityId,
+    prevActivityIdRef,
+    () => {
       setValue("quantity", "");
     }
-
-    prevActivityIdRef.current = selectedActivityId;
-  }, [selectedActivityId, setValue]);
+  );
 
   useEffect(() => {
     if (existingInventory) {
@@ -114,4 +105,4 @@ export function useBusinessProfilingForm({ existingInventory }: Params) {
     selectedSubsectorId,
     selectedActivityId,
   };
-}
+};
