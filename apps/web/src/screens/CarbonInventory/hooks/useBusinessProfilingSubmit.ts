@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useSnackbar } from "notistack";
 import { useUpdateCarbonInventory } from "@/api/query";
 import { BusinessProfilingFormValues } from "./useBusinessProfilingForm";
@@ -12,10 +11,8 @@ type Params = {
 export function useBusinessProfilingSubmit({ inventoryId, onSuccess }: Params) {
   const { enqueueSnackbar } = useSnackbar();
   const updateCarbonInventoryMutation = useUpdateCarbonInventory();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const submit = async (data: BusinessProfilingFormValues) => {
-    setIsSubmitting(true);
     try {
       if (!inventoryId) {
         enqueueSnackbar("No se encontró el inventario a editar", {
@@ -39,10 +36,8 @@ export function useBusinessProfilingSubmit({ inventoryId, onSuccess }: Params) {
       enqueueSnackbar("Error al guardar el inventario organizacional", {
         variant: "error",
       });
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
-  return { submit, isSubmitting };
+  return { submit, isSubmitting: updateCarbonInventoryMutation.isPending };
 }
