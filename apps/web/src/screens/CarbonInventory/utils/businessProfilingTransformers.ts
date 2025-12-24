@@ -19,7 +19,7 @@ export const mapInventoryToFormValues = (
 
   return {
     year: toSafeString(inventory.year),
-    usageMode: inventory.usageMode ?? "EXPERT",
+    usageMode: inventory.usageMode,
     companyName: toSafeString(organizationData?.name),
     sector: toSafeString(organizationData?.sectorId),
     subSector: toSafeString(organizationData?.subsectorId),
