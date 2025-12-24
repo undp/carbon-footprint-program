@@ -60,19 +60,38 @@ export const useBusinessProfilingData = ({
   );
   const activityOptions = useSelectorOptions(activities, "name", "id");
 
-  return {
-    sectors,
-    organizationSizes,
-    activities,
-    subsectorOptions,
-    selectedSector,
-    selectedActivity,
-    sectorOptions,
-    subsectorSelectOptions,
-    companySizeOptions,
-    activityOptions,
-    sectorsLoading,
-    organizationSizesLoading,
-    activitiesLoading,
-  };
+  const result = useMemo(
+    () => ({
+      sectors,
+      organizationSizes,
+      activities,
+      subsectorOptions,
+      selectedSector,
+      selectedActivity,
+      sectorOptions,
+      subsectorSelectOptions,
+      companySizeOptions,
+      activityOptions,
+      sectorsLoading,
+      organizationSizesLoading,
+      activitiesLoading,
+    }),
+    [
+      sectors,
+      organizationSizes,
+      activities,
+      subsectorOptions,
+      selectedSector,
+      selectedActivity,
+      sectorOptions,
+      subsectorSelectOptions,
+      companySizeOptions,
+      activityOptions,
+      sectorsLoading,
+      organizationSizesLoading,
+      activitiesLoading,
+    ]
+  );
+
+  return result;
 };
