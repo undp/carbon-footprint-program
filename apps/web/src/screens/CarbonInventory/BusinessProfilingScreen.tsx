@@ -44,7 +44,7 @@ export const BusinessProfilingScreen: FC = () => {
   )} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`;
 
   const { data: existingInventory, isLoading: inventoryLoading } =
-    useCarbonInventory(inventoryId || "");
+    useCarbonInventory(inventoryId);
 
   const {
     control,
