@@ -6,7 +6,6 @@ import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces/routes";
 import { useNavigate } from "@tanstack/react-router";
 
-// Componente para el header reutilizable
 interface CarbonInventoryHeaderProps {
   title?: string;
 }
@@ -21,29 +20,18 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
       position="sticky"
       color="default"
       elevation={0}
-      sx={{
-        top: 0,
-        left: 0,
-        right: 0,
-        boxShadow: "0px 4px 8px rgba(0,0,0,0.04)",
-        bgcolor: "background.paper",
-        zIndex: (theme) => theme.zIndex.appBar,
-      }}
+      className="top-0 left-0 right-0"
+      sx={{ boxShadow: "0px 4px 8px rgba(0,0,0,0.04)" }}
     >
       <Toolbar
         disableGutters
-        className="flex flex-row justify-start items-center gap-6 h-20 px-6"
-        sx={{
-          minHeight: "80px",
-          px: 6,
-        }}
+        className="flex flex-row justify-start items-center gap-6 h-20 px-6 py-4 bg-white"
       >
         <Box
-          className="cursor-pointer"
+          className="cursor-pointer flex items-center"
           onClick={() => {
             void navigate({ to: Routes.HOME as string });
           }}
-          sx={{ display: "flex", alignItems: "center" }}
         >
           <HuellaLatamLogo
             sx={{
@@ -58,7 +46,6 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   );
 };
 
-// Componente para el footer reutilizable
 interface CarbonInventoryFooterProps {
   backText?: string;
   nextText?: string;
@@ -78,27 +65,17 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
     <AppBar
       position="sticky"
       color="default"
-      sx={{
-        top: "auto",
-        bottom: 0,
-        boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)",
-      }}
+      elevation={0}
+      className="top-auto bottom-0"
     >
       <Toolbar
-        className="flex flex-row justify-end items-center gap-6"
-        sx={{
-          minHeight: "80px",
-          px: 4,
-          py: 3,
-          bgcolor: "background.paper",
-        }}
+        className="flex flex-row justify-end items-center gap-6 h-20 px-4 py-4 bg-white"
+        sx={{ boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)" }}
       >
         <Box className="flex flex-row gap-6">
           {showBack && (
             <Button
-              startIcon={
-                <ArrowRightAltRounded sx={{ transform: "scaleX(-1)" }} />
-              }
+              startIcon={<ArrowRightAltRounded className="-scale-x-100" />}
               {...backButtonProps}
             >
               {backText}
@@ -117,7 +94,6 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
   );
 };
 
-// Layout principal que combina todo
 interface CarbonInventoryLayoutProps {
   children: ReactNode;
   headerProps?: CarbonInventoryHeaderProps;
@@ -132,7 +108,6 @@ export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
   return (
     <Box className="flex flex-col h-screen">
       <CarbonInventoryHeader {...headerProps} />
-      {/* Content */}
       <Box className="flex-1 min-h-0 flex flex-col p-6">{children}</Box>
       <CarbonInventoryFooter {...footerProps} />
     </Box>
