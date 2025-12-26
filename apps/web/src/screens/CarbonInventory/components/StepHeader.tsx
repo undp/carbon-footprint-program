@@ -13,7 +13,7 @@ export const StepHeader: FC<StepHeaderProps> = ({
   action,
 }) => {
   return (
-    <Box className="flex flex-row justify-between items-center gap-4">
+    <Box className="flex flex-row items-center justify-between gap-4">
       <Box className="flex flex-col">
         <Typography variant="h6">{title}</Typography>
         <Typography variant="subtitle2" color="text.secondary">
@@ -24,4 +24,3 @@ export const StepHeader: FC<StepHeaderProps> = ({
     </Box>
   );
 };
-

@@ -67,8 +67,8 @@ export const CarbonInventoriesListScreen: FC = () => {
 
   return (
     <MainLayout>
-      <Box className="flex flex-col flex-1 gap-6 p-6">
-        <Box className="flex flex-col p-6 rounded-lg bg-white gap-6">
+      <Box className="flex flex-1 flex-col gap-6 p-6">
+        <Box className="flex flex-col gap-6 rounded-lg bg-white p-6">
           <StepHeader
             title="Inventarios de Carbono"
             description="Selecciona un inventario existente para continuar o crea uno nuevo."
@@ -89,7 +89,7 @@ export const CarbonInventoriesListScreen: FC = () => {
           {isLoading ? (
             <Typography>Cargando inventarios...</Typography>
           ) : inventories.length === 0 ? (
-            <Box className="text-center py-8">
+            <Box className="py-8 text-center">
               <Typography variant="h6" color="text.secondary">
                 No hay inventarios disponibles
               </Typography>
@@ -98,7 +98,7 @@ export const CarbonInventoriesListScreen: FC = () => {
               </Typography>
             </Box>
           ) : (
-            <Box className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Box className="grid grid-cols-1 gap-4 md:grid-cols-2">
               {inventories.map((inventory) => {
                 const organizationName =
                   typeof inventory.organizationData?.name === "string"
@@ -108,11 +108,11 @@ export const CarbonInventoriesListScreen: FC = () => {
                 return (
                   <Card
                     key={inventory.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    className="cursor-pointer transition-shadow hover:shadow-md"
                     onClick={() => handleSelectInventory(inventory)}
                   >
                     <CardContent className="p-4">
-                      <Box className="flex justify-between items-start mb-2">
+                      <Box className="mb-2 flex items-start justify-between">
                         <Typography variant="h6" component="div">
                           {organizationName}
                         </Typography>

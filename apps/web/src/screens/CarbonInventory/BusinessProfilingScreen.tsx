@@ -127,14 +127,14 @@ export const BusinessProfilingScreen: FC = () => {
           },
         }}
       >
-        <Box className="flex flex-col min-h-0 flex-1 gap-6">
-          <Box className="flex flex-col p-6 pb-2 rounded-lg bg-white gap-6">
+        <Box className="flex min-h-0 flex-1 flex-col gap-6">
+          <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
             <StepHeader
               title="Paso 1: Perfil de empresa"
               description="Esta información nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
             />
             <Box className="flex flex-row gap-6">
-              <Box className="flex-1 flex flex-col gap-2">
+              <Box className="flex flex-1 flex-col gap-2">
                 <FormSelectField
                   name="year"
                   control={control}
@@ -156,7 +156,7 @@ export const BusinessProfilingScreen: FC = () => {
                   disabled={organizationSizesLoading}
                 />
               </Box>
-              <Box className="flex-1 flex flex-col gap-8">
+              <Box className="flex flex-1 flex-col gap-8">
                 <FormTextField
                   name="companyName"
                   control={control}
@@ -165,8 +165,8 @@ export const BusinessProfilingScreen: FC = () => {
               </Box>
             </Box>
           </Box>
-          <Box className="flex flex-col p-6 rounded-lg bg-white gap-2">
-            <Box className="flex-1 flex flex-row gap-6">
+          <Box className="flex flex-col gap-2 rounded-lg bg-white p-6">
+            <Box className="flex flex-1 flex-row gap-6">
               <FormAutocompleteField
                 name="sector"
                 control={control}
@@ -192,7 +192,7 @@ export const BusinessProfilingScreen: FC = () => {
               />
             </Box>
             <Box className="flex flex-col gap-8">
-              <Box className="flex-1 flex flex-row gap-6">
+              <Box className="flex flex-1 flex-row gap-6">
                 <FormAutocompleteField
                   name="activity"
                   control={control}
@@ -213,12 +213,12 @@ export const BusinessProfilingScreen: FC = () => {
               </Box>
             </Box>
             <Box
-              className="flex flex-row w-full h-20 p-2"
+              className="flex h-20 w-full flex-row p-2"
               sx={{
                 background: gradient,
               }}
             >
-              <Box className="h-full w-10 flex items-center justify-center">
+              <Box className="flex h-full w-10 items-center justify-center">
                 <Box
                   component="img"
                   src={capinautPointing}

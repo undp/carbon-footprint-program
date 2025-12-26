@@ -26,8 +26,8 @@ export const SubCategoryPreselectionScreen: FC = () => {
         },
       }}
     >
-      <Box className="flex flex-col flex-1 gap-6 p-6">
-        <Box className="flex flex-col p-6 rounded-lg bg-white gap-6">
+      <Box className="flex flex-1 flex-col gap-6 p-6">
+        <Box className="flex flex-col gap-6 rounded-lg bg-white p-6">
           <StepHeader
             title="Paso 2: Preselección de subcategorías"
             description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
@@ -38,10 +38,10 @@ export const SubCategoryPreselectionScreen: FC = () => {
             }
           />
           <Box className="flex flex-row gap-6">
-            <Box className="flex-1 flex flex-col gap-8">
+            <Box className="flex flex-1 flex-col gap-8">
               {/* Agregar campos del formulario aquí */}
             </Box>
-            <Box className="flex-1 flex flex-col gap-8">
+            <Box className="flex flex-1 flex-col gap-8">
               {/* Agregar campos del formulario aquí */}
             </Box>
           </Box>

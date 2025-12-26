@@ -20,15 +20,15 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
       position="sticky"
       color="default"
       elevation={0}
-      className="top-0 left-0 right-0"
+      className="top-0 right-0 left-0"
       sx={{ boxShadow: "0px 4px 8px rgba(0,0,0,0.04)" }}
     >
       <Toolbar
         disableGutters
-        className="flex flex-row justify-start items-center gap-6 h-20 px-6 py-4 bg-white"
+        className="flex h-20 flex-row items-center justify-start gap-6 bg-white px-6 py-4"
       >
         <Box
-          className="cursor-pointer flex items-center"
+          className="flex cursor-pointer items-center"
           onClick={() => {
             void navigate({ to: Routes.HOME as string });
           }}
@@ -69,7 +69,7 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
       className="top-auto bottom-0"
     >
       <Toolbar
-        className="flex flex-row justify-end items-center gap-6 h-20 px-4 py-4 bg-white"
+        className="flex h-20 flex-row items-center justify-end gap-6 bg-white px-4 py-4"
         sx={{ boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)" }}
       >
         <Box className="flex flex-row gap-6">
@@ -106,9 +106,9 @@ export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
   footerProps,
 }) => {
   return (
-    <Box className="flex flex-col h-screen">
+    <Box className="flex h-screen flex-col">
       <CarbonInventoryHeader {...headerProps} />
-      <Box className="flex-1 min-h-0 flex flex-col p-6">{children}</Box>
+      <Box className="flex min-h-0 flex-1 flex-col p-6">{children}</Box>
       <CarbonInventoryFooter {...footerProps} />
     </Box>
   );
