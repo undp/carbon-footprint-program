@@ -5,9 +5,9 @@ type NamedItem = { name?: string };
 const BASE_LABELS = {
   yearLabel: "Año del inventario a calcular",
   companyNameLabel: "Nombre de la empresa (Opcional)",
-  companySizeLabel: "Tamaño",
+  companySizeLabel: "Tamaño (Opcional)",
   sectorLabel: "Rubro",
-  activityLabel: "Actividad principal del negocio",
+  activityLabel: "Actividad principal del negocio (Opcional)",
   quantityLabel: "Cantidad de actividad principal al año",
 } as const;
 
