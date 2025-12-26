@@ -208,6 +208,7 @@ export const BusinessProfilingScreen: FC = () => {
                   control={control}
                   label={quantityLabel}
                   disabled={!selectedActivityId}
+                  required={!!selectedActivityId}
                   type="number"
                 />
               </Box>
