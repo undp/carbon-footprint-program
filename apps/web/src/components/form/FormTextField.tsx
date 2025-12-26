@@ -32,7 +32,7 @@ export const FormTextField = <T extends FieldValues>({
           {...field}
           {...props}
           required={required}
-          error={!!fieldState.error}
+          error={!!fieldState.error && !props.disabled}
           helperText={fieldState.error?.message ?? helperText}
           fullWidth={fullWidth}
         />

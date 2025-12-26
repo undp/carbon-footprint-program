@@ -35,7 +35,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
     defaultValues,
   });
 
-  const { control, setValue, reset } = form;
+  const { control, setValue, reset, clearErrors } = form;
 
   const selectedSectorId = useWatch({ control, name: "sector" });
   const selectedSubsectorId = useWatch({ control, name: "subSector" });
@@ -54,6 +54,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
       setValue("subSector", "");
       setValue("activity", "");
       setValue("quantity", "");
+      clearErrors("quantity");
     }
   );
 
@@ -64,6 +65,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
     () => {
       setValue("activity", "");
       setValue("quantity", "");
+      clearErrors("quantity");
     }
   );
 
@@ -73,6 +75,7 @@ export const useBusinessProfilingForm = ({ existingInventory }: Params) => {
     prevActivityIdRef,
     () => {
       setValue("quantity", "");
+      clearErrors("quantity");
     }
   );
 
