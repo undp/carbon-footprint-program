@@ -12,7 +12,7 @@ export const LandingScreen: FC = () => {
   return (
     <Box
       component="main"
-      className="flex flex-col h-screen grow"
+      className="flex h-screen grow flex-col"
       sx={{
         position: "relative",
         background: `linear-gradient(0deg, ${alphaDeepForest} 0%, ${alphaDeepForest} 100%), 
@@ -31,8 +31,8 @@ export const LandingScreen: FC = () => {
         }}
       />
       <Header />
-      <Container className="flex justify-center flex-col gap-12">
-        <Box className="flex flex-col gap-4 items-center justify-center">
+      <Container className="flex flex-col justify-center gap-12">
+        <Box className="flex flex-col items-center justify-center gap-4">
           <Typography variant="h4" color="white">
             Te damos la bienvenida a
           </Typography>
