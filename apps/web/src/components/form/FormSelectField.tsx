@@ -49,7 +49,7 @@ export const FormSelectField = <T extends FieldValues>({
         <FormControl
           fullWidth={fullWidth}
           required={required}
-          error={!!fieldState.error}
+          error={!!fieldState.error && !props.disabled}
         >
           <InputLabel id={computedLabelId}>{label}</InputLabel>
 
