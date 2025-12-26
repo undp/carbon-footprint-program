@@ -209,6 +209,7 @@ export const BusinessProfilingScreen: FC = () => {
                   label={quantityLabel}
                   disabled={!selectedActivityId}
                   required={!!selectedActivityId}
+                  requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
                   type="number"
                 />
               </Box>
