@@ -1,0 +1,56 @@
+[
+  {
+    "scope": "ENTITY",
+    "code": "ACTIVE",
+    "name": "Activo",
+    "is_terminal": null,
+    "is_visible": null,
+    "sort_order": null,
+    "is_active": null
+  },
+  {
+    "scope": "ENTITY",
+    "code": "DELETED",
+    "name": "Eliminado",
+    "is_terminal": null,
+    "is_visible": null,
+    "sort_order": null,
+    "is_active": null
+  },
+  {
+    "scope": "CARBON_INVENTORY",
+    "code": "DRAFT",
+    "name": "Borrador",
+    "is_terminal": null,
+    "is_visible": null,
+    "sort_order": null,
+    "is_active": null
+  },
+  {
+    "scope": "CARBON_INVENTORY",
+    "code": "DELETED",
+    "name": "Eliminado",
+    "is_terminal": null,
+    "is_visible": null,
+    "sort_order": null,
+    "is_active": null
+  },
+  {
+    "scope": "CARBON_INVENTORY",
+    "code": "OUTDATED",
+    "name": "Deprecado",
+    "is_terminal": null,
+    "is_visible": null,
+    "sort_order": null,
+    "is_active": null
+  },
+  {
+    "scope": "CARBON_INVENTORY",
+    "code": "SUBMITTED",
+    "name": "Postulado",
+    "is_terminal": null,
+    "is_visible": null,
+    "sort_order": null,
+    "is_active": null
+  }
+]
