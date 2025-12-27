@@ -17,6 +17,7 @@ model country {
   country_organization_sizes country_organization_size[]
   country_sectors            country_sector[]
   country_parameters         country_parameter[]
+  methodology_versions       methodology_version[]
 }
 
 model country_parameter {
@@ -145,33 +146,45 @@ model system_role {
 }
 
 model user {
-  id                                   BigInt                       @id @default(autoincrement())
-  uuid                                 String                       @unique @default(uuid()) @db.Uuid
-  email                                String                       @unique
-  country_job_position_id              BigInt
-  first_name                           String?
-  last_name                            String?
-  created_at                           DateTime                     @default(now())
-  updated_at                           DateTime                     @default(now()) @updatedAt
-  created_by_id                        BigInt?
-  updated_by_id                        BigInt?
-  country_parameters_created           country_parameter[]          @relation("country_parameter_created_by")
-  country_parameters_updated           country_parameter[]          @relation("country_parameter_updated_by")
-  country_sectors_created              country_sector[]             @relation("country_sector_created_by")
-  country_sectors_updated              country_sector[]             @relation("country_sector_updated_by")
-  country_subsectors_created           country_subsector[]          @relation("country_subsector_created_by")
-  country_subsectors_updated           country_subsector[]          @relation("country_subsector_updated_by")
-  organization_main_activities_created organization_main_activity[] @relation("organization_main_activity_created_by")
-  organization_main_activities_updated organization_main_activity[] @relation("organization_main_activity_updated_by")
-  system_parameters_created            system_parameter[]           @relation("system_parameter_created_by")
-  system_parameters_updated            system_parameter[]           @relation("system_parameter_updated_by")
-  carbon_inventories_created           carbon_inventory[]           @relation("carbon_inventory_created_by")
-  carbon_inventories_updated           carbon_inventory[]           @relation("carbon_inventory_updated_by")
-  country_job_position                 country_job_position         @relation(fields: [country_job_position_id], references: [id])
-  creator                              user?                        @relation("user_created_by", fields: [created_by_id], references: [id])
-  users_created                        user[]                       @relation("user_created_by")
-  updater                              user?                        @relation("user_updated_by", fields: [updated_by_id], references: [id])
-  users_updated                        user[]                       @relation("user_updated_by")
+  id                                       BigInt                            @id @default(autoincrement())
+  uuid                                     String                            @unique @default(uuid()) @db.Uuid
+  email                                    String                            @unique
+  country_job_position_id                  BigInt
+  first_name                               String?
+  last_name                                String?
+  created_at                               DateTime                          @default(now())
+  updated_at                               DateTime                          @default(now()) @updatedAt
+  created_by_id                            BigInt?
+  updated_by_id                            BigInt?
+  country_parameters_created               country_parameter[]               @relation("country_parameter_created_by")
+  country_parameters_updated               country_parameter[]               @relation("country_parameter_updated_by")
+  country_sectors_created                  country_sector[]                  @relation("country_sector_created_by")
+  country_sectors_updated                  country_sector[]                  @relation("country_sector_updated_by")
+  country_subsectors_created               country_subsector[]               @relation("country_subsector_created_by")
+  country_subsectors_updated               country_subsector[]               @relation("country_subsector_updated_by")
+  organization_main_activities_created     organization_main_activity[]      @relation("organization_main_activity_created_by")
+  organization_main_activities_updated     organization_main_activity[]      @relation("organization_main_activity_updated_by")
+  system_parameters_created                system_parameter[]                @relation("system_parameter_created_by")
+  system_parameters_updated                system_parameter[]                @relation("system_parameter_updated_by")
+  carbon_inventories_created               carbon_inventory[]                @relation("carbon_inventory_created_by")
+  carbon_inventories_updated               carbon_inventory[]                @relation("carbon_inventory_updated_by")
+  methodology_versions_created             methodology_version[]             @relation("methodology_version_created_by")
+  methodology_versions_updated             methodology_version[]             @relation("methodology_version_updated_by")
+  categories_created                       category[]                        @relation("category_created_by")
+  categories_updated                       category[]                        @relation("category_updated_by")
+  subcategories_created                    subcategory[]                     @relation("subcategory_created_by")
+  subcategories_updated                    subcategory[]                     @relation("subcategory_updated_by")
+  emission_factor_dimensions_created       emission_factor_dimension[]       @relation("emission_factor_dimension_created_by")
+  emission_factor_dimensions_updated       emission_factor_dimension[]       @relation("emission_factor_dimension_updated_by")
+  emission_factor_dimension_values_created emission_factor_dimension_value[] @relation("emission_factor_dimension_value_created_by")
+  emission_factor_dimension_values_updated emission_factor_dimension_value[] @relation("emission_factor_dimension_value_updated_by")
+  emission_factors_created                 emission_factor[]                 @relation("emission_factor_created_by")
+  emission_factors_updated                 emission_factor[]                 @relation("emission_factor_updated_by")
+  country_job_position                     country_job_position              @relation(fields: [country_job_position_id], references: [id])
+  creator                                  user?                             @relation("user_created_by", fields: [created_by_id], references: [id])
+  users_created                            user[]                            @relation("user_created_by")
+  updater                                  user?                             @relation("user_updated_by", fields: [updated_by_id], references: [id])
+  users_updated                            user[]                            @relation("user_updated_by")
 }
 
 model measurement_unit {
@@ -186,13 +199,14 @@ model measurement_unit {
 }
 
 model rate_measurement_unit {
-  id                              BigInt           @id @default(autoincrement())
+  id                              BigInt            @id @default(autoincrement())
   name                            String
-  abbreviation                    String           @unique
+  abbreviation                    String            @unique
   numerator_measurement_unit_id   BigInt
   denominator_measurement_unit_id BigInt
-  denominator_measurement_unit    measurement_unit @relation("denominator_measurement_unit", fields: [denominator_measurement_unit_id], references: [id])
-  numerator_measurement_unit      measurement_unit @relation("numerator_measurement_unit", fields: [numerator_measurement_unit_id], references: [id])
+  denominator_measurement_unit    measurement_unit  @relation("denominator_measurement_unit", fields: [denominator_measurement_unit_id], references: [id])
+  numerator_measurement_unit      measurement_unit  @relation("numerator_measurement_unit", fields: [numerator_measurement_unit_id], references: [id])
+  emission_factors                emission_factor[]
 }
 
 enum Magnitude {
@@ -214,21 +228,168 @@ enum usage_mode {
   EXPERT
 }
 
+model status_catalog {
+  id                   BigInt                @id @default(autoincrement())
+  scope                String
+  code                 String
+  name                 String
+  is_terminal          Boolean?
+  is_visible           Boolean?
+  sort_order           Int?
+  is_active            Boolean?
+  created_at           DateTime              @default(now())
+  updated_at           DateTime              @default(now()) @updatedAt
+  methodology_versions methodology_version[]
+  emission_factors     emission_factor[]
+
+  @@unique([scope, code])
+}
+
+model methodology_version {
+  id                 BigInt             @id @default(autoincrement())
+  country_id         BigInt
+  name               String
+  description        String?
+  status_id          BigInt
+  created_at         DateTime           @default(now())
+  updated_at         DateTime           @default(now()) @updatedAt
+  created_by_id      BigInt?
+  updated_by_id      BigInt?
+  country            country            @relation(fields: [country_id], references: [id])
+  status             status_catalog     @relation(fields: [status_id], references: [id])
+  creator            user?              @relation("methodology_version_created_by", fields: [created_by_id], references: [id])
+  updater            user?              @relation("methodology_version_updated_by", fields: [updated_by_id], references: [id])
+  categories         category[]
+  carbon_inventories carbon_inventory[]
+
+  // TODO: Enforce via trigger at most 1 active per country
+  // TODO: Enforce somehow country's active_methodology_version_id must point to ACTIVE
+
+  @@unique([country_id, name])
+}
+
+model category {
+  id                     BigInt              @id @default(autoincrement())
+  methodology_version_id BigInt
+  name                   String
+  synonyms               String?
+  description            String?
+  examples               String?
+  created_at             DateTime            @default(now())
+  updated_at             DateTime            @default(now()) @updatedAt
+  created_by_id          BigInt?
+  updated_by_id          BigInt?
+  methodology_version    methodology_version @relation(fields: [methodology_version_id], references: [id])
+  creator                user?               @relation("category_created_by", fields: [created_by_id], references: [id])
+  updater                user?               @relation("category_updated_by", fields: [updated_by_id], references: [id])
+  subcategories          subcategory[]
+
+  @@unique([methodology_version_id, name])
+}
+
+model subcategory {
+  id                         BigInt                      @id @default(autoincrement())
+  category_id                BigInt
+  name                       String
+  description                String?
+  examples                   String?
+  created_at                 DateTime                    @default(now())
+  updated_at                 DateTime                    @default(now()) @updatedAt
+  created_by_id              BigInt?
+  updated_by_id              BigInt?
+  category                   category                    @relation(fields: [category_id], references: [id])
+  creator                    user?                       @relation("subcategory_created_by", fields: [created_by_id], references: [id])
+  updater                    user?                       @relation("subcategory_updated_by", fields: [updated_by_id], references: [id])
+  emission_factor_dimensions emission_factor_dimension[]
+  emission_factors           emission_factor[]
+
+  @@unique([category_id, name])
+}
+
+model emission_factor_dimension {
+  id                               BigInt                            @id @default(autoincrement())
+  subcategory_id                   BigInt
+  code                             String
+  name                             String
+  position                         Int
+  is_required                      Boolean
+  created_at                       DateTime                          @default(now())
+  updated_at                       DateTime                          @default(now()) @updatedAt
+  created_by_id                    BigInt?
+  updated_by_id                    BigInt?
+  subcategory                      subcategory                       @relation(fields: [subcategory_id], references: [id])
+  creator                          user?                             @relation("emission_factor_dimension_created_by", fields: [created_by_id], references: [id])
+  updater                          user?                             @relation("emission_factor_dimension_updated_by", fields: [updated_by_id], references: [id])
+  emission_factor_dimension_values emission_factor_dimension_value[]
+
+  @@unique([subcategory_id, code])
+  @@unique([subcategory_id, position])
+}
+
+model emission_factor_dimension_value {
+  id                              BigInt                            @id @default(autoincrement())
+  dimension_id                    BigInt
+  parent_value_id                 BigInt?
+  value                           String
+  is_active                       Boolean                           @default(true)
+  created_at                      DateTime                          @default(now())
+  updated_at                      DateTime                          @default(now()) @updatedAt
+  created_by_id                   BigInt?
+  updated_by_id                   BigInt?
+  dimension                       emission_factor_dimension         @relation(fields: [dimension_id], references: [id])
+  parent_value                    emission_factor_dimension_value?  @relation("dimension_value_hierarchy", fields: [parent_value_id], references: [id])
+  child_values                    emission_factor_dimension_value[] @relation("dimension_value_hierarchy")
+  creator                         user?                             @relation("emission_factor_dimension_value_created_by", fields: [created_by_id], references: [id])
+  updater                         user?                             @relation("emission_factor_dimension_value_updated_by", fields: [updated_by_id], references: [id])
+  emission_factors_as_dimension_1 emission_factor[]                 @relation("emission_factor_dimension_value_1")
+  emission_factors_as_dimension_2 emission_factor[]                 @relation("emission_factor_dimension_value_2")
+
+  @@unique([dimension_id, value])
+}
+
+model emission_factor {
+  id                       BigInt                           @id @default(autoincrement())
+  subcategory_id           BigInt
+  dimension_value_1_id     BigInt?
+  dimension_value_2_id     BigInt?
+  rate_measurement_unit_id BigInt
+  source                   String
+  gas_details              Json                             @db.JsonB
+  value                    Decimal                          @db.Decimal
+  status_id                BigInt
+  created_at               DateTime                         @default(now())
+  updated_at               DateTime                         @default(now()) @updatedAt
+  created_by_id            BigInt?
+  updated_by_id            BigInt?
+  subcategory              subcategory                      @relation(fields: [subcategory_id], references: [id])
+  dimension_value_1        emission_factor_dimension_value? @relation("emission_factor_dimension_value_1", fields: [dimension_value_1_id], references: [id])
+  dimension_value_2        emission_factor_dimension_value? @relation("emission_factor_dimension_value_2", fields: [dimension_value_2_id], references: [id])
+  rate_measurement_unit    rate_measurement_unit            @relation(fields: [rate_measurement_unit_id], references: [id])
+  status                   status_catalog                   @relation(fields: [status_id], references: [id])
+  creator                  user?                            @relation("emission_factor_created_by", fields: [created_by_id], references: [id])
+  updater                  user?                            @relation("emission_factor_updated_by", fields: [updated_by_id], references: [id])
+
+  // TODO: Enforce UNIQUE (subcategory_id, dimension_value_1_id, dimension_value_2_id) WHERE status = 'ACTIVE'
+
+  @@unique([subcategory_id, dimension_value_1_id, dimension_value_2_id, source])
+}
+
 model carbon_inventory {
-  id                     BigInt           @id @default(autoincrement())
+  id                     BigInt               @id @default(autoincrement())
   organization_id        BigInt?
   organization_branch_id BigInt?
-  organization_data      Json?            @db.JsonB
+  organization_data      Json?                @db.JsonB
   year                   Int?
-  status                 inventory_status @default(DRAFT)
+  status                 inventory_status     @default(DRAFT)
   usage_mode             usage_mode
   methodology_version_id BigInt?
   preselected_nodes_id   BigInt?
-  is_editable            Boolean          @default(true)
-  created_at             DateTime         @default(now())
-  updated_at             DateTime         @default(now()) @updatedAt
+  is_editable            Boolean              @default(true)
+  created_at             DateTime             @default(now())
+  updated_at             DateTime             @default(now()) @updatedAt
   created_by_id          BigInt?
   updated_by_id          BigInt?
-  creator                user?            @relation("carbon_inventory_created_by", fields: [created_by_id], references: [id])
-  updater                user?            @relation("carbon_inventory_updated_by", fields: [updated_by_id], references: [id])
+  methodology_version    methodology_version? @relation(fields: [methodology_version_id], references: [id])
+  creator                user?                @relation("carbon_inventory_created_by", fields: [created_by_id], references: [id])
+  updater                user?                @relation("carbon_inventory_updated_by", fields: [updated_by_id], references: [id])
 }
