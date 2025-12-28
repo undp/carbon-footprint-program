@@ -1,11 +1,8 @@
-type Filters = {
-  sectorId?: string;
-  subsectorId?: string;
-};
+import { GetAllOrganizationMainActivitiesQuery } from "@repo/types";
 
 export const organizationMainActivityKeys = {
   all: ["organizationMainActivities"] as const,
-  list: (filters?: Filters) =>
+  list: (filters?: GetAllOrganizationMainActivitiesQuery) =>
     [
       ...organizationMainActivityKeys.all,
       filters?.sectorId ?? null,
