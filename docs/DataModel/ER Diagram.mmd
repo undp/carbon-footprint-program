@@ -352,7 +352,7 @@ erDiagram
 		string abbreviation  ""  
 		numeric base_factor  ""  
 		boolean is_base  ""  
-		%% Enfornce UNIQUE (magnitude) WHERE is_base = true
+		%% Enforce UNIQUE (magnitude) WHERE is_base = true
 	}
 
 	rate_measurement_unit {
@@ -611,7 +611,7 @@ erDiagram
 	%% ============================================================
 	
 	%% Read the docs about the submissions model design here: https://www.notion.so/Modelo-E-R-para-Submissions-2d318d2c8901805ab8f9eed2a9d9d702?source=copy_link
-	%% The data within this table is inmutable once created
+	%% The data within this table is immutable once created
 	submission_subject {
 		BIGINT id PK "" 
 		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN"
@@ -619,19 +619,19 @@ erDiagram
 		BIGINT created_by FK ""  
 	}
 
-	%% The data within this table is inmutable once created
+	%% The data within this table is immutable once created
 	submission_subject_carbon_inventory {
 		BIGINT subject_id PK "FK"
 		BIGINT carbon_inventory_id FK ""
 	}
 	
-	%% The data within this table is inmutable once created
+	%% The data within this table is immutable once created
 	submission_subject_reduction_project {
 		BIGINT subject_id PK "FK"
 		BIGINT reduction_project_id FK ""
 	}
 	
-	%% The data within this table is inmutable once created
+	%% The data within this table is immutable once created
 	submission_subject_neutralization_plan {
 		BIGINT subject_id PK "FK"
 		BIGINT neutralization_plan_id FK ""
@@ -718,7 +718,7 @@ user
 	user ||--o{ carbon_inventory : "creates"
 	user ||--o{ user_organization_membership : "access with"
 	user ||--|| country_job_position : "has one"
-	user ||--|| user_role_assignment : "access with"
+	user ||--o| user_role_assignment : "access with"
 
 methodology_version
 	methodology_version ||--o{ carbon_inventory : "has many"
