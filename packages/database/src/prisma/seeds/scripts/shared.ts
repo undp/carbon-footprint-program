@@ -32,7 +32,7 @@ export const FullMethodologyDataSchema = z.array(
                 z.object({
                   code: z.string().min(1),
                   name: z.string().min(1),
-                  position: z.number(),
+                  position: z.int(),
                   is_required: z.boolean(),
                   values: z.array(
                     z.object({
