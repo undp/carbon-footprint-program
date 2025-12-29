@@ -189,28 +189,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationData).toEqual(organizationData);
     });
 
-    it("should update methodologyVersionId", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
-      });
-
-      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
-      const methodologyVersionIdString = methodologyVersionId.toString();
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {
-          methodologyVersionId: methodologyVersionIdString,
-        },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
-
-      expect(body.methodologyVersionId).toBe(methodologyVersionIdString);
-    });
-
     it("should update preselectedNodesId", async () => {
       const inventory = await seedCarbonInventory(prisma, {
         usage_mode: "SIMPLIFIED",
@@ -466,20 +444,25 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 when methodologyVersionId is not numeric string", async () => {
+    it("should return 400 when methodologyVersionId is provided (field is not allowed)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
         usage_mode: "SIMPLIFIED",
       });
+
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersionIdString = methodologyVersionId.toString();
 
       const response = await app.inject({
         method: "PATCH",
         url: `/api/carbon-inventories/${inventory.id}`,
         payload: {
-          methodologyVersionId: "abc",
+          methodologyVersionId: methodologyVersionIdString,
         },
       });
 
       expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.message).toBeTruthy();
     });
 
     it("should return 400 when preselectedNodesId is not numeric string", async () => {

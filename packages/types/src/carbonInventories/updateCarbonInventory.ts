@@ -7,7 +7,6 @@ export const UpdateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
   organizationData: true,
   year: true,
   usageMode: true,
-  methodologyVersionId: true,
   preselectedNodesId: true,
   status: true,
   isEditable: true,
