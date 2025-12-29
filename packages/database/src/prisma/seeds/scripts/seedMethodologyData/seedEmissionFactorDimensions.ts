@@ -219,7 +219,6 @@ export async function seedEmissionFactorDimensions(
       throw new Error(
         `Subcategory not found for value '${valueToUpdate.value}' with path '${valueToUpdate.subcategory_full_path}'`
       );
-      continue;
     }
 
     // Find the parent dimension within the same subcategory
@@ -231,7 +230,6 @@ export async function seedEmissionFactorDimensions(
       throw new Error(
         `Parent dimension '${valueToUpdate.parent_value_info.dimension_code}' not found in subcategory '${valueToUpdate.subcategory_full_path}' for value '${valueToUpdate.value}'`
       );
-      continue;
     }
 
     // Find the parent value within the parent dimension
@@ -243,7 +241,6 @@ export async function seedEmissionFactorDimensions(
       throw new Error(
         `Parent value '${valueToUpdate.parent_value_info.value_name}' not found in dimension '${valueToUpdate.parent_value_info.dimension_code}' in subcategory '${valueToUpdate.subcategory_full_path}'`
       );
-      continue;
     }
 
     // Find the current value to update
