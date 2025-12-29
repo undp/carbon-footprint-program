@@ -22,7 +22,7 @@ const options = [
 ];
 
 export const Options: FC = () => (
-  <Box className="flex flex-col gap-4 items-center justify-center">
+  <Box className="flex flex-col items-center justify-center gap-4">
     <Typography variant="h5" fontWeight="600" color="white">
       Elige cómo empezar
     </Typography>

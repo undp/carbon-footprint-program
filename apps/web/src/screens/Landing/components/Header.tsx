@@ -29,7 +29,7 @@ export const Header: FC = () => {
         <Box className="flex flex-1 gap-12">
           {pages.map((page) => (
             <Link
-              className="text-white no-underline font-medium text-base"
+              className="text-base font-medium text-white no-underline"
               key={page.route}
               to={page.route}
             >
