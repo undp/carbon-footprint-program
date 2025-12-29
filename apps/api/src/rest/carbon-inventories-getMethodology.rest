@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:8080
+
+### Get Methodology for Carbon Inventory
+GET {{baseUrl}}/api/carbon-inventories/1/methodology HTTP/1.1
+
