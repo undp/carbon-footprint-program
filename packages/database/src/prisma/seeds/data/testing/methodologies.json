@@ -9,12 +9,12 @@
         "name": "Emisiones directas",
         "synonyms": "Categoría 1 / Alcance 1",
         "description": "Generadas dentro de tu empresa",
-        "examples": "",
+        "examples": null,
         "subcategories": [
           {
             "name": "Combustión estacionaria",
             "description": "Uso de combustibles en equipos fijos como calderas, hornos o generadores.",
-            "examples": "",
+            "examples": null,
             "emission_factor_dimensions": [
               {
                 "code": "FUEL_TYPE",
@@ -286,27 +286,27 @@
           {
             "name": "Combustión móvil",
             "description": "Uso de combustible en vehículos de reparto o camionetas de la empresa.",
-            "examples": ""
+            "examples": null
           },
           {
             "name": "Agricultura y uso de suelos",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Procesos industriales",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Emisiones fugitivas",
             "description": "Fugas o recargas de gas refrigerantes en A/C de oficinas o vehículos.",
-            "examples": ""
+            "examples": null
           },
           {
             "name": "Remociones",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           }
         ]
       },
@@ -314,17 +314,17 @@
         "name": "Emisiones indirectas por energías importadas",
         "synonyms": "Categoría 2 / Alcance 2",
         "description": "Generadas por la electricidad consumida",
-        "examples": "",
+        "examples": null,
         "subcategories": [
           {
             "name": "Electricidad general",
             "description": "Electricidad usada en oficinas, bodegas y centros operativos",
-            "examples": ""
+            "examples": null
           },
           {
             "name": "Energía térmica o de vapor para calefacción",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           }
         ]
       },
@@ -332,72 +332,72 @@
         "name": "Otras emisiones indirectas",
         "synonyms": "Categorías 3,4,5 Y 6 / Alcance 3",
         "description": "Producidas fuera de tu empresa",
-        "examples": "",
+        "examples": null,
         "subcategories": [
           {
             "name": "Agua consumida",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Aguas servidas",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Energía indirecta",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Combustiones estacionarias",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Transporte empleados o contratistas",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Trabajo remoto",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Estadía en hotel",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Bienes adquiridos",
             "description": "Material utilizado en embalaje de tus productos (cartón, plástico, papel, etc.)",
-            "examples": ""
+            "examples": null
           },
           {
             "name": "Residuos generados",
             "description": "Residuos de la operación (oficinas o bodegas) que se envían a relleno sanitario o reciclaje.",
-            "examples": ""
+            "examples": null
           },
           {
             "name": "Transporte logístico",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Uso de artículos vendidos",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Fin vida útil artículos vendidos",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           },
           {
             "name": "Otros",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null
           }
         ]
       }
