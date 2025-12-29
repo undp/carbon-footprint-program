@@ -141,7 +141,15 @@
   {
     "country_iso_code": "CL",
     "sector": "Servicios Profesionales y Empresariales",
-    "main_activities": ["horas facturables"]
+    "main_activities": [
+      "horas facturables",
+      "proyectos ejecutados",
+      "contratos gestionados",
+      "clientes atendidos",
+      "entregables producidos",
+      "FTE (Full-Time Equivalent)",
+      "asesorías realizadas"
+    ]
   },
   {
     "country_iso_code": "CL",
