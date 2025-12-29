@@ -47,7 +47,7 @@ const CategorySchema = z.object({
     .describe("The subcategories in this category"),
 });
 
-export const GetCurrentMethodologyResponseSchema = z.object({
+export const GetCarbonInventoryMethodologyResponseSchema = z.object({
   country_iso_code: z.string().describe("The ISO code of the country"),
   name: z.string().describe("The name of the methodology"),
   description: z
@@ -60,8 +60,8 @@ export const GetCurrentMethodologyResponseSchema = z.object({
     .describe("The categories in this methodology"),
 });
 
-export type GetCurrentMethodologyResponse = z.infer<
-  typeof GetCurrentMethodologyResponseSchema
+export type GetCarbonInventoryMethodologyResponse = z.infer<
+  typeof GetCarbonInventoryMethodologyResponseSchema
 >;
 export type Category = z.infer<typeof CategorySchema>;
 export type Subcategory = z.infer<typeof SubcategorySchema>;
@@ -70,3 +70,4 @@ export type EmissionFactorDimension = z.infer<
 >;
 export type DimensionValue = z.infer<typeof DimensionValueSchema>;
 export type DimensionValueParent = z.infer<typeof DimensionValueParentSchema>;
+
