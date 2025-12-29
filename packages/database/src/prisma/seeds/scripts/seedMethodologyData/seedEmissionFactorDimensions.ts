@@ -126,12 +126,35 @@ export async function seedEmissionFactorDimensions(
     const subcategory = subcategoriesByFullPath.get(
       `${dimensionData.country_iso_code}:${dimensionData.methodology_version_name}:${dimensionData.category_name}:${dimensionData.subcategory_name}`
     );
-    if (!subcategory) continue;
+    if (!subcategory) {
+      throw new Error(
+        `[seedEmissionFactorDimensions] Subcategory lookup failed. ` +
+          `Lookup key: "${dimensionData.country_iso_code}:${dimensionData.methodology_version_name}:${dimensionData.category_name}:${dimensionData.subcategory_name}". ` +
+          `Identifying fields: country_iso_code="${dimensionData.country_iso_code}", ` +
+          `methodology_version_name="${dimensionData.methodology_version_name}", ` +
+          `category_name="${dimensionData.category_name}", ` +
+          `subcategory_name="${dimensionData.subcategory_name}", ` +
+          `code="${dimensionData.code}". ` +
+          `Dataset: ${dataset}`
+      );
+    }
 
     const dimension = dimensionsBySubcategoryAndCode.get(
       `${subcategory.id}:${dimensionData.code}`
     );
-    if (!dimension) continue;
+    if (!dimension) {
+      throw new Error(
+        `[seedEmissionFactorDimensions] Dimension lookup failed. ` +
+          `Lookup key: "${subcategory.id}:${dimensionData.code}". ` +
+          `Identifying fields: country_iso_code="${dimensionData.country_iso_code}", ` +
+          `methodology_version_name="${dimensionData.methodology_version_name}", ` +
+          `category_name="${dimensionData.category_name}", ` +
+          `subcategory_name="${dimensionData.subcategory_name}", ` +
+          `code="${dimensionData.code}", ` +
+          `subcategory_id="${subcategory.id}". ` +
+          `Dataset: ${dataset}`
+      );
+    }
 
     for (const valueData of dimensionData.values) {
       const valueEntry: {
