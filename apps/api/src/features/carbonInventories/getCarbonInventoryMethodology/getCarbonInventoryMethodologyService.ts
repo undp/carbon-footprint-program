@@ -1,10 +1,29 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetCurrentMethodologyResponse } from "@repo/types";
+import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 
-export const getCurrentMethodologyService = async (
-  prismaClient: PrismaClient
-): Promise<GetCurrentMethodologyResponse | null> => {
-  const methodology = await prismaClient.methodology_version.findFirst({
+export const getCarbonInventoryMethodologyService = async (
+  prismaClient: PrismaClient,
+  carbonInventoryId: bigint
+): Promise<GetCarbonInventoryMethodologyResponse | null> => {
+  // First, get the carbon inventory to find its methodology_version_id
+  const carbonInventory = await prismaClient.carbon_inventory.findUnique({
+    where: {
+      id: carbonInventoryId,
+    },
+    select: {
+      methodology_version_id: true,
+    },
+  });
+
+  if (!carbonInventory || !carbonInventory.methodology_version_id) {
+    return null;
+  }
+
+  // Then, get the methodology with all its related data
+  const methodology = await prismaClient.methodology_version.findUnique({
+    where: {
+      id: carbonInventory.methodology_version_id,
+    },
     include: {
       country: {
         select: {
@@ -57,9 +76,6 @@ export const getCurrentMethodologyService = async (
         },
       },
     },
-    orderBy: {
-      id: "asc",
-    },
   });
 
   if (!methodology) {
@@ -101,3 +117,4 @@ export const getCurrentMethodologyService = async (
     })),
   };
 };
+
