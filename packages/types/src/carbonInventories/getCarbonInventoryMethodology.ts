@@ -63,11 +63,3 @@ export const GetCarbonInventoryMethodologyResponseSchema = z.object({
 export type GetCarbonInventoryMethodologyResponse = z.infer<
   typeof GetCarbonInventoryMethodologyResponseSchema
 >;
-export type Category = z.infer<typeof CategorySchema>;
-export type Subcategory = z.infer<typeof SubcategorySchema>;
-export type EmissionFactorDimension = z.infer<
-  typeof EmissionFactorDimensionSchema
->;
-export type DimensionValue = z.infer<typeof DimensionValueSchema>;
-export type DimensionValueParent = z.infer<typeof DimensionValueParentSchema>;
-
