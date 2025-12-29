@@ -31,10 +31,9 @@ const MOCK_METHODOLOGY: Methodology = {
   categories: [
     {
       id: "537",
-      name: "Alcance 1",
+      name: "Categoría 1 / Alcance 1",
       synonyms: "Emisiones directas",
-      description:
-        "Emisiones provenientes de fuentes que son propiedad o están controladas por la organización.",
+      description: "Generadas dentro de tu empresa. ",
       examples: "Combustión en calderas, hornos, vehículos, etc.",
       order: 1,
       subcategories: [
@@ -108,10 +107,9 @@ const MOCK_METHODOLOGY: Methodology = {
     },
     {
       id: "849",
-      name: "Alcance 2",
+      name: "Categoría 2 / Alcance 2",
       synonyms: "Emisiones indirectas por energía",
-      description:
-        "Emisiones derivadas de la generación de electricidad, vapor, calefacción o refrigeración consumidos por la organización.",
+      description: "Generadas por la electricidad consumidad.",
       examples: "Electricidad comprada a la red nacional.",
       order: 2,
       subcategories: [
@@ -183,10 +181,9 @@ const MOCK_METHODOLOGY: Methodology = {
     },
     {
       id: "900",
-      name: "Alcance 3",
+      name: "Categoría 3,4,5 y 6 / Alcance 3",
       synonyms: "Otras emisiones indirectas",
-      description:
-        "Emisiones que son consecuencia de las actividades de la organización, pero ocurren en fuentes que no son propiedad ni están controladas por ella.",
+      description: "Generadas fuera de tu empresa.",
       examples: "Viajes de negocios, transporte de insumos.",
       order: 3,
       subcategories: [

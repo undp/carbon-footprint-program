@@ -1,0 +1,149 @@
+import { FC, useEffect } from "react";
+import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { useForm, FormProvider } from "react-hook-form";
+import { CarbonInventoryLayout } from "./layout";
+import { Routes } from "@/interfaces";
+import { StepHeader } from "./components/StepHeader";
+import { SubcategoryPreselectionCard } from "./components/SubcategoryPreselectionCard";
+import {
+  useSubcategoryPreselectionData,
+  CategoryWithSubcategories,
+} from "./hooks/useSubcategoryPreselectionData";
+import { useSubcategoryPreselectionSubmit } from "./hooks/useSubcategoryPreselectionSubmit";
+import { useCategoryStyles } from "./hooks/useCategoryStyles";
+
+export const SubcategoryPreselectionScreen: FC = () => {
+  const navigate = useNavigate();
+  const categoryStyles = useCategoryStyles();
+  const { inventoryId } = useParams({
+    from: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
+  });
+
+  const { categories, isLoading, isError, initialValues } =
+    useSubcategoryPreselectionData(inventoryId);
+
+  const hasError = isError || (!isLoading && categories.length === 0);
+
+  const goNext = () =>
+    void navigate({
+      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+      params: { inventoryId },
+    });
+
+  const { onSubmit, isSubmitting } = useSubcategoryPreselectionSubmit(
+    inventoryId,
+    { onSuccess: goNext }
+  );
+
+  const methods = useForm<Record<string, boolean>>({
+    defaultValues: initialValues || {},
+  });
+
+  const { handleSubmit, reset } = methods;
+
+  useEffect(() => {
+    if (initialValues) {
+      reset(initialValues);
+    }
+  }, [initialValues, reset]);
+
+  return (
+    <FormProvider {...methods}>
+      <form
+        id="subcategory-preselection-form"
+        // eslint-disable-next-line @typescript-eslint/no-misused-promises
+        onSubmit={handleSubmit(onSubmit)}
+        noValidate
+      >
+        <CarbonInventoryLayout
+          headerProps={{
+            title: "Simulador de Inventario Organizacional",
+          }}
+          footerProps={{
+            backButtonProps: {
+              disabled: isSubmitting,
+              onClick: () =>
+                void navigate({
+                  to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+                  params: { inventoryId },
+                }),
+            },
+            nextButtonProps: {
+              type: "submit",
+              form: "subcategory-preselection-form",
+              loading: isSubmitting,
+              disabled: isSubmitting || hasError || isLoading,
+            },
+          }}
+        >
+          <Box className="flex flex-col flex-1 min-h-0 rounded-lg bg-white gap-6 p-4 overflow-auto">
+            <StepHeader
+              title="Paso 2: Fuentes o actividades sugeridas"
+              description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
+              action={
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  disabled={hasError || isLoading}
+                >
+                  Agregar Nueva Fuente
+                </Button>
+              }
+            />
+            {isLoading && (
+              <Box className="flex flex-1 items-center justify-center min-h-0">
+                <CircularProgress />
+              </Box>
+            )}
+
+            {!isLoading && hasError && (
+              <Box className="flex flex-col items-center justify-center flex-1 gap-4 p-8 text-center">
+                <Typography variant="h5" color="text.primary" fontWeight="bold">
+                  Hubo un error cargando las categorías y subcategorías para su
+                  huella.
+                </Typography>
+                <Typography
+                  variant="body1"
+                  color="text.secondary"
+                  sx={{ maxWidth: 600 }}
+                >
+                  Por favor, pruebe a recargar la página nuevamente o intente
+                  más tarde.
+                </Typography>
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={() => window.location.reload()}
+                  sx={{ mt: 2 }}
+                >
+                  Recargar Página
+                </Button>
+              </Box>
+            )}
+
+            {!isLoading && !hasError && (
+              <Box className="flex flex-row gap-6 min-h-0 flex-1 overflow-x-auto">
+                {categories.map((category: CategoryWithSubcategories) => {
+                  const style =
+                    categoryStyles[
+                      category.order as keyof typeof categoryStyles
+                    ] || categoryStyles[1];
+                  return (
+                    <SubcategoryPreselectionCard
+                      key={category.id}
+                      category={category}
+                      icon={style.icon}
+                      label={style.label}
+                      color={style.color}
+                    />
+                  );
+                })}
+              </Box>
+            )}
+          </Box>
+        </CarbonInventoryLayout>
+      </form>
+    </FormProvider>
+  );
+};
