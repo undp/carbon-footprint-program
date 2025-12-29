@@ -18,7 +18,7 @@ export const FormTextField = <T extends FieldValues>({
   control,
   helperText,
   required,
-  requiredMessage,
+  requiredMessage = "Este campo es obligatorio",
   fullWidth = true,
   ...props
 }: Props<T>) => {
@@ -27,9 +27,7 @@ export const FormTextField = <T extends FieldValues>({
       name={name}
       control={control}
       rules={{
-        required: required
-          ? (requiredMessage ?? "Este campo es obligatorio")
-          : false,
+        required: required ? requiredMessage : false,
       }}
       render={({ field, fieldState }) => (
         <TextField
