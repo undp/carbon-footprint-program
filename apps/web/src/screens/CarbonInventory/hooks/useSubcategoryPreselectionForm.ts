@@ -22,9 +22,9 @@ export const useSubcategoryPreselectionForm = ({
 }: SubcategoryPreselectionFormProps): SubcategoryPreselectionFormReturn => {
   const initialValues = useMemo(() => {
     const values: Record<string, boolean> = {};
-    categories.forEach((cat: CategoryWithSubcategories) => {
-      cat.subcategories.forEach((sub: SubcategoryItem) => {
-        values[String(sub.id)] = sub.selected;
+    categories.forEach((category: CategoryWithSubcategories) => {
+      category.subcategories.forEach((subcategory: SubcategoryItem) => {
+        values[String(subcategory.id)] = subcategory.selected;
       });
     });
     return values;

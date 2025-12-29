@@ -33,8 +33,8 @@ export const useSubcategoryPreselectionData = (
 
     return methodology.categories.map((category) => {
       const subcategories: SubcategoryItem[] = category.subcategories.map(
-        (sub) => {
-          const idNum = Number(sub.id);
+        (subcategory) => {
+          const idNum = Number(subcategory.id);
           const selectionInfo = selectionMap.get(idNum);
           const isSelected = selectionInfo?.selected ?? false;
           const hasEditedLine = selectionInfo?.hasEditedLine ?? false;
@@ -42,8 +42,8 @@ export const useSubcategoryPreselectionData = (
 
           return {
             id: idNum,
-            name: sub.name,
-            description: sub.description,
+            name: subcategory.name,
+            description: subcategory.description,
             selected: isSelected,
             hasEditedLine,
             disabled,
