@@ -286,27 +286,37 @@
           {
             "name": "Combustión móvil",
             "description": "Uso de combustible en vehículos de reparto o camionetas de la empresa.",
-            "examples": ""
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Agricultura y uso de suelos",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Procesos industriales",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Emisiones fugitivas",
             "description": "Fugas o recargas de gas refrigerantes en A/C de oficinas o vehículos.",
-            "examples": ""
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Remociones",
-            "description": "",
-            "examples": ""
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           }
         ]
       },
@@ -319,12 +329,16 @@
           {
             "name": "Electricidad general",
             "description": "Electricidad usada en oficinas, bodegas y centros operativos",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Energía térmica o de vapor para calefacción",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           }
         ]
       },
@@ -337,67 +351,93 @@
           {
             "name": "Agua consumida",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Aguas servidas",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Energía indirecta",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Combustiones estacionarias",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Transporte empleados o contratistas",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Trabajo remoto",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Estadía en hotel",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Bienes adquiridos",
             "description": "Material utilizado en embalaje de tus productos (cartón, plástico, papel, etc.)",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Residuos generados",
             "description": "Residuos de la operación (oficinas o bodegas) que se envían a relleno sanitario o reciclaje.",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Transporte logístico",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Uso de artículos vendidos",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Fin vida útil artículos vendidos",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           },
           {
             "name": "Otros",
             "description": "",
-            "examples": ""
+            "examples": "",
+            "emission_factor_dimensions": [],
+            "emission_factors": []
           }
         ]
       }
