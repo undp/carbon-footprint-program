@@ -2,10 +2,7 @@ import { FC, Fragment, ReactNode } from "react";
 import { Box, Divider } from "@mui/material";
 import { CategoryCard } from "./CategoryCard";
 import { SubcategoryField } from "./SubcategoryPreselectionCardField";
-import {
-  CategoryWithSubcategories,
-  SubcategoryItem,
-} from "../hooks/types";
+import { CategoryWithSubcategories, SubcategoryItem } from "../hooks/types";
 
 interface SubcategoryPreselectionCardProps {
   category: CategoryWithSubcategories;
@@ -19,7 +16,7 @@ export const SubcategoryPreselectionCard: FC<
 > = ({ category, icon, label, color }) => {
   return (
     <Box
-      className="flex flex-col flex-1 min-w-[300px] items-start p-4 gap-4 overflow-hidden"
+      className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
       sx={{
         border: `1px solid #ECECEC`,
         borderRadius: `16px`,
@@ -36,7 +33,7 @@ export const SubcategoryPreselectionCard: FC<
       {/*  Body */}
       <Divider className="w-full" />
 
-      <Box className="flex flex-col flex-1 min-h-0 gap-4 overflow-y-auto w-full">
+      <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
         {category.subcategories.map((sub: SubcategoryItem) => (
           <Fragment key={sub.id}>
             <SubcategoryField

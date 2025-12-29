@@ -64,7 +64,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
             },
           }}
         >
-          <Box className="flex flex-col flex-1 min-h-0 rounded-lg bg-white gap-6 p-4 overflow-auto">
+          <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg bg-white p-4">
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
@@ -79,13 +79,13 @@ export const SubcategoryPreselectionScreen: FC = () => {
               }
             />
             {isLoading && (
-              <Box className="flex flex-1 items-center justify-center min-h-0">
+              <Box className="flex min-h-0 flex-1 items-center justify-center">
                 <CircularProgress />
               </Box>
             )}
 
             {!isLoading && hasError && (
-              <Box className="flex flex-col items-center justify-center flex-1 gap-4 p-8 text-center">
+              <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
                 <Typography variant="h5" color="text.primary" fontWeight="bold">
                   Hubo un error cargando las categorías y subcategorías para su
                   huella.
@@ -110,7 +110,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
             )}
 
             {!isLoading && !hasError && (
-              <Box className="flex flex-row gap-6 min-h-0 flex-1 overflow-x-auto">
+              <Box className="flex min-h-0 flex-1 flex-row gap-6 overflow-x-auto">
                 {categories.map((category: CategoryWithSubcategories) => {
                   const style =
                     categoryStyles[

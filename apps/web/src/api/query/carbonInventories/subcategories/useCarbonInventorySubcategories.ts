@@ -36,4 +36,3 @@ export const useCarbonInventorySubcategories = (carbonInventoryId: string) => {
     enabled: !!carbonInventoryId,
   });
 };
-

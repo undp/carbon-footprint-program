@@ -26,7 +26,7 @@ export const SubcategoryField = <T extends FieldValues>({
   const { control } = useFormContext<T>();
 
   const content = (
-    <Box className="flex flex-row gap-2 justify-start content-start">
+    <Box className="flex flex-row content-start justify-start gap-2">
       <Box className="flex items-start justify-start">
         <Controller
           name={name}
@@ -64,7 +64,7 @@ export const SubcategoryField = <T extends FieldValues>({
         arrow
         placement="top"
       >
-        <Box className="flex opacity-80 cursor-not-allowed">{content}</Box>
+        <Box className="flex cursor-not-allowed opacity-80">{content}</Box>
       </Tooltip>
     );
   }
