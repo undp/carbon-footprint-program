@@ -15,12 +15,17 @@ export const getCarbonInventoryMethodologyHandler = async (
 
   const prisma = request.server.prisma;
 
-  const data = await getCarbonInventoryMethodologyService(
+  const result = await getCarbonInventoryMethodologyService(
     prisma,
     carbonInventoryId
   );
 
-  if (!data) {
+  if (!result.success) {
+    if (result.error === "CARBON_INVENTORY_NOT_FOUND") {
+      log.warn({ carbonInventoryId }, "Carbon inventory not found");
+      return reply.status(404).send({ message: "Carbon inventory not found" });
+    }
+
     log.warn(
       { carbonInventoryId },
       "Methodology not found for carbon inventory"
@@ -29,5 +34,5 @@ export const getCarbonInventoryMethodologyHandler = async (
   }
 
   log.info({ carbonInventoryId }, "Methodology found successfully");
-  return reply.status(200).send(data);
+  return reply.status(200).send(result.data);
 };

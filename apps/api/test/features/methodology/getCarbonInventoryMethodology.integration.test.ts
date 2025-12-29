@@ -55,7 +55,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       expect(body).toHaveProperty("country_iso_code");
       expect(body).toHaveProperty("name");
@@ -79,7 +81,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       expect(body.categories.length).toBeGreaterThan(0);
 
@@ -106,7 +110,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       // Find a subcategory with dimensions
       const subcategoryWithDimensions = body.categories
@@ -143,7 +149,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       // Find a dimension value with a parent
       const dimensionWithParent = body.categories
@@ -175,7 +183,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       // Check that emission_factors is not in the response
       expect(body).not.toHaveProperty("emission_factors");
@@ -204,7 +214,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       expect(body.country_iso_code).toBeTruthy();
       expect(typeof body.country_iso_code).toBe("string");
@@ -225,7 +237,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       expect(body.status_code).toBeTruthy();
       expect(typeof body.status_code).toBe("string");
@@ -245,7 +259,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       const categoryNames = body.categories.map((cat) => cat.name);
       const sortedNames = [...categoryNames].sort();
@@ -266,7 +282,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       body.categories.forEach((category) => {
         const subcategoryNames = category.subcategories.map((sub) => sub.name);
@@ -289,7 +307,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
 
       body.categories.forEach((category) => {
         category.subcategories.forEach((subcategory) => {
@@ -304,16 +324,18 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
   });
 
   describe("Error cases", () => {
-    it("should return 404 when carbon inventory does not exist", async () => {
+    it("should return 404 with 'Carbon inventory not found' when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/carbon-inventories/999999/methodology",
       });
 
       expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe("Carbon inventory not found");
     });
 
-    it("should return 404 when carbon inventory has no methodology", async () => {
+    it("should return 404 with 'Methodology not found' when carbon inventory has no methodology", async () => {
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
@@ -326,7 +348,8 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body);
+      expect(body.message).toBe("Methodology not found");
     });
   });
 });
-
