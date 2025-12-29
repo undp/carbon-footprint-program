@@ -4,7 +4,10 @@ import {
   CreateCarbonInventoryRequestSchema,
   CreateCarbonInventoryResponseSchema,
 } from "@repo/types";
-import { ValidationErrorResponseSchema } from "@/commonSchemas/errors.js";
+import {
+  ValidationErrorResponseSchema,
+  StructuredErrorResponseSchema,
+} from "@/commonSchemas/errors.js";
 
 export const createCarbonInventoryRoute = (fastify: FastifyZodInstance) => {
   fastify.post(
@@ -18,6 +21,7 @@ export const createCarbonInventoryRoute = (fastify: FastifyZodInstance) => {
         response: {
           201: CreateCarbonInventoryResponseSchema,
           400: ValidationErrorResponseSchema,
+          422: StructuredErrorResponseSchema,
         },
       },
     },
