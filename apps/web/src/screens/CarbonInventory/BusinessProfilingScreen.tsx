@@ -110,7 +110,6 @@ export const BusinessProfilingScreen: FC = () => {
   return (
     <form
       id="business-profiling-form"
-      // eslint-disable-next-line @typescript-eslint/no-misused-promises
       onSubmit={handleSubmit(onSubmit)}
       noValidate
     >

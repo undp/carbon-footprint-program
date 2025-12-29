@@ -51,6 +51,10 @@ export const webConfig: Linter.Config[] = [
     rules: {
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
+      "@typescript-eslint/no-misused-promises": [
+        "error",
+        { checksVoidReturn: false }, // * React hooks can return void
+      ],
       "react/react-in-jsx-scope": "off",
       "react/prop-types": "off",
     },
