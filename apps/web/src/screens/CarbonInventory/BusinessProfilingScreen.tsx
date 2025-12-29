@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -83,11 +83,14 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const goNext = () =>
-    void navigate({
-      to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION as string,
-      params: { inventoryId },
-    });
+  const goNext = useCallback(
+    () =>
+      void navigate({
+        to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION as string,
+        params: { inventoryId },
+      }),
+    [navigate, inventoryId]
+  );
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
