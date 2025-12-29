@@ -100,7 +100,7 @@ CREATE TABLE "emission_factor" (
     "rate_measurement_unit_id" BIGINT NOT NULL,
     "source" TEXT NOT NULL,
     "gas_details" JSONB NOT NULL,
-    "value" DECIMAL NOT NULL,
+    "value" DECIMAL(18,10) NOT NULL,
     "status_id" BIGINT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

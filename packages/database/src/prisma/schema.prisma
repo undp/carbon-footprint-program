@@ -355,7 +355,7 @@ model emission_factor {
   rate_measurement_unit_id BigInt
   source                   String
   gas_details              Json                             @db.JsonB
-  value                    Decimal                          @db.Decimal
+  value                    Decimal                          @db.Decimal(18, 10)
   status_id                BigInt
   created_at               DateTime                         @default(now())
   updated_at               DateTime                         @default(now()) @updatedAt
