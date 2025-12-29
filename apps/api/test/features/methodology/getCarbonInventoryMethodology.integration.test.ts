@@ -4,7 +4,6 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
   afterEach,
   inject,
 } from "vitest";
@@ -33,8 +32,6 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
     await prisma.$disconnect();
     await app.close();
   });
-
-  beforeEach(async () => {});
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
