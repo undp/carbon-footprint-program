@@ -43,7 +43,6 @@ Content-Type: application/json
   },
   "year": 2024,
   "usageMode": "SIMPLIFIED",
-  "methodologyVersionId": "1",
   "preselectedNodesId": "1",
   "status": "DRAFT",
   "isEditable": true
@@ -69,7 +68,6 @@ Content-Type: application/json
   "organizationBranchId": null,
   "organizationData": null,
   "year": null,
-  "methodologyVersionId": null,
   "preselectedNodesId": null
 }
 
