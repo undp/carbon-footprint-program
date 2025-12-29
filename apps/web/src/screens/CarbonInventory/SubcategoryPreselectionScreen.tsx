@@ -1,17 +1,15 @@
-import { FC, useEffect } from "react";
+import { FC } from "react";
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
-import { useForm, FormProvider } from "react-hook-form";
+import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { SubcategoryPreselectionCard } from "./components/SubcategoryPreselectionCard";
-import {
-  useSubcategoryPreselectionData,
-  CategoryWithSubcategories,
-} from "./hooks/useSubcategoryPreselectionData";
-import { useSubcategoryPreselectionSubmit } from "./hooks/useSubcategoryPreselectionSubmit";
+import { useSubcategoryPreselectionData } from "./hooks/useSubcategoryPreselectionData";
 import { useCategoryStyles } from "./hooks/useCategoryStyles";
+import { useSubcategoryPreselectionForm } from "./hooks/useSubcategoryPreselectionForm";
+import { CategoryWithSubcategories } from "./hooks/types";
 
 export const SubcategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();
@@ -20,7 +18,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     from: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
   });
 
-  const { categories, isLoading, isError, initialValues } =
+  const { categories, isLoading, isError } =
     useSubcategoryPreselectionData(inventoryId);
 
   const hasError = isError || (!isLoading && categories.length === 0);
@@ -31,29 +29,18 @@ export const SubcategoryPreselectionScreen: FC = () => {
       params: { inventoryId },
     });
 
-  const { onSubmit, isSubmitting } = useSubcategoryPreselectionSubmit(
+  const { methods, onSubmit, isSubmitting } = useSubcategoryPreselectionForm({
     inventoryId,
-    { onSuccess: goNext }
-  );
-
-  const methods = useForm<Record<string, boolean>>({
-    defaultValues: initialValues || {},
+    categories,
+    onSuccess: goNext,
   });
-
-  const { handleSubmit, reset } = methods;
-
-  useEffect(() => {
-    if (initialValues) {
-      reset(initialValues);
-    }
-  }, [initialValues, reset]);
 
   return (
     <FormProvider {...methods}>
       <form
         id="subcategory-preselection-form"
         // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onSubmit={handleSubmit(onSubmit)}
+        onSubmit={onSubmit}
         noValidate
       >
         <CarbonInventoryLayout

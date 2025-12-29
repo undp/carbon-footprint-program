@@ -5,7 +5,7 @@ import { SubcategoryField } from "./SubcategoryPreselectionCardField";
 import {
   CategoryWithSubcategories,
   SubcategoryItem,
-} from "../hooks/useSubcategoryPreselectionData";
+} from "../hooks/types";
 
 interface SubcategoryPreselectionCardProps {
   category: CategoryWithSubcategories;
