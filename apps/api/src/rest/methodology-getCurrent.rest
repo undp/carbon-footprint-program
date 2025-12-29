@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:8080
+
+### Get Current Methodology
+GET {{baseUrl}}/api/methodology HTTP/1.1
+
