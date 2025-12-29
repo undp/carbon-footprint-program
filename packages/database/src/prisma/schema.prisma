@@ -371,7 +371,7 @@ model emission_factor {
 
   // TODO: Enforce UNIQUE (subcategory_id, dimension_value_1_id, dimension_value_2_id) WHERE status = 'ACTIVE'
 
-  @@unique([subcategory_id, dimension_value_1_id, dimension_value_2_id, source])
+  @@unique([subcategory_id, dimension_value_1_id, dimension_value_2_id, source], map: "emission_factor_unique_subcategory_dims_source")
 }
 
 model carbon_inventory {

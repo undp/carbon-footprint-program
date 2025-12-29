@@ -132,7 +132,7 @@ CREATE UNIQUE INDEX "emission_factor_dimension_subcategory_id_position_key" ON "
 CREATE UNIQUE INDEX "emission_factor_dimension_value_dimension_id_value_key" ON "emission_factor_dimension_value"("dimension_id", "value");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "emission_factor_subcategory_id_dimension_value_1_id_dimensi_key" ON "emission_factor"("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "source");
+CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source" ON "emission_factor"("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "source");
 
 -- AddForeignKey
 ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
