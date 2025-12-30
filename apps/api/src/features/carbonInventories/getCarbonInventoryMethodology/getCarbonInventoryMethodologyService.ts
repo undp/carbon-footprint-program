@@ -41,34 +41,33 @@ export const getCarbonInventoryMethodologyService = async (
     where: {
       id: carbonInventory.methodology_version_id,
     },
-    include: {
-      country: {
-        select: {
-          iso_code: true,
-        },
-      },
-      status: {
-        select: {
-          code: true,
-        },
-      },
+    select: {
+      name: true,
+      description: true,
       categories: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          synonyms: true,
+          description: true,
+          examples: true,
           subcategories: {
-            include: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              examples: true,
               emission_factor_dimensions: {
-                include: {
+                select: {
+                  id: true,
+                  name: true,
+                  position: true,
+                  is_required: true,
                   emission_factor_dimension_values: {
-                    include: {
-                      parent_value: {
-                        include: {
-                          dimension: {
-                            select: {
-                              code: true,
-                            },
-                          },
-                        },
-                      },
+                    select: {
+                      id: true,
+                      parent_value_id: true,
+                      value: true,
                     },
                     where: {
                       is_active: true,
@@ -102,37 +101,26 @@ export const getCarbonInventoryMethodologyService = async (
   return {
     success: true,
     data: {
-      country_iso_code: methodology.country.iso_code,
-      name: methodology.name,
-      description: methodology.description,
-      status_code: methodology.status.code,
+      ...methodology,
       categories: methodology.categories.map((category) => ({
-        name: category.name,
-        synonyms: category.synonyms,
-        description: category.description,
-        examples: category.examples,
+        ...category,
+        id: category.id.toString(),
         subcategories: category.subcategories.map((subcategory) => ({
-          name: subcategory.name,
-          description: subcategory.description,
-          examples: subcategory.examples,
-          emission_factor_dimensions:
-            subcategory.emission_factor_dimensions.map((dimension) => ({
-              code: dimension.code,
-              name: dimension.name,
-              position: dimension.position,
-              is_required: dimension.is_required,
+          ...subcategory,
+          id: subcategory.id.toString(),
+          dimensions: subcategory.emission_factor_dimensions.map(
+            (dimension) => ({
+              ...dimension,
+              id: dimension.id.toString(),
               values: dimension.emission_factor_dimension_values.map(
                 (value) => ({
-                  name: value.value,
-                  parent_value: value.parent_value
-                    ? {
-                        dimension_code: value.parent_value.dimension.code,
-                        value_name: value.parent_value.value,
-                      }
-                    : null,
+                  ...value,
+                  id: value.id.toString(),
+                  parent_value_id: value.parent_value_id?.toString() ?? null,
                 })
               ),
-            })),
+            })
+          ),
         })),
       })),
     },

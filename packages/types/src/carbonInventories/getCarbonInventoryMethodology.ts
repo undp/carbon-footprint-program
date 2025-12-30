@@ -1,19 +1,17 @@
 import { z } from "zod";
 
-const DimensionValueParentSchema = z.object({
-  dimension_code: z.string().describe("The code of the parent dimension"),
-  value_name: z.string().describe("The name of the parent value"),
-});
-
 const DimensionValueSchema = z.object({
-  name: z.string().describe("The name of the dimension value"),
-  parent_value: DimensionValueParentSchema.nullable().describe(
-    "The parent value if this is a nested value"
-  ),
+  id: z.string().regex(/^\d+$/).describe("The ID of the dimension value"),
+  value: z.string().describe("The value of the dimension value"),
+  parent_value_id: z
+    .string()
+    .regex(/^\d+$/)
+    .nullable()
+    .describe("The ID of the parent value if this is a nested value"),
 });
 
 const EmissionFactorDimensionSchema = z.object({
-  code: z.string().describe("The code of the dimension"),
+  id: z.string().regex(/^\d+$/).describe("The ID of the dimension"),
   name: z.string().describe("The name of the dimension"),
   position: z.number().int().describe("The position/order of the dimension"),
   is_required: z.boolean().describe("Whether this dimension is required"),
@@ -23,18 +21,20 @@ const EmissionFactorDimensionSchema = z.object({
 });
 
 const SubcategorySchema = z.object({
+  id: z.string().regex(/^\d+$/).describe("The ID of the subcategory"),
   name: z.string().describe("The name of the subcategory"),
   description: z
     .string()
     .nullable()
     .describe("The description of the subcategory"),
   examples: z.string().nullable().describe("Examples for the subcategory"),
-  emission_factor_dimensions: z
+  dimensions: z
     .array(EmissionFactorDimensionSchema)
     .describe("The emission factor dimensions for this subcategory"),
 });
 
 const CategorySchema = z.object({
+  id: z.string().regex(/^\d+$/).describe("The ID of the category"),
   name: z.string().describe("The name of the category"),
   synonyms: z.string().nullable().describe("Synonyms for the category"),
   description: z
@@ -48,13 +48,11 @@ const CategorySchema = z.object({
 });
 
 export const GetCarbonInventoryMethodologyResponseSchema = z.object({
-  country_iso_code: z.string().describe("The ISO code of the country"),
   name: z.string().describe("The name of the methodology"),
   description: z
     .string()
     .nullable()
     .describe("The description of the methodology"),
-  status_code: z.string().describe("The status code of the methodology"),
   categories: z
     .array(CategorySchema)
     .describe("The categories in this methodology"),
