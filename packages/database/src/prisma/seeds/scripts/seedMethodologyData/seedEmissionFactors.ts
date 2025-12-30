@@ -1,6 +1,6 @@
-import { type PrismaClient } from "../../../../index.js";
+import { type PrismaClient } from "@/index.js";
 import { z } from "zod";
-import { type SeedsDataset } from "../../utils/index.js";
+import { type SeedsDataset } from "@/prisma/seeds/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
 
 export async function seedEmissionFactors(

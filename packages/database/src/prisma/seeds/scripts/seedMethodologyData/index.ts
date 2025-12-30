@@ -1,8 +1,11 @@
-import { type PrismaClient } from "../../../../index.js";
+import { type PrismaClient } from "@/index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
-import { generateSeedDataPath, type SeedsDataset } from "../../utils/index.js";
+import {
+  generateSeedDataPath,
+  type SeedsDataset,
+} from "@/prisma/seeds/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
 import { seedCategories } from "./seedCategories.js";
 import { seedEmissionFactorDimensions } from "./seedEmissionFactorDimensions.js";
