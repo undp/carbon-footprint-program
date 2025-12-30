@@ -237,7 +237,7 @@ erDiagram
 		BIGINT created_by FK ""  
 		BIGINT updated_by FK ""  
 		%% Enforce via trigger at most 1 active per country
-		%% Enforce somehow country's active_methodology_version_id must point to ACTIVE
+		%% Enforce via DB trigger on country table: validates country.active_methodology_version_id (when NOT NULL) references a methodology_version row where status_id points to status_catalog with code='ACTIVE'. Trigger runs BEFORE INSERT/UPDATE on country, raises error if validation fails. Implementation: CREATE TRIGGER validate_country_active_methodology_version BEFORE INSERT OR UPDATE ON country FOR EACH ROW EXECUTE FUNCTION check_active_methodology_version_status()
 	}
 
 	category {
@@ -699,7 +699,7 @@ organization
 	organization ||--o{ organization_branch : "may have"
 	organization ||--o{ recognition : "awards"
 	organization ||--o{ user_organization_membership : "grant access via"
-	organization ||--o| country_organization_size : "has"
+	organization }o--|| country_organization_size : "has"
 
 organization_branch
 	organization_branch |o--o{ reduction_project : "may execute"
@@ -717,7 +717,7 @@ role
 user
 	user ||--o{ carbon_inventory : "creates"
 	user ||--o{ user_organization_membership : "access with"
-	user ||--|| country_job_position : "has one"
+	user }o--|| country_job_position : "has one"
 	user ||--o| user_role_assignment : "access with"
 
 methodology_version
@@ -744,11 +744,12 @@ emission_factor_dimension_value
 
 emission_factor
 	emission_factor ||--o{ reduction_suggestion_catalog : "could have many"
-	emission_factor }o--|| carbon_inventory_line_factor : "used by"
+	emission_factor ||--o{ carbon_inventory_line_factor : "used by"
 	emission_factor }o--|| rate_measurement_unit : "expressed in"
 	emission_factor }o--|| status_catalog : "has one" 
 	%% At most 2 values, depending on subcategory configuration:
-	emission_factor }o--|| emission_factor_dimension_value : "binds"
+	emission_factor }o--|| emission_factor_dimension_value : "binds (dimension_value_1)"
+	emission_factor }o--|| emission_factor_dimension_value : "binds (dimension_value_2)"
 	
 carbon_inventory
 	carbon_inventory ||--o{ carbon_inventory_line: "contains"
@@ -768,9 +769,9 @@ carbon_inventory_line_input
 	carbon_inventory_line_input ||--o| carbon_inventory_line_result: "produces"
 
 submission_subject
-	submission_subject |o--o| submission_subject_carbon_inventory : "associated via"
-	submission_subject |o--o| submission_subject_reduction_project : "associated via"
-	submission_subject |o--o| submission_subject_neutralization_plan : "associated via"
+	submission_subject ||--|| submission_subject_carbon_inventory : "associated via"
+	submission_subject ||--|| submission_subject_reduction_project : "associated via"
+	submission_subject ||--|| submission_subject_neutralization_plan : "associated via"
 
 submission
 	submission ||--o| recognition: "may award"
@@ -781,7 +782,7 @@ neutralization_plan
 
 reduction_project
 	reduction_project ||--o{ submission_subject_reduction_project : "submitted via"
-	reduction_project ||--|| global_warming_potential : "declares a"
+	reduction_project }o--|| global_warming_potential : "declares a"
 
 reduction_suggestion_catalog
 	reduction_suggestion_catalog ||--o{ reduction_personalized_suggestion : "can generate many"

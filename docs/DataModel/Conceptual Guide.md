@@ -85,6 +85,7 @@ Calculations are anchored at subcategory level.
 - Structured, normalized selections
 - Maximum of two dimensions per subcategory
 - Hierarchical dimension values supported
+- In the future, it will declare which measurement units should be accepted.
 
 ### Emission Factors
 
