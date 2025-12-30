@@ -210,8 +210,8 @@ WHERE status_id = (
 
 ### 5.1 Updating User Data
 
-1. Insert new input row
-2. Mark previous input as inactive
+1. Mark previous input as inactive
+2. Insert new input row
 3. Insert factor row
 4. Insert result row
 
