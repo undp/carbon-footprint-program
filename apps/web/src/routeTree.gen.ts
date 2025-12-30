@@ -17,8 +17,11 @@ import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction
 import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-plan'
 import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
 import { Route as AppHomeRouteImport } from './routes/app/home'
-import { Route as AppCarbonFootprintRouteImport } from './routes/app/carbon-footprint'
+import { Route as AppCarbonInventoryRouteImport } from './routes/app/carbon-inventory'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
+import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
+import { Route as AppCarbonInventoryInventoryIdSubCategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/sub-category-preselection'
+import { Route as AppCarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/app/carbon-inventory/$inventoryId/business-profiling'
 
 const TransparencyRoute = TransparencyRouteImport.update({
   id: '/transparency',
@@ -60,9 +63,9 @@ const AppHomeRoute = AppHomeRouteImport.update({
   path: '/app/home',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppCarbonFootprintRoute = AppCarbonFootprintRouteImport.update({
-  id: '/app/carbon-footprint',
-  path: '/app/carbon-footprint',
+const AppCarbonInventoryRoute = AppCarbonInventoryRouteImport.update({
+  id: '/app/carbon-inventory',
+  path: '/app/carbon-inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAwardsRoute = AppAwardsRouteImport.update({
@@ -70,6 +73,23 @@ const AppAwardsRoute = AppAwardsRouteImport.update({
   path: '/app/awards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppCarbonInventoryRoute,
+} as any)
+const AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute =
+  AppCarbonInventoryInventoryIdSubCategoryPreselectionRouteImport.update({
+    id: '/$inventoryId/sub-category-preselection',
+    path: '/$inventoryId/sub-category-preselection',
+    getParentRoute: () => AppCarbonInventoryRoute,
+  } as any)
+const AppCarbonInventoryInventoryIdBusinessProfilingRoute =
+  AppCarbonInventoryInventoryIdBusinessProfilingRouteImport.update({
+    id: '/$inventoryId/business-profiling',
+    path: '/$inventoryId/business-profiling',
+    getParentRoute: () => AppCarbonInventoryRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -77,11 +97,14 @@ export interface FileRoutesByFullPath {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
-  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
+  '/app/carbon-inventory': typeof AppCarbonInventoryRouteWithChildren
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
+  '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  '/app/carbon-inventory/$inventoryId/sub-category-preselection': typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -89,11 +112,13 @@ export interface FileRoutesByTo {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
-  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
+  '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  '/app/carbon-inventory/$inventoryId/sub-category-preselection': typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -102,11 +127,14 @@ export interface FileRoutesById {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
-  '/app/carbon-footprint': typeof AppCarbonFootprintRoute
+  '/app/carbon-inventory': typeof AppCarbonInventoryRouteWithChildren
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
+  '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  '/app/carbon-inventory/$inventoryId/sub-category-preselection': typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -116,11 +144,14 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
-    | '/app/carbon-footprint'
+    | '/app/carbon-inventory'
     | '/app/home'
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/carbon-inventory/'
+    | '/app/carbon-inventory/$inventoryId/business-profiling'
+    | '/app/carbon-inventory/$inventoryId/sub-category-preselection'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,11 +159,13 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
-    | '/app/carbon-footprint'
     | '/app/home'
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/carbon-inventory'
+    | '/app/carbon-inventory/$inventoryId/business-profiling'
+    | '/app/carbon-inventory/$inventoryId/sub-category-preselection'
   id:
     | '__root__'
     | '/'
@@ -140,11 +173,14 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
-    | '/app/carbon-footprint'
+    | '/app/carbon-inventory'
     | '/app/home'
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/carbon-inventory/'
+    | '/app/carbon-inventory/$inventoryId/business-profiling'
+    | '/app/carbon-inventory/$inventoryId/sub-category-preselection'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -153,7 +189,7 @@ export interface RootRouteChildren {
   CapinautRoute: typeof CapinautRoute
   TransparencyRoute: typeof TransparencyRoute
   AppAwardsRoute: typeof AppAwardsRoute
-  AppCarbonFootprintRoute: typeof AppCarbonFootprintRoute
+  AppCarbonInventoryRoute: typeof AppCarbonInventoryRouteWithChildren
   AppHomeRoute: typeof AppHomeRoute
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
@@ -218,11 +254,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppHomeRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/carbon-footprint': {
-      id: '/app/carbon-footprint'
-      path: '/app/carbon-footprint'
-      fullPath: '/app/carbon-footprint'
-      preLoaderRoute: typeof AppCarbonFootprintRouteImport
+    '/app/carbon-inventory': {
+      id: '/app/carbon-inventory'
+      path: '/app/carbon-inventory'
+      fullPath: '/app/carbon-inventory'
+      preLoaderRoute: typeof AppCarbonInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/app/awards': {
@@ -232,8 +268,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAwardsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/carbon-inventory/': {
+      id: '/app/carbon-inventory/'
+      path: '/'
+      fullPath: '/app/carbon-inventory/'
+      preLoaderRoute: typeof AppCarbonInventoryIndexRouteImport
+      parentRoute: typeof AppCarbonInventoryRoute
+    }
+    '/app/carbon-inventory/$inventoryId/sub-category-preselection': {
+      id: '/app/carbon-inventory/$inventoryId/sub-category-preselection'
+      path: '/$inventoryId/sub-category-preselection'
+      fullPath: '/app/carbon-inventory/$inventoryId/sub-category-preselection'
+      preLoaderRoute: typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRouteImport
+      parentRoute: typeof AppCarbonInventoryRoute
+    }
+    '/app/carbon-inventory/$inventoryId/business-profiling': {
+      id: '/app/carbon-inventory/$inventoryId/business-profiling'
+      path: '/$inventoryId/business-profiling'
+      fullPath: '/app/carbon-inventory/$inventoryId/business-profiling'
+      preLoaderRoute: typeof AppCarbonInventoryInventoryIdBusinessProfilingRouteImport
+      parentRoute: typeof AppCarbonInventoryRoute
+    }
   }
 }
+
+interface AppCarbonInventoryRouteChildren {
+  AppCarbonInventoryIndexRoute: typeof AppCarbonInventoryIndexRoute
+  AppCarbonInventoryInventoryIdBusinessProfilingRoute: typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
+  AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute: typeof AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute
+}
+
+const AppCarbonInventoryRouteChildren: AppCarbonInventoryRouteChildren = {
+  AppCarbonInventoryIndexRoute: AppCarbonInventoryIndexRoute,
+  AppCarbonInventoryInventoryIdBusinessProfilingRoute:
+    AppCarbonInventoryInventoryIdBusinessProfilingRoute,
+  AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute:
+    AppCarbonInventoryInventoryIdSubCategoryPreselectionRoute,
+}
+
+const AppCarbonInventoryRouteWithChildren =
+  AppCarbonInventoryRoute._addFileChildren(AppCarbonInventoryRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
@@ -241,7 +315,7 @@ const rootRouteChildren: RootRouteChildren = {
   CapinautRoute: CapinautRoute,
   TransparencyRoute: TransparencyRoute,
   AppAwardsRoute: AppAwardsRoute,
-  AppCarbonFootprintRoute: AppCarbonFootprintRoute,
+  AppCarbonInventoryRoute: AppCarbonInventoryRouteWithChildren,
   AppHomeRoute: AppHomeRoute,
   AppMyOrganizationRoute: AppMyOrganizationRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,

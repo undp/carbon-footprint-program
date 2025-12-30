@@ -96,7 +96,7 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
   });
 
   describe("Ordering", () => {
-    it("should return organization sizes ordered by name", async () => {
+    it("should return organization sizes ordered by id", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/country-organization-sizes",
@@ -106,9 +106,9 @@ describe("GET /api/country-organization-sizes - Integration Tests", () => {
       const body = JSON.parse(
         response.body
       ) as GetAllCountryOrganizationSizesResponse;
-      const names = body.map((os) => os.name);
-      const sortedNames = [...names].sort();
-      expect(names).toEqual(sortedNames);
+      const ids = body.map((os) => Number(os.id));
+      const sortedIds = [...ids].sort();
+      expect(ids).toEqual(sortedIds);
     });
   });
 

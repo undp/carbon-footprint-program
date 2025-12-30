@@ -20,14 +20,14 @@ type ErrorBody = {
   errors?: unknown;
 };
 
-function isErrorBody(value: unknown): value is ErrorBody {
+const isErrorBody = (value: unknown): value is ErrorBody => {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
+};
 
-export async function normalizeError(
+export const normalizeError = async (
   request: Request,
   res: Response
-): Promise<NormalizedError> {
+): Promise<NormalizedError> => {
   const status = res.status;
   let body: unknown;
   let bodyMessage: string | undefined;
@@ -84,4 +84,4 @@ export async function normalizeError(
     request: { url: request.url, method: request.method },
     body,
   };
-}
+};

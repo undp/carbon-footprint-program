@@ -22,19 +22,19 @@ export const getAllOrganizationMainActivitiesService = async (
   });
 
   // Add filter-specific conditions (generic activities already added above)
-  if (filters?.sectorId && !filters?.subsectorId) {
-    // Only sectorId is provided
+  if (filters?.sectorId) {
+    // Add sector-specific activities
     orConditions.push({
       country_sector_id: BigInt(filters.sectorId),
     });
-  } else if (filters?.sectorId && filters?.subsectorId) {
-    // Both sectorId and subsectorId are provided
+  }
+
+  if (filters?.subsectorId) {
+    // Add subsector-specific activities
     orConditions.push({
-      country_sector_id: BigInt(filters.sectorId),
       country_subsector_id: BigInt(filters.subsectorId),
     });
   }
-  // If no filters, only generic activities are returned (already in orConditions)
 
   const data = await prismaClient.organization_main_activity.findMany({
     where: {
