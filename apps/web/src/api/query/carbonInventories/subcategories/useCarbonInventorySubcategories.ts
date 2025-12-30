@@ -9,18 +9,13 @@ export interface CarbonInventorySubcategory {
 }
 
 const MOCK_CARBON_INVENTORY_SUBCATEGORIES: CarbonInventorySubcategory[] = [
-  { subcategoryId: 1531, selected: true, hasEditedLine: true },
-  { subcategoryId: 1533, selected: true, hasEditedLine: false },
-  { subcategoryId: 1535, selected: false, hasEditedLine: false },
-  { subcategoryId: 1537, selected: true, hasEditedLine: true },
-  { subcategoryId: 1539, selected: false, hasEditedLine: false },
-  { subcategoryId: 1541, selected: true, hasEditedLine: false },
-  { subcategoryId: 1890, selected: true, hasEditedLine: true },
-  { subcategoryId: 1892, selected: true, hasEditedLine: false },
-  { subcategoryId: 1894, selected: false, hasEditedLine: false },
-  { subcategoryId: 2001, selected: true, hasEditedLine: true },
-  { subcategoryId: 2003, selected: true, hasEditedLine: false },
-  { subcategoryId: 2005, selected: false, hasEditedLine: false },
+  { subcategoryId: 1, selected: true, hasEditedLine: true },
+  { subcategoryId: 2, selected: true, hasEditedLine: false },
+  { subcategoryId: 5, selected: true, hasEditedLine: false },
+  { subcategoryId: 7, selected: true, hasEditedLine: true },
+  { subcategoryId: 8, selected: true, hasEditedLine: false },
+  { subcategoryId: 16, selected: true, hasEditedLine: true },
+  { subcategoryId: 17, selected: true, hasEditedLine: false },
 ];
 
 export const useCarbonInventorySubcategories = (carbonInventoryId: string) => {

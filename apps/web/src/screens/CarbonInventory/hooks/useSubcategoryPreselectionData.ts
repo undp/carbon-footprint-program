@@ -31,7 +31,7 @@ export const useSubcategoryPreselectionData = (
       selectionData.map((item) => [item.subcategoryId, item])
     );
 
-    return methodology.categories.map((category) => {
+    return methodology.categories.map((category, index) => {
       const subcategories: SubcategoryItem[] = category.subcategories.map(
         (subcategory) => {
           const idNum = Number(subcategory.id);
@@ -53,6 +53,7 @@ export const useSubcategoryPreselectionData = (
 
       return {
         ...category,
+        order: index + 1,
         subcategories,
       } as CategoryWithSubcategories;
     });

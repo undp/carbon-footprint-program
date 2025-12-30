@@ -9,7 +9,7 @@ import {
 export type SubcategoryFieldEmission = {
   id: string | number;
   name: string;
-  description?: string;
+  description?: string | null;
 };
 
 type Props<T extends FieldValues> = {

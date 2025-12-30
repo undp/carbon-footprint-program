@@ -1,7 +1,7 @@
 export type SubcategoryItem = {
   id: number;
   name: string;
-  description?: string;
+  description?: string | null;
   selected: boolean;
   hasEditedLine: boolean;
   disabled: boolean;
@@ -10,8 +10,8 @@ export type SubcategoryItem = {
 export type CategoryWithSubcategories = {
   id: string;
   name: string;
-  description: string;
-  synonyms: string;
+  description?: string | null;
+  synonyms?: string | null;
   order: number;
   subcategories: SubcategoryItem[];
   color?: string;
