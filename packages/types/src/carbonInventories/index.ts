@@ -3,3 +3,4 @@ export * from "./createCarbonInventory.js";
 export * from "./getAllCarbonInventories.js";
 export * from "./getCarbonInventoryById.js";
 export * from "./updateCarbonInventory.js";
+export * from "./getCarbonInventoryMethodology.js";

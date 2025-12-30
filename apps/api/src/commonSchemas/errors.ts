@@ -12,8 +12,18 @@ export const NotFoundErrorResponseSchema = z
   })
   .describe("Not found error response");
 
+export const StructuredErrorResponseSchema = z
+  .object({
+    code: z.string().describe("Error code"),
+    message: z.string().describe("Error message"),
+  })
+  .describe("Structured error response");
+
 // Typescript
 export type ValidationErrorResponse = z.infer<
   typeof ValidationErrorResponseSchema
 >;
 export type NotFoundErrorResponse = z.infer<typeof NotFoundErrorResponseSchema>;
+export type StructuredErrorResponse = z.infer<
+  typeof StructuredErrorResponseSchema
+>;

@@ -9,10 +9,14 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type { ValidationErrorResponse } from "@/commonSchemas/errors.js";
+import type {
+  ValidationErrorResponse,
+  StructuredErrorResponse,
+} from "@/commonSchemas/errors.js";
 
 describe("POST /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -126,6 +130,9 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
     });
 
     it("should set nullable fields to null by default", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersionIdString = methodologyVersionId.toString();
+
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories",
@@ -139,7 +146,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.organizationId).toBeNull();
       expect(body.organizationBranchId).toBeNull();
       expect(body.organizationData).toBeNull();
-      expect(body.methodologyVersionId).toBeNull();
+      expect(body.methodologyVersionId).toBe(methodologyVersionIdString);
       expect(body.preselectedNodesId).toBeNull();
       expect(body.createdById).toBeNull();
       expect(body.updatedById).toBeNull();
@@ -317,6 +324,77 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         beforeCreation.getTime()
       );
       expect(updatedAt.getTime()).toBeLessThanOrEqual(afterCreation.getTime());
+    });
+  });
+
+  describe("Business logic errors", () => {
+    it("should return 422 when no active methodology is found", async () => {
+      // Get the ACTIVE and DELETED status IDs
+      const activeStatus = await prisma.status_catalog.findFirst({
+        where: {
+          scope: "ENTITY",
+          code: "ACTIVE",
+        },
+      });
+
+      const deletedStatus = await prisma.status_catalog.findFirst({
+        where: {
+          scope: "ENTITY",
+          code: "DELETED",
+        },
+      });
+
+      if (!activeStatus || !deletedStatus) {
+        throw new Error(
+          "Required status codes (ACTIVE or DELETED) not found in database"
+        );
+      }
+
+      // Temporarily change all active methodologies to DELETED
+      const activeMethodologies = await prisma.methodology_version.findMany({
+        where: {
+          status_id: activeStatus.id,
+        },
+      });
+
+      // Store original status IDs to restore later
+      const originalStatusIds = activeMethodologies.map((m) => ({
+        id: m.id,
+        statusId: m.status_id,
+      }));
+
+      // Update all active methodologies to DELETED
+      await prisma.methodology_version.updateMany({
+        where: {
+          status_id: activeStatus.id,
+        },
+        data: {
+          status_id: deletedStatus.id,
+        },
+      });
+
+      try {
+        const response = await app.inject({
+          method: "POST",
+          url: "/api/carbon-inventories",
+          payload: {
+            usageMode: "SIMPLIFIED",
+          },
+        });
+
+        expect(response.statusCode).toBe(422);
+        const body = JSON.parse(response.body) as StructuredErrorResponse;
+        expect(body.code).toBe("NO_ACTIVE_METHODOLOGY");
+        expect(body.message).toBe("No active methodology version found");
+      } finally {
+        // Restore original statuses
+        for (const { id, statusId } of originalStatusIds) {
+          await prisma.methodology_version.update({
+            where: { id },
+            data: { status_id: statusId },
+          });
+        }
+      }
     });
   });
 });

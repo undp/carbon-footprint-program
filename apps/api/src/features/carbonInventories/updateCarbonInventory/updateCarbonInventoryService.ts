@@ -47,10 +47,8 @@ export const updateCarbonInventoryService = async (
     updateData.usage_mode = data.usageMode;
   }
 
-  const methodologyVersionId = mapBigIntField(data.methodologyVersionId);
-  if (methodologyVersionId !== undefined) {
-    updateData.methodology_version_id = methodologyVersionId;
-  }
+  // methodology_version_id cannot be updated via PATCH endpoint
+  // It is set only during creation and remains immutable
 
   const preselectedNodesId = mapBigIntField(data.preselectedNodesId);
   if (preselectedNodesId !== undefined) {
