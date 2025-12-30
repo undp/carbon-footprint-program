@@ -48,6 +48,7 @@
     "@repo/typescript-config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.139.3",
     "@tanstack/router-plugin": "^1.139.3",
+    "@types/lodash": "^4.17.21",
     "@types/node": "catalog:shared",
     "@types/react": "^19.2.6",
     "@types/react-dom": "^19.2.3",
