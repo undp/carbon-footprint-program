@@ -18,6 +18,7 @@ import {
 import type { GetAllCarbonInventoriesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -151,6 +152,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         "updater@test.com",
       ]);
 
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+
       const testInventory = await createInventoryFromPattern(prisma, () => ({
         organization_id: BigInt(123),
         organization_branch_id: BigInt(456),
@@ -165,7 +168,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         year: 2024,
         status: "DRAFT",
         usage_mode: "EXPERT",
-        methodology_version_id: BigInt(789),
+        methodology_version_id: BigInt(methodologyVersionId),
         preselected_nodes_id: BigInt(111),
         is_editable: true,
         created_by_id: creatorUser.id,
@@ -196,7 +199,9 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(inventory.year).toBe(2024);
       expect(inventory.status).toBe("DRAFT");
       expect(inventory.usageMode).toBe("EXPERT");
-      expect(inventory.methodologyVersionId).toBe("789");
+      expect(inventory.methodologyVersionId).toBe(
+        methodologyVersionId.toString()
+      );
       expect(inventory.preselectedNodesId).toBe("111");
       expect(inventory.isEditable).toBe(true);
       expect(inventory.createdById).toBe(creatorUser.id.toString());

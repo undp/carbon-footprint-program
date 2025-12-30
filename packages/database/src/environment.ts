@@ -1,4 +1,4 @@
-import type { SeedsDataset } from "./prisma/seeds/utils/SeedsDataset.type.js";
+import type { SeedsDataset } from "@/prisma/seeds/utils/SeedsDataset.type.js";
 
 export const NODE_ENV = process.env.NODE_ENV;
 

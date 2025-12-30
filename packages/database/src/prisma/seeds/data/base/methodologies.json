@@ -1,0 +1,446 @@
+[
+  {
+    "country_iso_code": "CL",
+    "name": "Metodología inicial",
+    "description": "Metodología inicial para Chile",
+    "status_code": "ACTIVE",
+    "categories": [
+      {
+        "name": "Emisiones directas",
+        "synonyms": "Categoría 1 / Alcance 1",
+        "description": "Generadas dentro de tu empresa",
+        "examples": null,
+        "subcategories": [
+          {
+            "name": "Combustión estacionaria",
+            "description": "Uso de combustibles en equipos fijos como calderas, hornos o generadores.",
+            "examples": null,
+            "emission_factor_dimensions": [
+              {
+                "code": "FUEL_TYPE",
+                "name": "Tipo de combustible",
+                "position": 1,
+                "is_required": false,
+                "values": [
+                  { "name": "Gaseosos", "parent_value": null },
+                  { "name": "Líquidos", "parent_value": null },
+                  { "name": "Sólidos", "parent_value": null },
+                  { "name": "Bio-combustibles", "parent_value": null },
+                  { "name": "Bio-gas", "parent_value": null }
+                ]
+              },
+              {
+                "code": "FUEL",
+                "name": "Combustible",
+                "position": 2,
+                "is_required": true,
+                "values": [
+                  {
+                    "name": "Gas natural",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Gaseosos"
+                    }
+                  },
+                  {
+                    "name": "Gas licuado del petróleo",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Gaseosos"
+                    }
+                  },
+
+                  {
+                    "name": "Diésel",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Líquidos"
+                    }
+                  },
+                  {
+                    "name": "Gasolina/Nafta",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Líquidos"
+                    }
+                  },
+                  {
+                    "name": "Queroseno",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Líquidos"
+                    }
+                  },
+                  {
+                    "name": "Fuel oil / Petróleo pesado",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Líquidos"
+                    }
+                  },
+
+                  {
+                    "name": "Carbón industrial",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Sólidos"
+                    }
+                  },
+                  {
+                    "name": "Carbón para electricidad",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Sólidos"
+                    }
+                  },
+                  {
+                    "name": "Coke",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Sólidos"
+                    }
+                  },
+                  {
+                    "name": "Bioethanol",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Bio-combustibles"
+                    }
+                  },
+                  {
+                    "name": "Biodiésel",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Bio-combustibles"
+                    }
+                  },
+                  {
+                    "name": "Biogas",
+                    "parent_value": {
+                      "dimension_code": "FUEL_TYPE",
+                      "value_name": "Bio-gas"
+                    }
+                  }
+                ]
+              }
+            ],
+            "emission_factors": [
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Gaseosos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Gas natural"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 2
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Gaseosos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Gas licuado del petróleo"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 1557
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Líquidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Diésel"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 2570
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Líquidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Gasolina/Nafta"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 2339
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Líquidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Queroseno"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 2540
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Líquidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Fuel oil / Petróleo pesado"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 3174
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Sólidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Carbón industrial"
+                },
+                "rate_measurement_unit_abbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2395
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Sólidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Carbón para electricidad"
+                },
+                "rate_measurement_unit_abbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2225
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Sólidos"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Coke"
+                },
+                "rate_measurement_unit_abbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3386
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Bio-combustibles"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Bioethanol"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 9
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Bio-combustibles"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Biodiésel"
+                },
+                "rate_measurement_unit_abbreviation": "kg/m³",
+                "source": "DEFRA 2025",
+                "value": 167.5
+              },
+              {
+                "dimension_value_1": {
+                  "dimension_code": "FUEL_TYPE",
+                  "value_name": "Bio-gas"
+                },
+                "dimension_value_2": {
+                  "dimension_code": "FUEL",
+                  "value_name": "Biogas"
+                },
+                "rate_measurement_unit_abbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1.24
+              }
+            ]
+          },
+          {
+            "name": "Combustión móvil",
+            "description": "Uso de combustible en vehículos de reparto o camionetas de la empresa.",
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Agricultura y uso de suelos",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Procesos industriales",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Emisiones fugitivas",
+            "description": "Fugas o recargas de gas refrigerantes en A/C de oficinas o vehículos.",
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Remociones",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          }
+        ]
+      },
+      {
+        "name": "Emisiones indirectas por energías importadas",
+        "synonyms": "Categoría 2 / Alcance 2",
+        "description": "Generadas por la electricidad consumida",
+        "examples": null,
+        "subcategories": [
+          {
+            "name": "Electricidad general",
+            "description": "Electricidad usada en oficinas, bodegas y centros operativos",
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Energía térmica o de vapor para calefacción",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          }
+        ]
+      },
+      {
+        "name": "Otras emisiones indirectas",
+        "synonyms": "Categorías 3,4,5 Y 6 / Alcance 3",
+        "description": "Producidas fuera de tu empresa",
+        "examples": null,
+        "subcategories": [
+          {
+            "name": "Agua consumida",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Aguas servidas",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Energía indirecta",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Combustiones estacionarias",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Transporte empleados o contratistas",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Trabajo remoto",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Estadía en hotel",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Bienes adquiridos",
+            "description": "Material utilizado en embalaje de tus productos (cartón, plástico, papel, etc.)",
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Residuos generados",
+            "description": "Residuos de la operación (oficinas o bodegas) que se envían a relleno sanitario o reciclaje.",
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Transporte logístico",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Uso de artículos vendidos",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Fin vida útil artículos vendidos",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          },
+          {
+            "name": "Otros",
+            "description": null,
+            "examples": null,
+            "emission_factor_dimensions": [],
+            "emission_factors": []
+          }
+        ]
+      }
+    ]
+  }
+]
