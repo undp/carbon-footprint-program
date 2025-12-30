@@ -68,15 +68,6 @@ export const SubcategoryPreselectionScreen: FC = () => {
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
-              action={
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  disabled={hasError || isLoading}
-                >
-                  Agregar Nueva Fuente
-                </Button>
-              }
             />
             {isLoading && (
               <Box className="flex min-h-0 flex-1 items-center justify-center">
