@@ -12,7 +12,7 @@ import {
   cleanupCarbonInventoryTestData,
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
-import { getTestMethodologyVersion } from "@test/factories/methodologyFactory.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { UpdateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -194,8 +194,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         usage_mode: "SIMPLIFIED",
       });
 
-      const methodologyVersion = await getTestMethodologyVersion(prisma);
-      const methodologyVersionIdString = methodologyVersion.id.toString();
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersionIdString = methodologyVersionId.toString();
 
       const response = await app.inject({
         method: "PATCH",
