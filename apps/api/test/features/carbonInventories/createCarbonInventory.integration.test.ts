@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
-import { getTestMethodologyVersion } from "@test/factories/methodologyFactory.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -130,8 +130,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
     });
 
     it("should set nullable fields to null by default", async () => {
-      const methodologyVersion = await getTestMethodologyVersion(prisma);
-      const methodologyVersionIdString = methodologyVersion.id.toString();
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersionIdString = methodologyVersionId.toString();
 
       const response = await app.inject({
         method: "POST",

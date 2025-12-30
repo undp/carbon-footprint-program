@@ -11,7 +11,8 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { getTestMethodologyVersion } from "@test/factories/methodologyFactory.js";
+import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
   createInventoryFromPattern,
   carbonInventoryPatterns,
@@ -39,11 +40,11 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
 
   describe("Successful retrieval", () => {
     it("should return a methodology with expected structure", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -56,20 +57,22 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      expect(body).toHaveProperty("country_iso_code");
       expect(body).toHaveProperty("name");
       expect(body).toHaveProperty("description");
-      expect(body).toHaveProperty("status_code");
       expect(body).toHaveProperty("categories");
       expect(Array.isArray(body.categories)).toBe(true);
+      expect(typeof body.name).toBe("string");
+      expect(
+        body.description === null || typeof body.description === "string"
+      ).toBe(true);
     });
 
     it("should return methodology with categories", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -94,11 +97,11 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
     });
 
     it("should return subcategories with dimensions", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -114,30 +117,31 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       // Find a subcategory with dimensions
       const subcategoryWithDimensions = body.categories
         .flatMap((cat) => cat.subcategories)
-        .find((sub) => sub.emission_factor_dimensions.length > 0);
+        .find((sub) => sub.dimensions.length > 0);
 
       if (subcategoryWithDimensions) {
-        expect(
-          subcategoryWithDimensions.emission_factor_dimensions.length
-        ).toBeGreaterThan(0);
+        expect(subcategoryWithDimensions.dimensions.length).toBeGreaterThan(0);
 
-        const dimension =
-          subcategoryWithDimensions.emission_factor_dimensions[0];
-        expect(dimension).toHaveProperty("code");
+        const dimension = subcategoryWithDimensions.dimensions[0];
+        expect(dimension).toHaveProperty("id");
         expect(dimension).toHaveProperty("name");
         expect(dimension).toHaveProperty("position");
         expect(dimension).toHaveProperty("is_required");
         expect(dimension).toHaveProperty("values");
         expect(Array.isArray(dimension.values)).toBe(true);
+        expect(typeof dimension.id).toBe("string");
+        expect(typeof dimension.name).toBe("string");
+        expect(typeof dimension.position).toBe("number");
+        expect(typeof dimension.is_required).toBe("boolean");
       }
     });
 
-    it("should return dimension values with parent values when applicable", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+    it("should return dimension values with parent_value_id when applicable", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -151,27 +155,47 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       ) as GetCarbonInventoryMethodologyResponse;
 
       // Find a dimension value with a parent
-      const dimensionWithParent = body.categories
+      const dimensionValueWithParent = body.categories
         .flatMap((cat) => cat.subcategories)
-        .flatMap((sub) => sub.emission_factor_dimensions)
+        .flatMap((sub) => sub.dimensions)
         .flatMap((dim) => dim.values)
-        .find((val) => val.parent_value !== null);
+        .find((val) => val.parent_value_id !== null);
 
-      if (dimensionWithParent) {
-        expect(dimensionWithParent.parent_value).not.toBeNull();
-        expect(dimensionWithParent.parent_value).toHaveProperty(
-          "dimension_code"
-        );
-        expect(dimensionWithParent.parent_value).toHaveProperty("value_name");
+      if (dimensionValueWithParent) {
+        expect(dimensionValueWithParent.parent_value_id).not.toBeNull();
+        expect(typeof dimensionValueWithParent.parent_value_id).toBe("string");
+        expect(dimensionValueWithParent.parent_value_id).toMatch(/^\d+$/);
       }
+
+      // Verify all dimension values have the correct structure
+      body.categories.forEach((category) => {
+        category.subcategories.forEach((subcategory) => {
+          subcategory.dimensions.forEach((dimension) => {
+            dimension.values.forEach((value) => {
+              expect(value).toHaveProperty("id");
+              expect(value).toHaveProperty("value");
+              expect(value).toHaveProperty("parent_value_id");
+              expect(typeof value.id).toBe("string");
+              expect(typeof value.value).toBe("string");
+              expect(
+                value.parent_value_id === null ||
+                  typeof value.parent_value_id === "string"
+              ).toBe(true);
+              if (value.parent_value_id !== null) {
+                expect(value.parent_value_id).toMatch(/^\d+$/);
+              }
+            });
+          });
+        });
+      });
     });
 
     it("should not include emission_factors in the response", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -197,12 +221,12 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
   });
 
   describe("Data integrity", () => {
-    it("should have valid country ISO code", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+    it("should have valid category IDs as strings", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -215,17 +239,18 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      expect(body.country_iso_code).toBeTruthy();
-      expect(typeof body.country_iso_code).toBe("string");
-      expect(body.country_iso_code.length).toBe(2);
+      body.categories.forEach((category) => {
+        expect(typeof category.id).toBe("string");
+        expect(category.id).toMatch(/^\d+$/);
+      });
     });
 
-    it("should have valid status code", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+    it("should have valid subcategory IDs as strings", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -238,16 +263,20 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      expect(body.status_code).toBeTruthy();
-      expect(typeof body.status_code).toBe("string");
+      body.categories.forEach((category) => {
+        category.subcategories.forEach((subcategory) => {
+          expect(typeof subcategory.id).toBe("string");
+          expect(subcategory.id).toMatch(/^\d+$/);
+        });
+      });
     });
 
     it("should have categories ordered by name", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -266,11 +295,11 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
     });
 
     it("should have subcategories ordered by name", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -291,11 +320,11 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
     });
 
     it("should have dimensions ordered by position", async () => {
-      const methodology = await getTestMethodologyVersion(prisma);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodology.id }
+        { methodology_version_id: methodologyId }
       );
 
       const response = await app.inject({
@@ -310,11 +339,38 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
 
       body.categories.forEach((category) => {
         category.subcategories.forEach((subcategory) => {
-          const positions = subcategory.emission_factor_dimensions.map(
-            (dim) => dim.position
-          );
+          const positions = subcategory.dimensions.map((dim) => dim.position);
           const sortedPositions = [...positions].sort((a, b) => a - b);
           expect(positions).toEqual(sortedPositions);
+        });
+      });
+    });
+
+    it("should have dimension values ordered by value", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodology_version_id: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      body.categories.forEach((category) => {
+        category.subcategories.forEach((subcategory) => {
+          subcategory.dimensions.forEach((dimension) => {
+            const values = dimension.values.map((val) => val.value);
+            const sortedValues = [...values].sort();
+            expect(values).toEqual(sortedValues);
+          });
         });
       });
     });
@@ -328,7 +384,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as NotFoundErrorResponse;
       expect(body.message).toBe("Carbon inventory not found");
     });
 
@@ -345,7 +401,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as NotFoundErrorResponse;
       expect(body.message).toBe("Methodology not found");
     });
   });
