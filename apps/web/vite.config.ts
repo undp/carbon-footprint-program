@@ -38,5 +38,16 @@ export default defineConfig(({ mode }) => {
         "@interfaces": path.resolve(__dirname, "./src/interfaces"),
       },
     },
+    optimizeDeps: {
+      include: [
+        "@mui/material",
+        "@mui/icons-material",
+        "@mui/x-date-pickers",
+        "@mui/x-charts",
+        "@mui/x-data-grid",
+        "@emotion/react",
+        "@emotion/styled",
+      ],
+    },
   };
 });
