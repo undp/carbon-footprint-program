@@ -190,7 +190,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
     });
 
-    it("should not include emissionFactors in the response", async () => {
+    it("should include emissionFactors in subcategories", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -208,13 +208,39 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      // Check that emissionFactors is not in the response
-      expect(body).not.toHaveProperty("emissionFactors");
-
-      // Check that subcategories don't have emissionFactors
+      // Check that subcategories have emissionFactors property
       body.categories.forEach((category) => {
         category.subcategories.forEach((subcategory) => {
-          expect(subcategory).not.toHaveProperty("emissionFactors");
+          expect(subcategory).toHaveProperty("emissionFactors");
+          expect(Array.isArray(subcategory.emissionFactors)).toBe(true);
+
+          // If there are emission factors, verify their structure
+          if (subcategory.emissionFactors.length > 0) {
+            const emissionFactor = subcategory.emissionFactors[0];
+            expect(emissionFactor).toHaveProperty("id");
+            expect(emissionFactor).toHaveProperty("dimensionValue1Id");
+            expect(emissionFactor).toHaveProperty("dimensionValue2Id");
+            expect(emissionFactor).toHaveProperty("rateMeasurementUnitId");
+            expect(emissionFactor).toHaveProperty("source");
+            expect(emissionFactor).toHaveProperty("gasDetails");
+            expect(emissionFactor).toHaveProperty("value");
+            expect(emissionFactor).not.toHaveProperty("dimensionValue1");
+            expect(emissionFactor).not.toHaveProperty("dimensionValue2");
+            expect(emissionFactor).not.toHaveProperty("rateMeasurementUnit");
+            expect(emissionFactor).not.toHaveProperty("status");
+            expect(typeof emissionFactor.id).toBe("string");
+            expect(
+              emissionFactor.dimensionValue1Id === null ||
+                typeof emissionFactor.dimensionValue1Id === "string"
+            ).toBe(true);
+            expect(
+              emissionFactor.dimensionValue2Id === null ||
+                typeof emissionFactor.dimensionValue2Id === "string"
+            ).toBe(true);
+            expect(typeof emissionFactor.rateMeasurementUnitId).toBe("string");
+            expect(typeof emissionFactor.source).toBe("string");
+            expect(typeof emissionFactor.value).toBe("string");
+          }
         });
       });
     });

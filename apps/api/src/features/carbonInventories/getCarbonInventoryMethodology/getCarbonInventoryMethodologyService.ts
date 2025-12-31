@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
+import { z } from "zod";
 
 export type GetCarbonInventoryMethodologyResult =
   | { success: true; data: GetCarbonInventoryMethodologyResponse }
@@ -81,6 +82,20 @@ export const getCarbonInventoryMethodologyService = async (
                   position: "asc",
                 },
               },
+              emissionFactors: {
+                select: {
+                  id: true,
+                  dimensionValue1Id: true,
+                  dimensionValue2Id: true,
+                  rateMeasurementUnitId: true,
+                  source: true,
+                  gasDetails: true,
+                  value: true,
+                },
+                orderBy: {
+                  id: "asc",
+                },
+              },
             },
             orderBy: {
               name: "asc",
@@ -117,6 +132,22 @@ export const getCarbonInventoryMethodologyService = async (
               parentValueId: value.parentValueId?.toString() ?? null,
             })),
           })),
+          emissionFactors: subcategory.emissionFactors.map(
+            (emissionFactor) => ({
+              id: emissionFactor.id.toString(),
+              dimensionValue1Id:
+                emissionFactor.dimensionValue1Id?.toString() ?? null,
+              dimensionValue2Id:
+                emissionFactor.dimensionValue2Id?.toString() ?? null,
+              rateMeasurementUnitId:
+                emissionFactor.rateMeasurementUnitId.toString(),
+              source: emissionFactor.source,
+              gasDetails: emissionFactor.gasDetails as z.infer<
+                ReturnType<typeof z.json>
+              >,
+              value: emissionFactor.value.toString(),
+            })
+          ),
         })),
       })),
     },

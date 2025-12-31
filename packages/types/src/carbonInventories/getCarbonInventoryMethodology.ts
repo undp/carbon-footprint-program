@@ -20,6 +20,27 @@ const EmissionFactorDimensionSchema = z.object({
     .describe("The possible values for this dimension"),
 });
 
+const EmissionFactorSchema = z.object({
+  id: z.string().regex(/^\d+$/).describe("The ID of the emission factor"),
+  dimensionValue1Id: z
+    .string()
+    .regex(/^\d+$/)
+    .nullable()
+    .describe("The ID of the first dimension value"),
+  dimensionValue2Id: z
+    .string()
+    .regex(/^\d+$/)
+    .nullable()
+    .describe("The ID of the second dimension value"),
+  rateMeasurementUnitId: z
+    .string()
+    .regex(/^\d+$/)
+    .describe("The ID of the rate measurement unit"),
+  source: z.string().describe("The source of the emission factor"),
+  gasDetails: z.json().describe("The gas details as JSON"),
+  value: z.string().describe("The emission factor value as a decimal string"),
+});
+
 const SubcategorySchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of the subcategory"),
   name: z.string().describe("The name of the subcategory"),
@@ -31,6 +52,9 @@ const SubcategorySchema = z.object({
   dimensions: z
     .array(EmissionFactorDimensionSchema)
     .describe("The emission factor dimensions for this subcategory"),
+  emissionFactors: z
+    .array(EmissionFactorSchema)
+    .describe("The emission factors for this subcategory"),
 });
 
 const CategorySchema = z.object({

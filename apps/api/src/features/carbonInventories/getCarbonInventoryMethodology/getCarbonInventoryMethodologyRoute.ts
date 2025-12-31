@@ -18,7 +18,7 @@ export const getCarbonInventoryMethodologyRoute = (
         tags: ["carbon-inventories"],
         summary: "Get methodology for carbon inventory",
         description:
-          "Retrieves the methodology associated with a given carbon inventory, including all its categories, subcategories, dimensions, and dimension values. Emission factors are excluded.",
+          "Retrieves the methodology associated with a given carbon inventory, including all its categories, subcategories, dimensions, dimension values, and emission factors.",
         params: ParamsSchema,
         response: {
           200: GetCarbonInventoryMethodologyResponseSchema,
