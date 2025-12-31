@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
 import { InfoButton } from "@/components";
 import {
@@ -11,7 +11,7 @@ interface CategoryCardProps {
   position: 1 | 2 | 3;
   title: string;
   subtitle: string;
-  description: string | null;
+  description: string;
 }
 
 const icons = {
@@ -28,13 +28,9 @@ export const CategoryCard: FC<CategoryCardProps> = ({
 }) => {
   const theme = useTheme();
 
-  const backgroundColor = useMemo(() => {
-    return theme.palette.category[position].light;
-  }, [position, theme]);
+  const backgroundColor = theme.palette.category[position].light;
 
-  const icon = useMemo(() => {
-    return icons[position];
-  }, [position]);
+  const icon = icons[position];
 
   return (
     <Box
