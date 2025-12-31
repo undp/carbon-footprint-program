@@ -22,6 +22,7 @@ export async function seedCategories(
       synonyms: category.synonyms,
       description: category.description,
       examples: category.examples,
+      position: category.position,
     }))
   );
   // Check the data has no duplicates based on methodologyVersionName and name
@@ -61,6 +62,7 @@ export async function seedCategories(
       synonyms: category.synonyms || null,
       description: category.description || null,
       examples: category.examples || null,
+      position: category.position,
     };
   });
 

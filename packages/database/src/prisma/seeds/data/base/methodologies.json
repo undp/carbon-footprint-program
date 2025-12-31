@@ -10,6 +10,7 @@
         "synonyms": "Categoría 1 / Alcance 1",
         "description": "Generadas dentro de tu empresa",
         "examples": null,
+        "position": 1,
         "subcategories": [
           {
             "name": "Combustión estacionaria",
@@ -325,6 +326,7 @@
         "synonyms": "Categoría 2 / Alcance 2",
         "description": "Generadas por la electricidad consumida",
         "examples": null,
+        "position": 2,
         "subcategories": [
           {
             "name": "Electricidad general",
@@ -347,6 +349,7 @@
         "synonyms": "Categorías 3,4,5 Y 6 / Alcance 3",
         "description": "Producidas fuera de tu empresa",
         "examples": null,
+        "position": 3,
         "subcategories": [
           {
             "name": "Agua consumida",

@@ -305,6 +305,7 @@ model Category {
   synonyms             String?
   description          String?
   examples             String?
+  position             Int
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
@@ -315,6 +316,7 @@ model Category {
   subcategories        Subcategory[]
 
   @@unique([methodologyVersionId, name])
+  @@unique([methodologyVersionId, position])
   @@map("category")
 }
 

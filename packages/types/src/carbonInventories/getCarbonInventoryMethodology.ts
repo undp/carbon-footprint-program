@@ -96,6 +96,7 @@ const CategorySchema = z.object({
     .nullable()
     .describe("The description of the category"),
   examples: z.string().nullable().describe("Examples for the category"),
+  position: z.number().int().describe("The position/order of the category"),
   subcategories: z
     .array(SubcategorySchema)
     .describe("The subcategories in this category"),
