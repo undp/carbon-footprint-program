@@ -37,6 +37,7 @@ CREATE TABLE "category" (
     "synonyms" TEXT,
     "description" TEXT,
     "examples" TEXT,
+    "position" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
@@ -118,6 +119,9 @@ CREATE UNIQUE INDEX "methodology_version_country_id_name_key" ON "methodology_ve
 
 -- CreateIndex
 CREATE UNIQUE INDEX "category_methodology_version_id_name_key" ON "category"("methodology_version_id", "name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "category_methodology_version_id_position_key" ON "category"("methodology_version_id", "position");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "subcategory_category_id_name_key" ON "subcategory"("category_id", "name");

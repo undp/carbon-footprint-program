@@ -22,6 +22,7 @@ export const FullMethodologyDataSchema = z.array(
         synonyms: z.string().nullable().optional(),
         description: z.string().nullable().optional(),
         examples: z.string().nullable().optional(),
+        position: z.int(),
         subcategories: z.array(
           z.object({
             name: z.string().min(1),

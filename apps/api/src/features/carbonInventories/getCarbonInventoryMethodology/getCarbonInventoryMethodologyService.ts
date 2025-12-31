@@ -59,6 +59,7 @@ export const getCarbonInventoryMethodologyService = async (
           synonyms: true,
           description: true,
           examples: true,
+          position: true,
           subcategories: {
             select: {
               id: true,
@@ -129,7 +130,7 @@ export const getCarbonInventoryMethodologyService = async (
           },
         },
         orderBy: {
-          name: "asc",
+          position: "asc",
         },
       },
     },

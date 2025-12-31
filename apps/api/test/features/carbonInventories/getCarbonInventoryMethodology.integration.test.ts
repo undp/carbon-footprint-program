@@ -92,8 +92,10 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       expect(category).toHaveProperty("synonyms");
       expect(category).toHaveProperty("description");
       expect(category).toHaveProperty("examples");
+      expect(category).toHaveProperty("position");
       expect(category).toHaveProperty("subcategories");
       expect(Array.isArray(category.subcategories)).toBe(true);
+      expect(typeof category.position).toBe("number");
     });
 
     it("should return subcategories with dimensions", async () => {
@@ -377,7 +379,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
     });
 
-    it("should have categories ordered by name", async () => {
+    it("should have categories ordered by position", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -395,9 +397,9 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      const categoryNames = body.categories.map((cat) => cat.name);
-      const sortedNames = [...categoryNames].sort();
-      expect(categoryNames).toEqual(sortedNames);
+      const positions = body.categories.map((cat) => cat.position);
+      const sortedPositions = [...positions].sort((a, b) => a - b);
+      expect(positions).toEqual(sortedPositions);
     });
 
     it("should have subcategories ordered by name", async () => {
