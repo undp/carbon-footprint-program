@@ -6,6 +6,30 @@
 import { alpha } from "@mui/material/styles";
 import type { PaletteOptions } from "@mui/material/styles";
 
+const categoryStyle = {
+  one: {
+    main: "#FFB74D",
+    dark: "#66491F",
+    light: alpha("#FFB74D", 0.3),
+    background: alpha("#FFB74D", 0.8),
+    contrastText: "#414046",
+  },
+  two: {
+    main: "#64B5F6",
+    dark: "#284862",
+    light: alpha("#64B5F6", 0.3),
+    background: alpha("#64B5F6", 0.8),
+    contrastText: "#414046",
+  },
+  three: {
+    main: "#82C784",
+    dark: "#345035",
+    light: alpha("#82C784", 0.3),
+    background: alpha("#82C784", 0.8),
+    contrastText: "#414046",
+  },
+};
+
 export const palette: PaletteOptions = {
   mode: "light",
   // Primary colors - Main brand colors (Green)
@@ -111,26 +135,9 @@ export const palette: PaletteOptions = {
   // Divider
   divider: alpha("#000000", 0.12),
   category: {
-    one: {
-      main: "#FFB74D",
-      dark: "#66491F",
-      light: alpha("#FFB74D", 0.3),
-      background: alpha("#FFB74D", 0.8),
-      contrastText: "#414046",
-    },
-    two: {
-      main: "#64B5F6",
-      dark: "#284862",
-      light: alpha("#64B5F6", 0.3),
-      background: alpha("#64B5F6", 0.8),
-      contrastText: "#414046",
-    },
-    three: {
-      main: "#82C784",
-      dark: "#345035",
-      light: alpha("#82C784", 0.3),
-      background: alpha("#82C784", 0.8),
-      contrastText: "#414046",
-    },
+    ...categoryStyle,
+    1: categoryStyle.one,
+    2: categoryStyle.two,
+    3: categoryStyle.three,
   },
 } as const;
