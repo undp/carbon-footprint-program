@@ -37,9 +37,10 @@ export const getCarbonInventoryMethodologyService = async (
   // Then, get the methodology with all its related data
   /*
   Consider the following if performance becomes an issue:
-  - Monitor query execution time and response size in production
-  - Potentially add pagination for categories/subcategories if they grow large
+  - Monitoring the response size and query performance in production
+  - Potentially add pagination for categories/subcategories or emission factors grow large
   - Consider caching the methodology response since it's likely relatively static
+  - Evaluating whether all converted factors need to be returned or if they could be computed on-demand by the client
   */
   const methodology = await prismaClient.methodologyVersion.findUnique({
     where: {
