@@ -40,67 +40,67 @@ export async function getTestUsers(
 export const carbonInventoryPatterns = {
   /**
    * Returns a minimal draft carbon inventory input object with SIMPLIFIED mode.
-   *   - usage_mode: "SIMPLIFIED"
+   *   - usageMode: "SIMPLIFIED"
    */
-  simplifiedDraft: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    usage_mode: "SIMPLIFIED",
+  simplifiedDraft: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
+    usageMode: "SIMPLIFIED",
   }),
 
   /**
    * Returns a minimal draft carbon inventory input object with EXPERT mode.
-   *   - usage_mode: "EXPERT"
+   *   - usageMode: "EXPERT"
    */
-  expertDraft: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    usage_mode: "EXPERT",
+  expertDraft: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
+    usageMode: "EXPERT",
   }),
 
   /**
    * Returns a submitted carbon inventory input object with SIMPLIFIED mode.
    *   - year: 2024
    *   - status: "SUBMITTED"
-   *   - usage_mode: "SIMPLIFIED"
-   *   - is_editable: false
+   *   - usageMode: "SIMPLIFIED"
+   *   - isEditable: false
    */
-  submitted: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
+  submitted: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
     year: 2024,
     status: "SUBMITTED",
-    usage_mode: "SIMPLIFIED",
-    is_editable: false,
+    usageMode: "SIMPLIFIED",
+    isEditable: false,
   }),
 
   /**
    * Returns a verified carbon inventory input object with EXPERT mode.
    *   - year: 2024
    *   - status: "VERIFIED"
-   *   - usage_mode: "EXPERT"
-   *   - is_editable: false
+   *   - usageMode: "EXPERT"
+   *   - isEditable: false
    */
-  verified: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
+  verified: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
     year: 2024,
     status: "VERIFIED",
-    usage_mode: "EXPERT",
-    is_editable: false,
+    usageMode: "EXPERT",
+    isEditable: false,
   }),
 
   /**
    * Returns a deleted carbon inventory input object with SIMPLIFIED mode.
    *   - year: 2024
    *   - status: "DELETED"
-   *   - usage_mode: "SIMPLIFIED"
-   *   - is_editable: false
+   *   - usageMode: "SIMPLIFIED"
+   *   - isEditable: false
    */
-  deleted: (): Prisma.carbon_inventoryUncheckedCreateInput => ({
+  deleted: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
     year: 2024,
     status: "DELETED",
-    usage_mode: "SIMPLIFIED",
-    is_editable: false,
+    usageMode: "SIMPLIFIED",
+    isEditable: false,
   }),
 
   /**
    * Returns a complete carbon inventory input object with all fields populated.
-   *   - organization_id: {organizationId}
-   *   - organization_branch_id: {organizationBranchId}
-   *   - organization_data: {
+   *   - organizationId: {organizationId}
+   *   - organizationBranchId: {organizationBranchId}
+   *   - organizationData: {
    *       - name: "Test Organization",
    *       - sectorId: "10",
    *       - subsectorId: "20",
@@ -110,12 +110,12 @@ export const carbonInventoryPatterns = {
    *     }
    *   - year: 2023
    *   - status: "VERIFIED"
-   *   - usage_mode: "EXPERT"
-   *   - methodology_version_id: {methodologyVersionId}
-   *   - preselected_nodes_id: {preselectedNodesId}
-   *   - is_editable: false
-   *   - created_by_id: {createdById}
-   *   - updated_by_id: {updatedById}
+   *   - usageMode: "EXPERT"
+   *   - methodologyVersionId: {methodologyVersionId}
+   *   - preselectedNodesId: {preselectedNodesId}
+   *   - isEditable: false
+   *   - createdById: {createdById}
+   *   - updatedById: {updatedById}
    */
   complete: (
     organizationId: bigint,
@@ -124,10 +124,10 @@ export const carbonInventoryPatterns = {
     preselectedNodesId: bigint,
     createdById: bigint,
     updatedById: bigint
-  ): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    organization_id: organizationId,
-    organization_branch_id: organizationBranchId,
-    organization_data: {
+  ): Prisma.CarbonInventoryUncheckedCreateInput => ({
+    organizationId: organizationId,
+    organizationBranchId: organizationBranchId,
+    organizationData: {
       name: "Test Organization",
       sectorId: "10",
       subsectorId: "20",
@@ -137,17 +137,17 @@ export const carbonInventoryPatterns = {
     },
     year: 2023,
     status: "VERIFIED",
-    usage_mode: "EXPERT",
-    methodology_version_id: methodologyVersionId,
-    preselected_nodes_id: preselectedNodesId,
-    is_editable: false,
-    created_by_id: createdById,
-    updated_by_id: updatedById,
+    usageMode: "EXPERT",
+    methodologyVersionId: methodologyVersionId,
+    preselectedNodesId: preselectedNodesId,
+    isEditable: false,
+    createdById: createdById,
+    updatedById: updatedById,
   }),
 
   /**
    * Returns a carbon inventory input object with organization data.
-   *   - organization_data: {
+   *   - organizationData: {
    *       - name: "Acme Corp",
    *       - sectorId: "5",
    *       - subsectorId: "12",
@@ -157,8 +157,8 @@ export const carbonInventoryPatterns = {
    *     }
    *   - year: 2024
    *   - status: "DRAFT"
-   *   - usage_mode: "SIMPLIFIED"
-   *   - is_editable: true
+   *   - usageMode: "SIMPLIFIED"
+   *   - isEditable: true
    */
   withOrganizationData: (
     overrides?: Partial<{
@@ -169,8 +169,8 @@ export const carbonInventoryPatterns = {
       mainActivityId: string;
       mainActivityQuantity: number;
     }>
-  ): Prisma.carbon_inventoryUncheckedCreateInput => ({
-    organization_data: {
+  ): Prisma.CarbonInventoryUncheckedCreateInput => ({
+    organizationData: {
       name: overrides?.name ?? "Acme Corp",
       sectorId: overrides?.sectorId ?? "5",
       subsectorId: overrides?.subsectorId ?? "12",
@@ -180,8 +180,8 @@ export const carbonInventoryPatterns = {
     },
     year: 2024,
     status: "DRAFT",
-    usage_mode: "SIMPLIFIED",
-    is_editable: true,
+    usageMode: "SIMPLIFIED",
+    isEditable: true,
   }),
 };
 
@@ -190,9 +190,9 @@ export const carbonInventoryPatterns = {
  */
 export async function createCarbonInventory(
   prisma: PrismaClient,
-  data: Prisma.carbon_inventoryUncheckedCreateInput
+  data: Prisma.CarbonInventoryUncheckedCreateInput
 ) {
-  return prisma.carbon_inventory.create({ data });
+  return prisma.carbonInventory.create({ data });
 }
 
 /**
@@ -201,9 +201,9 @@ export async function createCarbonInventory(
  */
 export async function createCarbonInventories(
   prisma: PrismaClient,
-  dataArray: Prisma.carbon_inventoryUncheckedCreateInput[]
+  dataArray: Prisma.CarbonInventoryUncheckedCreateInput[]
 ) {
-  await prisma.carbon_inventory.createMany({ data: dataArray });
+  await prisma.carbonInventory.createMany({ data: dataArray });
 }
 
 /**
@@ -211,8 +211,8 @@ export async function createCarbonInventories(
  */
 export async function createInventoryFromPattern(
   prisma: PrismaClient,
-  pattern: () => Prisma.carbon_inventoryUncheckedCreateInput,
-  overrides?: Partial<Prisma.carbon_inventoryUncheckedCreateInput>
+  pattern: () => Prisma.CarbonInventoryUncheckedCreateInput,
+  overrides?: Partial<Prisma.CarbonInventoryUncheckedCreateInput>
 ) {
   const data = { ...pattern(), ...overrides };
   return createCarbonInventory(prisma, data);
@@ -224,24 +224,24 @@ export async function createInventoryFromPattern(
  */
 export async function seedCarbonInventory(
   prisma: PrismaClient,
-  data: Prisma.carbon_inventoryUncheckedCreateInput
+  data: Prisma.CarbonInventoryUncheckedCreateInput
 ) {
-  return prisma.carbon_inventory.create({
+  return prisma.carbonInventory.create({
     data: {
       year: data.year,
-      usage_mode: data.usage_mode,
+      usageMode: data.usageMode,
       status: data.status,
-      is_editable: data.is_editable,
-      organization_id: mapBigIntField(data.organization_id?.toString()) ?? null,
-      organization_branch_id:
-        mapBigIntField(data.organization_branch_id?.toString()) ?? null,
-      organization_data: data.organization_data ?? Prisma.JsonNull,
-      methodology_version_id:
-        mapBigIntField(data.methodology_version_id?.toString()) ?? null,
-      preselected_nodes_id:
-        mapBigIntField(data.preselected_nodes_id?.toString()) ?? null,
-      created_by_id: data.created_by_id ?? null,
-      updated_by_id: data.updated_by_id ?? null,
+      isEditable: data.isEditable,
+      organizationId: mapBigIntField(data.organizationId?.toString()) ?? null,
+      organizationBranchId:
+        mapBigIntField(data.organizationBranchId?.toString()) ?? null,
+      organizationData: data.organizationData ?? Prisma.JsonNull,
+      methodologyVersionId:
+        mapBigIntField(data.methodologyVersionId?.toString()) ?? null,
+      preselectedNodesId:
+        mapBigIntField(data.preselectedNodesId?.toString()) ?? null,
+      createdById: data.createdById ?? null,
+      updatedById: data.updatedById ?? null,
     },
   });
 }
@@ -253,5 +253,5 @@ export async function seedCarbonInventory(
 export async function cleanupCarbonInventoryTestData(
   prisma: PrismaClient
 ): Promise<void> {
-  await prisma.carbon_inventory.deleteMany({});
+  await prisma.carbonInventory.deleteMany({});
 }

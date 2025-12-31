@@ -44,7 +44,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -72,7 +72,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -101,7 +101,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -141,7 +141,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -195,7 +195,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -226,7 +226,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -250,7 +250,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -276,7 +276,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -299,7 +299,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -324,7 +324,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -351,7 +351,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: methodologyId }
+        { methodologyVersionId: methodologyId }
       );
 
       const response = await app.inject({
@@ -392,7 +392,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodology_version_id: null }
+        { methodologyVersionId: null }
       );
 
       const response = await app.inject({

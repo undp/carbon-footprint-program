@@ -155,9 +155,9 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
       const testInventory = await createInventoryFromPattern(prisma, () => ({
-        organization_id: BigInt(123),
-        organization_branch_id: BigInt(456),
-        organization_data: {
+        organizationId: BigInt(123),
+        organizationBranchId: BigInt(456),
+        organizationData: {
           name: "Test Org",
           sectorId: "1",
           subsectorId: "2",
@@ -167,12 +167,12 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         },
         year: 2024,
         status: "DRAFT",
-        usage_mode: "EXPERT",
-        methodology_version_id: BigInt(methodologyVersionId),
-        preselected_nodes_id: BigInt(111),
-        is_editable: true,
-        created_by_id: creatorUser.id,
-        updated_by_id: updaterUser.id,
+        usageMode: "EXPERT",
+        methodologyVersionId: BigInt(methodologyVersionId),
+        preselectedNodesId: BigInt(111),
+        isEditable: true,
+        createdById: creatorUser.id,
+        updatedById: updaterUser.id,
       }));
 
       const response = await app.inject({
