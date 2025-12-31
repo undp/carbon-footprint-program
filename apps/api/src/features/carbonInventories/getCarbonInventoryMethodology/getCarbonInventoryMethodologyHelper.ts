@@ -87,6 +87,13 @@ export const convertEmissionFactorValue = (
     );
   }
 
+  // Validate originalNumBaseFactor: must be finite
+  if (!Number.isFinite(originalNumBaseFactor)) {
+    throw new Error(
+      `Invalid originalNumBaseFactor: ${originalNumBaseFactor} is not a finite number`
+    );
+  }
+
   // Validate originalDenBaseFactor: must be non-zero and finite
   if (!Number.isFinite(originalDenBaseFactor)) {
     throw new Error(
@@ -108,6 +115,13 @@ export const convertEmissionFactorValue = (
   if (newNumBaseFactor === 0) {
     throw new Error(
       `Invalid newNumBaseFactor: ${newNumBaseFactor} cannot be zero (division by zero)`
+    );
+  }
+
+  // Validate newDenBaseFactor: must be finite
+  if (!Number.isFinite(newDenBaseFactor)) {
+    throw new Error(
+      `Invalid newDenBaseFactor: ${newDenBaseFactor} is not a finite number`
     );
   }
 
