@@ -249,9 +249,15 @@ export async function seedCarbonInventory(
 /**
  * Cleans up test carbon inventories
  * Note: Users are seeded once and reused across tests
+ * Deletes in order: results -> factors -> inputs -> lines -> inventories
  */
 export async function cleanupCarbonInventoryTestData(
   prisma: PrismaClient
 ): Promise<void> {
+  // Delete in order of dependencies (child tables first)
+  await prisma.carbonInventoryLineResult.deleteMany({});
+  await prisma.carbonInventoryLineFactor.deleteMany({});
+  await prisma.carbonInventoryLineInput.deleteMany({});
+  await prisma.carbonInventoryLine.deleteMany({});
   await prisma.carbonInventory.deleteMany({});
 }
