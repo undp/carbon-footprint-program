@@ -62,6 +62,10 @@ CREATE TABLE "carbon_inventory_line_result" (
     "total_emissions" DECIMAL(18,10) NOT NULL,
     "result_details" JSONB,
     "calculated_at" TIMESTAMP(3) NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by_id" BIGINT,
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "carbon_inventory_line_result_pkey" PRIMARY KEY ("id")
 );
@@ -126,3 +130,9 @@ ALTER TABLE "carbon_inventory_line_factor" ADD CONSTRAINT "carbon_inventory_line
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line_result" ADD CONSTRAINT "carbon_inventory_line_result_line_input_id_fkey" FOREIGN KEY ("line_input_id") REFERENCES "carbon_inventory_line_input"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "carbon_inventory_line_result" ADD CONSTRAINT "carbon_inventory_line_result_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "carbon_inventory_line_result" ADD CONSTRAINT "carbon_inventory_line_result_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
