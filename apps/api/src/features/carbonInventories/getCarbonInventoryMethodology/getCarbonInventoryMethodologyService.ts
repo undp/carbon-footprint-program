@@ -1,9 +1,12 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
+import { z } from "zod";
 import {
   buildRateUnitsByMagnitudeMap,
   generateConvertedEmissionFactors,
 } from "./getCarbonInventoryMethodologyHelper.js";
+
+type JSONType = z.infer<ReturnType<typeof z.json>>;
 
 export type GetCarbonInventoryMethodologyResult =
   | { success: true; data: GetCarbonInventoryMethodologyResponse }
@@ -163,7 +166,10 @@ export const getCarbonInventoryMethodologyService = async (
               generateConvertedEmissionFactors(
                 emissionFactor,
                 rateUnitsByMagnitude
-              )
+              ).map((factor) => ({
+                ...factor,
+                gasDetails: factor.gasDetails as unknown as JSONType,
+              }))
           ),
         })),
       })),
