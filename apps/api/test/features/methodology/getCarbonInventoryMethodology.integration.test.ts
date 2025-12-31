@@ -126,17 +126,17 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         expect(dimension).toHaveProperty("id");
         expect(dimension).toHaveProperty("name");
         expect(dimension).toHaveProperty("position");
-        expect(dimension).toHaveProperty("is_required");
+        expect(dimension).toHaveProperty("isRequired");
         expect(dimension).toHaveProperty("values");
         expect(Array.isArray(dimension.values)).toBe(true);
         expect(typeof dimension.id).toBe("string");
         expect(typeof dimension.name).toBe("string");
         expect(typeof dimension.position).toBe("number");
-        expect(typeof dimension.is_required).toBe("boolean");
+        expect(typeof dimension.isRequired).toBe("boolean");
       }
     });
 
-    it("should return dimension values with parent_value_id when applicable", async () => {
+    it("should return dimension values with parentValueId when applicable", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -159,12 +159,12 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         .flatMap((cat) => cat.subcategories)
         .flatMap((sub) => sub.dimensions)
         .flatMap((dim) => dim.values)
-        .find((val) => val.parent_value_id !== null);
+        .find((val) => val.parentValueId !== null);
 
       if (dimensionValueWithParent) {
-        expect(dimensionValueWithParent.parent_value_id).not.toBeNull();
-        expect(typeof dimensionValueWithParent.parent_value_id).toBe("string");
-        expect(dimensionValueWithParent.parent_value_id).toMatch(/^\d+$/);
+        expect(dimensionValueWithParent.parentValueId).not.toBeNull();
+        expect(typeof dimensionValueWithParent.parentValueId).toBe("string");
+        expect(dimensionValueWithParent.parentValueId).toMatch(/^\d+$/);
       }
 
       // Verify all dimension values have the correct structure
@@ -174,15 +174,15 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
             dimension.values.forEach((value) => {
               expect(value).toHaveProperty("id");
               expect(value).toHaveProperty("value");
-              expect(value).toHaveProperty("parent_value_id");
+              expect(value).toHaveProperty("parentValueId");
               expect(typeof value.id).toBe("string");
               expect(typeof value.value).toBe("string");
               expect(
-                value.parent_value_id === null ||
-                  typeof value.parent_value_id === "string"
+                value.parentValueId === null ||
+                  typeof value.parentValueId === "string"
               ).toBe(true);
-              if (value.parent_value_id !== null) {
-                expect(value.parent_value_id).toMatch(/^\d+$/);
+              if (value.parentValueId !== null) {
+                expect(value.parentValueId).toMatch(/^\d+$/);
               }
             });
           });
