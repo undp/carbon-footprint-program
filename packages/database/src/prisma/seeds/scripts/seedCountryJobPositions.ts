@@ -12,14 +12,14 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type JobPositionData = (Pick<Prisma.country_job_positionCreateInput, "name"> & {
-  country_iso_code: Prisma.countryCreateInput["iso_code"];
+type JobPositionData = (Pick<Prisma.CountryJobPositionCreateInput, "name"> & {
+  countryIsoCode: Prisma.CountryCreateInput["isoCode"];
 })[];
 
 const JobPositionDataSchema: z.ZodType<JobPositionData> = z.array(
   z.object({
     name: z.string().min(1),
-    country_iso_code: z.string().min(1),
+    countryIsoCode: z.string().min(1),
   })
 );
 
@@ -31,7 +31,7 @@ export async function seedCountryJobPositions(
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
-  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
+  const countryByIso = new Map(countries.map((c) => [c.isoCode, c]));
 
   // Read country job positions
   const jobPositionsData = JobPositionDataSchema.parse(
@@ -43,27 +43,27 @@ export async function seedCountryJobPositions(
     )
   );
 
-  // Check the data has no duplicated based on country_iso_code and name
-  checkForDuplicates(jobPositionsData, ["country_iso_code", "name"]);
+  // Check the data has no duplicated based on countryIsoCode and name
+  checkForDuplicates(jobPositionsData, ["countryIsoCode", "name"]);
 
-  // Prepare job positions data with country_id
+  // Prepare job positions data with countryId
   const jobPositionsToCreate = jobPositionsData.map((jp) => {
-    const country = countryByIso.get(jp.country_iso_code);
+    const country = countryByIso.get(jp.countryIsoCode);
     if (!country)
       throw new Error(
-        `Country '${jp.country_iso_code}' not found in dataset ${dataset}`
+        `Country '${jp.countryIsoCode}' not found in dataset ${dataset}`
       );
-    return { name: jp.name, country_id: country.id };
+    return { name: jp.name, countryId: country.id };
   });
 
   // Batch create job positions (skips duplicates)
-  await prisma.country_job_position.createMany({
+  await prisma.countryJobPosition.createMany({
     data: jobPositionsToCreate,
     skipDuplicates: true,
   });
 
   // Verify all job positions were created
-  const jobPositions = await prisma.country_job_position.findMany();
+  const jobPositions = await prisma.countryJobPosition.findMany();
 
   if (jobPositions.length !== jobPositionsData.length)
     throw new Error(
