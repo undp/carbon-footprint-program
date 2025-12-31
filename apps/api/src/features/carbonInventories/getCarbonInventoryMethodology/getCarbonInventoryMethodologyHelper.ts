@@ -1,44 +1,58 @@
-import type { PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import { z } from "zod";
 
-export type RateMeasurementUnitWithMagnitudes = {
-  id: bigint;
-  numeratorMeasurementUnit: {
-    id: bigint;
-    magnitude: string;
-    baseFactor: number;
-  };
-  denominatorMeasurementUnit: {
-    id: bigint;
-    magnitude: string;
-    baseFactor: number;
-  };
-};
-
-export type EmissionFactorWithRateUnit = {
-  id: bigint;
-  dimensionValue1Id: bigint | null;
-  dimensionValue2Id: bigint | null;
-  rateMeasurementUnitId: bigint;
-  source: string;
-  gasDetails: unknown;
-  value: { toString(): string } | string | number;
-  rateMeasurementUnit: {
-    id: bigint;
+type RateMeasurementUnitWithMagnitudes = Prisma.RateMeasurementUnitGetPayload<{
+  select: {
+    id: true;
     numeratorMeasurementUnit: {
-      id: bigint;
-      magnitude: string;
-      baseFactor: number;
+      select: {
+        id: true;
+        magnitude: true;
+        baseFactor: true;
+      };
     };
     denominatorMeasurementUnit: {
-      id: bigint;
-      magnitude: string;
-      baseFactor: number;
+      select: {
+        id: true;
+        magnitude: true;
+        baseFactor: true;
+      };
     };
-  } | null;
-};
+  };
+}>;
 
-export type ConvertedEmissionFactor = {
+type EmissionFactorWithRateUnit = Prisma.EmissionFactorGetPayload<{
+  select: {
+    id: true;
+    dimensionValue1Id: true;
+    dimensionValue2Id: true;
+    rateMeasurementUnitId: true;
+    source: true;
+    gasDetails: true;
+    value: true;
+    rateMeasurementUnit: {
+      select: {
+        id: true;
+        numeratorMeasurementUnit: {
+          select: {
+            id: true;
+            magnitude: true;
+            baseFactor: true;
+          };
+        };
+        denominatorMeasurementUnit: {
+          select: {
+            id: true;
+            magnitude: true;
+            baseFactor: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+type ConvertedEmissionFactor = {
   id: string;
   originalEmissionFactorId: string | null;
   dimensionValue1Id: string | null;
