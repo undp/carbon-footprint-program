@@ -3,7 +3,7 @@ import { CarbonInventorySchema } from "./base.js";
 
 // Response Schemas
 export const GetAllCarbonInventoriesResponseSchema = z.array(
-  CarbonInventorySchema
+  CarbonInventorySchema.omit({ lines: true })
 );
 
 // TypeScript Types

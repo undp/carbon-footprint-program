@@ -50,5 +50,8 @@ export const createCarbonInventoryService = async (
       updatedById: null, // TODO: Add updated by id from logged in user
     },
   });
-  return { success: true, data: mapCarbonInventoryToResponse(item) };
+  return {
+    success: true,
+    data: mapCarbonInventoryToResponse(item),
+  };
 };

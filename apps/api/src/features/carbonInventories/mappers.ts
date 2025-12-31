@@ -1,11 +1,138 @@
-import type { CarbonInventory } from "@repo/database";
-import type { GetCarbonInventoryByIdResponse } from "@repo/types";
+import type { Prisma } from "@repo/database";
+import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
+import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
 import { OrganizationDataSchema } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
+import { isCarbonInventoryLineEdited } from "./utils.js";
 
-export const mapCarbonInventoryToResponse = (
-  item: CarbonInventory
-): GetCarbonInventoryByIdResponse => {
+// Prisma type for carbon inventory with lines, inputs, and factors
+// Note: subcategories are fetched separately to avoid duplication
+type CarbonInventoryWithLines = Prisma.CarbonInventoryGetPayload<{
+  include: {
+    lines: {
+      include: {
+        inputs: {
+          include: {
+            factor: true;
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export type SubcategoryWithDimensions = Prisma.SubcategoryGetPayload<{
+  include: {
+    dimensions: true;
+  };
+}>;
+
+// Helper type for a line with inputs
+export type LineWithInputs = NonNullable<
+  CarbonInventoryWithLines["lines"]
+>[number];
+
+type LineResponse = ResponseCarbonInventory["lines"][number];
+
+function mapLineToResponse(
+  line: LineWithInputs,
+  subcategory: SubcategoryWithDimensions
+): LineResponse {
+  // Get the active input (should be at most one due to our query)
+  const activeInput = line.inputs?.[0] ?? null;
+
+  // Determine if manual total emissions are used
+  const isManualTotalEmissions = activeInput
+    ? activeInput.inputType === "DIRECT"
+    : false;
+
+  // Build dimensions object
+  // Key: EmissionFactorDimension ID (position 1 or 2) as string
+  // Value: selection1Id or selection2Id as string
+  const dimensions: LineResponse["dimensions"] = (() => {
+    if (!activeInput) return null;
+
+    // If manual total emissions are used, return null dimensions
+    if (isManualTotalEmissions) return null;
+
+    // Return null dimensions if line was not edited
+    if (!isCarbonInventoryLineEdited(line)) return null;
+
+    // Return null dimensions if subcategory has no dimensions
+    if (!subcategory?.dimensions) return null;
+
+    const value: LineResponse["dimensions"] = {};
+
+    // Try dimension at position 1 first
+    const dimension1 = subcategory.dimensions.find((dim) => dim.position === 1);
+    if (dimension1)
+      value[dimension1.id.toString()] =
+        activeInput.selection1Id?.toString() ?? null;
+
+    // Try dimension at position 2
+    const dimension2 = subcategory.dimensions.find((dim) => dim.position === 2);
+    if (dimension2)
+      value[dimension2.id.toString()] =
+        activeInput.selection2Id?.toString() ?? null;
+
+    return value;
+  })();
+
+  // Get quantity
+  const quantity =
+    activeInput?.quantity !== null && activeInput?.quantity !== undefined
+      ? Number(activeInput?.quantity)
+      : null;
+
+  const measurementUnitId = activeInput?.measurementUnitId?.toString() ?? null;
+
+  // Get factor source and value
+  // Priority: manualFactorSource/manualFactor > factor.appliedFactorSource/appliedFactorValue
+  const factorSource =
+    activeInput?.manualFactorSource ??
+    activeInput?.factor?.appliedFactorSource ??
+    null;
+
+  const factorValue =
+    activeInput?.manualFactor !== null &&
+    activeInput?.manualFactor !== undefined
+      ? Number(activeInput?.manualFactor)
+      : activeInput?.factor?.appliedFactorValue !== null &&
+          activeInput?.factor?.appliedFactorValue !== undefined
+        ? Number(activeInput?.factor.appliedFactorValue)
+        : null;
+
+  const factorRateMeasurementUnitId =
+    activeInput?.manualFactorRateUnitId?.toString() ??
+    activeInput?.factor?.appliedFactorRateUnitId?.toString() ??
+    null;
+
+  const comment = activeInput?.comment ?? null;
+
+  const manualTotalEmissions =
+    activeInput?.directTotalEmissions !== null &&
+    activeInput?.directTotalEmissions !== undefined
+      ? Number(activeInput?.directTotalEmissions)
+      : null;
+
+  return {
+    id: String((line as { id: bigint }).id),
+    subcategoryId: line.subcategoryId.toString(),
+    isManualTotalEmissions,
+    dimensions,
+    quantity,
+    measurementUnitId,
+    factorSource,
+    factorValue,
+    factorRateMeasurementUnitId,
+    comment,
+    manualTotalEmissions,
+  };
+}
+
+function mapBaseCarbonInventory(
+  item: PrismaCarbonInventory
+): Omit<ResponseCarbonInventory, "lines"> {
   // Validate organizationData with runtime type checking using Zod
   const organizationDataResult = OrganizationDataSchema.nullable().safeParse(
     item.organizationData
@@ -32,4 +159,35 @@ export const mapCarbonInventoryToResponse = (
     createdById: item.createdById?.toString() ?? null,
     updatedById: item.updatedById?.toString() ?? null,
   };
-};
+}
+
+// Map carbon inventory with lines to response (includes lines field)
+export function mapCarbonInventoryWithLinesToResponse(
+  item: CarbonInventoryWithLines,
+  subcategories: SubcategoryWithDimensions[]
+): ResponseCarbonInventory {
+  const base = mapBaseCarbonInventory(item);
+
+  const lines = item.lines.map((line) => {
+    const subcategory = subcategories.find(
+      ({ id }) => id === line.subcategoryId
+    );
+    if (!subcategory)
+      throw new DataIntegrityError(
+        `Subcategory ${line.subcategoryId} not found for parsing line ${line.id}`
+      );
+    return mapLineToResponse(line, subcategory);
+  });
+
+  return {
+    ...base,
+    lines,
+  };
+}
+
+// Map carbon inventory without lines to response (omits lines field)
+export function mapCarbonInventoryToResponse(
+  item: PrismaCarbonInventory
+): Omit<ResponseCarbonInventory, "lines"> {
+  return mapBaseCarbonInventory(item);
+}

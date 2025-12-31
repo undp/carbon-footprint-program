@@ -5,7 +5,9 @@ export const CreateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
   usageMode: true,
 });
 
-export const CreateCarbonInventoryResponseSchema = CarbonInventorySchema;
+export const CreateCarbonInventoryResponseSchema = CarbonInventorySchema.omit({
+  lines: true,
+});
 
 // TypeScript Types
 export type CreateCarbonInventoryRequest = z.infer<
