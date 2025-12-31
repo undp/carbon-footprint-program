@@ -1,5 +1,4 @@
 import { Prisma, type PrismaClient } from "@repo/database";
-import { z } from "zod";
 import { DataIntegrityError } from "@/errors/index.js";
 
 type RateMeasurementUnitWithMagnitudes = Prisma.RateMeasurementUnitGetPayload<{
@@ -60,7 +59,7 @@ type ConvertedEmissionFactor = {
   dimensionValue2Id: string | null;
   rateMeasurementUnitId: string;
   source: string;
-  gasDetails: z.infer<ReturnType<typeof z.json>>;
+  gasDetails: Prisma.JsonValue;
   value: string;
 };
 
@@ -158,9 +157,7 @@ export const generateConvertedEmissionFactors = (
       dimensionValue2Id: emissionFactor.dimensionValue2Id?.toString() ?? null,
       rateMeasurementUnitId: emissionFactor.rateMeasurementUnitId.toString(),
       source: emissionFactor.source,
-      gasDetails: emissionFactor.gasDetails as z.infer<
-        ReturnType<typeof z.json>
-      >,
+      gasDetails: emissionFactor.gasDetails,
       value: emissionFactor.value.toString(),
     },
   ];
@@ -210,9 +207,7 @@ export const generateConvertedEmissionFactors = (
         dimensionValue2Id: emissionFactor.dimensionValue2Id?.toString() ?? null,
         rateMeasurementUnitId: rateUnit.id.toString(),
         source: emissionFactor.source,
-        gasDetails: emissionFactor.gasDetails as z.infer<
-          ReturnType<typeof z.json>
-        >,
+        gasDetails: emissionFactor.gasDetails,
         value: convertedValue,
       };
     });
