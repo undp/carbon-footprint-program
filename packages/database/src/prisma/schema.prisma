@@ -7,206 +7,228 @@ datasource db {
   provider = "postgresql"
 }
 
-model country {
-  id                         BigInt                      @id @default(autoincrement())
+model Country {
+  id                       BigInt                    @id @default(autoincrement())
+  name                     String
+  isoCode                  String                    @unique @map("iso_code")
+  createdAt                DateTime                  @default(now()) @map("created_at")
+  updatedAt                DateTime                  @default(now()) @updatedAt @map("updated_at")
+  countryJobPositions      CountryJobPosition[]
+  countryOrganizationSizes CountryOrganizationSize[]
+  countrySectors           CountrySector[]
+  countryParameters        CountryParameter[]
+  methodologyVersions      MethodologyVersion[]
+
+  @@map("country")
+}
+
+model CountryParameter {
+  id          BigInt   @id @default(autoincrement())
+  countryId   BigInt   @map("country_id")
+  key         String
+  value       String
+  description String
+  type        String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById BigInt?  @map("created_by_id")
+  updatedById BigInt?  @map("updated_by_id")
+  country     Country  @relation(fields: [countryId], references: [id])
+  creator     User?    @relation("country_parameter_created_by", fields: [createdById], references: [id])
+  updater     User?    @relation("country_parameter_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([countryId, key])
+  @@map("country_parameter")
+}
+
+model SystemParameter {
+  id          BigInt   @id @default(autoincrement())
+  key         String   @unique
+  value       String
+  description String
+  type        String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
+  createdById BigInt?  @map("created_by_id")
+  updatedById BigInt?  @map("updated_by_id")
+  creator     User?    @relation("system_parameter_created_by", fields: [createdById], references: [id])
+  updater     User?    @relation("system_parameter_updated_by", fields: [updatedById], references: [id])
+
+  @@map("system_parameter")
+}
+
+model CountryOrganizationSize {
+  id        BigInt   @id @default(autoincrement())
+  countryId BigInt   @map("country_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  country   Country  @relation(fields: [countryId], references: [id])
+
+  @@unique([countryId, name])
+  @@map("country_organization_size")
+}
+
+model CountrySector {
+  id                         BigInt                     @id @default(autoincrement())
+  countryId                  BigInt                     @map("country_id")
   name                       String
-  iso_code                   String                      @unique
-  created_at                 DateTime                    @default(now())
-  updated_at                 DateTime                    @default(now()) @updatedAt
-  country_job_positions      country_job_position[]
-  country_organization_sizes country_organization_size[]
-  country_sectors            country_sector[]
-  country_parameters         country_parameter[]
-  methodology_versions       methodology_version[]
+  createdAt                  DateTime                   @default(now()) @map("created_at")
+  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at")
+  createdById                BigInt?                    @map("created_by_id")
+  updatedById                BigInt?                    @map("updated_by_id")
+  country                    Country                    @relation(fields: [countryId], references: [id])
+  creator                    User?                      @relation("country_sector_created_by", fields: [createdById], references: [id])
+  updater                    User?                      @relation("country_sector_updated_by", fields: [updatedById], references: [id])
+  subsectors                 CountrySubsector[]
+  organizationMainActivities OrganizationMainActivity[]
+
+  @@unique([countryId, name])
+  @@map("country_sector")
 }
 
-model country_parameter {
-  id            BigInt   @id @default(autoincrement())
-  country_id    BigInt
-  key           String
-  value         String
-  description   String
-  type          String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
-  created_by_id BigInt?
-  updated_by_id BigInt?
-  country       country  @relation(fields: [country_id], references: [id])
-  creator       user?    @relation("country_parameter_created_by", fields: [created_by_id], references: [id])
-  updater       user?    @relation("country_parameter_updated_by", fields: [updated_by_id], references: [id])
+model CountrySubsector {
+  id                         BigInt                     @id @default(autoincrement())
+  countrySectorId            BigInt                     @map("country_sector_id")
+  name                       String
+  createdAt                  DateTime                   @default(now()) @map("created_at")
+  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at")
+  createdById                BigInt?                    @map("created_by_id")
+  updatedById                BigInt?                    @map("updated_by_id")
+  countrySector              CountrySector              @relation(fields: [countrySectorId], references: [id])
+  creator                    User?                      @relation("country_subsector_created_by", fields: [createdById], references: [id])
+  updater                    User?                      @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
+  organizationMainActivities OrganizationMainActivity[]
 
-  @@unique([country_id, key])
+  @@unique([countrySectorId, name])
+  @@map("country_subsector")
 }
 
-model system_parameter {
-  id            BigInt   @id @default(autoincrement())
-  key           String   @unique
-  value         String
-  description   String
-  type          String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
-  created_by_id BigInt?
-  updated_by_id BigInt?
-  creator       user?    @relation("system_parameter_created_by", fields: [created_by_id], references: [id])
-  updater       user?    @relation("system_parameter_updated_by", fields: [updated_by_id], references: [id])
+model OrganizationMainActivity {
+  id                 BigInt            @id @default(autoincrement())
+  name               String
+  countrySectorId    BigInt?           @map("country_sector_id")
+  countrySubsectorId BigInt?           @map("country_subsector_id")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdById        BigInt?           @map("created_by_id")
+  updatedById        BigInt?           @map("updated_by_id")
+  countrySector      CountrySector?    @relation(fields: [countrySectorId], references: [id])
+  countrySubsector   CountrySubsector? @relation(fields: [countrySubsectorId], references: [id])
+  creator            User?             @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
+  updater            User?             @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([name, countrySectorId, countrySubsectorId], map: "organization_main_activity_name_country_sector_id_country_s_key")
+  @@map("organization_main_activity")
 }
 
-model country_organization_size {
-  id         BigInt   @id @default(autoincrement())
-  country_id BigInt
-  name       String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  country    country  @relation(fields: [country_id], references: [id])
+model CountryJobPosition {
+  id        BigInt   @id @default(autoincrement())
+  countryId BigInt   @map("country_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+  country   Country  @relation(fields: [countryId], references: [id])
+  users     User[]
 
-  @@unique([country_id, name])
+  @@unique([countryId, name])
+  @@map("country_job_position")
 }
 
-model country_sector {
-  id                           BigInt                       @id @default(autoincrement())
-  country_id                   BigInt
-  name                         String
-  created_at                   DateTime                     @default(now())
-  updated_at                   DateTime                     @default(now()) @updatedAt
-  created_by_id                BigInt?
-  updated_by_id                BigInt?
-  country                      country                      @relation(fields: [country_id], references: [id])
-  creator                      user?                        @relation("country_sector_created_by", fields: [created_by_id], references: [id])
-  updater                      user?                        @relation("country_sector_updated_by", fields: [updated_by_id], references: [id])
-  country_subsectors           country_subsector[]
-  organization_main_activities organization_main_activity[]
+model Role {
+  id               BigInt            @id @default(autoincrement())
+  name             String            @unique
+  description      String
+  createdAt        DateTime          @default(now()) @map("created_at")
+  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
+  organizationRole OrganizationRole?
+  systemRole       SystemRole?
 
-  @@unique([country_id, name])
+  @@map("role")
 }
 
-model country_subsector {
-  id                           BigInt                       @id @default(autoincrement())
-  country_sector_id            BigInt
-  name                         String
-  created_at                   DateTime                     @default(now())
-  updated_at                   DateTime                     @default(now()) @updatedAt
-  created_by_id                BigInt?
-  updated_by_id                BigInt?
-  country_sector               country_sector               @relation(fields: [country_sector_id], references: [id])
-  creator                      user?                        @relation("country_subsector_created_by", fields: [created_by_id], references: [id])
-  updater                      user?                        @relation("country_subsector_updated_by", fields: [updated_by_id], references: [id])
-  organization_main_activities organization_main_activity[]
-
-  @@unique([country_sector_id, name])
-}
-
-model organization_main_activity {
-  id                   BigInt             @id @default(autoincrement())
-  name                 String
-  country_sector_id    BigInt?
-  country_subsector_id BigInt?
-  created_at           DateTime           @default(now())
-  updated_at           DateTime           @default(now()) @updatedAt
-  created_by_id        BigInt?
-  updated_by_id        BigInt?
-  country_sector       country_sector?    @relation(fields: [country_sector_id], references: [id])
-  country_subsector    country_subsector? @relation(fields: [country_subsector_id], references: [id])
-  creator              user?              @relation("organization_main_activity_created_by", fields: [created_by_id], references: [id])
-  updater              user?              @relation("organization_main_activity_updated_by", fields: [updated_by_id], references: [id])
-
-  @@unique([name, country_sector_id, country_subsector_id], map: "organization_main_activity_name_country_sector_id_country_s_key")
-}
-
-model country_job_position {
-  id         BigInt   @id @default(autoincrement())
-  country_id BigInt
-  name       String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-  country    country  @relation(fields: [country_id], references: [id])
-  users      user[]
-
-  @@unique([country_id, name])
-}
-
-model role {
-  id                 BigInt             @id @default(autoincrement())
-  name               String             @unique
-  description        String
-  created_at         DateTime           @default(now())
-  updated_at         DateTime           @default(now()) @updatedAt
-  organization_roles organization_role?
-  system_roles       system_role?
-}
-
-model organization_role {
+model OrganizationRole {
   id   BigInt @id
-  role role   @relation(fields: [id], references: [id], onDelete: Cascade)
+  role Role   @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  @@map("organization_role")
 }
 
-model system_role {
+model SystemRole {
   id   BigInt @id
-  role role   @relation(fields: [id], references: [id], onDelete: Cascade)
+  role Role   @relation(fields: [id], references: [id], onDelete: Cascade)
+
+  @@map("system_role")
 }
 
-model user {
-  id                                       BigInt                            @id @default(autoincrement())
-  uuid                                     String                            @unique @default(uuid()) @db.Uuid
-  email                                    String                            @unique
-  country_job_position_id                  BigInt
-  first_name                               String?
-  last_name                                String?
-  created_at                               DateTime                          @default(now())
-  updated_at                               DateTime                          @default(now()) @updatedAt
-  created_by_id                            BigInt?
-  updated_by_id                            BigInt?
-  country_parameters_created               country_parameter[]               @relation("country_parameter_created_by")
-  country_parameters_updated               country_parameter[]               @relation("country_parameter_updated_by")
-  country_sectors_created                  country_sector[]                  @relation("country_sector_created_by")
-  country_sectors_updated                  country_sector[]                  @relation("country_sector_updated_by")
-  country_subsectors_created               country_subsector[]               @relation("country_subsector_created_by")
-  country_subsectors_updated               country_subsector[]               @relation("country_subsector_updated_by")
-  organization_main_activities_created     organization_main_activity[]      @relation("organization_main_activity_created_by")
-  organization_main_activities_updated     organization_main_activity[]      @relation("organization_main_activity_updated_by")
-  system_parameters_created                system_parameter[]                @relation("system_parameter_created_by")
-  system_parameters_updated                system_parameter[]                @relation("system_parameter_updated_by")
-  carbon_inventories_created               carbon_inventory[]                @relation("carbon_inventory_created_by")
-  carbon_inventories_updated               carbon_inventory[]                @relation("carbon_inventory_updated_by")
-  methodology_versions_created             methodology_version[]             @relation("methodology_version_created_by")
-  methodology_versions_updated             methodology_version[]             @relation("methodology_version_updated_by")
-  categories_created                       category[]                        @relation("category_created_by")
-  categories_updated                       category[]                        @relation("category_updated_by")
-  subcategories_created                    subcategory[]                     @relation("subcategory_created_by")
-  subcategories_updated                    subcategory[]                     @relation("subcategory_updated_by")
-  emission_factor_dimensions_created       emission_factor_dimension[]       @relation("emission_factor_dimension_created_by")
-  emission_factor_dimensions_updated       emission_factor_dimension[]       @relation("emission_factor_dimension_updated_by")
-  emission_factor_dimension_values_created emission_factor_dimension_value[] @relation("emission_factor_dimension_value_created_by")
-  emission_factor_dimension_values_updated emission_factor_dimension_value[] @relation("emission_factor_dimension_value_updated_by")
-  emission_factors_created                 emission_factor[]                 @relation("emission_factor_created_by")
-  emission_factors_updated                 emission_factor[]                 @relation("emission_factor_updated_by")
-  country_job_position                     country_job_position              @relation(fields: [country_job_position_id], references: [id])
-  creator                                  user?                             @relation("user_created_by", fields: [created_by_id], references: [id])
-  users_created                            user[]                            @relation("user_created_by")
-  updater                                  user?                             @relation("user_updated_by", fields: [updated_by_id], references: [id])
-  users_updated                            user[]                            @relation("user_updated_by")
+model User {
+  id                                   BigInt                         @id @default(autoincrement())
+  uuid                                 String                         @unique @default(uuid()) @db.Uuid
+  email                                String                         @unique
+  countryJobPositionId                 BigInt                         @map("country_job_position_id")
+  firstName                            String?                        @map("first_name")
+  lastName                             String?                        @map("last_name")
+  createdAt                            DateTime                       @default(now()) @map("created_at")
+  updatedAt                            DateTime                       @default(now()) @updatedAt @map("updated_at")
+  createdById                          BigInt?                        @map("created_by_id")
+  updatedById                          BigInt?                        @map("updated_by_id")
+  countryParametersCreated             CountryParameter[]             @relation("country_parameter_created_by")
+  countryParametersUpdated             CountryParameter[]             @relation("country_parameter_updated_by")
+  countrySectorsCreated                CountrySector[]                @relation("country_sector_created_by")
+  countrySectorsUpdated                CountrySector[]                @relation("country_sector_updated_by")
+  countrySubsectorsCreated             CountrySubsector[]             @relation("country_subsector_created_by")
+  countrySubsectorsUpdated             CountrySubsector[]             @relation("country_subsector_updated_by")
+  organizationMainActivitiesCreated    OrganizationMainActivity[]     @relation("organization_main_activity_created_by")
+  organizationMainActivitiesUpdated    OrganizationMainActivity[]     @relation("organization_main_activity_updated_by")
+  systemParametersCreated              SystemParameter[]              @relation("system_parameter_created_by")
+  systemParametersUpdated              SystemParameter[]              @relation("system_parameter_updated_by")
+  carbonInventoriesCreated             CarbonInventory[]              @relation("carbon_inventory_created_by")
+  carbonInventoriesUpdated             CarbonInventory[]              @relation("carbon_inventory_updated_by")
+  methodologyVersionsCreated           MethodologyVersion[]           @relation("methodology_version_created_by")
+  methodologyVersionsUpdated           MethodologyVersion[]           @relation("methodology_version_updated_by")
+  categoriesCreated                    Category[]                     @relation("category_created_by")
+  categoriesUpdated                    Category[]                     @relation("category_updated_by")
+  subcategoriesCreated                 Subcategory[]                  @relation("subcategory_created_by")
+  subcategoriesUpdated                 Subcategory[]                  @relation("subcategory_updated_by")
+  emissionFactorDimensionsCreated      EmissionFactorDimension[]      @relation("emission_factor_dimension_created_by")
+  emissionFactorDimensionsUpdated      EmissionFactorDimension[]      @relation("emission_factor_dimension_updated_by")
+  emissionFactorDimensionValuesCreated EmissionFactorDimensionValue[] @relation("emission_factor_dimension_value_created_by")
+  emissionFactorDimensionValuesUpdated EmissionFactorDimensionValue[] @relation("emission_factor_dimension_value_updated_by")
+  emissionFactorsCreated               EmissionFactor[]               @relation("emission_factor_created_by")
+  emissionFactorsUpdated               EmissionFactor[]               @relation("emission_factor_updated_by")
+  countryJobPosition                   CountryJobPosition             @relation(fields: [countryJobPositionId], references: [id])
+  creator                              User?                          @relation("user_created_by", fields: [createdById], references: [id])
+  usersCreated                         User[]                         @relation("user_created_by")
+  updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id])
+  usersUpdated                         User[]                         @relation("user_updated_by")
+
+  @@map("user")
 }
 
-model measurement_unit {
-  id                        BigInt                  @id @default(autoincrement())
-  name                      String
-  magnitude                 Magnitude
-  abbreviation              String                  @unique
-  base_factor               Float
-  is_base                   Boolean
-  rate_units_as_denominator rate_measurement_unit[] @relation("denominator_measurement_unit")
-  rate_units_as_numerator   rate_measurement_unit[] @relation("numerator_measurement_unit")
+model MeasurementUnit {
+  id                     BigInt                @id @default(autoincrement())
+  name                   String
+  magnitude              Magnitude
+  abbreviation           String                @unique
+  baseFactor             Float                 @map("base_factor")
+  isBase                 Boolean               @map("is_base")
+  rateUnitsAsDenominator RateMeasurementUnit[] @relation("denominator_measurement_unit")
+  rateUnitsAsNumerator   RateMeasurementUnit[] @relation("numerator_measurement_unit")
+
+  @@map("measurement_unit")
 }
 
-model rate_measurement_unit {
-  id                              BigInt            @id @default(autoincrement())
-  name                            String
-  abbreviation                    String            @unique
-  numerator_measurement_unit_id   BigInt
-  denominator_measurement_unit_id BigInt
-  denominator_measurement_unit    measurement_unit  @relation("denominator_measurement_unit", fields: [denominator_measurement_unit_id], references: [id])
-  numerator_measurement_unit      measurement_unit  @relation("numerator_measurement_unit", fields: [numerator_measurement_unit_id], references: [id])
-  emission_factors                emission_factor[]
+model RateMeasurementUnit {
+  id                           BigInt           @id @default(autoincrement())
+  name                         String
+  abbreviation                 String           @unique
+  numeratorMeasurementUnitId   BigInt           @map("numerator_measurement_unit_id")
+  denominatorMeasurementUnitId BigInt           @map("denominator_measurement_unit_id")
+  denominatorMeasurementUnit   MeasurementUnit  @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
+  numeratorMeasurementUnit     MeasurementUnit  @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
+  emissionFactors              EmissionFactor[]
+
+  @@map("rate_measurement_unit")
 }
 
 enum Magnitude {
@@ -214,182 +236,197 @@ enum Magnitude {
   VOLUME
   DISTANCE
   TIME
+
+  @@map("Magnitude")
 }
 
-enum inventory_status {
+enum InventoryStatus {
   DRAFT
   SUBMITTED
   VERIFIED
   DELETED
+
+  @@map("inventory_status")
 }
 
-enum usage_mode {
+enum UsageMode {
   SIMPLIFIED
   EXPERT
+
+  @@map("usage_mode")
 }
 
-model status_catalog {
-  id                   BigInt                @id @default(autoincrement())
-  scope                String
-  code                 String
-  name                 String
-  is_terminal          Boolean?
-  is_visible           Boolean?
-  sort_order           Int?
-  is_active            Boolean?
-  created_at           DateTime              @default(now())
-  updated_at           DateTime              @default(now()) @updatedAt
-  methodology_versions methodology_version[]
-  emission_factors     emission_factor[]
+model StatusCatalog {
+  id                  BigInt               @id @default(autoincrement())
+  scope               String
+  code                String
+  name                String
+  isTerminal          Boolean?             @map("is_terminal")
+  isVisible           Boolean?             @map("is_visible")
+  sortOrder           Int?                 @map("sort_order")
+  isActive            Boolean?             @map("is_active")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at")
+  methodologyVersions MethodologyVersion[]
+  emissionFactors     EmissionFactor[]
 
   @@unique([scope, code])
+  @@map("status_catalog")
 }
 
-model methodology_version {
-  id                 BigInt             @id @default(autoincrement())
-  country_id         BigInt
-  name               String
-  description        String?
-  status_id          BigInt
-  created_at         DateTime           @default(now())
-  updated_at         DateTime           @default(now()) @updatedAt
-  created_by_id      BigInt?
-  updated_by_id      BigInt?
-  country            country            @relation(fields: [country_id], references: [id])
-  status             status_catalog     @relation(fields: [status_id], references: [id])
-  creator            user?              @relation("methodology_version_created_by", fields: [created_by_id], references: [id])
-  updater            user?              @relation("methodology_version_updated_by", fields: [updated_by_id], references: [id])
-  categories         category[]
-  carbon_inventories carbon_inventory[]
+model MethodologyVersion {
+  id                BigInt            @id @default(autoincrement())
+  countryId         BigInt            @map("country_id")
+  name              String
+  description       String?
+  statusId          BigInt            @map("status_id")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
+  createdById       BigInt?           @map("created_by_id")
+  updatedById       BigInt?           @map("updated_by_id")
+  country           Country           @relation(fields: [countryId], references: [id])
+  status            StatusCatalog     @relation(fields: [statusId], references: [id])
+  creator           User?             @relation("methodology_version_created_by", fields: [createdById], references: [id])
+  updater           User?             @relation("methodology_version_updated_by", fields: [updatedById], references: [id])
+  categories        Category[]
+  carbonInventories CarbonInventory[]
 
   // TODO: Enforce via trigger at most 1 active per country
   // TODO: Enforce somehow country's active_methodology_version_id must point to ACTIVE
 
-  @@unique([country_id, name])
+  @@unique([countryId, name])
+  @@map("methodology_version")
 }
 
-model category {
-  id                     BigInt              @id @default(autoincrement())
-  methodology_version_id BigInt
-  name                   String
-  synonyms               String?
-  description            String?
-  examples               String?
-  created_at             DateTime            @default(now())
-  updated_at             DateTime            @default(now()) @updatedAt
-  created_by_id          BigInt?
-  updated_by_id          BigInt?
-  methodology_version    methodology_version @relation(fields: [methodology_version_id], references: [id])
-  creator                user?               @relation("category_created_by", fields: [created_by_id], references: [id])
-  updater                user?               @relation("category_updated_by", fields: [updated_by_id], references: [id])
-  subcategories          subcategory[]
+model Category {
+  id                   BigInt             @id @default(autoincrement())
+  methodologyVersionId BigInt             @map("methodology_version_id")
+  name                 String
+  synonyms             String?
+  description          String?
+  examples             String?
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById          BigInt?            @map("created_by_id")
+  updatedById          BigInt?            @map("updated_by_id")
+  methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id])
+  creator              User?              @relation("category_created_by", fields: [createdById], references: [id])
+  updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id])
+  subcategories        Subcategory[]
 
-  @@unique([methodology_version_id, name])
+  @@unique([methodologyVersionId, name])
+  @@map("category")
 }
 
-model subcategory {
-  id                         BigInt                      @id @default(autoincrement())
-  category_id                BigInt
-  name                       String
-  description                String?
-  examples                   String?
-  created_at                 DateTime                    @default(now())
-  updated_at                 DateTime                    @default(now()) @updatedAt
-  created_by_id              BigInt?
-  updated_by_id              BigInt?
-  category                   category                    @relation(fields: [category_id], references: [id])
-  creator                    user?                       @relation("subcategory_created_by", fields: [created_by_id], references: [id])
-  updater                    user?                       @relation("subcategory_updated_by", fields: [updated_by_id], references: [id])
-  emission_factor_dimensions emission_factor_dimension[]
-  emission_factors           emission_factor[]
+model Subcategory {
+  id              BigInt                    @id @default(autoincrement())
+  categoryId      BigInt                    @map("category_id")
+  name            String
+  description     String?
+  examples        String?
+  createdAt       DateTime                  @default(now()) @map("created_at")
+  updatedAt       DateTime                  @default(now()) @updatedAt @map("updated_at")
+  createdById     BigInt?                   @map("created_by_id")
+  updatedById     BigInt?                   @map("updated_by_id")
+  category        Category                  @relation(fields: [categoryId], references: [id])
+  creator         User?                     @relation("subcategory_created_by", fields: [createdById], references: [id])
+  updater         User?                     @relation("subcategory_updated_by", fields: [updatedById], references: [id])
+  dimensions      EmissionFactorDimension[]
+  emissionFactors EmissionFactor[]
 
-  @@unique([category_id, name])
+  @@unique([categoryId, name])
+  @@map("subcategory")
 }
 
-model emission_factor_dimension {
-  id                               BigInt                            @id @default(autoincrement())
-  subcategory_id                   BigInt
-  code                             String
-  name                             String
-  position                         Int
-  is_required                      Boolean
-  created_at                       DateTime                          @default(now())
-  updated_at                       DateTime                          @default(now()) @updatedAt
-  created_by_id                    BigInt?
-  updated_by_id                    BigInt?
-  subcategory                      subcategory                       @relation(fields: [subcategory_id], references: [id])
-  creator                          user?                             @relation("emission_factor_dimension_created_by", fields: [created_by_id], references: [id])
-  updater                          user?                             @relation("emission_factor_dimension_updated_by", fields: [updated_by_id], references: [id])
-  emission_factor_dimension_values emission_factor_dimension_value[]
+model EmissionFactorDimension {
+  id            BigInt                         @id @default(autoincrement())
+  subcategoryId BigInt                         @map("subcategory_id")
+  code          String
+  name          String
+  position      Int
+  isRequired    Boolean                        @map("is_required")
+  createdAt     DateTime                       @default(now()) @map("created_at")
+  updatedAt     DateTime                       @default(now()) @updatedAt @map("updated_at")
+  createdById   BigInt?                        @map("created_by_id")
+  updatedById   BigInt?                        @map("updated_by_id")
+  subcategory   Subcategory                    @relation(fields: [subcategoryId], references: [id])
+  creator       User?                          @relation("emission_factor_dimension_created_by", fields: [createdById], references: [id])
+  updater       User?                          @relation("emission_factor_dimension_updated_by", fields: [updatedById], references: [id])
+  values        EmissionFactorDimensionValue[]
 
-  @@unique([subcategory_id, code])
-  @@unique([subcategory_id, position])
+  @@unique([subcategoryId, code])
+  @@unique([subcategoryId, position])
+  @@map("emission_factor_dimension")
 }
 
-model emission_factor_dimension_value {
-  id                              BigInt                            @id @default(autoincrement())
-  dimension_id                    BigInt
-  parent_value_id                 BigInt?
-  value                           String
-  is_active                       Boolean                           @default(true)
-  created_at                      DateTime                          @default(now())
-  updated_at                      DateTime                          @default(now()) @updatedAt
-  created_by_id                   BigInt?
-  updated_by_id                   BigInt?
-  dimension                       emission_factor_dimension         @relation(fields: [dimension_id], references: [id])
-  parent_value                    emission_factor_dimension_value?  @relation("dimension_value_hierarchy", fields: [parent_value_id], references: [id])
-  child_values                    emission_factor_dimension_value[] @relation("dimension_value_hierarchy")
-  creator                         user?                             @relation("emission_factor_dimension_value_created_by", fields: [created_by_id], references: [id])
-  updater                         user?                             @relation("emission_factor_dimension_value_updated_by", fields: [updated_by_id], references: [id])
-  emission_factors_as_dimension_1 emission_factor[]                 @relation("emission_factor_dimension_value_1")
-  emission_factors_as_dimension_2 emission_factor[]                 @relation("emission_factor_dimension_value_2")
+model EmissionFactorDimensionValue {
+  id                          BigInt                         @id @default(autoincrement())
+  dimensionId                 BigInt                         @map("dimension_id")
+  parentValueId               BigInt?                        @map("parent_value_id")
+  value                       String
+  isActive                    Boolean                        @default(true) @map("is_active")
+  createdAt                   DateTime                       @default(now()) @map("created_at")
+  updatedAt                   DateTime                       @default(now()) @updatedAt @map("updated_at")
+  createdById                 BigInt?                        @map("created_by_id")
+  updatedById                 BigInt?                        @map("updated_by_id")
+  dimension                   EmissionFactorDimension        @relation(fields: [dimensionId], references: [id])
+  parentValue                 EmissionFactorDimensionValue?  @relation("dimension_value_hierarchy", fields: [parentValueId], references: [id])
+  childValues                 EmissionFactorDimensionValue[] @relation("dimension_value_hierarchy")
+  emissionFactorsAsDimension1 EmissionFactor[]               @relation("emission_factor_dimension_value_1")
+  emissionFactorsAsDimension2 EmissionFactor[]               @relation("emission_factor_dimension_value_2")
+  creator                     User?                          @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id])
+  updater                     User?                          @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id])
 
-  @@unique([dimension_id, value])
+  @@unique([dimensionId, value])
+  @@map("emission_factor_dimension_value")
 }
 
-model emission_factor {
-  id                       BigInt                           @id @default(autoincrement())
-  subcategory_id           BigInt
-  dimension_value_1_id     BigInt?
-  dimension_value_2_id     BigInt?
-  rate_measurement_unit_id BigInt
-  source                   String
-  gas_details              Json                             @db.JsonB
-  value                    Decimal                          @db.Decimal(18, 10)
-  status_id                BigInt
-  created_at               DateTime                         @default(now())
-  updated_at               DateTime                         @default(now()) @updatedAt
-  created_by_id            BigInt?
-  updated_by_id            BigInt?
-  subcategory              subcategory                      @relation(fields: [subcategory_id], references: [id])
-  dimension_value_1        emission_factor_dimension_value? @relation("emission_factor_dimension_value_1", fields: [dimension_value_1_id], references: [id])
-  dimension_value_2        emission_factor_dimension_value? @relation("emission_factor_dimension_value_2", fields: [dimension_value_2_id], references: [id])
-  rate_measurement_unit    rate_measurement_unit            @relation(fields: [rate_measurement_unit_id], references: [id])
-  status                   status_catalog                   @relation(fields: [status_id], references: [id])
-  creator                  user?                            @relation("emission_factor_created_by", fields: [created_by_id], references: [id])
-  updater                  user?                            @relation("emission_factor_updated_by", fields: [updated_by_id], references: [id])
+model EmissionFactor {
+  id                    BigInt                        @id @default(autoincrement())
+  subcategoryId         BigInt                        @map("subcategory_id")
+  dimensionValue1Id     BigInt?                       @map("dimension_value_1_id")
+  dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
+  rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
+  source                String
+  gasDetails            Json                          @map("gas_details") @db.JsonB
+  value                 Decimal                       @db.Decimal(18, 10)
+  statusId              BigInt                        @map("status_id")
+  createdAt             DateTime                      @default(now()) @map("created_at")
+  updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at")
+  createdById           BigInt?                       @map("created_by_id")
+  updatedById           BigInt?                       @map("updated_by_id")
+  subcategory           Subcategory                   @relation(fields: [subcategoryId], references: [id])
+  dimensionValue1       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id])
+  dimensionValue2       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id])
+  rateMeasurementUnit   RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id])
+  status                StatusCatalog                 @relation(fields: [statusId], references: [id])
+  creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
+  updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
 
   // TODO: Enforce UNIQUE (subcategory_id, dimension_value_1_id, dimension_value_2_id) WHERE status = 'ACTIVE'
 
-  @@unique([subcategory_id, dimension_value_1_id, dimension_value_2_id, source], map: "emission_factor_unique_subcategory_dims_source")
+  @@unique([subcategoryId, dimensionValue1Id, dimensionValue2Id, source], map: "emission_factor_unique_subcategory_dims_source")
+  @@map("emission_factor")
 }
 
-model carbon_inventory {
-  id                     BigInt               @id @default(autoincrement())
-  organization_id        BigInt?
-  organization_branch_id BigInt?
-  organization_data      Json?                @db.JsonB
-  year                   Int?
-  status                 inventory_status     @default(DRAFT)
-  usage_mode             usage_mode
-  methodology_version_id BigInt?
-  preselected_nodes_id   BigInt?
-  is_editable            Boolean              @default(true)
-  created_at             DateTime             @default(now())
-  updated_at             DateTime             @default(now()) @updatedAt
-  created_by_id          BigInt?
-  updated_by_id          BigInt?
-  methodology_version    methodology_version? @relation(fields: [methodology_version_id], references: [id])
-  creator                user?                @relation("carbon_inventory_created_by", fields: [created_by_id], references: [id])
-  updater                user?                @relation("carbon_inventory_updated_by", fields: [updated_by_id], references: [id])
+model CarbonInventory {
+  id                   BigInt              @id @default(autoincrement())
+  organizationId       BigInt?             @map("organization_id")
+  organizationBranchId BigInt?             @map("organization_branch_id")
+  organizationData     Json?               @map("organization_data") @db.JsonB
+  year                 Int?
+  status               InventoryStatus     @default(DRAFT)
+  usageMode            UsageMode           @map("usage_mode")
+  methodologyVersionId BigInt?             @map("methodology_version_id")
+  preselectedNodesId   BigInt?             @map("preselected_nodes_id")
+  isEditable           Boolean             @default(true) @map("is_editable")
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @default(now()) @updatedAt @map("updated_at")
+  createdById          BigInt?             @map("created_by_id")
+  updatedById          BigInt?             @map("updated_by_id")
+  methodologyVersion   MethodologyVersion? @relation(fields: [methodologyVersionId], references: [id])
+  creator              User?               @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
+  updater              User?               @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+
+  @@map("carbon_inventory")
 }
