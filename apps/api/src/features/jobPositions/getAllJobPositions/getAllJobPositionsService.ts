@@ -4,13 +4,17 @@ import type { GetAllJobPositionsResponse } from "@repo/types";
 export const getAllJobPositionsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllJobPositionsResponse> => {
-  const data = await prismaClient.country_job_position.findMany({
+  const jobPositions = await prismaClient.countryJobPosition.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
     orderBy: {
       name: "asc",
     },
   });
-  return data.map((item) => ({
-    id: item.id.toString(),
-    name: item.name,
+  return jobPositions.map((pos) => ({
+    ...pos,
+    id: pos.id.toString(),
   }));
 };

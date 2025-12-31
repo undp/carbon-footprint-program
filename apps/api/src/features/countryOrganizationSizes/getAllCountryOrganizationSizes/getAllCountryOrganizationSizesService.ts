@@ -4,14 +4,18 @@ import type { GetAllCountryOrganizationSizesResponse } from "@repo/types";
 export const getAllCountryOrganizationSizesService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllCountryOrganizationSizesResponse> => {
-  const data = await prismaClient.country_organization_size.findMany({
+  const sizes = await prismaClient.countryOrganizationSize.findMany({
+    select: {
+      id: true,
+      name: true,
+    },
     orderBy: {
       id: "asc",
     },
   });
 
-  return data.map((item) => ({
-    id: item.id.toString(),
-    name: item.name,
+  return sizes.map((size) => ({
+    ...size,
+    id: size.id.toString(),
   }));
 };

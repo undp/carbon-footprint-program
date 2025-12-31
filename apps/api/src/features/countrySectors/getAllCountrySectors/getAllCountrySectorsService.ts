@@ -4,9 +4,15 @@ import type { GetAllCountrySectorsResponse } from "@repo/types";
 export const getAllCountrySectorsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllCountrySectorsResponse> => {
-  const data = await prismaClient.country_sector.findMany({
-    include: {
-      country_subsectors: {
+  const sectors = await prismaClient.countrySector.findMany({
+    select: {
+      id: true,
+      name: true,
+      subsectors: {
+        select: {
+          id: true,
+          name: true,
+        },
         orderBy: {
           name: "asc",
         },
@@ -17,12 +23,12 @@ export const getAllCountrySectorsService = async (
     },
   });
 
-  return data.map((item) => ({
-    id: item.id.toString(),
-    name: item.name,
-    subsectors: item.country_subsectors.map((subsector) => ({
+  return sectors.map((sector) => ({
+    ...sector,
+    id: sector.id.toString(),
+    subsectors: sector.subsectors.map((subsector) => ({
+      ...subsector,
       id: subsector.id.toString(),
-      name: subsector.name,
     })),
   }));
 };

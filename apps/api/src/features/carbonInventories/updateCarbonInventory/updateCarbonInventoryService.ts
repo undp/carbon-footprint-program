@@ -12,7 +12,7 @@ export const updateCarbonInventoryService = async (
   data: UpdateCarbonInventoryRequest
 ): Promise<UpdateCarbonInventoryResponse | null> => {
   // Check if the inventory exists
-  const existingInventory = await prismaClient.carbon_inventory.findUnique({
+  const existingInventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(id) },
   });
 
@@ -21,20 +21,20 @@ export const updateCarbonInventoryService = async (
   }
 
   // Build the update data object dynamically based on provided fields
-  const updateData: Prisma.carbon_inventoryUncheckedUpdateInput = {};
+  const updateData: Prisma.CarbonInventoryUncheckedUpdateInput = {};
 
   const organizationId = mapBigIntField(data.organizationId);
   if (organizationId !== undefined) {
-    updateData.organization_id = organizationId;
+    updateData.organizationId = organizationId;
   }
 
   const organizationBranchId = mapBigIntField(data.organizationBranchId);
   if (organizationBranchId !== undefined) {
-    updateData.organization_branch_id = organizationBranchId;
+    updateData.organizationBranchId = organizationBranchId;
   }
 
   if (data.organizationData !== undefined) {
-    updateData.organization_data = data.organizationData
+    updateData.organizationData = data.organizationData
       ? (data.organizationData as Prisma.InputJsonValue)
       : Prisma.JsonNull;
   }
@@ -44,15 +44,15 @@ export const updateCarbonInventoryService = async (
   }
 
   if (data.usageMode !== undefined) {
-    updateData.usage_mode = data.usageMode;
+    updateData.usageMode = data.usageMode;
   }
 
-  // methodology_version_id cannot be updated via PATCH endpoint
+  // methodologyVersionId cannot be updated via PATCH endpoint
   // It is set only during creation and remains immutable
 
   const preselectedNodesId = mapBigIntField(data.preselectedNodesId);
   if (preselectedNodesId !== undefined) {
-    updateData.preselected_nodes_id = preselectedNodesId;
+    updateData.preselectedNodesId = preselectedNodesId;
   }
 
   if (data.status !== undefined) {
@@ -60,16 +60,16 @@ export const updateCarbonInventoryService = async (
   }
 
   if (data.isEditable !== undefined) {
-    updateData.is_editable = data.isEditable;
+    updateData.isEditable = data.isEditable;
   }
 
-  // Only set updated_by_id if there are actual fields to update
+  // Only set updatedById if there are actual fields to update
   // TODO: Replace null with actual logged-in user ID when auth is implemented
   if (Object.keys(updateData).length > 0) {
-    updateData.updated_by_id = null;
+    updateData.updatedById = null;
   }
 
-  const item = await prismaClient.carbon_inventory.update({
+  const item = await prismaClient.carbonInventory.update({
     where: { id: BigInt(id) },
     data: updateData,
   });

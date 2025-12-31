@@ -5,9 +5,9 @@ import { mapCarbonInventoryToResponse } from "../mappers.js";
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllCarbonInventoriesResponse> => {
-  const data = await prismaClient.carbon_inventory.findMany({
+  const data = await prismaClient.carbonInventory.findMany({
     orderBy: {
-      created_at: "desc",
+      createdAt: "desc",
     },
   });
 
