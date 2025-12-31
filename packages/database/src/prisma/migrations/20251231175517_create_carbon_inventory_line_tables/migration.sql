@@ -6,8 +6,6 @@ CREATE TABLE "carbon_inventory_line" (
     "id" BIGSERIAL NOT NULL,
     "carbon_inventory_id" BIGINT NOT NULL,
     "subcategory_id" BIGINT NOT NULL,
-    "selection_1_id" BIGINT,
-    "selection_2_id" BIGINT,
     "status_id" BIGINT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -22,6 +20,8 @@ CREATE TABLE "carbon_inventory_line_input" (
     "id" BIGSERIAL NOT NULL,
     "line_id" BIGINT NOT NULL,
     "input_type" "input_type" NOT NULL,
+    "selection_1_id" BIGINT,
+    "selection_2_id" BIGINT,
     "quantity" DECIMAL(18,10),
     "measurement_unit_id" BIGINT,
     "direct_total_emissions" DECIMAL(18,10),
@@ -79,12 +79,6 @@ ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_carbon
 ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_selection_1_id_fkey" FOREIGN KEY ("selection_1_id") REFERENCES "emission_factor_dimension_value"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_selection_2_id_fkey" FOREIGN KEY ("selection_2_id") REFERENCES "emission_factor_dimension_value"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "status_catalog"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -95,6 +89,13 @@ ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_update
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line_input" ADD CONSTRAINT "carbon_inventory_line_input_line_id_fkey" FOREIGN KEY ("line_id") REFERENCES "carbon_inventory_line"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "carbon_inventory_line_input" ADD CONSTRAINT "carbon_inventory_line_input_selection_1_id_fkey" FOREIGN KEY ("selection_1_id") REFERENCES "emission_factor_dimension_value"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "carbon_inventory_line_input" ADD CONSTRAINT "carbon_inventory_line_input_selection_2_id_fkey" FOREIGN KEY ("selection_2_id") REFERENCES "emission_factor_dimension_value"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line_input" ADD CONSTRAINT "carbon_inventory_line_input_measurement_unit_id_fkey" FOREIGN KEY ("measurement_unit_id") REFERENCES "measurement_unit"("id") ON DELETE SET NULL ON UPDATE CASCADE;
