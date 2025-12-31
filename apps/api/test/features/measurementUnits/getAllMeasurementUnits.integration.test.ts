@@ -58,8 +58,8 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(testUnit!.name).toBe("Kilogramo");
       expect(testUnit!.magnitude).toBe("MASS");
       expect(testUnit!.abbreviation).toBe("kg");
-      expect(testUnit!.base_factor).toBe(1000);
-      expect(testUnit!.is_base).toBe(false);
+      expect(testUnit!.baseFactor).toBe(1000);
+      expect(testUnit!.isBase).toBe(false);
     });
   });
 
@@ -94,10 +94,10 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       const baseMassUnit = body.find((u) => u.abbreviation === "g");
       const nonBaseMassUnit = body.find((u) => u.abbreviation === "kg");
 
-      expect(baseMassUnit?.is_base).toBe(true);
-      expect(baseMassUnit?.base_factor).toBe(1);
-      expect(nonBaseMassUnit?.is_base).toBe(false);
-      expect(nonBaseMassUnit?.base_factor).toBe(1000);
+      expect(baseMassUnit?.isBase).toBe(true);
+      expect(baseMassUnit?.baseFactor).toBe(1);
+      expect(nonBaseMassUnit?.isBase).toBe(false);
+      expect(nonBaseMassUnit?.baseFactor).toBe(1000);
     });
 
     it("should have exactly one base unit per magnitude", async () => {
@@ -111,12 +111,12 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       const magnitudes = ["MASS", "VOLUME", "DISTANCE", "TIME"] as const;
       magnitudes.forEach((mag) => {
-        const baseUnits = body.filter((u) => u.magnitude === mag && u.is_base);
+        const baseUnits = body.filter((u) => u.magnitude === mag && u.isBase);
         expect(baseUnits).toHaveLength(1);
       });
     });
 
-    it("should have base_factor of 1 for all base units", async () => {
+    it("should have baseFactor of 1 for all base units", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/measurement-units",
@@ -124,10 +124,10 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
-      const baseUnits = body.filter((u) => u.is_base);
+      const baseUnits = body.filter((u) => u.isBase);
 
       baseUnits.forEach((unit) => {
-        expect(unit.base_factor).toBe(1);
+        expect(unit.baseFactor).toBe(1);
       });
     });
   });
