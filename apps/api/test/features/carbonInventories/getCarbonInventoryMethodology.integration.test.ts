@@ -276,6 +276,10 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         .flatMap((cat) => cat.subcategories)
         .find((sub) => sub.emissionFactors.length > 0);
 
+      // Ensure we have emission factors to test
+      expect(subcategoryWithFactors).toBeDefined();
+      expect(subcategoryWithFactors!.emissionFactors.length).toBeGreaterThan(0);
+
       if (subcategoryWithFactors) {
         const emissionFactors = subcategoryWithFactors.emissionFactors;
 
