@@ -58,7 +58,7 @@ const EmissionFactorSchema = z
         // If originalEmissionFactorId is null, id must be purely numeric
         return /^\d+$/.test(data.id);
       } else {
-        // If originalEmissionFactorId is not null, id must be composite form or start with originalEmissionFactorId-
+        // If originalEmissionFactorId is not null, id must be composite form and start with originalEmissionFactorId-
         return (
           /^\d+-\d+$/.test(data.id) &&
           data.id.startsWith(`${data.originalEmissionFactorId}-`)
@@ -67,7 +67,7 @@ const EmissionFactorSchema = z
     },
     {
       message:
-        "id format is invalid: if originalEmissionFactorId is null, id must be purely numeric (e.g., '123'); otherwise, id must be a composite form (e.g., '123-456') or start with 'originalEmissionFactorId-' (e.g., '123-...')",
+        "id format is invalid: if originalEmissionFactorId is null, id must be purely numeric (e.g., '123'); otherwise, when originalEmissionFactorId is set, id must be a composite 'NNN-MMM' AND begin with 'originalEmissionFactorId-' (e.g., '123-456' when originalEmissionFactorId is '123')",
     }
   );
 
