@@ -1,5 +1,6 @@
 import { Prisma, type PrismaClient } from "@repo/database";
 import { z } from "zod";
+import { DataIntegrityError } from "@/errors/index.js";
 
 type RateMeasurementUnitWithMagnitudes = Prisma.RateMeasurementUnitGetPayload<{
   select: {
@@ -94,6 +95,15 @@ export const generateConvertedEmissionFactors = (
 ): ConvertedEmissionFactor[] => {
   const originalId = emissionFactor.id.toString();
   const originalRateUnit = emissionFactor.rateMeasurementUnit;
+
+  // Validate emissionFactor.value before attempting conversions
+  const valueString = emissionFactor.value.toString().trim();
+  const parsedValue = Number.parseFloat(valueString);
+  if (!Number.isFinite(parsedValue)) {
+    throw new DataIntegrityError(
+      `Invalid emission factor value for emission factor ${emissionFactor.id}: "${emissionFactor.value.toString()}" is not a valid finite number`
+    );
+  }
 
   // Always include the original emission factor first
   const result: ConvertedEmissionFactor[] = [
