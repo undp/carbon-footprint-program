@@ -270,12 +270,14 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       const subsector = sectorWithSubsectors!.subsectors[0];
       expect(subsector).toBeDefined();
 
-      // Get activities from DB for this sector/subsector combo
+      // Get activities from DB for this sector/subsector combo with OR condition
       const subsectorActivitiesDb =
         await prisma.organization_main_activity.findMany({
           where: {
-            country_sector_id: BigInt(sectorWithSubsectors!.id),
-            country_subsector_id: BigInt(subsector.id),
+            OR: [
+              { country_sector_id: BigInt(sectorWithSubsectors!.id) },
+              { country_subsector_id: BigInt(subsector.id) },
+            ],
           },
         });
 
