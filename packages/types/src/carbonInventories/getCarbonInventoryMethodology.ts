@@ -21,7 +21,18 @@ const EmissionFactorDimensionSchema = z.object({
 });
 
 const EmissionFactorSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the emission factor"),
+  id: z
+    .string()
+    .describe(
+      "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
+    ),
+  originalEmissionFactorId: z
+    .string()
+    .regex(/^\d+$/)
+    .nullable()
+    .describe(
+      "The ID of the original emission factor. Null for original factors, set for converted factors."
+    ),
   dimensionValue1Id: z
     .string()
     .regex(/^\d+$/)
