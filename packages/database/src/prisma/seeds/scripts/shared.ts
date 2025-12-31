@@ -19,6 +19,7 @@ export const FullMethodologyDataSchema = z.array(
     categories: z.array(
       z.object({
         name: z.string().min(1),
+        position: z.number(),
         synonyms: z.string().nullable().optional(),
         description: z.string().nullable().optional(),
         examples: z.string().nullable().optional(),

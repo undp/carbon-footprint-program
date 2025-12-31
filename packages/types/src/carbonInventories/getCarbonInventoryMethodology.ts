@@ -36,6 +36,7 @@ const SubcategorySchema = z.object({
 const CategorySchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of the category"),
   name: z.string().describe("The name of the category"),
+  position: z.number().int().describe("The position/order of the category"),
   synonyms: z.string().nullable().describe("Synonyms for the category"),
   description: z
     .string()

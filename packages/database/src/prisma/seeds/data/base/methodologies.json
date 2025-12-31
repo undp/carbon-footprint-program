@@ -7,6 +7,7 @@
     "categories": [
       {
         "name": "Emisiones directas",
+        "position": 1,
         "synonyms": "Categoría 1 / Alcance 1",
         "description": "Generadas dentro de tu empresa",
         "examples": null,
@@ -322,6 +323,7 @@
       },
       {
         "name": "Emisiones indirectas por energías importadas",
+        "position": 2,
         "synonyms": "Categoría 2 / Alcance 2",
         "description": "Generadas por la electricidad consumida",
         "examples": null,
@@ -344,6 +346,7 @@
       },
       {
         "name": "Otras emisiones indirectas",
+        "position": 3,
         "synonyms": "Categorías 3,4,5 Y 6 / Alcance 3",
         "description": "Producidas fuera de tu empresa",
         "examples": null,

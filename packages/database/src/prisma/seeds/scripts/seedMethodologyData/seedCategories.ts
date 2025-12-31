@@ -19,6 +19,7 @@ export async function seedCategories(
       country_iso_code: methodology.country_iso_code,
       methodology_version_name: methodology.name,
       name: category.name,
+      position: category.position,
       synonyms: category.synonyms,
       description: category.description,
       examples: category.examples,
@@ -59,6 +60,7 @@ export async function seedCategories(
     return {
       methodology_version_id: methodologyVersion.id,
       name: category.name,
+      position: category.position,
       synonyms: category.synonyms || null,
       description: category.description || null,
       examples: category.examples || null,
