@@ -17,15 +17,15 @@ export async function seedEmissionFactorDimensions(
   const dimensionsData = nestedData.flatMap((methodology) =>
     methodology.categories.flatMap((category) =>
       category.subcategories.flatMap((subcategory) =>
-        (subcategory.emission_factor_dimensions || []).map((dimension) => ({
-          country_iso_code: methodology.country_iso_code,
-          methodology_version_name: methodology.name,
-          category_name: category.name,
-          subcategory_name: subcategory.name,
+        (subcategory.emissionFactorDimensions || []).map((dimension) => ({
+          countryIsoCode: methodology.countryIsoCode,
+          methodologyVersionName: methodology.name,
+          categoryName: category.name,
+          subcategoryName: subcategory.name,
           code: dimension.code,
           name: dimension.name,
           position: dimension.position,
-          is_required: dimension.is_required,
+          isRequired: dimension.isRequired,
           values: dimension.values,
         }))
       )
@@ -34,10 +34,10 @@ export async function seedEmissionFactorDimensions(
 
   // Check the data has no duplicates based on full path and code
   checkForDuplicates(dimensionsData, [
-    "country_iso_code",
-    "methodology_version_name",
-    "category_name",
-    "subcategory_name",
+    "countryIsoCode",
+    "methodologyVersionName",
+    "categoryName",
+    "subcategoryName",
     "code",
   ]);
 
@@ -46,7 +46,7 @@ export async function seedEmissionFactorDimensions(
     include: {
       category: {
         include: {
-          methodology_version: {
+          methodologyVersion: {
             include: {
               country: true,
             },
@@ -59,7 +59,7 @@ export async function seedEmissionFactorDimensions(
   // Create a map of subcategories by full path (country:methodology:category:subcategory)
   const subcategoriesByFullPath = new Map(
     subcategories.map((subcategory) => [
-      `${subcategory.category.methodology_version.country.iso_code}:${subcategory.category.methodology_version.name}:${subcategory.category.name}:${subcategory.name}`,
+      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
       subcategory,
     ])
   );
@@ -67,31 +67,31 @@ export async function seedEmissionFactorDimensions(
   // Prepare dimensions data
   const dimensionsToCreate = dimensionsData.map((dimension) => {
     const subcategory = subcategoriesByFullPath.get(
-      `${dimension.country_iso_code}:${dimension.methodology_version_name}:${dimension.category_name}:${dimension.subcategory_name}`
+      `${dimension.countryIsoCode}:${dimension.methodologyVersionName}:${dimension.categoryName}:${dimension.subcategoryName}`
     );
     if (!subcategory) {
       throw new Error(
-        `Subcategory '${dimension.subcategory_name}' not found for category '${dimension.category_name}' in methodology '${dimension.methodology_version_name}' in country '${dimension.country_iso_code}' for dataset ${dataset}`
+        `Subcategory '${dimension.subcategoryName}' not found for category '${dimension.categoryName}' in methodology '${dimension.methodologyVersionName}' in country '${dimension.countryIsoCode}' for dataset ${dataset}`
       );
     }
 
     return {
-      subcategory_id: subcategory.id,
+      subcategoryId: subcategory.id,
       code: dimension.code,
       name: dimension.name,
       position: dimension.position,
-      is_required: dimension.is_required,
+      isRequired: dimension.isRequired,
     };
   });
 
   // Batch create dimensions (skips duplicates)
-  await prisma.emission_factor_dimension.createMany({
+  await prisma.emissionFactorDimension.createMany({
     data: dimensionsToCreate,
     skipDuplicates: true,
   });
 
   // Verify all dimensions were created
-  const dimensions = await prisma.emission_factor_dimension.findMany({
+  const dimensions = await prisma.emissionFactorDimension.findMany({
     include: {
       subcategory: true,
     },
@@ -109,34 +109,34 @@ export async function seedEmissionFactorDimensions(
   // Now seed dimension values
   console.log("   Seeding emission factor dimension values...");
 
-  // Create a map of dimensions by subcategory_id and code
+  // Create a map of dimensions by subcategoryId and code
   const dimensionsBySubcategoryAndCode = new Map(
-    dimensions.map((dim) => [`${dim.subcategory_id}:${dim.code}`, dim])
+    dimensions.map((dim) => [`${dim.subcategoryId}:${dim.code}`, dim])
   );
 
   // First pass: create all values without parent relationships
   const allValuesToCreate: {
-    dimension_id: bigint;
+    dimensionId: bigint;
     value: string;
-    parent_value_info?: {
-      dimension_code: string;
-      value_name: string;
+    parentValueInfo?: {
+      dimensionCode: string;
+      valueName: string;
     };
-    subcategory_full_path: string;
+    subcategoryFullPath: string;
   }[] = [];
 
   for (const dimensionData of dimensionsData) {
     const subcategory = subcategoriesByFullPath.get(
-      `${dimensionData.country_iso_code}:${dimensionData.methodology_version_name}:${dimensionData.category_name}:${dimensionData.subcategory_name}`
+      `${dimensionData.countryIsoCode}:${dimensionData.methodologyVersionName}:${dimensionData.categoryName}:${dimensionData.subcategoryName}`
     );
     if (!subcategory) {
       throw new Error(
         `[seedEmissionFactorDimensions] Subcategory lookup failed. ` +
-          `Lookup key: "${dimensionData.country_iso_code}:${dimensionData.methodology_version_name}:${dimensionData.category_name}:${dimensionData.subcategory_name}". ` +
-          `Identifying fields: country_iso_code="${dimensionData.country_iso_code}", ` +
-          `methodology_version_name="${dimensionData.methodology_version_name}", ` +
-          `category_name="${dimensionData.category_name}", ` +
-          `subcategory_name="${dimensionData.subcategory_name}", ` +
+          `Lookup key: "${dimensionData.countryIsoCode}:${dimensionData.methodologyVersionName}:${dimensionData.categoryName}:${dimensionData.subcategoryName}". ` +
+          `Identifying fields: countryIsoCode="${dimensionData.countryIsoCode}", ` +
+          `methodologyVersionName="${dimensionData.methodologyVersionName}", ` +
+          `categoryName="${dimensionData.categoryName}", ` +
+          `subcategoryName="${dimensionData.subcategoryName}", ` +
           `code="${dimensionData.code}". ` +
           `Dataset: ${dataset}`
       );
@@ -149,112 +149,110 @@ export async function seedEmissionFactorDimensions(
       throw new Error(
         `[seedEmissionFactorDimensions] Dimension lookup failed. ` +
           `Lookup key: "${subcategory.id}:${dimensionData.code}". ` +
-          `Identifying fields: country_iso_code="${dimensionData.country_iso_code}", ` +
-          `methodology_version_name="${dimensionData.methodology_version_name}", ` +
-          `category_name="${dimensionData.category_name}", ` +
-          `subcategory_name="${dimensionData.subcategory_name}", ` +
+          `Identifying fields: countryIsoCode="${dimensionData.countryIsoCode}", ` +
+          `methodologyVersionName="${dimensionData.methodologyVersionName}", ` +
+          `categoryName="${dimensionData.categoryName}", ` +
+          `subcategoryName="${dimensionData.subcategoryName}", ` +
           `code="${dimensionData.code}", ` +
-          `subcategory_id="${subcategory.id}". ` +
+          `subcategoryId="${subcategory.id}". ` +
           `Dataset: ${dataset}`
       );
     }
 
     for (const valueData of dimensionData.values) {
       const valueEntry: {
-        dimension_id: bigint;
+        dimensionId: bigint;
         value: string;
-        parent_value_info?: {
-          dimension_code: string;
-          value_name: string;
+        parentValueInfo?: {
+          dimensionCode: string;
+          valueName: string;
         };
-        subcategory_full_path: string;
+        subcategoryFullPath: string;
       } = {
-        dimension_id: dimension.id,
+        dimensionId: dimension.id,
         value: valueData.name,
-        subcategory_full_path: `${dimensionData.country_iso_code}:${dimensionData.methodology_version_name}:${dimensionData.category_name}:${dimensionData.subcategory_name}`,
+        subcategoryFullPath: `${dimensionData.countryIsoCode}:${dimensionData.methodologyVersionName}:${dimensionData.categoryName}:${dimensionData.subcategoryName}`,
       };
-      if (valueData.parent_value) {
-        valueEntry.parent_value_info = valueData.parent_value;
+      if (valueData.parentValue) {
+        valueEntry.parentValueInfo = valueData.parentValue;
       }
       allValuesToCreate.push(valueEntry);
     }
   }
 
   // Create values without parent relationships first
-  await prisma.emission_factor_dimension_value.createMany({
+  await prisma.emissionFactorDimensionValue.createMany({
     data: allValuesToCreate.map((v) => ({
-      dimension_id: v.dimension_id,
+      dimensionId: v.dimensionId,
       value: v.value,
-      parent_value_id: null,
+      parentValueId: null,
     })),
     skipDuplicates: true,
   });
 
   // Fetch all created dimension values
-  const dimensionValues = await prisma.emission_factor_dimension_value.findMany(
-    {
-      include: {
-        dimension: {
-          include: {
-            subcategory: true,
-          },
+  const dimensionValues = await prisma.emissionFactorDimensionValue.findMany({
+    include: {
+      dimension: {
+        include: {
+          subcategory: true,
         },
       },
-    }
-  );
+    },
+  });
 
-  // Create a map of dimension values by dimension_id and value name
+  // Create a map of dimension values by dimensionId and value name
   const valuesByDimensionAndName = new Map(
-    dimensionValues.map((val) => [`${val.dimension_id}:${val.value}`, val])
+    dimensionValues.map((val) => [`${val.dimensionId}:${val.value}`, val])
   );
 
   // Second pass: update parent relationships
-  // Parent values must be in the same subcategory, so we use the subcategory_full_path
+  // Parent values must be in the same subcategory, so we use the subcategoryFullPath
   let updatedCount = 0;
   for (const valueToUpdate of allValuesToCreate) {
-    if (!valueToUpdate.parent_value_info) continue;
+    if (!valueToUpdate.parentValueInfo) continue;
 
     // Find the subcategory for this value
     const subcategory = subcategoriesByFullPath.get(
-      valueToUpdate.subcategory_full_path
+      valueToUpdate.subcategoryFullPath
     );
     if (!subcategory) {
       throw new Error(
-        `Subcategory not found for value '${valueToUpdate.value}' with path '${valueToUpdate.subcategory_full_path}'`
+        `Subcategory not found for value '${valueToUpdate.value}' with path '${valueToUpdate.subcategoryFullPath}'`
       );
     }
 
     // Find the parent dimension within the same subcategory
     const parentDimension = dimensionsBySubcategoryAndCode.get(
-      `${subcategory.id}:${valueToUpdate.parent_value_info.dimension_code}`
+      `${subcategory.id}:${valueToUpdate.parentValueInfo.dimensionCode}`
     );
 
     if (!parentDimension) {
       throw new Error(
-        `Parent dimension '${valueToUpdate.parent_value_info.dimension_code}' not found in subcategory '${valueToUpdate.subcategory_full_path}' for value '${valueToUpdate.value}'`
+        `Parent dimension '${valueToUpdate.parentValueInfo.dimensionCode}' not found in subcategory '${valueToUpdate.subcategoryFullPath}' for value '${valueToUpdate.value}'`
       );
     }
 
     // Find the parent value within the parent dimension
     const parentValue = valuesByDimensionAndName.get(
-      `${parentDimension.id}:${valueToUpdate.parent_value_info.value_name}`
+      `${parentDimension.id}:${valueToUpdate.parentValueInfo.valueName}`
     );
 
     if (!parentValue) {
       throw new Error(
-        `Parent value '${valueToUpdate.parent_value_info.value_name}' not found in dimension '${valueToUpdate.parent_value_info.dimension_code}' in subcategory '${valueToUpdate.subcategory_full_path}'`
+        `Parent value '${valueToUpdate.parentValueInfo.valueName}' not found in dimension '${valueToUpdate.parentValueInfo.dimensionCode}' in subcategory '${valueToUpdate.subcategoryFullPath}'`
       );
     }
 
     // Find the current value to update
     const currentValue = valuesByDimensionAndName.get(
-      `${valueToUpdate.dimension_id}:${valueToUpdate.value}`
+      `${valueToUpdate.dimensionId}:${valueToUpdate.value}`
     );
 
     if (currentValue) {
-      await prisma.emission_factor_dimension_value.update({
+      await prisma.emissionFactorDimensionValue.update({
         where: { id: currentValue.id },
-        data: { parent_value_id: parentValue.id },
+        data: { parentValueId: parentValue.id },
       });
       updatedCount++;
     }

@@ -14,15 +14,14 @@ export async function seedEmissionFactors(
   const emissionFactorsData = nestedData.flatMap((methodology) =>
     methodology.categories.flatMap((category) =>
       category.subcategories.flatMap((subcategory) =>
-        (subcategory.emission_factors || []).map((ef) => ({
-          country_iso_code: methodology.country_iso_code,
-          methodology_version_name: methodology.name,
-          category_name: category.name,
-          subcategory_name: subcategory.name,
-          dimension_value_1: ef.dimension_value_1,
-          dimension_value_2: ef.dimension_value_2,
-          rate_measurement_unit_abbreviation:
-            ef.rate_measurement_unit_abbreviation,
+        (subcategory.emissionFactors || []).map((ef) => ({
+          countryIsoCode: methodology.countryIsoCode,
+          methodologyVersionName: methodology.name,
+          categoryName: category.name,
+          subcategoryName: subcategory.name,
+          dimensionValue1: ef.dimensionValue1,
+          dimensionValue2: ef.dimensionValue2,
+          rateMeasurementUnitAbbreviation: ef.rateMeasurementUnitAbbreviation,
           source: ef.source,
           value: ef.value,
         }))
@@ -30,12 +29,12 @@ export async function seedEmissionFactors(
     )
   );
 
-  // Fetch subcategories with their full path (category, methodology_version, country)
+  // Fetch subcategories with their full path (category, methodologyVersion, country)
   const subcategories = await prisma.subcategory.findMany({
     include: {
       category: {
         include: {
-          methodology_version: {
+          methodologyVersion: {
             include: {
               country: true,
             },
@@ -45,45 +44,42 @@ export async function seedEmissionFactors(
     },
   });
 
-  // Create a map of subcategories by full path: country_iso_code:methodology_version_name:category_name:subcategory_name
+  // Create a map of subcategories by full path: countryIsoCode:methodologyVersionName:categoryName:subcategoryName
   const subcategoriesByFullPath = new Map(
     subcategories.map((subcategory) => [
-      `${subcategory.category.methodology_version.country.iso_code}:${subcategory.category.methodology_version.name}:${subcategory.category.name}:${subcategory.name}`,
+      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
       subcategory,
     ])
   );
 
   // Fetch rate measurement units to map abbreviation to id
-  const rateMeasurementUnits = await prisma.rate_measurement_unit.findMany();
+  const rateMeasurementUnits = await prisma.rateMeasurementUnit.findMany();
   const rateMeasurementUnitsByAbbr = new Map(
     rateMeasurementUnits.map((rmu) => [rmu.abbreviation, rmu])
   );
 
   // Fetch all dimensions and their values
-  const dimensions = await prisma.emission_factor_dimension.findMany({
+  const dimensions = await prisma.emissionFactorDimension.findMany({
     include: {
       subcategory: true,
-      emission_factor_dimension_values: true,
+      values: true,
     },
   });
 
-  // Create a map of dimensions by subcategory_id and code
+  // Create a map of dimensions by subcategoryId and code
   const dimensionsBySubcategoryAndCode = new Map(
-    dimensions.map((dim) => [`${dim.subcategory_id}:${dim.code}`, dim])
+    dimensions.map((dim) => [`${dim.subcategoryId}:${dim.code}`, dim])
   );
 
-  // Create a map of dimension values by dimension_id and value name
+  // Create a map of dimension values by dimensionId and value name
   const valuesByDimensionIdAndName = new Map(
     dimensions.flatMap((dim) =>
-      dim.emission_factor_dimension_values.map((val) => [
-        `${dim.id}:${val.value}`,
-        val,
-      ])
+      dim.values.map((val) => [`${dim.id}:${val.value}`, val])
     )
   );
 
   // Fetch status catalog for ACTIVE status
-  const activeStatus = await prisma.status_catalog.findFirst({
+  const activeStatus = await prisma.statusCatalog.findFirst({
     where: { code: "ACTIVE" },
   });
 
@@ -96,87 +92,87 @@ export async function seedEmissionFactors(
   // Prepare emission factors data
   const emissionFactorsToCreate = emissionFactorsData.map((ef) => {
     const subcategory = subcategoriesByFullPath.get(
-      `${ef.country_iso_code}:${ef.methodology_version_name}:${ef.category_name}:${ef.subcategory_name}`
+      `${ef.countryIsoCode}:${ef.methodologyVersionName}:${ef.categoryName}:${ef.subcategoryName}`
     );
     if (!subcategory) {
       throw new Error(
-        `Subcategory '${ef.subcategory_name}' not found for category '${ef.category_name}' in methodology '${ef.methodology_version_name}' for country '${ef.country_iso_code}' in dataset ${dataset}`
+        `Subcategory '${ef.subcategoryName}' not found for category '${ef.categoryName}' in methodology '${ef.methodologyVersionName}' for country '${ef.countryIsoCode}' in dataset ${dataset}`
       );
     }
 
     const rateMeasurementUnit = rateMeasurementUnitsByAbbr.get(
-      ef.rate_measurement_unit_abbreviation
+      ef.rateMeasurementUnitAbbreviation
     );
     if (!rateMeasurementUnit) {
       throw new Error(
-        `Rate measurement unit '${ef.rate_measurement_unit_abbreviation}' not found for dataset ${dataset}`
+        `Rate measurement unit '${ef.rateMeasurementUnitAbbreviation}' not found for dataset ${dataset}`
       );
     }
 
     let dimensionValue1Id: bigint | null = null;
-    if (ef.dimension_value_1) {
+    if (ef.dimensionValue1) {
       const dimension1 = dimensionsBySubcategoryAndCode.get(
-        `${subcategory.id}:${ef.dimension_value_1.dimension_code}`
+        `${subcategory.id}:${ef.dimensionValue1.dimensionCode}`
       );
       if (!dimension1) {
         throw new Error(
-          `Dimension '${ef.dimension_value_1.dimension_code}' not found for subcategory '${ef.subcategory_name}' (category '${ef.category_name}', methodology '${ef.methodology_version_name}', country '${ef.country_iso_code}') in dataset ${dataset}`
+          `Dimension '${ef.dimensionValue1.dimensionCode}' not found for subcategory '${ef.subcategoryName}' (category '${ef.categoryName}', methodology '${ef.methodologyVersionName}', country '${ef.countryIsoCode}') in dataset ${dataset}`
         );
       }
 
       const value1 = valuesByDimensionIdAndName.get(
-        `${dimension1.id}:${ef.dimension_value_1.value_name}`
+        `${dimension1.id}:${ef.dimensionValue1.valueName}`
       );
       if (!value1) {
         throw new Error(
-          `Dimension value '${ef.dimension_value_1.value_name}' not found for dimension '${ef.dimension_value_1.dimension_code}' in subcategory '${ef.subcategory_name}' (category '${ef.category_name}', methodology '${ef.methodology_version_name}', country '${ef.country_iso_code}') in dataset ${dataset}`
+          `Dimension value '${ef.dimensionValue1.valueName}' not found for dimension '${ef.dimensionValue1.dimensionCode}' in subcategory '${ef.subcategoryName}' (category '${ef.categoryName}', methodology '${ef.methodologyVersionName}', country '${ef.countryIsoCode}') in dataset ${dataset}`
         );
       }
       dimensionValue1Id = value1.id;
     }
 
     let dimensionValue2Id: bigint | null = null;
-    if (ef.dimension_value_2) {
+    if (ef.dimensionValue2) {
       const dimension2 = dimensionsBySubcategoryAndCode.get(
-        `${subcategory.id}:${ef.dimension_value_2.dimension_code}`
+        `${subcategory.id}:${ef.dimensionValue2.dimensionCode}`
       );
       if (!dimension2) {
         throw new Error(
-          `Dimension '${ef.dimension_value_2.dimension_code}' not found for subcategory '${ef.subcategory_name}' (category '${ef.category_name}', methodology '${ef.methodology_version_name}', country '${ef.country_iso_code}') in dataset ${dataset}`
+          `Dimension '${ef.dimensionValue2.dimensionCode}' not found for subcategory '${ef.subcategoryName}' (category '${ef.categoryName}', methodology '${ef.methodologyVersionName}', country '${ef.countryIsoCode}') in dataset ${dataset}`
         );
       }
 
       const value2 = valuesByDimensionIdAndName.get(
-        `${dimension2.id}:${ef.dimension_value_2.value_name}`
+        `${dimension2.id}:${ef.dimensionValue2.valueName}`
       );
       if (!value2) {
         throw new Error(
-          `Dimension value '${ef.dimension_value_2.value_name}' not found for dimension '${ef.dimension_value_2.dimension_code}' in subcategory '${ef.subcategory_name}' (category '${ef.category_name}', methodology '${ef.methodology_version_name}', country '${ef.country_iso_code}') in dataset ${dataset}`
+          `Dimension value '${ef.dimensionValue2.valueName}' not found for dimension '${ef.dimensionValue2.dimensionCode}' in subcategory '${ef.subcategoryName}' (category '${ef.categoryName}', methodology '${ef.methodologyVersionName}', country '${ef.countryIsoCode}') in dataset ${dataset}`
         );
       }
       dimensionValue2Id = value2.id;
     }
 
     return {
-      subcategory_id: subcategory.id,
-      dimension_value_1_id: dimensionValue1Id,
-      dimension_value_2_id: dimensionValue2Id,
-      rate_measurement_unit_id: rateMeasurementUnit.id,
+      subcategoryId: subcategory.id,
+      dimensionValue1Id: dimensionValue1Id,
+      dimensionValue2Id: dimensionValue2Id,
+      rateMeasurementUnitId: rateMeasurementUnit.id,
       source: ef.source,
-      gas_details: {},
+      gasDetails: {},
       value: ef.value,
-      status_id: activeStatus.id,
+      statusId: activeStatus.id,
     };
   });
 
   // Batch create emission factors (skips duplicates)
-  await prisma.emission_factor.createMany({
+  await prisma.emissionFactor.createMany({
     data: emissionFactorsToCreate,
     skipDuplicates: true,
   });
 
   // Verify all emission factors were created
-  const emissionFactors = await prisma.emission_factor.findMany();
+  const emissionFactors = await prisma.emissionFactor.findMany();
 
   if (emissionFactors.length !== emissionFactorsData.length)
     throw new Error(

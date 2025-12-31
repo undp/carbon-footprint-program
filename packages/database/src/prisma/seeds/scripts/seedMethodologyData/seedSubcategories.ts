@@ -17,9 +17,9 @@ export async function seedSubcategories(
   const subcategoriesData = nestedData.flatMap((methodology) =>
     methodology.categories.flatMap((category) =>
       category.subcategories.map((subcategory) => ({
-        country_iso_code: methodology.country_iso_code,
-        methodology_version_name: methodology.name,
-        category_name: category.name,
+        countryIsoCode: methodology.countryIsoCode,
+        methodologyVersionName: methodology.name,
+        categoryName: category.name,
         name: subcategory.name,
         description: subcategory.description,
         examples: subcategory.examples,
@@ -27,18 +27,18 @@ export async function seedSubcategories(
     )
   );
 
-  // Check the data has no duplicates based on methodology and category_name and name
+  // Check the data has no duplicates based on methodology and categoryName and name
   checkForDuplicates(subcategoriesData, [
-    "country_iso_code",
-    "methodology_version_name",
-    "category_name",
+    "countryIsoCode",
+    "methodologyVersionName",
+    "categoryName",
     "name",
   ]);
 
   // Fetch categories with their methodology versions and countries to map by full path
   const categories = await prisma.category.findMany({
     include: {
-      methodology_version: {
+      methodologyVersion: {
         include: {
           country: true,
         },
@@ -46,10 +46,10 @@ export async function seedSubcategories(
     },
   });
 
-  // Create a map of categories by country_iso_code, methodology_version_name, and category name
+  // Create a map of categories by countryIsoCode, methodologyVersionName, and category name
   const categoriesByFullPath = new Map(
     categories.map((category) => [
-      `${category.methodology_version.country.iso_code}:${category.methodology_version.name}:${category.name}`,
+      `${category.methodologyVersion.country.isoCode}:${category.methodologyVersion.name}:${category.name}`,
       category,
     ])
   );
@@ -57,16 +57,16 @@ export async function seedSubcategories(
   // Prepare subcategories data
   const subcategoriesToCreate = subcategoriesData.map((subcategory) => {
     const category = categoriesByFullPath.get(
-      `${subcategory.country_iso_code}:${subcategory.methodology_version_name}:${subcategory.category_name}`
+      `${subcategory.countryIsoCode}:${subcategory.methodologyVersionName}:${subcategory.categoryName}`
     );
     if (!category) {
       throw new Error(
-        `Category '${subcategory.category_name}' not found for methodology '${subcategory.methodology_version_name}' in country '${subcategory.country_iso_code}' for dataset ${dataset}`
+        `Category '${subcategory.categoryName}' not found for methodology '${subcategory.methodologyVersionName}' in country '${subcategory.countryIsoCode}' for dataset ${dataset}`
       );
     }
 
     return {
-      category_id: category.id,
+      categoryId: category.id,
       name: subcategory.name,
       description: subcategory.description || null,
       examples: subcategory.examples || null,
