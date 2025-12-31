@@ -16,48 +16,47 @@ export async function seedCategories(
   // Flatten categories from all methodologies, keeping reference to methodology
   const categoriesData = nestedData.flatMap((methodology) =>
     methodology.categories.map((category) => ({
-      country_iso_code: methodology.country_iso_code,
-      methodology_version_name: methodology.name,
+      countryIsoCode: methodology.countryIsoCode,
+      methodologyVersionName: methodology.name,
       name: category.name,
       synonyms: category.synonyms,
       description: category.description,
       examples: category.examples,
     }))
   );
-
-  // Check the data has no duplicates based on methodology_version_name and name
+  // Check the data has no duplicates based on methodologyVersionName and name
   checkForDuplicates(categoriesData, [
-    "country_iso_code",
-    "methodology_version_name",
+    "countryIsoCode",
+    "methodologyVersionName",
     "name",
   ]);
 
   // Fetch methodology versions with their countries
-  const methodologyVersions = await prisma.methodology_version.findMany({
+  const methodologyVersions = await prisma.methodologyVersion.findMany({
     include: {
       country: true,
     },
   });
 
-  // Create a map of methodology versions by country_iso_code and name
+  // Create a map of methodology versions by countryIsoCode and name
   const methodologyVersionsByCountryAndName = new Map(
-    methodologyVersions.map((mv) => [`${mv.country.iso_code}:${mv.name}`, mv])
+    methodologyVersions.map((mv) => [`${mv.country.isoCode}:${mv.name}`, mv])
   );
 
   // Prepare categories data
   const categoriesToCreate = categoriesData.map((category) => {
     // Find methodology version by country and name
     const methodologyVersion = methodologyVersionsByCountryAndName.get(
-      `${category.country_iso_code}:${category.methodology_version_name}`
+      `${category.countryIsoCode}:${category.methodologyVersionName}`
     );
     if (!methodologyVersion) {
       throw new Error(
-        `Methodology version '${category.methodology_version_name}' not found for country '${category.country_iso_code}' in dataset ${dataset}`
+        `Methodology version '${category.methodologyVersionName}' not found for country '${category.countryIsoCode}' in dataset ${dataset}`
       );
     }
 
     return {
-      methodology_version_id: methodologyVersion.id,
+      methodologyVersionId: methodologyVersion.id,
       name: category.name,
       synonyms: category.synonyms || null,
       description: category.description || null,

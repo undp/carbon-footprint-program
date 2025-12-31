@@ -13,19 +13,19 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type UserData = (Required<
-  Pick<Prisma.userCreateInput, "email" | "first_name" | "last_name">
+  Pick<Prisma.UserCreateInput, "email" | "firstName" | "lastName">
 > & {
-  country_job_position_name: Prisma.country_job_positionCreateInput["name"];
-  country_iso_code: Prisma.countryCreateInput["iso_code"];
+  countryJobPositionName: Prisma.CountryJobPositionCreateInput["name"];
+  countryIsoCode: Prisma.CountryCreateInput["isoCode"];
 })[];
 
 const UserDataSchema: z.ZodType<UserData> = z.array(
   z.object({
     email: z.email(),
-    country_job_position_name: z.string().min(1),
-    country_iso_code: z.string().min(1),
-    first_name: z.string(),
-    last_name: z.string(),
+    countryJobPositionName: z.string().min(1),
+    countryIsoCode: z.string().min(1),
+    firstName: z.string(),
+    lastName: z.string(),
   })
 );
 
@@ -34,13 +34,13 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
 
   // Get all countries and job positions from database
   const countries = await prisma.country.findMany();
-  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
+  const countryByIso = new Map(countries.map((c) => [c.isoCode, c]));
 
-  const jobPositions = await prisma.country_job_position.findMany({
+  const jobPositions = await prisma.countryJobPosition.findMany({
     include: { country: true },
   });
   const jobPositionMap = new Map(
-    jobPositions.map((jp) => [`${jp.country.iso_code}:${jp.name}`, jp])
+    jobPositions.map((jp) => [`${jp.country.isoCode}:${jp.name}`, jp])
   );
 
   // Read users data
@@ -56,27 +56,27 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
   // Check the data has no duplicates based on email
   checkForDuplicates(usersData, ["email"]);
 
-  // Prepare users data with country_job_position_id
+  // Prepare users data with countryJobPositionId
   const usersToCreate = usersData.map((user) => {
-    const country = countryByIso.get(user.country_iso_code);
+    const country = countryByIso.get(user.countryIsoCode);
     if (!country)
       throw new Error(
-        `Country '${user.country_iso_code}' not found in dataset ${dataset}`
+        `Country '${user.countryIsoCode}' not found in dataset ${dataset}`
       );
 
     const jobPosition = jobPositionMap.get(
-      `${user.country_iso_code}:${user.country_job_position_name}`
+      `${user.countryIsoCode}:${user.countryJobPositionName}`
     );
     if (!jobPosition)
       throw new Error(
-        `Job position '${user.country_job_position_name}' for country '${user.country_iso_code}' not found in dataset ${dataset}`
+        `Job position '${user.countryJobPositionName}' for country '${user.countryIsoCode}' not found in dataset ${dataset}`
       );
 
     return {
       email: user.email,
-      country_job_position_id: jobPosition.id,
-      first_name: user.first_name,
-      last_name: user.last_name,
+      countryJobPositionId: jobPosition.id,
+      firstName: user.firstName,
+      lastName: user.lastName,
     };
   });
 

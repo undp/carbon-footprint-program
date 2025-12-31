@@ -44,18 +44,18 @@ export async function seedSystemRoles(
       `Expected ${systemRolesData.length} system roles but found ${systemRoles.length} for dataset ${dataset}`
     );
 
-  // Bulk insert system_role entries
-  await prisma.system_role.createMany({
+  // Bulk insert systemRole entries
+  await prisma.systemRole.createMany({
     data: systemRoles.map((role) => ({ id: role.id })),
     skipDuplicates: true,
   });
 
-  // Verify all system_role entries were created
-  const systemRoleEntries = await prisma.system_role.findMany();
+  // Verify all systemRole entries were created
+  const systemRoleEntries = await prisma.systemRole.findMany();
 
   if (systemRoleEntries.length !== systemRoles.length)
     throw new Error(
-      `Expected ${systemRoles.length} system_role entries but found ${systemRoleEntries.length} for dataset ${dataset}`
+      `Expected ${systemRoles.length} systemRole entries but found ${systemRoleEntries.length} for dataset ${dataset}`
     );
 
   console.log(

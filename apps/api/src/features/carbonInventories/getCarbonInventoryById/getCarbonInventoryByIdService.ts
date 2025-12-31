@@ -6,7 +6,7 @@ export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
   id: string
 ): Promise<GetCarbonInventoryByIdResponse | null> => {
-  const item = await prismaClient.carbon_inventory.findUnique({
+  const item = await prismaClient.carbonInventory.findUnique({
     where: {
       id: BigInt(id),
     },

@@ -14,15 +14,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type CountrySectorSubsectorData = {
-  country_iso_code: Prisma.countryCreateInput["iso_code"];
-  sector: Prisma.country_sectorCreateInput["name"];
-  subsectors: Prisma.country_subsectorCreateInput["name"][];
+  countryIsoCode: Prisma.CountryCreateInput["isoCode"];
+  sector: Prisma.CountrySectorCreateInput["name"];
+  subsectors: Prisma.CountrySubsectorCreateInput["name"][];
 }[];
 
 const CountrySectorSubsectorDataSchema: z.ZodType<CountrySectorSubsectorData> =
   z.array(
     z.object({
-      country_iso_code: z.string().min(1),
+      countryIsoCode: z.string().min(1),
       sector: z.string().min(1),
       subsectors: z.array(z.string().min(1)),
     })
@@ -36,7 +36,7 @@ export async function seedCountrySectorSubsectors(
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
-  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
+  const countryByIso = new Map(countries.map((c) => [c.isoCode, c]));
 
   // Read country sector subsectors
   const countrySectorSubsectorsData = CountrySectorSubsectorDataSchema.parse(
@@ -53,38 +53,38 @@ export async function seedCountrySectorSubsectors(
   );
 
   checkForDuplicates(countrySectorSubsectorsData, [
-    "country_iso_code",
+    "countryIsoCode",
     "sector",
   ]);
   for (const item of countrySectorSubsectorsData) {
     checkForPrimitiveDuplicates(
       item.subsectors,
-      `subsectors in ${item.country_iso_code} - ${item.sector}`
+      `subsectors in ${item.countryIsoCode} - ${item.sector}`
     );
   }
 
-  // Prepare sectors data with country_id
+  // Prepare sectors data with countryId
   const sectorsToCreate = countrySectorSubsectorsData.map((item) => {
-    const country = countryByIso.get(item.country_iso_code);
+    const country = countryByIso.get(item.countryIsoCode);
     if (!country) {
       throw new Error(
-        `Country '${item.country_iso_code}' not found in dataset ${dataset}`
+        `Country '${item.countryIsoCode}' not found in dataset ${dataset}`
       );
     }
     return {
-      country_id: country.id,
+      countryId: country.id,
       name: item.sector,
     };
   });
 
   // Batch create sectors (skips duplicates)
-  await prisma.country_sector.createMany({
+  await prisma.countrySector.createMany({
     data: sectorsToCreate,
     skipDuplicates: true,
   });
 
   // Fetch all sectors to get their IDs for subsectors
-  const sectors = await prisma.country_sector.findMany();
+  const sectors = await prisma.countrySector.findMany();
 
   // Verify all sectors were created
   if (sectors.length !== sectorsToCreate.length)
@@ -94,40 +94,40 @@ export async function seedCountrySectorSubsectors(
 
   // Create a map for quick sector lookup
   const sectorMap = new Map(
-    sectors.map((s) => [`${s.country_id}_${s.name}`, s])
+    sectors.map((s) => [`${s.countryId}_${s.name}`, s])
   );
 
   // Prepare subsectors data
-  const subsectorsToCreate: { country_sector_id: bigint; name: string }[] = [];
+  const subsectorsToCreate: { countrySectorId: bigint; name: string }[] = [];
   for (const item of countrySectorSubsectorsData) {
-    const country = countryByIso.get(item.country_iso_code);
+    const country = countryByIso.get(item.countryIsoCode);
     if (!country)
       throw new Error(
-        `Country '${item.country_iso_code}' not found in dataset ${dataset}`
+        `Country '${item.countryIsoCode}' not found in dataset ${dataset}`
       );
 
     const sector = sectorMap.get(`${country.id}_${item.sector}`);
     if (!sector)
       throw new Error(
-        `Sector '${item.sector}' not found for country '${item.country_iso_code}' in dataset ${dataset}`
+        `Sector '${item.sector}' not found for country '${item.countryIsoCode}' in dataset ${dataset}`
       );
 
     for (const subsectorName of item.subsectors) {
       subsectorsToCreate.push({
-        country_sector_id: sector.id,
+        countrySectorId: sector.id,
         name: subsectorName,
       });
     }
   }
 
   // Batch create subsectors (skips duplicates)
-  await prisma.country_subsector.createMany({
+  await prisma.countrySubsector.createMany({
     data: subsectorsToCreate,
     skipDuplicates: true,
   });
 
   // Verify all subsectors were created
-  const subsectors = await prisma.country_subsector.findMany();
+  const subsectors = await prisma.countrySubsector.findMany();
 
   if (subsectors.length !== subsectorsToCreate.length)
     throw new Error(

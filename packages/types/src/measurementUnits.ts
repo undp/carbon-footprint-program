@@ -10,8 +10,8 @@ export const MeasurementUnitSchema = z.object({
     .string()
     .min(1)
     .describe("The abbreviation of the measurement unit"),
-  base_factor: z.number().describe("The base factor of the measurement unit"),
-  is_base: z.boolean().describe("Whether the measurement unit is a base unit"),
+  baseFactor: z.number().describe("The base factor of the measurement unit"),
+  isBase: z.boolean().describe("Whether the measurement unit is a base unit"),
 });
 
 const RateUnitComponentSchema = z.object({
@@ -31,10 +31,10 @@ export const RateMeasurementUnitSchema = z.object({
     .string()
     .min(1)
     .describe("The abbreviation of the rate measurement unit"),
-  numerator_unit: RateUnitComponentSchema.describe(
+  numeratorUnit: RateUnitComponentSchema.describe(
     "The numerator measurement unit of the rate measurement unit"
   ),
-  denominator_unit: RateUnitComponentSchema.describe(
+  denominatorUnit: RateUnitComponentSchema.describe(
     "The denominator measurement unit of the rate measurement unit"
   ),
 });

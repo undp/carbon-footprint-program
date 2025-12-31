@@ -4,10 +4,10 @@ import type { GetAllRateMeasurementUnitsResponse } from "@repo/types";
 export const getAllRateMeasurementUnitsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllRateMeasurementUnitsResponse> => {
-  const data = await prismaClient.rate_measurement_unit.findMany({
+  const data = await prismaClient.rateMeasurementUnit.findMany({
     include: {
-      numerator_measurement_unit: true,
-      denominator_measurement_unit: true,
+      numeratorMeasurementUnit: true,
+      denominatorMeasurementUnit: true,
     },
     orderBy: {
       name: "asc",
@@ -18,17 +18,17 @@ export const getAllRateMeasurementUnitsService = async (
     id: item.id.toString(),
     name: item.name,
     abbreviation: item.abbreviation,
-    numerator_unit: {
-      id: item.numerator_measurement_unit.id.toString(),
-      name: item.numerator_measurement_unit.name,
-      magnitude: item.numerator_measurement_unit.magnitude,
-      abbreviation: item.numerator_measurement_unit.abbreviation,
+    numeratorUnit: {
+      id: item.numeratorMeasurementUnit.id.toString(),
+      name: item.numeratorMeasurementUnit.name,
+      magnitude: item.numeratorMeasurementUnit.magnitude,
+      abbreviation: item.numeratorMeasurementUnit.abbreviation,
     },
-    denominator_unit: {
-      id: item.denominator_measurement_unit.id.toString(),
-      name: item.denominator_measurement_unit.name,
-      magnitude: item.denominator_measurement_unit.magnitude,
-      abbreviation: item.denominator_measurement_unit.abbreviation,
+    denominatorUnit: {
+      id: item.denominatorMeasurementUnit.id.toString(),
+      name: item.denominatorMeasurementUnit.name,
+      magnitude: item.denominatorMeasurementUnit.magnitude,
+      abbreviation: item.denominatorMeasurementUnit.abbreviation,
     },
   }));
 };

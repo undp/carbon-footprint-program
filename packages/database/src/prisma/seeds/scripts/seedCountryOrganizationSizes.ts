@@ -13,16 +13,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type OrganizationSizeData = (Pick<
-  Prisma.country_organization_sizeCreateInput,
+  Prisma.CountryOrganizationSizeCreateInput,
   "name"
 > & {
-  country_iso_code: Prisma.countryCreateInput["iso_code"];
+  countryIsoCode: Prisma.CountryCreateInput["isoCode"];
 })[];
 
 const OrganizationSizeDataSchema: z.ZodType<OrganizationSizeData> = z.array(
   z.object({
     name: z.string().min(1),
-    country_iso_code: z.string().min(1),
+    countryIsoCode: z.string().min(1),
   })
 );
 
@@ -34,7 +34,7 @@ export async function seedCountryOrganizationSizes(
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
-  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
+  const countryByIso = new Map(countries.map((c) => [c.isoCode, c]));
 
   // Read country organization sizes
   const organizationSizesData = OrganizationSizeDataSchema.parse(
@@ -50,26 +50,26 @@ export async function seedCountryOrganizationSizes(
     )
   );
 
-  checkForDuplicates(organizationSizesData, ["country_iso_code", "name"]);
+  checkForDuplicates(organizationSizesData, ["countryIsoCode", "name"]);
 
-  // Prepare organization sizes data with country_id
+  // Prepare organization sizes data with countryId
   const organizationSizesToCreate = organizationSizesData.map((os) => {
-    const country = countryByIso.get(os.country_iso_code);
+    const country = countryByIso.get(os.countryIsoCode);
     if (!country)
       throw new Error(
-        `Country '${os.country_iso_code}' not found in dataset ${dataset}`
+        `Country '${os.countryIsoCode}' not found in dataset ${dataset}`
       );
-    return { name: os.name, country_id: country.id };
+    return { name: os.name, countryId: country.id };
   });
 
   // Batch create organization sizes (skips duplicates)
-  await prisma.country_organization_size.createMany({
+  await prisma.countryOrganizationSize.createMany({
     data: organizationSizesToCreate,
     skipDuplicates: true,
   });
 
   // Verify all organization sizes were created
-  const organizationSizes = await prisma.country_organization_size.findMany();
+  const organizationSizes = await prisma.countryOrganizationSize.findMany();
 
   if (organizationSizes.length !== organizationSizesData.length)
     throw new Error(

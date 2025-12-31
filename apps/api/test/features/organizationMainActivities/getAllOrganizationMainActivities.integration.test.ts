@@ -66,10 +66,9 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       expect(body.length).toBeGreaterThan(0);
 
       // Get all activities from DB to verify they are all double-NULL
-      const allDbActivities =
-        await prisma.organization_main_activity.findMany();
+      const allDbActivities = await prisma.organizationMainActivity.findMany();
       const genericInDb = allDbActivities.filter(
-        (a) => a.country_sector_id === null && a.country_subsector_id === null
+        (a) => a.countrySectorId === null && a.countrySubsectorId === null
       );
 
       // Response should match the count of generic activities in DB
@@ -188,10 +187,11 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
       expect(energiaSector).toBeDefined();
 
       // Get activities from DB for this sector
-      const sectorActivitiesDb =
-        await prisma.organization_main_activity.findMany({
-          where: { country_sector_id: BigInt(energiaSector!.id) },
-        });
+      const sectorActivitiesDb = await prisma.organizationMainActivity.findMany(
+        {
+          where: { countrySectorId: BigInt(energiaSector!.id) },
+        }
+      );
 
       // Now filter activities by this sector
       const response = await app.inject({
@@ -272,11 +272,11 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
 
       // Get activities from DB for this sector/subsector combo with OR condition
       const subsectorActivitiesDb =
-        await prisma.organization_main_activity.findMany({
+        await prisma.organizationMainActivity.findMany({
           where: {
             OR: [
-              { country_sector_id: BigInt(sectorWithSubsectors!.id) },
-              { country_subsector_id: BigInt(subsector.id) },
+              { countrySectorId: BigInt(sectorWithSubsectors!.id) },
+              { countrySubsectorId: BigInt(subsector.id) },
             ],
           },
         });

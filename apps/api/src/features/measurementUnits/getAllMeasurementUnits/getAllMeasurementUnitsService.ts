@@ -4,7 +4,7 @@ import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 export const getAllMeasurementUnitsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllMeasurementUnitsResponse> => {
-  const data = await prismaClient.measurement_unit.findMany({
+  const data = await prismaClient.measurementUnit.findMany({
     orderBy: [{ name: "asc" }],
   });
 
@@ -13,7 +13,7 @@ export const getAllMeasurementUnitsService = async (
     name: item.name,
     magnitude: item.magnitude,
     abbreviation: item.abbreviation,
-    base_factor: item.base_factor,
-    is_base: item.is_base,
+    baseFactor: item.baseFactor,
+    isBase: item.isBase,
   }));
 };

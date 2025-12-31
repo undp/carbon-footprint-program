@@ -17,22 +17,20 @@ export const createCarbonInventoryService = async (
   data: CreateCarbonInventoryRequest
 ): Promise<CreateCarbonInventoryResult> => {
   // Find the first available methodology version (status: ENTITY/ACTIVE)
-  const availableMethodology = await prismaClient.methodology_version.findFirst(
-    {
-      where: {
-        status: {
-          scope: "ENTITY",
-          code: "ACTIVE",
-        },
+  const availableMethodology = await prismaClient.methodologyVersion.findFirst({
+    where: {
+      status: {
+        scope: "ENTITY",
+        code: "ACTIVE",
       },
-      orderBy: {
-        id: "asc",
-      },
-      select: {
-        id: true,
-      },
-    }
-  );
+    },
+    orderBy: {
+      id: "asc",
+    },
+    select: {
+      id: true,
+    },
+  });
 
   if (!availableMethodology) {
     return {
@@ -44,12 +42,12 @@ export const createCarbonInventoryService = async (
     };
   }
 
-  const item = await prismaClient.carbon_inventory.create({
+  const item = await prismaClient.carbonInventory.create({
     data: {
-      usage_mode: data.usageMode,
-      methodology_version_id: availableMethodology.id,
-      created_by_id: null, // TODO: Add created by id from logged in user
-      updated_by_id: null, // TODO: Add updated by id from logged in user
+      usageMode: data.usageMode,
+      methodologyVersionId: availableMethodology.id,
+      createdById: null, // TODO: Add created by id from logged in user
+      updatedById: null, // TODO: Add updated by id from logged in user
     },
   });
   return { success: true, data: mapCarbonInventoryToResponse(item) };

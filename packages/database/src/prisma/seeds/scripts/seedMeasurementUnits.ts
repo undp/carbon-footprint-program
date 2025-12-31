@@ -14,8 +14,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type MeasurementUnitData = Pick<
-  Prisma.measurement_unitCreateInput,
-  "magnitude" | "name" | "abbreviation" | "base_factor" | "is_base"
+  Prisma.MeasurementUnitCreateInput,
+  "magnitude" | "name" | "abbreviation" | "baseFactor" | "isBase"
 >[];
 
 const MeasurementUnitDataSchema: z.ZodType<MeasurementUnitData> = z.array(
@@ -23,13 +23,13 @@ const MeasurementUnitDataSchema: z.ZodType<MeasurementUnitData> = z.array(
     magnitude: MagnitudeSchema,
     name: z.string().min(1),
     abbreviation: z.string().min(1),
-    base_factor: z.number(),
-    is_base: z.boolean(),
+    baseFactor: z.number(),
+    isBase: z.boolean(),
   })
 );
 
 type RateMeasurementUnitData = Pick<
-  Prisma.rate_measurement_unitCreateInput,
+  Prisma.RateMeasurementUnitCreateInput,
   "name" | "abbreviation"
 >[];
 
@@ -65,18 +65,18 @@ export async function seedMeasurementUnits(
     magnitude: mu.magnitude.toUpperCase() as Magnitude,
     name: mu.name,
     abbreviation: mu.abbreviation,
-    base_factor: mu.base_factor,
-    is_base: mu.is_base,
+    baseFactor: mu.baseFactor,
+    isBase: mu.isBase,
   }));
 
   // Batch create measurement units (skips duplicates)
-  await prisma.measurement_unit.createMany({
+  await prisma.measurementUnit.createMany({
     data: measurementUnitsToCreate,
     skipDuplicates: true,
   });
 
   // Fetch all measurement units to use for rate measurement units
-  const measurementUnits = await prisma.measurement_unit.findMany();
+  const measurementUnits = await prisma.measurementUnit.findMany();
 
   // Verify all measurement units were created
   if (measurementUnits.length !== measurementUnitsData.length)
@@ -132,19 +132,19 @@ export async function seedMeasurementUnits(
     return {
       name: rmu.name,
       abbreviation: rmu.abbreviation,
-      numerator_measurement_unit_id: numeratorMeasurementUnit.id,
-      denominator_measurement_unit_id: denominatorMeasurementUnit.id,
+      numeratorMeasurementUnitId: numeratorMeasurementUnit.id,
+      denominatorMeasurementUnitId: denominatorMeasurementUnit.id,
     };
   });
 
   // Batch create rate measurement units (skips duplicates)
-  await prisma.rate_measurement_unit.createMany({
+  await prisma.rateMeasurementUnit.createMany({
     data: rateMeasurementUnitsToCreate,
     skipDuplicates: true,
   });
 
   // Verify all rate measurement units were created
-  const rateMeasurementUnits = await prisma.rate_measurement_unit.findMany();
+  const rateMeasurementUnits = await prisma.rateMeasurementUnit.findMany();
 
   if (rateMeasurementUnits.length !== rateMeasurementUnitsData.length)
     throw new Error(

@@ -44,18 +44,18 @@ export async function seedOrganizationRoles(
       `Expected ${organizationRolesData.length} organization roles but found ${organizationRoles.length} for dataset ${dataset}`
     );
 
-  // Bulk insert organization_role entries
-  await prisma.organization_role.createMany({
+  // Bulk insert organizationRole entries
+  await prisma.organizationRole.createMany({
     data: organizationRoles.map((role) => ({ id: role.id })),
     skipDuplicates: true,
   });
 
-  // Verify all organization_role entries were created
-  const organizationRoleEntries = await prisma.organization_role.findMany();
+  // Verify all organizationRole entries were created
+  const organizationRoleEntries = await prisma.organizationRole.findMany();
 
   if (organizationRoleEntries.length !== organizationRoles.length)
     throw new Error(
-      `Expected ${organizationRoles.length} organization_role entries but found ${organizationRoleEntries.length} for dataset ${dataset}`
+      `Expected ${organizationRoles.length} organizationRole entries but found ${organizationRoleEntries.length} for dataset ${dataset}`
     );
 
   console.log(

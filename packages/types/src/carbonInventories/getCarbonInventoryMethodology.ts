@@ -3,7 +3,7 @@ import { z } from "zod";
 const DimensionValueSchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of the dimension value"),
   value: z.string().describe("The value of the dimension value"),
-  parent_value_id: z
+  parentValueId: z
     .string()
     .regex(/^\d+$/)
     .nullable()
@@ -14,7 +14,7 @@ const EmissionFactorDimensionSchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of the dimension"),
   name: z.string().describe("The name of the dimension"),
   position: z.number().int().describe("The position/order of the dimension"),
-  is_required: z.boolean().describe("Whether this dimension is required"),
+  isRequired: z.boolean().describe("Whether this dimension is required"),
   values: z
     .array(DimensionValueSchema)
     .describe("The possible values for this dimension"),

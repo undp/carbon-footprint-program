@@ -1,8 +1,8 @@
 [
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": null,
-    "main_activities": [
+    "mainActivities": [
       "millones de CLP de ingresos",
       "millones de CLP facturados",
       "millones de CLP de costos operacionales",
@@ -37,9 +37,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Manufactura / Industria Manufacturera",
-    "main_activities": [
+    "mainActivities": [
       "toneladas producidas",
       "unidades fabricadas",
       "kg de productos",
@@ -49,9 +49,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Energía",
-    "main_activities": [
+    "mainActivities": [
       "MWh generados",
       "GWh generados",
       "MWh distribuidos",
@@ -60,9 +60,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Agricultura, Ganadería, Silvicultura y Pesca",
-    "main_activities": [
+    "mainActivities": [
       "toneladas producidas",
       "kg de productos",
       "litros producidos",
@@ -73,14 +73,14 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Construcción",
-    "main_activities": ["viviendas", "obras ejecutadas", "UF construidas"]
+    "mainActivities": ["viviendas", "obras ejecutadas", "UF construidas"]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Transporte y Logística",
-    "main_activities": [
+    "mainActivities": [
       "km recorridos",
       "toneladas-km",
       "pasajeros-km",
@@ -89,9 +89,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Comercio",
-    "main_activities": [
+    "mainActivities": [
       "unidades vendidas",
       "clientes atendidos",
       "tickets de venta",
@@ -101,14 +101,14 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Servicios Financieros",
-    "main_activities": ["cuentas gestionadas", "millones de CLP administrados"]
+    "mainActivities": ["cuentas gestionadas", "millones de CLP administrados"]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Turismo, Hotelería y Restaurantes",
-    "main_activities": [
+    "mainActivities": [
       "noches de alojamiento",
       "huéspedes",
       "habitaciones ocupadas",
@@ -118,9 +118,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Salud",
-    "main_activities": [
+    "mainActivities": [
       "pacientes atendidos",
       "consultas médicas",
       "camas ocupadas",
@@ -128,9 +128,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Educación",
-    "main_activities": [
+    "mainActivities": [
       "estudiantes",
       "matrículas",
       "cursos dictados",
@@ -139,9 +139,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Servicios Profesionales y Empresariales",
-    "main_activities": [
+    "mainActivities": [
       "horas facturables",
       "proyectos ejecutados",
       "contratos gestionados",
@@ -152,9 +152,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Administración Pública",
-    "main_activities": [
+    "mainActivities": [
       "funcionarios",
       "ciudadanos atendidos",
       "trámites realizados",
@@ -164,9 +164,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Minería",
-    "main_activities": [
+    "mainActivities": [
       "toneladas extraídas",
       "toneladas procesadas",
       "kg de mineral fino",
@@ -175,9 +175,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Telecomunicaciones",
-    "main_activities": [
+    "mainActivities": [
       "líneas activas",
       "GB de datos transmitidos",
       "antenas o sitios",
@@ -185,9 +185,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Bienes Raíces",
-    "main_activities": [
+    "mainActivities": [
       "m² administrados",
       "unidades habitacionales",
       "arrendatarios",
@@ -196,9 +196,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Gestión de Residuos",
-    "main_activities": [
+    "mainActivities": [
       "toneladas de residuos tratados",
       "toneladas recicladas",
       "toneladas dispuestas",
@@ -207,9 +207,9 @@
     ]
   },
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "sector": "Agua y Saneamiento",
-    "main_activities": [
+    "mainActivities": [
       "m³ de agua producidos",
       "m³ de agua distribuidos",
       "m³ de aguas servidas tratadas",

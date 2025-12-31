@@ -13,17 +13,17 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type OrganizationMainActivityData = {
-  country_iso_code: Prisma.countryCreateInput["iso_code"];
-  sector: Prisma.country_sectorCreateInput["name"] | null;
-  main_activities: Prisma.organization_main_activityCreateManyInput["name"][];
+  countryIsoCode: Prisma.CountryCreateInput["isoCode"];
+  sector: Prisma.CountrySectorCreateInput["name"] | null;
+  mainActivities: Prisma.OrganizationMainActivityCreateManyInput["name"][];
 }[];
 
 const OrganizationMainActivityDataSchema: z.ZodType<OrganizationMainActivityData> =
   z.array(
     z.object({
-      country_iso_code: z.string().min(1),
+      countryIsoCode: z.string().min(1),
       sector: z.string().min(1).nullable(),
-      main_activities: z.array(z.string().min(1)),
+      mainActivities: z.array(z.string().min(1)),
     })
   );
 
@@ -35,12 +35,12 @@ export async function seedOrganizationMainActivities(
 
   // Get all countries from database
   const countries = await prisma.country.findMany();
-  const countryByIso = new Map(countries.map((c) => [c.iso_code, c]));
+  const countryByIso = new Map(countries.map((c) => [c.isoCode, c]));
 
   // Get all sectors from database
-  const sectors = await prisma.country_sector.findMany();
+  const sectors = await prisma.countrySector.findMany();
   const sectorMap = new Map(
-    sectors.map((s) => [`${s.country_id}_${s.name}`, s])
+    sectors.map((s) => [`${s.countryId}_${s.name}`, s])
   );
 
   // Read organization main activities data
@@ -61,22 +61,22 @@ export async function seedOrganizationMainActivities(
   // Check for duplicates
   for (const item of organizationMainActivitiesData) {
     checkForPrimitiveDuplicates(
-      item.main_activities,
-      `main_activities in ${item.country_iso_code} - ${item.sector || "Generic"}`
+      item.mainActivities,
+      `mainActivities in ${item.countryIsoCode} - ${item.sector || "Generic"}`
     );
   }
 
   // Prepare main activities data
   const mainActivitiesToCreate: Pick<
-    Prisma.organization_main_activityCreateManyInput,
-    "name" | "country_sector_id" | "country_subsector_id"
+    Prisma.OrganizationMainActivityCreateManyInput,
+    "name" | "countrySectorId" | "countrySubsectorId"
   >[] = [];
 
   for (const item of organizationMainActivitiesData) {
-    const country = countryByIso.get(item.country_iso_code);
+    const country = countryByIso.get(item.countryIsoCode);
     if (!country)
       throw new Error(
-        `Country '${item.country_iso_code}' not found in dataset ${dataset}`
+        `Country '${item.countryIsoCode}' not found in dataset ${dataset}`
       );
 
     let sectorId: bigint | null = null;
@@ -85,28 +85,28 @@ export async function seedOrganizationMainActivities(
       const sector = sectorMap.get(`${country.id}_${item.sector}`);
       if (!sector)
         throw new Error(
-          `Sector '${item.sector}' not found for country '${item.country_iso_code}' in dataset ${dataset}`
+          `Sector '${item.sector}' not found for country '${item.countryIsoCode}' in dataset ${dataset}`
         );
       sectorId = sector.id;
     }
 
-    for (const activityName of item.main_activities) {
+    for (const activityName of item.mainActivities) {
       mainActivitiesToCreate.push({
         name: activityName,
-        country_sector_id: sectorId,
-        country_subsector_id: null,
+        countrySectorId: sectorId,
+        countrySubsectorId: null,
       });
     }
   }
 
   // Batch create main activities (skips duplicates thanks to NULLS NOT DISTINCT unique index)
-  await prisma.organization_main_activity.createMany({
+  await prisma.organizationMainActivity.createMany({
     data: mainActivitiesToCreate,
     skipDuplicates: true,
   });
 
   // Verify all main activities were created
-  const mainActivities = await prisma.organization_main_activity.findMany();
+  const mainActivities = await prisma.organizationMainActivity.findMany();
 
   if (mainActivities.length !== mainActivitiesToCreate.length)
     throw new Error(

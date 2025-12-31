@@ -59,7 +59,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.updatedAt).toBeTruthy();
 
       // Verify it was actually created in the database
-      const dbInventory = await prisma.carbon_inventory.findUnique({
+      const dbInventory = await prisma.carbonInventory.findUnique({
         where: { id: BigInt(body.id) },
       });
       expect(dbInventory).toBeDefined();
@@ -330,14 +330,14 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
   describe("Business logic errors", () => {
     it("should return 422 when no active methodology is found", async () => {
       // Get the ACTIVE and DELETED status IDs
-      const activeStatus = await prisma.status_catalog.findFirst({
+      const activeStatus = await prisma.statusCatalog.findFirst({
         where: {
           scope: "ENTITY",
           code: "ACTIVE",
         },
       });
 
-      const deletedStatus = await prisma.status_catalog.findFirst({
+      const deletedStatus = await prisma.statusCatalog.findFirst({
         where: {
           scope: "ENTITY",
           code: "DELETED",
@@ -351,25 +351,25 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       }
 
       // Temporarily change all active methodologies to DELETED
-      const activeMethodologies = await prisma.methodology_version.findMany({
+      const activeMethodologies = await prisma.methodologyVersion.findMany({
         where: {
-          status_id: activeStatus.id,
+          statusId: activeStatus.id,
         },
       });
 
       // Store original status IDs to restore later
       const originalStatusIds = activeMethodologies.map((m) => ({
         id: m.id,
-        statusId: m.status_id,
+        statusId: m.statusId,
       }));
 
       // Update all active methodologies to DELETED
-      await prisma.methodology_version.updateMany({
+      await prisma.methodologyVersion.updateMany({
         where: {
-          status_id: activeStatus.id,
+          statusId: activeStatus.id,
         },
         data: {
-          status_id: deletedStatus.id,
+          statusId: deletedStatus.id,
         },
       });
 
@@ -389,9 +389,9 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       } finally {
         // Restore original statuses
         for (const { id, statusId } of originalStatusIds) {
-          await prisma.methodology_version.update({
+          await prisma.methodologyVersion.update({
             where: { id },
-            data: { status_id: statusId },
+            data: { statusId: statusId },
           });
         }
       }

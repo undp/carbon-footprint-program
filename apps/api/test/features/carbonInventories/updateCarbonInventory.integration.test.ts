@@ -40,7 +40,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   describe("Successful updates", () => {
     it("should update a single field (year)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -59,7 +59,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.usageMode).toBe("SIMPLIFIED"); // Unchanged
 
       // Verify in database
-      const dbInventory = await prisma.carbon_inventory.findUnique({
+      const dbInventory = await prisma.carbonInventory.findUnique({
         where: { id: inventory.id },
       });
       expect(dbInventory?.year).toBe(2024);
@@ -67,7 +67,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update usageMode", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -87,7 +87,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update status", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -106,7 +106,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update isEditable", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -125,7 +125,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update organizationId", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -144,7 +144,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update organizationBranchId", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -163,7 +163,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update organizationData", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const organizationData = {
@@ -191,7 +191,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update preselectedNodesId", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -210,7 +210,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update multiple fields at once", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -237,7 +237,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should update with empty payload (no changes)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -256,9 +256,9 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should set nullable fields to null", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
-        organization_id: 123,
-        organization_branch_id: 456,
+        usageMode: "SIMPLIFIED",
+        organizationId: 123,
+        organizationBranchId: 456,
       });
 
       const response = await app.inject({
@@ -285,7 +285,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
       for (const status of statuses) {
         const inventory = await seedCarbonInventory(prisma, {
-          usage_mode: "SIMPLIFIED",
+          usageMode: "SIMPLIFIED",
         });
 
         const response = await app.inject({
@@ -330,7 +330,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   describe("Validation errors", () => {
     it("should return 400 when year is below minimum (2000)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -348,7 +348,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when year is above maximum (2100)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -366,7 +366,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when year is not an integer", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -382,7 +382,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when usageMode is invalid", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -398,7 +398,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when status is invalid", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -414,7 +414,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when organizationId is not numeric string", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -430,7 +430,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when organizationBranchId is not numeric string", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -446,7 +446,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when methodologyVersionId is provided (field is not allowed)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
@@ -467,7 +467,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when preselectedNodesId is not numeric string", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -483,7 +483,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when organizationData has invalid structure", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -506,7 +506,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should return 400 when extra fields are provided", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -525,7 +525,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   describe("Year boundary tests", () => {
     it("should accept year 2000 (minimum boundary)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -543,7 +543,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
     it("should accept year 2100 (maximum boundary)", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
       const response = await app.inject({
@@ -563,10 +563,10 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   describe("Timestamps", () => {
     it("should update the updatedAt timestamp", async () => {
       const inventory = await seedCarbonInventory(prisma, {
-        usage_mode: "SIMPLIFIED",
+        usageMode: "SIMPLIFIED",
       });
 
-      const originalUpdatedAt = inventory.updated_at;
+      const originalUpdatedAt = inventory.updatedAt;
 
       // Wait a bit to ensure timestamp difference
       await new Promise((resolve) => setTimeout(resolve, 10));
@@ -586,11 +586,11 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
 
       // createdAt should remain the same
-      const dbInventory = await prisma.carbon_inventory.findUnique({
+      const dbInventory = await prisma.carbonInventory.findUnique({
         where: { id: inventory.id },
       });
-      expect(dbInventory?.created_at.toISOString()).toBe(
-        inventory.created_at.toISOString()
+      expect(dbInventory?.createdAt.toISOString()).toBe(
+        inventory.createdAt.toISOString()
       );
     });
   });

@@ -1,35 +1,35 @@
-import type { carbon_inventory } from "@repo/database";
+import type { CarbonInventory } from "@repo/database";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 import { OrganizationDataSchema } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 
 export const mapCarbonInventoryToResponse = (
-  item: carbon_inventory
+  item: CarbonInventory
 ): GetCarbonInventoryByIdResponse => {
-  // Validate organization_data with runtime type checking using Zod
+  // Validate organizationData with runtime type checking using Zod
   const organizationDataResult = OrganizationDataSchema.nullable().safeParse(
-    item.organization_data
+    item.organizationData
   );
 
   if (!organizationDataResult.success)
     throw new DataIntegrityError(
-      `Invalid organization_data structure for carbon inventory ${item.id}: ${organizationDataResult.error.message}`
+      `Invalid organizationData structure for carbon inventory ${item.id}: ${organizationDataResult.error.message}`
     );
 
   return {
     id: item.id.toString(),
-    organizationId: item.organization_id?.toString() ?? null,
-    organizationBranchId: item.organization_branch_id?.toString() ?? null,
+    organizationId: item.organizationId?.toString() ?? null,
+    organizationBranchId: item.organizationBranchId?.toString() ?? null,
     organizationData: organizationDataResult.data,
     year: item.year,
     status: item.status,
-    usageMode: item.usage_mode,
-    methodologyVersionId: item.methodology_version_id?.toString() ?? null,
-    preselectedNodesId: item.preselected_nodes_id?.toString() ?? null,
-    isEditable: item.is_editable,
-    createdAt: item.created_at.toISOString(),
-    updatedAt: item.updated_at.toISOString(),
-    createdById: item.created_by_id?.toString() ?? null,
-    updatedById: item.updated_by_id?.toString() ?? null,
+    usageMode: item.usageMode,
+    methodologyVersionId: item.methodologyVersionId?.toString() ?? null,
+    preselectedNodesId: item.preselectedNodesId?.toString() ?? null,
+    isEditable: item.isEditable,
+    createdAt: item.createdAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString(),
+    createdById: item.createdById?.toString() ?? null,
+    updatedById: item.updatedById?.toString() ?? null,
   };
 };

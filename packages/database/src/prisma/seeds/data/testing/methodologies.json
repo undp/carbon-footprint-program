@@ -1,9 +1,9 @@
 [
   {
-    "country_iso_code": "CL",
+    "countryIsoCode": "CL",
     "name": "Metodología inicial",
     "description": "Metodología inicial para Chile",
-    "status_code": "ACTIVE",
+    "statusCode": "ACTIVE",
     "categories": [
       {
         "name": "Emisiones directas",
@@ -15,269 +15,269 @@
             "name": "Combustión estacionaria",
             "description": "Uso de combustibles en equipos fijos como calderas, hornos o generadores.",
             "examples": null,
-            "emission_factor_dimensions": [
+            "emissionFactorDimensions": [
               {
                 "code": "FUEL_TYPE",
                 "name": "Tipo de combustible",
                 "position": 1,
-                "is_required": false,
+                "isRequired": false,
                 "values": [
-                  { "name": "Gaseosos", "parent_value": null },
-                  { "name": "Líquidos", "parent_value": null },
-                  { "name": "Sólidos", "parent_value": null },
-                  { "name": "Bio-combustibles", "parent_value": null },
-                  { "name": "Bio-gas", "parent_value": null }
+                  { "name": "Gaseosos", "parentValue": null },
+                  { "name": "Líquidos", "parentValue": null },
+                  { "name": "Sólidos", "parentValue": null },
+                  { "name": "Bio-combustibles", "parentValue": null },
+                  { "name": "Bio-gas", "parentValue": null }
                 ]
               },
               {
                 "code": "FUEL",
                 "name": "Combustible",
                 "position": 2,
-                "is_required": true,
+                "isRequired": true,
                 "values": [
                   {
                     "name": "Gas natural",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Gaseosos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Gaseosos"
                     }
                   },
                   {
                     "name": "Gas licuado del petróleo",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Gaseosos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Gaseosos"
                     }
                   },
 
                   {
                     "name": "Diésel",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Líquidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Líquidos"
                     }
                   },
                   {
                     "name": "Gasolina/Nafta",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Líquidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Líquidos"
                     }
                   },
                   {
                     "name": "Queroseno",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Líquidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Líquidos"
                     }
                   },
                   {
                     "name": "Fuel oil / Petróleo pesado",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Líquidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Líquidos"
                     }
                   },
 
                   {
                     "name": "Carbón industrial",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Sólidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Sólidos"
                     }
                   },
                   {
                     "name": "Carbón para electricidad",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Sólidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Sólidos"
                     }
                   },
                   {
                     "name": "Coke",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Sólidos"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Sólidos"
                     }
                   },
                   {
                     "name": "Bioethanol",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Bio-combustibles"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Bio-combustibles"
                     }
                   },
                   {
                     "name": "Biodiésel",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Bio-combustibles"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Bio-combustibles"
                     }
                   },
                   {
                     "name": "Biogas",
-                    "parent_value": {
-                      "dimension_code": "FUEL_TYPE",
-                      "value_name": "Bio-gas"
+                    "parentValue": {
+                      "dimensionCode": "FUEL_TYPE",
+                      "valueName": "Bio-gas"
                     }
                   }
                 ]
               }
             ],
-            "emission_factors": [
+            "emissionFactors": [
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Gaseosos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Gaseosos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Gas natural"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Gas natural"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 2
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Gaseosos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Gaseosos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Gas licuado del petróleo"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Gas licuado del petróleo"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 1557
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Líquidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Líquidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Diésel"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Diésel"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 2570
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Líquidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Líquidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Gasolina/Nafta"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Gasolina/Nafta"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 2339
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Líquidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Líquidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Queroseno"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Queroseno"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 2540
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Líquidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Líquidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Fuel oil / Petróleo pesado"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Fuel oil / Petróleo pesado"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 3174
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Sólidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Sólidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Carbón industrial"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Carbón industrial"
                 },
-                "rate_measurement_unit_abbreviation": "kg/ton",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "value": 2395
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Sólidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Sólidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Carbón para electricidad"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Carbón para electricidad"
                 },
-                "rate_measurement_unit_abbreviation": "kg/ton",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "value": 2225
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Sólidos"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Sólidos"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Coke"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Coke"
                 },
-                "rate_measurement_unit_abbreviation": "kg/ton",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "value": 3386
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Bio-combustibles"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Bio-combustibles"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Bioethanol"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Bioethanol"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 9
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Bio-combustibles"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Bio-combustibles"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Biodiésel"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Biodiésel"
                 },
-                "rate_measurement_unit_abbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m³",
                 "source": "DEFRA 2025",
                 "value": 167.5
               },
               {
-                "dimension_value_1": {
-                  "dimension_code": "FUEL_TYPE",
-                  "value_name": "Bio-gas"
+                "dimensionValue1": {
+                  "dimensionCode": "FUEL_TYPE",
+                  "valueName": "Bio-gas"
                 },
-                "dimension_value_2": {
-                  "dimension_code": "FUEL",
-                  "value_name": "Biogas"
+                "dimensionValue2": {
+                  "dimensionCode": "FUEL",
+                  "valueName": "Biogas"
                 },
-                "rate_measurement_unit_abbreviation": "kg/ton",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "value": 1.24
               }
