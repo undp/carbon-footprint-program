@@ -1,5 +1,12 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
+import { z } from "zod";
+import {
+  buildRateUnitsByMagnitudeMap,
+  generateConvertedEmissionFactors,
+} from "./getCarbonInventoryMethodologyHelper.js";
+
+type JSONType = z.infer<ReturnType<typeof z.json>>;
 
 export type GetCarbonInventoryMethodologyResult =
   | { success: true; data: GetCarbonInventoryMethodologyResponse }
@@ -33,9 +40,10 @@ export const getCarbonInventoryMethodologyService = async (
   // Then, get the methodology with all its related data
   /*
   Consider the following if performance becomes an issue:
-  - Monitor query execution time and response size in production
-  - Potentially add pagination for categories/subcategories if they grow large
+  - Monitoring the response size and query performance in production
+  - Potentially add pagination for categories/subcategories or emission factors grow large
   - Consider caching the methodology response since it's likely relatively static
+  - Evaluating whether all converted factors need to be returned or if they could be computed on-demand by the client
   */
   const methodology = await prismaClient.methodologyVersion.findUnique({
     where: {
@@ -81,6 +89,39 @@ export const getCarbonInventoryMethodologyService = async (
                   position: "asc",
                 },
               },
+              emissionFactors: {
+                select: {
+                  id: true,
+                  dimensionValue1Id: true,
+                  dimensionValue2Id: true,
+                  rateMeasurementUnitId: true,
+                  source: true,
+                  gasDetails: true,
+                  value: true,
+                  rateMeasurementUnit: {
+                    select: {
+                      id: true,
+                      numeratorMeasurementUnit: {
+                        select: {
+                          id: true,
+                          magnitude: true,
+                          baseFactor: true,
+                        },
+                      },
+                      denominatorMeasurementUnit: {
+                        select: {
+                          id: true,
+                          magnitude: true,
+                          baseFactor: true,
+                        },
+                      },
+                    },
+                  },
+                },
+                orderBy: {
+                  id: "asc",
+                },
+              },
             },
             orderBy: {
               name: "asc",
@@ -97,6 +138,9 @@ export const getCarbonInventoryMethodologyService = async (
   if (!methodology) {
     return { success: false, error: "METHODOLOGY_NOT_FOUND" };
   }
+
+  // Build the rate units by magnitude map for conversion
+  const rateUnitsByMagnitude = await buildRateUnitsByMagnitudeMap(prismaClient);
 
   return {
     success: true,
@@ -117,6 +161,16 @@ export const getCarbonInventoryMethodologyService = async (
               parentValueId: value.parentValueId?.toString() ?? null,
             })),
           })),
+          emissionFactors: subcategory.emissionFactors.flatMap(
+            (emissionFactor) =>
+              generateConvertedEmissionFactors(
+                emissionFactor,
+                rateUnitsByMagnitude
+              ).map((factor) => ({
+                ...factor,
+                gasDetails: factor.gasDetails as unknown as JSONType,
+              }))
+          ),
         })),
       })),
     },

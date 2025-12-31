@@ -190,7 +190,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
     });
 
-    it("should not include emissionFactors in the response", async () => {
+    it("should include emissionFactors in subcategories", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -208,15 +208,121 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      // Check that emissionFactors is not in the response
-      expect(body).not.toHaveProperty("emissionFactors");
-
-      // Check that subcategories don't have emissionFactors
+      // Check that subcategories have emissionFactors property
       body.categories.forEach((category) => {
         category.subcategories.forEach((subcategory) => {
-          expect(subcategory).not.toHaveProperty("emissionFactors");
+          expect(subcategory).toHaveProperty("emissionFactors");
+          expect(Array.isArray(subcategory.emissionFactors)).toBe(true);
+
+          // If there are emission factors, verify their structure
+          if (subcategory.emissionFactors.length > 0) {
+            const emissionFactor = subcategory.emissionFactors[0];
+            expect(emissionFactor).toHaveProperty("id");
+            expect(emissionFactor).toHaveProperty("originalEmissionFactorId");
+            expect(emissionFactor).toHaveProperty("dimensionValue1Id");
+            expect(emissionFactor).toHaveProperty("dimensionValue2Id");
+            expect(emissionFactor).toHaveProperty("rateMeasurementUnitId");
+            expect(emissionFactor).toHaveProperty("source");
+            expect(emissionFactor).toHaveProperty("gasDetails");
+            expect(emissionFactor).toHaveProperty("value");
+            expect(emissionFactor).not.toHaveProperty("dimensionValue1");
+            expect(emissionFactor).not.toHaveProperty("dimensionValue2");
+            expect(emissionFactor).not.toHaveProperty("rateMeasurementUnit");
+            expect(emissionFactor).not.toHaveProperty("status");
+            expect(typeof emissionFactor.id).toBe("string");
+            expect(
+              emissionFactor.originalEmissionFactorId === null ||
+                typeof emissionFactor.originalEmissionFactorId === "string"
+            ).toBe(true);
+            if (emissionFactor.originalEmissionFactorId !== null) {
+              expect(emissionFactor.originalEmissionFactorId).toMatch(/^\d+$/);
+            }
+            expect(
+              emissionFactor.dimensionValue1Id === null ||
+                typeof emissionFactor.dimensionValue1Id === "string"
+            ).toBe(true);
+            expect(
+              emissionFactor.dimensionValue2Id === null ||
+                typeof emissionFactor.dimensionValue2Id === "string"
+            ).toBe(true);
+            expect(typeof emissionFactor.rateMeasurementUnitId).toBe("string");
+            expect(typeof emissionFactor.source).toBe("string");
+            expect(typeof emissionFactor.value).toBe("string");
+          }
         });
       });
+    });
+
+    it("should include originalEmissionFactorId in emission factors with correct relationships", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      // Find a subcategory with emission factors
+      const subcategoryWithFactors = body.categories
+        .flatMap((cat) => cat.subcategories)
+        .find((sub) => sub.emissionFactors.length > 0);
+
+      // Ensure we have emission factors to test
+      expect(subcategoryWithFactors).toBeDefined();
+      expect(subcategoryWithFactors!.emissionFactors.length).toBeGreaterThan(0);
+
+      if (subcategoryWithFactors) {
+        const emissionFactors = subcategoryWithFactors.emissionFactors;
+
+        // Group emission factors by originalEmissionFactorId
+        const originalFactors = emissionFactors.filter(
+          (ef) => ef.originalEmissionFactorId === null
+        );
+        const convertedFactors = emissionFactors.filter(
+          (ef) => ef.originalEmissionFactorId !== null
+        );
+
+        // Verify original factors have null originalEmissionFactorId and numeric IDs
+        originalFactors.forEach((factor) => {
+          expect(factor.originalEmissionFactorId).toBeNull();
+          expect(factor.id).toMatch(/^\d+$/); // Original IDs should be numeric only
+        });
+
+        // Verify converted factors have originalEmissionFactorId set and composite IDs
+        convertedFactors.forEach((factor) => {
+          expect(factor.originalEmissionFactorId).not.toBeNull();
+          expect(typeof factor.originalEmissionFactorId).toBe("string");
+          expect(factor.originalEmissionFactorId).toMatch(/^\d+$/);
+          // Converted factors should have composite IDs: `${originalId}-${rateMeasurementUnitId}`
+          expect(factor.id).toContain("-");
+          expect(factor.id).toMatch(/^\d+-\d+$/);
+
+          // Verify the originalEmissionFactorId references an actual original factor
+          const originalId = factor.originalEmissionFactorId;
+          const originalFactor = originalFactors.find(
+            (ef) => ef.id === originalId
+          );
+          expect(originalFactor).toBeDefined();
+          expect(originalFactor?.id).toBe(originalId);
+        });
+
+        // Verify that each original factor has at least one entry (itself)
+        expect(originalFactors.length).toBeGreaterThan(0);
+
+        // Verify all original IDs are unique
+        const originalIds = originalFactors.map((ef) => ef.id);
+        const uniqueOriginalIds = new Set(originalIds);
+        expect(originalIds.length).toBe(uniqueOriginalIds.size);
+      }
     });
   });
 
