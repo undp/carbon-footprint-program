@@ -20,37 +20,56 @@ const EmissionFactorDimensionSchema = z.object({
     .describe("The possible values for this dimension"),
 });
 
-const EmissionFactorSchema = z.object({
-  id: z
-    .string()
-    .describe(
-      "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
-    ),
-  originalEmissionFactorId: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe(
-      "The ID of the original emission factor. Null for original factors, set for converted factors."
-    ),
-  dimensionValue1Id: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the first dimension value"),
-  dimensionValue2Id: z
-    .string()
-    .regex(/^\d+$/)
-    .nullable()
-    .describe("The ID of the second dimension value"),
-  rateMeasurementUnitId: z
-    .string()
-    .regex(/^\d+$/)
-    .describe("The ID of the rate measurement unit"),
-  source: z.string().describe("The source of the emission factor"),
-  gasDetails: z.json().describe("The gas details as JSON"),
-  value: z.string().describe("The emission factor value as a decimal string"),
-});
+const EmissionFactorSchema = z
+  .object({
+    id: z
+      .string()
+      .describe(
+        "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
+      ),
+    originalEmissionFactorId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe(
+        "The ID of the original emission factor. Null for original factors, set for converted factors."
+      ),
+    dimensionValue1Id: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the first dimension value"),
+    dimensionValue2Id: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the second dimension value"),
+    rateMeasurementUnitId: z
+      .string()
+      .regex(/^\d+$/)
+      .describe("The ID of the rate measurement unit"),
+    source: z.string().describe("The source of the emission factor"),
+    gasDetails: z.json().describe("The gas details as JSON"),
+    value: z.string().describe("The emission factor value as a decimal string"),
+  })
+  .refine(
+    (data) => {
+      if (data.originalEmissionFactorId === null) {
+        // If originalEmissionFactorId is null, id must be purely numeric
+        return /^\d+$/.test(data.id);
+      } else {
+        // If originalEmissionFactorId is not null, id must be composite form or start with originalEmissionFactorId-
+        return (
+          /^\d+-\d+$/.test(data.id) &&
+          data.id.startsWith(`${data.originalEmissionFactorId}-`)
+        );
+      }
+    },
+    {
+      message:
+        "id format is invalid: if originalEmissionFactorId is null, id must be purely numeric (e.g., '123'); otherwise, id must be a composite form (e.g., '123-456') or start with 'originalEmissionFactorId-' (e.g., '123-...')",
+    }
+  );
 
 const SubcategorySchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The ID of the subcategory"),
