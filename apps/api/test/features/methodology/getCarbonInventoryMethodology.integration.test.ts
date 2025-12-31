@@ -190,7 +190,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
     });
 
-    it("should not include emission_factors in the response", async () => {
+    it("should not include emissionFactors in the response", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -208,13 +208,13 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      // Check that emission_factors is not in the response
-      expect(body).not.toHaveProperty("emission_factors");
+      // Check that emissionFactors is not in the response
+      expect(body).not.toHaveProperty("emissionFactors");
 
-      // Check that subcategories don't have emission_factors
+      // Check that subcategories don't have emissionFactors
       body.categories.forEach((category) => {
         category.subcategories.forEach((subcategory) => {
-          expect(subcategory).not.toHaveProperty("emission_factors");
+          expect(subcategory).not.toHaveProperty("emissionFactors");
         });
       });
     });
