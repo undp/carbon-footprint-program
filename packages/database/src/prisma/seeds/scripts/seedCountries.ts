@@ -12,12 +12,12 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type CountryData = Pick<Prisma.countryCreateInput, "name" | "iso_code">[];
+type CountryData = Pick<Prisma.CountryCreateInput, "name" | "isoCode">[];
 
 const CountryDataSchema: z.ZodType<CountryData> = z.array(
   z.object({
     name: z.string().min(1),
-    iso_code: z.string().min(1),
+    isoCode: z.string().min(1),
   })
 );
 
@@ -37,14 +37,14 @@ export async function seedCountries(
     )
   );
 
-  // Check the data has no duplicated based iso_code
-  checkForDuplicates(countriesData, ["iso_code"]);
+  // Check the data has no duplicated based isoCode
+  checkForDuplicates(countriesData, ["isoCode"]);
 
   // Batch create countries (skips duplicates)
   await prisma.country.createMany({
     data: countriesData.map((country) => ({
       name: country.name,
-      iso_code: country.iso_code,
+      isoCode: country.isoCode,
     })),
     skipDuplicates: true,
   });
