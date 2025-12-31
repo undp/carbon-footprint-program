@@ -17,10 +17,10 @@ const StatusCatalogDataSchema = z.array(
     scope: z.string().min(1),
     code: z.string().min(1),
     name: z.string().min(1),
-    is_terminal: z.boolean().nullable(),
-    is_visible: z.boolean().nullable(),
-    sort_order: z.number().nullable(),
-    is_active: z.boolean().nullable(),
+    isTerminal: z.boolean().nullable(),
+    isVisible: z.boolean().nullable(),
+    sortOrder: z.number().nullable(),
+    isActive: z.boolean().nullable(),
   })
 );
 
@@ -44,21 +44,21 @@ export async function seedStatusCatalog(
   checkForDuplicates(statusCatalogData, ["scope", "code"]);
 
   // Batch create status catalog entries (skips duplicates)
-  await prisma.status_catalog.createMany({
+  await prisma.statusCatalog.createMany({
     data: statusCatalogData.map((sc) => ({
       scope: sc.scope,
       code: sc.code,
       name: sc.name,
-      is_terminal: sc.is_terminal,
-      is_visible: sc.is_visible,
-      sort_order: sc.sort_order,
-      is_active: sc.is_active,
+      isTerminal: sc.isTerminal,
+      isVisible: sc.isVisible,
+      sortOrder: sc.sortOrder,
+      isActive: sc.isActive,
     })),
     skipDuplicates: true,
   });
 
   // Verify all status catalog entries were created
-  const statusCatalogEntries = await prisma.status_catalog.findMany();
+  const statusCatalogEntries = await prisma.statusCatalog.findMany();
 
   if (statusCatalogEntries.length !== statusCatalogData.length)
     throw new Error(
