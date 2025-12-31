@@ -305,6 +305,7 @@ model Category {
   synonyms             String?
   description          String?
   examples             String?
+  // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
@@ -345,6 +346,7 @@ model EmissionFactorDimension {
   subcategoryId BigInt                         @map("subcategory_id")
   code          String
   name          String
+  // Position must be > 0 (enforced by DB CHECK constraint: emission_factor_dimension_position_check)
   position      Int
   isRequired    Boolean                        @map("is_required")
   createdAt     DateTime                       @default(now()) @map("created_at")
