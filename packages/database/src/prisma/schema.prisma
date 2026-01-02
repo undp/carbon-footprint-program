@@ -510,16 +510,21 @@ model CarbonInventoryLineInput {
   factor                 CarbonInventoryLineFactor?
   result                 CarbonInventoryLineResult?
 
-  // TODO: Enforce via DB constraint: UNIQUE(line_id) WHERE is_active = true
+  // Enforced via DB constraint: UNIQUE(line_id) WHERE is_active = true
+  // See migration: 20260101235319_add_unique_active_input_per_line_constraint
   @@map("carbon_inventory_line_input")
 }
 
 // This stores "what factor did we use, after conversions, and why" so results are reproducible.
+// NOTE: appliedFactorValue is required because it represents the normalized factor actually used
+// in the computation (post-conversion). For reproducibility of calculations, this value must
+// always be present. If a factor cannot be determined at creation time, the creation should
+// fail rather than storing NULL, as NULL would break result reproducibility.
 model CarbonInventoryLineFactor {
   id                      BigInt                   @id @default(autoincrement())
   lineInputId             BigInt                   @map("line_input_id")
   emissionFactorId        BigInt?                  @map("emission_factor_id")
-  appliedFactorValue      Decimal?                 @map("applied_factor_value") @db.Decimal(18, 10)
+  appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(18, 10)
   appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
   appliedFactorSource     String?                  @map("applied_factor_source")
   derivationDetails       Json?                    @map("derivation_details") @db.JsonB

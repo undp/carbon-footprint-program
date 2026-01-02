@@ -43,7 +43,7 @@ CREATE TABLE "carbon_inventory_line_factor" (
     "id" BIGSERIAL NOT NULL,
     "line_input_id" BIGINT NOT NULL,
     "emission_factor_id" BIGINT,
-    "applied_factor_value" DECIMAL(18,10),
+    "applied_factor_value" DECIMAL(18,10) NOT NULL,
     "applied_factor_rate_unit_id" BIGINT NOT NULL,
     "applied_factor_source" TEXT,
     "derivation_details" JSONB,
