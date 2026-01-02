@@ -8,6 +8,7 @@ export const ValidationErrorResponseSchema = z
 
 export const NotFoundErrorResponseSchema = z
   .object({
+    code: z.string().describe("Error code"),
     message: z.string().describe("The error message"),
   })
   .describe("Not found error response");

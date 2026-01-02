@@ -33,17 +33,26 @@ export const deleteCarbonInventoryLineHandler = async (
   if (!result.success) {
     if (result.error === "CARBON_INVENTORY_NOT_FOUND") {
       log.warn({ carbonInventoryId }, "Carbon inventory not found");
-      return reply.status(404).send({ message: "Carbon inventory not found" });
+      return reply.status(404).send({
+        code: "CARBON_INVENTORY_NOT_FOUND",
+        message: "Carbon inventory not found",
+      });
     }
 
     if (result.error === "SUBCATEGORY_NOT_FOUND") {
       log.warn({ subcategoryId }, "Subcategory not found");
-      return reply.status(404).send({ message: "Subcategory not found" });
+      return reply.status(404).send({
+        code: "SUBCATEGORY_NOT_FOUND",
+        message: "Subcategory not found",
+      });
     }
 
     if (result.error === "LINE_NOT_FOUND") {
       log.warn({ lineId }, "Line not found");
-      return reply.status(404).send({ message: "Line not found" });
+      return reply.status(404).send({
+        code: "LINE_NOT_FOUND",
+        message: "Line not found",
+      });
     }
 
     if (result.error === "LINE_NOT_IN_CARBON_INVENTORY") {
