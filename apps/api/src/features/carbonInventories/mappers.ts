@@ -166,10 +166,10 @@ export function mapCarbonInventoryWithLinesToResponse(
 ): ResponseCarbonInventory {
   const base = mapBaseCarbonInventory(item);
 
+  const subcategoryById = new Map(subcategories.map((s) => [s.id, s]));
+
   const lines = item.lines.map((line) => {
-    const subcategory = subcategories.find(
-      ({ id }) => id === line.subcategoryId
-    );
+    const subcategory = subcategoryById.get(line.subcategoryId);
     if (!subcategory)
       throw new DataIntegrityError(
         `Subcategory ${line.subcategoryId} not found for parsing line ${line.id}`
