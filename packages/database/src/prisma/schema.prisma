@@ -267,6 +267,7 @@ enum UsageMode {
   @@map("usage_mode")
 }
 
+/// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
 enum InputType {
   SIMPLIFIED
   EXPERT
