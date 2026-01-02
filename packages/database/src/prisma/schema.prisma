@@ -478,7 +478,6 @@ model CarbonInventoryLine {
   updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
   inputs            CarbonInventoryLineInput[]
 
-  // TODO: Enforce via DB constraint: UNIQUE(carbon_inventory_id, subcategory_id, selection_1_id, selection_2_id) WHERE status_id = (SELECT id FROM status_catalog WHERE scope = 'line' AND code = 'ACTIVE')
   @@map("carbon_inventory_line")
 }
 
