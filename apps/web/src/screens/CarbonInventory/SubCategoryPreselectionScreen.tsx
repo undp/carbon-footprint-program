@@ -40,7 +40,6 @@ export const SubCategoryPreselectionScreen: FC = () => {
           />
           <Box className="flex flex-row gap-6">
             <Box className="flex flex-1 flex-col gap-8">
-              {/* Agregar campos del formulario aquí */}
               <CategoryCard
                 position={1}
                 title="Alcance 1"
@@ -49,7 +48,6 @@ export const SubCategoryPreselectionScreen: FC = () => {
               />
             </Box>
             <Box className="flex flex-1 flex-col gap-8">
-              {/* Agregar campos del formulario aquí */}
               <CategoryCard
                 position={2}
                 title="Alcance 2"
@@ -58,7 +56,6 @@ export const SubCategoryPreselectionScreen: FC = () => {
               />
             </Box>
             <Box className="flex flex-1 flex-col gap-8">
-              {/* Agregar campos del formulario aquí */}
               <CategoryCard
                 position={3}
                 title="Alcance 3"
