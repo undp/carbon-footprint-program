@@ -59,7 +59,7 @@ function mapLineToResponse(
     if (!isCarbonInventoryLineEdited(line)) return null;
 
     // Return null dimensions if subcategory has no dimensions
-    if (!subcategory?.dimensions) return null;
+    if (!subcategory.dimensions || !subcategory.dimensions.length) return null;
 
     const value: LineResponse["dimensions"] = {};
 
