@@ -509,8 +509,6 @@ model CarbonInventoryLineInput {
   factor                 CarbonInventoryLineFactor?
   result                 CarbonInventoryLineResult?
 
-  // Enforced via DB constraint: UNIQUE(line_id) WHERE is_active = true
-  // See migration: 20260101235319_add_unique_active_input_per_line_constraint
   @@map("carbon_inventory_line_input")
 }
 
