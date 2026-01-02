@@ -1,9 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
-import {
-  mapCarbonInventoryWithLinesToResponse,
-  SubcategoryWithDimensions,
-} from "../mappers.js";
+import type { SubcategoryWithDimensions } from "../mappers.js";
+import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
