@@ -2,6 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 import type { SubcategoryWithDimensions } from "../mappers.js";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
+import { ApplicationConfigError } from "@/errors/index.js";
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
@@ -19,9 +20,15 @@ export const getCarbonInventoryByIdService = async (
   });
 
   if (!activeStatus) {
-    // If ACTIVE status doesn't exist, this shouldn't happen in production
-    // but handle gracefully by returning null
-    return null;
+    // This is a configuration error - the ACTIVE status must exist in the database
+    const errorContext = {
+      lookup: "statusCatalog",
+      scope: "ENTITY",
+      code: "ACTIVE",
+    };
+    throw new ApplicationConfigError(
+      `Required status lookup failed: statusCatalog with scope="${errorContext.scope}" and code="${errorContext.code}" not found. This indicates a database configuration issue.`
+    );
   }
 
   const inventory = await prismaClient.carbonInventory.findUnique({
