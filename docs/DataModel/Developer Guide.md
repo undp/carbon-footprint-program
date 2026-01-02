@@ -44,8 +44,7 @@ Violation symptom:
 
 For `carbon_inventory_line`:
 
-- `(carbon_inventory_id, subcategory_id)`
-  must be **unique for ACTIVE lines**
+- Multiple ACTIVE lines can exist for the same `(carbon_inventory_id, subcategory_id)` combination
 - DELETED lines are never reused
 - Lines never store quantities, factors, or selections
 
