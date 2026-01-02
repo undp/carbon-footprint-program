@@ -15,6 +15,7 @@ import {
   cleanupCarbonInventoryTestData,
   createCarbonInventoryLine,
   getActiveStatusId,
+  getDeletedStatusId,
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
@@ -372,21 +373,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       // Get status IDs
       const activeStatus = await getActiveStatusId(prisma);
-      const deletedStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "DELETED",
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!deletedStatus) {
-        throw new Error(
-          "DELETED status not found in database. Please ensure the database is properly seeded."
-        );
-      }
+      const deletedStatusId = await getDeletedStatusId(prisma);
 
       // Create ACTIVE lines
       const activeLine1 = await createCarbonInventoryLine(
@@ -407,13 +394,13 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
         prisma,
         carbonInventory.id,
         subcategoryIds[0],
-        { statusId: deletedStatus.id }
+        { statusId: deletedStatusId }
       );
       const deletedLine2 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[1],
-        { statusId: deletedStatus.id }
+        { statusId: deletedStatusId }
       );
 
       // Fetch the inventory
@@ -446,28 +433,14 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       // Get DELETED status
-      const deletedStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "DELETED",
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!deletedStatus) {
-        throw new Error(
-          "DELETED status not found in database. Please ensure the database is properly seeded."
-        );
-      }
+      const deletedStatusId = await getDeletedStatusId(prisma);
 
       // Create only DELETED lines
       await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[0],
-        { statusId: deletedStatus.id }
+        { statusId: deletedStatusId }
       );
 
       // Fetch the inventory
