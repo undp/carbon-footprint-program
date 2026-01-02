@@ -30,7 +30,10 @@ export const createCarbonInventoryLineHandler = async (
   if (!result.success) {
     if (result.error === "CARBON_INVENTORY_NOT_FOUND") {
       log.warn({ carbonInventoryId }, "Carbon inventory not found");
-      return reply.status(404).send({ message: "Carbon inventory not found" });
+      return reply.status(404).send({
+        code: "CARBON_INVENTORY_NOT_FOUND",
+        message: "Carbon inventory not found",
+      });
     }
 
     if (result.error === "METHODOLOGY_NOT_FOUND") {
@@ -38,12 +41,18 @@ export const createCarbonInventoryLineHandler = async (
         { carbonInventoryId },
         "Methodology not found for carbon inventory"
       );
-      return reply.status(404).send({ message: "Methodology not found" });
+      return reply.status(404).send({
+        code: "METHODOLOGY_NOT_FOUND",
+        message: "Methodology not found",
+      });
     }
 
     if (result.error === "SUBCATEGORY_NOT_FOUND") {
       log.warn({ subcategoryId }, "Subcategory not found");
-      return reply.status(404).send({ message: "Subcategory not found" });
+      return reply.status(404).send({
+        code: "SUBCATEGORY_NOT_FOUND",
+        message: "Subcategory not found",
+      });
     }
 
     if (result.error === "SUBCATEGORY_NOT_IN_METHODOLOGY") {
