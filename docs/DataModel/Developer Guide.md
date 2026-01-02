@@ -86,7 +86,7 @@ For `carbon_inventory_line_result`:
 
 - Exactly one result per input
 - Results are **purely derived**
-- No user attribution (`created_by`) by design
+- Audit fields (`created_by_id`, `updated_by_id`) are kept for administrative tracking purposes, but results themselves are system-generated and not attributed to user actions
 
 If a result changes, something upstream changed.
 
