@@ -1,7 +1,10 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getCarbonInventorySubcategoriesSummaryHandler } from "./getCarbonInventorySubcategoriesSummaryHandler.js";
 import { GetCarbonInventorySubcategoriesSummaryResponseSchema } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import {
+  ErrorResponseSchema,
+  NotFoundErrorResponseSchema,
+} from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -23,6 +26,7 @@ export const getCarbonInventorySubcategoriesSummaryRoute = (
         response: {
           200: GetCarbonInventorySubcategoriesSummaryResponseSchema,
           404: NotFoundErrorResponseSchema,
+          500: ErrorResponseSchema,
         },
       },
     },

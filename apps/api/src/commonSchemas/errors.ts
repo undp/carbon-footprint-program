@@ -19,6 +19,12 @@ export const StructuredErrorResponseSchema = z
   })
   .describe("Structured error response");
 
+export const ErrorResponseSchema = z
+  .object({
+    message: z.string().describe("The error message"),
+  })
+  .describe("Error response");
+
 // Typescript
 export type ValidationErrorResponse = z.infer<
   typeof ValidationErrorResponseSchema
@@ -27,3 +33,4 @@ export type NotFoundErrorResponse = z.infer<typeof NotFoundErrorResponseSchema>;
 export type StructuredErrorResponse = z.infer<
   typeof StructuredErrorResponseSchema
 >;
+export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
