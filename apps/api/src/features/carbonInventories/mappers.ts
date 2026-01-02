@@ -34,6 +34,13 @@ export type LineWithInputs = NonNullable<
 
 type LineResponse = ResponseCarbonInventory["lines"][number];
 
+/**
+ * Converts a value to a number if it's not null/undefined, otherwise returns null.
+ */
+function toNumberOrNull(value: unknown): number | null {
+  return value !== null && value !== undefined ? Number(value) : null;
+}
+
 function mapLineToResponse(
   line: LineWithInputs,
   subcategory: SubcategoryWithDimensions
@@ -79,10 +86,7 @@ function mapLineToResponse(
   })();
 
   // Get quantity
-  const quantity =
-    activeInput?.quantity !== null && activeInput?.quantity !== undefined
-      ? Number(activeInput?.quantity)
-      : null;
+  const quantity = toNumberOrNull(activeInput?.quantity);
 
   const measurementUnitId = activeInput?.measurementUnitId?.toString() ?? null;
 
@@ -94,13 +98,9 @@ function mapLineToResponse(
     null;
 
   const factorValue =
-    activeInput?.manualFactor !== null &&
-    activeInput?.manualFactor !== undefined
-      ? Number(activeInput?.manualFactor)
-      : activeInput?.factor?.appliedFactorValue !== null &&
-          activeInput?.factor?.appliedFactorValue !== undefined
-        ? Number(activeInput?.factor.appliedFactorValue)
-        : null;
+    toNumberOrNull(activeInput?.manualFactor) ??
+    toNumberOrNull(activeInput?.factor?.appliedFactorValue) ??
+    null;
 
   const factorRateMeasurementUnitId =
     activeInput?.manualFactorRateUnitId?.toString() ??
@@ -109,14 +109,12 @@ function mapLineToResponse(
 
   const comment = activeInput?.comment ?? null;
 
-  const manualTotalEmissions =
-    activeInput?.directTotalEmissions !== null &&
-    activeInput?.directTotalEmissions !== undefined
-      ? Number(activeInput?.directTotalEmissions)
-      : null;
+  const manualTotalEmissions = toNumberOrNull(
+    activeInput?.directTotalEmissions
+  );
 
   return {
-    id: String((line as { id: bigint }).id),
+    id: String(line.id),
     subcategoryId: line.subcategoryId.toString(),
     isManualTotalEmissions,
     dimensions,
