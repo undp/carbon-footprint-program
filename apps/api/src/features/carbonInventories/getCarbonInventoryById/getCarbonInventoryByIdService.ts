@@ -7,12 +7,32 @@ export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
   id: string
 ): Promise<GetCarbonInventoryByIdResponse | null> => {
+  // Get the ACTIVE status ID for lines
+  const activeStatus = await prismaClient.statusCatalog.findFirst({
+    where: {
+      scope: "ENTITY",
+      code: "ACTIVE",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!activeStatus) {
+    // If ACTIVE status doesn't exist, this shouldn't happen in production
+    // but handle gracefully by returning null
+    return null;
+  }
+
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: {
       id: BigInt(id),
     },
     include: {
       lines: {
+        where: {
+          statusId: activeStatus.id,
+        },
         include: {
           inputs: {
             where: {

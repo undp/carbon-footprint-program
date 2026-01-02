@@ -13,6 +13,9 @@ import {
   createInventoryFromPattern,
   getTestUsers,
   cleanupCarbonInventoryTestData,
+  createCarbonInventoryLine,
+  getActiveStatusId,
+  getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -352,6 +355,183 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
       expect(body.isEditable).toBe(false);
+    });
+  });
+
+  describe("Line filtering by status", () => {
+    it("should only return ACTIVE lines and exclude DELETED lines", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThanOrEqual(2);
+
+      // Get status IDs
+      const activeStatus = await getActiveStatusId(prisma);
+      const deletedStatus = await prisma.statusCatalog.findFirst({
+        where: {
+          scope: "ENTITY",
+          code: "DELETED",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!deletedStatus) {
+        throw new Error(
+          "DELETED status not found in database. Please ensure the database is properly seeded."
+        );
+      }
+
+      // Create ACTIVE lines
+      const activeLine1 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0],
+        { statusId: activeStatus }
+      );
+      const activeLine2 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[1],
+        { statusId: activeStatus }
+      );
+
+      // Create DELETED lines
+      const deletedLine1 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0],
+        { statusId: deletedStatus.id }
+      );
+      const deletedLine2 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[1],
+        { statusId: deletedStatus.id }
+      );
+
+      // Fetch the inventory
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
+
+      // Verify only ACTIVE lines are returned
+      const returnedLineIds = body.lines.map((line) => line.id);
+      expect(returnedLineIds).toContain(activeLine1.id.toString());
+      expect(returnedLineIds).toContain(activeLine2.id.toString());
+      expect(returnedLineIds).not.toContain(deletedLine1.id.toString());
+      expect(returnedLineIds).not.toContain(deletedLine2.id.toString());
+      expect(body.lines.length).toBe(2);
+    });
+
+    it("should return empty lines array when all lines are DELETED", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThan(0);
+
+      // Get DELETED status
+      const deletedStatus = await prisma.statusCatalog.findFirst({
+        where: {
+          scope: "ENTITY",
+          code: "DELETED",
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!deletedStatus) {
+        throw new Error(
+          "DELETED status not found in database. Please ensure the database is properly seeded."
+        );
+      }
+
+      // Create only DELETED lines
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0],
+        { statusId: deletedStatus.id }
+      );
+
+      // Fetch the inventory
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
+
+      // Verify no lines are returned
+      expect(body.lines).toEqual([]);
+      expect(body.lines.length).toBe(0);
+    });
+
+    it("should return all ACTIVE lines when no DELETED lines exist", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThanOrEqual(3);
+
+      const activeStatus = await getActiveStatusId(prisma);
+
+      // Create multiple ACTIVE lines
+      const activeLine1 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0],
+        { statusId: activeStatus }
+      );
+      const activeLine2 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[1],
+        { statusId: activeStatus }
+      );
+      const activeLine3 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[2],
+        { statusId: activeStatus }
+      );
+
+      // Fetch the inventory
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
+
+      // Verify all ACTIVE lines are returned
+      expect(body.lines.length).toBe(3);
+      const returnedLineIds = body.lines.map((line) => line.id);
+      expect(returnedLineIds).toContain(activeLine1.id.toString());
+      expect(returnedLineIds).toContain(activeLine2.id.toString());
+      expect(returnedLineIds).toContain(activeLine3.id.toString());
     });
   });
 });
