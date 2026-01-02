@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:8080
+
+### Add Subcategories to Carbon Inventory
+POST {{baseUrl}}/api/carbon-inventories/1/subcategories/add HTTP/1.1
+Content-Type: application/json
+
+{
+  "subcategoryIds": ["1", "2", "3", "4"]
+}
+
