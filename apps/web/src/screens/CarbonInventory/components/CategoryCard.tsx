@@ -15,9 +15,9 @@ interface CategoryCardProps {
 }
 
 const icons = {
-  1: <DirectEmissionCategoryIcon sx={{ width: "60%", height: "60%" }} />,
-  2: <IndirectEmissionCategoryIcon sx={{ width: "60%", height: "60%" }} />,
-  3: <OthersCategoryIcon sx={{ width: "60%", height: "60%" }} />,
+  1: <DirectEmissionCategoryIcon />,
+  2: <IndirectEmissionCategoryIcon />,
+  3: <OthersCategoryIcon />,
 };
 
 export const CategoryCard: FC<CategoryCardProps> = ({
@@ -45,6 +45,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
         sx={{
           borderRadius: "50%",
           backgroundColor,
+          "& svg": { width: "60%", height: "60%" },
         }}
       >
         {icon}
