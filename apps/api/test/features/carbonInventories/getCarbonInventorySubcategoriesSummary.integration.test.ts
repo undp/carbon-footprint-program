@@ -21,7 +21,10 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
 import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
-import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import {
+  getTestMethodologyVersionId,
+  createEmptyMethodologyVersion,
+} from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Tests", () => {
   let app: FastifyInstance;
@@ -565,11 +568,15 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
     it("should handle empty methodology (no subcategories)", async () => {
       // This test verifies the endpoint handles edge case gracefully
       // In practice, methodologies should have subcategories, but we test the behavior
-      const methodologyId = await getTestMethodologyVersionId(prisma);
+
+      // Create a methodology version with no categories (and therefore no subcategories)
+      const emptyMethodologyVersion =
+        await createEmptyMethodologyVersion(prisma);
+
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: emptyMethodologyVersion.id }
       );
 
       const response = await app.inject({
@@ -582,7 +589,8 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         response.body
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
       expect(Array.isArray(body)).toBe(true);
-      // Note: In practice, methodologies have subcategories, but we verify the structure
+      // Should return empty array since methodology has no subcategories
+      expect(body).toHaveLength(0);
     });
 
     it("should handle lines with only comment input (no quantity, no emissions)", async () => {
