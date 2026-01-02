@@ -51,7 +51,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
     throw new Error("ACTIVE status not found in database");
   }
 
-  // Fetch all subcategories with dimensions and category for validation and mapping
+  // Fetch all subcategories with category for validation
   const subcategories = await prismaClient.subcategory.findMany({
     where: {
       id: {
@@ -59,11 +59,6 @@ export const addSubcategoriesToCarbonInventoryService = async (
       },
     },
     include: {
-      dimensions: {
-        orderBy: {
-          position: "asc",
-        },
-      },
       category: {
         select: {
           methodologyVersionId: true,
