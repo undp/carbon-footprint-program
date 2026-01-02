@@ -5,10 +5,11 @@ import {
   ValidationErrorResponseSchema,
   NotFoundErrorResponseSchema,
   StructuredErrorResponseSchema,
+  ErrorResponseSchema,
 } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
-const DeleteCarbonInventoryLineParamsSchema = z.object({
+export const DeleteCarbonInventoryLineParamsSchema = z.object({
   id: z.string().regex(/^\d+$/).describe("The carbon inventory ID"),
   subcategoryId: z.string().regex(/^\d+$/).describe("The subcategory ID"),
   lineId: z.string().regex(/^\d+$/).describe("The line ID"),
@@ -29,6 +30,7 @@ export const deleteCarbonInventoryLineRoute = (fastify: FastifyZodInstance) => {
           400: ValidationErrorResponseSchema,
           404: NotFoundErrorResponseSchema,
           422: StructuredErrorResponseSchema,
+          500: ErrorResponseSchema,
         },
       },
     },
