@@ -69,11 +69,10 @@ export const createCarbonInventoryLineService = async (
     return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
   }
 
-  // subcategoryWithCategory includes dimensions and category
-  // We use category for validation, and dimensions for mapping
-  // Type assertion is safe since mapLineToResponse only uses dimensions
-  const subcategory =
-    subcategoryWithCategory as unknown as SubcategoryWithDimensions;
+  // Extract dimensions into a SubcategoryWithDimensions object
+  // This makes the dependency on mapLineToResponse explicit and type-safe
+  const { category: _, ...subcategoryRest } = subcategoryWithCategory;
+  const subcategory: SubcategoryWithDimensions = subcategoryRest;
 
   // Get the ACTIVE status ID for lines
   const activeStatus = await prismaClient.statusCatalog.findFirst({
