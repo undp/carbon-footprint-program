@@ -41,7 +41,7 @@ function toNumberOrNull(value: unknown): number | null {
   return value !== null && value !== undefined ? Number(value) : null;
 }
 
-function mapLineToResponse(
+export function mapLineToResponse(
   line: LineWithInputs,
   subcategory: SubcategoryWithDimensions
 ): LineResponse {
