@@ -1,11 +1,11 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { z } from "zod";
 import { deleteCarbonInventoryLineService } from "./deleteCarbonInventoryLineService.js";
+import { DeleteCarbonInventoryLineParamsSchema } from "./deleteCarbonInventoryLineRoute.js";
 
-interface DeleteCarbonInventoryLineParams {
-  id: string;
-  subcategoryId: string;
-  lineId: string;
-}
+type DeleteCarbonInventoryLineParams = z.infer<
+  typeof DeleteCarbonInventoryLineParamsSchema
+>;
 
 export const deleteCarbonInventoryLineHandler = async (
   request: FastifyRequest<{ Params: DeleteCarbonInventoryLineParams }>,
