@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:8080
+
+### Create Carbon Inventory Line
+POST {{baseUrl}}/api/carbon-inventories/1/subcategories/1/lines HTTP/1.1
+
