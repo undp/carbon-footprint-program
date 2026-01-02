@@ -97,11 +97,8 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
   const hasSubcategoryBeenEdited = new Map<bigint, boolean>();
 
   for (const line of activeLines) {
-    // A subcategory is "edited" if any line has its dimensions or the line has an active input
-    const hasBeenEdited =
-      line.selection1Id !== null ||
-      line.selection2Id !== null ||
-      Boolean(line.inputs[0]);
+    // A subcategory is "edited" if it has an active input
+    const hasBeenEdited = Boolean(line.inputs[0]);
 
     hasSubcategoryBeenEdited.set(
       line.subcategoryId,
