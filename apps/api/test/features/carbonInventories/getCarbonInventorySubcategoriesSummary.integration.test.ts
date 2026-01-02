@@ -95,8 +95,6 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
     carbonInventoryId: bigint,
     subcategoryId: bigint,
     options?: {
-      selection1Id?: bigint | null;
-      selection2Id?: bigint | null;
       statusId?: bigint;
     }
   ) {
@@ -106,8 +104,6 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       data: {
         carbonInventoryId,
         subcategoryId,
-        selection1Id: options?.selection1Id ?? null,
-        selection2Id: options?.selection2Id ?? null,
         statusId,
       },
     });
@@ -118,6 +114,8 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
     lineId: bigint,
     options?: {
       inputType?: "SIMPLIFIED" | "EXPERT" | "DIRECT";
+      selection1Id?: bigint | null;
+      selection2Id?: bigint | null;
       quantity?: Prisma.Decimal;
       directTotalEmissions?: Prisma.Decimal;
       manualFactor?: Prisma.Decimal;
@@ -129,6 +127,8 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       data: {
         lineId,
         inputType: options?.inputType ?? "SIMPLIFIED",
+        selection1Id: options?.selection1Id ?? null,
+        selection2Id: options?.selection2Id ?? null,
         quantity: options?.quantity ?? null,
         directTotalEmissions: options?.directTotalEmissions ?? null,
         manualFactor: options?.manualFactor ?? null,
@@ -230,7 +230,8 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       }
 
       const firstSubcategoryId = subcategoryIds[0];
-      await createLine(carbonInventory.id, firstSubcategoryId, {
+      const line = await createLine(carbonInventory.id, firstSubcategoryId);
+      await createLineInput(line.id, {
         selection1Id: dimensionValue.id,
       });
 
@@ -276,7 +277,8 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       }
 
       const firstSubcategoryId = subcategoryIds[0];
-      await createLine(carbonInventory.id, firstSubcategoryId, {
+      const line = await createLine(carbonInventory.id, firstSubcategoryId);
+      await createLineInput(line.id, {
         selection2Id: dimensionValue.id,
       });
 
@@ -358,11 +360,10 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       }
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId, {
+      const line = await createLine(carbonInventory.id, firstSubcategoryId);
+      await createLineInput(line.id, {
         selection1Id: dimensionValues[0].id,
         selection2Id: dimensionValues[1].id,
-      });
-      await createLineInput(line.id, {
         quantity: new Prisma.Decimal(50),
       });
 
