@@ -61,7 +61,7 @@ CREATE TABLE "carbon_inventory_line_result" (
     "line_input_id" BIGINT NOT NULL,
     "total_emissions" DECIMAL(18,10) NOT NULL,
     "result_details" JSONB,
-    "calculated_at" TIMESTAMP(3) NOT NULL,
+    "calculated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,

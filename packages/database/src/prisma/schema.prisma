@@ -547,7 +547,7 @@ model CarbonInventoryLineResult {
   lineInputId    BigInt                   @map("line_input_id")
   totalEmissions Decimal                  @map("total_emissions") @db.Decimal(18, 10)
   resultDetails  Json?                    @map("result_details") @db.JsonB
-  calculatedAt   DateTime                 @map("calculated_at")
+  calculatedAt   DateTime                 @default(now()) @map("calculated_at")
   createdAt      DateTime                 @default(now()) @map("created_at")
   updatedAt      DateTime                 @default(now()) @updatedAt @map("updated_at")
   createdById    BigInt?                  @map("created_by_id")
