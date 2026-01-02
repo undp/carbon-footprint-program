@@ -261,3 +261,113 @@ export async function cleanupCarbonInventoryTestData(
   await prisma.carbonInventoryLine.deleteMany({});
   await prisma.carbonInventory.deleteMany({});
 }
+
+/**
+ * Gets the ACTIVE status ID for lines
+ */
+export async function getActiveStatusId(prisma: PrismaClient): Promise<bigint> {
+  const activeStatus = await prisma.statusCatalog.findFirst({
+    where: {
+      scope: "ENTITY",
+      code: "ACTIVE",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!activeStatus) {
+    throw new Error(
+      "ACTIVE status not found in database. Please ensure the database is properly seeded."
+    );
+  }
+
+  return activeStatus.id;
+}
+
+/**
+ * Gets all subcategory IDs from a methodology version
+ */
+export async function getSubcategoryIds(
+  prisma: PrismaClient,
+  methodologyVersionId: bigint
+): Promise<bigint[]> {
+  const methodology = await prisma.methodologyVersion.findUnique({
+    where: {
+      id: methodologyVersionId,
+    },
+    select: {
+      categories: {
+        select: {
+          subcategories: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!methodology) {
+    throw new Error("Methodology not found");
+  }
+
+  return methodology.categories.flatMap((category) =>
+    category.subcategories.map((subcategory) => subcategory.id)
+  );
+}
+
+/**
+ * Creates a carbon inventory line
+ */
+export async function createCarbonInventoryLine(
+  prisma: PrismaClient,
+  carbonInventoryId: bigint,
+  subcategoryId: bigint,
+  options?: {
+    statusId?: bigint;
+  }
+) {
+  const statusId = options?.statusId ?? (await getActiveStatusId(prisma));
+
+  return prisma.carbonInventoryLine.create({
+    data: {
+      carbonInventoryId,
+      subcategoryId,
+      statusId,
+    },
+  });
+}
+
+/**
+ * Creates a carbon inventory line input
+ */
+export async function createCarbonInventoryLineInput(
+  prisma: PrismaClient,
+  lineId: bigint,
+  options?: {
+    inputType?: "SIMPLIFIED" | "EXPERT" | "DIRECT";
+    selection1Id?: bigint | null;
+    selection2Id?: bigint | null;
+    quantity?: Prisma.Decimal;
+    directTotalEmissions?: Prisma.Decimal;
+    manualFactor?: Prisma.Decimal;
+    comment?: string;
+    isActive?: boolean;
+  }
+) {
+  return prisma.carbonInventoryLineInput.create({
+    data: {
+      lineId,
+      inputType: options?.inputType ?? "SIMPLIFIED",
+      selection1Id: options?.selection1Id ?? null,
+      selection2Id: options?.selection2Id ?? null,
+      quantity: options?.quantity ?? null,
+      directTotalEmissions: options?.directTotalEmissions ?? null,
+      manualFactor: options?.manualFactor ?? null,
+      comment: options?.comment ?? null,
+      isActive: options?.isActive ?? true,
+    },
+  });
+}

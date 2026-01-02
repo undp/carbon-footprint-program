@@ -12,6 +12,9 @@ import {
   carbonInventoryPatterns,
   createInventoryFromPattern,
   cleanupCarbonInventoryTestData,
+  getSubcategoryIds,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetCarbonInventorySubcategoriesSummaryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -39,105 +42,6 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
     await cleanupCarbonInventoryTestData(prisma);
   });
 
-  // Helper function to get ACTIVE status for lines
-  async function getActiveStatusId(): Promise<bigint> {
-    const activeStatus = await prisma.statusCatalog.findFirst({
-      where: {
-        scope: "ENTITY",
-        code: "ACTIVE",
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (!activeStatus) {
-      throw new Error(
-        "ACTIVE status not found in database. Please ensure the database is properly seeded."
-      );
-    }
-
-    return activeStatus.id;
-  }
-
-  // Helper function to get a subcategory from the methodology
-  async function getSubcategoryIds(
-    methodologyVersionId: bigint
-  ): Promise<bigint[]> {
-    const methodology = await prisma.methodologyVersion.findUnique({
-      where: {
-        id: methodologyVersionId,
-      },
-      select: {
-        categories: {
-          select: {
-            subcategories: {
-              select: {
-                id: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    if (!methodology) {
-      throw new Error("Methodology not found");
-    }
-
-    return methodology.categories.flatMap((category) =>
-      category.subcategories.map((subcategory) => subcategory.id)
-    );
-  }
-
-  // Helper function to create a carbon inventory line
-  async function createLine(
-    carbonInventoryId: bigint,
-    subcategoryId: bigint,
-    options?: {
-      statusId?: bigint;
-    }
-  ) {
-    const statusId = options?.statusId ?? (await getActiveStatusId());
-
-    return prisma.carbonInventoryLine.create({
-      data: {
-        carbonInventoryId,
-        subcategoryId,
-        statusId,
-      },
-    });
-  }
-
-  // Helper function to create a carbon inventory line input
-  async function createLineInput(
-    lineId: bigint,
-    options?: {
-      inputType?: "SIMPLIFIED" | "EXPERT" | "DIRECT";
-      selection1Id?: bigint | null;
-      selection2Id?: bigint | null;
-      quantity?: Prisma.Decimal;
-      directTotalEmissions?: Prisma.Decimal;
-      manualFactor?: Prisma.Decimal;
-      comment?: string;
-      isActive?: boolean;
-    }
-  ) {
-    return prisma.carbonInventoryLineInput.create({
-      data: {
-        lineId,
-        inputType: options?.inputType ?? "SIMPLIFIED",
-        selection1Id: options?.selection1Id ?? null,
-        selection2Id: options?.selection2Id ?? null,
-        quantity: options?.quantity ?? null,
-        directTotalEmissions: options?.directTotalEmissions ?? null,
-        manualFactor: options?.manualFactor ?? null,
-        comment: options?.comment ?? null,
-        isActive: options?.isActive ?? true,
-      },
-    });
-  }
-
   describe("Successful retrieval", () => {
     it("should return empty array for inventory with no lines", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
@@ -158,7 +62,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       // Should return all subcategories from methodology, all with included=false and edited=false
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(body).toHaveLength(subcategoryIds.length);
 
       body.forEach((item) => {
@@ -181,12 +85,16 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       // Create a line with no selections and no input
       const firstSubcategoryId = subcategoryIds[0];
-      await createLine(carbonInventory.id, firstSubcategoryId);
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -214,7 +122,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       // Get a dimension value to use as selection
@@ -230,8 +138,12 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       }
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId);
-      await createLineInput(line.id, {
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
         selection1Id: dimensionValue.id,
       });
 
@@ -261,7 +173,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       // Get a dimension value to use as selection
@@ -277,8 +189,12 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       }
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId);
-      await createLineInput(line.id, {
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
         selection2Id: dimensionValue.id,
       });
 
@@ -308,12 +224,16 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId);
-      await createLineInput(line.id, {
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
         quantity: new Prisma.Decimal(100),
       });
 
@@ -343,7 +263,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       // Get dimension values to use as selections
@@ -360,8 +280,12 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       }
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId);
-      await createLineInput(line.id, {
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
         selection1Id: dimensionValues[0].id,
         selection2Id: dimensionValues[1].id,
         quantity: new Prisma.Decimal(50),
@@ -393,12 +317,16 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId);
-      await createLineInput(line.id, {
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
         quantity: new Prisma.Decimal(100),
         isActive: false,
       });
@@ -430,14 +358,24 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThanOrEqual(2);
 
       // Create lines for first two subcategories with different states
-      const line1 = await createLine(carbonInventory.id, subcategoryIds[0]);
-      await createLineInput(line1.id, { quantity: new Prisma.Decimal(100) });
+      const line1 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      await createCarbonInventoryLineInput(prisma, line1.id, {
+        quantity: new Prisma.Decimal(100),
+      });
 
-      await createLine(carbonInventory.id, subcategoryIds[1]); // No input, no selections
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[1]
+      ); // No input, no selections
 
       const response = await app.inject({
         method: "GET",
@@ -484,7 +422,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       // Get DELETED status
@@ -506,9 +444,14 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
 
       const firstSubcategoryId = subcategoryIds[0];
       // Create a deleted line
-      await createLine(carbonInventory.id, firstSubcategoryId, {
-        statusId: deletedStatus.id,
-      });
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId,
+        {
+          statusId: deletedStatus.id,
+        }
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -650,12 +593,16 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         { methodologyVersionId: methodologyId }
       );
 
-      const subcategoryIds = await getSubcategoryIds(methodologyId);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
       const firstSubcategoryId = subcategoryIds[0];
-      const line = await createLine(carbonInventory.id, firstSubcategoryId);
-      await createLineInput(line.id, {
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        firstSubcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
         comment: "Test comment",
       });
 
