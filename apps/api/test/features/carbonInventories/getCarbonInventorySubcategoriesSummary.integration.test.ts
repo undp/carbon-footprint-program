@@ -223,29 +223,33 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
           select: { id: true },
         });
 
-      if (dimensionValue) {
-        const firstSubcategoryId = subcategoryIds[0];
-        await createLine(carbonInventory.id, firstSubcategoryId, {
-          selection1Id: dimensionValue.id,
-        });
-
-        const response = await app.inject({
-          method: "GET",
-          url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(
-          response.body
-        ) as GetCarbonInventorySubcategoriesSummaryResponse;
-
-        const firstSubcategory = body.find(
-          (item) => item.subcategoryId === Number(firstSubcategoryId)
+      if (!dimensionValue) {
+        throw new Error(
+          "Emission factor dimension value not found in database. Please ensure the database is properly seeded."
         );
-        expect(firstSubcategory).toBeDefined();
-        expect(firstSubcategory?.included).toBe(true);
-        expect(firstSubcategory?.edited).toBe(true);
       }
+
+      const firstSubcategoryId = subcategoryIds[0];
+      await createLine(carbonInventory.id, firstSubcategoryId, {
+        selection1Id: dimensionValue.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventorySubcategoriesSummaryResponse;
+
+      const firstSubcategory = body.find(
+        (item) => item.subcategoryId === Number(firstSubcategoryId)
+      );
+      expect(firstSubcategory).toBeDefined();
+      expect(firstSubcategory?.included).toBe(true);
+      expect(firstSubcategory?.edited).toBe(true);
     });
 
     it("should return edited=true for lines with selection2Id", async () => {
@@ -265,29 +269,33 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
           select: { id: true },
         });
 
-      if (dimensionValue) {
-        const firstSubcategoryId = subcategoryIds[0];
-        await createLine(carbonInventory.id, firstSubcategoryId, {
-          selection2Id: dimensionValue.id,
-        });
-
-        const response = await app.inject({
-          method: "GET",
-          url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(
-          response.body
-        ) as GetCarbonInventorySubcategoriesSummaryResponse;
-
-        const firstSubcategory = body.find(
-          (item) => item.subcategoryId === Number(firstSubcategoryId)
+      if (!dimensionValue) {
+        throw new Error(
+          "Emission factor dimension value not found in database. Please ensure the database is properly seeded."
         );
-        expect(firstSubcategory).toBeDefined();
-        expect(firstSubcategory?.included).toBe(true);
-        expect(firstSubcategory?.edited).toBe(true);
       }
+
+      const firstSubcategoryId = subcategoryIds[0];
+      await createLine(carbonInventory.id, firstSubcategoryId, {
+        selection2Id: dimensionValue.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventorySubcategoriesSummaryResponse;
+
+      const firstSubcategory = body.find(
+        (item) => item.subcategoryId === Number(firstSubcategoryId)
+      );
+      expect(firstSubcategory).toBeDefined();
+      expect(firstSubcategory?.included).toBe(true);
+      expect(firstSubcategory?.edited).toBe(true);
     });
 
     it("should return edited=true for lines with active input", async () => {
@@ -343,33 +351,37 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
           select: { id: true },
         });
 
-      if (dimensionValues.length >= 2) {
-        const firstSubcategoryId = subcategoryIds[0];
-        const line = await createLine(carbonInventory.id, firstSubcategoryId, {
-          selection1Id: dimensionValues[0].id,
-          selection2Id: dimensionValues[1].id,
-        });
-        await createLineInput(line.id, {
-          quantity: new Prisma.Decimal(50),
-        });
-
-        const response = await app.inject({
-          method: "GET",
-          url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(
-          response.body
-        ) as GetCarbonInventorySubcategoriesSummaryResponse;
-
-        const firstSubcategory = body.find(
-          (item) => item.subcategoryId === Number(firstSubcategoryId)
+      if (dimensionValues.length < 2) {
+        throw new Error(
+          "At least 2 emission factor dimension values not found in database. Please ensure the database is properly seeded."
         );
-        expect(firstSubcategory).toBeDefined();
-        expect(firstSubcategory?.included).toBe(true);
-        expect(firstSubcategory?.edited).toBe(true);
       }
+
+      const firstSubcategoryId = subcategoryIds[0];
+      const line = await createLine(carbonInventory.id, firstSubcategoryId, {
+        selection1Id: dimensionValues[0].id,
+        selection2Id: dimensionValues[1].id,
+      });
+      await createLineInput(line.id, {
+        quantity: new Prisma.Decimal(50),
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventorySubcategoriesSummaryResponse;
+
+      const firstSubcategory = body.find(
+        (item) => item.subcategoryId === Number(firstSubcategoryId)
+      );
+      expect(firstSubcategory).toBeDefined();
+      expect(firstSubcategory?.included).toBe(true);
+      expect(firstSubcategory?.edited).toBe(true);
     });
 
     it("should return edited=false when line only has inactive input", async () => {
@@ -485,30 +497,34 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         },
       });
 
-      if (deletedStatus) {
-        const firstSubcategoryId = subcategoryIds[0];
-        // Create a deleted line
-        await createLine(carbonInventory.id, firstSubcategoryId, {
-          statusId: deletedStatus.id,
-        });
-
-        const response = await app.inject({
-          method: "GET",
-          url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(
-          response.body
-        ) as GetCarbonInventorySubcategoriesSummaryResponse;
-
-        const firstSubcategory = body.find(
-          (item) => item.subcategoryId === Number(firstSubcategoryId)
+      if (!deletedStatus) {
+        throw new Error(
+          "DELETED status not found in database. Please ensure the database is properly seeded."
         );
-        // Deleted lines should not be included
-        expect(firstSubcategory?.included).toBe(false);
-        expect(firstSubcategory?.edited).toBe(false);
       }
+
+      const firstSubcategoryId = subcategoryIds[0];
+      // Create a deleted line
+      await createLine(carbonInventory.id, firstSubcategoryId, {
+        statusId: deletedStatus.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventorySubcategoriesSummaryResponse;
+
+      const firstSubcategory = body.find(
+        (item) => item.subcategoryId === Number(firstSubcategoryId)
+      );
+      // Deleted lines should not be included
+      expect(firstSubcategory?.included).toBe(false);
+      expect(firstSubcategory?.edited).toBe(false);
     });
 
     it("should return response with correct structure", async () => {
