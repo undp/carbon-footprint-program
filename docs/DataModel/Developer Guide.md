@@ -44,12 +44,12 @@ Violation symptom:
 
 For `carbon_inventory_line`:
 
-- `(carbon_inventory_id, subcategory_id, selection_1_id, selection_2_id)`
+- `(carbon_inventory_id, subcategory_id)`
   must be **unique for ACTIVE lines**
 - DELETED lines are never reused
-- Lines never store quantities or factors
+- Lines never store quantities, factors, or selections
 
-If you need numbers → **you are in the wrong table**.
+If you need numbers or selections → **you are in the wrong table**.
 
 ---
 
@@ -250,6 +250,8 @@ JSON is for explanations, not rules.
 ### ❌ Ignoring Dimension Positions
 
 `selection_1_id` ≠ `selection_2_id` by accident.
+
+**Note:** Selections are stored in `carbon_inventory_line_input`, not in `carbon_inventory_line`.
 
 ---
 
