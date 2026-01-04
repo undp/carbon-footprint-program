@@ -8,17 +8,21 @@ import {
 } from "@/icons";
 
 interface CategoryCardProps {
+  variant?: "default" | "focused" | "unfocused";
   position: 1 | 2 | 3;
   title: string;
   subtitle: string;
   description: string;
+  onClick?: () => void;
 }
 
 export const CategoryCard: FC<CategoryCardProps> = ({
+  variant = "default",
   position,
   title,
   subtitle,
   description,
+  onClick,
 }) => {
   const theme = useTheme();
   const icons = useMemo(
@@ -43,16 +47,24 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   );
 
   const backgroundColor = theme.palette.category[position].light;
+  const borderColor =
+    variant === "focused" ? theme.palette.category[position].main : null;
+  const border = borderColor ? `1px solid ${borderColor}` : "none";
+
+  const opacity = variant === "unfocused" ? "opacity-50" : "";
+  const cursor = onClick ? "cursor-pointer" : "cursor-default";
 
   const icon = icons[position];
 
   return (
     <Box
-      className="flex w-full flex-row justify-start gap-2 self-stretch p-2"
+      className={`flex w-full flex-row justify-start gap-2 self-stretch p-2 ${opacity} ${cursor}`}
       sx={{
         backgroundColor,
         borderRadius: "8px",
+        border,
       }}
+      onClick={onClick}
     >
       <Box
         className="flex h-16 w-16 items-center justify-center"
@@ -74,7 +86,10 @@ export const CategoryCard: FC<CategoryCardProps> = ({
         </Typography>
       </Box>
       <Box className="flex flex-col items-end justify-center">
-        <InfoButton label="Más información de la categoría" />
+        <InfoButton
+          label="Más información de la categoría"
+          disabled={variant === "unfocused"}
+        />
       </Box>
     </Box>
   );
