@@ -25,9 +25,16 @@ export const SubCategoryPreselectionScreen: FC = () => {
               params: { inventoryId },
             }),
         },
+        nextButtonProps: {
+          onClick: () =>
+            void navigate({
+              to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE as string,
+              params: { inventoryId },
+            }),
+        },
       }}
     >
-      <Box className="flex flex-1 flex-col gap-6 p-6">
+      <Box className="flex flex-1 flex-col gap-6">
         <Box className="flex flex-col gap-6 rounded-lg bg-white p-6">
           <StepHeader
             title="Paso 2: Preselección de subcategorías"
