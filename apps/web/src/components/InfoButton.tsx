@@ -6,32 +6,38 @@ import {
   TooltipProps,
 } from "@mui/material";
 
-type InfoButtonProps = {
+interface InfoButtonProps extends IconButtonProps {
   label: string;
-  size?: IconButtonProps["size"];
-  color?: IconButtonProps["color"];
   placement?: TooltipProps["placement"];
-  onClick?: IconButtonProps["onClick"];
-  sx?: IconButtonProps["sx"];
-};
+}
 
 export const InfoButton = ({
   label,
+  disabled = false,
   size = "small",
   color = "default",
   placement = "top",
-  onClick,
-  sx,
-}: InfoButtonProps) => (
-  <Tooltip title={label} placement={placement}>
+  ...buttonProps
+}: InfoButtonProps) => {
+  const button = (
     <IconButton
       aria-label={label}
       size={size}
       color={color}
-      onClick={onClick}
-      sx={sx}
+      disabled={disabled}
+      {...buttonProps}
     >
       <InfoOutlineIcon />
     </IconButton>
-  </Tooltip>
-);
+  );
+
+  if (disabled) {
+    return button;
+  }
+
+  return (
+    <Tooltip title={label} placement={placement}>
+      {button}
+    </Tooltip>
+  );
+};
