@@ -57,7 +57,8 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   const icon = icons[position];
 
   return (
-    <Box
+    <Card
+      elevation={variant === "focused" ? 2 : 0}
       className={`flex w-full flex-row justify-start gap-2 self-stretch p-2 ${opacity} ${cursor}`}
       sx={{
         backgroundColor,
@@ -91,6 +92,6 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           disabled={variant === "unfocused"}
         />
       </Box>
-    </Box>
+    </Card>
   );
 };
