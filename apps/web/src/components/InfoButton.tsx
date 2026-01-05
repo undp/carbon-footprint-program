@@ -19,25 +19,17 @@ export const InfoButton = ({
   placement = "top",
   ...buttonProps
 }: InfoButtonProps) => {
-  const button = (
-    <IconButton
-      aria-label={label}
-      size={size}
-      color={color}
-      disabled={disabled}
-      {...buttonProps}
-    >
-      <InfoOutlineIcon />
-    </IconButton>
-  );
-
-  if (disabled) {
-    return button;
-  }
-
   return (
-    <Tooltip title={label} placement={placement}>
-      {button}
+    <Tooltip title={disabled ? "" : label} placement={placement}>
+      <IconButton
+        aria-label={label}
+        size={size}
+        color={color}
+        disabled={disabled}
+        {...buttonProps}
+      >
+        <InfoOutlineIcon />
+      </IconButton>
     </Tooltip>
   );
 };
