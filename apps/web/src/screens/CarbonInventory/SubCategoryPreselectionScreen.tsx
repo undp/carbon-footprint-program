@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
+import { CategoryCard } from "./components";
 
 export const SubCategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();
@@ -24,9 +25,16 @@ export const SubCategoryPreselectionScreen: FC = () => {
               params: { inventoryId },
             }),
         },
+        nextButtonProps: {
+          onClick: () =>
+            void navigate({
+              to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE as string,
+              params: { inventoryId },
+            }),
+        },
       }}
     >
-      <Box className="flex flex-1 flex-col gap-6 p-6">
+      <Box className="flex flex-1 flex-col gap-6">
         <Box className="flex flex-col gap-6 rounded-lg bg-white p-6">
           <StepHeader
             title="Paso 2: Preselección de subcategorías"
@@ -39,10 +47,28 @@ export const SubCategoryPreselectionScreen: FC = () => {
           />
           <Box className="flex flex-row gap-6">
             <Box className="flex flex-1 flex-col gap-8">
-              {/* Agregar campos del formulario aquí */}
+              <CategoryCard
+                position={1}
+                title="Alcance 1"
+                subtitle="Categoria 1 / Alcance 1"
+                description="Generadas dentro de tu empresa"
+              />
             </Box>
             <Box className="flex flex-1 flex-col gap-8">
-              {/* Agregar campos del formulario aquí */}
+              <CategoryCard
+                position={2}
+                title="Alcance 2"
+                subtitle="Categoria 2 / Alcance 2"
+                description="Generadas por la electricidad consumida"
+              />
+            </Box>
+            <Box className="flex flex-1 flex-col gap-8">
+              <CategoryCard
+                position={3}
+                title="Alcance 3"
+                subtitle="Categorias 3,4,5 y 6 / Alcance 3"
+                description="Generadas fuera de tu empresa"
+              />
             </Box>
           </Box>
         </Box>

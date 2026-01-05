@@ -31,6 +31,7 @@ declare module "@mui/material/styles" {
       one: CategoryColors;
       two: CategoryColors;
       three: CategoryColors;
+      [key: number]: CategoryColors;
     };
   }
 
@@ -47,6 +48,7 @@ declare module "@mui/material/styles" {
       one?: CategoryColors;
       two?: CategoryColors;
       three?: CategoryColors;
+      [key: number]: CategoryColors;
     };
   }
 }
