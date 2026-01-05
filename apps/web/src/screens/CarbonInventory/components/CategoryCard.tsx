@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Box, darken, Typography, useTheme } from "@mui/material";
+import { Box, darken, Typography, useTheme, Card } from "@mui/material";
 import { InfoButton } from "@/components";
 import {
   DirectEmissionCategoryIcon,
