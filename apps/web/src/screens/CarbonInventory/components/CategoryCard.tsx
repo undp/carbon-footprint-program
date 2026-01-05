@@ -1,5 +1,12 @@
 import { FC, useMemo } from "react";
-import { Box, darken, Typography, useTheme, Card } from "@mui/material";
+import {
+  Box,
+  darken,
+  Typography,
+  useTheme,
+  Card,
+  CardActionArea,
+} from "@mui/material";
 import { InfoButton } from "@/components";
 import {
   DirectEmissionCategoryIcon,
@@ -47,51 +54,73 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   );
 
   const backgroundColor = theme.palette.category[position].light;
-  const borderColor =
-    variant === "focused" ? theme.palette.category[position].main : null;
-  const border = borderColor ? `1px solid ${borderColor}` : "none";
-
+  const border =
+    variant === "focused"
+      ? `1px solid ${theme.palette.category[position].main}`
+      : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const cursor = onClick ? "cursor-pointer" : "cursor-default";
-
   const icon = icons[position];
 
-  return (
-    <Card
-      elevation={variant === "focused" ? 2 : 0}
-      className={`flex w-full flex-row justify-start gap-2 self-stretch p-2 ${opacity} ${cursor}`}
-      sx={{
-        backgroundColor,
-        borderRadius: "8px",
-        border,
-      }}
-      onClick={onClick}
-    >
-      <Box
-        className="flex h-16 w-16 items-center justify-center"
+  const card = useMemo(
+    () => (
+      <Card
+        elevation={variant === "focused" ? 2 : 0}
+        className={`flex w-full flex-row justify-start gap-2 self-stretch p-2 ${opacity}`}
         sx={{
-          borderRadius: "50%",
           backgroundColor,
-          "& svg": { width: "60%", height: "60%" },
+          borderRadius: "8px",
+          border,
+          opacity: variant === "unfocused" ? 0.5 : 1,
         }}
       >
-        {icon}
-      </Box>
-      <Box className="flex-1">
-        <Typography variant="body2">{subtitle}</Typography>
-        <Typography variant="body1" fontWeight="fontWeightBold">
-          {title}
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {description}
-        </Typography>
-      </Box>
-      <Box className="flex flex-col items-end justify-center">
-        <InfoButton
-          label="Más información de la categoría"
-          disabled={variant === "unfocused"}
-        />
-      </Box>
-    </Card>
+        <Box
+          className="flex h-16 w-16 items-center justify-center"
+          sx={{
+            borderRadius: "50%",
+            backgroundColor,
+            "& svg": { width: "60%", height: "60%" },
+          }}
+        >
+          {icon}
+        </Box>
+        <Box className="flex-1">
+          <Typography variant="body2">{subtitle}</Typography>
+          <Typography variant="body1" fontWeight="fontWeightBold">
+            {title}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {description}
+          </Typography>
+        </Box>
+        <Box className="flex flex-col items-end justify-center">
+          <InfoButton
+            label="Más información de la categoría"
+            disabled={variant === "unfocused"}
+            onClick={(e) => e.stopPropagation()}
+          />
+        </Box>
+      </Card>
+    ),
+    [
+      icon,
+      backgroundColor,
+      border,
+      opacity,
+      subtitle,
+      title,
+      description,
+      variant,
+    ]
+  );
+  if (variant === "default") return card;
+  return (
+    <CardActionArea
+      onClick={onClick}
+      sx={{
+        borderRadius: "8px",
+      }}
+    >
+      {card}
+    </CardActionArea>
   );
 };
