@@ -3,7 +3,7 @@ import { SubcategoryPreselectionScreen } from "@/screens/CarbonInventory/Subcate
 import { Routes } from "@/interfaces";
 
 export const Route = createFileRoute(
-  Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION
+  Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION
 )({
   component: () => <SubcategoryPreselectionScreen />,
 });
