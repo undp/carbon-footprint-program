@@ -45,7 +45,7 @@ export const SubCategoryPreselectionScreen: FC = () => {
               </Button>
             }
           />
-          <Box className="flex flex-row gap-6">
+          <Box className="flex flex-row gap-4">
             <Box className="flex flex-1 flex-col gap-8">
               <CategoryCard
                 position={1}

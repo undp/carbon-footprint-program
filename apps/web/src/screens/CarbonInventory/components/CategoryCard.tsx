@@ -78,7 +78,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       }}
     >
       <Box
-        className="flex h-16 w-16 shrink-0 items-center justify-center"
+        className="flex h-14 w-14 shrink-0 items-center justify-center"
         sx={{
           borderRadius: "50%",
           backgroundColor,
