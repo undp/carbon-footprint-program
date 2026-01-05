@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography, useTheme } from "@mui/material";
+import { Box, darken, Typography, useTheme } from "@mui/material";
 import { InfoButton } from "@/components";
 import {
   DirectEmissionCategoryIcon,
@@ -14,12 +14,6 @@ interface CategoryCardProps {
   description: string;
 }
 
-const icons = {
-  1: <DirectEmissionCategoryIcon />,
-  2: <IndirectEmissionCategoryIcon />,
-  3: <OthersCategoryIcon />,
-};
-
 export const CategoryCard: FC<CategoryCardProps> = ({
   position,
   title,
@@ -27,6 +21,23 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   description,
 }) => {
   const theme = useTheme();
+  const icons = {
+    1: (
+      <DirectEmissionCategoryIcon
+        sx={{ fill: darken(theme.palette.category[1].main, 0.6) }}
+      />
+    ),
+    2: (
+      <IndirectEmissionCategoryIcon
+        sx={{ fill: darken(theme.palette.category[2].main, 0.6) }}
+      />
+    ),
+    3: (
+      <OthersCategoryIcon
+        sx={{ fill: darken(theme.palette.category[3].main, 0.6) }}
+      />
+    ),
+  };
 
   const backgroundColor = theme.palette.category[position].light;
 

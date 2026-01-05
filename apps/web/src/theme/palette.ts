@@ -135,7 +135,6 @@ export const palette: PaletteOptions = {
   // Divider
   divider: alpha("#000000", 0.12),
   category: {
-    ...categoryStyle,
     1: categoryStyle.one,
     2: categoryStyle.two,
     3: categoryStyle.three,
