@@ -1,12 +1,5 @@
 import { FC, useMemo } from "react";
-import {
-  Box,
-  darken,
-  Typography,
-  useTheme,
-  Card,
-  CardActionArea,
-} from "@mui/material";
+import { Box, darken, Typography, useTheme, Card } from "@mui/material";
 import { InfoButton } from "@/components";
 import {
   DirectEmissionCategoryIcon,
@@ -61,66 +54,59 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   const opacity = variant === "unfocused" ? "opacity-50" : "";
   const icon = icons[position];
 
-  const card = useMemo(
-    () => (
-      <Card
-        elevation={variant === "focused" ? 2 : 0}
-        className={`flex w-full flex-row justify-start gap-2 self-stretch p-2 ${opacity}`}
-        sx={{
-          backgroundColor,
-          borderRadius: "8px",
-          border,
-          opacity: variant === "unfocused" ? 0.5 : 1,
-        }}
-      >
-        <Box
-          className="flex h-16 w-16 items-center justify-center"
-          sx={{
-            borderRadius: "50%",
-            backgroundColor,
-            "& svg": { width: "60%", height: "60%" },
-          }}
-        >
-          {icon}
-        </Box>
-        <Box className="flex-1">
-          <Typography variant="body2">{subtitle}</Typography>
-          <Typography variant="body1" fontWeight="fontWeightBold">
-            {title}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {description}
-          </Typography>
-        </Box>
-        <Box className="flex flex-col items-end justify-center">
-          <InfoButton
-            label="Más información de la categoría"
-            disabled={variant === "unfocused"}
-            onClick={(e) => e.stopPropagation()}
-          />
-        </Box>
-      </Card>
-    ),
-    [
-      icon,
-      backgroundColor,
-      border,
-      opacity,
-      subtitle,
-      title,
-      description,
-      variant,
-    ]
-  );
-  if (variant === "default") return card;
+  const isClickable = Boolean(variant !== "default" && onClick);
+
   return (
-    <CardActionArea
-      onClick={onClick}
+    <Card
+      elevation={variant === "focused" ? 2 : 0}
+      onClick={isClickable ? onClick : undefined}
+      className={`flex w-full flex-row items-stretch justify-start gap-2 ${opacity}`}
       sx={{
-        borderRadius: "8px",
+        padding: 1,
+        borderRadius: 2,
+        backgroundColor,
+        border,
+        ...(isClickable && {
+          cursor: "pointer",
+          textAlign: "left",
+          textTransform: "none",
+          "&:hover": {
+            backgroundColor: darken(backgroundColor, 0.05),
+            boxShadow: theme.shadows[4],
+          },
+        }),
       }}
     >
-      {card}
-    </CardActionArea>
+      <Box
+        className="flex h-16 w-16 shrink-0 items-center justify-center"
+        sx={{
+          borderRadius: "50%",
+          backgroundColor,
+          "& svg": { width: "60%", height: "60%" },
+        }}
+      >
+        {icon}
+      </Box>
+      <Box className="flex-1">
+        <Typography variant="body2">{subtitle}</Typography>
+        <Typography variant="body1" fontWeight="fontWeightBold">
+          {title}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {description}
+        </Typography>
+      </Box>
+      <Box className="flex flex-col items-end justify-center">
+        <InfoButton
+          label="Más información de la categoría"
+          disabled={variant === "unfocused"}
+          onClick={(e) => {
+            e.stopPropagation();
+            //TODO: Open a modal with the information
+            alert("Information");
+          }}
+        />
+      </Box>
+    </Card>
   );
 };
