@@ -15,7 +15,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();
   const categoryStyles = useCategoryStyles();
   const { inventoryId } = useParams({
-    from: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
+    from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
 
   const { categories, isLoading, isError } =
@@ -37,12 +37,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <form
-        id="subcategory-preselection-form"
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        onSubmit={onSubmit}
-        noValidate
-      >
+      <form id="subcategory-preselection-form" onSubmit={onSubmit} noValidate>
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
