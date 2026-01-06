@@ -1,11 +1,7 @@
 import { z } from "zod";
 
 const SubcategoryStatusSchema = z.object({
-  subcategoryId: z
-    .number()
-    .int()
-    .positive()
-    .describe("The ID of the subcategory"),
+  subcategoryId: z.string().describe("The ID of the subcategory"),
   included: z
     .boolean()
     .describe("Indicates if there is an active line for this subcategory"),

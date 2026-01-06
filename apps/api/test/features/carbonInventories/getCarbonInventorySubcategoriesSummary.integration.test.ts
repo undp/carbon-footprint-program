@@ -74,7 +74,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         expect(item).toHaveProperty("edited");
         expect(item.included).toBe(false);
         expect(item.edited).toBe(false);
-        expect(typeof item.subcategoryId).toBe("number");
+        expect(typeof item.subcategoryId).toBe("string");
         expect(typeof item.included).toBe("boolean");
         expect(typeof item.edited).toBe("boolean");
       });
@@ -110,7 +110,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       expect(firstSubcategory).toBeDefined();
       expect(firstSubcategory?.included).toBe(true);
@@ -161,7 +161,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       expect(firstSubcategory).toBeDefined();
       expect(firstSubcategory?.included).toBe(true);
@@ -212,7 +212,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       expect(firstSubcategory).toBeDefined();
       expect(firstSubcategory?.included).toBe(true);
@@ -251,7 +251,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       expect(firstSubcategory).toBeDefined();
       expect(firstSubcategory?.included).toBe(true);
@@ -305,7 +305,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       expect(firstSubcategory).toBeDefined();
       expect(firstSubcategory?.included).toBe(true);
@@ -345,7 +345,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       expect(firstSubcategory).toBeDefined();
       expect(firstSubcategory?.included).toBe(true);
@@ -394,13 +394,13 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       expect(body).toHaveLength(subcategoryIds.length);
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(subcategoryIds[0])
+        (item) => item.subcategoryId === subcategoryIds[0].toString()
       );
       expect(firstSubcategory?.included).toBe(true);
       expect(firstSubcategory?.edited).toBe(true);
 
       const secondSubcategory = body.find(
-        (item) => item.subcategoryId === Number(subcategoryIds[1])
+        (item) => item.subcategoryId === subcategoryIds[1].toString()
       );
       expect(secondSubcategory?.included).toBe(true);
       expect(secondSubcategory?.edited).toBe(false);
@@ -408,8 +408,8 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       // Other subcategories should be included=false
       const otherSubcategories = body.filter(
         (item) =>
-          item.subcategoryId !== Number(subcategoryIds[0]) &&
-          item.subcategoryId !== Number(subcategoryIds[1])
+          item.subcategoryId !== subcategoryIds[0].toString() &&
+          item.subcategoryId !== subcategoryIds[1].toString()
       );
       otherSubcategories.forEach((item) => {
         expect(item.included).toBe(false);
@@ -467,7 +467,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       // Deleted lines should not be included
       expect(firstSubcategory?.included).toBe(false);
@@ -499,10 +499,10 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         expect(item).toHaveProperty("subcategoryId");
         expect(item).toHaveProperty("included");
         expect(item).toHaveProperty("edited");
-        expect(typeof item.subcategoryId).toBe("number");
+        expect(typeof item.subcategoryId).toBe("string");
         expect(typeof item.included).toBe("boolean");
         expect(typeof item.edited).toBe("boolean");
-        expect(item.subcategoryId).toBeGreaterThan(0);
+        expect(item.subcategoryId.length).toBeGreaterThan(0);
       }
     });
   });
@@ -625,7 +625,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       ) as GetCarbonInventorySubcategoriesSummaryResponse;
 
       const firstSubcategory = body.find(
-        (item) => item.subcategoryId === Number(firstSubcategoryId)
+        (item) => item.subcategoryId === firstSubcategoryId.toString()
       );
       // Even with just a comment, if there's an active input, it's considered edited
       expect(firstSubcategory?.included).toBe(true);

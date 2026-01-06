@@ -114,7 +114,7 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
       const edited = hasBeenEdited ?? false;
 
       return {
-        subcategoryId: Number(subcategoryId),
+        subcategoryId: subcategoryId.toString(),
         included,
         edited,
       };
