@@ -1,18 +1,16 @@
-export type SubcategoryItem = {
-  id: number;
+export interface SubcategoryItem {
+  id: string;
   name: string;
   description?: string | null;
-  selected: boolean;
-  hasEditedLine: boolean;
-  disabled: boolean;
-};
+  included: boolean; // to check if the subcategory is included in the carbon inventory
+  edited: boolean; // to disable the subcategory if it has been edited
+}
 
-export type CategoryWithSubcategories = {
+export interface CategoryWithSubcategories {
   id: string;
   name: string;
   description?: string | null;
   synonyms?: string | null;
-  order: number;
+  position: number;
   subcategories: SubcategoryItem[];
-  color?: string;
-};
+}
