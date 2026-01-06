@@ -1,4 +1,4 @@
-import type { InputType, Prisma, PrismaClient } from "@repo/database";
+import { type InputType, Prisma, type PrismaClient } from "@repo/database";
 import type { UpdateCarbonInventoryLinesRequest } from "@repo/types";
 import { convertEmissionFactorValue } from "../getCarbonInventoryMethodology/getCarbonInventoryMethodologyHelper.js";
 import { bigIntEquals, mapBigIntField } from "@/utils/bigint.js";
@@ -506,13 +506,14 @@ export async function validateEmissionFactors(
             newDenBaseFactor
           );
 
-          // Compare the converted value with the appliedFactorValue
-          // Use a small tolerance for floating point comparison
-          const convertedValueNum = Number.parseFloat(convertedValue);
-          const appliedValueNum = lineData.appliedFactorValue;
-          const tolerance = 1e-9; // Very small tolerance for decimal precision
+          // Compare the converted value with the appliedFactorValue using Prisma.Decimal
+          // to avoid floating-point precision issues
+          const convertedValueDecimal = new Prisma.Decimal(convertedValue);
+          const appliedValueDecimal = mapDecimalField(
+            lineData.appliedFactorValue
+          );
 
-          if (Math.abs(convertedValueNum - appliedValueNum) > tolerance) {
+          if (!decimalEquals(convertedValueDecimal, appliedValueDecimal)) {
             return {
               success: false,
               error: "EMISSION_FACTOR_VALUE_MISMATCH",
