@@ -96,3 +96,121 @@ Content-Type: application/json
   "status": "SUBMITTED"
 }
 
+
+### Update Carbon Inventory Lines - Use Case 1: Empty line (all null)
+PATCH {{baseUrl}}/api/carbon-inventories/1/lines HTTP/1.1
+Content-Type: application/json
+
+[
+  {
+    "id": "1",
+    "dimensions": null,
+    "measurementUnitId": null,
+    "quantity": null,
+    "factorSource": null,
+    "baseFactorId": null,
+    "appliedFactorValue": null,
+    "appliedFactorRateMeasurementUnitId": null,
+    "manualTotalEmissions": null,
+    "comment": null
+  }
+]
+
+
+### Update Carbon Inventory Lines - Use Case 2: Manual total emissions (DIRECT mode)
+PATCH {{baseUrl}}/api/carbon-inventories/1/lines HTTP/1.1
+Content-Type: application/json
+
+[
+  {
+    "id": "1",
+    "dimensions": null,
+    "measurementUnitId": null,
+    "quantity": null,
+    "factorSource": null,
+    "baseFactorId": null,
+    "appliedFactorValue": null,
+    "appliedFactorRateMeasurementUnitId": null,
+    "manualTotalEmissions": 500000,
+    "comment": null
+  }
+]
+
+
+### Update Carbon Inventory Lines - Use Case 3: Automatic factor (SIMPLIFIED mode)
+PATCH {{baseUrl}}/api/carbon-inventories/1/lines HTTP/1.1
+Content-Type: application/json
+
+[
+  {
+    "id": "3",
+    "dimensions": {
+      "1": "2",
+      "2": "8"
+    },
+    "measurementUnitId": "5",
+    "quantity": 1500,
+    "factorSource": "DEFRA 2025",
+    "baseFactorId": "3",
+    "appliedFactorValue": 2.57,
+    "appliedFactorRateMeasurementUnitId": "7",
+    "manualTotalEmissions": null,
+    "comment": "Consumo mensual de gas natural en calderas"
+  }
+]
+
+
+### Update Carbon Inventory Lines - Use Case 4: Manual factor (EXPERT mode)
+PATCH {{baseUrl}}/api/carbon-inventories/1/lines HTTP/1.1
+Content-Type: application/json
+
+[
+  {
+    "id": "1",
+    "dimensions": {
+      "1": "2",
+      "2": "8"
+    },
+    "measurementUnitId": "5",
+    "quantity": 1500,
+    "factorSource": "Factor Propio",
+    "baseFactorId": null,
+    "appliedFactorValue": 2.999,
+    "appliedFactorRateMeasurementUnitId": "7",
+    "manualTotalEmissions": null,
+    "comment": "Consumo mensual de gas natural en calderas"
+  }
+]
+
+
+### Update Carbon Inventory Lines - Multiple lines at once
+PATCH {{baseUrl}}/api/carbon-inventories/1/lines HTTP/1.1
+Content-Type: application/json
+
+[
+  {
+    "id": "line1",
+    "dimensions": null,
+    "measurementUnitId": null,
+    "quantity": null,
+    "factorSource": null,
+    "baseFactorId": null,
+    "appliedFactorValue": null,
+    "appliedFactorRateMeasurementUnitId": null,
+    "manualTotalEmissions": null,
+    "comment": null
+  },
+  {
+    "id": "line2",
+    "dimensions": null,
+    "measurementUnitId": null,
+    "quantity": null,
+    "factorSource": null,
+    "baseFactorId": null,
+    "appliedFactorValue": null,
+    "appliedFactorRateMeasurementUnitId": null,
+    "manualTotalEmissions": 500000,
+    "comment": null
+  }
+]
+
