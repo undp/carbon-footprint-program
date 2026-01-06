@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
-import { CategoryWithSubcategories, SubcategoryItem } from "./types";
+import { CategoryWithSubcategories } from "./types";
 import { useSubcategoryPreselectionSubmit } from "./useSubcategoryPreselectionSubmit";
 
 export interface SubcategoryPreselectionFormProps {
@@ -23,8 +23,8 @@ export const useSubcategoryPreselectionForm = ({
   const initialValues = useMemo(() => {
     const values: Record<string, boolean> = {};
     categories.forEach((category: CategoryWithSubcategories) => {
-      category.subcategories.forEach((subcategory: SubcategoryItem) => {
-        values[String(subcategory.id)] = subcategory.selected;
+      category.subcategories.forEach((subcategory) => {
+        values[String(subcategory.id)] = subcategory.included;
       });
     });
     return values;
