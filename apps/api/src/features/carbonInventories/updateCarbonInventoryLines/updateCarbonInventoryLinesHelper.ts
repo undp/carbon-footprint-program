@@ -199,13 +199,6 @@ export function validateDimensionsAndValues(
           error: "INVALID_DIMENSION_VALUE_ID",
         };
       }
-
-      if (dimensionValue.dimensionId.toString() !== dimensionIdStr) {
-        return {
-          success: false,
-          error: "DIMENSION_VALUE_NOT_IN_DIMENSION",
-        };
-      }
     }
   }
 
