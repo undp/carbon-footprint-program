@@ -12,7 +12,9 @@ export const UpdateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
   isEditable: true,
 }).partial();
 
-export const UpdateCarbonInventoryResponseSchema = CarbonInventorySchema;
+export const UpdateCarbonInventoryResponseSchema = CarbonInventorySchema.omit({
+  lines: true,
+});
 
 // TypeScript Types
 export type UpdateCarbonInventoryRequest = z.infer<

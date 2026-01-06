@@ -11,6 +11,44 @@ export const InventoryStatusSchema = z.enum([
 
 export const UsageModeSchema = z.enum(["SIMPLIFIED", "EXPERT"]);
 
+// Line schema
+export const CarbonInventoryLineSchema = z
+  .object({
+    id: z.string().regex(/^\d+$/).describe("The ID of the line"),
+    subcategoryId: z
+      .string()
+      .regex(/^\d+$/)
+      .describe("The ID of the subcategory"),
+    isManualTotalEmissions: z
+      .boolean()
+      .describe("Whether manual total emissions are used"),
+    dimensions: z
+      .record(z.string().regex(/^\d+$/), z.string().regex(/^\d+$/).nullable())
+      .nullable()
+      .describe(
+        "Dimensions map with dimension ID as key and selected dimension value ID as value"
+      ),
+    quantity: z.number().nullable().describe("The quantity value"),
+    measurementUnitId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the measurement unit"),
+    factorSource: z.string().nullable().describe("The source of the factor"),
+    factorValue: z.number().nullable().describe("The factor value"),
+    factorRateMeasurementUnitId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the rate measurement unit of the factor"),
+    comment: z.string().nullable().describe("Comment for the line"),
+    manualTotalEmissions: z
+      .number()
+      .nullable()
+      .describe("Manual total emissions value"),
+  })
+  .strict();
+
 // Entities
 export const OrganizationDataSchema = makeAllFieldsNullable(
   z.object({
@@ -79,6 +117,9 @@ export const CarbonInventorySchema = z
       .regex(/^\d+$/)
       .nullable()
       .describe("The ID of the user who last updated the inventory"),
+    lines: z
+      .array(CarbonInventoryLineSchema)
+      .describe("The lines associated with this inventory"),
   })
   .strict();
 
@@ -87,3 +128,4 @@ export type InventoryStatus = z.infer<typeof InventoryStatusSchema>;
 export type UsageMode = z.infer<typeof UsageModeSchema>;
 export type OrganizationData = z.infer<typeof OrganizationDataSchema>;
 export type CarbonInventory = z.infer<typeof CarbonInventorySchema>;
+export type CarbonInventoryLine = z.infer<typeof CarbonInventoryLineSchema>;
