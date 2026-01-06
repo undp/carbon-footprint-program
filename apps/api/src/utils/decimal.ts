@@ -23,7 +23,21 @@ export function mapDecimalField(
 }
 
 /**
- * Compares two Decimal values for equality
+ * Compares two Decimal values for equality.
+ *
+ * Note: null and undefined are treated as equivalent values. For example,
+ * `decimalEquals(null, undefined)` returns true. Callers who need to
+ * distinguish between null and undefined must check explicitly before
+ * calling this function.
+ *
+ * @param a - First Decimal value (or null/undefined)
+ * @param b - Second Decimal value (or null/undefined)
+ * @returns true if both values are equal (including when both are null/undefined)
+ *
+ * @example
+ * decimalEquals(null, undefined) // returns true
+ * decimalEquals(undefined, null) // returns true
+ * decimalEquals(new Prisma.Decimal(5), new Prisma.Decimal(5)) // returns true
  */
 export function decimalEquals(
   a: Prisma.Decimal | null | undefined,
