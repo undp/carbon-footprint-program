@@ -15,7 +15,21 @@ export const mapBigIntField = (
 };
 
 /**
- * Compares two BigInt values for equality
+ * Compares two BigInt values for equality.
+ *
+ * Note: null and undefined are treated as equivalent values. For example,
+ * `bigIntEquals(null, undefined)` returns true. Callers who need to
+ * distinguish between null and undefined must check explicitly before
+ * calling this function.
+ *
+ * @param a - First BigInt value (or null/undefined)
+ * @param b - Second BigInt value (or null/undefined)
+ * @returns true if both values are equal (including when both are null/undefined)
+ *
+ * @example
+ * bigIntEquals(null, undefined) // returns true
+ * bigIntEquals(undefined, null) // returns true
+ * bigIntEquals(BigInt(5), BigInt(5)) // returns true
  */
 export function bigIntEquals(
   a: bigint | null | undefined,
