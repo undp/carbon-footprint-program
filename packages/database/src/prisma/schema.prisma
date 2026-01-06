@@ -417,7 +417,7 @@ model EmissionFactor {
   rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
   source                String
   gasDetails            Json                          @map("gas_details") @db.JsonB
-  value                 Decimal                       @db.Decimal(18, 10)
+  value                 Decimal                       @db.Decimal(28, 10)
   statusId              BigInt                        @map("status_id")
   createdAt             DateTime                      @default(now()) @map("created_at")
   updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at")
@@ -488,10 +488,10 @@ model CarbonInventoryLineInput {
   inputType              InputType                     @map("input_type")
   selection1Id           BigInt?                       @map("selection_1_id")
   selection2Id           BigInt?                       @map("selection_2_id")
-  quantity               Decimal?                      @db.Decimal(18, 10)
+  quantity               Decimal?                      @db.Decimal(28, 10)
   measurementUnitId      BigInt?                       @map("measurement_unit_id")
-  directTotalEmissions   Decimal?                      @map("direct_total_emissions") @db.Decimal(18, 10)
-  manualFactor           Decimal?                      @map("manual_factor") @db.Decimal(18, 10)
+  directTotalEmissions   Decimal?                      @map("direct_total_emissions") @db.Decimal(28, 10)
+  manualFactor           Decimal?                      @map("manual_factor") @db.Decimal(28, 10)
   manualFactorSource     String?                       @map("manual_factor_source")
   manualFactorRateUnitId BigInt?                       @map("manual_factor_rate_unit_id")
   comment                String?
@@ -524,7 +524,7 @@ model CarbonInventoryLineFactor {
   id                      BigInt                   @id @default(autoincrement())
   lineInputId             BigInt                   @map("line_input_id")
   emissionFactorId        BigInt?                  @map("emission_factor_id")
-  appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(18, 10)
+  appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(28, 10)
   appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
   appliedFactorSource     String?                  @map("applied_factor_source")
   derivationDetails       Json?                    @map("derivation_details") @db.JsonB
@@ -545,7 +545,7 @@ model CarbonInventoryLineFactor {
 model CarbonInventoryLineResult {
   id             BigInt                   @id @default(autoincrement())
   lineInputId    BigInt                   @map("line_input_id")
-  totalEmissions Decimal                  @map("total_emissions") @db.Decimal(18, 10)
+  totalEmissions Decimal                  @map("total_emissions") @db.Decimal(28, 10)
   resultDetails  Json?                    @map("result_details") @db.JsonB
   calculatedAt   DateTime                 @default(now()) @map("calculated_at")
   createdAt      DateTime                 @default(now()) @map("created_at")
