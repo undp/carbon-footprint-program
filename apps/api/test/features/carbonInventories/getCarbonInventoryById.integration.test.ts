@@ -412,13 +412,27 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
 
-      // Verify only ACTIVE lines are returned
-      const returnedLineIds = body.lines.map((line) => line.id);
+      // Verify only ACTIVE lines are returned, grouped by subcategoryId
+      const allLines = body.subcategories.flatMap((subcat) => subcat.lines);
+      const returnedLineIds = allLines.map((line) => line.id);
       expect(returnedLineIds).toContain(activeLine1.id.toString());
       expect(returnedLineIds).toContain(activeLine2.id.toString());
       expect(returnedLineIds).not.toContain(deletedLine1.id.toString());
       expect(returnedLineIds).not.toContain(deletedLine2.id.toString());
-      expect(body.lines.length).toBe(2);
+      expect(allLines.length).toBe(2);
+
+      // Verify lines are grouped by subcategoryId
+      expect(body.subcategories.length).toBe(2);
+      const subcategory1 = body.subcategories.find(
+        (subcat) => subcat.id === subcategoryIds[0].toString()
+      );
+      const subcategory2 = body.subcategories.find(
+        (subcat) => subcat.id === subcategoryIds[1].toString()
+      );
+      expect(subcategory1).toBeDefined();
+      expect(subcategory2).toBeDefined();
+      expect(subcategory1?.lines.length).toBe(1);
+      expect(subcategory2?.lines.length).toBe(1);
     });
 
     it("should return empty lines array when all lines are DELETED", async () => {
@@ -452,9 +466,11 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
 
-      // Verify no lines are returned
-      expect(body.lines).toEqual([]);
-      expect(body.lines.length).toBe(0);
+      // Verify no lines are returned (no subcategories when all lines are deleted)
+      const allLines = body.subcategories.flatMap((subcat) => subcat.lines);
+      expect(allLines).toEqual([]);
+      expect(allLines.length).toBe(0);
+      expect(body.subcategories.length).toBe(0);
     });
 
     it("should return all ACTIVE lines when no DELETED lines exist", async () => {
@@ -499,12 +515,21 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
 
-      // Verify all ACTIVE lines are returned
-      expect(body.lines.length).toBe(3);
-      const returnedLineIds = body.lines.map((line) => line.id);
+      // Verify all ACTIVE lines are returned, grouped by subcategoryId
+      const allLines = body.subcategories.flatMap((subcat) => subcat.lines);
+      expect(allLines.length).toBe(3);
+      const returnedLineIds = allLines.map((line) => line.id);
       expect(returnedLineIds).toContain(activeLine1.id.toString());
       expect(returnedLineIds).toContain(activeLine2.id.toString());
       expect(returnedLineIds).toContain(activeLine3.id.toString());
+
+      // Verify lines are grouped by subcategoryId
+      expect(body.subcategories.length).toBe(3);
+      body.subcategories.forEach((subcat) => {
+        expect(subcat.lines.length).toBe(1);
+        expect(subcat.id).toBeTruthy();
+        expect(subcat.isTotalManualEmissionsMode).toBe(false);
+      });
     });
   });
 });
