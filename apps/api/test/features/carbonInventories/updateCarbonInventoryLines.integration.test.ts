@@ -19,7 +19,10 @@ import {
 import type { UpdateCarbonInventoryLinesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
+import type {
+  NotFoundErrorResponse,
+  ValidationErrorResponse,
+} from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import { Prisma } from "@repo/database";
 
@@ -798,7 +801,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 when quantity is 0 or negative", async () => {
+    it("should return 400 when quantity is negative", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -821,7 +824,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
             id: line.id.toString(),
             dimensions: null,
             measurementUnitId: null,
-            quantity: 0,
+            quantity: -1,
             factorSource: null,
             baseFactorId: null,
             appliedFactorValue: null,
@@ -833,6 +836,57 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when duplicate line IDs are provided", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines`,
+        payload: [
+          {
+            id: line.id.toString(),
+            dimensions: null,
+            measurementUnitId: null,
+            quantity: null,
+            factorSource: null,
+            baseFactorId: null,
+            appliedFactorValue: null,
+            appliedFactorRateMeasurementUnitId: null,
+            manualTotalEmissions: null,
+            comment: null,
+          },
+          {
+            id: line.id.toString(),
+            dimensions: null,
+            measurementUnitId: null,
+            quantity: null,
+            factorSource: null,
+            baseFactorId: null,
+            appliedFactorValue: null,
+            appliedFactorRateMeasurementUnitId: null,
+            manualTotalEmissions: null,
+            comment: null,
+          },
+        ],
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.message).toContain("Duplicate line IDs");
     });
   });
 });
