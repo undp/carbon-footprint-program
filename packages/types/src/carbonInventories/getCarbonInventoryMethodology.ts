@@ -23,9 +23,11 @@ const EmissionFactorDimensionSchema = z.object({
 
 const EmissionFactorSchema = z
   .object({
-    id: IdSchema.describe(
-      "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
-    ),
+    id: z
+      .string()
+      .describe(
+        "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
+      ),
     originalEmissionFactorId: IdSchema.nullable().describe(
       "The ID of the original emission factor. Null for original factors, set for converted factors."
     ),
