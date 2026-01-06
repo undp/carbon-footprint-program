@@ -7,19 +7,20 @@ import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { SubcategoryPreselectionCard } from "./components/SubcategoryPreselectionCard";
 import { useSubcategoryPreselectionData } from "./hooks/useSubcategoryPreselectionData";
-import { useCategoryStyles } from "./hooks/useCategoryStyles";
 import { useSubcategoryPreselectionForm } from "./hooks/useSubcategoryPreselectionForm";
 import { CategoryWithSubcategories } from "./hooks/types";
 
 export const SubcategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();
-  const categoryStyles = useCategoryStyles();
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
 
-  const { categories, isLoading, isError } =
-    useSubcategoryPreselectionData(inventoryId);
+  const {
+    data: categories,
+    isLoading,
+    isError,
+  } = useSubcategoryPreselectionData(inventoryId as string);
 
   const hasError = isError || (!isLoading && categories.length === 0);
 
@@ -31,7 +32,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const { methods, onSubmit, isSubmitting } = useSubcategoryPreselectionForm({
     inventoryId,
-    categories,
+    data: categories,
     onSuccess: goNext,
   });
 
@@ -98,17 +99,10 @@ export const SubcategoryPreselectionScreen: FC = () => {
             {!isLoading && !hasError && (
               <Box className="flex min-h-0 flex-1 flex-row gap-6 overflow-x-auto">
                 {categories.map((category: CategoryWithSubcategories) => {
-                  const style =
-                    categoryStyles[
-                      category.order as keyof typeof categoryStyles
-                    ] || categoryStyles[1];
                   return (
                     <SubcategoryPreselectionCard
                       key={category.id}
                       category={category}
-                      icon={style.icon}
-                      label={style.label}
-                      color={style.color}
                     />
                   );
                 })}

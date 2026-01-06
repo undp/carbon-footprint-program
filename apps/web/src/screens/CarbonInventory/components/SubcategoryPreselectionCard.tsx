@@ -1,19 +1,16 @@
-import { FC, Fragment, ReactNode } from "react";
+import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
 import { CategoryCard } from "./CategoryCard";
 import { SubcategoryField } from "./SubcategoryPreselectionCardField";
-import { CategoryWithSubcategories, SubcategoryItem } from "../hooks/types";
+import { CategoryWithSubcategories } from "../hooks/types";
 
 interface SubcategoryPreselectionCardProps {
   category: CategoryWithSubcategories;
-  icon: ReactNode;
-  label: string;
-  color: string;
 }
 
 export const SubcategoryPreselectionCard: FC<
   SubcategoryPreselectionCardProps
-> = ({ category, icon, label, color }) => {
+> = ({ category }) => {
   return (
     <Box
       className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
@@ -24,26 +21,25 @@ export const SubcategoryPreselectionCard: FC<
     >
       {/* Header */}
       <CategoryCard
-        icon={icon}
-        subtitle={category.synonyms || label}
+        position={category.position as 1 | 2 | 3}
+        subtitle={category.synonyms || ""}
         title={category.name}
-        description={category.description}
-        color={color}
+        description={category.description || ""}
       />
       {/*  Body */}
       <Divider className="w-full" />
 
       <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
-        {category.subcategories.map((sub: SubcategoryItem) => (
-          <Fragment key={sub.id}>
+        {category.subcategories.map((subcategory) => (
+          <Fragment key={subcategory.id}>
             <SubcategoryField
-              name={String(sub.id)}
+              name={String(subcategory.id)}
               emission={{
-                id: sub.id,
-                name: sub.name,
-                description: sub.description,
+                id: subcategory.id,
+                name: subcategory.name,
+                description: subcategory.description,
               }}
-              disabled={sub.disabled}
+              disabled={subcategory.edited}
             />
             <Divider className="w-full" />
           </Fragment>
