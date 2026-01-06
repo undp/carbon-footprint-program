@@ -9,7 +9,7 @@ export interface SubcategoryItem {
   edited: boolean; // to disable the subcategory if it has been edited
 }
 
-export interface CategoriesWithSubcategories {
+export interface CategoryWithSubcategories {
   id: string;
   name: string;
   description?: string | null;
@@ -19,7 +19,7 @@ export interface CategoriesWithSubcategories {
 }
 
 export interface SubcategoryPreselectionData {
-  data: CategoriesWithSubcategories[];
+  data: CategoryWithSubcategories[];
   isLoading: boolean;
   isError: boolean;
 }
@@ -38,7 +38,7 @@ export const useSubcategoryPreselectionData = (
     isError: isSubcategoriesSummaryError,
   } = useCarbonInventorySubcategoriesSummary(inventoryId);
 
-  const mergedData = useMemo<CategoriesWithSubcategories[]>(() => {
+  const mergedData = useMemo<CategoryWithSubcategories[]>(() => {
     if (!methodology || !subcategoriesSummary) return [];
 
     const subcategoriesSummaryMap = new Map(
