@@ -231,142 +231,144 @@ export const updateCarbonInventoryLinesService = async (
     lines.map((line) => [line.id.toString(), line])
   );
 
-  // Process each line update
+  // Process each line update within a single transaction
   const updatedLines: Array<{
     line: (typeof lines)[number];
     subcategory: SubcategoryWithDimensionsAndValues;
   }> = [];
 
-  for (const lineData of request) {
-    // Safe assertion: all lines validated above
-    const line = databaseLineMap.get(lineData.id)!;
+  await prismaClient.$transaction(async (tx) => {
+    for (const lineData of request) {
+      // Safe assertion: all lines validated above
+      const line = databaseLineMap.get(lineData.id)!;
 
-    // Safe assertion: all subcategories validated above
-    const subcategory = subcategoryMap.get(line.subcategoryId.toString())!;
+      // Safe assertion: all subcategories validated above
+      const subcategory = subcategoryMap.get(line.subcategoryId.toString())!;
 
-    const inputType = determineInputType(lineData);
+      const inputType = determineInputType(lineData);
 
-    // Extract dimension values based on position
-    const { selection1Id, selection2Id } = extractDimensionSelections(
-      lineData.dimensions,
-      subcategory
-    );
+      // Extract dimension values based on position
+      const { selection1Id, selection2Id } = extractDimensionSelections(
+        lineData.dimensions,
+        subcategory
+      );
 
-    // Check if there's an active input and if the data is unchanged
-    const currentActiveInput = line.inputs[0] ?? null;
-    if (currentActiveInput) {
-      // If data is unchanged, skip creating a new input
-      if (
-        isInputDataUnchanged(
-          lineData,
-          currentActiveInput,
-          inputType,
-          selection1Id,
-          selection2Id
-        )
-      ) {
-        updatedLines.push({ line, subcategory });
-        continue;
+      // Check if there's an active input and if the data is unchanged
+      const currentActiveInput = line.inputs[0] ?? null;
+      if (currentActiveInput) {
+        // If data is unchanged, skip creating a new input
+        if (
+          isInputDataUnchanged(
+            lineData,
+            currentActiveInput,
+            inputType,
+            selection1Id,
+            selection2Id
+          )
+        ) {
+          updatedLines.push({ line, subcategory });
+          continue;
+        }
+
+        // Mark old active input as inactive
+        await tx.carbonInventoryLineInput.updateMany({
+          where: {
+            lineId: line.id,
+            isActive: true,
+          },
+          data: {
+            isActive: false,
+            updatedById: null, // TODO: Add updated by id from logged in user
+          },
+        });
       }
 
-      // Mark old active input as inactive
-      await prismaClient.carbonInventoryLineInput.updateMany({
-        where: {
+      // Create new input
+      const newInput = await tx.carbonInventoryLineInput.create({
+        data: {
           lineId: line.id,
+          inputType,
+          selection1Id,
+          selection2Id,
+          quantity: mapDecimalField(lineData.quantity),
+          measurementUnitId: mapBigIntField(lineData.measurementUnitId),
+          directTotalEmissions: mapDecimalField(lineData.manualTotalEmissions),
+          manualFactor:
+            lineData.appliedFactorValue !== null &&
+            lineData.factorSource === "Factor Propio"
+              ? mapDecimalField(lineData.appliedFactorValue)
+              : null,
+          manualFactorSource:
+            lineData.factorSource === "Factor Propio"
+              ? lineData.factorSource
+              : null,
+          manualFactorRateUnitId:
+            lineData.appliedFactorRateMeasurementUnitId !== null &&
+            lineData.factorSource === "Factor Propio"
+              ? BigInt(lineData.appliedFactorRateMeasurementUnitId)
+              : null,
+          comment: lineData.comment ?? null,
           isActive: true,
-        },
-        data: {
-          isActive: false,
-          updatedById: null, // TODO: Add updated by id from logged in user
-        },
-      });
-    }
-
-    // Create new input
-    const newInput = await prismaClient.carbonInventoryLineInput.create({
-      data: {
-        lineId: line.id,
-        inputType,
-        selection1Id,
-        selection2Id,
-        quantity: mapDecimalField(lineData.quantity),
-        measurementUnitId: mapBigIntField(lineData.measurementUnitId),
-        directTotalEmissions: mapDecimalField(lineData.manualTotalEmissions),
-        manualFactor:
-          lineData.appliedFactorValue !== null &&
-          lineData.factorSource === "Factor Propio"
-            ? mapDecimalField(lineData.appliedFactorValue)
-            : null,
-        manualFactorSource:
-          lineData.factorSource === "Factor Propio"
-            ? lineData.factorSource
-            : null,
-        manualFactorRateUnitId:
-          lineData.appliedFactorRateMeasurementUnitId !== null &&
-          lineData.factorSource === "Factor Propio"
-            ? BigInt(lineData.appliedFactorRateMeasurementUnitId)
-            : null,
-        comment: lineData.comment ?? null,
-        isActive: true,
-        createdById: null, // TODO: Add created by id from logged in user
-        updatedById: null, // TODO: Add updated by id from logged in user
-      },
-    });
-
-    // Create factor if applicable (for both SIMPLIFIED and EXPERT modes)
-    // SIMPLIFIED: has emissionFactorId (from baseFactorId)
-    // EXPERT: emissionFactorId is null (when factorSource is "Factor Propio")
-    if (
-      lineData.appliedFactorValue !== null &&
-      lineData.appliedFactorRateMeasurementUnitId !== null
-    ) {
-      const emissionFactorId = mapBigIntField(lineData.baseFactorId);
-
-      await prismaClient.carbonInventoryLineFactor.create({
-        data: {
-          lineInputId: newInput.id,
-          emissionFactorId,
-          appliedFactorValue: mapDecimalField(lineData.appliedFactorValue),
-          appliedFactorRateUnitId: BigInt(
-            lineData.appliedFactorRateMeasurementUnitId
-          ),
-          appliedFactorSource: lineData.factorSource,
           createdById: null, // TODO: Add created by id from logged in user
           updatedById: null, // TODO: Add updated by id from logged in user
         },
       });
+
+      // Create factor if applicable (for both SIMPLIFIED and EXPERT modes)
+      // SIMPLIFIED: has emissionFactorId (from baseFactorId)
+      // EXPERT: emissionFactorId is null (when factorSource is "Factor Propio")
+      if (
+        lineData.appliedFactorValue !== null &&
+        lineData.appliedFactorRateMeasurementUnitId !== null
+      ) {
+        const emissionFactorId = mapBigIntField(lineData.baseFactorId);
+
+        await tx.carbonInventoryLineFactor.create({
+          data: {
+            lineInputId: newInput.id,
+            emissionFactorId,
+            appliedFactorValue: mapDecimalField(lineData.appliedFactorValue),
+            appliedFactorRateUnitId: BigInt(
+              lineData.appliedFactorRateMeasurementUnitId
+            ),
+            appliedFactorSource: lineData.factorSource,
+            createdById: null, // TODO: Add created by id from logged in user
+            updatedById: null, // TODO: Add updated by id from logged in user
+          },
+        });
+      }
+
+      // Create result if applicable
+      // For SIMPLIFIED or EXPERT: quantity * appliedFactorValue
+      // For DIRECT: manualTotalEmissions
+      let totalEmissions: Prisma.Decimal | null = null;
+
+      if (inputType === "DIRECT" && lineData.manualTotalEmissions !== null) {
+        totalEmissions = mapDecimalField(lineData.manualTotalEmissions);
+      } else if (
+        (inputType === "SIMPLIFIED" || inputType === "EXPERT") &&
+        lineData.quantity !== null &&
+        lineData.appliedFactorValue !== null
+      ) {
+        totalEmissions = mapDecimalField(lineData.quantity).mul(
+          mapDecimalField(lineData.appliedFactorValue)
+        );
+      }
+
+      if (totalEmissions !== null) {
+        await tx.carbonInventoryLineResult.create({
+          data: {
+            lineInputId: newInput.id,
+            totalEmissions,
+            createdById: null, // TODO: Add created by id from logged in user
+            updatedById: null, // TODO: Add updated by id from logged in user
+          },
+        });
+      }
+
+      updatedLines.push({ line, subcategory });
     }
-
-    // Create result if applicable
-    // For SIMPLIFIED or EXPERT: quantity * appliedFactorValue
-    // For DIRECT: manualTotalEmissions
-    let totalEmissions: Prisma.Decimal | null = null;
-
-    if (inputType === "DIRECT" && lineData.manualTotalEmissions !== null) {
-      totalEmissions = mapDecimalField(lineData.manualTotalEmissions);
-    } else if (
-      (inputType === "SIMPLIFIED" || inputType === "EXPERT") &&
-      lineData.quantity !== null &&
-      lineData.appliedFactorValue !== null
-    ) {
-      totalEmissions = mapDecimalField(lineData.quantity).mul(
-        mapDecimalField(lineData.appliedFactorValue)
-      );
-    }
-
-    if (totalEmissions !== null) {
-      await prismaClient.carbonInventoryLineResult.create({
-        data: {
-          lineInputId: newInput.id,
-          totalEmissions,
-          createdById: null, // TODO: Add created by id from logged in user
-          updatedById: null, // TODO: Add updated by id from logged in user
-        },
-      });
-    }
-
-    updatedLines.push({ line, subcategory });
-  }
+  });
 
   // Fetch updated lines with their inputs for response mapping
   const updatedLinesWithInputs =
