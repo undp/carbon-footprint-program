@@ -6,7 +6,7 @@ export const CreateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
 });
 
 export const CreateCarbonInventoryResponseSchema = CarbonInventorySchema.omit({
-  lines: true,
+  subcategories: true,
 });
 
 // TypeScript Types

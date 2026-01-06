@@ -13,7 +13,7 @@ export const UpdateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
 }).partial();
 
 export const UpdateCarbonInventoryResponseSchema = CarbonInventorySchema.omit({
-  lines: true,
+  subcategories: true,
 });
 
 // TypeScript Types

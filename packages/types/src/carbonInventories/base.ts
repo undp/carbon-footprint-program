@@ -46,6 +46,19 @@ export const CarbonInventoryLineSchema = z
   })
   .strict();
 
+// Subcategory schema
+export const CarbonInventorySubcategorySchema = z
+  .object({
+    id: IdSchema.describe("The ID of the subcategory"),
+    isTotalManualEmissionsMode: z
+      .boolean()
+      .describe("Whether manual total emissions are used"),
+    lines: z
+      .array(CarbonInventoryLineSchema)
+      .describe("The lines associated with this subcategory"),
+  })
+  .strict();
+
 // Entities
 export const OrganizationDataSchema = makeAllFieldsNullable(
   z.object({
@@ -100,9 +113,9 @@ export const CarbonInventorySchema = z
       .regex(/^\d+$/)
       .nullable()
       .describe("The ID of the user who last updated the inventory"),
-    lines: z
-      .array(CarbonInventoryLineSchema)
-      .describe("The lines associated with this inventory"),
+    subcategories: z
+      .array(CarbonInventorySubcategorySchema)
+      .describe("The subcategories associated with this inventory"),
   })
   .strict();
 

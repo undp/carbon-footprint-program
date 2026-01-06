@@ -3,6 +3,7 @@ import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
 import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
 import { OrganizationDataSchema } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
+import { groupBy } from "lodash-es";
 
 // Prisma type for carbon inventory with lines, inputs, and factors
 // Note: subcategories are fetched separately to avoid duplication
@@ -25,7 +26,8 @@ export type LineWithInputs = NonNullable<
   CarbonInventoryWithLines["lines"]
 >[number];
 
-type LineResponse = ResponseCarbonInventory["lines"][number];
+type LineResponse =
+  ResponseCarbonInventory["subcategories"][number]["lines"][number];
 
 /**
  * Converts a value to a number if it's not null/undefined, otherwise returns null.
@@ -92,7 +94,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
 
 function mapBaseCarbonInventory(
   item: PrismaCarbonInventory
-): Omit<ResponseCarbonInventory, "lines"> {
+): Omit<ResponseCarbonInventory, "subcategories"> {
   // Validate organizationData with runtime type checking using Zod
   const organizationDataResult = OrganizationDataSchema.nullable().safeParse(
     item.organizationData
@@ -121,22 +123,40 @@ function mapBaseCarbonInventory(
   };
 }
 
-// Map carbon inventory with lines to response (includes lines field)
+// Map carbon inventory with subcategories to response (includes subcategories field)
 export function mapCarbonInventoryWithLinesToResponse(
   item: CarbonInventoryWithLines
 ): ResponseCarbonInventory {
   const base = mapBaseCarbonInventory(item);
-  const lines = item.lines.map(mapLineToResponse);
+  const parsedLines: LineResponse[] = item.lines.map(mapLineToResponse);
+
+  const linesBySubcategoryId = groupBy<LineResponse>(
+    parsedLines,
+    "subcategoryId"
+  );
 
   return {
     ...base,
-    lines,
+    subcategories: Object.entries(linesBySubcategoryId).map(
+      ([subcategoryId, lines]) => {
+        // isTotalManualEmissionsMode is true if all lines in the subcategory use manual total emissions
+        const isTotalManualEmissionsMode =
+          lines.length > 0 &&
+          lines.every((line) => line.isManualTotalEmissions === true);
+
+        return {
+          id: subcategoryId,
+          isTotalManualEmissionsMode,
+          lines,
+        };
+      }
+    ),
   };
 }
 
-// Map carbon inventory without lines to response (omits lines field)
+// Map carbon inventory without subcategories to response (omits subcategories field)
 export function mapCarbonInventoryToResponse(
   item: PrismaCarbonInventory
-): Omit<ResponseCarbonInventory, "lines"> {
+): Omit<ResponseCarbonInventory, "subcategories"> {
   return mapBaseCarbonInventory(item);
 }
