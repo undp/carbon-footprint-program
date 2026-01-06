@@ -1,4 +1,5 @@
 export * from "./base.js";
+export * from "./addSubcategoriesToCarbonInventory.js";
 export * from "./createCarbonInventory.js";
 export * from "./createCarbonInventoryLine.js";
 export * from "./deleteCarbonInventoryLine.js";
