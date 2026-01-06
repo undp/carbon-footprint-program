@@ -189,7 +189,7 @@ Content-Type: application/json
 
 [
   {
-    "id": "line1",
+    "id": "1",
     "dimensions": null,
     "measurementUnitId": null,
     "quantity": null,
@@ -201,7 +201,7 @@ Content-Type: application/json
     "comment": null
   },
   {
-    "id": "line2",
+    "id": "1",
     "dimensions": null,
     "measurementUnitId": null,
     "quantity": null,
