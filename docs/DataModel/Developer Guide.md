@@ -44,12 +44,11 @@ Violation symptom:
 
 For `carbon_inventory_line`:
 
-- `(carbon_inventory_id, subcategory_id, selection_1_id, selection_2_id)`
-  must be **unique for ACTIVE lines**
+- Multiple ACTIVE lines can exist for the same `(carbon_inventory_id, subcategory_id)` combination
 - DELETED lines are never reused
-- Lines never store quantities or factors
+- Lines never store quantities, factors, or selections
 
-If you need numbers → **you are in the wrong table**.
+If you need numbers or selections → **you are in the wrong table**.
 
 ---
 
@@ -86,7 +85,7 @@ For `carbon_inventory_line_result`:
 
 - Exactly one result per input
 - Results are **purely derived**
-- No user attribution (`created_by`) by design
+- Audit fields (`created_by_id`, `updated_by_id`) are kept for administrative tracking purposes, but results themselves are system-generated and not attributed to user actions
 
 If a result changes, something upstream changed.
 
@@ -250,6 +249,8 @@ JSON is for explanations, not rules.
 ### ❌ Ignoring Dimension Positions
 
 `selection_1_id` ≠ `selection_2_id` by accident.
+
+**Note:** Selections are stored in `carbon_inventory_line_input`, not in `carbon_inventory_line`.
 
 ---
 

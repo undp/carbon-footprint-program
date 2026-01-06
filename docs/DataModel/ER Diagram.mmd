@@ -477,30 +477,29 @@ erDiagram
 		%% CHECK ((organization_id IS NOT NULL AND organization_branch_id IS NULL) OR (organization_branch_id IS NOT NULL))
 	}
 
-	%% A “line” represents what is being measured (subcategory + optional selections) for a given inventory.
-	%% We do not store quantities/factors here. It’s the anchor.
+	%% A "line" represents what is being measured (subcategory) for a given inventory.
+	%% We do not store quantities/factors/selections here. It's the anchor.
 	carbon_inventory_line {
 		BIGINT id PK ""
 		BIGINT carbon_inventory_id FK "carbon_inventory(id)"
 		BIGINT subcategory_id FK "subcategory(id)"
-
-		%% the "dimension selections" (more on dimension standardization in section 4)
-		BIGINT selection_1_id FK "emission_factor_dimension_value(id)"
-		BIGINT selection_2_id FK "emission_factor_dimension_value(id)"
 
 		enum status "ACTIVE | DELETED"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
 		BIGINT updated_by FK ""  
-		%% Avoid duplicate active lines for same inventory+subcategory+selections
-		%% UNIQUE(carbon_inventory_id, subcategory_id, selection_1_id, selection_2_id) WHERE status='ACTIVE'
 	}
 
 	carbon_inventory_line_input {
 		BIGINT id PK ""
 		BIGINT line_id FK "carbon_inventory_line(id)"
 		enum input_type "SIMPLIFIED|EXPERT|DIRECT"
+		
+		%% the "dimension selections" (more on dimension standardization in section 4)
+		BIGINT selection_1_id FK "NULLABLE, emission_factor_dimension_value(id)"
+		BIGINT selection_2_id FK "NULLABLE, emission_factor_dimension_value(id)"
+		
 		numeric quantity "NULLABLE"
 		BIGINT measurement_unit_id FK "NULLABLE, measurement_unit(id)"
 		
@@ -521,7 +520,7 @@ erDiagram
 		%% Enforce only one active input per line: UNIQUE(line_id) WHERE is_active = true
 	}
 
-	%% This stores “what factor did we use, after conversions, and why” so results are reproducible.
+	%% This stores "what factor did we use, after conversions, and why" so results are reproducible.
 	carbon_inventory_line_factor {
 		BIGINT id PK ""
 		BIGINT line_input_id FK "carbon_inventory_line_input(id)"
@@ -530,7 +529,8 @@ erDiagram
 		BIGINT emission_factor_id FK "NULLABLE, emission_factor(id)"
 
 		%% normalized factor actually used in the computation (post-conversion)
-		numeric applied_factor_value "NULLABLE"
+		%% REQUIRED: Must always be present for result reproducibility
+		numeric applied_factor_value "REQUIRED"
 		BIGINT applied_factor_rate_unit_id FK "rate_measurement_unit(id)"
 		string applied_factor_source "NULLABLE"
 
@@ -763,6 +763,8 @@ carbon_inventory_line
 	carbon_inventory_line ||--o{ carbon_inventory_line_input: "receives"
 
 carbon_inventory_line_input
+	carbon_inventory_line_input ||--o| emission_factor_dimension_value: "may select (selection_1)"
+	carbon_inventory_line_input ||--o| emission_factor_dimension_value: "may select (selection_2)"
 	carbon_inventory_line_input ||--o| measurement_unit: "may use one"
 	carbon_inventory_line_input ||--o| rate_measurement_unit: "may use one"
 	carbon_inventory_line_input ||--o| carbon_inventory_line_factor: "derives"

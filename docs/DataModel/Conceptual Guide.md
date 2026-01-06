@@ -109,11 +109,11 @@ Represents one reporting year, methodology version, and usage mode.
 
 ### Inventory Lines
 
-Each line defines what is being measured (subcategory + selections).
+Each line defines what is being measured (subcategory). Selections are stored in the input table.
 
 ### Inputs
 
-User-provided data, versioned and immutable once replaced.
+User-provided data including selections, quantities, and measurement units. Versioned and immutable once replaced.
 
 ### Factors
 

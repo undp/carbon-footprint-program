@@ -196,6 +196,14 @@ model User {
   emissionFactorDimensionValuesUpdated EmissionFactorDimensionValue[] @relation("emission_factor_dimension_value_updated_by")
   emissionFactorsCreated               EmissionFactor[]               @relation("emission_factor_created_by")
   emissionFactorsUpdated               EmissionFactor[]               @relation("emission_factor_updated_by")
+  carbonInventoryLinesCreated          CarbonInventoryLine[]          @relation("carbon_inventory_line_created_by")
+  carbonInventoryLinesUpdated          CarbonInventoryLine[]          @relation("carbon_inventory_line_updated_by")
+  carbonInventoryLineInputsCreated     CarbonInventoryLineInput[]     @relation("carbon_inventory_line_input_created_by")
+  carbonInventoryLineInputsUpdated     CarbonInventoryLineInput[]     @relation("carbon_inventory_line_input_updated_by")
+  carbonInventoryLineFactorsCreated    CarbonInventoryLineFactor[]    @relation("carbon_inventory_line_factor_created_by")
+  carbonInventoryLineFactorsUpdated    CarbonInventoryLineFactor[]    @relation("carbon_inventory_line_factor_updated_by")
+  carbonInventoryLineResultsCreated    CarbonInventoryLineResult[]    @relation("carbon_inventory_line_result_created_by")
+  carbonInventoryLineResultsUpdated    CarbonInventoryLineResult[]    @relation("carbon_inventory_line_result_updated_by")
   countryJobPosition                   CountryJobPosition             @relation(fields: [countryJobPositionId], references: [id])
   creator                              User?                          @relation("user_created_by", fields: [createdById], references: [id])
   usersCreated                         User[]                         @relation("user_created_by")
@@ -206,27 +214,30 @@ model User {
 }
 
 model MeasurementUnit {
-  id                     BigInt                @id @default(autoincrement())
+  id                     BigInt                     @id @default(autoincrement())
   name                   String
   magnitude              Magnitude
-  abbreviation           String                @unique
-  baseFactor             Float                 @map("base_factor")
-  isBase                 Boolean               @map("is_base")
-  rateUnitsAsDenominator RateMeasurementUnit[] @relation("denominator_measurement_unit")
-  rateUnitsAsNumerator   RateMeasurementUnit[] @relation("numerator_measurement_unit")
+  abbreviation           String                     @unique
+  baseFactor             Float                      @map("base_factor")
+  isBase                 Boolean                    @map("is_base")
+  rateUnitsAsDenominator RateMeasurementUnit[]      @relation("denominator_measurement_unit")
+  rateUnitsAsNumerator   RateMeasurementUnit[]      @relation("numerator_measurement_unit")
+  lineInputs             CarbonInventoryLineInput[]
 
   @@map("measurement_unit")
 }
 
 model RateMeasurementUnit {
-  id                           BigInt           @id @default(autoincrement())
+  id                           BigInt                      @id @default(autoincrement())
   name                         String
-  abbreviation                 String           @unique
-  numeratorMeasurementUnitId   BigInt           @map("numerator_measurement_unit_id")
-  denominatorMeasurementUnitId BigInt           @map("denominator_measurement_unit_id")
-  denominatorMeasurementUnit   MeasurementUnit  @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
-  numeratorMeasurementUnit     MeasurementUnit  @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
+  abbreviation                 String                      @unique
+  numeratorMeasurementUnitId   BigInt                      @map("numerator_measurement_unit_id")
+  denominatorMeasurementUnitId BigInt                      @map("denominator_measurement_unit_id")
+  denominatorMeasurementUnit   MeasurementUnit             @relation("denominator_measurement_unit", fields: [denominatorMeasurementUnitId], references: [id])
+  numeratorMeasurementUnit     MeasurementUnit             @relation("numerator_measurement_unit", fields: [numeratorMeasurementUnitId], references: [id])
   emissionFactors              EmissionFactor[]
+  lineInputsAsManualFactor     CarbonInventoryLineInput[]  @relation("manual_factor_rate_unit")
+  lineFactorsAsApplied         CarbonInventoryLineFactor[] @relation("applied_factor_rate_unit")
 
   @@map("rate_measurement_unit")
 }
@@ -256,19 +267,29 @@ enum UsageMode {
   @@map("usage_mode")
 }
 
+/// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
+enum InputType {
+  SIMPLIFIED
+  EXPERT
+  DIRECT
+
+  @@map("input_type")
+}
+
 model StatusCatalog {
-  id                  BigInt               @id @default(autoincrement())
+  id                  BigInt                @id @default(autoincrement())
   scope               String
   code                String
   name                String
-  isTerminal          Boolean?             @map("is_terminal")
-  isVisible           Boolean?             @map("is_visible")
-  sortOrder           Int?                 @map("sort_order")
-  isActive            Boolean?             @map("is_active")
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @default(now()) @updatedAt @map("updated_at")
+  isTerminal          Boolean?              @map("is_terminal")
+  isVisible           Boolean?              @map("is_visible")
+  sortOrder           Int?                  @map("sort_order")
+  isActive            Boolean?              @map("is_active")
+  createdAt           DateTime              @default(now()) @map("created_at")
+  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at")
   methodologyVersions MethodologyVersion[]
   emissionFactors     EmissionFactor[]
+  inventoryLines      CarbonInventoryLine[]
 
   @@unique([scope, code])
   @@map("status_catalog")
@@ -336,6 +357,7 @@ model Subcategory {
   updater         User?                     @relation("subcategory_updated_by", fields: [updatedById], references: [id])
   dimensions      EmissionFactorDimension[]
   emissionFactors EmissionFactor[]
+  inventoryLines  CarbonInventoryLine[]
 
   @@unique([categoryId, name])
   @@map("subcategory")
@@ -378,6 +400,8 @@ model EmissionFactorDimensionValue {
   childValues                 EmissionFactorDimensionValue[] @relation("dimension_value_hierarchy")
   emissionFactorsAsDimension1 EmissionFactor[]               @relation("emission_factor_dimension_value_1")
   emissionFactorsAsDimension2 EmissionFactor[]               @relation("emission_factor_dimension_value_2")
+  lineInputsAsSelection1      CarbonInventoryLineInput[]     @relation("line_input_selection_1")
+  lineInputsAsSelection2      CarbonInventoryLineInput[]     @relation("line_input_selection_2")
   creator                     User?                          @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id])
   updater                     User?                          @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id])
 
@@ -406,6 +430,7 @@ model EmissionFactor {
   status                StatusCatalog                 @relation(fields: [statusId], references: [id])
   creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
   updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
+  lineFactors           CarbonInventoryLineFactor[]
 
   // TODO: Enforce UNIQUE (subcategory_id, dimension_value_1_id, dimension_value_2_id) WHERE status = 'ACTIVE'
 
@@ -414,23 +439,123 @@ model EmissionFactor {
 }
 
 model CarbonInventory {
-  id                   BigInt              @id @default(autoincrement())
-  organizationId       BigInt?             @map("organization_id")
-  organizationBranchId BigInt?             @map("organization_branch_id")
-  organizationData     Json?               @map("organization_data") @db.JsonB
+  id                   BigInt                @id @default(autoincrement())
+  organizationId       BigInt?               @map("organization_id")
+  organizationBranchId BigInt?               @map("organization_branch_id")
+  organizationData     Json?                 @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus     @default(DRAFT)
-  usageMode            UsageMode           @map("usage_mode")
-  methodologyVersionId BigInt?             @map("methodology_version_id")
-  preselectedNodesId   BigInt?             @map("preselected_nodes_id")
-  isEditable           Boolean             @default(true) @map("is_editable")
-  createdAt            DateTime            @default(now()) @map("created_at")
-  updatedAt            DateTime            @default(now()) @updatedAt @map("updated_at")
-  createdById          BigInt?             @map("created_by_id")
-  updatedById          BigInt?             @map("updated_by_id")
-  methodologyVersion   MethodologyVersion? @relation(fields: [methodologyVersionId], references: [id])
-  creator              User?               @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
-  updater              User?               @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+  status               InventoryStatus       @default(DRAFT)
+  usageMode            UsageMode             @map("usage_mode")
+  methodologyVersionId BigInt?               @map("methodology_version_id")
+  preselectedNodesId   BigInt?               @map("preselected_nodes_id")
+  isEditable           Boolean               @default(true) @map("is_editable")
+  createdAt            DateTime              @default(now()) @map("created_at")
+  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at")
+  createdById          BigInt?               @map("created_by_id")
+  updatedById          BigInt?               @map("updated_by_id")
+  methodologyVersion   MethodologyVersion?   @relation(fields: [methodologyVersionId], references: [id])
+  creator              User?                 @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
+  updater              User?                 @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+  lines                CarbonInventoryLine[]
 
   @@map("carbon_inventory")
+}
+
+// A "line" represents what is being measured (subcategory + optional selections) for a given inventory.
+// We do not store quantities/factors here. It's the anchor.
+model CarbonInventoryLine {
+  id                BigInt                     @id @default(autoincrement())
+  carbonInventoryId BigInt                     @map("carbon_inventory_id")
+  subcategoryId     BigInt                     @map("subcategory_id")
+  statusId          BigInt                     @map("status_id")
+  createdAt         DateTime                   @default(now()) @map("created_at")
+  updatedAt         DateTime                   @default(now()) @updatedAt @map("updated_at")
+  createdById       BigInt?                    @map("created_by_id")
+  updatedById       BigInt?                    @map("updated_by_id")
+  carbonInventory   CarbonInventory            @relation(fields: [carbonInventoryId], references: [id])
+  subcategory       Subcategory                @relation(fields: [subcategoryId], references: [id])
+  status            StatusCatalog              @relation(fields: [statusId], references: [id])
+  creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id])
+  updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
+  inputs            CarbonInventoryLineInput[]
+
+  @@map("carbon_inventory_line")
+}
+
+model CarbonInventoryLineInput {
+  id                     BigInt                        @id @default(autoincrement())
+  lineId                 BigInt                        @map("line_id")
+  inputType              InputType                     @map("input_type")
+  selection1Id           BigInt?                       @map("selection_1_id")
+  selection2Id           BigInt?                       @map("selection_2_id")
+  quantity               Decimal?                      @db.Decimal(18, 10)
+  measurementUnitId      BigInt?                       @map("measurement_unit_id")
+  directTotalEmissions   Decimal?                      @map("direct_total_emissions") @db.Decimal(18, 10)
+  manualFactor           Decimal?                      @map("manual_factor") @db.Decimal(18, 10)
+  manualFactorSource     String?                       @map("manual_factor_source")
+  manualFactorRateUnitId BigInt?                       @map("manual_factor_rate_unit_id")
+  comment                String?
+  isActive               Boolean                       @default(true) @map("is_active")
+  createdAt              DateTime                      @default(now()) @map("created_at")
+  updatedAt              DateTime                      @default(now()) @updatedAt @map("updated_at")
+  createdById            BigInt?                       @map("created_by_id")
+  updatedById            BigInt?                       @map("updated_by_id")
+  line                   CarbonInventoryLine           @relation(fields: [lineId], references: [id])
+  selection1             EmissionFactorDimensionValue? @relation("line_input_selection_1", fields: [selection1Id], references: [id])
+  selection2             EmissionFactorDimensionValue? @relation("line_input_selection_2", fields: [selection2Id], references: [id])
+  measurementUnit        MeasurementUnit?              @relation(fields: [measurementUnitId], references: [id])
+  manualFactorRateUnit   RateMeasurementUnit?          @relation("manual_factor_rate_unit", fields: [manualFactorRateUnitId], references: [id])
+  creator                User?                         @relation("carbon_inventory_line_input_created_by", fields: [createdById], references: [id])
+  updater                User?                         @relation("carbon_inventory_line_input_updated_by", fields: [updatedById], references: [id])
+  factor                 CarbonInventoryLineFactor?
+  result                 CarbonInventoryLineResult?
+
+  // Enforced via DB constraint: UNIQUE(line_id) WHERE is_active = true
+  // See migration: 20260101235319_add_unique_active_input_per_line_constraint
+  @@map("carbon_inventory_line_input")
+}
+
+// This stores "what factor did we use, after conversions, and why" so results are reproducible.
+// NOTE: appliedFactorValue is required because it represents the normalized factor actually used
+// in the computation (post-conversion). For reproducibility of calculations, this value must
+// always be present. If a factor cannot be determined at creation time, the creation should
+// fail rather than storing NULL, as NULL would break result reproducibility.
+model CarbonInventoryLineFactor {
+  id                      BigInt                   @id @default(autoincrement())
+  lineInputId             BigInt                   @map("line_input_id")
+  emissionFactorId        BigInt?                  @map("emission_factor_id")
+  appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(18, 10)
+  appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
+  appliedFactorSource     String?                  @map("applied_factor_source")
+  derivationDetails       Json?                    @map("derivation_details") @db.JsonB
+  createdAt               DateTime                 @default(now()) @map("created_at")
+  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at")
+  createdById             BigInt?                  @map("created_by_id")
+  updatedById             BigInt?                  @map("updated_by_id")
+  lineInput               CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id])
+  emissionFactor          EmissionFactor?          @relation(fields: [emissionFactorId], references: [id])
+  appliedFactorRateUnit   RateMeasurementUnit      @relation("applied_factor_rate_unit", fields: [appliedFactorRateUnitId], references: [id])
+  creator                 User?                    @relation("carbon_inventory_line_factor_created_by", fields: [createdById], references: [id])
+  updater                 User?                    @relation("carbon_inventory_line_factor_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([lineInputId])
+  @@map("carbon_inventory_line_factor")
+}
+
+model CarbonInventoryLineResult {
+  id             BigInt                   @id @default(autoincrement())
+  lineInputId    BigInt                   @map("line_input_id")
+  totalEmissions Decimal                  @map("total_emissions") @db.Decimal(18, 10)
+  resultDetails  Json?                    @map("result_details") @db.JsonB
+  calculatedAt   DateTime                 @default(now()) @map("calculated_at")
+  createdAt      DateTime                 @default(now()) @map("created_at")
+  updatedAt      DateTime                 @default(now()) @updatedAt @map("updated_at")
+  createdById    BigInt?                  @map("created_by_id")
+  updatedById    BigInt?                  @map("updated_by_id")
+  lineInput      CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id])
+  creator        User?                    @relation("carbon_inventory_line_result_created_by", fields: [createdById], references: [id])
+  updater        User?                    @relation("carbon_inventory_line_result_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([lineInputId])
+  @@map("carbon_inventory_line_result")
 }
