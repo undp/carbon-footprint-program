@@ -625,11 +625,10 @@ export function isInputDataUnchanged(
   // Factor is created for both SIMPLIFIED and EXPERT modes
   // SIMPLIFIED: has emissionFactorId (from baseFactorId)
   // EXPERT: emissionFactorId is null (when factorSource is "Factor Propio")
-  const shouldHaveFactor =
+  if (
     lineData.appliedFactorValue !== null &&
-    lineData.appliedFactorRateMeasurementUnitId !== null;
-
-  if (shouldHaveFactor) {
+    lineData.appliedFactorRateMeasurementUnitId !== null
+  ) {
     if (!currentInput.factor) return false;
 
     const newEmissionFactorId = mapBigIntField(lineData.baseFactorId);
@@ -650,7 +649,7 @@ export function isInputDataUnchanged(
     }
 
     const newAppliedFactorRateUnitId = BigInt(
-      lineData.appliedFactorRateMeasurementUnitId!
+      lineData.appliedFactorRateMeasurementUnitId
     );
     if (
       currentInput.factor.appliedFactorRateUnitId !== newAppliedFactorRateUnitId
