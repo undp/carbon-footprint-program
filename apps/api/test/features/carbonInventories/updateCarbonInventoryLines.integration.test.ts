@@ -98,13 +98,16 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       expect(updatedLine.comment).toBeNull();
 
       // Verify old input is marked as inactive
-      const oldInputs = await prisma.carbonInventoryLineInput.findMany({
+      const allInputs = await prisma.carbonInventoryLineInput.findMany({
         where: {
           lineId: line.id,
-          isActive: false,
         },
       });
-      expect(oldInputs.length).toBeGreaterThanOrEqual(0);
+      const oldInputs = allInputs.filter((input) => !input.isActive);
+      // Verify that all inactive inputs are actually deactivated
+      for (const input of oldInputs) {
+        expect(input.isActive).toBe(false);
+      }
 
       // Verify new active input exists
       const activeInputs = await prisma.carbonInventoryLineInput.findMany({
