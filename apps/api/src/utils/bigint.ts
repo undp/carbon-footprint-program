@@ -4,15 +4,21 @@
  * - Returns null if value is null or empty string
  * - Returns BigInt(value) otherwise
  */
-export const mapBigIntField = (
+export function mapBigIntField(value: string): bigint;
+export function mapBigIntField(value: null): null;
+export function mapBigIntField(value: undefined): undefined;
+export function mapBigIntField(value: string | null): bigint | null;
+export function mapBigIntField(value: string | undefined): bigint | undefined;
+export function mapBigIntField(
   value: string | null | undefined
-): bigint | null | undefined => {
+): bigint | null | undefined;
+export function mapBigIntField(
+  value: string | null | undefined
+): bigint | null | undefined {
   if (value === undefined) return undefined;
-
-  if (value === null || value === "") return null;
-
+  if (value === null) return null;
   return BigInt(value);
-};
+}
 
 /**
  * Compares two BigInt values for equality.

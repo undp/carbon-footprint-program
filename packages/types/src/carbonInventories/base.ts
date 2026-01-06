@@ -22,12 +22,16 @@ export const CarbonInventoryLineSchema = z
     isManualTotalEmissions: z
       .boolean()
       .describe("Whether manual total emissions are used"),
-    dimensions: z
-      .record(z.string().regex(/^\d+$/), z.string().regex(/^\d+$/).nullable())
+    dimensionValue1Id: z
+      .string()
+      .regex(/^\d+$/)
       .nullable()
-      .describe(
-        "Dimensions map with dimension ID as key and selected dimension value ID as value"
-      ),
+      .describe("The ID of the first dimension value (position 1)"),
+    dimensionValue2Id: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the second dimension value (position 2)"),
     quantity: z.number().nullable().describe("The quantity value"),
     measurementUnitId: z
       .string()

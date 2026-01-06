@@ -3,7 +3,6 @@ import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
 import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
 import { OrganizationDataSchema } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
-import { isCarbonInventoryLineEdited } from "./utils.js";
 
 // Prisma type for carbon inventory with lines, inputs, and factors
 // Note: subcategories are fetched separately to avoid duplication
@@ -21,12 +20,6 @@ type CarbonInventoryWithLines = Prisma.CarbonInventoryGetPayload<{
   };
 }>;
 
-export type SubcategoryWithDimensions = Prisma.SubcategoryGetPayload<{
-  include: {
-    dimensions: true;
-  };
-}>;
-
 // Helper type for a line with inputs
 export type LineWithInputs = NonNullable<
   CarbonInventoryWithLines["lines"]
@@ -41,10 +34,7 @@ function toNumberOrNull(value: unknown): number | null {
   return value !== null && value !== undefined ? Number(value) : null;
 }
 
-export function mapLineToResponse(
-  line: LineWithInputs,
-  subcategory: SubcategoryWithDimensions
-): LineResponse {
+export function mapLineToResponse(line: LineWithInputs): LineResponse {
   // Get the active input (should be at most one due to our query)
   const activeInput = line.inputs?.[0] ?? null;
 
@@ -53,37 +43,8 @@ export function mapLineToResponse(
     ? activeInput.inputType === "DIRECT"
     : false;
 
-  // Build dimensions object
-  // Key: EmissionFactorDimension ID (position 1 or 2) as string
-  // Value: selection1Id or selection2Id as string
-  const dimensions: LineResponse["dimensions"] = (() => {
-    if (!activeInput) return null;
-
-    // If manual total emissions are used, return null dimensions
-    if (isManualTotalEmissions) return null;
-
-    // Return null dimensions if line was not edited
-    if (!isCarbonInventoryLineEdited(line)) return null;
-
-    // Return null dimensions if subcategory has no dimensions
-    if (!subcategory.dimensions || !subcategory.dimensions.length) return null;
-
-    const value: LineResponse["dimensions"] = {};
-
-    // Try dimension at position 1 first
-    const dimension1 = subcategory.dimensions.find((dim) => dim.position === 1);
-    if (dimension1)
-      value[dimension1.id.toString()] =
-        activeInput.selection1Id?.toString() ?? null;
-
-    // Try dimension at position 2
-    const dimension2 = subcategory.dimensions.find((dim) => dim.position === 2);
-    if (dimension2)
-      value[dimension2.id.toString()] =
-        activeInput.selection2Id?.toString() ?? null;
-
-    return value;
-  })();
+  const dimensionValue1Id = activeInput?.selection1Id?.toString() ?? null;
+  const dimensionValue2Id = activeInput?.selection2Id?.toString() ?? null;
 
   // Get quantity
   const quantity = toNumberOrNull(activeInput?.quantity);
@@ -117,7 +78,8 @@ export function mapLineToResponse(
     id: String(line.id),
     subcategoryId: line.subcategoryId.toString(),
     isManualTotalEmissions,
-    dimensions,
+    dimensionValue1Id,
+    dimensionValue2Id,
     quantity,
     measurementUnitId,
     factorSource,
@@ -161,21 +123,10 @@ function mapBaseCarbonInventory(
 
 // Map carbon inventory with lines to response (includes lines field)
 export function mapCarbonInventoryWithLinesToResponse(
-  item: CarbonInventoryWithLines,
-  subcategories: SubcategoryWithDimensions[]
+  item: CarbonInventoryWithLines
 ): ResponseCarbonInventory {
   const base = mapBaseCarbonInventory(item);
-
-  const subcategoryById = new Map(subcategories.map((s) => [s.id, s]));
-
-  const lines = item.lines.map((line) => {
-    const subcategory = subcategoryById.get(line.subcategoryId);
-    if (!subcategory)
-      throw new DataIntegrityError(
-        `Subcategory ${line.subcategoryId} not found for parsing line ${line.id}`
-      );
-    return mapLineToResponse(line, subcategory);
-  });
+  const lines = item.lines.map(mapLineToResponse);
 
   return {
     ...base,

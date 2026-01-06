@@ -104,7 +104,8 @@ Content-Type: application/json
 [
   {
     "id": "1",
-    "dimensions": null,
+    "dimensionValue1Id": null,
+    "dimensionValue2Id": null,
     "measurementUnitId": null,
     "quantity": null,
     "factorSource": null,
@@ -124,7 +125,8 @@ Content-Type: application/json
 [
   {
     "id": "1",
-    "dimensions": null,
+    "dimensionValue1Id": null,
+    "dimensionValue2Id": null,
     "measurementUnitId": null,
     "quantity": null,
     "factorSource": null,
@@ -144,10 +146,8 @@ Content-Type: application/json
 [
   {
     "id": "3",
-    "dimensions": {
-      "1": "2",
-      "2": "8"
-    },
+    "dimensionValue1Id": "2",
+    "dimensionValue2Id": "8",
     "measurementUnitId": "5",
     "quantity": 1500,
     "factorSource": "DEFRA 2025",
@@ -167,10 +167,8 @@ Content-Type: application/json
 [
   {
     "id": "1",
-    "dimensions": {
-      "1": "2",
-      "2": "8"
-    },
+    "dimensionValue1Id": "2",
+    "dimensionValue2Id": "8",
     "measurementUnitId": "5",
     "quantity": 1500,
     "factorSource": "Factor Propio",
@@ -190,7 +188,8 @@ Content-Type: application/json
 [
   {
     "id": "1",
-    "dimensions": null,
+    "dimensionValue1Id": null,
+    "dimensionValue2Id": null,
     "measurementUnitId": null,
     "quantity": null,
     "factorSource": null,
@@ -202,7 +201,8 @@ Content-Type: application/json
   },
   {
     "id": "2",
-    "dimensions": null,
+    "dimensionValue1Id": null,
+    "dimensionValue2Id": null,
     "measurementUnitId": null,
     "quantity": null,
     "factorSource": null,

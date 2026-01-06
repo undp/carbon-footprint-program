@@ -5,12 +5,16 @@ import { CarbonInventoryLineSchema } from "./base.js";
 export const UpdateCarbonInventoryLineRequestItemSchema = z
   .object({
     id: z.string().regex(/^\d+$/).describe("The ID of the line to update"),
-    dimensions: z
-      .record(z.string().regex(/^\d+$/), z.string().regex(/^\d+$/).nullable())
+    dimensionValue1Id: z
+      .string()
+      .regex(/^\d+$/)
       .nullable()
-      .describe(
-        "Dimensions map with dimension ID as key and selected dimension value ID as value"
-      ),
+      .describe("The ID of the first dimension value (position 1)"),
+    dimensionValue2Id: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the second dimension value (position 2)"),
     measurementUnitId: z
       .string()
       .regex(/^\d+$/)
@@ -48,7 +52,8 @@ export const UpdateCarbonInventoryLineRequestItemSchema = z
       // If manualTotalEmissions is provided, all other fields must be null
       if (data.manualTotalEmissions !== null) {
         return (
-          data.dimensions === null &&
+          data.dimensionValue1Id === null &&
+          data.dimensionValue2Id === null &&
           data.measurementUnitId === null &&
           data.quantity === null &&
           data.factorSource === null &&

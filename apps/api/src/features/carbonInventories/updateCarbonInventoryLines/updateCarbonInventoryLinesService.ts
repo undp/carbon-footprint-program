@@ -10,20 +10,9 @@ import {
   validateMeasurementUnits,
   validateEmissionFactors,
   isInputDataUnchanged,
-  extractDimensionSelections,
 } from "./updateCarbonInventoryLinesHelper.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
-
-type SubcategoryWithDimensionsAndValues = Prisma.SubcategoryGetPayload<{
-  include: {
-    dimensions: {
-      include: {
-        values: true;
-      };
-    };
-  };
-}>;
 
 export type UpdateCarbonInventoryLinesResult =
   | { success: true; data: UpdateCarbonInventoryLinesResponse }
@@ -232,26 +221,18 @@ export const updateCarbonInventoryLinesService = async (
   );
 
   // Process each line update within a single transaction
-  const updatedLines: Array<{
-    line: (typeof lines)[number];
-    subcategory: SubcategoryWithDimensionsAndValues;
-  }> = [];
+  const updatedLines: Array<(typeof lines)[number]> = [];
 
   await prismaClient.$transaction(async (tx) => {
     for (const lineData of request) {
       // Safe assertion: all lines validated above
       const line = databaseLineMap.get(lineData.id)!;
 
-      // Safe assertion: all subcategories validated above
-      const subcategory = subcategoryMap.get(line.subcategoryId.toString())!;
-
       const inputType = determineInputType(lineData);
 
-      // Extract dimension values based on position
-      const { selection1Id, selection2Id } = extractDimensionSelections(
-        lineData.dimensions,
-        subcategory
-      );
+      // Extract dimension values from request fields
+      const selection1Id = mapBigIntField(lineData.dimensionValue1Id);
+      const selection2Id = mapBigIntField(lineData.dimensionValue2Id);
 
       // Check if there's an active input and if the data is unchanged
       const currentActiveInput = line.inputs[0] ?? null;
@@ -266,7 +247,7 @@ export const updateCarbonInventoryLinesService = async (
             selection2Id
           )
         ) {
-          updatedLines.push({ line, subcategory });
+          updatedLines.push(line);
           continue;
         }
 
@@ -366,7 +347,7 @@ export const updateCarbonInventoryLinesService = async (
         });
       }
 
-      updatedLines.push({ line, subcategory });
+      updatedLines.push(line);
     }
   });
 
@@ -393,25 +374,13 @@ export const updateCarbonInventoryLinesService = async (
   const lineMap = new Map(
     updatedLinesWithInputs.map((line) => [line.id.toString(), line])
   );
-  const lineToSubcategoryMap = new Map(
-    updatedLines.map((ul) => [ul.line.id.toString(), ul.subcategory])
-  );
 
   // Map lines to response in the same order as the request
   const response: UpdateCarbonInventoryLinesResponse = request.map(
     (lineData) => {
       const line = lineMap.get(lineData.id);
-      const subcategory = lineToSubcategoryMap.get(lineData.id);
-
-      if (!line) {
-        throw new Error(`Line ${lineData.id} not found after update`);
-      }
-
-      if (!subcategory) {
-        throw new Error(`Subcategory not found for line ${lineData.id}`);
-      }
-
-      return mapLineToResponse(line, subcategory);
+      if (!line) throw new Error(`Line ${lineData.id} not found after update`);
+      return mapLineToResponse(line);
     }
   );
 

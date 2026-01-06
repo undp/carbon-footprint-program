@@ -41,46 +41,6 @@ type Line = {
 };
 
 /**
- * Extracts dimension selection IDs (selection1Id and selection2Id) from request dimensions
- * based on the subcategory's dimension positions.
- *
- * @param dimensions - The dimensions object from the request (dimension ID -> dimension value ID mapping)
- * @param subcategory - The subcategory with its dimensions
- * @returns An object with selection1Id and selection2Id (both can be null)
- */
-export function extractDimensionSelections(
-  dimensions: UpdateCarbonInventoryLinesRequest[number]["dimensions"],
-  subcategory: SubcategoryWithDimensionsAndValues
-): {
-  selection1Id: bigint | null;
-  selection2Id: bigint | null;
-} {
-  let selection1Id: bigint | null = null;
-  let selection2Id: bigint | null = null;
-
-  if (dimensions !== null) {
-    const dimension1 = subcategory.dimensions.find((d) => d.position === 1);
-    const dimension2 = subcategory.dimensions.find((d) => d.position === 2);
-
-    if (dimension1) {
-      const valueIdStr = dimensions[dimension1.id.toString()];
-      if (valueIdStr) {
-        selection1Id = BigInt(valueIdStr);
-      }
-    }
-
-    if (dimension2) {
-      const valueIdStr = dimensions[dimension2.id.toString()];
-      if (valueIdStr) {
-        selection2Id = BigInt(valueIdStr);
-      }
-    }
-  }
-
-  return { selection1Id, selection2Id };
-}
-
-/**
  * Validates that all required subcategories exist in the provided map
  */
 export function validateAllSubcategoriesExist(
@@ -151,10 +111,10 @@ export function validateDimensionsAndValues(
     const lineData = lineDataMap.get(line.id.toString());
     if (!lineData) continue;
 
-    // Skip validation if dimensions is null or empty
+    // Skip validation if both dimension values are null
     if (
-      lineData.dimensions === null ||
-      Object.keys(lineData.dimensions).length === 0
+      lineData.dimensionValue1Id === null &&
+      lineData.dimensionValue2Id === null
     ) {
       continue;
     }
@@ -165,33 +125,39 @@ export function validateDimensionsAndValues(
       continue;
     }
 
-    const dimensionIds = new Set(
-      subcategory.dimensions.map((d) => d.id.toString())
-    );
-
-    // Validate dimension IDs (including those with null values)
-    for (const dimensionIdStr of Object.keys(lineData.dimensions)) {
-      if (!dimensionIds.has(dimensionIdStr)) {
+    // Validate dimensionValue1Id if provided
+    if (lineData.dimensionValue1Id !== null) {
+      const dimension1 = subcategory.dimensions.find((d) => d.position === 1);
+      if (!dimension1) {
         return {
           success: false,
           error: "INVALID_DIMENSION_ID",
         };
       }
+
+      const dimensionValue = dimension1.values.find(
+        (v) => v.id.toString() === lineData.dimensionValue1Id
+      );
+      if (!dimensionValue) {
+        return {
+          success: false,
+          error: "INVALID_DIMENSION_VALUE_ID",
+        };
+      }
     }
 
-    // Validate dimension values (only for non-null values)
-    // Note: Dimension IDs are already validated above, so find() will always succeed
-    for (const [dimensionIdStr, dimensionValueIdStr] of Object.entries(
-      lineData.dimensions
-    )) {
-      if (dimensionValueIdStr === null) continue;
+    // Validate dimensionValue2Id if provided
+    if (lineData.dimensionValue2Id !== null) {
+      const dimension2 = subcategory.dimensions.find((d) => d.position === 2);
+      if (!dimension2) {
+        return {
+          success: false,
+          error: "INVALID_DIMENSION_ID",
+        };
+      }
 
-      const dimension = subcategory.dimensions.find(
-        (d) => d.id.toString() === dimensionIdStr
-      )!; // Safe: validated in loop above
-
-      const dimensionValue = dimension.values.find(
-        (v) => v.id.toString() === dimensionValueIdStr
+      const dimensionValue = dimension2.values.find(
+        (v) => v.id.toString() === lineData.dimensionValue2Id
       );
       if (!dimensionValue) {
         return {
@@ -422,11 +388,9 @@ export async function validateEmissionFactors(
         };
       }
 
-      // Extract selection1Id and selection2Id from dimensions
-      const { selection1Id, selection2Id } = extractDimensionSelections(
-        lineData.dimensions,
-        subcategory
-      );
+      // Extract selection1Id and selection2Id from dimension fields
+      const selection1Id = mapBigIntField(lineData.dimensionValue1Id);
+      const selection2Id = mapBigIntField(lineData.dimensionValue2Id);
 
       // Validate that emission factor dimension values match the dimensions from the request
       const efDimension1Id =
