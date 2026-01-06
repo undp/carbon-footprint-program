@@ -13,3 +13,19 @@ export const mapBigIntField = (
 
   return BigInt(value);
 };
+
+/**
+ * Compares two BigInt values for equality
+ */
+export function bigIntEquals(
+  a: bigint | null | undefined,
+  b: bigint | null | undefined
+): boolean {
+  if (a === null || a === undefined) {
+    return b === null || b === undefined;
+  }
+  if (b === null || b === undefined) {
+    return false;
+  }
+  return a === b;
+}
