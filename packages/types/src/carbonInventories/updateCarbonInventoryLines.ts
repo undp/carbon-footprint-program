@@ -16,7 +16,11 @@ export const UpdateCarbonInventoryLineRequestItemSchema = z
       .regex(/^\d+$/)
       .nullable()
       .describe("The ID of the measurement unit"),
-    quantity: z.number().nullable().describe("The quantity value"),
+    quantity: z
+      .number()
+      .nonnegative()
+      .nullable()
+      .describe("The quantity value"),
     factorSource: z.string().nullable().describe("The source of the factor"),
     baseFactorId: z
       .string()
@@ -71,23 +75,20 @@ export const UpdateCarbonInventoryLineRequestItemSchema = z
     {
       message: "If factorSource is 'Factor Propio', baseFactorId must be null",
     }
-  )
-  .refine(
-    (data) => {
-      // Quantity should be greater than 0 if provided
-      if (data.quantity !== null) {
-        return data.quantity > 0;
-      }
-      return true;
-    },
-    {
-      message: "Quantity must be greater than 0 if provided",
-    }
   );
 
-export const UpdateCarbonInventoryLinesRequestSchema = z.array(
-  UpdateCarbonInventoryLineRequestItemSchema
-);
+export const UpdateCarbonInventoryLinesRequestSchema = z
+  .array(UpdateCarbonInventoryLineRequestItemSchema)
+  .refine(
+    (data) => {
+      const ids = data.map((item) => item.id);
+      const uniqueIds = new Set(ids);
+      return ids.length === uniqueIds.size;
+    },
+    {
+      message: "Duplicate line IDs are not allowed",
+    }
+  );
 
 export const UpdateCarbonInventoryLinesResponseSchema = z.array(
   CarbonInventoryLineSchema
