@@ -13,7 +13,7 @@ import { MainLayout } from "@/components/layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventories, useCreateCarbonInventory } from "@/api/query";
-import { CarbonInventory } from "@repo/types";
+import { GetAllCarbonInventoriesResponse } from "@repo/types";
 
 export const CarbonInventoriesListScreen: FC = () => {
   const navigate = useNavigate();
@@ -21,7 +21,9 @@ export const CarbonInventoriesListScreen: FC = () => {
   const { data: inventories = [], isLoading } = useCarbonInventories();
   const createInventoryMutation = useCreateCarbonInventory();
 
-  const handleSelectInventory = (inventory: CarbonInventory) => {
+  const handleSelectInventory = (
+    inventory: GetAllCarbonInventoriesResponse[number]
+  ) => {
     void navigate({
       to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
       params: { inventoryId: inventory.id },
