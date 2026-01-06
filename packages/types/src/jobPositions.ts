@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { IdSchema } from "./zod.js";
 
 export const JobPositionSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the job position"),
+  id: IdSchema.describe("The ID of the job position"),
   name: z.string().min(1).describe("The name of the job position"),
 });
 

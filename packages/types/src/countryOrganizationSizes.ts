@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { IdSchema } from "./zod.js";
 
 export const CountryOrganizationSizeSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the organization size"),
+  id: IdSchema.describe("The ID of the organization size"),
   name: z.string().min(1).describe("The name of the organization size"),
 });
 
