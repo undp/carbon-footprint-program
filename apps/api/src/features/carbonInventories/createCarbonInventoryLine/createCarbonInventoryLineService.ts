@@ -1,9 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { CreateCarbonInventoryLineResponse } from "@repo/types";
-import {
-  mapLineToResponse,
-  type SubcategoryWithDimensions,
-} from "../mappers.js";
+import { mapLineToResponse } from "../mappers.js";
 
 export type CreateCarbonInventoryLineResult =
   | { success: true; data: CreateCarbonInventoryLineResponse }
@@ -39,17 +36,12 @@ export const createCarbonInventoryLineService = async (
     return { success: false, error: "METHODOLOGY_NOT_FOUND" };
   }
 
-  // Fetch subcategory with dimensions and category for both validation and mapping
+  // Fetch subcategory and category for both validation and mapping
   const subcategoryWithCategory = await prismaClient.subcategory.findUnique({
     where: {
       id: subcategoryId,
     },
     include: {
-      dimensions: {
-        orderBy: {
-          position: "asc",
-        },
-      },
       category: {
         select: {
           methodologyVersionId: true,
@@ -68,11 +60,6 @@ export const createCarbonInventoryLineService = async (
   ) {
     return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
   }
-
-  // Extract dimensions into a SubcategoryWithDimensions object
-  // This makes the dependency on mapLineToResponse explicit and type-safe
-  const { category: _, ...subcategoryRest } = subcategoryWithCategory;
-  const subcategory: SubcategoryWithDimensions = subcategoryRest;
 
   // Get the ACTIVE status ID for lines
   const activeStatus = await prismaClient.statusCatalog.findFirst({
@@ -113,9 +100,8 @@ export const createCarbonInventoryLineService = async (
     },
   });
 
-  // Use the subcategory we already fetched (with dimensions) for mapping
   return {
     success: true,
-    data: mapLineToResponse(line, subcategory),
+    data: mapLineToResponse(line),
   };
 };

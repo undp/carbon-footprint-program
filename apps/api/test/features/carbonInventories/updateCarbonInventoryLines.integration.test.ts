@@ -70,7 +70,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -91,7 +92,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       expect(body).toHaveLength(1);
       const updatedLine = body[0];
       expect(updatedLine.id).toBe(line.id.toString());
-      expect(updatedLine.dimensions).toBeNull();
+      expect(updatedLine.dimensionValue1Id).toBeNull();
+      expect(updatedLine.dimensionValue2Id).toBeNull();
       expect(updatedLine.quantity).toBeNull();
       expect(updatedLine.measurementUnitId).toBeNull();
       expect(updatedLine.factorSource).toBeNull();
@@ -151,7 +153,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -174,7 +177,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       expect(updatedLine.id).toBe(line.id.toString());
       expect(updatedLine.isManualTotalEmissions).toBe(true);
       expect(updatedLine.manualTotalEmissions).toBe(manualTotalEmissions);
-      expect(updatedLine.dimensions).toBeNull();
+      expect(updatedLine.dimensionValue1Id).toBeNull();
+      expect(updatedLine.dimensionValue2Id).toBeNull();
       expect(updatedLine.quantity).toBeNull();
 
       // Verify input type is DIRECT
@@ -269,11 +273,6 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
           ? dimension1.values[0]
           : null;
 
-      const dimensions: Record<string, string | null> = {};
-      if (dimension1 && dimensionValue1) {
-        dimensions[dimension1.id.toString()] = dimensionValue1.id.toString();
-      }
-
       // Get or create an emission factor for this subcategory
       const activeStatus = await getActiveStatusId(prisma);
       let emissionFactor = await prisma.emissionFactor.findFirst({
@@ -310,7 +309,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: Object.keys(dimensions).length > 0 ? dimensions : null,
+            dimensionValue1Id: dimensionValue1?.id.toString() ?? null,
+            dimensionValue2Id: null,
             measurementUnitId: measurementUnit.id.toString(),
             quantity,
             factorSource: "DEFRA 2025",
@@ -440,11 +440,6 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
           ? dimension1.values[0]
           : null;
 
-      const dimensions: Record<string, string | null> = {};
-      if (dimension1 && dimensionValue1) {
-        dimensions[dimension1.id.toString()] = dimensionValue1.id.toString();
-      }
-
       const quantity = 1500;
       const appliedFactorValue = 2.999;
 
@@ -454,7 +449,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: Object.keys(dimensions).length > 0 ? dimensions : null,
+            dimensionValue1Id: dimensionValue1?.id.toString() ?? null,
+            dimensionValue2Id: null,
             measurementUnitId: measurementUnit.id.toString(),
             quantity,
             factorSource: "Factor Propio",
@@ -540,7 +536,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       // First update - create initial input
       const initialPayload = {
         id: line.id.toString(),
-        dimensions: null,
+        dimensionValue1Id: null,
+        dimensionValue2Id: null,
         measurementUnitId: null,
         quantity: null,
         factorSource: null,
@@ -630,7 +627,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line1.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -642,7 +640,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
           },
           {
             id: line2.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -677,7 +676,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: "1",
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -709,7 +709,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: "999999",
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -748,7 +749,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: { "1": "1" },
+            dimensionValue1Id: "1",
+            dimensionValue2Id: null,
             measurementUnitId: "1",
             quantity: 100,
             factorSource: "DEFRA",
@@ -785,7 +787,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: "Factor Propio",
@@ -822,7 +825,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: -1,
             factorSource: null,
@@ -859,7 +863,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         payload: [
           {
             id: line.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,
@@ -871,7 +876,8 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
           },
           {
             id: line.id.toString(),
-            dimensions: null,
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
             measurementUnitId: null,
             quantity: null,
             factorSource: null,

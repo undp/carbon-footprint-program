@@ -77,8 +77,10 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/lines - 
       expect(body.subcategoryId).toBe(String(firstSubcategoryId));
       expect(body).toHaveProperty("isManualTotalEmissions");
       expect(body.isManualTotalEmissions).toBe(false); // Empty line has no inputs
-      expect(body).toHaveProperty("dimensions");
-      expect(body.dimensions).toBeNull(); // Empty line has no dimensions
+      expect(body).toHaveProperty("dimensionValue1Id");
+      expect(body.dimensionValue1Id).toBeNull(); // Empty line has no dimensions
+      expect(body).toHaveProperty("dimensionValue2Id");
+      expect(body.dimensionValue2Id).toBeNull(); // Empty line has no dimensions
       expect(body).toHaveProperty("quantity");
       expect(body.quantity).toBeNull(); // Empty line has no quantity
       expect(body).toHaveProperty("measurementUnitId");

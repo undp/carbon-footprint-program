@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
-import type { SubcategoryWithDimensions } from "../mappers.js";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 import { ApplicationConfigError } from "@/errors/index.js";
 
@@ -57,29 +56,5 @@ export const getCarbonInventoryByIdService = async (
 
   if (!inventory) return null;
 
-  // Collect unique subcategory IDs from the lines
-  const subcategoryIds = [
-    ...new Set(inventory.lines.map((line) => line.subcategoryId)),
-  ];
-
-  // Fetch all subcategories with dimensions in a separate query
-  const subcategories: SubcategoryWithDimensions[] =
-    subcategoryIds.length > 0
-      ? await prismaClient.subcategory.findMany({
-          where: {
-            id: {
-              in: subcategoryIds,
-            },
-          },
-          include: {
-            dimensions: {
-              orderBy: {
-                position: "asc",
-              },
-            },
-          },
-        })
-      : [];
-
-  return mapCarbonInventoryWithLinesToResponse(inventory, subcategories);
+  return mapCarbonInventoryWithLinesToResponse(inventory);
 };
