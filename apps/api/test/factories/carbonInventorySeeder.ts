@@ -286,6 +286,31 @@ export async function getActiveStatusId(prisma: PrismaClient): Promise<bigint> {
 }
 
 /**
+ * Gets the DELETED status ID for lines
+ */
+export async function getDeletedStatusId(
+  prisma: PrismaClient
+): Promise<bigint> {
+  const deletedStatus = await prisma.statusCatalog.findFirst({
+    where: {
+      scope: "ENTITY",
+      code: "DELETED",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!deletedStatus) {
+    throw new Error(
+      "DELETED status not found in database. Please ensure the database is properly seeded."
+    );
+  }
+
+  return deletedStatus.id;
+}
+
+/**
  * Gets all subcategory IDs from a methodology version
  */
 export async function getSubcategoryIds(
