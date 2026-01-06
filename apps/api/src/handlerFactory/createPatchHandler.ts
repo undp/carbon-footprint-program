@@ -32,7 +32,10 @@ export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
 
     if (!data) {
       log.warn(`${resourceName} with ID ${id} not found`);
-      return reply.status(404).send({ message: `${resourceName} not found` });
+      return reply.status(404).send({
+        code: "RESOURCE_NOT_FOUND",
+        message: `${resourceName} not found`,
+      });
     }
 
     log.info(`${resourceName} ${id} updated successfully`);

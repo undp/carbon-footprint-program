@@ -17,7 +17,10 @@ export const createGetAllHandler = <TResponse extends Array<unknown>>(
 
     if (treatEmptyAsNotFound && (!data || data.length === 0)) {
       log.warn(`${resourceName} not found`);
-      return reply.status(404).send({ message: `${resourceName} not found` });
+      return reply.status(404).send({
+        code: "RESOURCE_NOT_FOUND",
+        message: `${resourceName} not found`,
+      });
     }
     log.info(`${resourceName} found successfully`);
 
