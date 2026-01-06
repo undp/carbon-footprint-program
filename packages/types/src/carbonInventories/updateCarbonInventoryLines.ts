@@ -2,85 +2,65 @@ import { z } from "zod";
 import { CarbonInventoryLineSchema } from "./base.js";
 
 // Request schema for updating lines
-export const UpdateCarbonInventoryLineRequestItemSchema = z
-  .object({
-    id: z.string().regex(/^\d+$/).describe("The ID of the line to update"),
-    dimensionValue1Id: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the first dimension value (position 1)"),
-    dimensionValue2Id: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the second dimension value (position 2)"),
-    measurementUnitId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the measurement unit"),
-    quantity: z
-      .number()
-      .nonnegative()
-      .nullable()
-      .describe("The quantity value"),
-    factorSource: z.string().nullable().describe("The source of the factor"),
-    baseFactorId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the base emission factor (null for manual factors)"),
-    appliedFactorValue: z
-      .number()
-      .nullable()
-      .describe("The applied factor value"),
-    appliedFactorRateMeasurementUnitId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the rate measurement unit of the factor"),
-    manualTotalEmissions: z
-      .number()
-      .nullable()
-      .describe("Manual total emissions value"),
-    comment: z.string().nullable().describe("Comment for the line"),
+export const UpdateCarbonInventoryLineRequestItemSchema =
+  CarbonInventoryLineSchema.pick({
+    id: true,
+    dimensionValue1Id: true,
+    dimensionValue2Id: true,
+    quantity: true,
+    measurementUnitId: true,
+    factorSource: true,
+    manualTotalEmissions: true,
+    comment: true,
   })
-  .strict()
-  .refine(
-    (data) => {
-      // If manualTotalEmissions is provided, all other fields must be null
-      if (data.manualTotalEmissions !== null) {
-        return (
-          data.dimensionValue1Id === null &&
-          data.dimensionValue2Id === null &&
-          data.measurementUnitId === null &&
-          data.quantity === null &&
-          data.factorSource === null &&
-          data.baseFactorId === null &&
-          data.appliedFactorValue === null &&
-          data.appliedFactorRateMeasurementUnitId === null
-        );
+    .extend({
+      baseFactorId: z
+        .string()
+        .regex(/^\d+$/)
+        .nullable()
+        .describe(
+          "The ID of the base emission factor (null for manual factors)"
+        ),
+      appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
+      appliedFactorRateMeasurementUnitId:
+        CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,
+    })
+    .strict()
+    .refine(
+      (data) => {
+        // If manualTotalEmissions is provided, all other fields must be null
+        if (data.manualTotalEmissions !== null) {
+          return (
+            data.dimensionValue1Id === null &&
+            data.dimensionValue2Id === null &&
+            data.measurementUnitId === null &&
+            data.quantity === null &&
+            data.factorSource === null &&
+            data.baseFactorId === null &&
+            data.appliedFactorValue === null &&
+            data.appliedFactorRateMeasurementUnitId === null
+          );
+        }
+        return true;
+      },
+      {
+        message:
+          "If manualTotalEmissions is provided, all other fields must be null",
       }
-      return true;
-    },
-    {
-      message:
-        "If manualTotalEmissions is provided, all other fields must be null",
-    }
-  )
-  .refine(
-    (data) => {
-      // If factorSource is "Factor Propio", baseFactorId must be null
-      if (data.factorSource === "Factor Propio") {
-        return data.baseFactorId === null;
+    )
+    .refine(
+      (data) => {
+        // If factorSource is "Factor Propio", baseFactorId must be null
+        if (data.factorSource === "Factor Propio") {
+          return data.baseFactorId === null;
+        }
+        return true;
+      },
+      {
+        message:
+          "If factorSource is 'Factor Propio', baseFactorId must be null",
       }
-      return true;
-    },
-    {
-      message: "If factorSource is 'Factor Propio', baseFactorId must be null",
-    }
-  );
+    );
 
 export const UpdateCarbonInventoryLinesRequestSchema = z
   .array(UpdateCarbonInventoryLineRequestItemSchema)

@@ -1,6 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getCarbonInventorySubcategoriesSummaryHandler } from "./getCarbonInventorySubcategoriesSummaryHandler.js";
-import { GetCarbonInventorySubcategoriesSummaryResponseSchema } from "@repo/types";
+import {
+  IdSchema,
+  GetCarbonInventorySubcategoriesSummaryResponseSchema,
+} from "@repo/types";
 import {
   ErrorResponseSchema,
   NotFoundErrorResponseSchema,
@@ -8,7 +11,7 @@ import {
 import { z } from "zod";
 
 const ParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The carbon inventory ID"),
+  id: IdSchema.describe("The carbon inventory ID"),
 });
 
 export const getCarbonInventorySubcategoriesSummaryRoute = (

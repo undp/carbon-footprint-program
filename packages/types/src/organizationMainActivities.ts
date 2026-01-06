@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { IdSchema } from "./zod.js";
 
 export const GetAllOrganizationMainActivitiesQuerySchema = z
   .object({
@@ -34,7 +35,7 @@ export type GetAllOrganizationMainActivitiesQuery = z.infer<
 
 export const GetAllOrganizationMainActivitiesResponseSchema = z.array(
   z.object({
-    id: z.string().regex(/^\d+$/).describe("The ID of the main activity"),
+    id: IdSchema.describe("The ID of the main activity"),
     name: z.string().min(1).describe("The name of the main activity"),
   })
 );

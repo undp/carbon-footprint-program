@@ -1,9 +1,10 @@
 import { z } from "zod";
+import { IdSchema } from "./zod.js";
 
 export const MagnitudeSchema = z.enum(["MASS", "VOLUME", "DISTANCE", "TIME"]);
 
 export const MeasurementUnitSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the measurement unit"),
+  id: IdSchema.describe("The ID of the measurement unit"),
   name: z.string().min(1).describe("The name of the measurement unit"),
   magnitude: MagnitudeSchema,
   abbreviation: z
@@ -14,18 +15,15 @@ export const MeasurementUnitSchema = z.object({
   isBase: z.boolean().describe("Whether the measurement unit is a base unit"),
 });
 
-const RateUnitComponentSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the measurement unit"),
-  name: z.string().min(1).describe("The name of the measurement unit"),
-  magnitude: MagnitudeSchema,
-  abbreviation: z
-    .string()
-    .min(1)
-    .describe("The abbreviation of the measurement unit"),
+const RateUnitComponentSchema = MeasurementUnitSchema.pick({
+  id: true,
+  name: true,
+  magnitude: true,
+  abbreviation: true,
 });
 
 export const RateMeasurementUnitSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the rate measurement unit"),
+  id: IdSchema.describe("The ID of the rate measurement unit"),
   name: z.string().min(1).describe("The name of the rate measurement unit"),
   abbreviation: z
     .string()

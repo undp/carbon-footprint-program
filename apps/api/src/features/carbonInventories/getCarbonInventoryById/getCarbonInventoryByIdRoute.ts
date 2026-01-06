@@ -1,11 +1,11 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getCarbonInventoryByIdHandler } from "./getCarbonInventoryByIdHandler.js";
-import { GetCarbonInventoryByIdResponseSchema } from "@repo/types";
+import { IdSchema, GetCarbonInventoryByIdResponseSchema } from "@repo/types";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The carbon inventory ID"),
+  id: IdSchema.describe("The carbon inventory ID"),
 });
 
 export const getCarbonInventoryByIdRoute = (fastify: FastifyZodInstance) => {
