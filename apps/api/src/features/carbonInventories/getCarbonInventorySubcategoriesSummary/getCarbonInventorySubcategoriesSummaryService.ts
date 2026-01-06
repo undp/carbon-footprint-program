@@ -99,10 +99,11 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
   for (const line of activeLines) {
     // A subcategory is "edited" if it has an active input
     const hasBeenEdited = Boolean(line.inputs[0]);
+    const previousValue = hasSubcategoryBeenEdited.get(line.subcategoryId);
 
     hasSubcategoryBeenEdited.set(
       line.subcategoryId,
-      hasSubcategoryBeenEdited.get(line.subcategoryId) || hasBeenEdited
+      previousValue || hasBeenEdited
     );
   }
 
