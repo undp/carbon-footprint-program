@@ -1,13 +1,27 @@
 import { useMemo } from "react";
 import { useMethodology } from "@/api/query/carbonInventories/methodologies/useMethodology";
-import { useCarbonInventorySubcategories } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategories";
-import { CategoryWithSubcategories, SubcategoryItem } from "./types";
+import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
+export interface SubcategoryItem {
+  id: string;
+  name: string;
+  description?: string | null;
+  included: boolean; // to check if the subcategory is included in the carbon inventory
+  edited: boolean; // to disable the subcategory if it has been edited
+}
+
+export interface CategoriesWithSubcategories {
+  id: string;
+  name: string;
+  description?: string | null;
+  synonyms?: string | null;
+  position: number;
+  subcategories: SubcategoryItem[];
+}
 
 export interface SubcategoryPreselectionData {
-  categories: CategoryWithSubcategories[];
+  data: CategoriesWithSubcategories[];
   isLoading: boolean;
   isError: boolean;
-  methodologyName?: string;
 }
 
 export const useSubcategoryPreselectionData = (
@@ -19,50 +33,54 @@ export const useSubcategoryPreselectionData = (
     isError: isMethodologyError,
   } = useMethodology(inventoryId);
   const {
-    data: selectionData,
-    isLoading: isSelectionLoading,
-    isError: isSelectionError,
-  } = useCarbonInventorySubcategories(inventoryId);
+    data: subcategoriesSummary,
+    isLoading: isSubcategoriesSummaryLoading,
+    isError: isSubcategoriesSummaryError,
+  } = useCarbonInventorySubcategoriesSummary(inventoryId);
 
-  const mergedData = useMemo<CategoryWithSubcategories[]>(() => {
-    if (!methodology || !selectionData) return [];
+  const mergedData = useMemo<CategoriesWithSubcategories[]>(() => {
+    if (!methodology || !subcategoriesSummary) return [];
 
-    const selectionMap = new Map(
-      selectionData.map((item) => [item.subcategoryId, item])
+    const subcategoriesSummaryMap = new Map(
+      subcategoriesSummary.map((subcategorySummary) => [
+        subcategorySummary.subcategoryId,
+        subcategorySummary,
+      ])
     );
 
-    return methodology.categories.map((category, index) => {
+    return methodology.categories.map((category) => {
       const subcategories: SubcategoryItem[] = category.subcategories.map(
         (subcategory) => {
-          const idNum = Number(subcategory.id);
-          const selectionInfo = selectionMap.get(idNum);
-          const isSelected = selectionInfo?.selected ?? false;
-          const hasEditedLine = selectionInfo?.hasEditedLine ?? false;
-          const disabled = hasEditedLine;
+          const subcategorySummary = subcategoriesSummaryMap.get(
+            subcategory.id
+          );
+          const included = subcategorySummary?.included ?? false;
+          const edited = subcategorySummary?.edited ?? false;
 
           return {
-            id: idNum,
+            id: subcategory.id,
             name: subcategory.name,
             description: subcategory.description,
-            selected: isSelected,
-            hasEditedLine,
-            disabled,
+            included,
+            edited,
           };
         }
       );
 
       return {
-        ...category,
-        order: index + 1,
+        id: category.id,
+        name: category.name,
+        description: category.description,
+        synonyms: category.synonyms,
+        position: category.position,
         subcategories,
-      } as CategoryWithSubcategories;
+      };
     });
-  }, [methodology, selectionData]);
+  }, [methodology, subcategoriesSummary]);
 
   return {
-    categories: mergedData,
-    isLoading: isMethodologyLoading || isSelectionLoading,
-    isError: isMethodologyError || isSelectionError,
-    methodologyName: methodology?.name,
+    data: mergedData,
+    isLoading: isMethodologyLoading || isSubcategoriesSummaryLoading,
+    isError: isMethodologyError || isSubcategoriesSummaryError,
   };
 };

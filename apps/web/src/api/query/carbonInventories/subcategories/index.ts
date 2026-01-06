@@ -1,3 +1,2 @@
-export * from "./useCreateCarbonInventorySubcategories";
 export * from "./useUpdateCarbonInventorySubcategories";
-export * from "./useCarbonInventorySubcategories";
+export * from "./useCarbonInventorySubcategoriesSummary";
