@@ -10,7 +10,8 @@ interface UpdateSubcategoryItem {
 type UpdateSubcategoriesRequest = UpdateSubcategoryItem[];
 
 export const useUpdateCarbonInventorySubcategories = (
-  carbonInventoryId: string
+  carbonInventoryId: string,
+  _data: UpdateSubcategoriesRequest
 ) => {
   const queryClient = useQueryClient();
 

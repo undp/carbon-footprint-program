@@ -4,25 +4,24 @@ import { carbonInventorySubcategoryKeys } from "./keys";
 
 export interface CarbonInventorySubcategory {
   subcategoryId: number;
-  selected: boolean;
-  hasEditedLine: boolean;
+  included: boolean;
+  edited: boolean;
 }
 
 const MOCK_CARBON_INVENTORY_SUBCATEGORIES: CarbonInventorySubcategory[] = [
-  { subcategoryId: 1, selected: true, hasEditedLine: true },
-  { subcategoryId: 2, selected: true, hasEditedLine: false },
-  { subcategoryId: 5, selected: true, hasEditedLine: false },
-  { subcategoryId: 7, selected: true, hasEditedLine: true },
-  { subcategoryId: 8, selected: true, hasEditedLine: false },
-  { subcategoryId: 16, selected: true, hasEditedLine: true },
-  { subcategoryId: 17, selected: true, hasEditedLine: false },
+  { subcategoryId: 1, included: true, edited: true },
+  { subcategoryId: 2, included: true, edited: false },
+  { subcategoryId: 5, included: true, edited: false },
+  { subcategoryId: 7, included: true, edited: true },
+  { subcategoryId: 8, included: true, edited: false },
+  { subcategoryId: 16, included: true, edited: true },
+  { subcategoryId: 17, included: true, edited: false },
 ];
 
 export const useCarbonInventorySubcategories = (carbonInventoryId: string) => {
   return useQuery<CarbonInventorySubcategory[]>({
     queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
     queryFn: async () => {
-      // Simulando una llamada a la API
       return new Promise((resolve) => {
         setTimeout(() => resolve(MOCK_CARBON_INVENTORY_SUBCATEGORIES), 500);
       });
