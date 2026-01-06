@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { IdSchema } from "../zod.js";
 
 const DimensionValueSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the dimension value"),
+  id: IdSchema.describe("The ID of the dimension value"),
   value: z.string().describe("The value of the dimension value"),
   parentValueId: z
     .string()
@@ -11,7 +12,7 @@ const DimensionValueSchema = z.object({
 });
 
 const EmissionFactorDimensionSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the dimension"),
+  id: IdSchema.describe("The ID of the dimension"),
   name: z.string().describe("The name of the dimension"),
   position: z.number().int().describe("The position/order of the dimension"),
   isRequired: z.boolean().describe("Whether this dimension is required"),
@@ -22,32 +23,21 @@ const EmissionFactorDimensionSchema = z.object({
 
 const EmissionFactorSchema = z
   .object({
-    id: z
-      .string()
-      .describe(
-        "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
-      ),
-    originalEmissionFactorId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe(
-        "The ID of the original emission factor. Null for original factors, set for converted factors."
-      ),
-    dimensionValue1Id: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the first dimension value"),
-    dimensionValue2Id: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the second dimension value"),
-    rateMeasurementUnitId: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of the rate measurement unit"),
+    id: IdSchema.describe(
+      "The ID of the emission factor. For original factors, this is the original ID. For converted factors, this is a composite ID."
+    ),
+    originalEmissionFactorId: IdSchema.nullable().describe(
+      "The ID of the original emission factor. Null for original factors, set for converted factors."
+    ),
+    dimensionValue1Id: IdSchema.nullable().describe(
+      "The ID of the first dimension value"
+    ),
+    dimensionValue2Id: IdSchema.nullable().describe(
+      "The ID of the second dimension value"
+    ),
+    rateMeasurementUnitId: IdSchema.describe(
+      "The ID of the rate measurement unit"
+    ),
     source: z.string().describe("The source of the emission factor"),
     gasDetails: z.json().describe("The gas details as JSON"),
     value: z.string().describe("The emission factor value as a decimal string"),
@@ -72,7 +62,7 @@ const EmissionFactorSchema = z
   );
 
 const SubcategorySchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the subcategory"),
+  id: IdSchema.describe("The ID of the subcategory"),
   name: z.string().describe("The name of the subcategory"),
   description: z
     .string()
@@ -88,7 +78,7 @@ const SubcategorySchema = z.object({
 });
 
 const CategorySchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the category"),
+  id: IdSchema.describe("The ID of the category"),
   name: z.string().describe("The name of the category"),
   synonyms: z.string().nullable().describe("Synonyms for the category"),
   description: z

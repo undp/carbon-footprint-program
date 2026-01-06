@@ -1,6 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { updateCarbonInventoryHandler } from "./updateCarbonInventoryHandler.js";
 import {
+  IdSchema,
   UpdateCarbonInventoryRequestSchema,
   UpdateCarbonInventoryResponseSchema,
 } from "@repo/types";
@@ -11,7 +12,7 @@ import {
 import { z } from "zod";
 
 const UpdateCarbonInventoryParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/),
+  id: IdSchema.describe("The carbon inventory ID"),
 });
 
 export const updateCarbonInventoryRoute = (fastify: FastifyZodInstance) => {

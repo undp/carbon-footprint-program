@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { makeAllFieldsNullable } from "../zod.js";
+import { makeAllFieldsNullable, IdSchema } from "../zod.js";
 
 // Enums
 export const InventoryStatusSchema = z.enum([
@@ -14,37 +14,30 @@ export const UsageModeSchema = z.enum(["SIMPLIFIED", "EXPERT"]);
 // Line schema
 export const CarbonInventoryLineSchema = z
   .object({
-    id: z.string().regex(/^\d+$/).describe("The ID of the line"),
-    subcategoryId: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of the subcategory"),
+    id: IdSchema.describe("The ID of the line"),
+    subcategoryId: IdSchema.describe("The ID of the subcategory"),
     isManualTotalEmissions: z
       .boolean()
       .describe("Whether manual total emissions are used"),
-    dimensionValue1Id: z
-      .string()
-      .regex(/^\d+$/)
+    dimensionValue1Id: IdSchema.nullable().describe(
+      "The ID of the first dimension value (position 1)"
+    ),
+    dimensionValue2Id: IdSchema.nullable().describe(
+      "The ID of the second dimension value (position 2)"
+    ),
+    quantity: z
+      .number()
+      .nonnegative()
       .nullable()
-      .describe("The ID of the first dimension value (position 1)"),
-    dimensionValue2Id: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the second dimension value (position 2)"),
-    quantity: z.number().nullable().describe("The quantity value"),
-    measurementUnitId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the measurement unit"),
+      .describe("The quantity value"),
+    measurementUnitId: IdSchema.nullable().describe(
+      "The ID of the measurement unit"
+    ),
     factorSource: z.string().nullable().describe("The source of the factor"),
     factorValue: z.number().nullable().describe("The factor value"),
-    factorRateMeasurementUnitId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the rate measurement unit of the factor"),
+    factorRateMeasurementUnitId: IdSchema.nullable().describe(
+      "The ID of the rate measurement unit of the factor"
+    ),
     comment: z.string().nullable().describe("Comment for the line"),
     manualTotalEmissions: z
       .number()
@@ -57,33 +50,21 @@ export const CarbonInventoryLineSchema = z
 export const OrganizationDataSchema = makeAllFieldsNullable(
   z.object({
     name: z.string().describe("The name of the organization"),
-    sectorId: z.string().regex(/^\d+$/).describe("The ID of the sector"),
-    subsectorId: z.string().regex(/^\d+$/).describe("The ID of the subsector"),
-    sizeId: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of the organization size"),
-    mainActivityId: z
-      .string()
-      .regex(/^\d+$/)
-      .describe("The ID of the main activity"),
+    sectorId: IdSchema.describe("The ID of the sector"),
+    subsectorId: IdSchema.describe("The ID of the subsector"),
+    sizeId: IdSchema.describe("The ID of the organization size"),
+    mainActivityId: IdSchema.describe("The ID of the main activity"),
     mainActivityQuantity: z.int().describe("The quantity of the main activity"),
   })
 ).strict();
 
 export const CarbonInventorySchema = z
   .object({
-    id: z.string().regex(/^\d+$/).describe("The ID of the carbon inventory"),
-    organizationId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the organization"),
-    organizationBranchId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the organization branch"),
+    id: IdSchema.describe("The ID of the carbon inventory"),
+    organizationId: IdSchema.nullable().describe("The ID of the organization"),
+    organizationBranchId: IdSchema.nullable().describe(
+      "The ID of the organization branch"
+    ),
     organizationData: OrganizationDataSchema.nullable().describe(
       "Organization data as JSON object"
     ),
@@ -98,11 +79,9 @@ export const CarbonInventorySchema = z
     usageMode: UsageModeSchema.describe(
       "The usage mode (simplified or expert)"
     ),
-    methodologyVersionId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the methodology version"),
+    methodologyVersionId: IdSchema.nullable().describe(
+      "The ID of the methodology version"
+    ),
     preselectedNodesId: z
       .string()
       .regex(/^\d+$/)

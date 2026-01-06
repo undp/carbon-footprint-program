@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { deleteCarbonInventoryLineHandler } from "./deleteCarbonInventoryLineHandler.js";
-import { DeleteCarbonInventoryLineResponseSchema } from "@repo/types";
+import { IdSchema, DeleteCarbonInventoryLineResponseSchema } from "@repo/types";
 import {
   ValidationErrorResponseSchema,
   NotFoundErrorResponseSchema,
@@ -10,7 +10,7 @@ import {
 import { z } from "zod";
 
 export const DeleteCarbonInventoryLineParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The carbon inventory ID"),
+  id: IdSchema.describe("The carbon inventory ID"),
   subcategoryId: z.string().regex(/^\d+$/).describe("The subcategory ID"),
   lineId: z.string().regex(/^\d+$/).describe("The line ID"),
 });
