@@ -52,13 +52,9 @@ export const useSubcategoryPreselectionData = (
     }));
   }, [methodology, subcategoriesSummary]);
 
-  const hasError = useMemo(() => {
-    return isMethodologyError || isSubcategoriesSummaryError;
-  }, [isMethodologyError, isSubcategoriesSummaryError]);
-
   return {
     data: mergedData,
     isLoading: isMethodologyLoading || isSubcategoriesSummaryLoading,
-    hasError,
+    hasError: isMethodologyError || isSubcategoriesSummaryError,
   };
 };
