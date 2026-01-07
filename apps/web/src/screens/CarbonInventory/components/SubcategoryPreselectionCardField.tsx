@@ -56,7 +56,7 @@ export const SubcategoryField = <T extends FieldValues>({
   if (disabled) {
     return (
       <Tooltip
-        title="No se puede deseleccionar porque tiene emisiones registradas. Elimine las emisiones primero."
+        title="No se puede quitar porque tiene emisiones registradas. Elimine las emisiones primero."
         arrow
         placement="top"
       >
