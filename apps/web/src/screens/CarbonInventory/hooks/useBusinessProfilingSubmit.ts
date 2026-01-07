@@ -9,10 +9,15 @@ type Params = {
   onSuccess?: () => void;
 };
 
+interface HookResult {
+  submit: (data: BusinessProfilingFormValues) => Promise<void>;
+  isSubmitting: boolean;
+}
+
 export const useBusinessProfilingSubmit = ({
   inventoryId,
   onSuccess,
-}: Params) => {
+}: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const updateCarbonInventoryMutation = useUpdateCarbonInventory();
 
@@ -20,9 +25,12 @@ export const useBusinessProfilingSubmit = ({
     async (data: BusinessProfilingFormValues) => {
       try {
         if (!inventoryId) {
-          enqueueSnackbar("No se encontró el inventario a editar", {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            "No se encontró el inventario organizacional a editar",
+            {
+              variant: "error",
+            }
+          );
           return;
         }
 
@@ -37,7 +45,9 @@ export const useBusinessProfilingSubmit = ({
         });
 
         onSuccess?.();
-      } catch {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Error al guardar el inventario organizacional:", error);
         enqueueSnackbar("Error al guardar el inventario organizacional", {
           variant: "error",
         });

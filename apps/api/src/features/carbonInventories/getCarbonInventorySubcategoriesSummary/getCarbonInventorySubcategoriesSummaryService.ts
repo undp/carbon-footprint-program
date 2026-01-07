@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventorySubcategoriesSummaryResponse } from "@repo/types";
+import { isCarbonInventoryLineEdited } from "../utils.js";
 
 export type GetCarbonInventorySubcategoriesSummaryResult =
   | { success: true; data: GetCarbonInventorySubcategoriesSummaryResponse }
@@ -98,7 +99,7 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
 
   for (const line of activeLines) {
     // A subcategory is "edited" if it has an active input
-    const hasBeenEdited = Boolean(line.inputs[0]);
+    const hasBeenEdited = isCarbonInventoryLineEdited(line);
     const previousValue = hasSubcategoryBeenEdited.get(line.subcategoryId);
 
     hasSubcategoryBeenEdited.set(

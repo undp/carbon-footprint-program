@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -13,12 +13,10 @@ import {
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventory } from "@/api/query";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
-import {
-  BusinessProfilingFormValues,
-  useBusinessProfilingForm,
-} from "./hooks/useBusinessProfilingForm";
+import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
+import { useBusinessProfilingNavigation } from "./hooks/useBusinessProfilingNavigation";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { useSnackbar } from "notistack";
 
@@ -29,6 +27,13 @@ const YEARS = Array.from(
     return year.toString();
   }
 ).reverse();
+
+const ERROR_MESSAGE = {
+  title: "No se encontró el inventario",
+  description:
+    "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+  retryButtonText: "Recargar Página",
+} as const;
 
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
@@ -43,8 +48,11 @@ export const BusinessProfilingScreen: FC = () => {
     0.2
   )} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`;
 
-  const { data: existingInventory, isLoading: inventoryLoading } =
-    useCarbonInventory(inventoryId);
+  const {
+    data: existingInventory,
+    isLoading: isInventoryLoading,
+    isError: hasInventoryError,
+  } = useCarbonInventory(inventoryId);
 
   const {
     control,
@@ -83,23 +91,15 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const goNext = useCallback(
-    () =>
-      void navigate({
-        to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
-        params: { inventoryId },
-      }),
-    [navigate, inventoryId]
-  );
+  const { goBack, goNext } = useBusinessProfilingNavigation(inventoryId);
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goNext,
   });
 
-  const onSubmit = async (data: BusinessProfilingFormValues) => {
-    await submit(data);
-  };
+  const isFormDisabled =
+    isSubmitting || isInventoryLoading || hasInventoryError;
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró el inventario", { variant: "error" });
@@ -110,7 +110,7 @@ export const BusinessProfilingScreen: FC = () => {
   return (
     <form
       id="business-profiling-form"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(submit)}
       noValidate
     >
       <CarbonInventoryLayout
@@ -119,15 +119,18 @@ export const BusinessProfilingScreen: FC = () => {
         }}
         footerProps={{
           backButtonProps: {
-            onClick: () => void navigate({ to: Routes.HOME }),
+            onClick: goBack,
           },
           nextButtonProps: {
             type: "submit",
             form: "business-profiling-form",
-            loading: isSubmitting || inventoryLoading,
-            disabled: isSubmitting || inventoryLoading,
+            loading: isSubmitting || isInventoryLoading,
+            disabled: isFormDisabled,
           },
         }}
+        isLoading={isInventoryLoading}
+        hasError={hasInventoryError}
+        errorMessage={ERROR_MESSAGE}
       >
         <Box className="flex min-h-0 flex-1 flex-col gap-6">
           <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
