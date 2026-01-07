@@ -30,7 +30,7 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
         <Box
           className="flex cursor-pointer items-center"
           onClick={() => {
-            void navigate({ to: Routes.HOME as string });
+            void navigate({ to: Routes.HOME });
           }}
         >
           <HuellaLatamLogo

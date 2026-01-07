@@ -1,5 +1,5 @@
 import { ToPathOption } from "@tanstack/react-router";
-import { Routes } from "./routes.enum";
+import { Routes } from "./routes.const";
 
 export const SidebarRoutes: Record<string, ToPathOption> = {
   HOME: Routes.HOME,

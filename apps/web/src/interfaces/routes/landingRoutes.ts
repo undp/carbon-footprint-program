@@ -1,5 +1,5 @@
 import { ToPathOption } from "@tanstack/react-router";
-import { Routes } from "./routes.enum";
+import { Routes } from "./routes.const";
 
 export const LandingHeaderRoutes: Record<string, ToPathOption> = {
   ABOUT_US: Routes.ABOUT_US,
