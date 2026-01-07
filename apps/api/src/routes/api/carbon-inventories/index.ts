@@ -9,6 +9,7 @@ import { createCarbonInventoryLineRoute } from "@/features/carbonInventories/cre
 import { deleteCarbonInventoryLineRoute } from "@/features/carbonInventories/deleteCarbonInventoryLine/deleteCarbonInventoryLineRoute.js";
 import { addSubcategoriesToCarbonInventoryRoute } from "@/features/carbonInventories/addSubcategoriesToCarbonInventory/addSubcategoriesToCarbonInventoryRoute.js";
 import { updateCarbonInventoryLinesRoute } from "@/features/carbonInventories/updateCarbonInventoryLines/updateCarbonInventoryLinesRoute.js";
+import { updateCarbonInventorySubcategoriesRoute } from "@/features/carbonInventories/updateCarbonInventorySubcategories/updateCarbonInventorySubcategoriesRoute.js";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getAllCarbonInventoriesRoute(fastify);
@@ -21,4 +22,5 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   deleteCarbonInventoryLineRoute(fastify);
   addSubcategoriesToCarbonInventoryRoute(fastify);
   updateCarbonInventoryLinesRoute(fastify);
+  updateCarbonInventorySubcategoriesRoute(fastify);
 }

@@ -7,5 +7,6 @@ export * from "./getAllCarbonInventories.js";
 export * from "./getCarbonInventoryById.js";
 export * from "./updateCarbonInventory.js";
 export * from "./updateCarbonInventoryLines.js";
+export * from "./updateCarbonInventorySubcategories.js";
 export * from "./getCarbonInventoryMethodology.js";
 export * from "./getCarbonInventorySubcategoriesSummary.js";
