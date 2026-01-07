@@ -28,7 +28,9 @@ export const useSubcategoryPreselectionSubmit = (
         });
 
         onSuccess?.();
-      } catch {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Error al guardar las subcategorías:", error);
         enqueueSnackbar("Error al guardar las subcategorías", {
           variant: "error",
         });

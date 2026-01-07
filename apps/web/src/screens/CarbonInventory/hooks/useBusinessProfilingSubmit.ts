@@ -37,7 +37,9 @@ export const useBusinessProfilingSubmit = ({
         });
 
         onSuccess?.();
-      } catch {
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("Error al guardar el inventario organizacional:", error);
         enqueueSnackbar("Error al guardar el inventario organizacional", {
           variant: "error",
         });
