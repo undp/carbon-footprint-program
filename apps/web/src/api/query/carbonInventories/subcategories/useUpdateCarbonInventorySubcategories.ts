@@ -3,7 +3,7 @@ import { carbonInventoryKeys } from "../keys";
 import { carbonInventorySubcategoryKeys } from "./keys";
 
 interface UpdateSubcategoryItem {
-  subcategoryId: string;
+  id: string;
   selected: boolean;
 }
 
