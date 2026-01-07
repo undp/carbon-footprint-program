@@ -25,7 +25,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   onClick,
 }) => {
   const theme = useTheme();
-  const icons = useMemo(
+  const icons: Record<number, React.ReactNode> = useMemo(
     () => ({
       1: (
         <DirectEmissionCategoryIcon
