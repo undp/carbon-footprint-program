@@ -1,28 +1,23 @@
-import { useMemo } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useEffect, useMemo, useRef } from "react";
+import { useForm } from "react-hook-form";
 import { CategoryWithSubcategories } from "../types";
-import { useSubcategoryPreselectionSubmit } from "./useSubcategoryPreselectionSubmit";
 
 export interface SubcategoryPreselectionFormProps {
-  inventoryId: string;
   categories: CategoryWithSubcategories[];
-  onSuccess?: () => void;
-}
-
-export interface SubcategoryPreselectionFormReturn {
-  methods: UseFormReturn<Record<string, boolean>>;
-  onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
-  isSubmitting: boolean;
 }
 
 export const useSubcategoryPreselectionForm = ({
-  inventoryId,
   categories,
-  onSuccess,
-}: SubcategoryPreselectionFormProps): SubcategoryPreselectionFormReturn => {
+}: SubcategoryPreselectionFormProps) => {
+  const form = useForm<Record<string, boolean>>({
+    defaultValues: {},
+  });
+
+  const { reset } = form;
+
   const initialValues = useMemo(() => {
     const values: Record<string, boolean> = {};
-    categories.forEach((category: CategoryWithSubcategories) => {
+    categories.forEach((category) => {
       category.subcategories.forEach((subcategory) => {
         values[String(subcategory.id)] = subcategory.included;
       });
@@ -30,20 +25,20 @@ export const useSubcategoryPreselectionForm = ({
     return values;
   }, [categories]);
 
-  const methods = useForm<Record<string, boolean>>({
-    values: initialValues,
-  });
+  const isSettingFormDataRef = useRef<boolean>(true);
 
-  const { handleSubmit } = methods;
+  useEffect(() => {
+    if (categories.length > 0) {
+      isSettingFormDataRef.current = true;
+      reset(initialValues);
 
-  const { onSubmit, isSubmitting } = useSubcategoryPreselectionSubmit(
-    inventoryId,
-    { onSuccess }
-  );
+      queueMicrotask(() => {
+        isSettingFormDataRef.current = false;
+      });
+    }
+  }, [categories, initialValues, reset]);
 
   return {
-    methods,
-    onSubmit: handleSubmit(onSubmit),
-    isSubmitting,
+    ...form,
   };
 };

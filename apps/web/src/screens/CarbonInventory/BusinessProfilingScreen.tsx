@@ -13,10 +13,7 @@ import {
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventory } from "@/api/query";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
-import {
-  BusinessProfilingFormValues,
-  useBusinessProfilingForm,
-} from "./hooks/useBusinessProfilingForm";
+import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
@@ -97,10 +94,6 @@ export const BusinessProfilingScreen: FC = () => {
     onSuccess: goNext,
   });
 
-  const onSubmit = async (data: BusinessProfilingFormValues) => {
-    await submit(data);
-  };
-
   if (!inventoryId) {
     enqueueSnackbar("No se encontró el inventario", { variant: "error" });
     void navigate({ to: Routes.CARBON_INVENTORY });
@@ -110,7 +103,7 @@ export const BusinessProfilingScreen: FC = () => {
   return (
     <form
       id="business-profiling-form"
-      onSubmit={handleSubmit(onSubmit)}
+      onSubmit={handleSubmit(submit)}
       noValidate
     >
       <CarbonInventoryLayout

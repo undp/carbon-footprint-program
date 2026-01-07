@@ -1,14 +1,22 @@
-import { FC } from "react";
-import { Box, Button, CircularProgress, Typography } from "@mui/material";
+import { FC, Fragment } from "react";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Typography,
+} from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
-import { SubcategoryPreselectionCard } from "./components/SubcategoryPreselectionCard";
-import { useSubcategoryPreselectionData } from "./hooks/useSubcategoryPreselectionData";
-import { useSubcategoryPreselectionForm } from "./hooks/useSubcategoryPreselectionForm";
+import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
+import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
+import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { CategoryWithSubcategories } from "./types";
+import { SubcategoryField } from "./components/SubcategoryPreselectionCardField";
+import { CategoryCard } from "./components/CategoryCard";
 
 export const SubcategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();
@@ -30,15 +38,23 @@ export const SubcategoryPreselectionScreen: FC = () => {
       params: { inventoryId },
     });
 
-  const { methods, onSubmit, isSubmitting } = useSubcategoryPreselectionForm({
-    inventoryId,
-    data: categories,
-    onSuccess: goNext,
+  const methods = useSubcategoryPreselectionForm({
+    categories,
   });
+  const { handleSubmit } = methods;
+
+  const { submit, isSubmitting } = useSubcategoryPreselectionSubmit(
+    inventoryId as string,
+    { onSuccess: goNext }
+  );
 
   return (
     <FormProvider {...methods}>
-      <form id="subcategory-preselection-form" onSubmit={onSubmit} noValidate>
+      <form
+        id="subcategory-preselection-form"
+        onSubmit={handleSubmit(submit)}
+        noValidate
+      >
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
@@ -98,14 +114,48 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
             {!isLoading && !hasError && (
               <Box className="flex min-h-0 flex-1 flex-row gap-6 overflow-x-auto">
-                {categories.map((category: CategoryWithSubcategories) => {
-                  return (
-                    <SubcategoryPreselectionCard
-                      key={category.id}
-                      category={category}
+                {categories.map((category: CategoryWithSubcategories) => (
+                  <Box
+                    key={category.id}
+                    className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
+                    sx={{
+                      border: `1px solid #ECECEC`,
+                      borderRadius: `16px`,
+                    }}
+                  >
+                    {/* Header */}
+                    <CategoryCard
+                      position={category.position as 1 | 2 | 3}
+                      subtitle={category.synonyms || ""}
+                      title={category.name}
+                      description={category.description || ""}
                     />
-                  );
-                })}
+                    {/*  Body */}
+                    <Divider className="w-full" />
+
+                    <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
+                      {category.subcategories.map((subcategory) => (
+                        <Fragment key={subcategory.id.toString()}>
+                          <SubcategoryField
+                            name={String(subcategory.id)}
+                            emission={{
+                              id: subcategory.id,
+                              name: subcategory.name,
+                              description: subcategory.description,
+                            }}
+                            disabled={subcategory.edited}
+                          />
+                          <Divider className="w-full" />
+                        </Fragment>
+                      ))}
+                      {category.subcategories.length === 0 && (
+                        <Box className="p-4 text-center text-gray-500">
+                          No hay subcategorías disponibles.
+                        </Box>
+                      )}
+                    </Box>
+                  </Box>
+                ))}
               </Box>
             )}
           </Box>
