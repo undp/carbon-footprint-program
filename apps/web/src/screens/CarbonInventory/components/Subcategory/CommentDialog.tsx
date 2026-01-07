@@ -6,14 +6,13 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
-import { useCallback } from "react";
 
 interface Props {
   open: boolean;
   handleClose: () => void;
   comment: string;
   setComment: (value: string) => void;
-  onSave?: () => void;
+  onSave: () => void;
 }
 
 export const CommentDialog = ({
@@ -23,14 +22,6 @@ export const CommentDialog = ({
   setComment,
   onSave,
 }: Props) => {
-  const handleSave = useCallback(() => {
-    if (onSave) {
-      onSave();
-    } else {
-      handleClose();
-    }
-  }, [onSave, handleClose]);
-
   return (
     <Dialog onClose={handleClose} open={open}>
       <DialogTitle>Agrega un comentario</DialogTitle>
@@ -49,7 +40,7 @@ export const CommentDialog = ({
           autoFocus
           margin="dense"
           id="comment"
-          label="Agrega un comentario, fuente de factor propio o una ayuda memoria"
+          label="Comentarios, detalles del factor propio o ayuda memoria"
           type="text"
           fullWidth
           multiline
@@ -60,7 +51,7 @@ export const CommentDialog = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancelar</Button>
-        <Button color="primary" variant="contained" onClick={handleSave}>
+        <Button color="primary" variant="contained" onClick={onSave}>
           Guardar
         </Button>
       </DialogActions>
