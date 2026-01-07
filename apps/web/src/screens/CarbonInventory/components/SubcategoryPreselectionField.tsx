@@ -43,7 +43,7 @@ export const SubcategoryPreselectionField = ({
                 <Box className="shrink-0">
                   <Checkbox
                     size="small"
-                    checked={field.value as boolean}
+                    checked={Boolean(field.value)}
                     onChange={(event) => field.onChange(event.target.checked)}
                     disabled={disabled}
                     sx={{ padding: 0 }}
