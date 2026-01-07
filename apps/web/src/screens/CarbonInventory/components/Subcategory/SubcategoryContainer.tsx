@@ -18,7 +18,7 @@ import {
 import { round, uniqBy } from "lodash-es";
 import { useMeasurementUnits, useRateMeasurementUnits } from "@/api/query";
 import { ActionsCell } from "./ActionsCell";
-import { NumericInputCell } from "./NumericInputCell";
+import { NumericInput } from "@/components";
 import { CommentDialog } from "./CommentDialog";
 import { useCarbonInventoryState } from "../../hooks/useCarbonInventoryState";
 
@@ -214,11 +214,18 @@ export const SubcategoryContainer: FC<Props> = ({
         renderCell: (
           params: GridRenderCellParams<CarbonInventoryLine, number | null>
         ) => (
-          <NumericInputCell
-            {...params}
-            onUpdate={(rowId, field, value) => {
-              updateLine(subcategory.id, rowId, {
-                [field]: value ? parseFloat(value) : null,
+          <NumericInput
+            value={params.value}
+            onChange={(e) => {
+              const value = e.target.value;
+              params.api.updateRows([
+                {
+                  id: params.id,
+                  [params.field]: value,
+                },
+              ]);
+              updateLine(subcategory.id, params.id.toString(), {
+                [params.field]: value ? parseFloat(value) : null,
               });
             }}
           />
@@ -241,12 +248,19 @@ export const SubcategoryContainer: FC<Props> = ({
 
           return params.row.factorSource === "Factor Propio" ||
             params.row.factorSource === "Otro" ? (
-            <NumericInputCell
-              {...params}
+            <NumericInput
+              value={params.value}
               suffix={unit?.abbreviation ?? ""}
-              onUpdate={(rowId, field, value) => {
-                updateLine(subcategory.id, rowId, {
-                  [field]: value ? parseFloat(value) : null,
+              onChange={(e) => {
+                const value = e.target.value;
+                params.api.updateRows([
+                  {
+                    id: params.id,
+                    [params.field]: value,
+                  },
+                ]);
+                updateLine(subcategory.id, params.id.toString(), {
+                  [params.field]: value ? parseFloat(value) : null,
                 });
               }}
             />
