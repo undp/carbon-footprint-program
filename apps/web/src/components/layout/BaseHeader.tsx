@@ -6,6 +6,7 @@ import clsx from "clsx";
 interface Props extends AppBarProps {
   className?: string;
   showLogo?: boolean;
+  onLogoClick?: () => void;
   titleComponent?: React.ReactNode;
   elevation?: number;
 }
@@ -13,6 +14,7 @@ interface Props extends AppBarProps {
 export const BaseHeader: FC<PropsWithChildren<Props>> = ({
   className,
   showLogo,
+  onLogoClick,
   titleComponent,
   children,
   ...props
@@ -26,13 +28,18 @@ export const BaseHeader: FC<PropsWithChildren<Props>> = ({
     >
       <Toolbar className="px-6 py-4">
         {showLogo && (
-          <HuellaLatamLogo
-            sx={{
-              width: 116,
-              height: 50,
-              mr: 5,
-            }}
-          />
+          <Box
+            className="flex cursor-pointer items-center"
+            onClick={onLogoClick}
+          >
+            <HuellaLatamLogo
+              sx={{
+                width: 116,
+                height: 50,
+                mr: 5,
+              }}
+            />
+          </Box>
         )}
         <Box className="flex flex-1 gap-12">{titleComponent}</Box>
         {children}

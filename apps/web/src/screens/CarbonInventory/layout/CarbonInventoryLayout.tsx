@@ -8,11 +8,11 @@ import {
   Typography,
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
-import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces/routes";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts";
+import { BaseHeader } from "../../../components";
 
 interface CarbonInventoryHeaderProps {
   title?: string;
@@ -33,28 +33,12 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   }, [navigate, user]);
 
   return (
-    <AppBar
+    <BaseHeader
       position="sticky"
-      color="default"
-      elevation={0}
-      className="top-0 right-0 left-0"
-      sx={{ boxShadow: "0px 4px 8px rgba(0,0,0,0.04)" }}
-    >
-      <Toolbar
-        disableGutters
-        className="flex h-20 flex-row items-center justify-start gap-6 bg-white px-6 py-4"
-      >
-        <Box className="flex cursor-pointer items-center" onClick={onLogoClick}>
-          <HuellaLatamLogo
-            sx={{
-              width: 117,
-              height: 50,
-            }}
-          />
-        </Box>
-        <Typography variant="body1">{title}</Typography>
-      </Toolbar>
-    </AppBar>
+      showLogo
+      titleComponent={<Typography variant="subtitle1">{title}</Typography>}
+      onLogoClick={onLogoClick}
+    />
   );
 };
 
