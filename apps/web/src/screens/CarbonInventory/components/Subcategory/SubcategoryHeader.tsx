@@ -10,6 +10,7 @@ import {
   TextField,
   alpha,
 } from "@mui/material";
+import { NumericInput } from "../../../../components";
 
 interface Props {
   name: string;
@@ -63,29 +64,13 @@ export const SubcategoryHeader: FC<Props> = ({
 
       <Box className="flex flex-row content-center items-center gap-2">
         {isTotalManualEmissionsMode ? (
-          <TextField
-            type="number"
-            size="small"
-            fullWidth
-            value={totalEmission}
+          <NumericInput
             label="Emisiones"
+            value={totalEmission}
             onChange={onChangeTotalEmission}
             sx={{
               minHeight: 40,
               height: 40,
-              "& input": {
-                textAlign: "right",
-              },
-              /* Chrome / Edge / Safari */
-              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                {
-                  WebkitAppearance: "none",
-                  margin: 0,
-                },
-              /* Firefox */
-              "& input[type=number]": {
-                MozAppearance: "textfield",
-              },
             }}
           />
         ) : (
