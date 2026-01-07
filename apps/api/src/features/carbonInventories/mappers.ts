@@ -4,6 +4,7 @@ import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
 import { OrganizationDataSchema } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import { groupBy } from "lodash-es";
+import { toNumberOrNull } from "@/utils/number.js";
 
 // Prisma type for carbon inventory with lines, inputs, and factors
 // Note: subcategories are fetched separately to avoid duplication
@@ -28,13 +29,6 @@ export type LineWithInputs = NonNullable<
 
 type LineResponse =
   ResponseCarbonInventory["subcategories"][number]["lines"][number];
-
-/**
- * Converts a value to a number if it's not null/undefined, otherwise returns null.
- */
-function toNumberOrNull(value: unknown): number | null {
-  return value !== null && value !== undefined ? Number(value) : null;
-}
 
 export function mapLineToResponse(line: LineWithInputs): LineResponse {
   // Get the active input (should be at most one due to our query)
