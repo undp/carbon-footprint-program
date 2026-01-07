@@ -9,10 +9,15 @@ type Params = {
   onSuccess?: () => void;
 };
 
+interface hookResult {
+  submit: (data: BusinessProfilingFormValues) => Promise<void>;
+  isSubmitting: boolean;
+}
+
 export const useBusinessProfilingSubmit = ({
   inventoryId,
   onSuccess,
-}: Params) => {
+}: Params): hookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const updateCarbonInventoryMutation = useUpdateCarbonInventory();
 
