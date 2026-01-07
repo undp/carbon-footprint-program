@@ -28,6 +28,7 @@ const categoryStyle = {
     background: alpha("#82C784", 0.8),
     contrastText: "#414046",
   },
+  // TODO: add two more categories
 };
 
 export const palette: PaletteOptions = {
