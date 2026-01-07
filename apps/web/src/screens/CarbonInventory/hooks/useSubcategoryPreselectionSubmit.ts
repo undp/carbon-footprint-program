@@ -1,5 +1,6 @@
 import { useUpdateCarbonInventorySubcategories } from "@/api/query/carbonInventories/subcategories/useUpdateCarbonInventorySubcategories";
 import { useCallback } from "react";
+import { useSnackbar } from "notistack";
 
 export const useSubcategoryPreselectionSubmit = (
   inventoryId: string,
@@ -8,20 +9,32 @@ export const useSubcategoryPreselectionSubmit = (
   submit: (values: Record<string, boolean>) => Promise<void>;
   isSubmitting: boolean;
 } => {
+  const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync, isPending } =
     useUpdateCarbonInventorySubcategories(inventoryId);
 
   const submit = useCallback(
     async (values: Record<string, boolean>) => {
-      const payload = Object.entries(values).map(([id, selected]) => ({
-        id,
-        selected,
-      }));
+      try {
+        const payload = Object.entries(values).map(([id, selected]) => ({
+          id,
+          selected,
+        }));
 
-      await mutateAsync(payload);
-      onSuccess?.();
+        await mutateAsync(payload);
+
+        enqueueSnackbar("Subcategorías guardadas exitosamente", {
+          variant: "success",
+        });
+
+        onSuccess?.();
+      } catch {
+        enqueueSnackbar("Error al guardar las subcategorías", {
+          variant: "error",
+        });
+      }
     },
-    [mutateAsync, onSuccess]
+    [mutateAsync, onSuccess, enqueueSnackbar]
   );
 
   return {

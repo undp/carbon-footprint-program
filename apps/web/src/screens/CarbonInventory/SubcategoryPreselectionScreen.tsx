@@ -30,11 +30,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
     data: categories,
     isLoading,
     hasError,
-  } = useSubcategoryPreselectionData(inventoryId as string);
+  } = useSubcategoryPreselectionData(inventoryId);
 
-  const { goBack, goNext } = useSubcategoryPreselectionNavigation(
-    inventoryId as string
-  );
+  const { goBack, goNext } = useSubcategoryPreselectionNavigation(inventoryId);
 
   const methods = useSubcategoryPreselectionForm({
     categories,
@@ -42,7 +40,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const { handleSubmit } = methods;
 
   const { submit, isSubmitting } = useSubcategoryPreselectionSubmit(
-    inventoryId as string,
+    inventoryId,
     { onSuccess: goNext }
   );
 

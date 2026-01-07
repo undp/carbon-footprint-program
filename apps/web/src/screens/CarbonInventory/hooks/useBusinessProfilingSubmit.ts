@@ -32,7 +32,7 @@ export const useBusinessProfilingSubmit = ({
           data: requestData,
         });
 
-        enqueueSnackbar("Inventario organizacional guardado exitosamente", {
+        enqueueSnackbar("Perfil de empresa guardado exitosamente", {
           variant: "success",
         });
 
