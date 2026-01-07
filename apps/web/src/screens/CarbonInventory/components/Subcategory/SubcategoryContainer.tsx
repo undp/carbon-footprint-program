@@ -15,7 +15,7 @@ import {
   CarbonInventoryLine,
   Subcategory,
 } from "@repo/types";
-import { round, uniqBy } from "lodash";
+import { round, uniqBy } from "lodash-es";
 import { useMeasurementUnits, useRateMeasurementUnits } from "@/api/query";
 import { ActionsCell } from "./ActionsCell";
 import { NumericInputCell } from "./NumericInputCell";
