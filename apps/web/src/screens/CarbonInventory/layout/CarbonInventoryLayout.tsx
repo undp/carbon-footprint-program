@@ -8,9 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
-import { Routes } from "@/interfaces/routes";
-import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/contexts";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 import { BaseHeader } from "../../../components";
 
 interface CarbonInventoryHeaderProps {
@@ -20,23 +18,11 @@ interface CarbonInventoryHeaderProps {
 export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   title = "Inventario Organizacional",
 }) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const onLogoClick = useCallback(() => {
-    if (user) {
-      void navigate({ to: Routes.CARBON_INVENTORY });
-    } else {
-      void navigate({ to: Routes.LANDING });
-    }
-  }, [navigate, user]);
-
   return (
     <BaseHeader
       position="sticky"
       showLogo
       titleComponent={<Typography variant="subtitle1">{title}</Typography>}
-      onLogoClick={onLogoClick}
     />
   );
 };
