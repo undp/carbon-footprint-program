@@ -21,14 +21,14 @@ export const SubCategoryPreselectionScreen: FC = () => {
         backButtonProps: {
           onClick: () =>
             void navigate({
-              to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+              to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
               params: { inventoryId },
             }),
         },
         nextButtonProps: {
           onClick: () =>
             void navigate({
-              to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE as string,
+              to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
               params: { inventoryId },
             }),
         },

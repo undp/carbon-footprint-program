@@ -86,7 +86,7 @@ export const BusinessProfilingScreen: FC = () => {
   const goNext = useCallback(
     () =>
       void navigate({
-        to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION as string,
+        to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
         params: { inventoryId },
       }),
     [navigate, inventoryId]
@@ -103,7 +103,7 @@ export const BusinessProfilingScreen: FC = () => {
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró el inventario", { variant: "error" });
-    void navigate({ to: Routes.CARBON_INVENTORY as string });
+    void navigate({ to: Routes.CARBON_INVENTORY });
     return null;
   }
 
@@ -119,7 +119,7 @@ export const BusinessProfilingScreen: FC = () => {
         }}
         footerProps={{
           backButtonProps: {
-            onClick: () => void navigate({ to: Routes.HOME as string }),
+            onClick: () => void navigate({ to: Routes.HOME }),
           },
           nextButtonProps: {
             type: "submit",

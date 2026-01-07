@@ -25,7 +25,7 @@ export const CarbonInventoriesListScreen: FC = () => {
     inventory: GetAllCarbonInventoriesResponse[number]
   ) => {
     void navigate({
-      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
       params: { inventoryId: inventory.id },
     });
   };
@@ -37,7 +37,7 @@ export const CarbonInventoriesListScreen: FC = () => {
       });
 
       void navigate({
-        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
         params: { inventoryId: createdInventory.id },
       });
     } catch {

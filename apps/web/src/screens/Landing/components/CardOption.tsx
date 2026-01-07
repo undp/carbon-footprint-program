@@ -56,7 +56,7 @@ export const CardOption: FC<Props> = ({
 
     if (created) {
       void navigate({
-        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
         params: { inventoryId: created.id },
       });
     }
