@@ -1,4 +1,4 @@
-import { FC, ReactNode } from "react";
+import { FC, ReactNode, useEffect } from "react";
 import {
   AppBar,
   Box,
@@ -131,10 +131,11 @@ export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
   onRetry,
   onError,
 }) => {
-  // Si hay error, ejecutar onError callback
-  if (hasError && onError) {
-    onError();
-  }
+  useEffect(() => {
+    if (hasError && onError) {
+      onError();
+    }
+  }, [hasError, onError]);
 
   return (
     <Box className="flex h-screen flex-col">
