@@ -1,13 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { carbonInventoryKeys } from "../keys";
 import { carbonInventorySubcategoryKeys } from "./keys";
-
-interface UpdateSubcategoryItem {
-  id: string;
-  selected: boolean;
-}
-
-type UpdateSubcategoriesRequest = UpdateSubcategoryItem[];
+import { apiClient } from "@/api/http/client";
+import { UpdateCarbonInventorySubcategoriesRequest } from "@repo/types";
 
 export const useUpdateCarbonInventorySubcategories = (
   carbonInventoryId: string
@@ -15,23 +10,12 @@ export const useUpdateCarbonInventorySubcategories = (
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (_data: UpdateSubcategoriesRequest) => {
-      // Simulación de actualización
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve({ success: true });
-        }, 500);
-      });
-
-      /* 
-      // Implementación futura cuando el endpoint PATCH esté disponible:
-      return apiClient
+    mutationFn: (data: UpdateCarbonInventorySubcategoriesRequest) =>
+      apiClient
         .patch(`carbon-inventories/${carbonInventoryId}/subcategories`, {
-          json: _data,
+          json: data,
         })
-        .json();
-      */
-    },
+        .json(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(carbonInventoryId),
