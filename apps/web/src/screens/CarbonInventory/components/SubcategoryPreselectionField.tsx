@@ -44,7 +44,6 @@ export const SubcategoryPreselectionField = ({
                   <Checkbox
                     size="small"
                     checked={Boolean(field.value)}
-                    onChange={(event) => field.onChange(event.target.checked)}
                     disabled={disabled}
                     sx={{ padding: 0 }}
                   />
