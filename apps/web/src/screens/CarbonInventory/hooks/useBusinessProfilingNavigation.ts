@@ -6,12 +6,12 @@ export const useBusinessProfilingNavigation = (inventoryId: string) => {
   const navigate = useNavigate();
 
   const goBack = useCallback(() => {
-    void navigate({ to: Routes.HOME as string });
+    void navigate({ to: Routes.HOME });
   }, [navigate]);
 
   const goNext = useCallback(() => {
     void navigate({
-      to: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION as string,
+      to: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
       params: { inventoryId },
     });
   }, [navigate, inventoryId]);

@@ -7,14 +7,14 @@ export const useSubcategoryPreselectionNavigation = (inventoryId: string) => {
 
   const goBack = useCallback(() => {
     void navigate({
-      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
+      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
       params: { inventoryId },
     });
   }, [navigate, inventoryId]);
 
   const goNext = useCallback(() => {
     void navigate({
-      to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE as string,
+      to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
       params: { inventoryId },
     });
   }, [navigate, inventoryId]);
