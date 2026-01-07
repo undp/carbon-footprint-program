@@ -8,7 +8,7 @@ import { CategoryCard } from "./components/CategoryCard";
 import { SubcategoryContainer } from "./components/Subcategory/SubcategoryContainer";
 import { useCarbonInventory, useMethodology } from "../../api/query";
 import { useCarbonInventoryState } from "./hooks/useCarbonInventoryState";
-import { round } from "lodash";
+import { round } from "lodash-es";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
 
 export const EmissionCaptureScreen: FC = () => {
