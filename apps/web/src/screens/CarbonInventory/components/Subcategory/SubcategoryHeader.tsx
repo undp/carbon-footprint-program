@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { Folder, InfoOutline } from "@mui/icons-material";
 import {
   Box,
@@ -27,9 +27,12 @@ export const SubcategoryHeader: FC<Props> = ({
   isTotalManualEmissionsMode,
   setIsTotalManualEmissionsMode,
 }) => {
-  const onChangeTotalEmission = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setTotalEmission(Number(e.target.value));
-  };
+  const onChangeTotalEmission = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTotalEmission(Number(e.target.value));
+    },
+    [setTotalEmission]
+  );
 
   return (
     <Box className="flex h-20 gap-4">
