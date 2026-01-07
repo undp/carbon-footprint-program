@@ -25,45 +25,58 @@ export const SubcategoryField = <T extends FieldValues>({
 }: Props<T>) => {
   const { control } = useFormContext<T>();
 
-  const content = (
-    <Box className="flex flex-row items-start justify-start gap-2">
-      <Box className="shrink-0">
-        <Controller
-          name={name}
-          control={control}
-          render={({ field }) => (
-            <Checkbox
-              size="small"
-              checked={field.value ?? false}
-              onChange={(event) => field.onChange(event.target.checked)}
-              disabled={disabled}
-              sx={{ padding: 0 }}
-            />
-          )}
-        />
-      </Box>
-      <Box className="flex flex-col">
-        <Typography variant="body1">{emission.name}</Typography>
-        {emission.description && (
-          <Typography variant="body2" color="text.secondary">
-            {emission.description}
-          </Typography>
-        )}
-      </Box>
-    </Box>
+  return (
+    <Controller
+      name={name}
+      control={control}
+      render={({ field }) => {
+        const handleClick = () => {
+          if (!disabled) {
+            field.onChange(!field.value);
+          }
+        };
+
+        return (
+          <Tooltip
+            title={
+              disabled
+                ? "No se puede quitar porque tiene emisiones registradas. Elimine las emisiones primero."
+                : ""
+            }
+            arrow
+            placement="top"
+          >
+            <Box className={`flex ${disabled ? "opacity-80" : ""}`}>
+              <Box
+                className="flex flex-row items-start justify-start gap-2"
+                onClick={handleClick}
+                sx={{
+                  cursor: disabled ? "not-allowed" : "pointer",
+                  userSelect: "none",
+                }}
+              >
+                <Box className="shrink-0">
+                  <Checkbox
+                    size="small"
+                    checked={field.value ?? false}
+                    onChange={(event) => field.onChange(event.target.checked)}
+                    disabled={disabled}
+                    sx={{ padding: 0 }}
+                  />
+                </Box>
+                <Box className="flex flex-col">
+                  <Typography variant="body1">{emission.name}</Typography>
+                  {emission.description && (
+                    <Typography variant="body2" color="text.secondary">
+                      {emission.description}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            </Box>
+          </Tooltip>
+        );
+      }}
+    />
   );
-
-  if (disabled) {
-    return (
-      <Tooltip
-        title="No se puede quitar porque tiene emisiones registradas. Elimine las emisiones primero."
-        arrow
-        placement="top"
-      >
-        <Box className="flex cursor-not-allowed opacity-80">{content}</Box>
-      </Tooltip>
-    );
-  }
-
-  return <Box className="flex">{content}</Box>;
 };
