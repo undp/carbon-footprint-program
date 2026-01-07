@@ -94,6 +94,7 @@ export const SubcategoryContainer: FC<Props> = ({
               headerName: firstDimension?.name || "Dimensión 1",
               minWidth: 157,
               flex: 1,
+              cellClassName: "content-center max-h-[56px]",
               renderCell: (
                 params: GridRenderCellParams<CarbonInventoryLine, string>
               ) => {
@@ -133,6 +134,7 @@ export const SubcategoryContainer: FC<Props> = ({
               headerName: secondDimension?.name || "Dimensión 2",
               minWidth: 157,
               flex: 1,
+              cellClassName: "content-center max-h-[56px]",
               renderCell: (
                 params: GridRenderCellParams<CarbonInventoryLine, string>
               ) => {
@@ -177,6 +179,7 @@ export const SubcategoryContainer: FC<Props> = ({
         headerAlign: "center",
         minWidth: 110,
         flex: 1,
+        cellClassName: "content-center max-h-[56px]",
         renderCell: (
           params: GridRenderCellParams<CarbonInventoryLine, string>
         ) => (
@@ -211,6 +214,7 @@ export const SubcategoryContainer: FC<Props> = ({
         headerAlign: "center",
         minWidth: 110,
         flex: 1,
+        cellClassName: "content-center max-h-[56px]",
         renderCell: (
           params: GridRenderCellParams<CarbonInventoryLine, number | null>
         ) => (
@@ -238,7 +242,7 @@ export const SubcategoryContainer: FC<Props> = ({
         align: "right",
         minWidth: 130,
         flex: 1,
-        cellClassName: "content-center",
+        cellClassName: "content-center max-h-[56px]",
         renderCell: (
           params: GridRenderCellParams<CarbonInventoryLine, number | null>
         ) => {
@@ -276,6 +280,7 @@ export const SubcategoryContainer: FC<Props> = ({
         field: "factorSource",
         minWidth: 157,
         flex: 1,
+        cellClassName: "content-center max-h-[56px]",
         renderCell: (
           params: GridRenderCellParams<CarbonInventoryLine, string>
         ) => (
