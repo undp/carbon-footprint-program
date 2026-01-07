@@ -21,6 +21,12 @@ export const NumericInputCell: FC<Props> = (params) => (
         <Typography variant="subtitle2">{params.suffix}</Typography>
       )
     }
+    onKeyDown={(e) => {
+      // Stop propagation of arrow keys to prevent DataGrid navigation
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+        e.stopPropagation();
+      }
+    }}
     onChange={(e) => {
       const value = e.target.value;
       params.api.updateRows([
