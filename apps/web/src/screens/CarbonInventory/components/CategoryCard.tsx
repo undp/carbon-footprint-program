@@ -25,7 +25,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   onClick,
 }) => {
   const theme = useTheme();
-  const icons = useMemo(
+  const icons: Record<number, React.ReactNode> = useMemo(
     () => ({
       1: (
         <DirectEmissionCategoryIcon
@@ -52,7 +52,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       ? `1px solid ${theme.palette.category[position].main}`
       : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const icon = icons[position as 1 | 2 | 3];
+  const icon = icons[position];
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
