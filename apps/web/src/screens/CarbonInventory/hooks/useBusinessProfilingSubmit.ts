@@ -25,9 +25,12 @@ export const useBusinessProfilingSubmit = ({
     async (data: BusinessProfilingFormValues) => {
       try {
         if (!inventoryId) {
-          enqueueSnackbar("No se encontró el inventario a editar", {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            "No se encontró el inventario organizacional a editar",
+            {
+              variant: "error",
+            }
+          );
           return;
         }
 
@@ -37,7 +40,7 @@ export const useBusinessProfilingSubmit = ({
           data: requestData,
         });
 
-        enqueueSnackbar("Perfil de empresa guardado exitosamente", {
+        enqueueSnackbar("Inventario organizacional guardado exitosamente", {
           variant: "success",
         });
 
