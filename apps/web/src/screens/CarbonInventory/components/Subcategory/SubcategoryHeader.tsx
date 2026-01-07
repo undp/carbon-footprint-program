@@ -10,10 +10,9 @@ import {
   alpha,
 } from "@mui/material";
 import { NumericInput } from "../../../../components";
+import { Subcategory } from "@repo/types";
 
-interface Props {
-  name: string;
-  description: string | null;
+interface Props extends Pick<Subcategory, "name" | "description"> {
   totalEmission: number;
   setTotalEmission: (value: number) => void;
   isTotalManualEmissionsMode: boolean;
