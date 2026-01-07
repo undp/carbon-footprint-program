@@ -1,33 +1,18 @@
 import { Box, Checkbox, Tooltip, Typography } from "@mui/material";
-import {
-  Controller,
-  FieldPath,
-  FieldValues,
-  useFormContext,
-} from "react-hook-form";
+import { Controller, useFormContext } from "react-hook-form";
+import { SubcategoryItem } from "../types";
 
-export type SubcategoryFieldSubcategory = {
-  id: string | number;
-  name: string;
-  description?: string | null;
-};
-
-type Props<T extends FieldValues> = {
-  name: FieldPath<T>;
-  subcategory: SubcategoryFieldSubcategory;
-  disabled?: boolean;
-};
-
-export const SubcategoryField = <T extends FieldValues>({
-  name,
+export const SubcategoryPreselectionField = ({
   subcategory,
-  disabled = false,
-}: Props<T>) => {
-  const { control } = useFormContext<T>();
+}: {
+  subcategory: SubcategoryItem;
+}) => {
+  const { control } = useFormContext();
+  const disabled = subcategory.edited;
 
   return (
     <Controller
-      name={name}
+      name={subcategory.id}
       control={control}
       render={({ field }) => {
         const handleClick = () => {
@@ -58,7 +43,7 @@ export const SubcategoryField = <T extends FieldValues>({
                 <Box className="shrink-0">
                   <Checkbox
                     size="small"
-                    checked={field.value ?? false}
+                    checked={field.value as boolean}
                     onChange={(event) => field.onChange(event.target.checked)}
                     disabled={disabled}
                     sx={{ padding: 0 }}

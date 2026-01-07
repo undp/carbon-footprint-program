@@ -9,7 +9,7 @@ import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
-import { SubcategoryField } from "./components/SubcategoryPreselectionCardField";
+import { SubcategoryPreselectionField } from "./components";
 import { CategoryCard } from "./components/CategoryCard";
 
 const ERROR_MESSAGE = {
@@ -100,14 +100,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
                   <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
                     {category.subcategories.map((subcategory) => (
                       <Fragment key={subcategory.id}>
-                        <SubcategoryField
-                          name={subcategory.id}
-                          emission={{
-                            id: subcategory.id,
-                            name: subcategory.name,
-                            description: subcategory.description,
-                          }}
-                          disabled={subcategory.edited}
+                        <SubcategoryPreselectionField
+                          subcategory={subcategory}
                         />
                         <Divider className="w-full" />
                       </Fragment>
