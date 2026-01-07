@@ -1,5 +1,5 @@
 import { alpha, Avatar, Box, Card, darken, Typography } from "@mui/material";
-import { round } from "lodash";
+import { round } from "lodash-es";
 
 import { Category } from "@repo/types";
 import React, { FC, useMemo } from "react";
