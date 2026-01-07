@@ -34,34 +34,23 @@ export const useSubcategoryPreselectionData = (
       ])
     );
 
-    return methodology.categories.map((category) => {
-      const subcategories: SubcategoryItem[] = category.subcategories.map(
-        (subcategory) => {
-          const subcategorySummary = subcategoriesSummaryMap.get(
-            subcategory.id
-          );
-          const included = subcategorySummary?.included ?? false;
-          const edited = subcategorySummary?.edited ?? false;
-
-          return {
-            id: subcategory.id,
-            name: subcategory.name,
-            description: subcategory.description,
-            included,
-            edited,
-          };
-        }
-      );
-
-      return {
-        id: category.id,
-        name: category.name,
-        description: category.description,
-        synonyms: category.synonyms,
-        position: category.position,
-        subcategories,
-      };
-    });
+    return methodology.categories.map((category) => ({
+      id: category.id,
+      name: category.name,
+      description: category.description,
+      synonyms: category.synonyms,
+      position: category.position,
+      subcategories: category.subcategories.map((subcategory) => {
+        const summary = subcategoriesSummaryMap.get(subcategory.id);
+        return {
+          id: subcategory.id,
+          name: subcategory.name,
+          description: subcategory.description,
+          included: !!summary?.included,
+          edited: !!summary?.edited,
+        };
+      }),
+    }));
   }, [methodology, subcategoriesSummary]);
 
   const hasError = useMemo(() => {
