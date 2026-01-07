@@ -4,3 +4,4 @@ export * from "./countryOrganizationSizes";
 export * from "./countrySectors";
 export * from "./organizationMainActivities";
 export * from "./users";
+export * from "./measurementUnits";

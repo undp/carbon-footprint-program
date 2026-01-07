@@ -1,1 +1,1 @@
-export * from "./useMethodology";
+export * from "./useCarbonInventoryMethodology";
