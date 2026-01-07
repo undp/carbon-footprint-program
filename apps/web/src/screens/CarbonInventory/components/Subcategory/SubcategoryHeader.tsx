@@ -7,7 +7,6 @@ import {
   IconButton,
   FormControlLabel,
   Checkbox,
-  TextField,
   alpha,
 } from "@mui/material";
 import { NumericInput } from "../../../../components";
