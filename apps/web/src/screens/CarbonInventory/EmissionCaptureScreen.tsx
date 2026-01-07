@@ -24,7 +24,7 @@ export const EmissionCaptureScreen: FC = () => {
         backButtonProps: {
           onClick: () =>
             navigate({
-              to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
+              to: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
               params: { inventoryId },
             }),
         },

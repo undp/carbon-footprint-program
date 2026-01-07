@@ -91,9 +91,7 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const { goBack, goNext } = useBusinessProfilingNavigation(
-    inventoryId as string
-  );
+  const { goBack, goNext } = useBusinessProfilingNavigation(inventoryId);
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
@@ -121,7 +119,7 @@ export const BusinessProfilingScreen: FC = () => {
         }}
         footerProps={{
           backButtonProps: {
-            onClick: () => void navigate({ to: Routes.HOME }),
+            onClick: goBack,
           },
           nextButtonProps: {
             type: "submit",

@@ -1,8 +1,8 @@
 export const Routes = {
   CARBON_INVENTORY_BUSINESS_PROFILING:
     "/app/carbon-inventory/$inventoryId/business-profiling",
-  CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION:
-    "/app/carbon-inventory/$inventoryId/sub-category-preselection",
+  CARBON_INVENTORY_SUBCATEGORY_PRESELECTION:
+    "/app/carbon-inventory/$inventoryId/subcategory-preselection",
   CARBON_INVENTORY_EMISSION_CAPTURE:
     "/app/carbon-inventory/$inventoryId/emission-capture",
   HOME: "/app/home",
