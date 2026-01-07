@@ -155,7 +155,7 @@ export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
             <Typography
               variant="body1"
               color="text.secondary"
-              sx={{ maxWidth: 600 }}
+              className="max-w-[600px]"
             >
               {errorMessage.description}
             </Typography>
