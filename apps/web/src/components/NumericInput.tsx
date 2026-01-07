@@ -27,6 +27,12 @@ export const NumericInput: FC<Props> = ({
         ),
       },
     }}
+    onKeyDown={(e) => {
+      // Stop propagation of arrow keys to prevent DataGrid navigation
+      if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(e.key)) {
+        e.stopPropagation();
+      }
+    }}
     onChange={onChange}
     sx={{
       //* Align numbers to the right for better readability and consistency with numeric formatting conventions
