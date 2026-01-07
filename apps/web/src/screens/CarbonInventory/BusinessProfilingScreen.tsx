@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -16,6 +16,7 @@ import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
+import { useBusinessProfilingNavigation } from "./hooks/useBusinessProfilingNavigation";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { useSnackbar } from "notistack";
 
@@ -26,6 +27,13 @@ const YEARS = Array.from(
     return year.toString();
   }
 ).reverse();
+
+const ERROR_MESSAGE = {
+  title: "No se encontró el inventario",
+  description:
+    "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+  retryButtonText: "Recargar Página",
+} as const;
 
 export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
@@ -83,19 +91,17 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const goNext = useCallback(
-    () =>
-      void navigate({
-        to: Routes.CARBON_INVENTORY_SUB_CATEGORY_PRESELECTION,
-        params: { inventoryId },
-      }),
-    [navigate, inventoryId]
+  const { goBack, goNext } = useBusinessProfilingNavigation(
+    inventoryId as string
   );
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goNext,
   });
+
+  const isFormDisabled =
+    isSubmitting || isInventoryLoading || hasInventoryError;
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró el inventario", { variant: "error" });
@@ -121,17 +127,12 @@ export const BusinessProfilingScreen: FC = () => {
             type: "submit",
             form: "business-profiling-form",
             loading: isSubmitting || isInventoryLoading,
-            disabled: isSubmitting || isInventoryLoading || hasInventoryError,
+            disabled: isFormDisabled,
           },
         }}
         isLoading={isInventoryLoading}
         hasError={hasInventoryError}
-        errorMessage={{
-          title: "No se encontró el inventario",
-          description:
-            "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
-          retryButtonText: "Recargar Página",
-        }}
+        errorMessage={ERROR_MESSAGE}
       >
         <Box className="flex min-h-0 flex-1 flex-col gap-6">
           <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">

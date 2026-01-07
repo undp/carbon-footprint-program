@@ -1,6 +1,6 @@
 import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
@@ -8,12 +8,20 @@ import { StepHeader } from "./components/StepHeader";
 import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
+import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
 import { CategoryWithSubcategories } from "./types";
 import { SubcategoryField } from "./components/SubcategoryPreselectionCardField";
 import { CategoryCard } from "./components/CategoryCard";
 
+const ERROR_MESSAGE = {
+  title:
+    "Hubo un error cargando las categorías y subcategorías para su huella.",
+  description:
+    "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+  retryButtonText: "Recargar Página",
+} as const;
+
 export const SubcategoryPreselectionScreen: FC = () => {
-  const navigate = useNavigate();
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
@@ -21,16 +29,12 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const {
     data: categories,
     isLoading,
-    isError,
+    hasError,
   } = useSubcategoryPreselectionData(inventoryId as string);
 
-  const hasError = isError || (!isLoading && categories.length === 0);
-
-  const goNext = () =>
-    void navigate({
-      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
-      params: { inventoryId },
-    });
+  const { goBack, goNext } = useSubcategoryPreselectionNavigation(
+    inventoryId as string
+  );
 
   const methods = useSubcategoryPreselectionForm({
     categories,
@@ -41,6 +45,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
     inventoryId as string,
     { onSuccess: goNext }
   );
+
+  const isFormDisabled = isSubmitting || hasError || isLoading;
 
   return (
     <FormProvider {...methods}>
@@ -56,28 +62,18 @@ export const SubcategoryPreselectionScreen: FC = () => {
           footerProps={{
             backButtonProps: {
               disabled: isSubmitting,
-              onClick: () =>
-                void navigate({
-                  to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING as string,
-                  params: { inventoryId },
-                }),
+              onClick: goBack,
             },
             nextButtonProps: {
               type: "submit",
               form: "subcategory-preselection-form",
               loading: isSubmitting,
-              disabled: isSubmitting || hasError || isLoading,
+              disabled: isFormDisabled,
             },
           }}
           isLoading={isLoading}
           hasError={hasError}
-          errorMessage={{
-            title:
-              "Hubo un error cargando las categorías y subcategorías para su huella.",
-            description:
-              "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
-            retryButtonText: "Recargar Página",
-          }}
+          errorMessage={ERROR_MESSAGE}
         >
           <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg bg-white p-4">
             <StepHeader
