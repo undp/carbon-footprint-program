@@ -34,7 +34,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const { goBack, goNext } = useSubcategoryPreselectionNavigation(inventoryId);
 
   const methods = useSubcategoryPreselectionForm({
-    categories,
+    data: categories,
   });
   const { handleSubmit } = methods;
 

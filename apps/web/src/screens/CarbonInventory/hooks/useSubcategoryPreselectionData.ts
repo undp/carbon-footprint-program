@@ -1,17 +1,17 @@
 import { useMemo } from "react";
 import { useMethodology } from "@/api/query/carbonInventories/methodologies/useMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
-import { CategoryWithSubcategories } from "../types";
+import { SubcategoryPreselectionMergedData } from "../types";
 
-export interface SubcategoryPreselectionData {
-  data: CategoryWithSubcategories[];
+export interface UseSubcategoryPreselectionDataResult {
+  data: SubcategoryPreselectionMergedData;
   isLoading: boolean;
   hasError: boolean;
 }
 
 export const useSubcategoryPreselectionData = (
   inventoryId: string
-): SubcategoryPreselectionData => {
+): UseSubcategoryPreselectionDataResult => {
   const {
     data: methodology,
     isLoading: isMethodologyLoading,
@@ -23,7 +23,7 @@ export const useSubcategoryPreselectionData = (
     isError: isSubcategoriesSummaryError,
   } = useCarbonInventorySubcategoriesSummary(inventoryId);
 
-  const mergedData = useMemo<CategoryWithSubcategories[]>(() => {
+  const mergedData = useMemo<SubcategoryPreselectionMergedData>(() => {
     if (!methodology || !subcategoriesSummary) return [];
 
     const subcategoriesSummaryMap = new Map(

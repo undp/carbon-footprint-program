@@ -1,14 +1,14 @@
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { CategoryWithSubcategories } from "../types";
+import { SubcategoryPreselectionMergedData } from "../types";
 
-export interface SubcategoryPreselectionFormProps {
-  categories: CategoryWithSubcategories[];
+export interface UseSubcategoryPreselectionFormProps {
+  data: SubcategoryPreselectionMergedData;
 }
 
 export const useSubcategoryPreselectionForm = ({
-  categories,
-}: SubcategoryPreselectionFormProps) => {
+  data,
+}: UseSubcategoryPreselectionFormProps) => {
   const form = useForm<Record<string, boolean>>({
     defaultValues: {},
   });
@@ -17,19 +17,19 @@ export const useSubcategoryPreselectionForm = ({
 
   const initialValues = useMemo(() => {
     const values: Record<string, boolean> = {};
-    categories.forEach((category) => {
+    data.forEach((category) => {
       category.subcategories.forEach((subcategory) => {
         values[subcategory.id] = subcategory.included;
       });
     });
     return values;
-  }, [categories]);
+  }, [data]);
 
   useEffect(() => {
-    if (categories.length > 0) {
+    if (data.length > 0) {
       reset(initialValues);
     }
-  }, [categories, initialValues, reset]);
+  }, [data, initialValues, reset]);
 
   return form;
 };
