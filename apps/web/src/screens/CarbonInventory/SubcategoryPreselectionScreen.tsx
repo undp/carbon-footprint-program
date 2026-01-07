@@ -9,7 +9,6 @@ import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
-import { CategoryWithSubcategories } from "./types";
 import { SubcategoryField } from "./components/SubcategoryPreselectionCardField";
 import { CategoryCard } from "./components/CategoryCard";
 
@@ -79,7 +78,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
             />
             <Box className="flex min-h-0 flex-1 flex-row gap-4 overflow-x-auto">
-              {categories.map((category: CategoryWithSubcategories) => (
+              {categories.map((category) => (
                 <Box
                   key={category.id}
                   className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
