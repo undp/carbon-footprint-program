@@ -103,7 +103,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           onClick={(e) => {
             e.stopPropagation();
             //TODO: Open a modal with the information
-            alert("Information");
+            // alert("Information");
           }}
         />
       </Box>
