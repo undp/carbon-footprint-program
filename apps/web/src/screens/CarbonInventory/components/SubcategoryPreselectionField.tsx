@@ -1,11 +1,11 @@
 import { Box, Checkbox, Tooltip, Typography } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
-import { SubcategoryItem } from "../types";
+import { SubcategoryPreselectionMergedData } from "../types";
 
 export const SubcategoryPreselectionField = ({
   subcategory,
 }: {
-  subcategory: SubcategoryItem;
+  subcategory: SubcategoryPreselectionMergedData[number]["subcategories"][number];
 }) => {
   const { control } = useFormContext();
   const disabled = subcategory.edited;

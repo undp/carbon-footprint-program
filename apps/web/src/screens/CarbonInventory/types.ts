@@ -3,27 +3,22 @@ import type {
   GetCarbonInventorySubcategoriesSummaryResponse,
 } from "@repo/types";
 
-// Tipos base extraídos de las respuestas del API
-type MethodologySubcategory =
-  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
+// Renamed api response types for clarity
 type MethodologyCategory =
   GetCarbonInventoryMethodologyResponse["categories"][number];
+type MethodologySubcategory =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
+
 type SubcategorySummaryItem =
   GetCarbonInventorySubcategoriesSummaryResponse[number];
 
-export type SubcategoryItem = Pick<
+type SubcategoryItem = Pick<
   MethodologySubcategory,
   "id" | "name" | "description"
 > &
   Pick<SubcategorySummaryItem, "included" | "edited">;
 
-export type SubcategoryWithMethodology = Pick<
-  MethodologySubcategory,
-  "id" | "name" | "description" | "examples" | "dimensions" | "emissionFactors"
-> &
-  Pick<SubcategorySummaryItem, "included" | "edited">;
-
-export type CategoryWithSubcategories = Pick<
+type CategoryWithSubcategories = Pick<
   MethodologyCategory,
   "id" | "name" | "description" | "synonyms" | "position"
 > & {
