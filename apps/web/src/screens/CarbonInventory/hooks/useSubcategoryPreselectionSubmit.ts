@@ -2,7 +2,7 @@ import { useUpdateCarbonInventorySubcategories } from "@/api/query/carbonInvento
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
 
-interface hookResult {
+interface HookResult {
   submit: (values: Record<string, boolean>) => Promise<void>;
   isSubmitting: boolean;
 }
@@ -10,7 +10,7 @@ interface hookResult {
 export const useSubcategoryPreselectionSubmit = (
   inventoryId: string,
   { onSuccess }: { onSuccess?: () => void } = {}
-): hookResult => {
+): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync, isPending } =
     useUpdateCarbonInventorySubcategories(inventoryId);
