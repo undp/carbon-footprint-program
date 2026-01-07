@@ -7,13 +7,11 @@ import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 export const useMethodology = (carbonInventoryId: string) => {
   return useQuery<GetCarbonInventoryMethodologyResponse>({
     queryKey: methodologyKeys.detail(carbonInventoryId),
-    queryFn: async () => {
-      const response = await apiClient.get(
-        `carbon-inventories/${carbonInventoryId}/methodology`
-      );
-      return response.json();
-    },
+    queryFn: () =>
+      apiClient
+        .get(`carbon-inventories/${carbonInventoryId}/methodology`)
+        .json(),
     staleTime: STALE_TIME_MS,
-    enabled: !!carbonInventoryId,
+    enabled: Boolean(carbonInventoryId),
   });
 };
