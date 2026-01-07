@@ -9,10 +9,10 @@ import {
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
-  position: 1 | 2 | 3;
+  position: number;
   title: string;
-  subtitle: string;
-  description: string;
+  subtitle: string | null;
+  description: string | null;
   onClick?: () => void;
 }
 
@@ -52,7 +52,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       ? `1px solid ${theme.palette.category[position].main}`
       : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const icon = icons[position];
+  const icon = icons[position as 1 | 2 | 3];
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
@@ -98,6 +98,9 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       </Box>
       <Box className="flex flex-col items-end justify-center">
         <InfoButton
+          sx={{
+            color: darken(theme.palette.category[position].main, 0.6),
+          }}
           label="Más información de la categoría"
           disabled={variant === "unfocused"}
           onClick={(e) => {
