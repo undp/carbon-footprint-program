@@ -16,5 +16,6 @@ export const useCarbonInventorySubcategoriesSummary = (
     },
     staleTime: STALE_TIME_MS,
     enabled: Boolean(carbonInventoryId),
+    refetchOnMount: "always",
   });
 };
