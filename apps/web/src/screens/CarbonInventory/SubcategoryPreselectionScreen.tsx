@@ -78,7 +78,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
             />
-            <Box className="flex min-h-0 flex-1 flex-row gap-6 overflow-x-auto">
+            <Box className="flex min-h-0 flex-1 flex-row gap-4 overflow-x-auto">
               {categories.map((category: CategoryWithSubcategories) => (
                 <Box
                   key={category.id}
