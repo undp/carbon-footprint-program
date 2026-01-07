@@ -1,39 +1,49 @@
-import {
-  alpha,
-  Avatar,
-  Box,
-  Card,
-  darken,
-  SvgIconProps,
-  Typography,
-} from "@mui/material";
-import { round } from "lodash-es";
+import { alpha, Avatar, Box, Card, darken, Typography } from "@mui/material";
+import { round } from "lodash";
 
 import { Category } from "@repo/types";
-import React from "react";
+import React, { FC, useMemo } from "react";
 import {
   DirectEmissionCategoryIcon,
   IndirectEmissionCategoryIcon,
   OthersCategoryIcon,
 } from "@/icons";
 
-const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
-  1: DirectEmissionCategoryIcon,
-  2: IndirectEmissionCategoryIcon,
-  3: OthersCategoryIcon,
-};
-
 interface Props {
   category: Category;
   categoryEmissions: number | null;
 }
 
-export const TotalCategoryEmissionCard: React.FC<Props> = ({
+export const TotalCategoryEmissionCard: FC<Props> = ({
   category,
   categoryEmissions,
 }) => {
-  const IconComponent =
-    ICONS_PER_CATEGORY_POSITION[category.position] ?? OthersCategoryIcon;
+  const icons: Record<number, React.ReactNode> = useMemo(
+    () => ({
+      1: (
+        <DirectEmissionCategoryIcon
+          sx={(theme) => ({
+            fill: darken(theme.palette.category[1].main, 0.6),
+          })}
+        />
+      ),
+      2: (
+        <IndirectEmissionCategoryIcon
+          sx={(theme) => ({
+            fill: darken(theme.palette.category[2].main, 0.6),
+          })}
+        />
+      ),
+      3: (
+        <OthersCategoryIcon
+          sx={(theme) => ({
+            fill: darken(theme.palette.category[3].main, 0.6),
+          })}
+        />
+      ),
+    }),
+    []
+  );
 
   return (
     <Box className="flex">
@@ -53,14 +63,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({
               ),
             })}
           >
-            <IconComponent
-              sx={(theme) => ({
-                fill: darken(
-                  theme.palette.category[category.position].main,
-                  0.6
-                ),
-              })}
-            />
+            {icons[Number(category.id)]}
           </Avatar>
           <Typography variant="subtitle1" fontWeight="medium">
             Total {category.name.toLowerCase()}:{" "}
