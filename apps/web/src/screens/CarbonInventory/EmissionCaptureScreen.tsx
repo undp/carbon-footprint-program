@@ -6,7 +6,10 @@ import { Routes } from "../../interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { CategoryCard } from "./components/CategoryCard";
 import { SubcategoryContainer } from "./components/Subcategory/SubcategoryContainer";
-import { useCarbonInventory, useMethodology } from "../../api/query";
+import {
+  useCarbonInventory,
+  useCarbonInventoryMethodology,
+} from "../../api/query";
 import { useCarbonInventoryState } from "./hooks/useCarbonInventoryState";
 import { round } from "lodash-es";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
@@ -20,7 +23,7 @@ export const EmissionCaptureScreen: FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>("1");
 
   const { data: methodology, isLoading: isLoadingMethodology } =
-    useMethodology(inventoryId);
+    useCarbonInventoryMethodology(inventoryId);
   const { data: inventory, isLoading: isLoadingInventory } =
     useCarbonInventory(inventoryId);
 
