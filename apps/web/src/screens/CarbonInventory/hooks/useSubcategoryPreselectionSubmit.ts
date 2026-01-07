@@ -14,7 +14,7 @@ export const useSubcategoryPreselectionSubmit = (
   const submit = useCallback(
     async (values: Record<string, boolean>) => {
       const payload = Object.entries(values).map(([id, selected]) => ({
-        subcategoryId: Number(id),
+        subcategoryId: id,
         selected,
       }));
 
