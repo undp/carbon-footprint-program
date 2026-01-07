@@ -81,7 +81,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
               {categories.map((category) => (
                 <Box
                   key={category.id}
-                  className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
+                  className="flex min-w-[300px] flex-1 flex-col items-start overflow-hidden p-4"
                   sx={{
                     border: `1px solid #ECECEC`,
                     borderRadius: `16px`,
@@ -95,9 +95,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
                     description={category.description || ""}
                   />
                   {/*  Body */}
-                  <Divider className="w-full" />
+                  <Divider className="w-full pt-4" />
 
-                  <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
+                  <Box className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
                     {category.subcategories.map((subcategory) => (
                       <Fragment key={subcategory.id}>
                         <SubcategoryPreselectionField

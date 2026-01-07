@@ -31,15 +31,11 @@ export const SubcategoryPreselectionField = ({
             arrow
             placement="top"
           >
-            <Box className={`flex ${disabled ? "opacity-80" : ""}`}>
-              <Box
-                className="flex flex-row items-start justify-start gap-2"
-                onClick={handleClick}
-                sx={{
-                  cursor: disabled ? "not-allowed" : "pointer",
-                  userSelect: "none",
-                }}
-              >
+            <Box
+              className={`flex py-4 select-none ${disabled ? "cursor-not-allowed opacity-80" : "cursor-pointer"}`}
+              onClick={handleClick}
+            >
+              <Box className="flex flex-row items-start justify-start gap-2">
                 <Box className="shrink-0">
                   <Checkbox
                     size="small"
