@@ -26,8 +26,8 @@ export const SubcategoryField = <T extends FieldValues>({
   const { control } = useFormContext<T>();
 
   const content = (
-    <Box className="flex flex-row content-start justify-start gap-2">
-      <Box className="flex items-start justify-start">
+    <Box className="flex flex-row items-start justify-start gap-2">
+      <Box className="shrink-0">
         <Controller
           name={name}
           control={control}
@@ -37,17 +37,13 @@ export const SubcategoryField = <T extends FieldValues>({
               checked={field.value ?? false}
               onChange={(event) => field.onChange(event.target.checked)}
               disabled={disabled}
+              sx={{ padding: 0 }}
             />
           )}
         />
       </Box>
-      <Box>
-        <Typography
-          variant="body1"
-          color={disabled ? "text.disabled" : "text.primary"}
-        >
-          {emission.name}
-        </Typography>
+      <Box className="flex flex-col">
+        <Typography variant="body1">{emission.name}</Typography>
         {emission.description && (
           <Typography variant="body2" color="text.secondary">
             {emission.description}
