@@ -14,7 +14,7 @@ export const NumericInputCell: FC<Props> = (params) => (
     type="number"
     size="small"
     fullWidth
-    value={params.value ?? undefined}
+    value={params.value ?? ""}
     placeholder="0"
     endAdornment={
       params.suffix && (
