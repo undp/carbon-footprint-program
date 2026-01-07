@@ -774,7 +774,6 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       const response = await app.inject({
         method: "PATCH",
         url: `/api/carbon-inventories/${carbonInventory.id}/subcategories`,
-        payload: [],
       });
 
       expect(response.statusCode).toBe(400);
