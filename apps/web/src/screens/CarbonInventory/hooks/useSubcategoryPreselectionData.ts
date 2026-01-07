@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useMethodology } from "@/api/query/carbonInventories/methodologies/useMethodology";
+import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
 import { SubcategoryPreselectionMergedData } from "../types";
 
@@ -16,7 +16,7 @@ export const useSubcategoryPreselectionData = (
     data: methodology,
     isLoading: isMethodologyLoading,
     isError: isMethodologyError,
-  } = useMethodology(inventoryId);
+  } = useCarbonInventoryMethodology(inventoryId);
   const {
     data: subcategoriesSummary,
     isLoading: isSubcategoriesSummaryLoading,
