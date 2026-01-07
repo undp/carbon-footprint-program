@@ -24,6 +24,7 @@ import type { PrismaClient } from "@repo/database";
 import type {
   NotFoundErrorResponse,
   StructuredErrorResponse,
+  ValidationErrorResponse,
 } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
@@ -352,6 +353,9 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
         response.body
       ) as UpdateCarbonInventorySubcategoriesResponse;
       expect(body.added).toBe(0);
+      // body.removed counts removed subcategories (not individual lines).
+      // Note that deletedLines.length (from prisma.carbonInventoryLine queries using getDeletedStatusId)
+      // shows the number of lines soft-deleted, which may be multiple lines per subcategory.
       expect(body.removed).toBe(1); // One subcategory removed
       expect(body.skipped).toBe(0);
 
@@ -770,7 +774,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       const response = await app.inject({
         method: "PATCH",
         url: `/api/carbon-inventories/${carbonInventory.id}/subcategories`,
-        payload: {},
+        payload: [],
       });
 
       expect(response.statusCode).toBe(400);
@@ -820,6 +824,8 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.message).toContain("Duplicate subcategory IDs");
     });
 
     it("should return 400 for invalid subcategory ID format", async () => {
