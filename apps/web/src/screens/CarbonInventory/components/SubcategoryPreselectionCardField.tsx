@@ -6,7 +6,7 @@ import {
   useFormContext,
 } from "react-hook-form";
 
-export type SubcategoryFieldEmission = {
+export type SubcategoryFieldSubcategory = {
   id: string | number;
   name: string;
   description?: string | null;
@@ -14,13 +14,13 @@ export type SubcategoryFieldEmission = {
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
-  emission: SubcategoryFieldEmission;
+  subcategory: SubcategoryFieldSubcategory;
   disabled?: boolean;
 };
 
 export const SubcategoryField = <T extends FieldValues>({
   name,
-  emission,
+  subcategory,
   disabled = false,
 }: Props<T>) => {
   const { control } = useFormContext<T>();
@@ -65,10 +65,10 @@ export const SubcategoryField = <T extends FieldValues>({
                   />
                 </Box>
                 <Box className="flex flex-col">
-                  <Typography variant="body1">{emission.name}</Typography>
-                  {emission.description && (
+                  <Typography variant="body1">{subcategory.name}</Typography>
+                  {subcategory.description && (
                     <Typography variant="body2" color="text.secondary">
-                      {emission.description}
+                      {subcategory.description}
                     </Typography>
                   )}
                 </Box>
