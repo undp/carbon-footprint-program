@@ -1,5 +1,12 @@
 import { FC, ReactNode } from "react";
-import { AppBar, Box, Button, Toolbar, Typography } from "@mui/material";
+import {
+  AppBar,
+  Box,
+  Button,
+  CircularProgress,
+  Toolbar,
+  Typography,
+} from "@mui/material";
 import type { ButtonProps } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
@@ -98,17 +105,72 @@ interface CarbonInventoryLayoutProps {
   children: ReactNode;
   headerProps?: CarbonInventoryHeaderProps;
   footerProps?: CarbonInventoryFooterProps;
+  isLoading?: boolean;
+  hasError?: boolean;
+  errorMessage?: {
+    title?: string;
+    description?: string;
+    retryButtonText?: string;
+  };
+  onRetry?: () => void;
+  onError?: () => void;
 }
 
 export const CarbonInventoryLayout: FC<CarbonInventoryLayoutProps> = ({
   children,
   headerProps,
   footerProps,
+  isLoading = false,
+  hasError = false,
+  errorMessage = {
+    title: "Hubo un error cargando la información",
+    description:
+      "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+    retryButtonText: "Recargar Página",
+  },
+  onRetry,
+  onError,
 }) => {
+  // Si hay error, ejecutar onError callback
+  if (hasError && onError) {
+    onError();
+  }
+
   return (
     <Box className="flex h-screen flex-col">
       <CarbonInventoryHeader {...headerProps} />
-      <Box className="flex min-h-0 flex-1 flex-col p-6">{children}</Box>
+      <Box className="flex min-h-0 flex-1 flex-col p-6">
+        {isLoading && (
+          <Box className="flex min-h-0 flex-1 items-center justify-center">
+            <CircularProgress />
+          </Box>
+        )}
+
+        {!isLoading && hasError && (
+          <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+            <Typography variant="h5" color="text.primary" fontWeight="bold">
+              {errorMessage.title}
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              sx={{ maxWidth: 600 }}
+            >
+              {errorMessage.description}
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={onRetry || (() => window.location.reload())}
+              sx={{ mt: 2 }}
+            >
+              {errorMessage.retryButtonText}
+            </Button>
+          </Box>
+        )}
+
+        {!isLoading && !hasError && children}
+      </Box>
       <CarbonInventoryFooter {...footerProps} />
     </Box>
   );

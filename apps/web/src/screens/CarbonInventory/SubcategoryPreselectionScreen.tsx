@@ -1,11 +1,5 @@
 import { FC, Fragment } from "react";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Divider,
-  Typography,
-} from "@mui/material";
+import { Box, Divider } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout } from "./layout";
@@ -75,89 +69,65 @@ export const SubcategoryPreselectionScreen: FC = () => {
               disabled: isSubmitting || hasError || isLoading,
             },
           }}
+          isLoading={isLoading}
+          hasError={hasError}
+          errorMessage={{
+            title:
+              "Hubo un error cargando las categorías y subcategorías para su huella.",
+            description:
+              "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+            retryButtonText: "Recargar Página",
+          }}
         >
           <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg bg-white p-4">
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
             />
-            {isLoading && (
-              <Box className="flex min-h-0 flex-1 items-center justify-center">
-                <CircularProgress />
-              </Box>
-            )}
-
-            {!isLoading && hasError && (
-              <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
-                <Typography variant="h5" color="text.primary" fontWeight="bold">
-                  Hubo un error cargando las categorías y subcategorías para su
-                  huella.
-                </Typography>
-                <Typography
-                  variant="body1"
-                  color="text.secondary"
-                  sx={{ maxWidth: 600 }}
+            <Box className="flex min-h-0 flex-1 flex-row gap-6 overflow-x-auto">
+              {categories.map((category: CategoryWithSubcategories) => (
+                <Box
+                  key={category.id}
+                  className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
+                  sx={{
+                    border: `1px solid #ECECEC`,
+                    borderRadius: `16px`,
+                  }}
                 >
-                  Por favor, pruebe a recargar la página nuevamente o intente
-                  más tarde.
-                </Typography>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={() => window.location.reload()}
-                  sx={{ mt: 2 }}
-                >
-                  Recargar Página
-                </Button>
-              </Box>
-            )}
+                  {/* Header */}
+                  <CategoryCard
+                    position={category.position as 1 | 2 | 3}
+                    subtitle={category.synonyms || ""}
+                    title={category.name}
+                    description={category.description || ""}
+                  />
+                  {/*  Body */}
+                  <Divider className="w-full" />
 
-            {!isLoading && !hasError && (
-              <Box className="flex min-h-0 flex-1 flex-row gap-6 overflow-x-auto">
-                {categories.map((category: CategoryWithSubcategories) => (
-                  <Box
-                    key={category.id}
-                    className="flex min-w-[300px] flex-1 flex-col items-start gap-4 overflow-hidden p-4"
-                    sx={{
-                      border: `1px solid #ECECEC`,
-                      borderRadius: `16px`,
-                    }}
-                  >
-                    {/* Header */}
-                    <CategoryCard
-                      position={category.position as 1 | 2 | 3}
-                      subtitle={category.synonyms || ""}
-                      title={category.name}
-                      description={category.description || ""}
-                    />
-                    {/*  Body */}
-                    <Divider className="w-full" />
-
-                    <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
-                      {category.subcategories.map((subcategory) => (
-                        <Fragment key={subcategory.id.toString()}>
-                          <SubcategoryField
-                            name={String(subcategory.id)}
-                            emission={{
-                              id: subcategory.id,
-                              name: subcategory.name,
-                              description: subcategory.description,
-                            }}
-                            disabled={subcategory.edited}
-                          />
-                          <Divider className="w-full" />
-                        </Fragment>
-                      ))}
-                      {category.subcategories.length === 0 && (
-                        <Box className="p-4 text-center text-gray-500">
-                          No hay subcategorías disponibles.
-                        </Box>
-                      )}
-                    </Box>
+                  <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
+                    {category.subcategories.map((subcategory) => (
+                      <Fragment key={subcategory.id.toString()}>
+                        <SubcategoryField
+                          name={String(subcategory.id)}
+                          emission={{
+                            id: subcategory.id,
+                            name: subcategory.name,
+                            description: subcategory.description,
+                          }}
+                          disabled={subcategory.edited}
+                        />
+                        <Divider className="w-full" />
+                      </Fragment>
+                    ))}
+                    {category.subcategories.length === 0 && (
+                      <Box className="p-4 text-center text-gray-500">
+                        No hay subcategorías disponibles.
+                      </Box>
+                    )}
                   </Box>
-                ))}
-              </Box>
-            )}
+                </Box>
+              ))}
+            </Box>
           </Box>
         </CarbonInventoryLayout>
       </form>

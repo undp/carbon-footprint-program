@@ -40,8 +40,11 @@ export const BusinessProfilingScreen: FC = () => {
     0.2
   )} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`;
 
-  const { data: existingInventory, isLoading: inventoryLoading } =
-    useCarbonInventory(inventoryId);
+  const {
+    data: existingInventory,
+    isLoading: isInventoryLoading,
+    isError: hasInventoryError,
+  } = useCarbonInventory(inventoryId);
 
   const {
     control,
@@ -117,9 +120,17 @@ export const BusinessProfilingScreen: FC = () => {
           nextButtonProps: {
             type: "submit",
             form: "business-profiling-form",
-            loading: isSubmitting || inventoryLoading,
-            disabled: isSubmitting || inventoryLoading,
+            loading: isSubmitting || isInventoryLoading,
+            disabled: isSubmitting || isInventoryLoading || hasInventoryError,
           },
+        }}
+        isLoading={isInventoryLoading}
+        hasError={hasInventoryError}
+        errorMessage={{
+          title: "No se encontró el inventario",
+          description:
+            "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+          retryButtonText: "Recargar Página",
         }}
       >
         <Box className="flex min-h-0 flex-1 flex-col gap-6">
