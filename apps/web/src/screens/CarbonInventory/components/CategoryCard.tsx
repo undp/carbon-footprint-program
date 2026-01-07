@@ -112,7 +112,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           sx={{
             width: "24px",
             height: "24px",
-            color: darken(theme.palette.category[safePosition].main, 0.6),
+            color: darken(theme.palette.category[position].main, 0.6),
           }}
           label="Más información de la categoría"
           disabled={variant === "unfocused"}
