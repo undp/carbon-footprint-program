@@ -15,8 +15,7 @@ export function mapBigIntField(
 export function mapBigIntField(
   value: string | null | undefined
 ): bigint | null | undefined {
-  if (value === undefined) return undefined;
-  if (value === null) return null;
+  if (value === null || value === undefined) return value;
   return BigInt(value);
 }
 
