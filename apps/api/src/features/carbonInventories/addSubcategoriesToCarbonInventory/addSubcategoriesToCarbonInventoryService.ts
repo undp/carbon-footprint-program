@@ -107,20 +107,28 @@ export const addSubcategoriesToCarbonInventoryService = async (
     (id) => !subcategoryIdsWithActiveLines.has(id)
   );
 
-  // Create empty ACTIVE lines for the remaining subcategoryIds within a transaction
-  // This ensures all lines are created atomically - if one fails, all are rolled back
-  await prismaClient.$transaction(async (tx) => {
-    const recordsToCreate = subcategoryIdsToCreate.map((subcategoryId) => ({
-      carbonInventoryId,
-      subcategoryId,
-      statusId: activeStatus.id,
-      createdById: null, // TODO: Add created by id from logged in user
-      updatedById: null, // TODO: Add updated by id from logged in user
-    }));
+  // Early return if there's nothing to insert
+  if (subcategoryIdsToCreate.length === 0) {
+    return {
+      success: true,
+      data: {
+        added: 0,
+        skipped: subcategoryIds.length,
+      },
+    };
+  }
 
-    await tx.carbonInventoryLine.createMany({
-      data: recordsToCreate,
-    });
+  // Create empty ACTIVE lines for the remaining subcategoryIds
+  const recordsToCreate = subcategoryIdsToCreate.map((subcategoryId) => ({
+    carbonInventoryId,
+    subcategoryId,
+    statusId: activeStatus.id,
+    createdById: null, // TODO: Add created by id from logged in user
+    updatedById: null, // TODO: Add updated by id from logged in user
+  }));
+
+  await prismaClient.carbonInventoryLine.createMany({
+    data: recordsToCreate,
   });
 
   return {
