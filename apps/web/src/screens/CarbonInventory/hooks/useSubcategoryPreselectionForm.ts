@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
-import { CategoryWithSubcategories } from "./types";
+import { CategoryWithSubcategories } from "../types";
 import { useSubcategoryPreselectionSubmit } from "./useSubcategoryPreselectionSubmit";
 
 export interface SubcategoryPreselectionFormProps {

@@ -8,7 +8,7 @@ import { StepHeader } from "./components/StepHeader";
 import { SubcategoryPreselectionCard } from "./components/SubcategoryPreselectionCard";
 import { useSubcategoryPreselectionData } from "./hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "./hooks/useSubcategoryPreselectionForm";
-import { CategoryWithSubcategories } from "./hooks/types";
+import { CategoryWithSubcategories } from "./types";
 
 export const SubcategoryPreselectionScreen: FC = () => {
   const navigate = useNavigate();

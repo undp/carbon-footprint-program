@@ -2,7 +2,7 @@ import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
 import { CategoryCard } from "./CategoryCard";
 import { SubcategoryField } from "./SubcategoryPreselectionCardField";
-import { CategoryWithSubcategories } from "../hooks/types";
+import { CategoryWithSubcategories } from "../types";
 
 interface SubcategoryPreselectionCardProps {
   category: CategoryWithSubcategories;

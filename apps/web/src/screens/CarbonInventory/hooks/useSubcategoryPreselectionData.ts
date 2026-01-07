@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useMethodology } from "@/api/query/carbonInventories/methodologies/useMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
-import { CategoryWithSubcategories, SubcategoryItem } from "./types";
+import { CategoryWithSubcategories, SubcategoryItem } from "../types";
 
 export interface SubcategoryPreselectionData {
   data: CategoryWithSubcategories[];
