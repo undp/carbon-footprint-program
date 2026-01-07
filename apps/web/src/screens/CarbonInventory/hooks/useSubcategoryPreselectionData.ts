@@ -65,20 +65,8 @@ export const useSubcategoryPreselectionData = (
   }, [methodology, subcategoriesSummary]);
 
   const hasError = useMemo(() => {
-    return (
-      isMethodologyError ||
-      isSubcategoriesSummaryError ||
-      (!isMethodologyLoading &&
-        !isSubcategoriesSummaryLoading &&
-        mergedData.length === 0)
-    );
-  }, [
-    isMethodologyError,
-    isSubcategoriesSummaryError,
-    isMethodologyLoading,
-    isSubcategoriesSummaryLoading,
-    mergedData.length,
-  ]);
+    return isMethodologyError || isSubcategoriesSummaryError;
+  }, [isMethodologyError, isSubcategoriesSummaryError]);
 
   return {
     data: mergedData,
