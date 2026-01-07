@@ -99,9 +99,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
                   <Box className="flex min-h-0 w-full flex-1 flex-col gap-4 overflow-y-auto">
                     {category.subcategories.map((subcategory) => (
-                      <Fragment key={subcategory.id.toString()}>
+                      <Fragment key={subcategory.id}>
                         <SubcategoryField
-                          name={String(subcategory.id)}
+                          name={subcategory.id}
                           emission={{
                             id: subcategory.id,
                             name: subcategory.name,
