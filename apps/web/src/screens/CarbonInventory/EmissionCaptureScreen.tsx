@@ -1,175 +1,117 @@
-import { FC, useMemo, useEffect, useCallback } from "react";
-import { Box } from "@mui/material";
-import { useParams } from "@tanstack/react-router";
-import { FormProvider } from "react-hook-form";
+import { FC, useMemo, useState, useEffect } from "react";
 import { CarbonInventoryLayout } from "./layout";
-import { Routes } from "@/interfaces";
+import { Box } from "@mui/material";
+import { useNavigate, useParams } from "@tanstack/react-router";
+import { Routes } from "../../interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { CategoryCard } from "./components/CategoryCard";
-import { EmissionEditor } from "./components/EmissionEditor";
+import { SubcategoryContainer } from "./components/Subcategory/SubcategoryContainer";
+import { useCarbonInventory, useMethodology } from "../../api/query";
+import { useCarbonInventoryState } from "./hooks/useCarbonInventoryState";
+import { round } from "lodash";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
-import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
-import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
-import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
-import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
-import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
-import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
-import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
-import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
+  const navigate = useNavigate();
 
-  const { selectedCategory, handleCategoryChange } =
-    useEmissionCaptureCategory();
+  const [selectedCategory, setSelectedCategory] = useState<string>("1");
 
-  const { data, isLoading } = useEmissionCaptureData({
-    inventoryId,
-  });
+  const { data: methodology, isLoading: isLoadingMethodology } =
+    useMethodology(inventoryId);
+  const { data: inventory, isLoading: isLoadingInventory } =
+    useCarbonInventory(inventoryId);
 
-  const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
-
-  const activeActionsCount = useEmissionCaptureState(
-    (state) => state.activeActionsCount
+  const initializeSubcategory = useCarbonInventoryState(
+    (state) => state.initializeSubcategory
   );
-  const subcategoryTotals = useEmissionCaptureState(
-    (state) => state.subcategoryTotals
+
+  const subcategoriesByCategory = useMemo(
+    () =>
+      new Map(
+        methodology?.categories.map(({ id, subcategories }) => [
+          id,
+          subcategories,
+        ])
+      ),
+    [methodology]
   );
-  const resetStore = useEmissionCaptureState((state) => state.reset);
-
-  // Form setup
-  const methods = useEmissionCaptureForm({ data });
-  const { handleSubmit, formState, resetAfterSave } = methods;
-
-  const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      onSuccess: goNext,
-      isDirty: formState.isDirty,
-      resetAfterSave,
-      showNoChangesMessage: false,
-    });
-
-  const { submit: submitNoNavigate, isSubmitting: isSubmittingNoNavigating } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      isDirty: formState.isDirty,
-      resetAfterSave,
-    });
-
-  const { submit: submitAndGoBack, isSubmitting: isSubmittingAndGoingBack } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      onSuccess: goBack,
-      isDirty: formState.isDirty,
-      resetAfterSave,
-      showNoChangesMessage: false,
-    });
-
-  const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
-    inventoryId,
-    isDirty: formState.isDirty,
-    resetAfterSave,
-    showNoChangesMessage: false,
-    resultFeedbackWithSnackbar: true,
-  });
 
   const selectedCategoryData = useMemo(
-    () => data?.categories.find((category) => category.id === selectedCategory),
-    [data, selectedCategory]
+    () => methodology?.categories.find((cat) => cat.id === selectedCategory),
+    [methodology, selectedCategory]
   );
 
-  // Calculate total emissions for the selected category based on subcategory totals in store
-  const categoryEmissions = useMemo(() => {
-    if (!selectedCategoryData) return 0;
-    const total = selectedCategoryData.subcategories.reduce(
-      (acc, subcategory) => {
-        const subcatTotal = subcategoryTotals[subcategory.id] || 0;
-        return acc + subcatTotal;
-      },
-      0
+  // Calcular total de emisiones por categoría
+  const allSubcategories = useCarbonInventoryState(
+    (state) => state.subcategories
+  );
+
+  const totalCategoryEmissions = useMemo(() => {
+    const subcategoriesInCategory =
+      subcategoriesByCategory.get(selectedCategory) || [];
+
+    return (
+      subcategoriesInCategory?.reduce((total, subcategory) => {
+        const subcategoryState = allSubcategories[subcategory.id];
+        if (!subcategoryState) return total;
+
+        if (subcategoryState.isTotalManualEmissionsMode) {
+          return total + (subcategoryState.totalEmission || 0);
+        }
+
+        const linesTotal =
+          subcategoryState.lines?.reduce((lineTotal, line) => {
+            const quantity = line.quantity || 0;
+            const factorValue = line.factorValue || 0;
+            return lineTotal + quantity * factorValue;
+          }, 0) || 0;
+
+        return total + linesTotal;
+      }, 0) || 0
     );
-    return total;
-  }, [selectedCategoryData, subcategoryTotals]);
+  }, [subcategoriesByCategory, selectedCategory, allSubcategories]);
 
-  // Reset store on mount and unmount to avoid stale data
+  // Inicializar el store con los datos del inventario
   useEffect(() => {
-    resetStore();
-    return () => resetStore();
-  }, [resetStore]);
+    if (inventory?.subcategories) {
+      inventory.subcategories.forEach((subcategory) => {
+        initializeSubcategory(subcategory.id, subcategory.lines || []);
+      });
+    }
+  }, [inventory, initializeSubcategory]);
 
-  const isBusy = activeActionsCount > 0;
-
-  const handleCategoryChangeWithSave = useCallback(
-    (categoryId: string) => {
-      void handleSubmit(async (data) => {
-        await submitOnCategoryChange(data);
-        handleCategoryChange(categoryId);
-      })();
-    },
-    [handleSubmit, submitOnCategoryChange, handleCategoryChange]
-  );
+  const isLoading = isLoadingMethodology || isLoadingInventory;
 
   return (
-    <FormProvider {...methods}>
-      <form
-        id="emission-capture-form"
-        onSubmit={handleSubmit(submitAndNavigate)}
-        noValidate
-      >
-        <CarbonInventoryLayout
-          headerProps={{
-            title: "Simulador de Inventario Organizacional",
-          }}
-          footerProps={{
-            buttons: [
-              {
-                text: "Volver",
-                align: "right",
-                buttonProps: {
-                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                  onClick: handleSubmit(submitAndGoBack),
-                  loading: isSubmittingAndGoingBack,
-                  disabled: isSubmittingAndGoingBack || isBusy,
-                },
-              },
-              {
-                text: "Guardar",
-                align: "right",
-                buttonProps: {
-                  startIcon: <SaveRounded />,
-                  variant: "contained",
-                  onClick: handleSubmit(submitNoNavigate),
-                  loading: isSubmittingNoNavigating,
-                  disabled: isSubmittingNoNavigating || isBusy,
-                },
-              },
-              {
-                text: "Siguiente",
-                align: "right",
-                buttonProps: {
-                  endIcon: <ArrowRightAltRounded />,
-                  variant: "contained",
-                  type: "submit",
-                  form: "emission-capture-form",
-                  loading: isSubmittingAndNavigating,
-                  disabled: isSubmittingAndNavigating || isBusy,
-                },
-              },
-            ],
-          }}
-          isLoading={isLoading}
-        >
-          <Box className="flex min-h-0 flex-1 flex-col">
-            <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-scroll rounded-lg bg-white p-6">
-              <StepHeader
-                title="Paso 3: Completa los datos de tus fuentes de emisión"
-                description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
-              />
+    <CarbonInventoryLayout
+      headerProps={{
+        title: "Simulador de Inventario Organizacional",
+      }}
+      footerProps={{
+        backButtonProps: {
+          onClick: () =>
+            navigate({
+              to: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
+              params: { inventoryId },
+            }),
+        },
+      }}
+    >
+      <Box className="flex min-h-0 flex-1 flex-col">
+        <Box className="flex min-h-0 flex-1 flex-col gap-6 rounded-lg bg-white p-6">
+          <StepHeader
+            title="Paso 3: Completa los datos de tus fuentes de emisión"
+            description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
+          />
+          {isLoading ? (
+            <div>Loading categories...</div>
+          ) : (
+            <>
               <Box className="flex flex-row gap-4">
-                {data?.categories.map((category) => (
+                {methodology?.categories.map((category) => (
                   <CategoryCard
                     key={`category_${category.id}`}
                     position={category.position}
@@ -179,43 +121,36 @@ export const EmissionCaptureScreen: FC = () => {
                     title={category.name}
                     subtitle={category.synonyms}
                     description={category.description}
-                    onClick={() => handleCategoryChangeWithSave(category.id)}
+                    onClick={() => setSelectedCategory(category.id)}
                   />
                 ))}
               </Box>
               {selectedCategoryData && (
                 <TotalCategoryEmissionCard
                   category={selectedCategoryData}
-                  categoryEmissions={categoryEmissions}
+                  categoryEmissions={round(totalCategoryEmissions, 2)}
                 />
               )}
-              <Box className="flex min-h-0 flex-1 flex-col gap-4">
-                {(
-                  selectedCategoryData?.subcategories ||
-                  ([] as SubcategoryWithLines[])
-                ).map((subcategory) => {
-                  if (
-                    subcategory.lines.length === 0 &&
-                    !subcategory.isTotalManualEmissionsMode
-                  )
-                    return null;
-                  return (
-                    <EmissionEditor
-                      key={subcategory.id}
-                      isTotalManualEmissionsModeAvailable={
-                        // TODO: use enum here (difficult to import from packages based on the current TS config)
-                        data?.usageMode === "EXPERT"
-                      }
+              <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll">
+                {(subcategoriesByCategory.get(selectedCategory) || []).map(
+                  (subcategory) => (
+                    <SubcategoryContainer
+                      key={subcategory.name}
                       categoryPosition={Number(selectedCategory)}
                       subcategory={subcategory}
+                      lines={
+                        inventory?.subcategories.find(
+                          (sc) => sc.id === subcategory.id
+                        )?.lines || []
+                      }
                     />
-                  );
-                })}
+                  )
+                )}
               </Box>
-            </Box>
-          </Box>
-        </CarbonInventoryLayout>
-      </form>
-    </FormProvider>
+            </>
+          )}
+        </Box>
+      </Box>
+    </CarbonInventoryLayout>
   );
 };
