@@ -516,26 +516,26 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
         methodologyId1
       );
 
-      // Only test if there are subcategories in methodology 1
-      if (subcategoryIdsFromMethodology1.length > 0) {
-        const response = await app.inject({
-          method: "PATCH",
-          url: `/api/carbon-inventories/${carbonInventory.id}/subcategories`,
-          payload: [
-            {
-              id: subcategoryIdsFromMethodology1[0].toString(),
-              selected: true,
-            },
-          ],
-        });
+      // Ensure there are subcategories in methodology 1 before proceeding
+      expect(subcategoryIdsFromMethodology1.length).toBeGreaterThan(0);
 
-        expect(response.statusCode).toBe(422);
-        const body = JSON.parse(response.body) as StructuredErrorResponse;
-        expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
-        expect(body.message).toBe(
-          "One or more subcategories do not belong to the carbon inventory's methodology"
-        );
-      }
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories`,
+        payload: [
+          {
+            id: subcategoryIdsFromMethodology1[0].toString(),
+            selected: true,
+          },
+        ],
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
+      expect(body.message).toBe(
+        "One or more subcategories do not belong to the carbon inventory's methodology"
+      );
     });
 
     it("should return 422 when trying to remove a subcategory with non-empty lines", async () => {
