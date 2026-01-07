@@ -1,4 +1,29 @@
-import { LineWithInputs } from "./mappers.js";
+import type { Prisma } from "@repo/database";
+
+/**
+ * Type for a line input (picked from Prisma CarbonInventoryLineInput)
+ * Only includes the fields we need to check if a line is empty
+ */
+type LineInputBasicFields = Pick<
+  Prisma.CarbonInventoryLineInputGetPayload<Record<string, never>>,
+  | "selection1Id"
+  | "selection2Id"
+  | "quantity"
+  | "measurementUnitId"
+  | "directTotalEmissions"
+  | "manualFactor"
+  | "manualFactorSource"
+  | "manualFactorRateUnitId"
+  | "comment"
+>;
+
+/**
+ * Type for a line with inputs
+ * Based on Prisma types but flexible enough to work with both
+ */
+type LineWithInputsGeneric = {
+  inputs?: Array<LineInputBasicFields> | null;
+};
 
 /**
  * Determines if a carbon inventory line has been edited by checking if the active input
@@ -6,10 +31,12 @@ import { LineWithInputs } from "./mappers.js";
  * line.inputs, as the system maintains inputs in chronological order with the most recent
  * (active) input at index 0.
  */
-export const isCarbonInventoryLineEdited = (line: LineWithInputs): boolean => {
+export const isCarbonInventoryLineEdited = (
+  line: LineWithInputsGeneric
+): boolean => {
   const activeInput = line.inputs?.[0] ?? null;
   return (
-    Boolean(activeInput) &&
+    !!activeInput &&
     (activeInput.selection1Id !== null ||
       activeInput.selection2Id !== null ||
       activeInput.quantity !== null ||

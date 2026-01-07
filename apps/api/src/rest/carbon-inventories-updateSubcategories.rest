@@ -1,0 +1,92 @@
+@baseUrl = http://localhost:8080
+
+### Update Carbon Inventory Subcategories - Add new subcategories
+PATCH {{baseUrl}}/api/carbon-inventories/1/subcategories HTTP/1.1
+Content-Type: application/json
+
+[
+	{
+		"id": "1",
+		"selected": true
+	},
+	{
+		"id": "2",
+		"selected": true
+	}
+]
+
+
+### Update Carbon Inventory Subcategories - Remove subcategories (empty lines)
+PATCH {{baseUrl}}/api/carbon-inventories/1/subcategories HTTP/1.1
+Content-Type: application/json
+
+[
+	{
+		"id": "1",
+		"selected": false
+	},
+	{
+		"id": "2",
+		"selected": false
+	}
+]
+
+
+### Update Carbon Inventory Subcategories - Mixed: add and remove
+PATCH {{baseUrl}}/api/carbon-inventories/1/subcategories HTTP/1.1
+Content-Type: application/json
+
+[
+	{
+		"id": "1",
+		"selected": true
+	},
+	{
+		"id": "2",
+		"selected": false
+	},
+	{
+		"id": "3",
+		"selected": true
+	},
+	{
+		"id": "4",
+		"selected": false
+	}
+]
+
+
+### Update Carbon Inventory Subcategories - Skip already selected (should return skipped: 1)
+PATCH {{baseUrl}}/api/carbon-inventories/1/subcategories HTTP/1.1
+Content-Type: application/json
+
+[
+	{
+		"id": "1",
+		"selected": true
+	}
+]
+
+
+### Update Carbon Inventory Subcategories - Skip already deselected (should return skipped: 1)
+PATCH {{baseUrl}}/api/carbon-inventories/1/subcategories HTTP/1.1
+Content-Type: application/json
+
+[
+	{
+		"id": "1",
+		"selected": false
+	}
+]
+
+
+### Update Carbon Inventory Subcategories - Try to remove subcategory with non-empty lines (should fail)
+PATCH {{baseUrl}}/api/carbon-inventories/1/subcategories HTTP/1.1
+Content-Type: application/json
+
+[
+	{
+		"id": "3",
+		"selected": false
+	}
+]
