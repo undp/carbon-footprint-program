@@ -1,6 +1,5 @@
 import { create } from "zustand";
 import { CarbonInventoryLine } from "@repo/types";
-import { SubcategoryId, LineId } from "../types/EmissionCaptureTypes";
 
 interface SubcategoryState {
   lines: CarbonInventoryLine[];
@@ -9,30 +8,27 @@ interface SubcategoryState {
 }
 
 interface CarbonInventoryState {
-  subcategories: Record<SubcategoryId, SubcategoryState>;
+  subcategories: Record<string, SubcategoryState>;
 
   // Actions
   setSubcategoryLines: (
-    subcategoryId: SubcategoryId,
+    subcategoryId: string,
     lines: CarbonInventoryLine[]
   ) => void;
-  addLine: (subcategoryId: SubcategoryId, line: CarbonInventoryLine) => void;
+  addLine: (subcategoryId: string, line: CarbonInventoryLine) => void;
   updateLine: (
-    subcategoryId: SubcategoryId,
-    lineId: LineId,
+    subcategoryId: string,
+    lineId: string,
     updates: Partial<CarbonInventoryLine>
   ) => void;
-  deleteLine: (subcategoryId: SubcategoryId, lineId: LineId) => void;
-  setTotalEmission: (subcategoryId: SubcategoryId, total: number) => void;
-  setManualEmissionsMode: (
-    subcategoryId: SubcategoryId,
-    isManual: boolean
-  ) => void;
+  deleteLine: (subcategoryId: string, lineId: string) => void;
+  setTotalEmission: (subcategoryId: string, total: number) => void;
+  setManualEmissionsMode: (subcategoryId: string, isManual: boolean) => void;
   initializeSubcategory: (
-    subcategoryId: SubcategoryId,
+    subcategoryId: string,
     lines: CarbonInventoryLine[]
   ) => void;
-  clearSubcategory: (subcategoryId: SubcategoryId) => void;
+  clearSubcategory: (subcategoryId: string) => void;
 }
 
 export const useCarbonInventoryState = create<CarbonInventoryState>((set) => ({
