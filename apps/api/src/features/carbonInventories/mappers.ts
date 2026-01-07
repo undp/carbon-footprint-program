@@ -43,7 +43,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
   const dimensionValue2Id = activeInput?.selection2Id?.toString() ?? null;
 
   // Get quantity
-  const quantity = toNumberOrNull(activeInput?.quantity);
+  const quantity = toNumberOrNull(activeInput?.quantity) ?? null;
 
   const measurementUnitId = activeInput?.measurementUnitId?.toString() ?? null;
 
@@ -66,9 +66,8 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
 
   const comment = activeInput?.comment ?? null;
 
-  const manualTotalEmissions = toNumberOrNull(
-    activeInput?.directTotalEmissions
-  );
+  const manualTotalEmissions =
+    toNumberOrNull(activeInput?.directTotalEmissions) ?? null;
 
   return {
     id: String(line.id),
