@@ -104,7 +104,7 @@ export const EmissionCaptureScreen: FC = () => {
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col">
-        <Box className="flex min-h-0 flex-1 flex-col gap-6 rounded-lg bg-white p-6">
+        <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-scroll rounded-lg bg-white p-6">
           <StepHeader
             title="Paso 3: Completa los datos de tus fuentes de emisión"
             description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
@@ -134,20 +134,24 @@ export const EmissionCaptureScreen: FC = () => {
                   categoryEmissions={round(totalCategoryEmissions, 2)}
                 />
               )}
-              <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll">
+              <Box className="flex min-h-0 flex-1 flex-col gap-4">
                 {(subcategoriesByCategory.get(selectedCategory) || []).map(
-                  (subcategory) => (
-                    <SubcategoryContainer
-                      key={subcategory.name}
-                      categoryPosition={Number(selectedCategory)}
-                      subcategory={subcategory}
-                      lines={
-                        inventory?.subcategories.find(
-                          (sc) => sc.id === subcategory.id
-                        )?.lines || []
-                      }
-                    />
-                  )
+                  (subcategory) => {
+                    // TODO: maybe we should use a hook for building the merged data
+                    const lines =
+                      inventory?.subcategories.find(
+                        (sc) => sc.id === subcategory.id
+                      )?.lines || [];
+                    if (lines.length === 0) return null;
+                    return (
+                      <SubcategoryContainer
+                        key={subcategory.name}
+                        categoryPosition={Number(selectedCategory)}
+                        subcategory={subcategory}
+                        lines={lines}
+                      />
+                    );
+                  }
                 )}
               </Box>
             </>
