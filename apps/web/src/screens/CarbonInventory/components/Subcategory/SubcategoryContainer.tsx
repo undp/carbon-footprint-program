@@ -294,9 +294,11 @@ export const SubcategoryContainer: FC<Props> = ({
         cellClassName: "content-center",
         renderCell: (params: GridRenderCellParams<CarbonInventoryLine>) => (
           <ActionsCell
-            categoryPosition={categoryPosition}
             rowId={params.id}
-            viewDetails={() => {}}
+            categoryPosition={categoryPosition}
+            uploadFiles={() => {
+              //TODO: Implement upload files functionality
+            }}
             updateComment={() => {
               setCurrentRowId(params.id.toString());
               setCurrentComment(params.row.comment || "");
