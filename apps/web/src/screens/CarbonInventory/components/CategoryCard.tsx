@@ -53,6 +53,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
   const icon = icons[safePosition];
+  const color = darken(theme.palette.category[safePosition].main, 0.6);
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
@@ -60,7 +61,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
     <Card
       elevation={variant === "focused" ? 2 : 0}
       onClick={isClickable ? onClick : undefined}
-      className={`flex w-full flex-row items-stretch justify-start gap-2 ${opacity}`}
+      className={`flex w-full flex-row items-center justify-start gap-2 ${opacity}`}
       sx={{
         padding: 1,
         borderRadius: 2,
@@ -88,11 +89,18 @@ export const CategoryCard: FC<CategoryCardProps> = ({
         {icon}
       </Box>
       <Box className="flex-1">
-        <Typography variant="body2">{subtitle}</Typography>
-        <Typography variant="body1" fontWeight="fontWeightBold">
+        <Typography
+          fontSize="0.65rem"
+          fontWeight="fontWeightMedium"
+          lineHeight="normal"
+          color={color}
+        >
+          {subtitle.toUpperCase()}
+        </Typography>
+        <Typography variant="body1" fontWeight="fontWeightMedium" color={color}>
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography fontSize="0.65rem" lineHeight="normal" color={color}>
           {description}
         </Typography>
       </Box>
@@ -100,6 +108,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
         <InfoButton
           label="Más información de la categoría"
           disabled={variant === "unfocused"}
+          sx={{ width: "24px", height: "24px", color }}
           onClick={(e) => {
             e.stopPropagation();
             //TODO: Open a modal with the information
