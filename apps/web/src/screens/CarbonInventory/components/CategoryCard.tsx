@@ -45,6 +45,9 @@ export const CategoryCard: FC<CategoryCardProps> = ({
     }),
     [theme]
   );
+  // Ensure the position is between 1 and 3
+  // In the future should exists a default value for positions greater than 3
+  // For now, we will use the last category
   const safePosition = Math.max(Math.min(position, 3), 1) as 1 | 2 | 3;
   const backgroundColor = theme.palette.category[safePosition].light;
   const border =
