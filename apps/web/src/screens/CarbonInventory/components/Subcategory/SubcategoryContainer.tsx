@@ -58,6 +58,26 @@ export const SubcategoryContainer: FC<Props> = ({
     (state) => state.initializeSubcategory
   );
 
+  const onChangeCell = useCallback(
+    (
+      value: string,
+      params: GridRenderCellParams<CarbonInventoryLine, string | number | null>
+    ) => {
+      // Update Zustand store with new dimension value
+      updateLine(subcategory.id, params.id.toString(), {
+        [params.field]: value,
+      });
+      // Update DataGrid UI to reflect the change immediately
+      params.api.updateRows([
+        {
+          id: params.id,
+          [params.field]: value,
+        },
+      ]);
+    },
+    [subcategory.id, updateLine]
+  );
+
   const rows = useMemo(
     () => subcategoryState?.lines || [],
     [subcategoryState?.lines]
@@ -97,35 +117,21 @@ export const SubcategoryContainer: FC<Props> = ({
               cellClassName: "content-center max-h-[56px]",
               renderCell: (
                 params: GridRenderCellParams<CarbonInventoryLine, string>
-              ) => {
-                return (
-                  <Select
-                    id={params.field}
-                    value={params.value || ""}
-                    fullWidth
-                    size="small"
-                    onChange={(e) => {
-                      // Update Zustand store with new dimension value
-                      updateLine(subcategory.id, params.id.toString(), {
-                        [params.field]: e.target.value,
-                      });
-                      // Update DataGrid UI to reflect the change immediately
-                      params.api.updateRows([
-                        {
-                          id: params.id,
-                          [params.field]: e.target.value,
-                        },
-                      ]);
-                    }}
-                  >
-                    {firstDimension?.values.map(({ id, value }) => (
-                      <MenuItem key={id} value={id}>
-                        {value}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                );
-              },
+              ) => (
+                <Select
+                  id={params.field}
+                  value={params.value || ""}
+                  fullWidth
+                  size="small"
+                  onChange={(e) => onChangeCell(e.target.value, params)}
+                >
+                  {firstDimension?.values.map(({ id, value }) => (
+                    <MenuItem key={id} value={id}>
+                      {value}
+                    </MenuItem>
+                  ))}
+                </Select>
+              ),
             },
           ]
         : []),
@@ -139,41 +145,27 @@ export const SubcategoryContainer: FC<Props> = ({
               cellClassName: "content-center max-h-[56px]",
               renderCell: (
                 params: GridRenderCellParams<CarbonInventoryLine, string>
-              ) => {
-                return (
-                  <Select
-                    id={params.field}
-                    value={params.value || ""}
-                    fullWidth
-                    size="small"
-                    onChange={(e) => {
-                      // Update Zustand store with new dimension value
-                      updateLine(subcategory.id, params.id.toString(), {
-                        [params.field]: e.target.value,
-                      });
-                      // Update DataGrid UI to reflect the change immediately
-                      params.api.updateRows([
-                        {
-                          id: params.id,
-                          [params.field]: e.target.value,
-                        },
-                      ]);
-                    }}
-                  >
-                    {secondDimension?.values
-                      .filter(
-                        (v) =>
-                          !params.row.dimensionValue1Id ||
-                          v.parentValueId === params.row.dimensionValue1Id
-                      )
-                      .map(({ id, value }) => (
-                        <MenuItem key={id} value={id}>
-                          {value}
-                        </MenuItem>
-                      ))}
-                  </Select>
-                );
-              },
+              ) => (
+                <Select
+                  id={params.field}
+                  value={params.value || ""}
+                  fullWidth
+                  size="small"
+                  onChange={(e) => onChangeCell(e.target.value, params)}
+                >
+                  {secondDimension?.values
+                    .filter(
+                      (v) =>
+                        !params.row.dimensionValue1Id ||
+                        v.parentValueId === params.row.dimensionValue1Id
+                    )
+                    .map(({ id, value }) => (
+                      <MenuItem key={id} value={id}>
+                        {value}
+                      </MenuItem>
+                    ))}
+                </Select>
+              ),
             },
           ]
         : []),
@@ -192,19 +184,7 @@ export const SubcategoryContainer: FC<Props> = ({
             value={params.value || ""}
             fullWidth
             size="small"
-            onChange={(e) => {
-              // Update Zustand store with new measurement unit
-              updateLine(subcategory.id, params.id.toString(), {
-                [params.field]: e.target.value,
-              });
-              // Update DataGrid UI to reflect the change immediately
-              params.api.updateRows([
-                {
-                  id: params.id,
-                  [params.field]: e.target.value,
-                },
-              ]);
-            }}
+            onChange={(e) => onChangeCell(e.target.value, params)}
           >
             {measurementUnits?.map(({ id, name }) => (
               <MenuItem key={name} value={id}>
@@ -226,20 +206,7 @@ export const SubcategoryContainer: FC<Props> = ({
         ) => (
           <NumericInput
             value={params.value}
-            onChange={(e) => {
-              const value = e.target.value;
-              // Update DataGrid UI immediately for responsive user experience
-              params.api.updateRows([
-                {
-                  id: params.id,
-                  [params.field]: value,
-                },
-              ]);
-              // Update Zustand store with parsed numeric value
-              updateLine(subcategory.id, params.id.toString(), {
-                [params.field]: value ? parseFloat(value) : null,
-              });
-            }}
+            onChange={(e) => onChangeCell(e.target.value, params)}
           />
         ),
       },
@@ -263,20 +230,7 @@ export const SubcategoryContainer: FC<Props> = ({
             <NumericInput
               value={params.value}
               suffix={unit?.abbreviation ?? ""}
-              onChange={(e) => {
-                const value = e.target.value;
-                // Update DataGrid UI immediately for responsive user experience
-                params.api.updateRows([
-                  {
-                    id: params.id,
-                    [params.field]: value,
-                  },
-                ]);
-                // Update Zustand store with parsed numeric value
-                updateLine(subcategory.id, params.id.toString(), {
-                  [params.field]: value ? parseFloat(value) : null,
-                });
-              }}
+              onChange={(e) => onChangeCell(e.target.value, params)}
             />
           ) : (
             <Typography>
@@ -299,19 +253,7 @@ export const SubcategoryContainer: FC<Props> = ({
             value={params.value || ""}
             fullWidth
             size="small"
-            onChange={(e) => {
-              // Update Zustand store with new factor source
-              updateLine(subcategory.id, params.id.toString(), {
-                [params.field]: e.target.value,
-              });
-              // Update DataGrid UI to reflect the change immediately
-              params.api.updateRows([
-                {
-                  id: params.id,
-                  [params.field]: e.target.value,
-                },
-              ]);
-            }}
+            onChange={(e) => onChangeCell(e.target.value, params)}
           >
             {uniqBy(subcategory.emissionFactors, "source")?.map(
               ({ source }) => (
@@ -369,13 +311,13 @@ export const SubcategoryContainer: FC<Props> = ({
     ];
   }, [
     dimensions,
-    updateLine,
     subcategory.id,
     subcategory.emissionFactors,
     measurementUnits,
     rateMeasurementUnits,
     categoryPosition,
     deleteLine,
+    onChangeCell,
   ]);
 
   // Inicializar subcategoría con datos del servidor
