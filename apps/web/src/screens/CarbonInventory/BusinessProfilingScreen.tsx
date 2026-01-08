@@ -60,6 +60,7 @@ export const BusinessProfilingScreen: FC = () => {
     selectedSectorId,
     selectedSubsectorId,
     selectedActivityId,
+    formState: { isDirty },
   } = useBusinessProfilingForm({ existingInventory });
 
   const {
@@ -110,7 +111,7 @@ export const BusinessProfilingScreen: FC = () => {
   return (
     <form
       id="business-profiling-form"
-      onSubmit={handleSubmit(submit)}
+      onSubmit={handleSubmit((data) => submit(data, isDirty))}
       noValidate
     >
       <CarbonInventoryLayout

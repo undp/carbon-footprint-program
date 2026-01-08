@@ -10,7 +10,10 @@ type Params = {
 };
 
 interface HookResult {
-  submit: (data: BusinessProfilingFormValues) => Promise<void>;
+  submit: (
+    data: BusinessProfilingFormValues,
+    isDirty: boolean
+  ) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -22,7 +25,12 @@ export const useBusinessProfilingSubmit = ({
   const updateCarbonInventoryMutation = useUpdateCarbonInventory();
 
   const submit = useCallback(
-    async (data: BusinessProfilingFormValues) => {
+    async (data: BusinessProfilingFormValues, isDirty: boolean) => {
+      if (!isDirty) {
+        onSuccess?.();
+        return;
+      }
+
       try {
         if (!inventoryId) {
           enqueueSnackbar(

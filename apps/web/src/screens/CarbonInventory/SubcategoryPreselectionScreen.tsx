@@ -36,7 +36,10 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const methods = useSubcategoryPreselectionForm({
     data: categories,
   });
-  const { handleSubmit } = methods;
+  const {
+    handleSubmit,
+    formState: { isDirty },
+  } = methods;
 
   const { submit, isSubmitting } = useSubcategoryPreselectionSubmit(
     inventoryId,
@@ -49,7 +52,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     <FormProvider {...methods}>
       <form
         id="subcategory-preselection-form"
-        onSubmit={handleSubmit(submit)}
+        onSubmit={handleSubmit((values) => submit(values, isDirty))}
         noValidate
       >
         <CarbonInventoryLayout

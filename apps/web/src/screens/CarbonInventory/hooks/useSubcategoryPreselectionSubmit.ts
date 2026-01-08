@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useSnackbar } from "notistack";
 
 interface HookResult {
-  submit: (values: Record<string, boolean>) => Promise<void>;
+  submit: (values: Record<string, boolean>, isDirty: boolean) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -16,7 +16,12 @@ export const useSubcategoryPreselectionSubmit = (
     useUpdateCarbonInventorySubcategories(inventoryId);
 
   const submit = useCallback(
-    async (values: Record<string, boolean>) => {
+    async (values: Record<string, boolean>, isDirty: boolean) => {
+      if (!isDirty) {
+        onSuccess?.();
+        return;
+      }
+
       try {
         const payload = Object.entries(values).map(([id, selected]) => ({
           id,
