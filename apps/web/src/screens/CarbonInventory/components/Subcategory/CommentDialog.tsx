@@ -23,7 +23,14 @@ export const CommentDialog = ({
   onSave,
 }: Props) => {
   return (
-    <Dialog onClose={handleClose} open={open}>
+    <Dialog
+      onClose={handleClose}
+      open={open}
+      disablePortal={false}
+      keepMounted={false}
+      disableAutoFocus={false}
+      disableEnforceFocus={false}
+    >
       <DialogTitle>Agrega un comentario</DialogTitle>
       <DialogContent
         sx={{
