@@ -105,9 +105,11 @@ export const SubcategoryContainer: FC<Props> = ({
                     fullWidth
                     size="small"
                     onChange={(e) => {
+                      // Update Zustand store with new dimension value
                       updateLine(subcategory.id, params.id.toString(), {
                         [params.field]: e.target.value,
                       });
+                      // Update DataGrid UI to reflect the change immediately
                       params.api.updateRows([
                         {
                           id: params.id,
@@ -145,9 +147,11 @@ export const SubcategoryContainer: FC<Props> = ({
                     fullWidth
                     size="small"
                     onChange={(e) => {
+                      // Update Zustand store with new dimension value
                       updateLine(subcategory.id, params.id.toString(), {
                         [params.field]: e.target.value,
                       });
+                      // Update DataGrid UI to reflect the change immediately
                       params.api.updateRows([
                         {
                           id: params.id,
@@ -189,9 +193,11 @@ export const SubcategoryContainer: FC<Props> = ({
             fullWidth
             size="small"
             onChange={(e) => {
+              // Update Zustand store with new measurement unit
               updateLine(subcategory.id, params.id.toString(), {
                 [params.field]: e.target.value,
               });
+              // Update DataGrid UI to reflect the change immediately
               params.api.updateRows([
                 {
                   id: params.id,
@@ -222,12 +228,14 @@ export const SubcategoryContainer: FC<Props> = ({
             value={params.value}
             onChange={(e) => {
               const value = e.target.value;
+              // Update DataGrid UI immediately for responsive user experience
               params.api.updateRows([
                 {
                   id: params.id,
                   [params.field]: value,
                 },
               ]);
+              // Update Zustand store with parsed numeric value
               updateLine(subcategory.id, params.id.toString(), {
                 [params.field]: value ? parseFloat(value) : null,
               });
@@ -257,12 +265,14 @@ export const SubcategoryContainer: FC<Props> = ({
               suffix={unit?.abbreviation ?? ""}
               onChange={(e) => {
                 const value = e.target.value;
+                // Update DataGrid UI immediately for responsive user experience
                 params.api.updateRows([
                   {
                     id: params.id,
                     [params.field]: value,
                   },
                 ]);
+                // Update Zustand store with parsed numeric value
                 updateLine(subcategory.id, params.id.toString(), {
                   [params.field]: value ? parseFloat(value) : null,
                 });
@@ -290,9 +300,11 @@ export const SubcategoryContainer: FC<Props> = ({
             fullWidth
             size="small"
             onChange={(e) => {
+              // Update Zustand store with new factor source
               updateLine(subcategory.id, params.id.toString(), {
                 [params.field]: e.target.value,
               });
+              // Update DataGrid UI to reflect the change immediately
               params.api.updateRows([
                 {
                   id: params.id,
