@@ -4,20 +4,19 @@ import {
   CommentOutlined,
   DeleteOutlined,
 } from "@mui/icons-material";
-import { GridRowId } from "@mui/x-data-grid";
 import { FC } from "react";
 
 interface Props {
-  rowId: GridRowId;
-  viewDetails: (id: GridRowId) => void;
-  updateComment: (id: GridRowId) => void;
-  deleteSource: (id: GridRowId) => void;
-  categoryPosition: number;
+  rowId: string | number;
+  uploadFiles?: (id: string | number) => void;
+  updateComment?: (id: string | number) => void;
+  deleteSource?: (id: string | number) => void;
+  categoryPosition?: number;
 }
 
 export const ActionsCell: FC<Props> = ({
   rowId,
-  viewDetails,
+  uploadFiles,
   updateComment,
   deleteSource,
   categoryPosition,
@@ -27,32 +26,41 @@ export const ActionsCell: FC<Props> = ({
     border: "1px solid",
     width: 32,
     height: 32,
-    color: (theme) => theme.palette.category[categoryPosition].main,
+    color: (theme) =>
+      categoryPosition
+        ? theme.palette.category[categoryPosition].main
+        : theme.palette.text.primary,
   };
 
   return (
     <Box className="flex justify-center gap-1">
-      <IconButton
-        sx={iconSx}
-        aria-label="viewDetails"
-        onClick={() => viewDetails(rowId)}
-      >
-        <SourceOutlined fontSize="inherit" />
-      </IconButton>
-      <IconButton
-        sx={iconSx}
-        aria-label="addComment"
-        onClick={() => updateComment(rowId)}
-      >
-        <CommentOutlined fontSize="inherit" />
-      </IconButton>
-      <IconButton
-        sx={iconSx}
-        aria-label="delete"
-        onClick={() => deleteSource(rowId)}
-      >
-        <DeleteOutlined fontSize="inherit" />
-      </IconButton>
+      {uploadFiles && (
+        <IconButton
+          sx={iconSx}
+          aria-label="uploadFiles"
+          onClick={() => uploadFiles(rowId)}
+        >
+          <SourceOutlined fontSize="inherit" />
+        </IconButton>
+      )}
+      {updateComment && (
+        <IconButton
+          sx={iconSx}
+          aria-label="addComment"
+          onClick={() => updateComment(rowId)}
+        >
+          <CommentOutlined fontSize="inherit" />
+        </IconButton>
+      )}
+      {deleteSource && (
+        <IconButton
+          sx={iconSx}
+          aria-label="delete"
+          onClick={() => deleteSource(rowId)}
+        >
+          <DeleteOutlined fontSize="inherit" />
+        </IconButton>
+      )}
     </Box>
   );
 };
