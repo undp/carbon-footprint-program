@@ -9,7 +9,7 @@ import {
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
-  position: 1 | 2 | 3;
+  position: number;
   title: string;
   subtitle: string;
   description: string;
@@ -45,14 +45,14 @@ export const CategoryCard: FC<CategoryCardProps> = ({
     }),
     [theme]
   );
-
-  const backgroundColor = theme.palette.category[position].light;
+  const safePosition = Math.max(Math.min(position, 3), 1) as 1 | 2 | 3;
+  const backgroundColor = theme.palette.category[safePosition].light;
   const border =
     variant === "focused"
-      ? `1px solid ${theme.palette.category[position].main}`
+      ? `1px solid ${theme.palette.category[safePosition].main}`
       : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const icon = icons[position];
+  const icon = icons[safePosition];
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
@@ -103,7 +103,6 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           onClick={(e) => {
             e.stopPropagation();
             //TODO: Open a modal with the information
-            // alert("Information");
           }}
         />
       </Box>

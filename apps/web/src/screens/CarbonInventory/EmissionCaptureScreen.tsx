@@ -13,7 +13,7 @@ export const EmissionCaptureScreen: FC = () => {
   const navigate = useNavigate();
   const theme = useTheme();
 
-  const [selectedCategory, setSelectedCategory] = useState<1 | 2 | 3>(1);
+  const [selectedCategory, setSelectedCategory] = useState<number>(1);
 
   return (
     <CarbonInventoryLayout
