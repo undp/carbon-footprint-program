@@ -94,13 +94,13 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       <Box className="flex-1">
         <Typography
           fontSize="0.65rem"
-          fontWeight="fontWeightMedium"
+          fontWeight="medium"
           lineHeight="normal"
           color={color}
         >
           {subtitle.toUpperCase()}
         </Typography>
-        <Typography variant="body1" fontWeight="fontWeightMedium" color={color}>
+        <Typography variant="body1" fontWeight="medium" color={color}>
           {title}
         </Typography>
         <Typography fontSize="0.65rem" lineHeight="normal" color={color}>
