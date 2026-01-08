@@ -21,6 +21,7 @@ import { ActionsCell } from "./ActionsCell";
 import { NumericInput } from "@/components";
 import { CommentDialog } from "./CommentDialog";
 import { useCarbonInventoryState } from "../../hooks/useCarbonInventoryState";
+import { AddRounded } from "@mui/icons-material";
 
 interface Props {
   subcategory: Subcategory;
@@ -391,7 +392,21 @@ export const SubcategoryContainer: FC<Props> = ({
           </Box>
           {/* Footer Section */}
           <Box className="flex flex-row-reverse">
-            <Button variant="contained" onClick={onAddRow}>
+            <Button
+              sx={(theme) => ({
+                color: theme.palette.category[categoryPosition].dark,
+                backgroundColor: theme.palette.category[categoryPosition].light,
+              })}
+              variant="text"
+              onClick={onAddRow}
+              startIcon={
+                <AddRounded
+                  sx={(theme) => ({
+                    color: theme.palette.category[categoryPosition].dark,
+                  })}
+                />
+              }
+            >
               Agregar Fuente
             </Button>
           </Box>
