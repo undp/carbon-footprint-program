@@ -1,15 +1,12 @@
 import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import {
+  CarbonInventoryLine,
   EmissionFactorDimension,
   MeasurementUnit,
   RateMeasurementUnit,
   Subcategory,
 } from "@repo/types";
-import {
-  EmissionCaptureFormLine,
-  LineId,
-} from "../../../types/EmissionCaptureTypes";
 import {
   EmissionEditorDimensionCell,
   EmissionEditorMeasurementUnitCell,
@@ -27,17 +24,12 @@ interface UseEmissionEditorColumnsParams {
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   categoryPosition: number;
   onCellChange: (
-    value: string | number | null,
-    params: GridRenderCellParams<
-      EmissionCaptureFormLine,
-      string | number | null
-    >
+    value: string,
+    params: GridRenderCellParams<CarbonInventoryLine, string | number | null>
   ) => void;
-  onFactorSourceChange: (lineId: LineId, factorSource: string) => void;
-  onDeleteLine: (lineId: LineId) => void;
-  onUpdateComment: (rowId: LineId, comment: string) => void;
-  onUploadFiles: (rowId: LineId) => void;
-  isManualModeLoading?: boolean;
+  onDeleteLine: (lineId: string) => void;
+  onUpdateComment: (rowId: string, comment: string) => void;
+  onUploadFiles: (rowId: string) => void;
 }
 
 export const useEmissionEditorColumns = ({
@@ -47,12 +39,10 @@ export const useEmissionEditorColumns = ({
   rateMeasurementUnits,
   categoryPosition,
   onCellChange,
-  onFactorSourceChange,
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
-  isManualModeLoading = false,
-}: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
+}: UseEmissionEditorColumnsParams): GridColDef<CarbonInventoryLine>[] => {
   return useMemo(() => {
     const firstDimension = dimensions.find((d) => d.position === 1);
     const secondDimension = dimensions.find((d) => d.position === 2);
@@ -63,23 +53,17 @@ export const useEmissionEditorColumns = ({
         ? [
             {
               field: `dimensionValue1Id`,
-              headerName: firstDimension
-                ? firstDimension.name +
-                  (!firstDimension?.isRequired ? " (opcional)" : "")
-                : "Dimensión 1",
+              headerName: firstDimension?.name || "Dimensión 1",
               minWidth: 157,
               flex: 1,
               cellClassName: "content-center max-h-[56px]",
               renderCell: (
-                params: GridRenderCellParams<EmissionCaptureFormLine, string>
+                params: GridRenderCellParams<CarbonInventoryLine, string>
               ) => (
                 <EmissionEditorDimensionCell
-                  subcategoryId={subcategory.id}
-                  lineId={params.row.lineId}
-                  field="dimensionValue1Id"
                   dimension={firstDimension}
-                  onChange={(value: string) => onCellChange(value, params)}
-                  disabled={isManualModeLoading}
+                  value={params.value || null}
+                  onChange={(value) => onCellChange(value, params)}
                 />
               ),
             },
@@ -91,24 +75,18 @@ export const useEmissionEditorColumns = ({
         ? [
             {
               field: `dimensionValue2Id`,
-              headerName: secondDimension
-                ? secondDimension.name +
-                  (!secondDimension?.isRequired ? " (opcional)" : "")
-                : "Dimensión 2",
+              headerName: secondDimension?.name || "Dimensión 2",
               minWidth: 157,
               flex: 1,
               cellClassName: "content-center max-h-[56px]",
               renderCell: (
-                params: GridRenderCellParams<EmissionCaptureFormLine, string>
+                params: GridRenderCellParams<CarbonInventoryLine, string>
               ) => (
                 <EmissionEditorDimensionCell
-                  subcategoryId={subcategory.id}
-                  lineId={params.row.lineId}
-                  field="dimensionValue2Id"
-                  parentField="dimensionValue1Id"
                   dimension={secondDimension}
-                  onChange={(value: string) => onCellChange(value, params)}
-                  disabled={isManualModeLoading}
+                  value={params.value || null}
+                  parentValue={params.row.dimensionValue1Id}
+                  onChange={(value) => onCellChange(value, params)}
                 />
               ),
             },
@@ -124,17 +102,17 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<EmissionCaptureFormLine, string>
+          params: GridRenderCellParams<CarbonInventoryLine, string>
         ) => (
           <EmissionEditorMeasurementUnitCell
-            subcategoryId={subcategory.id}
-            lineId={params.row.lineId}
             measurementUnits={measurementUnits || []}
-            onChange={(value: string) => onCellChange(value, params)}
-            disabled={isManualModeLoading}
+            value={params.value || null}
+            rowId={params.id}
+            onChange={(value) => onCellChange(value, params)}
           />
         ),
       },
+
       // Quantity column
       {
         headerName: "Cantidad",
@@ -144,43 +122,13 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
+          params: GridRenderCellParams<CarbonInventoryLine, number | null>
         ) => (
           <EmissionEditorQuantityCell
-            subcategoryId={subcategory.id}
-            lineId={params.row.lineId}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onCellChange(e.target.value, params)
-            }
-            disabled={isManualModeLoading}
+            value={params.value ?? null}
+            onChange={(e) => onCellChange(e.target.value, params)}
           />
         ),
-      },
-
-      // Factor source column
-      {
-        headerName: "Fuente factor",
-        field: "factorSource",
-        minWidth: 157,
-        flex: 1,
-        cellClassName: "content-center max-h-[56px]",
-        renderCell: (
-          params: GridRenderCellParams<EmissionCaptureFormLine, string>
-        ) => {
-          return (
-            <EmissionEditorFactorSourceCell
-              subcategoryId={subcategory.id}
-              lineId={params.row.lineId}
-              dimensions={dimensions}
-              emissionFactors={subcategory.emissionFactors}
-              rateMeasurementUnits={rateMeasurementUnits || []}
-              disabled={isManualModeLoading}
-              onChange={(value) =>
-                onFactorSourceChange(params.row.lineId, value)
-              }
-            />
-          );
-        },
       },
 
       // Factor column
@@ -193,21 +141,35 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
-        ) => {
-          return (
-            <EmissionEditorFactorCell
-              subcategoryId={subcategory.id}
-              lineId={params.row.lineId}
-              dimensions={dimensions}
-              rateMeasurementUnits={rateMeasurementUnits || []}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onCellChange(e.target.value, params)
-              }
-              disabled={isManualModeLoading}
-            />
-          );
-        },
+          params: GridRenderCellParams<CarbonInventoryLine, number | null>
+        ) => (
+          <EmissionEditorFactorCell
+            value={params.value ?? null}
+            factorSource={params.row.factorSource}
+            measurementUnitId={params.row.measurementUnitId}
+            rateMeasurementUnits={rateMeasurementUnits || []}
+            onChange={(e) => onCellChange(e.target.value, params)}
+          />
+        ),
+      },
+
+      // Factor source column
+      {
+        headerName: "Fuente factor",
+        field: "factorSource",
+        minWidth: 157,
+        flex: 1,
+        cellClassName: "content-center max-h-[56px]",
+        renderCell: (
+          params: GridRenderCellParams<CarbonInventoryLine, string>
+        ) => (
+          <EmissionEditorFactorSourceCell
+            emissionFactors={subcategory.emissionFactors}
+            value={params.value || null}
+            rowId={params.id}
+            onChange={(value) => onCellChange(value, params)}
+          />
+        ),
       },
 
       // Total emissions column
@@ -220,11 +182,11 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         align: "right",
         renderCell: (
-          params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
+          params: GridRenderCellParams<CarbonInventoryLine, number | null>
         ) => (
           <EmissionEditorEmissionsCell
-            subcategoryId={subcategory.id}
-            lineId={params.row.lineId}
+            quantity={params.row.quantity}
+            factorValue={params.row.factorValue}
           />
         ),
       },
@@ -237,7 +199,7 @@ export const useEmissionEditorColumns = ({
         minWidth: 157,
         flex: 1,
         cellClassName: "content-center",
-        renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => (
+        renderCell: (params: GridRenderCellParams<CarbonInventoryLine>) => (
           <EmissionEditorActionsCell
             rowId={params.id}
             categoryPosition={categoryPosition}
@@ -246,8 +208,6 @@ export const useEmissionEditorColumns = ({
               onUpdateComment(params.id.toString(), params.row.comment || "")
             }
             deleteSource={() => onDeleteLine(params.id.toString())}
-            disabled={isManualModeLoading}
-            hasComment={Boolean(params.row.comment)}
           />
         ),
       },
@@ -259,11 +219,8 @@ export const useEmissionEditorColumns = ({
     rateMeasurementUnits,
     categoryPosition,
     onCellChange,
-    onFactorSourceChange,
     onDeleteLine,
     onUpdateComment,
     onUploadFiles,
-    isManualModeLoading,
-    subcategory.id,
   ]);
 };

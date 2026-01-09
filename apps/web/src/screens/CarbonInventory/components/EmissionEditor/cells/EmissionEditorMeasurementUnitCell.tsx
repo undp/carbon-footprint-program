@@ -1,36 +1,23 @@
 import { FC } from "react";
-import { useWatch } from "react-hook-form";
 import { Select, MenuItem } from "@mui/material";
 import { MeasurementUnit } from "@repo/types";
 
 interface EmissionEditorMeasurementUnitCellProps {
-  subcategoryId: string;
-  lineId: string;
   measurementUnits: MeasurementUnit[];
+  value: string | null;
   onChange: (value: string) => void;
-  disabled?: boolean;
+  rowId: string | number;
 }
 
 export const EmissionEditorMeasurementUnitCell: FC<
   EmissionEditorMeasurementUnitCellProps
-> = ({
-  subcategoryId,
-  lineId,
-  measurementUnits,
-  onChange,
-  disabled = false,
-}) => {
-  const value = useWatch({
-    name: `subcategories.${subcategoryId}.lines.${lineId}.measurementUnitId`,
-  }) as string | null;
-
+> = ({ measurementUnits, value, onChange, rowId }) => {
   return (
     <Select
-      id={`measurementUnitId_${lineId}`}
+      id={`measurementUnitId_${rowId}`}
       value={value || ""}
       fullWidth
       size="small"
-      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     >
       {measurementUnits.map(({ id, name }) => (

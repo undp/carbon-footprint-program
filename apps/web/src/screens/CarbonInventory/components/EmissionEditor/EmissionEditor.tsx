@@ -1,64 +1,45 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
+import { Subcategory, CarbonInventoryLine } from "@repo/types";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
 import { EmissionEditorGrid } from "./EmissionEditorGrid";
 import { EmissionEditorCommentDialog } from "./EmissionEditorCommentDialog";
 import {
   useEmissionEditorData,
-  useEmissionEditorForm,
+  useEmissionEditorActions,
   useEmissionEditorComment,
   useEmissionEditorColumns,
-  useEmissionTotal,
 } from "./hooks";
-import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
-import { useEmissionCaptureState } from "../../hooks/useEmissionCaptureState";
 
 interface EmissionEditorProps {
-  isTotalManualEmissionsModeAvailable: boolean;
-  subcategory: SubcategoryWithLines;
+  subcategory: Subcategory;
   categoryPosition: number;
+  lines: CarbonInventoryLine[];
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
-  isTotalManualEmissionsModeAvailable,
   subcategory,
   categoryPosition,
+  lines,
 }) => {
-  const { measurementUnits, rateMeasurementUnits, dimensions } =
-    useEmissionEditorData({ subcategory });
-
+  // Hooks - all logic extracted
   const {
     rows,
-    manualModeLine,
-    isTotalManualEmissionsModeLoading,
     isTotalManualEmissionsMode,
+    totalEmission,
+    measurementUnits,
+    rateMeasurementUnits,
+    dimensions,
+  } = useEmissionEditorData({ subcategory, lines });
+
+  const {
     handleAddLine,
     handleCellChange,
-    handleFactorSourceChange,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,
-  } = useEmissionEditorForm({
-    subcategory,
-    emissionFactors: subcategory.emissionFactors,
-    rateMeasurementUnits: rateMeasurementUnits || [],
-  });
-
-  const totalEmission = useEmissionTotal(subcategory);
-  const setSubcategoryTotal = useEmissionCaptureState(
-    (state) => state.setSubcategoryTotal
-  );
-
-  // Sync subcategory total to the global state for category total calculation
-  useEffect(() => {
-    setSubcategoryTotal(subcategory.id, totalEmission);
-  }, [
-    subcategory.id,
-    totalEmission,
-    isTotalManualEmissionsMode,
-    setSubcategoryTotal,
-  ]);
+  } = useEmissionEditorActions({ subcategoryId: subcategory.id });
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
@@ -71,7 +52,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     rateMeasurementUnits,
     categoryPosition,
     onCellChange: handleCellChange,
-    onFactorSourceChange: handleFactorSourceChange,
     onDeleteLine: handleDeleteLine,
     onUpdateComment: openCommentDialog,
     onUploadFiles: () => {
@@ -79,53 +59,21 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     },
   });
 
-  const subcategoryHasEmissionFactors = subcategory.emissionFactors.length > 0;
-
-  const isTotalManualEmissionsModeActive =
-    isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
-
-  // Handlers for manual mode line actions
-  const handleManualModeLineComment = useCallback(() => {
-    if (manualModeLine) {
-      openCommentDialog(manualModeLine.lineId, manualModeLine.comment || "");
-    }
-  }, [manualModeLine, openCommentDialog]);
-
-  const handleManualModeLineDelete = useCallback(() => {
-    if (manualModeLine) {
-      handleDeleteLine(manualModeLine.lineId);
-    }
-  }, [manualModeLine, handleDeleteLine]);
-
-  // Don't render if in manual mode but no line exists to store data
-  if (isTotalManualEmissionsModeActive && !manualModeLine) {
-    return null;
-  }
-
+  // Only JSX - no logic
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
-      <EmissionEditorHeader
-        name={subcategory.name}
-        description={subcategory.description}
-        isTotalManualEmissionsModeAvailable={
-          isTotalManualEmissionsModeAvailable
-        }
-        subcategoryHasEmissionFactors={subcategoryHasEmissionFactors}
-        isTotalManualEmissionsMode={isTotalManualEmissionsModeActive}
-        setIsTotalManualEmissionsMode={handleSetManualMode}
-        isManualModeLoading={isTotalManualEmissionsModeLoading}
-        totalEmission={totalEmission}
-        setTotalEmission={handleSetTotalEmission}
-        // Manual mode line actions
-        categoryPosition={categoryPosition}
-        hasManualModeLine={!!manualModeLine}
-        manualModeLineHasComment={!!manualModeLine?.comment}
-        onManualModeLineDelete={handleManualModeLineDelete}
-        onManualModeLineComment={handleManualModeLineComment}
-      />
-
-      <Collapse in={!isTotalManualEmissionsModeActive} collapsedSize={0}>
+      <Collapse in={!isTotalManualEmissionsMode} collapsedSize={80}>
         <Box className="flex flex-col gap-2">
+          {/* Header Section */}
+          <EmissionEditorHeader
+            name={subcategory.name}
+            description={subcategory.description}
+            isTotalManualEmissionsMode={isTotalManualEmissionsMode}
+            setIsTotalManualEmissionsMode={handleSetManualMode}
+            totalEmission={totalEmission}
+            setTotalEmission={handleSetTotalEmission}
+          />
+
           {/* Content Section */}
           <Box className="flex flex-col gap-2">
             <Typography variant="subtitle2" fontWeight="regular">
@@ -138,7 +86,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
                 rows={rows}
                 columns={columns}
                 categoryPosition={categoryPosition}
-                loading={isTotalManualEmissionsModeLoading}
               />
             )}
           </Box>
@@ -152,7 +99,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
               })}
               variant="text"
               onClick={handleAddLine}
-              disabled={isTotalManualEmissionsModeLoading}
               startIcon={
                 <AddRounded
                   sx={(theme) => ({

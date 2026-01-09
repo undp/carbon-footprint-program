@@ -1,54 +1,28 @@
 import { FC, useMemo } from "react";
-import { useWatch } from "react-hook-form";
 import { Select, MenuItem } from "@mui/material";
 import { EmissionFactorDimension } from "@repo/types";
 
 interface EmissionEditorDimensionCellProps {
-  subcategoryId: string;
-  lineId: string;
   dimension: EmissionFactorDimension;
-  field: string;
+  value: string | null;
   onChange: (value: string) => void;
-  parentField?: string;
-  disabled?: boolean;
+  parentValue?: string | null;
 }
 
 export const EmissionEditorDimensionCell: FC<
   EmissionEditorDimensionCellProps
-> = ({
-  subcategoryId,
-  lineId,
-  dimension,
-  field,
-  onChange,
-  parentField,
-  disabled = false,
-}) => {
-  const value = useWatch({
-    name: `subcategories.${subcategoryId}.lines.${lineId}.${field}`,
-  }) as string | null;
-
-  const parentValue = useWatch({
-    name: parentField
-      ? `subcategories.${subcategoryId}.lines.${lineId}.${parentField}`
-      : "",
-    disabled: !parentField,
-  }) as string | null;
-
+> = ({ dimension, value, onChange, parentValue }) => {
   // Filter values based on parent dimension if provided
   const values = useMemo(() => {
-    if (!parentField || !parentValue) return dimension.values;
-    return dimension.values.filter(
-      (v) => v.parentValueId === parentValue || v.parentValueId === null
-    );
-  }, [dimension.values, parentValue, parentField]);
+    if (!parentValue) return dimension.values;
+    return dimension.values.filter((v) => v.parentValueId === parentValue);
+  }, [dimension.values, parentValue]);
 
   return (
     <Select
       value={value || ""}
       fullWidth
       size="small"
-      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     >
       {values.map(({ id, value: dimensionValue }) => (

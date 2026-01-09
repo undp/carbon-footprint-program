@@ -1,20 +1,18 @@
 import { FC } from "react";
 import { Box, darken } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { EmissionCaptureFormLine } from "../../types/EmissionCaptureTypes";
+import { CarbonInventoryLine } from "@repo/types";
 
 interface EmissionEditorGridProps {
-  columns: GridColDef<EmissionCaptureFormLine>[];
-  rows: EmissionCaptureFormLine[];
+  columns: GridColDef<CarbonInventoryLine>[];
+  rows: CarbonInventoryLine[];
   categoryPosition: number;
-  loading?: boolean;
 }
 
 export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
   columns,
   rows,
   categoryPosition,
-  loading = false,
 }) => (
   <Box
     style={{
@@ -40,7 +38,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
           display: "none",
         },
         "& .MuiDataGrid-cell": {
-          padding: "8px",
+          padding: "10px 8px",
         },
         "& .MuiDataGrid-cell:focus": {
           outline: "none",
@@ -57,7 +55,6 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       columns={columns}
       getRowHeight={() => "auto"}
       rows={rows}
-      getRowId={(row) => row.lineId}
       disableColumnResize
       disableColumnSorting
       disableColumnMenu
@@ -65,14 +62,6 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       disableColumnSelector
       disableRowSelectionOnClick
       checkboxSelection={false}
-      localeText={{ noRowsLabel: "Sin fuentes" }}
-      loading={loading}
-      slotProps={{
-        loadingOverlay: {
-          variant: "skeleton",
-          noRowsVariant: "skeleton",
-        },
-      }}
     />
   </Box>
 );

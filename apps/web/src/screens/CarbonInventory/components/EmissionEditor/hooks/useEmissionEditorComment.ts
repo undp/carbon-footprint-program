@@ -1,6 +1,5 @@
 import { useState, useCallback } from "react";
-import { useFormContext } from "react-hook-form";
-import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
+import { useCarbonInventoryState } from "../../../hooks/useCarbonInventoryState";
 
 interface UseEmissionEditorCommentParams {
   subcategoryId: string;
@@ -13,7 +12,7 @@ export const useEmissionEditorComment = ({
   const [currentComment, setCurrentComment] = useState("");
   const [currentRowId, setCurrentRowId] = useState<string>("");
 
-  const { setValue } = useFormContext<EmissionCaptureFormValues>();
+  const updateLine = useCarbonInventoryState((state) => state.updateLine);
 
   // Open comment dialog for a specific row
   const openCommentDialog = useCallback((rowId: string, comment: string) => {
@@ -29,23 +28,13 @@ export const useEmissionEditorComment = ({
     setCurrentRowId("");
   }, []);
 
-  // Save comment to the form and close dialog
+  // Save comment and close dialog
   const saveComment = useCallback(() => {
     if (currentRowId) {
-      setValue(
-        `subcategories.${subcategoryId}.lines.${currentRowId}.comment`,
-        currentComment || null,
-        { shouldDirty: true }
-      );
+      updateLine(subcategoryId, currentRowId, { comment: currentComment });
     }
     closeCommentDialog();
-  }, [
-    currentRowId,
-    currentComment,
-    subcategoryId,
-    setValue,
-    closeCommentDialog,
-  ]);
+  }, [currentRowId, currentComment, subcategoryId, updateLine, closeCommentDialog]);
 
   // Props object for EmissionEditorCommentDialog
   const commentDialogProps = {
