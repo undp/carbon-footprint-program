@@ -3,13 +3,13 @@ import { Box, darken } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import { CarbonInventoryLine } from "@repo/types";
 
-interface Props {
+interface EmissionEditorGridProps {
   columns: GridColDef<CarbonInventoryLine>[];
   rows: CarbonInventoryLine[];
   categoryPosition: number;
 }
 
-export const SubcategoryDataGrid: FC<Props> = ({
+export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
   columns,
   rows,
   categoryPosition,
