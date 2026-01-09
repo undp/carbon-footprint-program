@@ -12,12 +12,5 @@ export const useEmissionCaptureNavigation = (inventoryId: string) => {
     });
   }, [navigate, inventoryId]);
 
-  const goNext = useCallback(() => {
-    void navigate({
-      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
-      params: { inventoryId },
-    });
-  }, [navigate, inventoryId]);
-
-  return { goBack, goNext };
+  return { goBack };
 };
