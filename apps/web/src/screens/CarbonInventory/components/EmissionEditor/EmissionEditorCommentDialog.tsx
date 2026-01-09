@@ -7,7 +7,7 @@ import {
   Button,
 } from "@mui/material";
 
-interface Props {
+interface EmissionEditorCommentDialogProps {
   open: boolean;
   handleClose: () => void;
   comment: string;
@@ -15,13 +15,13 @@ interface Props {
   onSave: () => void;
 }
 
-export const CommentDialog = ({
+export const EmissionEditorCommentDialog = ({
   open,
   handleClose,
   comment,
   setComment,
   onSave,
-}: Props) => {
+}: EmissionEditorCommentDialogProps) => {
   return (
     <Dialog
       onClose={handleClose}

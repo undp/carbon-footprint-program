@@ -5,7 +5,7 @@ import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { CategoryCard } from "./components/CategoryCard";
-import { SubcategoryContainer } from "./components/Subcategory/SubcategoryContainer";
+import { EmissionEditor } from "./components/EmissionEditor";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
@@ -85,7 +85,7 @@ export const EmissionCaptureScreen: FC = () => {
                       )?.lines || [];
                     if (lines.length === 0) return null;
                     return (
-                      <SubcategoryContainer
+                      <EmissionEditor
                         key={subcategory.name}
                         categoryPosition={Number(selectedCategory)}
                         subcategory={subcategory}

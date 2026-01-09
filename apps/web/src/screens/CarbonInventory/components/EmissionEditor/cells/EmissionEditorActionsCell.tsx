@@ -6,7 +6,7 @@ import {
 } from "@mui/icons-material";
 import { FC } from "react";
 
-interface Props {
+interface EmissionEditorActionsCellProps {
   rowId: string | number;
   uploadFiles?: (id: string | number) => void;
   updateComment?: (id: string | number) => void;
@@ -14,7 +14,7 @@ interface Props {
   categoryPosition?: number;
 }
 
-export const ActionsCell: FC<Props> = ({
+export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   rowId,
   uploadFiles,
   updateComment,
