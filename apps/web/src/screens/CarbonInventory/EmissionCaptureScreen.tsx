@@ -31,7 +31,7 @@ export const EmissionCaptureScreen: FC = () => {
     selectedCategory,
   });
 
-  const { goBack } = useEmissionCaptureNavigation(inventoryId);
+  const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
 
   return (
     <CarbonInventoryLayout
@@ -41,6 +41,9 @@ export const EmissionCaptureScreen: FC = () => {
       footerProps={{
         backButtonProps: {
           onClick: goBack,
+        },
+        nextButtonProps: {
+          onClick: goNext,
         },
       }}
       isLoading={isLoading}
