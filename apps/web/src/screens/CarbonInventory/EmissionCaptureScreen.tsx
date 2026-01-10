@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout } from "./layout";
@@ -10,6 +10,7 @@ import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCar
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
 import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
+import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -19,19 +20,16 @@ export const EmissionCaptureScreen: FC = () => {
   const { selectedCategory, handleCategoryChange } =
     useEmissionCaptureCategory();
 
-  const {
-    methodology,
-    inventory,
-    subcategoriesByCategory,
-    selectedCategoryData,
-    totalCategoryEmissions,
-    isLoading,
-  } = useEmissionCaptureData({
+  const { data, isLoading } = useEmissionCaptureData({
     inventoryId,
-    selectedCategory,
   });
 
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
+
+  const selectedCategoryData = useMemo(
+    () => data.find((category) => category.id === selectedCategory),
+    [data, selectedCategory]
+  );
 
   return (
     <CarbonInventoryLayout
@@ -55,7 +53,7 @@ export const EmissionCaptureScreen: FC = () => {
             description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
           />
           <Box className="flex flex-row gap-4">
-            {methodology?.categories.map((category) => (
+            {data.map((category) => (
               <CategoryCard
                 key={`category_${category.id}`}
                 position={category.position}
@@ -72,28 +70,24 @@ export const EmissionCaptureScreen: FC = () => {
           {selectedCategoryData && (
             <TotalCategoryEmissionCard
               category={selectedCategoryData}
-              categoryEmissions={totalCategoryEmissions}
+              categoryEmissions={0}
             />
           )}
           <Box className="flex min-h-0 flex-1 flex-col gap-4">
-            {(subcategoriesByCategory.get(selectedCategory) || []).map(
-              (subcategory) => {
-                // TODO: maybe we should use a hook for building the merged data
-                const lines =
-                  inventory?.subcategories.find(
-                    (sc) => sc.id === subcategory.id
-                  )?.lines || [];
-                if (lines.length === 0) return null;
-                return (
-                  <EmissionEditor
-                    key={subcategory.name}
-                    categoryPosition={Number(selectedCategory)}
-                    subcategory={subcategory}
-                    lines={lines}
-                  />
-                );
-              }
-            )}
+            {(
+              selectedCategoryData?.subcategories ||
+              ([] as SubcategoryWithLines[])
+            ).map((subcategory) => {
+              if (subcategory.lines.length === 0) return null;
+              return (
+                <EmissionEditor
+                  key={subcategory.name}
+                  categoryPosition={Number(selectedCategory)}
+                  subcategory={subcategory}
+                  lines={subcategory.lines}
+                />
+              );
+            })}
           </Box>
         </Box>
       </Box>
