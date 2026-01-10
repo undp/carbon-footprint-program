@@ -4,7 +4,7 @@ import type {
   CarbonInventoryLine,
 } from "./index";
 
-type SubcategoryWithLines = MethodologySubcategory & {
+export type SubcategoryWithLines = MethodologySubcategory & {
   lines: CarbonInventoryLine[];
   isTotalManualEmissionsMode: boolean;
 };
