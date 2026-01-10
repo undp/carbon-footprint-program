@@ -43,6 +43,7 @@ export const EmissionCaptureScreen: FC = () => {
           onClick: goBack,
         },
       }}
+      isLoading={isLoading}
     >
       <Box className="flex min-h-0 flex-1 flex-col">
         <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-scroll rounded-lg bg-white p-6">
@@ -50,53 +51,47 @@ export const EmissionCaptureScreen: FC = () => {
             title="Paso 3: Completa los datos de tus fuentes de emisión"
             description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
           />
-          {isLoading ? (
-            <div>Loading categories...</div>
-          ) : (
-            <>
-              <Box className="flex flex-row gap-4">
-                {methodology?.categories.map((category) => (
-                  <CategoryCard
-                    key={`category_${category.id}`}
-                    position={category.position}
-                    variant={
-                      selectedCategory === category.id ? "focused" : "unfocused"
-                    }
-                    title={category.name}
-                    subtitle={category.synonyms}
-                    description={category.description}
-                    onClick={() => handleCategoryChange(category.id)}
-                  />
-                ))}
-              </Box>
-              {selectedCategoryData && (
-                <TotalCategoryEmissionCard
-                  category={selectedCategoryData}
-                  categoryEmissions={totalCategoryEmissions}
-                />
-              )}
-              <Box className="flex min-h-0 flex-1 flex-col gap-4">
-                {(subcategoriesByCategory.get(selectedCategory) || []).map(
-                  (subcategory) => {
-                    // TODO: maybe we should use a hook for building the merged data
-                    const lines =
-                      inventory?.subcategories.find(
-                        (sc) => sc.id === subcategory.id
-                      )?.lines || [];
-                    if (lines.length === 0) return null;
-                    return (
-                      <EmissionEditor
-                        key={subcategory.name}
-                        categoryPosition={Number(selectedCategory)}
-                        subcategory={subcategory}
-                        lines={lines}
-                      />
-                    );
-                  }
-                )}
-              </Box>
-            </>
+          <Box className="flex flex-row gap-4">
+            {methodology?.categories.map((category) => (
+              <CategoryCard
+                key={`category_${category.id}`}
+                position={category.position}
+                variant={
+                  selectedCategory === category.id ? "focused" : "unfocused"
+                }
+                title={category.name}
+                subtitle={category.synonyms}
+                description={category.description}
+                onClick={() => handleCategoryChange(category.id)}
+              />
+            ))}
+          </Box>
+          {selectedCategoryData && (
+            <TotalCategoryEmissionCard
+              category={selectedCategoryData}
+              categoryEmissions={totalCategoryEmissions}
+            />
           )}
+          <Box className="flex min-h-0 flex-1 flex-col gap-4">
+            {(subcategoriesByCategory.get(selectedCategory) || []).map(
+              (subcategory) => {
+                // TODO: maybe we should use a hook for building the merged data
+                const lines =
+                  inventory?.subcategories.find(
+                    (sc) => sc.id === subcategory.id
+                  )?.lines || [];
+                if (lines.length === 0) return null;
+                return (
+                  <EmissionEditor
+                    key={subcategory.name}
+                    categoryPosition={Number(selectedCategory)}
+                    subcategory={subcategory}
+                    lines={lines}
+                  />
+                );
+              }
+            )}
+          </Box>
         </Box>
       </Box>
     </CarbonInventoryLayout>
