@@ -1,20 +1,12 @@
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
-import { useSyncCarbonInventoryLines } from "@/api/query/carbonInventories/lines/useSyncCarbonInventoryLines";
-import {
-  EmissionCaptureFormValues,
-  EmissionCaptureFormLine,
-} from "../types/EmissionCaptureTypes";
-import { mapLinesToSyncRequest } from "../utils/emissionCaptureTransformers";
+import { useUpdateCarbonInventoryLines } from "@/api/query";
+import { EmissionCaptureFormValues } from "../types/EmissionCaptureTypes";
+import { mapLinesToRequest } from "../utils/emissionCaptureTransformers";
 
 interface Params {
   inventoryId: string;
   onSuccess?: () => void;
-  isDirty?: boolean;
-  resetAfterSave?: () => void;
-  throwOnError?: boolean;
-  resultFeedbackWithSnackbar?: boolean;
-  showNoChangesMessage?: boolean;
 }
 
 interface HookResult {
@@ -25,14 +17,10 @@ interface HookResult {
 export const useEmissionCaptureSubmit = ({
   inventoryId,
   onSuccess,
-  isDirty,
-  resetAfterSave,
-  resultFeedbackWithSnackbar = true,
-  throwOnError = false,
-  showNoChangesMessage = true,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
-  const { mutateAsync, isPending } = useSyncCarbonInventoryLines(inventoryId);
+  const updateCarbonInventoryLinesMutation =
+    useUpdateCarbonInventoryLines(inventoryId);
 
   const submit = useCallback(
     async (data: EmissionCaptureFormValues) => {
@@ -47,29 +35,13 @@ export const useEmissionCaptureSubmit = ({
           return;
         }
 
-        if (!isDirty) {
-          if (showNoChangesMessage) {
-            enqueueSnackbar("No hay cambios para guardar", {
-              variant: "info",
-            });
-          }
-          onSuccess?.();
-          return;
-        }
-
         // Get all lines from all subcategories as a flat array
         const allSubcategories = Object.values(data.subcategories || {});
-        const flatLines: EmissionCaptureFormLine[] = allSubcategories.flatMap(
-          (subcategory) => Object.values(subcategory.lines || {})
+        const flatLines = allSubcategories.flatMap(
+          (subcategory) => subcategory.lines || []
         );
 
-        // Check if there are any active (non-deleted) lines
-        const activeLines = flatLines.filter((line) => !line.isDeleted);
-        const hasDeletedLines = flatLines.some(
-          (line) => line.isDeleted && !line.isNew
-        );
-
-        if (activeLines.length === 0 && !hasDeletedLines) {
+        if (flatLines.length === 0) {
           enqueueSnackbar(
             "No hay líneas para guardar. Agrega al menos una línea.",
             {
@@ -79,47 +51,37 @@ export const useEmissionCaptureSubmit = ({
           return;
         }
 
-        // Transform to sync API request format
-        const syncRequest = mapLinesToSyncRequest(flatLines);
+        // Transform to API request format
+        const requestData = mapLinesToRequest(flatLines);
 
-        await mutateAsync({
-          data: syncRequest,
+        await updateCarbonInventoryLinesMutation.mutateAsync({
+          id: inventoryId,
+          data: requestData,
         });
 
-        // Reset form state after successful save to clear isNew/isDeleted flags
-        resetAfterSave?.();
-
-        if (resultFeedbackWithSnackbar)
-          enqueueSnackbar("Inventario guardado exitosamente", {
-            variant: "success",
-          });
+        enqueueSnackbar("Líneas de emisión guardadas exitosamente", {
+          variant: "success",
+        });
 
         onSuccess?.();
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Error al guardar las líneas de emisión:", error);
-        if (resultFeedbackWithSnackbar)
-          enqueueSnackbar("Error al guardar el inventario", {
-            variant: "error",
-          });
-        if (throwOnError) throw error;
+        enqueueSnackbar("Error al guardar las líneas de emisión", {
+          variant: "error",
+        });
       }
     },
     [
       inventoryId,
-      isDirty,
       enqueueSnackbar,
-      mutateAsync,
+      updateCarbonInventoryLinesMutation,
       onSuccess,
-      resetAfterSave,
-      resultFeedbackWithSnackbar,
-      throwOnError,
-      showNoChangesMessage,
     ]
   );
 
   return {
     submit,
-    isSubmitting: isPending,
+    isSubmitting: updateCarbonInventoryLinesMutation.isPending,
   };
 };
