@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
-import { Subcategory, CarbonInventoryLine } from "@repo/types";
+import { Subcategory } from "@repo/types";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
 import { EmissionEditorGrid } from "./EmissionEditorGrid";
 import { EmissionEditorCommentDialog } from "./EmissionEditorCommentDialog";
@@ -15,13 +15,11 @@ import {
 interface EmissionEditorProps {
   subcategory: Subcategory;
   categoryPosition: number;
-  lines: CarbonInventoryLine[];
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   subcategory,
   categoryPosition,
-  lines,
 }) => {
   // Hooks - all logic extracted
   const {
@@ -31,7 +29,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     measurementUnits,
     rateMeasurementUnits,
     dimensions,
-  } = useEmissionEditorData({ subcategory, lines });
+  } = useEmissionEditorData({ subcategory });
 
   const {
     handleAddLine,

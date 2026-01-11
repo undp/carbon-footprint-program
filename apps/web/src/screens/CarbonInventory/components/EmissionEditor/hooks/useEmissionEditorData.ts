@@ -1,59 +1,43 @@
-import { useEffect, useMemo } from "react";
-import { Subcategory, CarbonInventoryLine } from "@repo/types";
+import { useMemo } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
+import { Subcategory } from "@repo/types";
 import { round } from "lodash-es";
 import { useMeasurementUnits, useRateMeasurementUnits } from "@/api/query";
-import { useCarbonInventoryState } from "../../../hooks/useCarbonInventoryState";
+import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
 
 interface UseEmissionEditorDataParams {
   subcategory: Subcategory;
-  lines: CarbonInventoryLine[];
 }
 
 export const useEmissionEditorData = ({
   subcategory,
-  lines,
 }: UseEmissionEditorDataParams) => {
   // Queries
   const { data: measurementUnits } = useMeasurementUnits();
   const { data: rateMeasurementUnits } = useRateMeasurementUnits();
 
-  // Zustand store selectors
-  const subcategoryState = useCarbonInventoryState(
-    (state) => state.subcategories[subcategory.id]
-  );
-  const initializeSubcategory = useCarbonInventoryState(
-    (state) => state.initializeSubcategory
-  );
+  // Form context
+  const { control } = useFormContext<EmissionCaptureFormValues>();
 
-  // Initialize subcategory with server data
-  useEffect(() => {
-    if (!subcategoryState && lines.length > 0) {
-      initializeSubcategory(subcategory.id, lines);
-    }
-  }, [subcategoryState, lines, subcategory.id, initializeSubcategory]);
+  const subcategoryData = useWatch({
+    control,
+    name: `subcategories.${subcategory.id}` as const,
+  });
 
-  // Derived state
   const rows = useMemo(
-    () => subcategoryState?.lines || [],
-    [subcategoryState?.lines]
+    () => subcategoryData?.lines || [],
+    [subcategoryData?.lines]
   );
 
-  const isTotalManualEmissionsMode =
-    subcategoryState?.isTotalManualEmissionsMode || false;
+  const isTotalManualEmissionsMode = false;
 
-  // Calculate total emissions from rows
-  const calculatedTotalEmission = useMemo(() => {
+  const totalEmission = useMemo(() => {
     return rows.reduce((acc, row) => {
       const quantity = row.quantity || 0;
       const factorValue = row.factorValue || 0;
       return acc + round(quantity * factorValue, 2);
     }, 0);
   }, [rows]);
-
-  // Use manual total or calculated total
-  const totalEmission = isTotalManualEmissionsMode
-    ? subcategoryState?.totalEmission || 0
-    : calculatedTotalEmission;
 
   const dimensions = useMemo(
     () => subcategory.dimensions,

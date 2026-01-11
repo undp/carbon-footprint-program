@@ -14,3 +14,12 @@ type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
 };
 
 export type EmissionCaptureMergedData = CategoryWithSubcategoriesAndLines[];
+
+export type EmissionCaptureFormValues = {
+  subcategories: Record<
+    string,
+    {
+      lines: CarbonInventoryLine[];
+    }
+  >;
+};
