@@ -1,5 +1,5 @@
 // Custom hooks for EmissionEditor component
 export { useEmissionEditorData } from "./useEmissionEditorData";
-export { useEmissionEditorActions } from "./useEmissionEditorActions";
+export { useEmissionEditorForm } from "./useEmissionEditorForm";
 export { useEmissionEditorComment } from "./useEmissionEditorComment";
 export { useEmissionEditorColumns } from "./useEmissionEditorColumns";
