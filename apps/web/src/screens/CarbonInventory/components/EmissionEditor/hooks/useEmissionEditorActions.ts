@@ -1,7 +1,8 @@
 import { useCallback } from "react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { CarbonInventoryLine } from "@repo/types";
 import { GridRenderCellParams } from "@mui/x-data-grid";
-import { useCarbonInventoryState } from "../../../hooks/useCarbonInventoryState";
+import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
 
 interface UseEmissionEditorActionsParams {
   subcategoryId: string;
@@ -10,16 +11,15 @@ interface UseEmissionEditorActionsParams {
 export const useEmissionEditorActions = ({
   subcategoryId,
 }: UseEmissionEditorActionsParams) => {
-  // Zustand store actions
-  const addLine = useCarbonInventoryState((state) => state.addLine);
-  const updateLine = useCarbonInventoryState((state) => state.updateLine);
-  const deleteLine = useCarbonInventoryState((state) => state.deleteLine);
-  const setTotalEmission = useCarbonInventoryState(
-    (state) => state.setTotalEmission
-  );
-  const setManualEmissionsMode = useCarbonInventoryState(
-    (state) => state.setManualEmissionsMode
-  );
+  // Form context
+  const { control, setValue, getValues } =
+    useFormContext<EmissionCaptureFormValues>();
+
+  // Field array for lines
+  const { append, update, remove } = useFieldArray({
+    control,
+    name: `subcategories.${subcategoryId}.lines` as const,
+  });
 
   // Add new line to subcategory
   const handleAddLine = useCallback(() => {
@@ -38,19 +38,34 @@ export const useEmissionEditorActions = ({
       manualTotalEmissions: null,
     };
 
-    addLine(subcategoryId, newRow);
-  }, [subcategoryId, addLine]);
+    append(newRow);
+  }, [subcategoryId, append]);
 
   // Update a cell value
   const handleCellChange = useCallback(
     (
-      value: string,
+      value: string | number | null,
       params: GridRenderCellParams<CarbonInventoryLine, string | number | null>
     ) => {
-      // Update Zustand store with new dimension value
-      updateLine(subcategoryId, params.id.toString(), {
+      // Get current lines from form values
+      const currentLines = getValues(
+        `subcategories.${subcategoryId}.lines` as const
+      );
+
+      if (!currentLines) return;
+
+      const lineIndex = currentLines.findIndex(
+        (line) => line.id === params.id.toString()
+      );
+
+      if (lineIndex === -1) return;
+
+      // Update the line in the form
+      update(lineIndex, {
+        ...currentLines[lineIndex],
         [params.field]: value,
       });
+
       // Update DataGrid UI to reflect the change immediately
       params.api.updateRows([
         {
@@ -59,32 +74,40 @@ export const useEmissionEditorActions = ({
         },
       ]);
     },
-    [subcategoryId, updateLine]
+    [subcategoryId, getValues, update]
   );
 
   // Delete a line
   const handleDeleteLine = useCallback(
     (lineId: string) => {
-      deleteLine(subcategoryId, lineId);
+      const currentLines = getValues(
+        `subcategories.${subcategoryId}.lines` as const
+      );
+
+      if (!currentLines) return;
+
+      const lineIndex = currentLines.findIndex((line) => line.id === lineId);
+
+      if (lineIndex === -1) return;
+
+      remove(lineIndex);
     },
-    [subcategoryId, deleteLine]
+    [subcategoryId, getValues, remove]
   );
 
   // Set total emission (for manual mode)
-  const handleSetTotalEmission = useCallback(
-    (total: number) => {
-      setTotalEmission(subcategoryId, total);
-    },
-    [subcategoryId, setTotalEmission]
-  );
+  const handleSetTotalEmission = useCallback((total: number) => {
+    // TODO: Implementar lógica para actualizar manualTotalEmissions en la línea correspondiente
+    // eslint-disable-next-line no-console
+    console.warn("Set total emission not implemented yet", total);
+  }, []);
 
   // Toggle manual emissions mode
-  const handleSetManualMode = useCallback(
-    (isManual: boolean) => {
-      setManualEmissionsMode(subcategoryId, isManual);
-    },
-    [subcategoryId, setManualEmissionsMode]
-  );
+  const handleSetManualMode = useCallback((isManual: boolean) => {
+    // TODO: Implementar lógica para cambiar a modo manual
+    // eslint-disable-next-line no-console
+    console.warn("Manual mode not implemented yet", isManual);
+  }, []);
 
   return {
     handleAddLine,

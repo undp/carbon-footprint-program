@@ -12,4 +12,7 @@ export type CarbonInventoryLine =
   GetCarbonInventoryByIdResponse["subcategories"][number]["lines"][number];
 
 export type { SubcategoryPreselectionMergedData } from "./SubcategoryPreselectionTypes";
-export type { EmissionCaptureMergedData } from "./EmissionCaptureTypes";
+export type {
+  EmissionCaptureMergedData,
+  EmissionCaptureFormValues,
+} from "./EmissionCaptureTypes";
