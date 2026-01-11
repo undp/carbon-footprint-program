@@ -1,19 +1,39 @@
-import { useCallback } from "react";
-import { useFieldArray, useFormContext } from "react-hook-form";
+import { useCallback, useMemo } from "react";
+import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { CarbonInventoryLine } from "@repo/types";
 import { GridRenderCellParams } from "@mui/x-data-grid";
+import { round } from "lodash-es";
 import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
 
-interface UseEmissionEditorActionsParams {
+interface UseEmissionEditorFormParams {
   subcategoryId: string;
 }
 
-export const useEmissionEditorActions = ({
+interface UseEmssionEditorFormResults {
+  rows: CarbonInventoryLine[];
+  isTotalManualEmissionsMode: boolean;
+  totalEmission: number;
+  handleAddLine: () => void;
+  handleCellChange: (
+    value: string | number | null,
+    params: GridRenderCellParams<CarbonInventoryLine, string | number | null>
+  ) => void;
+  handleDeleteLine: (lineId: string) => void;
+  handleSetTotalEmission: (total: number) => void;
+  handleSetManualMode: (isManual: boolean) => void;
+}
+
+export const useEmissionEditorForm = ({
   subcategoryId,
-}: UseEmissionEditorActionsParams) => {
+}: UseEmissionEditorFormParams): UseEmssionEditorFormResults => {
   // Form context
-  const { control, setValue, getValues } =
-    useFormContext<EmissionCaptureFormValues>();
+  const { control, getValues } = useFormContext<EmissionCaptureFormValues>();
+
+  // Watch form values for this subcategory
+  const subcategoryData = useWatch({
+    control,
+    name: `subcategories.${subcategoryId}` as const,
+  });
 
   // Field array for lines
   const { append, update, remove } = useFieldArray({
@@ -21,7 +41,23 @@ export const useEmissionEditorActions = ({
     name: `subcategories.${subcategoryId}.lines` as const,
   });
 
-  // Add new line to subcategory
+  // Derived values from form
+  const rows = useMemo(
+    () => subcategoryData?.lines || [],
+    [subcategoryData?.lines]
+  );
+
+  const isTotalManualEmissionsMode = false; // TODO: get from form when implemented
+
+  const totalEmission = useMemo(() => {
+    return rows.reduce((acc, row) => {
+      const quantity = row.quantity || 0;
+      const factorValue = row.factorValue || 0;
+      return acc + round(quantity * factorValue, 2);
+    }, 0);
+  }, [rows]);
+
+  // Form actions
   const handleAddLine = useCallback(() => {
     const newRow: CarbonInventoryLine = {
       id: (Date.now() + Math.random()).toString(),
@@ -41,13 +77,11 @@ export const useEmissionEditorActions = ({
     append(newRow);
   }, [subcategoryId, append]);
 
-  // Update a cell value
   const handleCellChange = useCallback(
     (
       value: string | number | null,
       params: GridRenderCellParams<CarbonInventoryLine, string | number | null>
     ) => {
-      // Get current lines from form values
       const currentLines = getValues(
         `subcategories.${subcategoryId}.lines` as const
       );
@@ -77,7 +111,6 @@ export const useEmissionEditorActions = ({
     [subcategoryId, getValues, update]
   );
 
-  // Delete a line
   const handleDeleteLine = useCallback(
     (lineId: string) => {
       const currentLines = getValues(
@@ -95,14 +128,12 @@ export const useEmissionEditorActions = ({
     [subcategoryId, getValues, remove]
   );
 
-  // Set total emission (for manual mode)
   const handleSetTotalEmission = useCallback((total: number) => {
     // TODO: Implementar lógica para actualizar manualTotalEmissions en la línea correspondiente
     // eslint-disable-next-line no-console
     console.warn("Set total emission not implemented yet", total);
   }, []);
 
-  // Toggle manual emissions mode
   const handleSetManualMode = useCallback((isManual: boolean) => {
     // TODO: Implementar lógica para cambiar a modo manual
     // eslint-disable-next-line no-console
@@ -110,6 +141,11 @@ export const useEmissionEditorActions = ({
   }, []);
 
   return {
+    // Form state
+    rows,
+    isTotalManualEmissionsMode,
+    totalEmission,
+    // Form actions
     handleAddLine,
     handleCellChange,
     handleDeleteLine,

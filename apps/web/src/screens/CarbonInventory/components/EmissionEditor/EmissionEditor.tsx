@@ -7,7 +7,7 @@ import { EmissionEditorGrid } from "./EmissionEditorGrid";
 import { EmissionEditorCommentDialog } from "./EmissionEditorCommentDialog";
 import {
   useEmissionEditorData,
-  useEmissionEditorActions,
+  useEmissionEditorForm,
   useEmissionEditorComment,
   useEmissionEditorColumns,
 } from "./hooks";
@@ -22,22 +22,19 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   categoryPosition,
 }) => {
   // Hooks - all logic extracted
+  const { measurementUnits, rateMeasurementUnits, dimensions } =
+    useEmissionEditorData({ subcategory });
+
   const {
     rows,
     isTotalManualEmissionsMode,
     totalEmission,
-    measurementUnits,
-    rateMeasurementUnits,
-    dimensions,
-  } = useEmissionEditorData({ subcategory });
-
-  const {
     handleAddLine,
     handleCellChange,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,
-  } = useEmissionEditorActions({ subcategoryId: subcategory.id });
+  } = useEmissionEditorForm({ subcategoryId: subcategory.id });
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
