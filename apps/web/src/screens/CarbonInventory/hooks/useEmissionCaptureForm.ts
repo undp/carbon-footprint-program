@@ -35,7 +35,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
       });
     });
 
-    reset(formData);
+    reset(formData, { keepDirtyValues: true, keepErrors: true });
   }, [data, reset]);
 
   return form;
