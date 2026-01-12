@@ -85,7 +85,7 @@ export const useEmissionEditorForm = ({
   });
 
   // Field array for lines
-  const { append, update, remove, insert } = useFieldArray({
+  const { append, remove, insert } = useFieldArray({
     control,
     name: `subcategories.${subcategoryId}.lines` as const,
   });
@@ -142,14 +142,16 @@ export const useEmissionEditorForm = ({
 
     try {
       const result = await createLine();
-
       const { index, line } = getLineContext(tempId);
-
       if (index !== -1 && line) {
-        update(index, {
-          ...line,
-          id: result.id,
-        });
+        setValue(
+          `subcategories.${subcategoryId}.lines.${index}` as const,
+          {
+            ...line,
+            id: result.id,
+          },
+          { shouldDirty: true }
+        );
       }
     } catch (error) {
       // If failed, remove the temporary line
@@ -166,7 +168,7 @@ export const useEmissionEditorForm = ({
   }, [
     subcategoryId,
     append,
-    update,
+    setValue,
     remove,
     createLine,
     enqueueSnackbar,
@@ -207,12 +209,16 @@ export const useEmissionEditorForm = ({
       }
 
       // Update the line in the form
-      update(index, updatedLine);
+      setValue(
+        `subcategories.${subcategoryId}.lines.${index}` as const,
+        updatedLine,
+        { shouldDirty: true }
+      );
 
       // Update DataGrid UI immediately
       params.api.updateRows([updatedLine]);
     },
-    [update, getLineContext]
+    [subcategoryId, setValue, getLineContext]
   );
 
   const handleFactorSourceChange = useCallback(
