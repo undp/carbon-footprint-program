@@ -17,6 +17,7 @@ import {
   getAvailableFactors,
   getBaseFactorId,
   getFactorData,
+  isFactorValueEditable,
 } from "../services/emissionFactorService";
 import {
   canSelectFactorSource,
@@ -117,6 +118,7 @@ export const useEmissionEditorForm = ({
         string | number | null
       >
     ) => {
+      const { field, id } = params;
       const currentLines = getValues(
         `subcategories.${subcategoryId}.lines` as const
       );
@@ -124,24 +126,41 @@ export const useEmissionEditorForm = ({
       if (!currentLines) return;
 
       const lineIndex = currentLines.findIndex(
-        (line) => line.id === params.id.toString()
+        (line) => line.id === id.toString()
       );
 
       if (lineIndex === -1) return;
 
-      // Update the line in the form
-      update(lineIndex, {
-        ...currentLines[lineIndex],
-        [params.field]: value,
-      });
+      const currentLine = currentLines[lineIndex];
 
-      // Update DataGrid UI to reflect the change immediately
-      params.api.updateRows([
-        {
-          id: params.id,
-          [params.field]: value,
-        },
-      ]);
+      // Initialize with basic field update
+      const updatedLine: EmissionCaptureFormLine = {
+        ...currentLine,
+        [field]: value,
+      };
+
+      // Case A: Dimension changed
+      if (
+        field === "dimensionValue1Id" ||
+        field === "dimensionValue2Id" ||
+        field === "measurementUnitId"
+      ) {
+        // 1. Clear other dimensions
+        if (field === "dimensionValue1Id") {
+          updatedLine.dimensionValue2Id = null;
+        }
+
+        updatedLine.factorSource = null;
+        updatedLine.baseFactorId = null;
+        updatedLine.factorValue = null;
+        updatedLine.factorRateMeasurementUnitId = null;
+      }
+
+      // Update the line in the form
+      update(lineIndex, updatedLine);
+
+      // Update DataGrid UI immediately
+      params.api.updateRows([updatedLine]);
     },
     [subcategoryId, getValues, update]
   );
