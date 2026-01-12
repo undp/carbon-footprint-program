@@ -1,11 +1,11 @@
 import { FC } from "react";
 import { Box, darken } from "@mui/material";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
-import { CarbonInventoryLine } from "@repo/types";
+import { EmissionCaptureFormLine } from "../../types/EmissionCaptureTypes";
 
 interface EmissionEditorGridProps {
-  columns: GridColDef<CarbonInventoryLine>[];
-  rows: CarbonInventoryLine[];
+  columns: GridColDef<EmissionCaptureFormLine>[];
+  rows: EmissionCaptureFormLine[];
   categoryPosition: number;
 }
 

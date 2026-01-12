@@ -1,21 +1,10 @@
-import {
-  CarbonInventoryLine,
-  UpdateCarbonInventoryLineRequestItem,
-} from "@repo/types";
+import { UpdateCarbonInventoryLineRequestItem } from "@repo/types";
+import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
 
-/**
- * Transforms form lines to the API request format
- * Converts CarbonInventoryLine to UpdateCarbonInventoryLineRequestItem
- */
 export function mapLinesToRequest(
-  lines: CarbonInventoryLine[]
+  lines: EmissionCaptureFormLine[]
 ): UpdateCarbonInventoryLineRequestItem[] {
   return lines.map((line) => {
-    // Determine baseFactorId based on factorSource
-    // If factorSource is "Factor Propio", baseFactorId should be null
-    // TODO: Store baseFactorId in the line when a factor is selected from emissionFactors
-    const baseFactorId = line.factorSource === "Factor Propio" ? null : null;
-
     return {
       id: line.id,
       dimensionValue1Id: line.dimensionValue1Id,
@@ -23,7 +12,7 @@ export function mapLinesToRequest(
       measurementUnitId: line.measurementUnitId,
       quantity: Number(line.quantity),
       factorSource: line.factorSource,
-      baseFactorId,
+      baseFactorId: line.baseFactorId ?? null,
       appliedFactorValue: Number(line.factorValue),
       appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
       manualTotalEmissions: null,

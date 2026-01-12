@@ -4,8 +4,19 @@ import type {
   CarbonInventoryLine,
 } from "./index";
 
+export type EmissionCaptureFormLine = CarbonInventoryLine & {
+  baseFactorId: string | null;
+};
+
+export interface LineValidationState {
+  canSelectFactorSource: boolean;
+  canEditFactorValue: boolean;
+  factorSourceDisabledReason: string | null;
+  factorValueDisabledReason: string | null;
+}
+
 export type SubcategoryWithLines = MethodologySubcategory & {
-  lines: CarbonInventoryLine[];
+  lines: EmissionCaptureFormLine[];
   isTotalManualEmissionsMode: boolean;
 };
 
@@ -19,7 +30,7 @@ export type EmissionCaptureFormValues = {
   subcategories: Record<
     string,
     {
-      lines: CarbonInventoryLine[];
+      lines: EmissionCaptureFormLine[];
     }
   >;
 };
