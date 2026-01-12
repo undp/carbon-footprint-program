@@ -21,7 +21,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   subcategory,
   categoryPosition,
 }) => {
-  // Hooks - all logic extracted
   const { measurementUnits, rateMeasurementUnits, dimensions } =
     useEmissionEditorData({ subcategory });
 
@@ -63,7 +62,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     },
   });
 
-  // Only JSX - no logic
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <Collapse in={!isTotalManualEmissionsMode} collapsedSize={80}>
