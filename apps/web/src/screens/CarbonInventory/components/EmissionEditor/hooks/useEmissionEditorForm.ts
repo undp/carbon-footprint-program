@@ -26,6 +26,7 @@ import {
   getDisabledReasonMessage,
 } from "../services/fieldValidationService";
 import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
+import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
 import { useSnackbar } from "notistack";
 interface UseEmissionEditorFormParams {
   subcategoryId: string;
@@ -68,7 +69,14 @@ export const useEmissionEditorForm = ({
   const { control, getValues, setValue } =
     useFormContext<EmissionCaptureFormValues>();
 
-  const { mutateAsync: createLine } = useCreateCarbonInventoryLine();
+  const { mutateAsync: createLine } = useCreateCarbonInventoryLine(
+    inventoryId,
+    subcategoryId
+  );
+  const { mutateAsync: deleteLine } = useDeleteCarbonInventoryLine(
+    inventoryId,
+    subcategoryId
+  );
 
   // Watch form values for this subcategory
   const subcategoryData = useWatch({
@@ -77,7 +85,7 @@ export const useEmissionEditorForm = ({
   });
 
   // Field array for lines
-  const { append, update, remove } = useFieldArray({
+  const { append, update, remove, insert } = useFieldArray({
     control,
     name: `subcategories.${subcategoryId}.lines` as const,
   });
@@ -133,7 +141,7 @@ export const useEmissionEditorForm = ({
     append(newRow);
 
     try {
-      const result = await createLine({ inventoryId, subcategoryId });
+      const result = await createLine();
 
       const { index, line } = getLineContext(tempId);
 
@@ -157,7 +165,6 @@ export const useEmissionEditorForm = ({
     }
   }, [
     subcategoryId,
-    inventoryId,
     append,
     update,
     remove,
@@ -280,14 +287,23 @@ export const useEmissionEditorForm = ({
   );
 
   const handleDeleteLine = useCallback(
-    (lineId: string) => {
-      const { index } = getLineContext(lineId);
+    async (lineId: string) => {
+      const { index, line } = getLineContext(lineId);
 
-      if (index === -1) return;
+      if (index === -1 || !line) return;
 
+      // Optimistic delete
       remove(index);
+
+      try {
+        await deleteLine({ lineId });
+      } catch {
+        // Restore line if failed
+        insert(index, line);
+        enqueueSnackbar("Error al eliminar la línea", { variant: "error" });
+      }
     },
-    [remove, getLineContext]
+    [remove, getLineContext, deleteLine, insert, enqueueSnackbar]
   );
 
   const handleSetTotalEmission = useCallback((total: number) => {
