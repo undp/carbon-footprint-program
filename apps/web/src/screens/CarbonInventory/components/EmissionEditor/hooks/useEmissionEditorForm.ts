@@ -1,5 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { useParams } from "@tanstack/react-router";
 import {
   EmissionFactor,
   EmissionFactorDimension,
@@ -7,6 +8,7 @@ import {
 } from "@repo/types";
 import { GridRenderCellParams } from "@mui/x-data-grid";
 import { round } from "lodash-es";
+import { Routes } from "@/interfaces";
 import {
   EmissionCaptureFormValues,
   EmissionCaptureFormLine,
@@ -17,14 +19,14 @@ import {
   getAvailableFactors,
   getBaseFactorId,
   getFactorData,
-  isFactorValueEditable,
 } from "../services/emissionFactorService";
 import {
   canSelectFactorSource,
   canEditFactorValue,
   getDisabledReasonMessage,
 } from "../services/fieldValidationService";
-
+import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
+import { useSnackbar } from "notistack";
 interface UseEmissionEditorFormParams {
   subcategoryId: string;
   emissionFactors: EmissionFactor[];
@@ -36,7 +38,7 @@ interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
   isTotalManualEmissionsMode: boolean;
   totalEmission: number;
-  handleAddLine: () => void;
+  handleAddLine: () => Promise<void>;
   handleCellChange: (
     value: string | number | null,
     params: GridRenderCellParams<
@@ -57,9 +59,16 @@ export const useEmissionEditorForm = ({
   dimensions,
   rateMeasurementUnits,
 }: UseEmissionEditorFormParams): UseEmssionEditorFormResults => {
+  const { enqueueSnackbar } = useSnackbar();
+  const { inventoryId } = useParams({
+    from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
+  });
+
   // Form context
   const { control, getValues, setValue } =
     useFormContext<EmissionCaptureFormValues>();
+
+  const { mutateAsync: createLine } = useCreateCarbonInventoryLine();
 
   // Watch form values for this subcategory
   const subcategoryData = useWatch({
@@ -89,10 +98,24 @@ export const useEmissionEditorForm = ({
     }, 0);
   }, [rows]);
 
+  const getLineContext = useCallback(
+    (lineId: string) => {
+      const currentLines =
+        getValues(`subcategories.${subcategoryId}.lines` as const) || [];
+      const index = currentLines.findIndex((line) => line.id === lineId);
+      return {
+        index,
+        line: index !== -1 ? currentLines[index] : null,
+      };
+    },
+    [getValues, subcategoryId]
+  );
+
   // Form actions
-  const handleAddLine = useCallback(() => {
+  const handleAddLine = useCallback(async () => {
+    const tempId = `temp-${Date.now()}`;
     const newRow: EmissionCaptureFormLine = {
-      id: (Date.now() + Math.random()).toString(),
+      id: tempId,
       subcategoryId: subcategoryId,
       isManualTotalEmissions: false,
       dimensionValue1Id: null,
@@ -108,7 +131,40 @@ export const useEmissionEditorForm = ({
     };
 
     append(newRow);
-  }, [subcategoryId, append]);
+
+    try {
+      const result = await createLine({ inventoryId, subcategoryId });
+
+      const { index, line } = getLineContext(tempId);
+
+      if (index !== -1 && line) {
+        update(index, {
+          ...line,
+          id: result.id,
+        });
+      }
+    } catch (error) {
+      // If failed, remove the temporary line
+      const { index } = getLineContext(tempId);
+      if (index !== -1) {
+        remove(index);
+      }
+      // eslint-disable-next-line no-console
+      console.error("Failed to create carbon inventory line", error);
+      enqueueSnackbar("Error al crear la línea de emisión", {
+        variant: "error",
+      });
+    }
+  }, [
+    subcategoryId,
+    inventoryId,
+    append,
+    update,
+    remove,
+    createLine,
+    enqueueSnackbar,
+    getLineContext,
+  ]);
 
   const handleCellChange = useCallback(
     (
@@ -118,34 +174,21 @@ export const useEmissionEditorForm = ({
         string | number | null
       >
     ) => {
-      const { field, id } = params;
-      const currentLines = getValues(
-        `subcategories.${subcategoryId}.lines` as const
-      );
+      const { field, id: lineId } = params;
+      const { index, line } = getLineContext(lineId as string);
 
-      if (!currentLines) return;
+      if (index === -1 || !line) return;
 
-      const lineIndex = currentLines.findIndex(
-        (line) => line.id === id.toString()
-      );
-
-      if (lineIndex === -1) return;
-
-      const currentLine = currentLines[lineIndex];
-
-      // Initialize with basic field update
       const updatedLine: EmissionCaptureFormLine = {
-        ...currentLine,
+        ...line,
         [field]: value,
       };
 
-      // Case A: Dimension changed
       if (
         field === "dimensionValue1Id" ||
         field === "dimensionValue2Id" ||
         field === "measurementUnitId"
       ) {
-        // 1. Clear other dimensions
         if (field === "dimensionValue1Id") {
           updatedLine.dimensionValue2Id = null;
         }
@@ -157,38 +200,30 @@ export const useEmissionEditorForm = ({
       }
 
       // Update the line in the form
-      update(lineIndex, updatedLine);
+      update(index, updatedLine);
 
       // Update DataGrid UI immediately
       params.api.updateRows([updatedLine]);
     },
-    [subcategoryId, getValues, update]
+    [update, getLineContext]
   );
 
   const handleFactorSourceChange = useCallback(
     (lineId: string, newFactorSource: string) => {
-      const currentLines = getValues(
-        `subcategories.${subcategoryId}.lines` as const
-      );
-
-      if (!currentLines) return;
-
-      const lineIndex = currentLines.findIndex((line) => line.id === lineId);
-      if (lineIndex === -1) return;
-
-      const currentLine = currentLines[lineIndex];
+      const { index, line } = getLineContext(lineId);
+      if (index === -1 || !line) return;
 
       // 1. Get compatible rate unit for the current measurement unit
       const compatibleRateUnitId = getCompatibleRateUnitId(
-        currentLine.measurementUnitId,
+        line.measurementUnitId,
         rateMeasurementUnits
       );
 
       // 2. Get factors available for the current context (dimensions + rate unit)
       const availableFactors = getAvailableFactors(
         emissionFactors,
-        currentLine.dimensionValue1Id,
-        currentLine.dimensionValue2Id,
+        line.dimensionValue1Id,
+        line.dimensionValue2Id,
         compatibleRateUnitId
       );
 
@@ -202,7 +237,7 @@ export const useEmissionEditorForm = ({
 
       // 4. Update the form
       const updatedLine: EmissionCaptureFormLine = {
-        ...currentLine,
+        ...line,
         factorSource: newFactorSource,
         baseFactorId,
         factorValue,
@@ -210,12 +245,18 @@ export const useEmissionEditorForm = ({
       };
 
       setValue(
-        `subcategories.${subcategoryId}.lines.${lineIndex}` as const,
+        `subcategories.${subcategoryId}.lines.${index}` as const,
         updatedLine,
         { shouldDirty: true }
       );
     },
-    [subcategoryId, emissionFactors, rateMeasurementUnits, getValues, setValue]
+    [
+      subcategoryId,
+      emissionFactors,
+      rateMeasurementUnits,
+      setValue,
+      getLineContext,
+    ]
   );
 
   const getLineValidation = useCallback(
@@ -240,19 +281,13 @@ export const useEmissionEditorForm = ({
 
   const handleDeleteLine = useCallback(
     (lineId: string) => {
-      const currentLines = getValues(
-        `subcategories.${subcategoryId}.lines` as const
-      );
+      const { index } = getLineContext(lineId);
 
-      if (!currentLines) return;
+      if (index === -1) return;
 
-      const lineIndex = currentLines.findIndex((line) => line.id === lineId);
-
-      if (lineIndex === -1) return;
-
-      remove(lineIndex);
+      remove(index);
     },
-    [subcategoryId, getValues, remove]
+    [remove, getLineContext]
   );
 
   const handleSetTotalEmission = useCallback((total: number) => {
