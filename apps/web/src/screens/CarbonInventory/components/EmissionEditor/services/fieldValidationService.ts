@@ -1,6 +1,5 @@
 import { EmissionFactorDimension } from "@repo/types";
 import { EmissionCaptureFormLine } from "../../../types/EmissionCaptureTypes";
-import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 
 const areRequiredDimensionsFilled = (
   line: EmissionCaptureFormLine,
@@ -30,10 +29,8 @@ export const canSelectFactorSource = (
   dimensions: EmissionFactorDimension[]
 ): boolean => {
   return (
-    (!!line.factorSource &&
-      CUSTOM_FACTOR_SOURCES.includes(line.factorSource)) ||
-    (areRequiredDimensionsFilled(line, dimensions) &&
-      isMeasurementUnitSelected(line))
+    areRequiredDimensionsFilled(line, dimensions) &&
+    isMeasurementUnitSelected(line)
   );
 };
 
@@ -48,13 +45,9 @@ export const getDisabledReasonMessage = (
   dimensions: EmissionFactorDimension[]
 ): string | null => {
   if (fieldName === "factorSource") {
-    if (
-      line.factorSource &&
-      CUSTOM_FACTOR_SOURCES.includes(line.factorSource)
-    ) {
-      return null;
+    if (!isMeasurementUnitSelected(line)) {
+      return "Selecciona una unidad de medida primero";
     }
-
     if (!areRequiredDimensionsFilled(line, dimensions)) {
       const missingDimensions = dimensions
         .filter((d) => {
@@ -66,9 +59,6 @@ export const getDisabledReasonMessage = (
         })
         .map((d) => d.name);
       return `Completa las dimensiones requeridas: ${missingDimensions.join(", ")}`;
-    }
-    if (!isMeasurementUnitSelected(line)) {
-      return "Selecciona una unidad de medida primero";
     }
   }
 
