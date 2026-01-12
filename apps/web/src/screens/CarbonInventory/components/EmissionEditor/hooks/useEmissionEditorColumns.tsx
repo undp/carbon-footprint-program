@@ -1,12 +1,20 @@
 import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import {
-  CarbonInventoryLine,
   EmissionFactorDimension,
   MeasurementUnit,
   RateMeasurementUnit,
   Subcategory,
 } from "@repo/types";
+import {
+  EmissionCaptureFormLine,
+  LineValidationState,
+} from "../../../types/EmissionCaptureTypes";
+import {
+  getCompatibleRateUnitId,
+  getAvailableFactors,
+  getAvailableSources,
+} from "../services/emissionFactorService";
 import {
   EmissionEditorDimensionCell,
   EmissionEditorMeasurementUnitCell,
@@ -24,9 +32,14 @@ interface UseEmissionEditorColumnsParams {
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   categoryPosition: number;
   onCellChange: (
-    value: string,
-    params: GridRenderCellParams<CarbonInventoryLine, string | number | null>
+    value: string | number | null,
+    params: GridRenderCellParams<
+      EmissionCaptureFormLine,
+      string | number | null
+    >
   ) => void;
+  onFactorSourceChange: (lineId: string, factorSource: string) => void;
+  getLineValidation: (line: EmissionCaptureFormLine) => LineValidationState;
   onDeleteLine: (lineId: string) => void;
   onUpdateComment: (rowId: string, comment: string) => void;
   onUploadFiles: (rowId: string) => void;
@@ -39,10 +52,12 @@ export const useEmissionEditorColumns = ({
   rateMeasurementUnits,
   categoryPosition,
   onCellChange,
+  onFactorSourceChange,
+  getLineValidation,
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
-}: UseEmissionEditorColumnsParams): GridColDef<CarbonInventoryLine>[] => {
+}: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
   return useMemo(() => {
     const firstDimension = dimensions.find((d) => d.position === 1);
     const secondDimension = dimensions.find((d) => d.position === 2);
@@ -58,7 +73,7 @@ export const useEmissionEditorColumns = ({
               flex: 1,
               cellClassName: "content-center max-h-[56px]",
               renderCell: (
-                params: GridRenderCellParams<CarbonInventoryLine, string>
+                params: GridRenderCellParams<EmissionCaptureFormLine, string>
               ) => (
                 <EmissionEditorDimensionCell
                   dimension={firstDimension}
@@ -80,7 +95,7 @@ export const useEmissionEditorColumns = ({
               flex: 1,
               cellClassName: "content-center max-h-[56px]",
               renderCell: (
-                params: GridRenderCellParams<CarbonInventoryLine, string>
+                params: GridRenderCellParams<EmissionCaptureFormLine, string>
               ) => (
                 <EmissionEditorDimensionCell
                   dimension={secondDimension}
@@ -102,7 +117,7 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<CarbonInventoryLine, string>
+          params: GridRenderCellParams<EmissionCaptureFormLine, string>
         ) => (
           <EmissionEditorMeasurementUnitCell
             measurementUnits={measurementUnits || []}
@@ -112,7 +127,6 @@ export const useEmissionEditorColumns = ({
           />
         ),
       },
-
       // Quantity column
       {
         headerName: "Cantidad",
@@ -122,7 +136,7 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<CarbonInventoryLine, number | null>
+          params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
         ) => (
           <EmissionEditorQuantityCell
             value={params.value ?? null}
@@ -141,16 +155,21 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<CarbonInventoryLine, number | null>
-        ) => (
-          <EmissionEditorFactorCell
-            value={params.value ?? null}
-            factorSource={params.row.factorSource}
-            measurementUnitId={params.row.measurementUnitId}
-            rateMeasurementUnits={rateMeasurementUnits || []}
-            onChange={(e) => onCellChange(e.target.value, params)}
-          />
-        ),
+          params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
+        ) => {
+          const validation = getLineValidation(params.row);
+          return (
+            <EmissionEditorFactorCell
+              value={params.value ?? null}
+              factorSource={params.row.factorSource}
+              measurementUnitId={params.row.measurementUnitId}
+              rateMeasurementUnits={rateMeasurementUnits || []}
+              onChange={(e) => onCellChange(e.target.value, params)}
+              disabled={!validation.canEditFactorValue}
+              disabledReason={validation.factorValueDisabledReason}
+            />
+          );
+        },
       },
 
       // Factor source column
@@ -161,15 +180,40 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         cellClassName: "content-center max-h-[56px]",
         renderCell: (
-          params: GridRenderCellParams<CarbonInventoryLine, string>
-        ) => (
-          <EmissionEditorFactorSourceCell
-            emissionFactors={subcategory.emissionFactors}
-            value={params.value || null}
-            rowId={params.id}
-            onChange={(value) => onCellChange(value, params)}
-          />
-        ),
+          params: GridRenderCellParams<EmissionCaptureFormLine, string>
+        ) => {
+          const validation = getLineValidation(params.row);
+
+          // 1. Get compatible rate unit
+          const compatibleRateUnitId = getCompatibleRateUnitId(
+            params.row.measurementUnitId,
+            rateMeasurementUnits || []
+          );
+
+          // 2. Get available factors for this context (dimensions + rate unit)
+          const availableFactors = getAvailableFactors(
+            subcategory.emissionFactors,
+            params.row.dimensionValue1Id,
+            params.row.dimensionValue2Id,
+            compatibleRateUnitId
+          );
+
+          // 3. Get unique sources
+          const availableSources = getAvailableSources(availableFactors);
+
+          return (
+            <EmissionEditorFactorSourceCell
+              availableSources={availableSources}
+              value={params.value || null}
+              rowId={params.id}
+              disabled={!validation.canSelectFactorSource}
+              disabledReason={validation.factorSourceDisabledReason}
+              onChange={(value) =>
+                onFactorSourceChange(params.id.toString(), value)
+              }
+            />
+          );
+        },
       },
 
       // Total emissions column
@@ -182,7 +226,7 @@ export const useEmissionEditorColumns = ({
         flex: 1,
         align: "right",
         renderCell: (
-          params: GridRenderCellParams<CarbonInventoryLine, number | null>
+          params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
         ) => (
           <EmissionEditorEmissionsCell
             quantity={params.row.quantity}
@@ -199,7 +243,7 @@ export const useEmissionEditorColumns = ({
         minWidth: 157,
         flex: 1,
         cellClassName: "content-center",
-        renderCell: (params: GridRenderCellParams<CarbonInventoryLine>) => (
+        renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => (
           <EmissionEditorActionsCell
             rowId={params.id}
             categoryPosition={categoryPosition}
@@ -219,6 +263,8 @@ export const useEmissionEditorColumns = ({
     rateMeasurementUnits,
     categoryPosition,
     onCellChange,
+    onFactorSourceChange,
+    getLineValidation,
     onDeleteLine,
     onUpdateComment,
     onUploadFiles,

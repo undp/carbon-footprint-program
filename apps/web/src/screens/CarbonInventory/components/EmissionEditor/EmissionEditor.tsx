@@ -31,10 +31,17 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     totalEmission,
     handleAddLine,
     handleCellChange,
+    handleFactorSourceChange,
+    getLineValidation,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,
-  } = useEmissionEditorForm({ subcategoryId: subcategory.id });
+  } = useEmissionEditorForm({
+    subcategoryId: subcategory.id,
+    emissionFactors: subcategory.emissionFactors,
+    dimensions,
+    rateMeasurementUnits: rateMeasurementUnits || [],
+  });
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
@@ -47,6 +54,8 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     rateMeasurementUnits,
     categoryPosition,
     onCellChange: handleCellChange,
+    onFactorSourceChange: handleFactorSourceChange,
+    getLineValidation: getLineValidation,
     onDeleteLine: handleDeleteLine,
     onUpdateComment: openCommentDialog,
     onUploadFiles: () => {
