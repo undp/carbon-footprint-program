@@ -55,6 +55,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       columns={columns}
       getRowHeight={() => "auto"}
       rows={rows}
+      getRowId={(row) => row.lineId}
       disableColumnResize
       disableColumnSorting
       disableColumnMenu

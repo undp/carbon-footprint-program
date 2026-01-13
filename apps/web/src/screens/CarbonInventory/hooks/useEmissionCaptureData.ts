@@ -40,7 +40,11 @@ export const useEmissionCaptureData = ({
 
         return {
           ...subcategory,
-          lines: inventorySubcategory?.lines || [],
+          lines: (inventorySubcategory?.lines || []).map((line) => ({
+            ...line,
+            lineId: line.id,
+            baseFactorId: null,
+          })),
           isTotalManualEmissionsMode:
             inventorySubcategory?.isTotalManualEmissionsMode || false,
         };

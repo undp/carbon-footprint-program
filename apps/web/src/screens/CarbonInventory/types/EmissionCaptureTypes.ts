@@ -6,6 +6,7 @@ import type {
 
 export type EmissionCaptureFormLine = CarbonInventoryLine & {
   baseFactorId: string | null;
+  lineId: string;
 };
 
 export interface LineValidationState {
