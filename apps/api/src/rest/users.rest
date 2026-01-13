@@ -19,3 +19,43 @@ GET {{baseUrl}}/api/users HTTP/1.1
 ### Get User by ID
 GET {{baseUrl}}/api/users/1 HTTP/1.1
 
+
+### Update User - Update Email
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "newemail@example.com"
+}
+
+
+### Update User - Update Job Position
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "countryJobPositionId": "3"
+}
+
+
+### Update User - Update Names
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstName": "John",
+    "lastName": "Doe"
+}
+
+
+### Update User - Update All Fields
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "updated@example.com",
+    "countryJobPositionId": "2",
+    "firstName": "Updated",
+    "lastName": "User"
+}
+

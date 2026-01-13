@@ -25,6 +25,8 @@ export const CreateUserBodySchema = z.object({
   lastName: z.string().min(1).describe("The last name of the user"),
 });
 
+export const CreateUserResponseSchema = UserSchema;
+
 export const GetAllUsersResponseSchema = z.array(UserSchema);
 
 export const GetUserByIdParamsSchema = z.object({
@@ -33,6 +35,27 @@ export const GetUserByIdParamsSchema = z.object({
 
 export const GetUserByIdResponseSchema = UserSchema;
 
+export const UpdateUserBodySchema = z.object({
+  email: z
+    .email("Invalid email address")
+    .optional()
+    .describe("The email of the user"),
+  countryJobPositionId: IdSchema.optional().describe(
+    "The ID of the country job position"
+  ),
+  firstName: z
+    .string()
+    .min(1)
+    .optional()
+    .describe("The first name of the user"),
+  lastName: z.string().min(1).optional().describe("The last name of the user"),
+});
+
+export const UpdateUserParamsSchema = z.object({
+  id: IdSchema.describe("The ID of the user"),
+});
+
+export const UpdateUserResponseSchema = UserSchema;
 
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserBody = z.infer<typeof CreateUserBodySchema>;
@@ -40,3 +63,6 @@ export type CreateUserResponse = z.infer<typeof CreateUserResponseSchema>;
 export type GetAllUsersResponse = z.infer<typeof GetAllUsersResponseSchema>;
 export type GetUserByIdParams = z.infer<typeof GetUserByIdParamsSchema>;
 export type GetUserByIdResponse = z.infer<typeof GetUserByIdResponseSchema>;
+export type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
+export type UpdateUserParams = z.infer<typeof UpdateUserParamsSchema>;
+export type UpdateUserResponse = z.infer<typeof UpdateUserResponseSchema>;
