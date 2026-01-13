@@ -27,7 +27,16 @@ export const CreateUserBodySchema = z.object({
 
 export const GetAllUsersResponseSchema = z.array(UserSchema);
 
+export const GetUserByIdParamsSchema = z.object({
+  id: IdSchema.describe("The ID of the user"),
+});
+
+export const GetUserByIdResponseSchema = UserSchema;
+
+
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserBody = z.infer<typeof CreateUserBodySchema>;
 export type CreateUserResponse = z.infer<typeof CreateUserResponseSchema>;
 export type GetAllUsersResponse = z.infer<typeof GetAllUsersResponseSchema>;
+export type GetUserByIdParams = z.infer<typeof GetUserByIdParamsSchema>;
+export type GetUserByIdResponse = z.infer<typeof GetUserByIdResponseSchema>;

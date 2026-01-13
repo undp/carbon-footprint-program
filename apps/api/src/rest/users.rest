@@ -16,3 +16,6 @@ Content-Type: application/json
 GET {{baseUrl}}/api/users HTTP/1.1
 
 
+### Get User by ID
+GET {{baseUrl}}/api/users/1 HTTP/1.1
+
