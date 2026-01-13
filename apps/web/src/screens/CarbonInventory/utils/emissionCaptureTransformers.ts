@@ -6,7 +6,7 @@ export function mapLinesToRequest(
 ): UpdateCarbonInventoryLineRequestItem[] {
   return lines.map((line) => {
     return {
-      id: line.id,
+      id: line.lineId,
       dimensionValue1Id: line.dimensionValue1Id,
       dimensionValue2Id: line.dimensionValue2Id,
       measurementUnitId: line.measurementUnitId,

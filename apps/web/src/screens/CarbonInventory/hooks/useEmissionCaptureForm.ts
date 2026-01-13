@@ -21,7 +21,6 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
   });
 
   const { reset } = form;
-
   useEffect(() => {
     const formData: EmissionCaptureFormValues = {
       subcategories: {},

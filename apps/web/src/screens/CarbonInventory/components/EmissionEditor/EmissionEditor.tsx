@@ -10,12 +10,38 @@ import {
   useEmissionEditorForm,
   useEmissionEditorComment,
   useEmissionEditorColumns,
+  useEmissionTotal,
 } from "./hooks";
 
 interface EmissionEditorProps {
   subcategory: Subcategory;
   categoryPosition: number;
 }
+
+const EmissionEditorHeaderWrapper: FC<{
+  subcategory: Subcategory;
+  isTotalManualEmissionsMode: boolean;
+  handleSetManualMode: (value: boolean) => void;
+  handleSetTotalEmission: (value: number) => void;
+}> = ({
+  subcategory,
+  isTotalManualEmissionsMode,
+  handleSetManualMode,
+  handleSetTotalEmission,
+}) => {
+  const totalEmission = useEmissionTotal(subcategory.id);
+
+  return (
+    <EmissionEditorHeader
+      name={subcategory.name}
+      description={subcategory.description}
+      isTotalManualEmissionsMode={isTotalManualEmissionsMode}
+      setIsTotalManualEmissionsMode={handleSetManualMode}
+      totalEmission={totalEmission}
+      setTotalEmission={handleSetTotalEmission}
+    />
+  );
+};
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   subcategory,
@@ -27,7 +53,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   const {
     rows,
     isTotalManualEmissionsMode,
-    totalEmission,
     handleAddLine,
     handleCellChange,
     handleFactorSourceChange,
@@ -67,13 +92,11 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       <Collapse in={!isTotalManualEmissionsMode} collapsedSize={80}>
         <Box className="flex flex-col gap-2">
           {/* Header Section */}
-          <EmissionEditorHeader
-            name={subcategory.name}
-            description={subcategory.description}
+          <EmissionEditorHeaderWrapper
+            subcategory={subcategory}
             isTotalManualEmissionsMode={isTotalManualEmissionsMode}
-            setIsTotalManualEmissionsMode={handleSetManualMode}
-            totalEmission={totalEmission}
-            setTotalEmission={handleSetTotalEmission}
+            handleSetManualMode={handleSetManualMode}
+            handleSetTotalEmission={handleSetTotalEmission}
           />
 
           {/* Content Section */}
