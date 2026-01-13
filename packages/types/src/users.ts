@@ -57,6 +57,14 @@ export const UpdateUserParamsSchema = z.object({
 
 export const UpdateUserResponseSchema = UserSchema;
 
+export const DeleteUserParamsSchema = z.object({
+  id: IdSchema.describe("The ID of the user"),
+});
+
+export const DeleteUserResponseSchema = z.object({
+  message: z.string().describe("Confirmation message"),
+});
+
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserBody = z.infer<typeof CreateUserBodySchema>;
 export type CreateUserResponse = z.infer<typeof CreateUserResponseSchema>;
@@ -66,3 +74,5 @@ export type GetUserByIdResponse = z.infer<typeof GetUserByIdResponseSchema>;
 export type UpdateUserBody = z.infer<typeof UpdateUserBodySchema>;
 export type UpdateUserParams = z.infer<typeof UpdateUserParamsSchema>;
 export type UpdateUserResponse = z.infer<typeof UpdateUserResponseSchema>;
+export type DeleteUserParams = z.infer<typeof DeleteUserParamsSchema>;
+export type DeleteUserResponse = z.infer<typeof DeleteUserResponseSchema>;
