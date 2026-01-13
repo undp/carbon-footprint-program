@@ -1,9 +1,22 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { Select, MenuItem, Tooltip } from "@mui/material";
-import { CUSTOM_FACTOR_SOURCES } from "../services/emissionFactorService";
+import {
+  CUSTOM_FACTOR_SOURCES,
+  getCompatibleRateUnitId,
+  getAvailableFactors,
+  getAvailableSources,
+} from "../services/emissionFactorService";
+import {
+  EmissionFactor,
+  RateMeasurementUnit,
+} from "@repo/types";
 
 interface EmissionEditorFactorSourceCellProps {
-  availableSources: string[];
+  emissionFactors: EmissionFactor[];
+  rateMeasurementUnits: RateMeasurementUnit[];
+  measurementUnitId: string | null;
+  dimensionValue1Id: string | null;
+  dimensionValue2Id: string | null;
   value: string | null;
   onChange: (value: string) => void;
   rowId: string | number;
@@ -14,13 +27,42 @@ interface EmissionEditorFactorSourceCellProps {
 export const EmissionEditorFactorSourceCell: FC<
   EmissionEditorFactorSourceCellProps
 > = ({
-  availableSources,
+  emissionFactors,
+  rateMeasurementUnits,
+  measurementUnitId,
+  dimensionValue1Id,
+  dimensionValue2Id,
   value,
   onChange,
   rowId,
   disabled = false,
   disabledReason = null,
 }) => {
+  const availableSources = useMemo(() => {
+    // 1. Get compatible rate unit
+    const compatibleRateUnitId = getCompatibleRateUnitId(
+      measurementUnitId,
+      rateMeasurementUnits
+    );
+
+    // 2. Get available factors for this context (dimensions + rate unit)
+    const availableFactors = getAvailableFactors(
+      emissionFactors,
+      dimensionValue1Id,
+      dimensionValue2Id,
+      compatibleRateUnitId
+    );
+
+    // 3. Get unique sources
+    return getAvailableSources(availableFactors);
+  }, [
+    emissionFactors,
+    rateMeasurementUnits,
+    measurementUnitId,
+    dimensionValue1Id,
+    dimensionValue2Id,
+  ]);
+
   const selectElement = (
     <Select
       id={`factorSource_${rowId}`}
