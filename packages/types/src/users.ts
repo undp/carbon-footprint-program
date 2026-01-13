@@ -25,6 +25,9 @@ export const CreateUserBodySchema = z.object({
   lastName: z.string().min(1).describe("The last name of the user"),
 });
 
+export const GetAllUsersResponseSchema = z.array(UserSchema);
+
 export type User = z.infer<typeof UserSchema>;
 export type CreateUserBody = z.infer<typeof CreateUserBodySchema>;
 export type CreateUserResponse = z.infer<typeof CreateUserResponseSchema>;
+export type GetAllUsersResponse = z.infer<typeof GetAllUsersResponseSchema>;

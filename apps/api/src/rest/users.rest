@@ -10,3 +10,9 @@ Content-Type: application/json
     "lastName": "Doe",
     "countryJobPositionId": "1"
 }
+
+
+### Get All Users
+GET {{baseUrl}}/api/users HTTP/1.1
+
+
