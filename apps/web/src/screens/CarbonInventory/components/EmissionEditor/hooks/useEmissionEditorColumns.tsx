@@ -11,11 +11,6 @@ import {
   LineValidationState,
 } from "../../../types/EmissionCaptureTypes";
 import {
-  getCompatibleRateUnitId,
-  getAvailableFactors,
-  getAvailableSources,
-} from "../services/emissionFactorService";
-import {
   EmissionEditorDimensionCell,
   EmissionEditorMeasurementUnitCell,
   EmissionEditorQuantityCell,
@@ -78,7 +73,7 @@ export const useEmissionEditorColumns = ({
                 <EmissionEditorDimensionCell
                   dimension={firstDimension}
                   value={params.value || null}
-                  onChange={(value) => onCellChange(value, params)}
+                  onChange={(value: string) => onCellChange(value, params)}
                 />
               ),
             },
@@ -101,7 +96,7 @@ export const useEmissionEditorColumns = ({
                   dimension={secondDimension}
                   value={params.value || null}
                   parentValue={params.row.dimensionValue1Id}
-                  onChange={(value) => onCellChange(value, params)}
+                  onChange={(value: string) => onCellChange(value, params)}
                 />
               ),
             },
@@ -123,7 +118,7 @@ export const useEmissionEditorColumns = ({
             measurementUnits={measurementUnits || []}
             value={params.value || null}
             rowId={params.id}
-            onChange={(value) => onCellChange(value, params)}
+            onChange={(value: string) => onCellChange(value, params)}
           />
         ),
       },
@@ -140,7 +135,9 @@ export const useEmissionEditorColumns = ({
         ) => (
           <EmissionEditorQuantityCell
             value={params.value ?? null}
-            onChange={(e) => onCellChange(e.target.value, params)}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onCellChange(e.target.value, params)
+            }
           />
         ),
       },
@@ -164,7 +161,9 @@ export const useEmissionEditorColumns = ({
               factorSource={params.row.factorSource}
               measurementUnitId={params.row.measurementUnitId}
               rateMeasurementUnits={rateMeasurementUnits || []}
-              onChange={(e) => onCellChange(e.target.value, params)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                onCellChange(e.target.value, params)
+              }
               disabled={!validation.canEditFactorValue}
               disabledReason={validation.factorValueDisabledReason}
             />
@@ -184,26 +183,13 @@ export const useEmissionEditorColumns = ({
         ) => {
           const validation = getLineValidation(params.row);
 
-          // 1. Get compatible rate unit
-          const compatibleRateUnitId = getCompatibleRateUnitId(
-            params.row.measurementUnitId,
-            rateMeasurementUnits || []
-          );
-
-          // 2. Get available factors for this context (dimensions + rate unit)
-          const availableFactors = getAvailableFactors(
-            subcategory.emissionFactors,
-            params.row.dimensionValue1Id,
-            params.row.dimensionValue2Id,
-            compatibleRateUnitId
-          );
-
-          // 3. Get unique sources
-          const availableSources = getAvailableSources(availableFactors);
-
           return (
             <EmissionEditorFactorSourceCell
-              availableSources={availableSources}
+              emissionFactors={subcategory.emissionFactors}
+              rateMeasurementUnits={rateMeasurementUnits || []}
+              measurementUnitId={params.row.measurementUnitId}
+              dimensionValue1Id={params.row.dimensionValue1Id}
+              dimensionValue2Id={params.row.dimensionValue2Id}
               value={params.value || null}
               rowId={params.id}
               disabled={!validation.canSelectFactorSource}

@@ -26,7 +26,6 @@ import {
 } from "../services/fieldValidationService";
 import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
 import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
-import { useSnackbar } from "notistack";
 interface UseEmissionEditorFormParams {
   subcategoryId: string;
   emissionFactors: EmissionFactor[];
@@ -58,7 +57,6 @@ export const useEmissionEditorForm = ({
   dimensions,
   rateMeasurementUnits,
 }: UseEmissionEditorFormParams): UseEmssionEditorFormResults => {
-  const { enqueueSnackbar } = useSnackbar();
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
@@ -74,7 +72,7 @@ export const useEmissionEditorForm = ({
 
   const { control, setValue } = useFormContext<EmissionCaptureFormValues>();
 
-  const { append, remove, update } = useFieldArray({
+  const { append, remove } = useFieldArray({
     control,
     name: `subcategories.${subcategoryId}.lines`,
   });
