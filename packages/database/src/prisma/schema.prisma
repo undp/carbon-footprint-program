@@ -247,6 +247,12 @@ enum Magnitude {
   VOLUME
   DISTANCE
   TIME
+  ANIMALS
+  AREA
+  POWER
+  ENERGY
+  DISTANCE_MASS
+  ROOMS
 
   @@map("Magnitude")
 }

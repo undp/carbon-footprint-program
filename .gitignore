@@ -39,6 +39,7 @@ lerna-debug.log*
 .vite/
 .parcel-cache
 .eslintcache
+__pycache__/
 
 # OS files
 .DS_Store

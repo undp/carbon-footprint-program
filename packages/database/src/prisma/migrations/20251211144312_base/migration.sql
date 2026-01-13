@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME');
+CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME','ANIMALS' ,'AREA' ,'POWER' ,'ENERGY' ,'DISTANCE_MASS' ,'ROOMS');
 
 -- CreateTable
 CREATE TABLE "country" (

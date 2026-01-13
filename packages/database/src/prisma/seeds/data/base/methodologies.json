@@ -7,120 +7,769 @@
     "categories": [
       {
         "name": "Emisiones directas",
-        "synonyms": "Categoría 1 / Alcance 1",
-        "description": "Generadas dentro de tu empresa",
-        "examples": null,
+        "synonyms": "CATEGORIA 1 / ALCANCE 1",
+        "description": "Generado dentro de tu empresa",
         "position": 1,
+        "examples": null,
         "subcategories": [
           {
             "name": "Combustión estacionaria",
-            "description": "Uso de combustibles en equipos fijos como calderas, hornos o generadores.",
+            "description": "Uso de combustibles en equipos fijos como calderas, hornos o generadores",
             "examples": null,
             "emissionFactorDimensions": [
               {
-                "code": "FUEL_TYPE",
-                "name": "Tipo de combustible",
+                "code": "Combustión estacionaria_Tipo",
+                "name": "Tipo",
                 "position": 1,
                 "isRequired": false,
                 "values": [
-                  { "name": "Gaseosos", "parentValue": null },
-                  { "name": "Líquidos", "parentValue": null },
-                  { "name": "Sólidos", "parentValue": null },
-                  { "name": "Bio-combustibles", "parentValue": null },
-                  { "name": "Bio-gas", "parentValue": null }
+                  {
+                    "name": "Caldera",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Generador",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Turbina",
+                    "parentValue": null
+                  }
                 ]
               },
               {
-                "code": "FUEL",
+                "code": "Combustión estacionaria_Combustible",
                 "name": "Combustible",
                 "position": 2,
                 "isRequired": true,
                 "values": [
                   {
                     "name": "Gas natural",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Gaseosos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Gas licuado del petróleo",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Gaseosos"
-                    }
+                    "parentValue": null
                   },
-
                   {
                     "name": "Diésel",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Líquidos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Gasolina/Nafta",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Líquidos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Queroseno",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Líquidos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Fuel oil / Petróleo pesado",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Líquidos"
-                    }
+                    "parentValue": null
                   },
-
                   {
                     "name": "Carbón industrial",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Sólidos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Carbón para electricidad",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Sólidos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Coke",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Sólidos"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Bioethanol",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Bio-combustibles"
-                    }
+                    "parentValue": null
                   },
                   {
                     "name": "Biodiésel",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Bio-combustibles"
-                    }
+                    "parentValue": null
                   },
                   {
-                    "name": "Biogas",
-                    "parentValue": {
-                      "dimensionCode": "FUEL_TYPE",
-                      "valueName": "Bio-gas"
-                    }
+                    "name": "Bio-gas",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Biodiésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/GJ",
+                "source": "DEFRA 2025",
+                "value": 5.05
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Bioethanol"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/GJ",
+                "source": "DEFRA 2025",
+                "value": 0.42
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Biodiésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 0.188
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Bioethanol"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 0.011
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Bio-gas"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.00022
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Carbón industrial"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.33
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Carbón para electricidad"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.33
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Coke"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.35
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.25
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.28
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.23
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gasolina/Nafta"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.25
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.25
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Biodiésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 167.5
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Bioethanol"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 9.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2570.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 3174.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 1557.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gasolina/Nafta"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2339.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2540.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Bio-gas"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1.24
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Carbón industrial"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2395.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Carbón para electricidad"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2225.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Coke"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3386.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3087.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3228.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2603.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2575.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Gasolina/Nafta"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3154.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión estacionaria_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3165.0
+              }
+            ]
+          },
+          {
+            "name": "Combustión móvil (flota propia)",
+            "description": "Uso de combustible en vehículos de reparto o camionetas de la empresa",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Combustión móvil (flota propia)_Tipo",
+                "name": "Tipo",
+                "position": 1,
+                "isRequired": false,
+                "values": [
+                  {
+                    "name": "Auto",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camioneta",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Motocicleta",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Van",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión",
+                    "parentValue": null
+                  }
+                ]
+              },
+              {
+                "code": "Combustión móvil (flota propia)_Combustible",
+                "name": "Combustible",
+                "position": 2,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Gas natural",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Gas licuado del petróleo",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Diésel",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Gasolina/Nafta",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Queroseno",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fuel oil / Petróleo pesado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Lubricantes",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Combustible de aviación",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.23
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Combustible de aviación"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2331.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2570.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 3174.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 1557.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gasolina/Nafta"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2339.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Lubricantes"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2749.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 2540.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3228.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2603.0
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustión móvil (flota propia)_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 2575.0
+              }
+            ]
+          },
+          {
+            "name": "Emisiones fugitivas",
+            "description": "Fugas de gases refrigerantes en aire acondicionado o cámaras de frío",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Emisiones fugitivas_Gas",
+                "name": "Gas",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Dióxido de carbono",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Hexafloruro de azufre",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-125",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-134",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-134a",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-143",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-143a",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-152",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-152a",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-161",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-227ea",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-23",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-235cb",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-236ea",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-236fa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-245ca",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-245fa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-32",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-365mfc",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-41",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "HFC-43-10mee",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Metano",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Óxido nitroso",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Perfloruro ciclopropano",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-116",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-14",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-218",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-3-1-10",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-318",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-4-1-12",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-5-1-14",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "PFC-9-1-18",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Trifloruro de nitrogeno",
+                    "parentValue": null
                   }
                 ]
               }
@@ -128,193 +777,892 @@
             "emissionFactors": [
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Gaseosos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Dióxido de carbono"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Gas natural"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 2
+                "value": 1.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Gaseosos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Hexafloruro de azufre"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Gas licuado del petróleo"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 1557
+                "value": 23500.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Líquidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-125"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Diésel"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 2570
+                "value": 3170.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Líquidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-134"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Gasolina/Nafta"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 2339
+                "value": 1120.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Líquidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-134a"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Queroseno"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 2540
+                "value": 1300.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Líquidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-143"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Fuel oil / Petróleo pesado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 3174
+                "value": 328.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Sólidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-143a"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Carbón industrial"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 2395
+                "value": 4800.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Sólidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-152"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Carbón para electricidad"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 2225
+                "value": 16.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Sólidos"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-152a"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Coke"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 3386
+                "value": 138.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Bio-combustibles"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-161"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Bioethanol"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 9
+                "value": 4.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Bio-combustibles"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-227ea"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Biodiésel"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 167.5
+                "value": 3350.0
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "FUEL_TYPE",
-                  "valueName": "Bio-gas"
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-23"
                 },
-                "dimensionValue2": {
-                  "dimensionCode": "FUEL",
-                  "valueName": "Biogas"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
-                "value": 1.24
+                "value": 12400.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-235cb"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 1210.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-236ea"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 1330.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-236fa"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 8060.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-245ca"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 716.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-245fa"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 858.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-32"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 677.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-365mfc"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 804.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-41"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 116.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-43-10mee"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 1650.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Metano"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 28.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Óxido nitroso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 265.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Perfloruro ciclopropano"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 9200.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-116"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 11100.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-14"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 6630.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-218"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 8900.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-3-1-10"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 9200.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-318"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 9540.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-4-1-12"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 8550.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-5-1-14"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 7910.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-9-1-18"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 7190.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Trifloruro de nitrogeno"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2025",
+                "value": 16100.0
               }
             ]
           },
           {
-            "name": "Combustión móvil",
-            "description": "Uso de combustible en vehículos de reparto o camionetas de la empresa.",
+            "name": "Emisiones por uso de suelo - Ganadería",
+            "description": "Emisiones por el manejo de estiércol y fermentación entérica de los animales",
             "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
+            "emissionFactorDimensions": [
+              {
+                "code": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                "name": "Tipo de animal",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Vacas de pastoreo",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vacas lecheras",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ovejas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Porcinos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Buffalos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cabras",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Caballos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Mulas y burros",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camélidos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ciervos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Crianza de aves",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Buffalos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 1680.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Caballos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 589.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Cabras"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 35.17
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Camélidos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 1437.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Ciervos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 600.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Crianza de aves"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 9810.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Mulas y burros"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 327.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Ovejas"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 154.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Porcinos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 60.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Vacas de pastoreo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 2190.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Vacas lecheras"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "value": 1710.0
+              }
+            ]
           },
           {
-            "name": "Agricultura y uso de suelos",
-            "description": null,
+            "name": "Emisiones por uso de suelo - Agricultura",
+            "description": "Emisiones del manejo agrícola como preparación y uso del suelo para cultivos",
             "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
+            "emissionFactorDimensions": [
+              {
+                "code": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                "name": "Tipo de cultivo",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Cultivo general clima templado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cultivo general clima tropical",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima templado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ha",
+                "source": "IPCC",
+                "value": 2184.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima tropical"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ha",
+                "source": "IPCC",
+                "value": 4368.0
+              }
+            ]
           },
           {
-            "name": "Procesos industriales",
-            "description": null,
+            "name": "Emisiones por uso de suelo - Aplicación de fertilizantes",
+            "description": "Emisiones por el uso de fertilizantes en suelos agrícolas",
             "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
+            "emissionFactorDimensions": [
+              {
+                "code": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                "name": "Componente",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Nitrógeno (N)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fósforo (P2O5)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Potacio (K2O)",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                  "valueName": "Fósforo (P2O5)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "Kool, A.",
+                "value": 0.54
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                  "valueName": "Nitrógeno (N)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "Kool, A.",
+                "value": 3.53
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                  "valueName": "Potacio (K2O)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "Kool, A.",
+                "value": 0.61
+              }
+            ]
           },
           {
-            "name": "Emisiones fugitivas",
-            "description": "Fugas o recargas de gas refrigerantes en A/C de oficinas o vehículos.",
+            "name": "Procesos industriales - Cinc",
+            "description": "Emisiones por procesos industriales que producen o transforman cinc",
             "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
+            "emissionFactorDimensions": [
+              {
+                "code": "Procesos industriales - Cinc_Proceso de producción",
+                "name": "Proceso de producción",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Waelz Kiln",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Pirometalúrgico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro proceso",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Otro proceso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1.72
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Pirometalúrgico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 0.43
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Waelz Kiln"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 3.66
+              }
+            ]
           },
           {
-            "name": "Remociones",
-            "description": null,
+            "name": "Procesos industriales - Cemento",
+            "description": "Emisiones por producción o uso de clínker en procesos de cemento",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Procesos industriales - Cemento_Material",
+                "name": "Material",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Clinker",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cemento_Material",
+                  "valueName": "Clinker"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.52
+              }
+            ]
+          },
+          {
+            "name": "Procesos industriales - Vidrio",
+            "description": "-",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Procesos industriales - Vidrio_Tipo de vidrio",
+                "name": "Tipo de vidrio",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Contenedores (Recipientes de color transparente)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Contenedores de color (Recipientes de color verde u otros)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fibra de vidrio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vidrio de iluminaria (Ampolletas, bombillas, etc)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vidrio general",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vidrio plano (ventanas, mesas, etc)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vidrios de vajilla (Vasos, copas, platos, etc)",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores (Recipientes de color transparente)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores de color (Recipientes de color verde u otros)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.19
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio de iluminaria (Ampolletas, bombillas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio general"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio plano (ventanas, mesas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "value": 0.1
+              }
+            ]
+          },
+          {
+            "name": "Procesos industriales - Acero",
+            "description": "Emisiones por producción o procesamiento de acero y sus insumos",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Procesos industriales - Acero_Método de fabricación",
+                "name": "Método de fabricación",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Horno básico de oxígeno (BOF)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno de acero eléctrico (AEF)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Horno de solera (OHF)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro proceso",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno básico de oxígeno (BOF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1.46
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de acero eléctrico (AEF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 0.08
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de solera (OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1.72
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Otro proceso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "value": 1.06
+              }
+            ]
+          },
+          {
+            "name": "Emisiones provenientes de otras fuentes",
+            "description": "Otras emisiones directas no incluidas en las categorías anteriores",
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": []
@@ -322,122 +1670,1669 @@
         ]
       },
       {
-        "name": "Emisiones indirectas por energías importadas",
-        "synonyms": "Categoría 2 / Alcance 2",
+        "name": "Emisiones indirectas por energía",
+        "synonyms": "CATEGORIA 2 / ALCANCE 2",
         "description": "Generadas por la electricidad consumida",
-        "examples": null,
         "position": 2,
+        "examples": null,
         "subcategories": [
           {
-            "name": "Electricidad general",
+            "name": "Electricidad",
             "description": "Electricidad usada en oficinas, bodegas y centros operativos",
             "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Energía térmica o de vapor para calefacción",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
+            "emissionFactorDimensions": [
+              {
+                "code": "Electricidad_Sistema eéctrico",
+                "name": "Sistema eéctrico",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Sistema nacional",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Electricidad_Sistema eéctrico",
+                  "valueName": "Sistema nacional"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2025",
+                "value": 0.5349499999999999
+              }
+            ]
           }
         ]
       },
       {
         "name": "Otras emisiones indirectas",
-        "synonyms": "Categorías 3,4,5 Y 6 / Alcance 3",
+        "synonyms": "CATEGORIA 3, 4, 5, y 6 / ALCANCE 3",
         "description": "Producidas fuera de tu empresa",
-        "examples": null,
         "position": 3,
+        "examples": null,
         "subcategories": [
           {
-            "name": "Agua consumida",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Aguas servidas",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Energía indirecta",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Combustiones estacionarias",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Transporte empleados o contratistas",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Trabajo remoto",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Estadía en hotel",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Bienes adquiridos",
+            "name": "Productos comprados",
             "description": "Material utilizado en embalaje de tus productos (cartón, plástico, papel, etc.)",
             "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
+            "emissionFactorDimensions": [
+              {
+                "code": "Productos comprados_Material",
+                "name": "Material",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Materiales de construcción",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Items electrónicos grandes",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Items electrónicos pequeños (Máximo tamaño de una pelota de futbol)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Pilas, baterías de uso doméstico no recargables (AA, AAA, tipo botón y de tamaños similares)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Pilas, baterías de uso doméstico recargables (AA, AAA, tipo botón y de tamaños similares)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Madera",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Papel y cartón",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Plástico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vidrio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ruedas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ropa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Metal",
+                    "parentValue": null
+                  }
+                ]
+              },
+              {
+                "code": "Productos comprados_Destino",
+                "name": "Destino",
+                "position": 2,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Primera mano",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Reutilizado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Con material reciclado",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Items electrónicos grandes"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3267.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Items electrónicos pequeños (Máximo tamaño de una pelota de futbol)"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 5647.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 269.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Reutilizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 38.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 75.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1525.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 5114.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Papel y cartón"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1068.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Papel y cartón"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1288.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Pilas, baterías de uso doméstico no recargables (AA, AAA, tipo botón y de tamaños similares)"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4633.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Pilas, baterías de uso doméstico recargables (AA, AAA, tipo botón y de tamaños similares)"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 28380.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1575.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3172.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 22310.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Reutilizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 152.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ruedas"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 3335.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ruedas"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Reutilizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 731.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 823.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1402.0
+              }
+            ]
           },
           {
-            "name": "Residuos generados",
-            "description": "Residuos de la operación (oficinas o bodegas) que se envían a relleno sanitario o reciclaje.",
+            "name": "Disposición de residuos sólidos",
+            "description": "Emisiones por la gestión de tus residuos (basura general, reciclaje, residuos orgánicos)",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Disposición de residuos sólidos_Material",
+                "name": "Material",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Materiales de construcción",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Items electrónicos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Metal",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Madera",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Papel",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Plástico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vidrio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ropa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Residuos general de la casa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Residuos comerciales o industriales",
+                    "parentValue": null
+                  }
+                ]
+              },
+              {
+                "code": "Disposición de residuos sólidos_Destino",
+                "name": "Destino",
+                "position": 2,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Relleno sanitario",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Incineración",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Reciclaje",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Items electrónicos"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Items electrónicos"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Items electrónicos"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 8.9
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 925.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1.26
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 8.9
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Papel"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Papel"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Papel"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 1164.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 8.9
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos comerciales o industriales"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos comerciales o industriales"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 520.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos general de la casa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos general de la casa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 497.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 496.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 4.68
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2025",
+                "value": 8.9
+              }
+            ]
+          },
+          {
+            "name": "Consumo de agua y tratamiento de aguas residuales",
+            "description": "Emisiones del uso de agua y del tratamiento del agua utilizada en tu empresa",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Consumo de agua y tratamiento de aguas residuales_Fuente de suministro",
+                "name": "Fuente de suministro",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Consumo de agua",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Agua dispuesta en el alcantarillado",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Consumo de agua y tratamiento de aguas residuales_Fuente de suministro",
+                  "valueName": "Agua dispuesta en el alcantarillado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 0.1708
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Consumo de agua y tratamiento de aguas residuales_Fuente de suministro",
+                  "valueName": "Consumo de agua"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2025",
+                "value": 0.1913
+              }
+            ]
+          },
+          {
+            "name": "Desplazamiento diario de empleados y trabajo remoto",
+            "description": "Emisiones por traslados diarios de empleados y energía usada trabajando desde casa",
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": []
           },
           {
-            "name": "Transporte logístico",
-            "description": null,
+            "name": "Viaje de negocios - Estadía",
+            "description": "Emisiones por estadías en hoteles durante viajes laborales",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Viaje de negocios - Estadía_País",
+                "name": "País",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Australia",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Alemania",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Brazil",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Chile",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "China",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Colombia",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Costa Rica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "EEUU",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "España",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Holanda",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Hong Kong",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "India",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Indonesia",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Italia",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Japón",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Mexico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Tailandia",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Turquia",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Vietnam",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro país Latam",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro país",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Alemania"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 13.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Australia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 35.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Brazil"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 8.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Chile"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 27.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "China"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 53.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Colombia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 17.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Costa Rica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 4.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "EEUU"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 16.1
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "España"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 7.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Holanda"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 14.8
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Hong Kong"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 51.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "India"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 58.9
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Indonesia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 62.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Italia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 39.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Japón"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 39.0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Mexico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 19.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Otro país"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 106.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Otro país Latam"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 27.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Tailandia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 43.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Turquia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 32.1
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "valueName": "Vietnam"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2025",
+                "value": 38.5
+              }
+            ]
+          },
+          {
+            "name": "Viajes de negocio - Traslado",
+            "description": "Emisiones de los traslados en viajes laborales (avión, bus, auto, tren)",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Viajes de negocio - Traslado_Transporte",
+                "name": "Transporte",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Transporte en auto",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Trasnporte en Taxi",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en Bus",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en Tren",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en avión: Short haul (<3hrs) Economy",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en avión: Short haul (<3hrs) Business",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en avión: Medium haul (3-6hrs) Economy",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en avión: Medium haul (3-6hrs) Business",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en avión: Long haul (>6hrs) Economy",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Transporte en avión: Long haul (>6hrs) Business",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en auto"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.173
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Long haul (>6hrs) Business"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.3165
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Long haul (>6hrs) Economy"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.1091
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Medium haul (3-6hrs) Business"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.3394
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Medium haul (3-6hrs) Economy"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.117
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Short haul (<3hrs) Business"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.1886
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Short haul (<3hrs) Economy"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.1257
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en Bus"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.1038
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Transporte en Tren"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.0354
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "valueName": "Trasnporte en Taxi"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.148
+              }
+            ]
+          },
+          {
+            "name": "Transporte y distribución de bienes aguas arriba",
+            "description": "Transporte de productos o insumos que llegan a tu empresa realizado por compañías externas",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Transporte y distribución de bienes aguas arriba_Transporte",
+                "name": "Transporte",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Tren de carga",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Contenedores por barco",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Granel por barco",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión: Short haul (<2500km)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión: Medium haul (2500-5000km)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión: Long haul (<5000km)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión no refrigerado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión refrigerado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Van eléctrica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Van con motor a combustión",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Camión no refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.2115
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Camión refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.2482
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Van con motor a combustión"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.06183
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Van eléctrica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.03758
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Avión: Long haul (<5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.1351
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Avión: Medium haul (2500-5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.1351
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Avión: Short haul (<2500km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.2051
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Contenedores por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.00365
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Granel por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.0008
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Tren de carga"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.00691
+              }
+            ]
+          },
+          {
+            "name": "Transporte y distribución de bienes aguas abajo",
+            "description": "Transporte de productos o insumos que salen de tu empresa realizado por compañías externas",
+            "examples": null,
+            "emissionFactorDimensions": [
+              {
+                "code": "Transporte y distribución de bienes aguas abajo_Transporte",
+                "name": "Transporte",
+                "position": 1,
+                "isRequired": true,
+                "values": [
+                  {
+                    "name": "Tren de carga",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Contenedores por barco",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Granel por barco",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión: Short haul (<2500km)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión: Medium haul (2500-5000km)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Avión: Long haul (<5000km)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión no refrigerado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión refrigerado",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Van eléctrica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Van con motor a combustión",
+                    "parentValue": null
+                  }
+                ]
+              }
+            ],
+            "emissionFactors": [
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Camión no refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.2115
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Camión refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.2482
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Van con motor a combustión"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.06183
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Van eléctrica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2025",
+                "value": 0.03758
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Avión: Long haul (<5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.1351
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Avión: Medium haul (2500-5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.1351
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Avión: Short haul (<2500km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.2051
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Contenedores por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.00365
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Granel por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.0008
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Tren de carga"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2025",
+                "value": 0.00691
+              }
+            ]
+          },
+          {
+            "name": "Uso de productos de la organización",
+            "description": "Emisiones generadas cuando tus productos son usados por tus clientes (si aplica)",
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": []
           },
           {
-            "name": "Uso de artículos vendidos",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Fin vida útil artículos vendidos",
-            "description": null,
-            "examples": null,
-            "emissionFactorDimensions": [],
-            "emissionFactors": []
-          },
-          {
-            "name": "Otros",
-            "description": null,
+            "name": "Emisione sprovenientes de otras fuentes",
+            "description": "Otras emisiones directas no incluidas en las categorías anteriores que están fuera de los límites y control de tu empresa",
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": []

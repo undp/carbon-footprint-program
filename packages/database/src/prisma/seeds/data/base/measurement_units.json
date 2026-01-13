@@ -1,123 +1,163 @@
 [
   {
-    "magnitude": "MASS",
     "name": "Gramo",
+    "magnitude": "MASS",
     "abbreviation": "g",
-    "baseFactor": 1,
+    "baseFactor": 1.0,
     "isBase": true
   },
   {
+    "name": "Kilógramo",
     "magnitude": "MASS",
-    "name": "Kilogramo",
     "abbreviation": "kg",
-    "baseFactor": 1000,
+    "baseFactor": 1000.0,
     "isBase": false
   },
   {
-    "magnitude": "MASS",
     "name": "Tonelada",
+    "magnitude": "MASS",
     "abbreviation": "ton",
-    "baseFactor": 1000000,
+    "baseFactor": 1000000.0,
     "isBase": false
   },
   {
-    "magnitude": "MASS",
     "name": "Miligramo",
+    "magnitude": "MASS",
     "abbreviation": "mg",
     "baseFactor": 0.001,
     "isBase": false
   },
   {
-    "magnitude": "VOLUME",
     "name": "Litro",
+    "magnitude": "VOLUME",
     "abbreviation": "L",
-    "baseFactor": 1,
+    "baseFactor": 1.0,
     "isBase": true
   },
   {
-    "magnitude": "VOLUME",
     "name": "Mililitro",
+    "magnitude": "VOLUME",
     "abbreviation": "mL",
     "baseFactor": 0.001,
     "isBase": false
   },
   {
+    "name": "Metros cúbicos",
     "magnitude": "VOLUME",
-    "name": "Metro cúbico",
-    "abbreviation": "m³",
-    "baseFactor": 1000,
+    "abbreviation": "m3",
+    "baseFactor": 1000.0,
     "isBase": false
   },
   {
-    "magnitude": "VOLUME",
     "name": "Galón",
+    "magnitude": "VOLUME",
     "abbreviation": "gal",
-    "baseFactor": 3.78541,
+    "baseFactor": 378541.0,
     "isBase": false
   },
-
   {
-    "magnitude": "DISTANCE",
     "name": "Metro",
+    "magnitude": "DISTANCE",
     "abbreviation": "m",
-    "baseFactor": 1,
+    "baseFactor": 1.0,
     "isBase": true
   },
   {
-    "magnitude": "DISTANCE",
     "name": "Kilómetro",
+    "magnitude": "DISTANCE",
     "abbreviation": "km",
-    "baseFactor": 1000,
+    "baseFactor": 1000.0,
     "isBase": false
   },
   {
-    "magnitude": "DISTANCE",
     "name": "Centímetro",
+    "magnitude": "DISTANCE",
     "abbreviation": "cm",
     "baseFactor": 0.01,
     "isBase": false
   },
   {
-    "magnitude": "DISTANCE",
     "name": "Milímetro",
+    "magnitude": "DISTANCE",
     "abbreviation": "mm",
     "baseFactor": 0.001,
     "isBase": false
   },
   {
-    "magnitude": "DISTANCE",
     "name": "Milla",
+    "magnitude": "DISTANCE",
     "abbreviation": "mi",
     "baseFactor": 1609.34,
     "isBase": false
   },
-
   {
-    "magnitude": "TIME",
     "name": "Segundo",
+    "magnitude": "TIME",
     "abbreviation": "s",
-    "baseFactor": 1,
+    "baseFactor": 1.0,
     "isBase": true
   },
   {
-    "magnitude": "TIME",
     "name": "Minuto",
+    "magnitude": "TIME",
     "abbreviation": "min",
-    "baseFactor": 60,
+    "baseFactor": 60.0,
     "isBase": false
   },
   {
-    "magnitude": "TIME",
     "name": "Hora",
+    "magnitude": "TIME",
     "abbreviation": "h",
-    "baseFactor": 3600,
+    "baseFactor": 3600.0,
     "isBase": false
   },
   {
-    "magnitude": "TIME",
     "name": "Día",
+    "magnitude": "TIME",
     "abbreviation": "d",
-    "baseFactor": 86400,
+    "baseFactor": 86400.0,
     "isBase": false
+  },
+  {
+    "name": "Cantidad de animales",
+    "magnitude": "ANIMALS",
+    "abbreviation": "cant anim",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "Hectáreas",
+    "magnitude": "AREA",
+    "abbreviation": "ha",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "Kilowatt hora",
+    "magnitude": "POWER",
+    "abbreviation": "kWh",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "Giga joule",
+    "magnitude": "ENERGY",
+    "abbreviation": "GJ",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "Kilómetro tonelada",
+    "magnitude": "DISTANCE_MASS",
+    "abbreviation": "km-ton",
+    "baseFactor": 1.0,
+    "isBase": true
+  },
+  {
+    "name": "Piezas arrendadas",
+    "magnitude": "ROOMS",
+    "abbreviation": "pieza arre",
+    "baseFactor": 1.0,
+    "isBase": true
   }
 ]
