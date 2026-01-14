@@ -1,7 +1,7 @@
 targetScope = 'resourceGroup'
 
-@description('Azure Container Registry name (must be globally unique, lowercase, alphanumeric)')
-param acrName string
+@description('Base name prefix for ACR (optional, will be combined with uniqueString)')
+param acrNamePrefix string = 'acr'
 
 @description('Container Registry SKU tier')
 @allowed([
@@ -13,6 +13,10 @@ param acrSku string = 'Basic'
 
 @description('Tags to apply to the ACR')
 param tags object = {}
+
+// Generate globally unique ACR name (3-50 alphanumeric chars, must start with letter)
+// Format: <prefix><uniqueString> (e.g., acrhash123abc)
+var acrName = '${acrNamePrefix}${uniqueString(resourceGroup().id)}'
 
 resource acr 'Microsoft.ContainerRegistry/registries@2025-11-01' = {
   name: acrName

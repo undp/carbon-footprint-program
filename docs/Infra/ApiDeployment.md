@@ -29,14 +29,11 @@ export ENVIRONMENT="matias"          # requerido (nombre del desarrollador o pro
 
 ```
 
-### Arquitectura de Stacks para ACR (flujo actual)
+### Arquitectura de ACR
 
-El stack principal (`undp-huella-latam-stack-$ENVIRONMENT`) siempre expone los outputs de ACR (`containerRegistryId`, `acrLoginServer`), sea que el ACR viva en el mismo RG o en el RG compartido. La selección se hace con `useSharedAcr`:
+Cada entorno tiene su propio Azure Container Registry (ACR) dentro de su Resource Group. El stack principal (`undp-huella-latam-stack-$ENVIRONMENT`) expone los outputs de ACR (`containerRegistryId`, `acrLoginServer`).
 
-- `useSharedAcr=true` (dev): el ACR está en el RG compartido (`undp-huella-latam-shared-rg`) y se crea/actualiza con `deploy-shared.sh`; el stack principal lo referencia y publica los outputs.
-- `useSharedAcr=false` (staging/prod): el ACR se crea en el mismo RG del stack principal.
-
-`deploy-api.sh` siempre lee los outputs del stack del entorno (`undp-huella-latam-stack-$ENVIRONMENT`) y de ahí obtiene el `acrLoginServer` (y `containerRegistryId` si lo necesitas). Ya no se hace lógica separada ni se hardcodea el RG compartido en el script.
+`deploy-api.sh` lee los outputs del stack del entorno (`undp-huella-latam-stack-$ENVIRONMENT`) para obtener el `acrLoginServer` y `containerRegistryId`.
 
 ### Flujo del script
 
