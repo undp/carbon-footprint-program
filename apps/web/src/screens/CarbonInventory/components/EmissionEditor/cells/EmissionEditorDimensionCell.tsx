@@ -15,7 +15,9 @@ export const EmissionEditorDimensionCell: FC<
   // Filter values based on parent dimension if provided
   const values = useMemo(() => {
     if (!parentValue) return dimension.values;
-    return dimension.values.filter((v) => v.parentValueId === parentValue);
+    return dimension.values.filter(
+      (v) => v.parentValueId === parentValue || v.parentValueId === null
+    );
   }, [dimension.values, parentValue]);
 
   return (
