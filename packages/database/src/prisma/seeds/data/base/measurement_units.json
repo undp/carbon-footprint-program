@@ -52,7 +52,7 @@
     "name": "Galón",
     "magnitude": "VOLUME",
     "abbreviation": "gal",
-    "baseFactor": 378541.0,
+    "baseFactor": 3.78541,
     "isBase": false
   },
   {
@@ -87,7 +87,7 @@
     "name": "Milla",
     "magnitude": "DISTANCE",
     "abbreviation": "mi",
-    "baseFactor": 1609.34,
+    "baseFactor": 1.60934,
     "isBase": false
   },
   {
