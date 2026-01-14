@@ -18,31 +18,6 @@ interface EmissionEditorProps {
   categoryPosition: number;
 }
 
-const EmissionEditorHeaderWrapper: FC<{
-  subcategory: Subcategory;
-  isTotalManualEmissionsMode: boolean;
-  handleSetManualMode: (value: boolean) => void;
-  handleSetTotalEmission: (value: number) => void;
-}> = ({
-  subcategory,
-  isTotalManualEmissionsMode,
-  handleSetManualMode,
-  handleSetTotalEmission,
-}) => {
-  const totalEmission = useEmissionTotal(subcategory.id);
-
-  return (
-    <EmissionEditorHeader
-      name={subcategory.name}
-      description={subcategory.description}
-      isTotalManualEmissionsMode={isTotalManualEmissionsMode}
-      setIsTotalManualEmissionsMode={handleSetManualMode}
-      totalEmission={totalEmission}
-      setTotalEmission={handleSetTotalEmission}
-    />
-  );
-};
-
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   subcategory,
   categoryPosition,
@@ -67,6 +42,8 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     rateMeasurementUnits: rateMeasurementUnits || [],
   });
 
+  const totalEmission = useEmissionTotal(subcategory.id);
+
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
   });
@@ -89,11 +66,13 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
 
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
-      <EmissionEditorHeaderWrapper
-        subcategory={subcategory}
+      <EmissionEditorHeader
+        name={subcategory.name}
+        description={subcategory.description}
         isTotalManualEmissionsMode={!!isTotalManualEmissionsMode}
-        handleSetManualMode={handleSetManualMode}
-        handleSetTotalEmission={handleSetTotalEmission}
+        setIsTotalManualEmissionsMode={handleSetManualMode}
+        totalEmission={totalEmission}
+        setTotalEmission={handleSetTotalEmission}
       />
 
       <Collapse in={!isTotalManualEmissionsMode} collapsedSize={0}>
