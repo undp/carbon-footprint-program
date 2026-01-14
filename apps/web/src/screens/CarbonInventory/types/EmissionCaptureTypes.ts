@@ -1,6 +1,7 @@
 import type {
   MethodologyCategory,
   MethodologySubcategory,
+  CarbonInventorySubcategory,
   CarbonInventoryLine,
 } from "./index";
 
@@ -18,7 +19,7 @@ export interface LineValidationState {
 
 export type SubcategoryWithLines = MethodologySubcategory & {
   lines: EmissionCaptureFormLine[];
-  isTotalManualEmissionsMode: boolean;
+  isTotalManualEmissionsMode: CarbonInventorySubcategory["isTotalManualEmissionsMode"];
 };
 
 type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
@@ -31,6 +32,7 @@ export type EmissionCaptureFormValues = {
   subcategories: Record<
     string,
     {
+      isManualTotalEmissions: CarbonInventoryLine["isManualTotalEmissions"];
       lines: EmissionCaptureFormLine[];
     }
   >;
