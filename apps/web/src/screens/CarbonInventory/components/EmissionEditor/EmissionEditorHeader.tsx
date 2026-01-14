@@ -68,7 +68,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         {isTotalManualEmissionsMode ? (
           <NumericInput
             label="Emisiones"
-            value={totalEmission}
+            value={totalEmission ?? 0}
             onChange={onChangeTotalEmission}
             sx={{
               minHeight: 40,

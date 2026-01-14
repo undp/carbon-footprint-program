@@ -6,18 +6,27 @@ import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
 export const useEmissionTotal = (subcategoryId: string) => {
   const { control } = useFormContext<EmissionCaptureFormValues>();
 
+  const isTotalManualEmissionsMode = useWatch({
+    control: control as Control<EmissionCaptureFormValues>,
+    name: `subcategories.${subcategoryId}.isTotalManualEmissionsMode` as const,
+  });
+
   const lines = useWatch({
     control: control as Control<EmissionCaptureFormValues>,
     name: `subcategories.${subcategoryId}.lines` as const,
   });
 
   const totalEmission = useMemo(() => {
+    if (isTotalManualEmissionsMode) {
+      return lines?.[0]?.manualTotalEmissions || 0;
+    }
+
     return (lines || []).reduce((acc, row) => {
       const quantity = row.quantity || 0;
       const factorValue = row.factorValue || 0;
       return acc + round(quantity * factorValue, 2);
     }, 0);
-  }, [lines]);
+  }, [isTotalManualEmissionsMode, lines]);
 
   return totalEmission;
 };
