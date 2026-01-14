@@ -1,7 +1,18 @@
 import { z } from "zod";
 import { IdSchema } from "./zod.js";
 
-export const MagnitudeSchema = z.enum(["MASS", "VOLUME", "DISTANCE", "TIME"]);
+export const MagnitudeSchema = z.enum([
+  "MASS",
+  "VOLUME",
+  "DISTANCE",
+  "TIME",
+  "ANIMALS",
+  "AREA",
+  "POWER",
+  "ENERGY",
+  "DISTANCE_MASS",
+  "ROOMS",
+]);
 
 export const MeasurementUnitSchema = z.object({
   id: IdSchema.describe("The ID of the measurement unit"),
