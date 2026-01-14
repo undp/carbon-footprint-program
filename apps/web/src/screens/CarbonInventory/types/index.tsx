@@ -8,6 +8,8 @@ export type MethodologyCategory =
 export type MethodologySubcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
+export type CarbonInventorySubcategory =
+  GetCarbonInventoryByIdResponse["subcategories"][number];
 export type CarbonInventoryLine =
   GetCarbonInventoryByIdResponse["subcategories"][number]["lines"][number];
 
