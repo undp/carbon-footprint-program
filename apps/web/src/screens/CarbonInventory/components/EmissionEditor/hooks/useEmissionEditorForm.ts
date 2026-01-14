@@ -81,7 +81,12 @@ export const useEmissionEditorForm = ({
     control,
     name: `subcategories.${subcategoryId}.lines`,
   });
-  const isTotalManualEmissionsMode = false; // TODO: get from form when implemented
+
+  const isTotalManualEmissionsMode = useWatch({
+    control,
+    name: `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+  });
+
   // Form actions
   const handleAddLine = useCallback(async () => {
     const tempId = `temp-${Date.now()}`;
@@ -263,17 +268,27 @@ export const useEmissionEditorForm = ({
     [rows, remove, append, deleteLine]
   );
 
-  const handleSetTotalEmission = useCallback((total: number) => {
-    // TODO: Implementar lógica para actualizar manualTotalEmissions en la línea correspondiente
-    // eslint-disable-next-line no-console
-    console.warn("Set total emission not implemented yet", total);
-  }, []);
+  const handleSetTotalEmission = useCallback(
+    (total: number) => {
+      if (!isTotalManualEmissionsMode || rows.length === 0) return;
 
-  const handleSetManualMode = useCallback((isManual: boolean) => {
-    // TODO: Implementar lógica para cambiar a modo manual
-    // eslint-disable-next-line no-console
-    console.warn("Manual mode not implemented yet", isManual);
-  }, []);
+      setValue(
+        `subcategories.${subcategoryId}.lines.0.manualTotalEmissions`,
+        total,
+        { shouldDirty: true }
+      );
+    },
+    [isTotalManualEmissionsMode, rows, setValue, subcategoryId]
+  );
+
+  const handleSetManualMode = useCallback(
+    (isManual: boolean) => {
+      setValue(`subcategories.${subcategoryId}.isTotalManualEmissionsMode`, isManual, {
+        shouldDirty: true,
+      });
+    },
+    [setValue, subcategoryId]
+  );
 
   return {
     // Form state

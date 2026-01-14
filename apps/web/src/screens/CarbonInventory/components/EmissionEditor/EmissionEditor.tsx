@@ -89,16 +89,15 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
 
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
-      <Collapse in={!isTotalManualEmissionsMode} collapsedSize={80}>
-        <Box className="flex flex-col gap-2">
-          {/* Header Section */}
-          <EmissionEditorHeaderWrapper
-            subcategory={subcategory}
-            isTotalManualEmissionsMode={isTotalManualEmissionsMode}
-            handleSetManualMode={handleSetManualMode}
-            handleSetTotalEmission={handleSetTotalEmission}
-          />
+      <EmissionEditorHeaderWrapper
+        subcategory={subcategory}
+        isTotalManualEmissionsMode={!!isTotalManualEmissionsMode}
+        handleSetManualMode={handleSetManualMode}
+        handleSetTotalEmission={handleSetTotalEmission}
+      />
 
+      <Collapse in={!isTotalManualEmissionsMode} collapsedSize={0}>
+        <Box className="flex flex-col gap-2">
           {/* Content Section */}
           <Box className="flex flex-col gap-2">
             <Typography variant="subtitle2" fontWeight="regular">
