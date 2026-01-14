@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import {
@@ -72,15 +72,22 @@ export const useEmissionEditorForm = ({
 
   const { control, setValue } = useFormContext<EmissionCaptureFormValues>();
 
-  const { append, remove } = useFieldArray({
+  const { append, remove, fields } = useFieldArray({
     control,
     name: `subcategories.${subcategoryId}.lines`,
   });
 
-  const rows = useWatch({
+  const watchedLines = useWatch({
     control,
     name: `subcategories.${subcategoryId}.lines`,
   });
+
+  const rows = useMemo(() => {
+    return fields.map((field, index) => ({
+      ...field,
+      ...watchedLines?.[index],
+    }));
+  }, [fields, watchedLines]);
 
   const isTotalManualEmissionsMode = useWatch({
     control,
@@ -283,9 +290,13 @@ export const useEmissionEditorForm = ({
 
   const handleSetManualMode = useCallback(
     (isManual: boolean) => {
-      setValue(`subcategories.${subcategoryId}.isTotalManualEmissionsMode`, isManual, {
-        shouldDirty: true,
-      });
+      setValue(
+        `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+        isManual,
+        {
+          shouldDirty: true,
+        }
+      );
     },
     [setValue, subcategoryId]
   );
