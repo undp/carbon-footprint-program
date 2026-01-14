@@ -77,7 +77,7 @@ export const useEmissionEditorForm = ({
     name: `subcategories.${subcategoryId}.lines`,
   });
 
-  const watchedLines = useWatch({
+  const subcategoryLines = useWatch({
     control,
     name: `subcategories.${subcategoryId}.lines`,
   });
@@ -85,9 +85,9 @@ export const useEmissionEditorForm = ({
   const rows = useMemo(() => {
     return fields.map((field, index) => ({
       ...field,
-      ...watchedLines?.[index],
+      ...subcategoryLines?.[index],
     }));
-  }, [fields, watchedLines]);
+  }, [fields, subcategoryLines]);
 
   const isTotalManualEmissionsMode = useWatch({
     control,
