@@ -30,6 +30,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
       category.subcategories.forEach((subcategory: SubcategoryWithLines) => {
         formData.subcategories[subcategory.id] = {
           lines: subcategory.lines,
+          isTotalManualEmissionsMode: subcategory.isTotalManualEmissionsMode,
         };
       });
     });

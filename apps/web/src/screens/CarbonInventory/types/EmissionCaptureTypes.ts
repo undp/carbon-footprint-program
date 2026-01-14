@@ -32,7 +32,7 @@ export type EmissionCaptureFormValues = {
   subcategories: Record<
     string,
     {
-      isManualTotalEmissions: CarbonInventoryLine["isManualTotalEmissions"];
+      isTotalManualEmissionsMode: CarbonInventorySubcategory["isTotalManualEmissionsMode"];
       lines: EmissionCaptureFormLine[];
     }
   >;
