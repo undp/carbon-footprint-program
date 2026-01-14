@@ -87,7 +87,7 @@
     "name": "Milla",
     "magnitude": "DISTANCE",
     "abbreviation": "mi",
-    "baseFactor": 1.60934,
+    "baseFactor": 1609.34,
     "isBase": false
   },
   {
