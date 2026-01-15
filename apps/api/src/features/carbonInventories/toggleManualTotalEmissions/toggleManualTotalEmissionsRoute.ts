@@ -13,6 +13,10 @@ const ToggleManualTotalEmissionsParamsSchema = z.object({
   subcategoryId: IdSchema.describe("The subcategory ID"),
 });
 
+export type ToggleManualTotalEmissionsParams = z.infer<
+  typeof ToggleManualTotalEmissionsParamsSchema
+>;
+
 export const toggleManualTotalEmissionsRoute = (
   fastify: FastifyZodInstance
 ) => {
