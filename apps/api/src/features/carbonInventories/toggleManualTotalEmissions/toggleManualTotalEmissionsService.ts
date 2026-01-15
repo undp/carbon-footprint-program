@@ -91,14 +91,14 @@ export const toggleManualTotalEmissionsService = async (
   const directActiveLine = activeLines.find(
     (l) => l.inputs[0]?.inputType === "DIRECT"
   );
-  const nonDirectActiveLines = activeLines.filter(
-    (l) => l.inputs[0]?.inputType !== "DIRECT"
-  );
+  const nonDirectActiveLinesIds = activeLines
+    .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
+    .map((l) => l.id);
 
   const outdatedLines = lines.filter((l) => l.statusId === outdatedStatusId);
-  const nonDirectOutdatedLines = outdatedLines.filter(
-    (l) => l.inputs[0]?.inputType !== "DIRECT"
-  );
+  const nonDirectOutdatedLinesIds = outdatedLines
+    .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
+    .map((l) => l.id);
 
   if (activated) {
     // Caso 1: activated: true (Activar modo manual)
@@ -115,9 +115,9 @@ export const toggleManualTotalEmissionsService = async (
       const directLine = await cleanupDirectLines(tx, lines, deletedStatusId);
 
       // 2. Mark all non-DIRECT ACTIVE lines as OUTDATED
-      if (nonDirectActiveLines.length > 0) {
+      if (nonDirectActiveLinesIds.length > 0) {
         await tx.carbonInventoryLine.updateMany({
-          where: { id: { in: nonDirectActiveLines.map((l) => l.id) } },
+          where: { id: { in: nonDirectActiveLinesIds } },
           data: { statusId: outdatedStatusId },
         });
       }
@@ -154,7 +154,7 @@ export const toggleManualTotalEmissionsService = async (
     }
 
     // TODO: remove this error when no-lines subcategory is supported
-    if (nonDirectOutdatedLines.length === 0) {
+    if (nonDirectOutdatedLinesIds.length === 0) {
       return { success: false, error: "NO_LINES_TO_RESTORE" };
     }
 
@@ -170,7 +170,7 @@ export const toggleManualTotalEmissionsService = async (
 
       // 3. Mark all non-DIRECT OUTDATED lines as ACTIVE
       await tx.carbonInventoryLine.updateMany({
-        where: { id: { in: nonDirectOutdatedLines.map((l) => l.id) } },
+        where: { id: { in: nonDirectOutdatedLinesIds } },
         data: { statusId: activeStatusId },
       });
     });
