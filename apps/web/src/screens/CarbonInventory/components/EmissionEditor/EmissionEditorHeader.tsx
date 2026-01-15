@@ -17,7 +17,7 @@ interface EmissionEditorHeaderProps
   totalEmission: number;
   setTotalEmission: (value: number) => void;
   isTotalManualEmissionsMode: boolean;
-  setIsTotalManualEmissionsMode: (value: boolean) => void;
+  setIsTotalManualEmissionsMode: (value: boolean) => Promise<void>;
 }
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
@@ -93,7 +93,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
                 padding: 1,
               }}
               checked={isTotalManualEmissionsMode}
-              onChange={(e) => setIsTotalManualEmissionsMode(e.target.checked)}
+              onChange={(e) => void setIsTotalManualEmissionsMode(e.target.checked)}
             />
           }
           label={

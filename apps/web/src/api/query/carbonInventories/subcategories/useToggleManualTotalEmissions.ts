@@ -21,10 +21,9 @@ export const useToggleManualTotalEmissions = (
         )
         .json(),
     onSuccess: () => {
-      // Return the promise so that the mutation caller can await the invalidation
-      return queryClient.invalidateQueries({
+      // Invalidate the inventory detail to keep server and client in sync
+      void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(inventoryId),
-        exact: true,
       });
     },
   });
