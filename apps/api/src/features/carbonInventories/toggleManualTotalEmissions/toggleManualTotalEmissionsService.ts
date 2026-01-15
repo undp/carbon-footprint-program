@@ -1,4 +1,5 @@
-import type { PrismaClient } from "@repo/database";
+import type { Prisma, PrismaClient } from "@repo/database";
+import { cleanupDirectLines } from "./toggleManualTotalEmissionsHelper.js";
 
 export type ToggleManualTotalEmissionsResult =
   | { success: true }
@@ -95,35 +96,9 @@ export const toggleManualTotalEmissionsService = async (
   );
 
   const outdatedLines = lines.filter((l) => l.statusId === outdatedStatusId);
-  const directOutdatedLines = outdatedLines.filter(
-    (l) => l.inputs[0]?.inputType === "DIRECT"
-  );
   const nonDirectOutdatedLines = outdatedLines.filter(
     (l) => l.inputs[0]?.inputType !== "DIRECT"
   );
-
-  // Helper for cleanup of DIRECT lines
-  const cleanupDirectLines = async (tx: any) => {
-    const allDirectLines = lines.filter(
-      (l) => l.inputs[0]?.inputType === "DIRECT"
-    );
-    if (allDirectLines.length > 1) {
-      // Find the most recent DIRECT line (by id or createdAt)
-      const sortedDirectLines = [...allDirectLines].sort((a, b) =>
-        Number(b.id - a.id)
-      );
-      const [mostRecent, ...toDelete] = sortedDirectLines;
-
-      if (toDelete.length > 0) {
-        await tx.carbonInventoryLine.updateMany({
-          where: { id: { in: toDelete.map((l) => l.id) } },
-          data: { statusId: deletedStatusId },
-        });
-      }
-      return mostRecent;
-    }
-    return allDirectLines[0];
-  };
 
   if (activated) {
     // Caso 1: activated: true (Activar modo manual)
@@ -135,9 +110,9 @@ export const toggleManualTotalEmissionsService = async (
       return { success: false, error: "MANUAL_MODE_ALREADY_ACTIVE" };
     }
 
-    await prismaClient.$transaction(async (tx) => {
+    await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates
-      const directLine = await cleanupDirectLines(tx);
+      const directLine = await cleanupDirectLines(tx, lines, deletedStatusId);
 
       // 2. Mark all non-DIRECT ACTIVE lines as OUTDATED
       if (nonDirectActiveLines.length > 0) {
@@ -182,9 +157,9 @@ export const toggleManualTotalEmissionsService = async (
       return { success: false, error: "NO_LINES_TO_RESTORE" };
     }
 
-    await prismaClient.$transaction(async (tx) => {
+    await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates (though directActiveLine should be unique if logic is followed)
-      await cleanupDirectLines(tx);
+      await cleanupDirectLines(tx, lines, deletedStatusId);
 
       // 2. Mark DIRECT line as OUTDATED
       await tx.carbonInventoryLine.update({
