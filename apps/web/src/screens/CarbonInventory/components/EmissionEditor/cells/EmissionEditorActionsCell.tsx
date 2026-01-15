@@ -12,6 +12,7 @@ interface EmissionEditorActionsCellProps {
   updateComment?: (id: string | number) => void;
   deleteSource?: (id: string | number) => void;
   categoryPosition?: number;
+  disabled?: boolean;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -20,6 +21,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   updateComment,
   deleteSource,
   categoryPosition,
+  disabled = false,
 }) => {
   const iconSx: SxProps<Theme> = {
     borderRadius: 1,
@@ -27,9 +29,11 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
     width: 32,
     height: 32,
     color: (theme) =>
-      categoryPosition
-        ? theme.palette.category[categoryPosition].main
-        : theme.palette.text.primary,
+      disabled
+        ? theme.palette.action.disabled
+        : categoryPosition
+          ? theme.palette.category[categoryPosition].main
+          : theme.palette.text.primary,
   };
 
   return (
@@ -39,6 +43,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           sx={iconSx}
           aria-label="uploadFiles"
           onClick={() => uploadFiles(rowId)}
+          disabled={disabled}
         >
           <SourceOutlined fontSize="inherit" />
         </IconButton>
@@ -48,6 +53,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           sx={iconSx}
           aria-label="addComment"
           onClick={() => updateComment(rowId)}
+          disabled={disabled}
         >
           <CommentOutlined fontSize="inherit" />
         </IconButton>
@@ -57,6 +63,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           sx={iconSx}
           aria-label="delete"
           onClick={() => deleteSource(rowId)}
+          disabled={disabled}
         >
           <DeleteOutlined fontSize="inherit" />
         </IconButton>

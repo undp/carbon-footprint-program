@@ -7,17 +7,19 @@ interface EmissionEditorMeasurementUnitCellProps {
   value: string | null;
   onChange: (value: string) => void;
   rowId: string | number;
+  disabled?: boolean;
 }
 
 export const EmissionEditorMeasurementUnitCell: FC<
   EmissionEditorMeasurementUnitCellProps
-> = ({ measurementUnits, value, onChange, rowId }) => {
+> = ({ measurementUnits, value, onChange, rowId, disabled = false }) => {
   return (
     <Select
       id={`measurementUnitId_${rowId}`}
       value={value || ""}
       fullWidth
       size="small"
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     >
       {measurementUnits.map(({ id, name }) => (

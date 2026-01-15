@@ -28,6 +28,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   const {
     rows,
     isTotalManualEmissionsMode,
+    isManualModeLoading,
     handleAddLine,
     handleCellChange,
     handleFactorSourceChange,
@@ -62,8 +63,8 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     onUploadFiles: () => {
       // TODO: Implement upload files functionality
     },
+    isManualModeLoading,
   });
-
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
@@ -71,6 +72,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         description={subcategory.description}
         isTotalManualEmissionsMode={!!isTotalManualEmissionsMode}
         setIsTotalManualEmissionsMode={handleSetManualMode}
+        isManualModeLoading={isManualModeLoading}
         totalEmission={totalEmission}
         setTotalEmission={handleSetTotalEmission}
       />
@@ -89,6 +91,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
                 rows={rows}
                 columns={columns}
                 categoryPosition={categoryPosition}
+                loading={isManualModeLoading}
               />
             )}
           </Box>
@@ -102,6 +105,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
               })}
               variant="text"
               onClick={handleAddLine}
+              disabled={isManualModeLoading}
               startIcon={
                 <AddRounded
                   sx={(theme) => ({
