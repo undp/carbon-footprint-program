@@ -7,12 +7,14 @@ interface EmissionEditorGridProps {
   columns: GridColDef<EmissionCaptureFormLine>[];
   rows: EmissionCaptureFormLine[];
   categoryPosition: number;
+  loading?: boolean;
 }
 
 export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
   columns,
   rows,
   categoryPosition,
+  loading = false,
 }) => (
   <Box
     style={{
@@ -63,6 +65,13 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       disableColumnSelector
       disableRowSelectionOnClick
       checkboxSelection={false}
+      loading={loading}
+      slotProps={{
+        loadingOverlay: {
+          variant: "skeleton",
+          noRowsVariant: "skeleton",
+        },
+      }}
     />
   </Box>
 );

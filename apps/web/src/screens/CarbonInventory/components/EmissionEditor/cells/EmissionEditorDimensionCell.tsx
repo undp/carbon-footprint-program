@@ -7,11 +7,12 @@ interface EmissionEditorDimensionCellProps {
   value: string | null;
   onChange: (value: string) => void;
   parentValue?: string | null;
+  disabled?: boolean;
 }
 
 export const EmissionEditorDimensionCell: FC<
   EmissionEditorDimensionCellProps
-> = ({ dimension, value, onChange, parentValue }) => {
+> = ({ dimension, value, onChange, parentValue, disabled = false }) => {
   // Filter values based on parent dimension if provided
   const values = useMemo(() => {
     if (!parentValue) return dimension.values;
@@ -25,6 +26,7 @@ export const EmissionEditorDimensionCell: FC<
       value={value || ""}
       fullWidth
       size="small"
+      disabled={disabled}
       onChange={(e) => onChange(e.target.value)}
     >
       {values.map(({ id, value: dimensionValue }) => (

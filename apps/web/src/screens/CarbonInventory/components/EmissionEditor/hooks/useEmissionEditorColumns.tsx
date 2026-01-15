@@ -38,6 +38,7 @@ interface UseEmissionEditorColumnsParams {
   onDeleteLine: (lineId: string) => void;
   onUpdateComment: (rowId: string, comment: string) => void;
   onUploadFiles: (rowId: string) => void;
+  isManualModeLoading?: boolean;
 }
 
 export const useEmissionEditorColumns = ({
@@ -52,6 +53,7 @@ export const useEmissionEditorColumns = ({
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
+  isManualModeLoading = false,
 }: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
   return useMemo(() => {
     const firstDimension = dimensions.find((d) => d.position === 1);
@@ -74,6 +76,7 @@ export const useEmissionEditorColumns = ({
                   dimension={firstDimension}
                   value={params.value || null}
                   onChange={(value: string) => onCellChange(value, params)}
+                  disabled={isManualModeLoading}
                 />
               ),
             },
@@ -97,6 +100,7 @@ export const useEmissionEditorColumns = ({
                   value={params.value || null}
                   parentValue={params.row.dimensionValue1Id}
                   onChange={(value: string) => onCellChange(value, params)}
+                  disabled={isManualModeLoading}
                 />
               ),
             },
@@ -119,6 +123,7 @@ export const useEmissionEditorColumns = ({
             value={params.value || null}
             rowId={params.id}
             onChange={(value: string) => onCellChange(value, params)}
+            disabled={isManualModeLoading}
           />
         ),
       },
@@ -138,6 +143,7 @@ export const useEmissionEditorColumns = ({
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               onCellChange(e.target.value, params)
             }
+            disabled={isManualModeLoading}
           />
         ),
       },
@@ -164,7 +170,7 @@ export const useEmissionEditorColumns = ({
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 onCellChange(e.target.value, params)
               }
-              disabled={!validation.canEditFactorValue}
+              disabled={isManualModeLoading || !validation.canEditFactorValue}
               disabledReason={validation.factorValueDisabledReason}
             />
           );
@@ -192,7 +198,9 @@ export const useEmissionEditorColumns = ({
               dimensionValue2Id={params.row.dimensionValue2Id}
               value={params.value || null}
               rowId={params.id}
-              disabled={!validation.canSelectFactorSource}
+              disabled={
+                isManualModeLoading || !validation.canSelectFactorSource
+              }
               disabledReason={validation.factorSourceDisabledReason}
               onChange={(value) =>
                 onFactorSourceChange(params.id.toString(), value)
@@ -238,6 +246,7 @@ export const useEmissionEditorColumns = ({
               onUpdateComment(params.id.toString(), params.row.comment || "")
             }
             deleteSource={() => onDeleteLine(params.id.toString())}
+            disabled={isManualModeLoading}
           />
         ),
       },
@@ -254,5 +263,6 @@ export const useEmissionEditorColumns = ({
     onDeleteLine,
     onUpdateComment,
     onUploadFiles,
+    isManualModeLoading,
   ]);
 };

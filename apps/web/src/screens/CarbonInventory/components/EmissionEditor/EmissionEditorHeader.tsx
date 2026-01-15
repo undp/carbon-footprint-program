@@ -8,6 +8,7 @@ import {
   FormControlLabel,
   Checkbox,
   alpha,
+  Skeleton,
 } from "@mui/material";
 import { NumericInput } from "@/components";
 import { Subcategory } from "@repo/types";
@@ -18,6 +19,7 @@ interface EmissionEditorHeaderProps
   setTotalEmission: (value: number) => void;
   isTotalManualEmissionsMode: boolean;
   setIsTotalManualEmissionsMode: (value: boolean) => Promise<void>;
+  isManualModeLoading?: boolean;
 }
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
@@ -27,6 +29,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   setTotalEmission,
   isTotalManualEmissionsMode,
   setIsTotalManualEmissionsMode,
+  isManualModeLoading = false,
 }) => {
   const onChangeTotalEmission = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +68,13 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
       </Box>
 
       <Box className="flex flex-row content-center items-center gap-2">
-        {isTotalManualEmissionsMode ? (
+        {/* Case 1: Loading and activating manual mode (Skeleton) */}
+        {isManualModeLoading && isTotalManualEmissionsMode && (
+          <Skeleton variant="rectangular" width={200} height={30} />
+        )}
+
+        {/* Case 2: Manual mode active and not loading (Input) */}
+        {!isManualModeLoading && isTotalManualEmissionsMode && (
           <NumericInput
             label="Emisiones"
             value={totalEmission ?? 0}
@@ -75,17 +84,28 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               height: 40,
             }}
           />
-        ) : (
+        )}
+
+        {/* Case 3: Loading and deactivating manual mode (Shows 0) */}
+        {isManualModeLoading && !isTotalManualEmissionsMode && (
+          <Typography variant="subtitle1" fontWeight="bold">
+            0
+          </Typography>
+        )}
+
+        {/* Case 4: Detailed mode active and not loading (Shows the real total) */}
+        {!isManualModeLoading && !isTotalManualEmissionsMode && (
           <Typography variant="subtitle1" fontWeight="bold">
             {totalEmission}
           </Typography>
         )}
+
         <Typography variant="subtitle1" fontWeight="bold">
           (tCO₂e)
         </Typography>
       </Box>
 
-      <Box className="align-end flex flex-row-reverse">
+      <Box className="align-end flex flex-row-reverse items-center gap-2">
         <FormControlLabel
           control={
             <Checkbox
@@ -93,7 +113,10 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
                 padding: 1,
               }}
               checked={isTotalManualEmissionsMode}
-              onChange={(e) => void setIsTotalManualEmissionsMode(e.target.checked)}
+              onChange={(e) =>
+                void setIsTotalManualEmissionsMode(e.target.checked)
+              }
+              disabled={isManualModeLoading}
             />
           }
           label={
