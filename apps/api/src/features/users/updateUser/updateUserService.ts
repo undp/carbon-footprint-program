@@ -1,5 +1,6 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import type { UpdateUserBody, UpdateUserResponse } from "@repo/types";
+import { mapUserToResponse } from "../mappers.js";
 
 export const updateUserService = async (
   prismaClient: PrismaClient,
@@ -42,16 +43,5 @@ export const updateUserService = async (
     data: updateData,
   });
 
-  return {
-    id: updatedUser.id.toString(),
-    uuid: updatedUser.uuid,
-    email: updatedUser.email,
-    countryJobPositionId: updatedUser.countryJobPositionId.toString(),
-    firstName: updatedUser.firstName,
-    lastName: updatedUser.lastName,
-    createdAt: updatedUser.createdAt.toISOString(),
-    updatedAt: updatedUser.updatedAt.toISOString(),
-    createdById: updatedUser.createdById?.toString() ?? null,
-    updatedById: updatedUser.updatedById?.toString() ?? null,
-  };
+  return mapUserToResponse(updatedUser);
 };

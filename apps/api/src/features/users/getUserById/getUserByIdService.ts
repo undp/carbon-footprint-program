@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetUserByIdResponse } from "@repo/types";
+import { mapUserToResponse } from "../mappers.js";
 
 export const getUserByIdService = async (
   prismaClient: PrismaClient,
@@ -18,16 +19,5 @@ export const getUserByIdService = async (
     return null;
   }
 
-  return {
-    id: user.id.toString(),
-    uuid: user.uuid,
-    email: user.email,
-    countryJobPositionId: user.countryJobPositionId.toString(),
-    firstName: user.firstName,
-    lastName: user.lastName,
-    createdAt: user.createdAt.toISOString(),
-    updatedAt: user.updatedAt.toISOString(),
-    createdById: user.createdById?.toString() ?? null,
-    updatedById: user.updatedById?.toString() ?? null,
-  };
+  return mapUserToResponse(user);
 };
