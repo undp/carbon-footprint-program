@@ -4,5 +4,5 @@ export * from "./countrySectors.js";
 export * from "./jobPositions.js";
 export * from "./measurementUnits.js";
 export * from "./organizationMainActivities.js";
-export * from "./users.js";
+export * from "./users/index.js";
 export * from "./zod.js";
