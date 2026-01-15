@@ -17,7 +17,7 @@ export const cleanupDirectLines = async (
   tx: Prisma.TransactionClient,
   lines: LineWithInputs[],
   deletedStatusId: bigint
-) => {
+): Promise<LineWithInputs> => {
   const allDirectLines = lines.filter(
     (l) => l.inputs[0]?.inputType === "DIRECT"
   );
