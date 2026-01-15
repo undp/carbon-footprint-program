@@ -26,6 +26,7 @@ import {
 } from "../services/fieldValidationService";
 import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
 import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
+import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 interface UseEmissionEditorFormParams {
   subcategoryId: string;
   emissionFactors: EmissionFactor[];
@@ -48,7 +49,7 @@ interface UseEmssionEditorFormResults {
   getLineValidation: (line: EmissionCaptureFormLine) => LineValidationState;
   handleDeleteLine: (lineId: string) => void;
   handleSetTotalEmission: (total: number) => void;
-  handleSetManualMode: (isManual: boolean) => void;
+  handleSetManualMode: (isManual: boolean) => Promise<void>;
 }
 
 export const useEmissionEditorForm = ({
@@ -66,6 +67,10 @@ export const useEmissionEditorForm = ({
     subcategoryId
   );
   const { mutateAsync: deleteLine } = useDeleteCarbonInventoryLine(
+    inventoryId,
+    subcategoryId
+  );
+  const { mutateAsync: toggleManualMode } = useToggleManualTotalEmissions(
     inventoryId,
     subcategoryId
   );
@@ -289,16 +294,23 @@ export const useEmissionEditorForm = ({
   );
 
   const handleSetManualMode = useCallback(
-    (isManual: boolean) => {
-      setValue(
-        `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
-        isManual,
-        {
-          shouldDirty: true,
-        }
-      );
+    async (isManual: boolean) => {
+      try {
+        await toggleManualMode({ activated: isManual });
+        // Update local state only after successful API call
+        setValue(
+          `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+          isManual,
+          {
+            shouldDirty: true,
+          }
+        );
+      } catch {
+        // On error, don't update local state - the toggle will revert automatically
+        // React Query will handle error notification
+      }
     },
-    [setValue, subcategoryId]
+    [toggleManualMode, setValue, subcategoryId]
   );
 
   return {
