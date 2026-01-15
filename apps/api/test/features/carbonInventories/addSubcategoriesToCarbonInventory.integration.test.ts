@@ -15,9 +15,7 @@ import {
   getSubcategoryIds,
   createCarbonInventoryLine,
 } from "@test/factories/carbonInventorySeeder.js";
-import type {
-  AddSubcategoriesToCarbonInventoryResponse,
-} from "@repo/types";
+import type { AddSubcategoriesToCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type {
@@ -288,7 +286,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
     it("should return 422 when one or more subcategories do not belong to the carbon inventory's methodology", async () => {
       // Create two different methodologies
       const methodologyId1 = await getTestMethodologyVersionId(prisma);
-      
+
       // Create an empty methodology (no subcategories) to simulate a different methodology
       // Then try to add subcategories from methodology 1 to a carbon inventory using methodology 2
       const methodologyId2 = (await createEmptyMethodologyVersion(prisma)).id;
@@ -456,4 +454,3 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
     });
   });
 });
-

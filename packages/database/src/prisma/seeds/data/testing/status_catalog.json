@@ -18,6 +18,15 @@
     "isActive": null
   },
   {
+    "scope": "ENTITY",
+    "code": "OUTDATED",
+    "name": "Desactualizado",
+    "isTerminal": null,
+    "isVisible": null,
+    "sortOrder": null,
+    "isActive": null
+  },
+  {
     "scope": "CARBON_INVENTORY",
     "code": "DRAFT",
     "name": "Borrador",
