@@ -169,13 +169,12 @@ param staticWebAppOutputLocation = 'dist'
 // Container Registry Configuration
 // ============================================
 
-// Use shared ACR (dev) to save costs; set to false in prod/stg
-param useSharedAcr = true
-
-// Azure Container Registry name (must be globally unique, lowercase, alphanumeric)
-// - Shared across all developers in the subscription
-// - Example: 'undphuellalatamacr'
-param acrName = 'huellalatamacr'
+// Azure Container Registry name prefix
+// - A unique suffix will be automatically generated using uniqueString()
+// - Final name format: <prefix><uniqueString> (e.g., acrhuellaxyz123)
+// - Must be 3-50 alphanumeric characters, starting with a letter
+// - The prefix 'acrhuella' will create names like 'acrhuellaj7k8m9n0p1'
+param acrNamePrefix = 'acrhuella'
 
 // Container Registry SKU tier
 // - 'Basic': Cost-effective for development, 10GB storage, 1GB/day pull bandwidth (~$5/month)
@@ -183,11 +182,6 @@ param acrName = 'huellalatamacr'
 // - 'Premium': 500GB storage, 50GB/day pull bandwidth, geo-replication (~$50/month)
 // Recommendation: Basic for development, Standard/Premium for production
 param acrSku = 'Basic'
-
-// Shared resource group name for ACR
-// - All developers share this resource group for the ACR
-// - Example: 'undp-huella-latam-shared-rg'
-param sharedResourceGroupName = 'undp-huella-latam-shared-rg'
 
 // ============================================
 // App Service Configuration (API Backend)

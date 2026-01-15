@@ -128,66 +128,6 @@ else
   az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
 fi
 
-# 4.5) Create/verify shared resource group
-# Read shared resource group name from parameters file
-log "Reading shared resource group from parameters file..."
-if [ ! -f "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" ]; then
-  log "Error: parameters file not found at $SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE"
-  exit 1
-fi
-
-# Parse sharedResourceGroupName using Azure CLI bicep to avoid format assumptions
-PARAMS_JSON=$(az bicep build-params --file "$SCRIPT_DIR/$ENVIRONMENT_PARAMS_FILE" --stdout) || {
-  log "Error: failed to run 'az bicep build-params' on $ENVIRONMENT_PARAMS_FILE"
-  exit 1
-}
-
-# Helper function to extract parameter from PARAMS_JSON (sharedResourceGroupName, acrName, acrSku, useSharedAcr)
-get_param() {
-  local param_name="$1"
-  echo "$PARAMS_JSON" | jq -r "
-    if .parameters then
-      .parameters.${param_name}.value // empty
-    elif .parametersJson then
-      (.parametersJson | fromjson | .parameters.${param_name}.value // empty)
-    else empty end
-  "
-}
-
-SHARED_RG=$(get_param "sharedResourceGroupName")
-ACR_NAME=$(get_param "acrName")
-ACR_SKU=$(get_param "acrSku")
-
-USE_SHARED_ACR="${USE_SHARED_ACR:-$(get_param "useSharedAcr")}"
-USE_SHARED_ACR="${USE_SHARED_ACR:-false}"
-
-if [ -z "$ACR_NAME" ]; then
-  log "Error: acrName not found in $ENVIRONMENT_PARAMS_FILE"
-  exit 1
-fi
-
-ACR_SKU="${ACR_SKU:-Basic}"  # Default to Basic if not specified
-
-if [ "$USE_SHARED_ACR" = "true" ]; then
-  if [ -z "$SHARED_RG" ]; then
-    log "Error: sharedResourceGroupName not found in $ENVIRONMENT_PARAMS_FILE (required when USE_SHARED_ACR=true)"
-    log "Output from az bicep build-params (for debugging):"
-    echo "$PARAMS_JSON"
-    exit 1
-  fi
-
-  log "Using shared ACR flow (useSharedAcr=true)"
-  log "Shared Resource Group: $SHARED_RG"
-
-  if [ "$DRY_RUN" = "true" ]; then
-    log "[DRY RUN] Would execute: SHARED_RESOURCE_GROUP_NAME=$SHARED_RG ACR_NAME=$ACR_NAME ACR_SKU=$ACR_SKU LOCATION=$LOCATION ./deploy-shared.sh"
-  else
-    SHARED_RESOURCE_GROUP_NAME="$SHARED_RG" ACR_NAME="$ACR_NAME" ACR_SKU="$ACR_SKU" LOCATION="$LOCATION" "$SCRIPT_DIR/deploy-shared.sh"
-  fi
-else
-  log "Using ACR local to application resource group (useSharedAcr=false)"
-  SHARED_RG=""
-fi
 
 # 5) Get Azure AD group Object ID for Key Vault access
 log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
@@ -246,8 +186,6 @@ DEPLOY_PARAMS=(
   --parameters dbPassword="$DB_PASSWORD"
   --parameters devGroupObjectId="$DEVS_GROUP_ID"
   --parameters environment="$ENVIRONMENT"
-  --parameters useSharedAcr="$USE_SHARED_ACR"
-  --parameters sharedResourceGroupName="$SHARED_RG"
 )
 
 # Add optional parameters only if set
@@ -268,8 +206,6 @@ if [ "$DRY_RUN" = "true" ]; then
   log "[DRY RUN]   --parameters dbPassword=[REDACTED] \\"
   log "[DRY RUN]   --parameters devGroupObjectId=$DEVS_GROUP_ID \\"
   log "[DRY RUN]   --parameters environment=$ENVIRONMENT \\"
-  log "[DRY RUN]   --parameters useSharedAcr=$USE_SHARED_ACR \\"
-  log "[DRY RUN]   --parameters sharedResourceGroupName=$SHARED_RG \\"
   if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
     log "[DRY RUN]   --parameters frontDoorCustomDomain=$FRONT_DOOR_CUSTOM_DOMAIN \\"
   fi
