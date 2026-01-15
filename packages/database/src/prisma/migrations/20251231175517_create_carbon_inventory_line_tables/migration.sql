@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "input_type" AS ENUM ('SIMPLIFIED', 'EXPERT', 'DIRECT');
+CREATE TYPE "input_type" AS ENUM ('DETAILED', 'DIRECT');
 
 -- CreateTable
 CREATE TABLE "carbon_inventory_line" (

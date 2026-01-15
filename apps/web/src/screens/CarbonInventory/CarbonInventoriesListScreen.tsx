@@ -14,6 +14,8 @@ import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventories, useCreateCarbonInventory } from "@/api/query";
 import { GetAllCarbonInventoriesResponse } from "@repo/types";
+import { UsageMode } from "@repo/database";
+import { UsageMode as UsageModeType } from "@repo/types";
 
 export const CarbonInventoriesListScreen: FC = () => {
   const navigate = useNavigate();
@@ -33,7 +35,7 @@ export const CarbonInventoriesListScreen: FC = () => {
   const handleCreateNew = async () => {
     try {
       const createdInventory = await createInventoryMutation.mutateAsync({
-        usageMode: "SIMPLIFIED",
+        usageMode: UsageMode.SIMPLIFIED,
       });
 
       void navigate({
@@ -60,8 +62,8 @@ export const CarbonInventoriesListScreen: FC = () => {
     }
   };
 
-  const getUsageModeLabel = (mode: string) => {
-    return mode === "SIMPLIFIED" ? "Simplificado" : "Experto";
+  const getUsageModeLabel = (mode: UsageModeType): string => {
+    return mode === UsageMode.SIMPLIFIED ? "Simplificado" : "Experto";
   };
 
   const getYearLabel = (year: number | null | undefined) =>

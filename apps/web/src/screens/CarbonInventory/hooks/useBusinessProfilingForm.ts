@@ -1,8 +1,9 @@
 import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { CarbonInventory, UsageMode } from "@repo/types";
+import { CarbonInventory } from "@repo/types";
 import { mapInventoryToFormValues } from "../utils/businessProfilingTransformers";
 import { useResetOnChange } from "@/hooks";
+import { UsageMode } from "@repo/database";
 
 export type BusinessProfilingFormValues = {
   year: string;
@@ -26,7 +27,7 @@ const defaultValues: BusinessProfilingFormValues = {
   subSector: "",
   companySize: "",
   activity: "",
-  usageMode: "EXPERT",
+  usageMode: UsageMode.EXPERT,
   quantity: "",
 };
 

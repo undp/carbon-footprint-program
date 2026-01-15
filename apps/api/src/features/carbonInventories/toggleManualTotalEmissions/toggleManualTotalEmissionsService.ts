@@ -1,4 +1,4 @@
-import type { Prisma, PrismaClient } from "@repo/database";
+import { InputType, type Prisma, type PrismaClient } from "@repo/database";
 import { cleanupDirectLines } from "./toggleManualTotalEmissionsHelper.js";
 
 export type ToggleManualTotalEmissionsResult =
@@ -89,15 +89,15 @@ export const toggleManualTotalEmissionsService = async (
   // Identify lines
   const activeLines = lines.filter((l) => l.statusId === activeStatusId);
   const directActiveLine = activeLines.find(
-    (l) => l.inputs[0]?.inputType === "DIRECT"
+    (l) => l.inputs[0]?.inputType === InputType.DIRECT
   );
   const nonDirectActiveLinesIds = activeLines
-    .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
+    .filter((l) => l.inputs[0]?.inputType !== InputType.DIRECT)
     .map((l) => l.id);
 
   const outdatedLines = lines.filter((l) => l.statusId === outdatedStatusId);
   const nonDirectOutdatedLinesIds = outdatedLines
-    .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
+    .filter((l) => l.inputs[0]?.inputType !== InputType.DIRECT)
     .map((l) => l.id);
 
   if (activated) {

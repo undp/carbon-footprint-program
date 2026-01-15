@@ -1,4 +1,4 @@
-import type { InputType, PrismaClient } from "@repo/database";
+import { InputType, PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
 import type { UpdateCarbonInventoryLinesRequest } from "@repo/types";
 import type { UpdateCarbonInventoryLinesResponse } from "@repo/types";
@@ -44,38 +44,11 @@ function determineInputType(
 ): InputType {
   // If manualTotalEmissions is provided, it's DIRECT
   if (data.manualTotalEmissions !== null) {
-    return "DIRECT";
+    return InputType.DIRECT;
   }
 
-  // If factorSource is "Factor Propio", it's EXPERT
-  if (data.factorSource === "Factor Propio") {
-    return "EXPERT";
-  }
-
-  // If baseFactorId is provided, it's SIMPLIFIED
-  if (data.baseFactorId !== null) {
-    return "SIMPLIFIED";
-  }
-
-  // Default to SIMPLIFIED if we have quantity and factor data
-  if (
-    data.quantity !== null &&
-    data.appliedFactorValue !== null &&
-    data.appliedFactorRateMeasurementUnitId !== null
-  ) {
-    return "SIMPLIFIED";
-  }
-
-  // Default to EXPERT if we have factor data but no baseFactorId
-  if (
-    data.appliedFactorValue !== null &&
-    data.appliedFactorRateMeasurementUnitId !== null
-  ) {
-    return "EXPERT";
-  }
-
-  // Empty line - default to SIMPLIFIED
-  return "SIMPLIFIED";
+  // Any non-direct input is considered DETAILED
+  return InputType.DETAILED;
 }
 
 export const updateCarbonInventoryLinesService = async (
@@ -295,9 +268,7 @@ export const updateCarbonInventoryLinesService = async (
         },
       });
 
-      // Create factor if applicable (for both SIMPLIFIED and EXPERT modes)
-      // SIMPLIFIED: has emissionFactorId (from baseFactorId)
-      // EXPERT: emissionFactorId is null (when factorSource is "Factor Propio")
+      // Create factor if applicable
       if (
         lineData.appliedFactorValue !== null &&
         lineData.appliedFactorRateMeasurementUnitId !== null
@@ -320,14 +291,17 @@ export const updateCarbonInventoryLinesService = async (
       }
 
       // Create result if applicable
-      // For SIMPLIFIED or EXPERT: quantity * appliedFactorValue
+      // For DETAILED: quantity * appliedFactorValue
       // For DIRECT: manualTotalEmissions
       let totalEmissions: Prisma.Decimal | null = null;
 
-      if (inputType === "DIRECT" && lineData.manualTotalEmissions !== null) {
+      if (
+        inputType === InputType.DIRECT &&
+        lineData.manualTotalEmissions !== null
+      ) {
         totalEmissions = mapDecimalField(lineData.manualTotalEmissions);
       } else if (
-        (inputType === "SIMPLIFIED" || inputType === "EXPERT") &&
+        inputType === InputType.DETAILED &&
         lineData.quantity !== null &&
         lineData.appliedFactorValue !== null
       ) {

@@ -1,4 +1,4 @@
-import { type InputType, Prisma, type PrismaClient } from "@repo/database";
+import { InputType, Prisma, type PrismaClient } from "@repo/database";
 import type { UpdateCarbonInventoryLinesRequest } from "@repo/types";
 import { convertEmissionFactorValue } from "../getCarbonInventoryMethodology/getCarbonInventoryMethodologyHelper.js";
 import { bigIntEquals, mapBigIntField } from "@/utils/bigint.js";
@@ -579,9 +579,8 @@ export function isInputDataUnchanged(
   }
 
   // Compare factor
-  // Factor is created for both SIMPLIFIED and EXPERT modes
-  // SIMPLIFIED: has emissionFactorId (from baseFactorId)
-  // EXPERT: emissionFactorId is null (when factorSource is "Factor Propio")
+  // Factor is created for DETAILED line input type.
+  // emissionFactorId is derived from baseFactorId (null when factorSource is "Factor Propio").
   if (
     lineData.appliedFactorValue !== null &&
     lineData.appliedFactorRateMeasurementUnitId !== null
@@ -633,10 +632,13 @@ export function isInputDataUnchanged(
   // Compare result (total emissions)
   let newTotalEmissions: Prisma.Decimal | null = null;
 
-  if (inputType === "DIRECT" && lineData.manualTotalEmissions !== null) {
+  if (
+    inputType === InputType.DIRECT &&
+    lineData.manualTotalEmissions !== null
+  ) {
     newTotalEmissions = mapDecimalField(lineData.manualTotalEmissions);
   } else if (
-    (inputType === "SIMPLIFIED" || inputType === "EXPERT") &&
+    inputType === InputType.DETAILED &&
     lineData.quantity !== null &&
     lineData.appliedFactorValue !== null
   ) {

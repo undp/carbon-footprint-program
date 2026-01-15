@@ -1,4 +1,4 @@
-import type { Prisma } from "@repo/database";
+import { InputType, type Prisma } from "@repo/database";
 import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
 import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
 import { OrganizationDataSchema } from "@repo/types";
@@ -36,7 +36,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
 
   // Determine if manual total emissions are used
   const isManualTotalEmissions = activeInput
-    ? activeInput.inputType === "DIRECT"
+    ? activeInput.inputType === InputType.DIRECT
     : false;
 
   const dimensionValue1Id = activeInput?.selection1Id?.toString() ?? null;

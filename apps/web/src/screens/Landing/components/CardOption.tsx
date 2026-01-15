@@ -16,13 +16,14 @@ import { useNavigate } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { Routes } from "@/interfaces";
 import { useCreateCarbonInventory } from "@/api/query";
+import { UsageMode as UsageModeType } from "@repo/types";
 
 interface Props {
   AvatarIcon: React.ComponentType<SvgIconProps>;
   title: string;
   description: string;
   buttonText: string;
-  usageMode: "SIMPLIFIED" | "EXPERT";
+  usageMode: UsageModeType;
 }
 
 export const CardOption: FC<Props> = ({

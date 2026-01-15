@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import { Prisma, InputType, UsageMode } from "@repo/database";
 import { mapBigIntField } from "@/utils/bigint.js";
 
 /**
@@ -40,31 +40,31 @@ export async function getTestUsers(
 export const carbonInventoryPatterns = {
   /**
    * Returns a minimal draft carbon inventory input object with SIMPLIFIED mode.
-   *   - usageMode: "SIMPLIFIED"
+   *   - usageMode: UsageMode.SIMPLIFIED
    */
   simplifiedDraft: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
-    usageMode: "SIMPLIFIED",
+    usageMode: UsageMode.SIMPLIFIED,
   }),
 
   /**
    * Returns a minimal draft carbon inventory input object with EXPERT mode.
-   *   - usageMode: "EXPERT"
+   *   - usageMode: UsageMode.EXPERT
    */
   expertDraft: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
-    usageMode: "EXPERT",
+    usageMode: UsageMode.EXPERT,
   }),
 
   /**
    * Returns a submitted carbon inventory input object with SIMPLIFIED mode.
    *   - year: 2024
    *   - status: "SUBMITTED"
-   *   - usageMode: "SIMPLIFIED"
+   *   - usageMode: UsageMode.SIMPLIFIED
    *   - isEditable: false
    */
   submitted: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
     year: 2024,
     status: "SUBMITTED",
-    usageMode: "SIMPLIFIED",
+    usageMode: UsageMode.SIMPLIFIED,
     isEditable: false,
   }),
 
@@ -72,13 +72,13 @@ export const carbonInventoryPatterns = {
    * Returns a verified carbon inventory input object with EXPERT mode.
    *   - year: 2024
    *   - status: "VERIFIED"
-   *   - usageMode: "EXPERT"
+   *   - usageMode: UsageMode.EXPERT
    *   - isEditable: false
    */
   verified: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
     year: 2024,
     status: "VERIFIED",
-    usageMode: "EXPERT",
+    usageMode: UsageMode.EXPERT,
     isEditable: false,
   }),
 
@@ -86,13 +86,13 @@ export const carbonInventoryPatterns = {
    * Returns a deleted carbon inventory input object with SIMPLIFIED mode.
    *   - year: 2024
    *   - status: "DELETED"
-   *   - usageMode: "SIMPLIFIED"
+   *   - usageMode: UsageMode.SIMPLIFIED
    *   - isEditable: false
    */
   deleted: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
     year: 2024,
     status: "DELETED",
-    usageMode: "SIMPLIFIED",
+    usageMode: UsageMode.SIMPLIFIED,
     isEditable: false,
   }),
 
@@ -110,7 +110,7 @@ export const carbonInventoryPatterns = {
    *     }
    *   - year: 2023
    *   - status: "VERIFIED"
-   *   - usageMode: "EXPERT"
+   *   - usageMode: UsageMode.EXPERT
    *   - methodologyVersionId: {methodologyVersionId}
    *   - preselectedNodesId: {preselectedNodesId}
    *   - isEditable: false
@@ -137,7 +137,7 @@ export const carbonInventoryPatterns = {
     },
     year: 2023,
     status: "VERIFIED",
-    usageMode: "EXPERT",
+    usageMode: UsageMode.EXPERT,
     methodologyVersionId: methodologyVersionId,
     preselectedNodesId: preselectedNodesId,
     isEditable: false,
@@ -157,7 +157,7 @@ export const carbonInventoryPatterns = {
    *     }
    *   - year: 2024
    *   - status: "DRAFT"
-   *   - usageMode: "SIMPLIFIED"
+   *   - usageMode: UsageMode.SIMPLIFIED
    *   - isEditable: true
    */
   withOrganizationData: (
@@ -180,7 +180,7 @@ export const carbonInventoryPatterns = {
     },
     year: 2024,
     status: "DRAFT",
-    usageMode: "SIMPLIFIED",
+    usageMode: UsageMode.SIMPLIFIED,
     isEditable: true,
   }),
 };
@@ -397,7 +397,7 @@ export async function createCarbonInventoryLineInput(
   prisma: PrismaClient,
   lineId: bigint,
   options?: {
-    inputType?: "SIMPLIFIED" | "EXPERT" | "DIRECT";
+    inputType?: InputType;
     selection1Id?: bigint | null;
     selection2Id?: bigint | null;
     quantity?: Prisma.Decimal;
@@ -410,7 +410,7 @@ export async function createCarbonInventoryLineInput(
   return prisma.carbonInventoryLineInput.create({
     data: {
       lineId,
-      inputType: options?.inputType ?? "SIMPLIFIED",
+      inputType: options?.inputType ?? InputType.DETAILED,
       selection1Id: options?.selection1Id ?? null,
       selection2Id: options?.selection2Id ?? null,
       quantity: options?.quantity ?? null,

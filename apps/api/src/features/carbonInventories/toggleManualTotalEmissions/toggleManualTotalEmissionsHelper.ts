@@ -1,4 +1,4 @@
-import type { Prisma } from "@repo/database";
+import { InputType, type Prisma } from "@repo/database";
 
 export type LineWithInputs = Prisma.CarbonInventoryLineGetPayload<{
   include: {
@@ -19,7 +19,7 @@ export const cleanupDirectLines = async (
   deletedStatusId: bigint
 ): Promise<LineWithInputs> => {
   const allDirectLines = lines.filter(
-    (l) => l.inputs[0]?.inputType === "DIRECT"
+    (l) => l.inputs[0]?.inputType === InputType.DIRECT
   );
   if (allDirectLines.length > 1) {
     // Find the most recent DIRECT line (by id or createdAt)
