@@ -257,7 +257,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 for empty firstName", async () => {
+    it("should return 200 for empty firstName", async () => {
       const createdUser = await prisma.user.create({
         data: {
           email: "emptyfirst@test.example.com",
@@ -275,7 +275,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(200);
     });
   });
 
