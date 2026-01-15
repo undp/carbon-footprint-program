@@ -71,7 +71,7 @@ For `carbon_inventory_line_factor`:
 
 - Exactly one factor row per input
 - Factor represents the **post-conversion value**
-- EXPERT and DIRECT modes may have `emission_factor_id = NULL`
+- DETAILED and DIRECT modes may have `emission_factor_id = NULL`
 
 Invariant:
 

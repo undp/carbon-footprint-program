@@ -6,38 +6,6 @@ erDiagram
 	direction TB
 
 	%% ============================================================
-	%% DEPRECATED TABLES
-	%% ------------------------------------------------------------
-	%% The following tables are kept for historical reference only:
-	%% - carbon_inventory_detail
-	%% They MUST NOT be used for new features.
-	%% ============================================================
-	%% carbon_inventory_detail {
-	%% 	  BIGINT id PK ""  
-	%% 	  BIGINT carbon_inventory_id FK ""  
-	%% 	  BIGINT subcategory_id FK ""
-	%% 	  enum type "DETAILED | TOTAL"
-	%% 	  string first_selection "NULLABLE"
-	%% 	  string second_selection "NULLABLE"
-	%% 	  float quantity  "NULLABLE"
-	%% 	  BIGINT measurement_unit_id FK "NULLABLE" 
-	%% 	  float factor "NULLABLE"
-	%% 	  BIGINT factor_rate_measurement_unit_id FK "NULLABLE"
-	%% 	  string factor_source "NULLABLE"
-	%% 	  BIGINT emission_factor_id FK "NULLABLE"
-	%% 	  float total_emissions "NULLABLE" 
-	%% 	  text comment  "NULLABLE"
-	%% 	  BIGINT status_id FK "status_catalog(id)"
-	%% 	  %% Restricciones:
-	%% 	  %% Si type==SIMPLIFIED, el usuario llenará first_selection, second_selection, quantity, measurement_unit_id y la plataforma automáticamente escogerá un emission_factor_id y copiará el valor del factor, lo transformará a la misma unidad de medida del usuario y llenará factor y factor_rate_measurement_unit_id. Finalmente hará el P*Q y llenará total_emissions
-	%% 	  %% Si type==EXPERT, el usuario llenará first_selection, second_selection, quantity, measurement_unit_id, factor y el factor_source. El factor_rate_measurement_unit_id se escogerá automáticamente según el measurement_unit_id. emission_factor_id será NULL. Finalmente la plataforma hará el P*Q y llenará total_emissions
-	%% 	  %% Si type==DIRECT, todas las columnas serán NULL y el usuario ingresará el valor directo a total_emissions.
-	%% 	  %% Alternar el type no modificará las filas, sino que marcará las actuales como status=OUTDATED y creará nuevas filas con el type adecuado (si no existen aún). Si ya existían, las recuperará a ACTIVE.
-	%% 	  %% Todas las filas con status ACTIVE deben ser del mismo type.
-	%% 	  %% Las filas DELETED nunca se recuperan, quedan para trazabilidad.
-	%% }
-
-	%% ============================================================
 	%% Design Principles
 	%% ============================================================
 
@@ -494,7 +462,7 @@ erDiagram
 	carbon_inventory_line_input {
 		BIGINT id PK ""
 		BIGINT line_id FK "carbon_inventory_line(id)"
-		enum input_type "SIMPLIFIED|EXPERT|DIRECT"
+		enum input_type "DETAILED|DIRECT"
 		
 		%% the "dimension selections" (more on dimension standardization in section 4)
 		BIGINT selection_1_id FK "NULLABLE, emission_factor_dimension_value(id)"
