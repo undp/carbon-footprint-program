@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import {
@@ -37,6 +37,7 @@ interface UseEmissionEditorFormParams {
 interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
   isTotalManualEmissionsMode: boolean;
+  isManualModeLoading: boolean;
   handleAddLine: () => Promise<void>;
   handleCellChange: (
     value: string | number | null,
@@ -74,6 +75,9 @@ export const useEmissionEditorForm = ({
     inventoryId,
     subcategoryId
   );
+
+  const [isLocalManualModeLoading, setIsLocalManualModeLoading] =
+    useState(false);
 
   const { control, setValue } = useFormContext<EmissionCaptureFormValues>();
 
@@ -295,28 +299,46 @@ export const useEmissionEditorForm = ({
 
   const handleSetManualMode = useCallback(
     async (isManual: boolean) => {
+      // Guard against multiple clicks using synchronous local state
+      if (isLocalManualModeLoading) return;
+
+      setIsLocalManualModeLoading(true);
+
+      // 1. Update form state immediately (Optimistic UI)
+      // We use shouldDirty: true to ensure react-hook-form tracks this change
+      setValue(
+        `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+        isManual,
+        {
+          shouldDirty: true,
+          shouldTouch: true,
+        }
+      );
+
       try {
         await toggleManualMode({ activated: isManual });
-        // Update local state only after successful API call
+        // The lock is released in finally ONLY after the mutation AND the query invalidation finish
+      } catch {
+        // 2. Revert on error
         setValue(
           `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
-          isManual,
+          !isManual,
           {
             shouldDirty: true,
           }
         );
-      } catch {
-        // On error, don't update local state - the toggle will revert automatically
-        // React Query will handle error notification
+      } finally {
+        setIsLocalManualModeLoading(false);
       }
     },
-    [toggleManualMode, setValue, subcategoryId]
+    [isLocalManualModeLoading, toggleManualMode, setValue, subcategoryId]
   );
 
   return {
     // Form state
     rows,
     isTotalManualEmissionsMode,
+    isManualModeLoading: isLocalManualModeLoading,
     // Form actions
     handleAddLine,
     handleCellChange,
