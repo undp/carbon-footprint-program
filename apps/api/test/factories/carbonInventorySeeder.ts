@@ -311,6 +311,31 @@ export async function getDeletedStatusId(
 }
 
 /**
+ * Gets the OUTDATED status ID for lines
+ */
+export async function getOutdatedStatusId(
+  prisma: PrismaClient
+): Promise<bigint> {
+  const outdatedStatus = await prisma.statusCatalog.findFirst({
+    where: {
+      scope: "ENTITY",
+      code: "OUTDATED",
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!outdatedStatus) {
+    throw new Error(
+      "OUTDATED status not found in database. Please ensure the database is properly seeded."
+    );
+  }
+
+  return outdatedStatus.id;
+}
+
+/**
  * Gets all subcategory IDs from a methodology version
  */
 export async function getSubcategoryIds(

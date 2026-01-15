@@ -1,0 +1,20 @@
+### Variables
+@baseUrl = http://localhost:3000
+@carbonInventoryId = 1
+@subcategoryId = 1
+
+### Toggle Manual Total Emissions - Activate
+POST {{baseUrl}}/api/carbon-inventories/{{carbonInventoryId}}/subcategories/{{subcategoryId}}/manual-total-emissions
+Content-Type: application/json
+
+{
+  "activated": true
+}
+
+### Toggle Manual Total Emissions - Deactivate
+POST {{baseUrl}}/api/carbon-inventories/{{carbonInventoryId}}/subcategories/{{subcategoryId}}/manual-total-emissions
+Content-Type: application/json
+
+{
+  "activated": false
+}
