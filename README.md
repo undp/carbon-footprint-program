@@ -222,7 +222,7 @@ docker compose up -d # Run the container in detached mode
 
 This starts a PostgreSQL container with the configuration from `docker-compose.yml`.
 
-### 5. Run Database Migrations
+### 5. Run Database Migrations and Seeds
 
 ```bash
 cd packages/database
@@ -239,6 +239,13 @@ Then, you must generate the full-typed client
 ```bash
 cd packages/database
 pnpm dev:generate
+```
+
+Finally, you must run the project seeds
+
+```bash
+cd packages/database
+pnpm dev:seed
 ```
 
 ### 6. Start Development Servers
