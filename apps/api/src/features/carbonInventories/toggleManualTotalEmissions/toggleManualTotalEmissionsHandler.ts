@@ -66,7 +66,8 @@ export const toggleManualTotalEmissionsHandler = async (
         );
         return reply.status(422).send({
           code: "NO_ACTIVE_LINES_TO_CONVERT",
-          message: "There are no active lines in this subcategory to convert to manual mode",
+          message:
+            "There are no active lines in this subcategory to convert to manual mode",
         });
 
       case "MANUAL_MODE_ALREADY_ACTIVE":
@@ -96,11 +97,15 @@ export const toggleManualTotalEmissionsHandler = async (
         );
         return reply.status(422).send({
           code: "NO_LINES_TO_RESTORE",
-          message: "There are no previous lines to restore for this subcategory",
+          message:
+            "There are no previous lines to restore for this subcategory",
         });
 
       default:
-        log.error({ error: result.error }, "Unexpected error toggling manual mode");
+        log.error(
+          { error: result.error },
+          "Unexpected error toggling manual mode"
+        );
         return reply.status(500).send({ message: "Internal server error" });
     }
   }

@@ -52,10 +52,7 @@ export async function seedCountrySectorSubsectors(
     )
   );
 
-  checkForDuplicates(countrySectorSubsectorsData, [
-    "countryIsoCode",
-    "sector",
-  ]);
+  checkForDuplicates(countrySectorSubsectorsData, ["countryIsoCode", "sector"]);
   for (const item of countrySectorSubsectorsData) {
     checkForPrimitiveDuplicates(
       item.subsectors,

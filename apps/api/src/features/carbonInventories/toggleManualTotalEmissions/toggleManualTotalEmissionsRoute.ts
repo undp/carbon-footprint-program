@@ -1,9 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { toggleManualTotalEmissionsHandler } from "./toggleManualTotalEmissionsHandler.js";
-import {
-  IdSchema,
-  ToggleManualTotalEmissionsRequestSchema,
-} from "@repo/types";
+import { IdSchema, ToggleManualTotalEmissionsRequestSchema } from "@repo/types";
 import {
   ValidationErrorResponseSchema,
   NotFoundErrorResponseSchema,

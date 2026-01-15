@@ -17,7 +17,7 @@ const normalizeQuery = (query: string): string => {
  * @param fuseOptions - Fuse.js configuration (should be memoized or stable)
  * @returns Object with search function
  */
-export const useFuzzySearch = <T,>(
+export const useFuzzySearch = <T>(
   options: T[],
   fuseOptions?: IFuseOptions<T>
 ) => {

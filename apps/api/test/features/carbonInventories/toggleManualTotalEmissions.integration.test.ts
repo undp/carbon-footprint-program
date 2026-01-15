@@ -54,11 +54,23 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       const subcategoryId = subcategoryIds[0];
 
       // Create some active non-DIRECT lines
-      const line1 = await createCarbonInventoryLine(prisma, carbonInventory.id, subcategoryId);
-      await createCarbonInventoryLineInput(prisma, line1.id, { inputType: "SIMPLIFIED" });
+      const line1 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line1.id, {
+        inputType: "SIMPLIFIED",
+      });
 
-      const line2 = await createCarbonInventoryLine(prisma, carbonInventory.id, subcategoryId);
-      await createCarbonInventoryLineInput(prisma, line2.id, { inputType: "EXPERT" });
+      const line2 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line2.id, {
+        inputType: "EXPERT",
+      });
 
       const response = await app.inject({
         method: "POST",
@@ -69,9 +81,13 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       expect(response.statusCode).toBe(204);
 
       // Verify lines state
-      const updatedLine1 = await prisma.carbonInventoryLine.findUnique({ where: { id: line1.id } });
-      const updatedLine2 = await prisma.carbonInventoryLine.findUnique({ where: { id: line2.id } });
-      
+      const updatedLine1 = await prisma.carbonInventoryLine.findUnique({
+        where: { id: line1.id },
+      });
+      const updatedLine2 = await prisma.carbonInventoryLine.findUnique({
+        where: { id: line2.id },
+      });
+
       const outdatedStatusId = await getOutdatedStatusId(prisma);
       const activeStatusId = await getActiveStatusId(prisma);
 
@@ -84,8 +100,8 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
           carbonInventoryId: carbonInventory.id,
           subcategoryId,
           statusId: activeStatusId,
-          inputs: { some: { inputType: "DIRECT", isActive: true } }
-        }
+          inputs: { some: { inputType: "DIRECT", isActive: true } },
+        },
       });
       expect(directLine).toBeDefined();
     });
@@ -105,12 +121,26 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       const outdatedStatusId = await getOutdatedStatusId(prisma);
 
       // Create some outdated non-DIRECT lines
-      const line1 = await createCarbonInventoryLine(prisma, carbonInventory.id, subcategoryId, { statusId: outdatedStatusId });
-      await createCarbonInventoryLineInput(prisma, line1.id, { inputType: "SIMPLIFIED" });
+      const line1 = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryId,
+        { statusId: outdatedStatusId }
+      );
+      await createCarbonInventoryLineInput(prisma, line1.id, {
+        inputType: "SIMPLIFIED",
+      });
 
       // Create an active DIRECT line
-      const directLine = await createCarbonInventoryLine(prisma, carbonInventory.id, subcategoryId, { statusId: activeStatusId });
-      await createCarbonInventoryLineInput(prisma, directLine.id, { inputType: "DIRECT" });
+      const directLine = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryId,
+        { statusId: activeStatusId }
+      );
+      await createCarbonInventoryLineInput(prisma, directLine.id, {
+        inputType: "DIRECT",
+      });
 
       const response = await app.inject({
         method: "POST",
@@ -121,8 +151,12 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       expect(response.statusCode).toBe(204);
 
       // Verify states
-      const updatedLine1 = await prisma.carbonInventoryLine.findUnique({ where: { id: line1.id } });
-      const updatedDirectLine = await prisma.carbonInventoryLine.findUnique({ where: { id: directLine.id } });
+      const updatedLine1 = await prisma.carbonInventoryLine.findUnique({
+        where: { id: line1.id },
+      });
+      const updatedDirectLine = await prisma.carbonInventoryLine.findUnique({
+        where: { id: directLine.id },
+      });
 
       expect(updatedLine1?.statusId).toBe(activeStatusId);
       expect(updatedDirectLine?.statusId).toBe(outdatedStatusId);
@@ -138,7 +172,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
     });
 
@@ -160,7 +194,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("NO_ACTIVE_LINES_TO_CONVERT");
     });
   });
