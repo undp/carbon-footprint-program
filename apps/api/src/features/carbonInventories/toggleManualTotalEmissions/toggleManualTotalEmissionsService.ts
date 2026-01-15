@@ -153,6 +153,7 @@ export const toggleManualTotalEmissionsService = async (
       return { success: false, error: "MANUAL_MODE_NOT_ACTIVE" };
     }
 
+    // TODO: remove this error when no-lines subcategory is supported
     if (nonDirectOutdatedLines.length === 0) {
       return { success: false, error: "NO_LINES_TO_RESTORE" };
     }
