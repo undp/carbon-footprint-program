@@ -18,7 +18,7 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import type { UpdateCarbonInventoryLinesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { InputType, type PrismaClient } from "@repo/database";
 import type {
   NotFoundErrorResponse,
   ValidationErrorResponse,
@@ -122,7 +122,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         },
       });
       expect(activeInputs.length).toBe(1);
-      expect(activeInputs[0].inputType).toBe("SIMPLIFIED");
+      expect(activeInputs[0].inputType).toBe(InputType.DETAILED);
     });
   });
 
@@ -188,7 +188,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
           isActive: true,
         },
       });
-      expect(activeInput?.inputType).toBe("DIRECT");
+      expect(activeInput?.inputType).toBe(InputType.DIRECT);
       expect(activeInput?.directTotalEmissions?.toNumber()).toBe(
         manualTotalEmissions
       );
@@ -204,7 +204,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
     });
   });
 
-  describe("Use Case 3: Automatic factor (SIMPLIFIED mode)", () => {
+  describe("Use Case 3: Automatic factor (DETAILED line input type)", () => {
     it("should update a line with automatic factor from emission factor database", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
@@ -344,14 +344,14 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
         "Consumo mensual de gas natural en calderas"
       );
 
-      // Verify input type is SIMPLIFIED
+      // Verify input type is DETAILED
       const activeInput = await prisma.carbonInventoryLineInput.findFirst({
         where: {
           lineId: line.id,
           isActive: true,
         },
       });
-      expect(activeInput?.inputType).toBe("SIMPLIFIED");
+      expect(activeInput?.inputType).toBe(InputType.DETAILED);
 
       // Verify factor was created
       const factor = await prisma.carbonInventoryLineFactor.findFirst({
@@ -477,7 +477,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       expect(updatedLine.factorSource).toBe("Factor Propio");
       expect(updatedLine.factorValue).toBe(appliedFactorValue);
 
-      // Verify input type is EXPERT
+      // Verify input type is DETAILED
       const activeInput = await prisma.carbonInventoryLineInput.findFirst({
         where: {
           lineId: line.id,
@@ -486,7 +486,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
       });
 
       expect(activeInput).not.toBeNull();
-      expect(activeInput!.inputType).toBe("EXPERT");
+      expect(activeInput!.inputType).toBe(InputType.DETAILED);
       expect(activeInput!.manualFactor?.toNumber()).toBe(appliedFactorValue);
       expect(activeInput!.manualFactorSource).toBe("Factor Propio");
 

@@ -20,7 +20,7 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { InputType, type PrismaClient } from "@repo/database";
 
 describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-total-emissions - Integration Tests", () => {
   let app: FastifyInstance;
@@ -60,7 +60,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         subcategoryId
       );
       await createCarbonInventoryLineInput(prisma, line1.id, {
-        inputType: "SIMPLIFIED",
+        inputType: InputType.DETAILED,
       });
 
       const line2 = await createCarbonInventoryLine(
@@ -69,7 +69,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         subcategoryId
       );
       await createCarbonInventoryLineInput(prisma, line2.id, {
-        inputType: "EXPERT",
+        inputType: InputType.DETAILED,
       });
 
       const response = await app.inject({
@@ -100,7 +100,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
           carbonInventoryId: carbonInventory.id,
           subcategoryId,
           statusId: activeStatusId,
-          inputs: { some: { inputType: "DIRECT", isActive: true } },
+          inputs: { some: { inputType: InputType.DIRECT, isActive: true } },
         },
       });
       expect(directLine).toBeDefined();
@@ -128,7 +128,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         { statusId: outdatedStatusId }
       );
       await createCarbonInventoryLineInput(prisma, line1.id, {
-        inputType: "SIMPLIFIED",
+        inputType: InputType.DETAILED,
       });
 
       // Create an active DIRECT line
@@ -139,7 +139,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         { statusId: activeStatusId }
       );
       await createCarbonInventoryLineInput(prisma, directLine.id, {
-        inputType: "DIRECT",
+        inputType: InputType.DIRECT,
       });
 
       const response = await app.inject({

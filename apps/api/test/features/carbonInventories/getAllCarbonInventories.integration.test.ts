@@ -17,7 +17,7 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetAllCarbonInventoriesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { type PrismaClient, UsageMode } from "@repo/database";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
@@ -167,7 +167,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         },
         year: 2024,
         status: "DRAFT",
-        usageMode: "EXPERT",
+        usageMode: UsageMode.EXPERT,
         methodologyVersionId: BigInt(methodologyVersionId),
         preselectedNodesId: BigInt(111),
         isEditable: true,
@@ -198,7 +198,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       });
       expect(inventory.year).toBe(2024);
       expect(inventory.status).toBe("DRAFT");
-      expect(inventory.usageMode).toBe("EXPERT");
+      expect(inventory.usageMode).toBe(UsageMode.EXPERT);
       expect(inventory.methodologyVersionId).toBe(
         methodologyVersionId.toString()
       );
@@ -280,8 +280,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(body.length).toBe(2);
 
       const usageModes = body.map((inv) => inv.usageMode);
-      expect(usageModes).toContain("SIMPLIFIED");
-      expect(usageModes).toContain("EXPERT");
+      expect(usageModes).toContain(UsageMode.SIMPLIFIED);
+      expect(usageModes).toContain(UsageMode.EXPERT);
     });
   });
 });

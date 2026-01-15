@@ -20,7 +20,7 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { type PrismaClient, UsageMode } from "@repo/database";
 import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
@@ -60,7 +60,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.id).toBe(testInventory.id.toString());
       expect(body.year).toBeNull();
       expect(body.status).toBe("DRAFT");
-      expect(body.usageMode).toBe("SIMPLIFIED");
+      expect(body.usageMode).toBe(UsageMode.SIMPLIFIED);
       expect(body.isEditable).toBe(true);
     });
 
@@ -105,7 +105,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       });
       expect(body.year).toBe(2023);
       expect(body.status).toBe("VERIFIED");
-      expect(body.usageMode).toBe("EXPERT");
+      expect(body.usageMode).toBe(UsageMode.EXPERT);
       expect(body.methodologyVersionId).toBe(methodologyVersionId.toString());
       expect(body.preselectedNodesId).toBe("111");
       expect(body.isEditable).toBe(false);
@@ -259,7 +259,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.usageMode).toBe("SIMPLIFIED");
+      expect(body.usageMode).toBe(UsageMode.SIMPLIFIED);
     });
 
     it("should retrieve inventory with EXPERT mode", async () => {
@@ -275,7 +275,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.usageMode).toBe("EXPERT");
+      expect(body.usageMode).toBe(UsageMode.EXPERT);
     });
   });
 

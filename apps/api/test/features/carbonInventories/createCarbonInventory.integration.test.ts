@@ -12,7 +12,7 @@ import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventoryS
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { type PrismaClient, UsageMode } from "@repo/database";
 import type {
   ValidationErrorResponse,
   StructuredErrorResponse,
@@ -43,7 +43,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -52,7 +52,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
       expect(body.id).toBeTruthy();
       expect(body.year).toBeNull(); // Defaults to null
-      expect(body.usageMode).toBe("SIMPLIFIED");
+      expect(body.usageMode).toBe(UsageMode.SIMPLIFIED);
       expect(body.status).toBe("DRAFT"); // Default value
       expect(body.isEditable).toBe(true); // Default value
       expect(body.createdAt).toBeTruthy();
@@ -71,7 +71,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "EXPERT",
+          usageMode: UsageMode.EXPERT,
         },
       });
 
@@ -80,7 +80,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
       expect(body.id).toBeTruthy();
       expect(body.year).toBeNull();
-      expect(body.usageMode).toBe("EXPERT");
+      expect(body.usageMode).toBe(UsageMode.EXPERT);
       expect(body.status).toBe("DRAFT");
       expect(body.isEditable).toBe(true);
     });
@@ -92,7 +92,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -106,7 +106,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -120,7 +120,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -137,7 +137,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -186,7 +186,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
           year: 2024,
         },
       });
@@ -199,7 +199,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
           organizationId: "123",
         },
       });
@@ -212,7 +212,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
           organizationData: {
             name: "Test",
             sectorId: "10",
@@ -234,7 +234,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -242,7 +242,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "EXPERT",
+          usageMode: UsageMode.EXPERT,
         },
       });
 
@@ -250,7 +250,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -272,7 +272,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -280,7 +280,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -290,8 +290,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       const body1 = JSON.parse(response1.body) as CreateCarbonInventoryResponse;
       const body2 = JSON.parse(response2.body) as CreateCarbonInventoryResponse;
 
-      expect(body1.usageMode).toBe("SIMPLIFIED");
-      expect(body2.usageMode).toBe("SIMPLIFIED");
+      expect(body1.usageMode).toBe(UsageMode.SIMPLIFIED);
+      expect(body2.usageMode).toBe(UsageMode.SIMPLIFIED);
       expect(body1.id).not.toBe(body2.id);
     });
   });
@@ -304,7 +304,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         method: "POST",
         url: "/api/carbon-inventories",
         payload: {
-          usageMode: "SIMPLIFIED",
+          usageMode: UsageMode.SIMPLIFIED,
         },
       });
 
@@ -378,7 +378,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
           method: "POST",
           url: "/api/carbon-inventories",
           payload: {
-            usageMode: "SIMPLIFIED",
+            usageMode: UsageMode.SIMPLIFIED,
           },
         });
 

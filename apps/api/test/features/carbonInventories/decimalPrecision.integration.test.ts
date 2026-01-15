@@ -19,7 +19,7 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import { InputType, Prisma } from "@repo/database";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
@@ -278,7 +278,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
       const valueWithExtraDecimals = new Prisma.Decimal("2.01234567891");
 
       const input = await createCarbonInventoryLineInput(prisma, line.id, {
-        inputType: "DIRECT",
+        inputType: InputType.DIRECT,
         directTotalEmissions: valueWithExtraDecimals,
       });
 
@@ -307,7 +307,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
 
       await expect(
         createCarbonInventoryLineInput(prisma, line.id, {
-          inputType: "DIRECT",
+          inputType: InputType.DIRECT,
           directTotalEmissions: invalidValue,
         })
       ).rejects.toThrow();
@@ -332,7 +332,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
       const validValue = new Prisma.Decimal("123456789012345678.0123456789");
 
       const input = await createCarbonInventoryLineInput(prisma, line.id, {
-        inputType: "DIRECT",
+        inputType: InputType.DIRECT,
         directTotalEmissions: validValue,
       });
 
