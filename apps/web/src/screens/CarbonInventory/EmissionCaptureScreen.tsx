@@ -99,7 +99,11 @@ export const EmissionCaptureScreen: FC = () => {
                   selectedCategoryData?.subcategories ||
                   ([] as SubcategoryWithLines[])
                 ).map((subcategory) => {
-                  if (subcategory.lines.length === 0) return null;
+                  if (
+                    subcategory.lines.length === 0 &&
+                    !subcategory.isTotalManualEmissionsMode
+                  )
+                    return null;
                   return (
                     <EmissionEditor
                       key={subcategory.id}
