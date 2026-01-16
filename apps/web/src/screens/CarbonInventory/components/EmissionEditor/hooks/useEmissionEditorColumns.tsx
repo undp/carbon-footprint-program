@@ -6,10 +6,7 @@ import {
   RateMeasurementUnit,
   Subcategory,
 } from "@repo/types";
-import {
-  EmissionCaptureFormLine,
-  LineValidationState,
-} from "../../../types/EmissionCaptureTypes";
+import { EmissionCaptureFormLine } from "../../../types/EmissionCaptureTypes";
 import {
   EmissionEditorDimensionCell,
   EmissionEditorMeasurementUnitCell,
@@ -34,7 +31,6 @@ interface UseEmissionEditorColumnsParams {
     >
   ) => void;
   onFactorSourceChange: (lineId: string, factorSource: string) => void;
-  getLineValidation: (line: EmissionCaptureFormLine) => LineValidationState;
   onDeleteLine: (lineId: string) => void;
   onUpdateComment: (rowId: string, comment: string) => void;
   onUploadFiles: (rowId: string) => void;
@@ -49,7 +45,6 @@ export const useEmissionEditorColumns = ({
   categoryPosition,
   onCellChange,
   onFactorSourceChange,
-  getLineValidation,
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
@@ -73,8 +68,10 @@ export const useEmissionEditorColumns = ({
                 params: GridRenderCellParams<EmissionCaptureFormLine, string>
               ) => (
                 <EmissionEditorDimensionCell
+                  subcategoryId={subcategory.id}
+                  lineId={params.row.lineId}
+                  field="dimensionValue1Id"
                   dimension={firstDimension}
-                  value={params.value || null}
                   onChange={(value: string) => onCellChange(value, params)}
                   disabled={isManualModeLoading}
                 />
@@ -96,9 +93,11 @@ export const useEmissionEditorColumns = ({
                 params: GridRenderCellParams<EmissionCaptureFormLine, string>
               ) => (
                 <EmissionEditorDimensionCell
+                  subcategoryId={subcategory.id}
+                  lineId={params.row.lineId}
+                  field="dimensionValue2Id"
+                  parentField="dimensionValue1Id"
                   dimension={secondDimension}
-                  value={params.value || null}
-                  parentValue={params.row.dimensionValue1Id}
                   onChange={(value: string) => onCellChange(value, params)}
                   disabled={isManualModeLoading}
                 />
@@ -119,9 +118,9 @@ export const useEmissionEditorColumns = ({
           params: GridRenderCellParams<EmissionCaptureFormLine, string>
         ) => (
           <EmissionEditorMeasurementUnitCell
+            subcategoryId={subcategory.id}
+            lineId={params.row.lineId}
             measurementUnits={measurementUnits || []}
-            value={params.value || null}
-            rowId={params.id}
             onChange={(value: string) => onCellChange(value, params)}
             disabled={isManualModeLoading}
           />
@@ -139,7 +138,8 @@ export const useEmissionEditorColumns = ({
           params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
         ) => (
           <EmissionEditorQuantityCell
-            value={params.value ?? null}
+            subcategoryId={subcategory.id}
+            lineId={params.row.lineId}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
               onCellChange(e.target.value, params)
             }
@@ -160,18 +160,16 @@ export const useEmissionEditorColumns = ({
         renderCell: (
           params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
         ) => {
-          const validation = getLineValidation(params.row);
           return (
             <EmissionEditorFactorCell
-              value={params.value ?? null}
-              factorSource={params.row.factorSource}
-              measurementUnitId={params.row.measurementUnitId}
+              subcategoryId={subcategory.id}
+              lineId={params.row.lineId}
+              dimensions={dimensions}
               rateMeasurementUnits={rateMeasurementUnits || []}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 onCellChange(e.target.value, params)
               }
-              disabled={isManualModeLoading || !validation.canEditFactorValue}
-              disabledReason={validation.factorValueDisabledReason}
+              disabled={isManualModeLoading}
             />
           );
         },
@@ -187,23 +185,16 @@ export const useEmissionEditorColumns = ({
         renderCell: (
           params: GridRenderCellParams<EmissionCaptureFormLine, string>
         ) => {
-          const validation = getLineValidation(params.row);
-
           return (
             <EmissionEditorFactorSourceCell
+              subcategoryId={subcategory.id}
+              lineId={params.row.lineId}
+              dimensions={dimensions}
               emissionFactors={subcategory.emissionFactors}
               rateMeasurementUnits={rateMeasurementUnits || []}
-              measurementUnitId={params.row.measurementUnitId}
-              dimensionValue1Id={params.row.dimensionValue1Id}
-              dimensionValue2Id={params.row.dimensionValue2Id}
-              value={params.value || null}
-              rowId={params.id}
-              disabled={
-                isManualModeLoading || !validation.canSelectFactorSource
-              }
-              disabledReason={validation.factorSourceDisabledReason}
+              disabled={isManualModeLoading}
               onChange={(value) =>
-                onFactorSourceChange(params.id.toString(), value)
+                onFactorSourceChange(params.row.lineId, value)
               }
             />
           );
@@ -223,8 +214,8 @@ export const useEmissionEditorColumns = ({
           params: GridRenderCellParams<EmissionCaptureFormLine, number | null>
         ) => (
           <EmissionEditorEmissionsCell
-            quantity={params.row.quantity}
-            factorValue={params.row.factorValue}
+            subcategoryId={subcategory.id}
+            lineId={params.row.lineId}
           />
         ),
       },
@@ -259,10 +250,10 @@ export const useEmissionEditorColumns = ({
     categoryPosition,
     onCellChange,
     onFactorSourceChange,
-    getLineValidation,
     onDeleteLine,
     onUpdateComment,
     onUploadFiles,
     isManualModeLoading,
+    subcategory.id,
   ]);
 };

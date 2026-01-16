@@ -1,32 +1,31 @@
 import { useMemo } from "react";
 import { useFormContext, useWatch, Control } from "react-hook-form";
 import { round } from "lodash-es";
-import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
+import {
+  EmissionCaptureFormValues,
+  SubcategoryWithLines,
+} from "../../../types/EmissionCaptureTypes";
 
-export const useEmissionTotal = (subcategoryId: string) => {
+export const useEmissionTotal = (subcategory: SubcategoryWithLines) => {
   const { control } = useFormContext<EmissionCaptureFormValues>();
-
-  const isTotalManualEmissionsMode = useWatch({
-    control: control as Control<EmissionCaptureFormValues>,
-    name: `subcategories.${subcategoryId}.isTotalManualEmissionsMode` as const,
-  });
 
   const lines = useWatch({
     control: control as Control<EmissionCaptureFormValues>,
-    name: `subcategories.${subcategoryId}.lines` as const,
+    name: `subcategories.${subcategory.id}.lines` as const,
   });
 
   const totalEmission = useMemo(() => {
-    if (isTotalManualEmissionsMode) {
-      return lines?.[0]?.manualTotalEmissions || 0;
+    const linesArray = Object.values(lines || {});
+    if (subcategory.isTotalManualEmissionsMode) {
+      return linesArray[0]?.manualTotalEmissions || 0;
     }
 
-    return (lines || []).reduce((acc, row) => {
+    return linesArray.reduce((acc, row) => {
       const quantity = row.quantity || 0;
       const factorValue = row.factorValue || 0;
       return acc + round(quantity * factorValue, 2);
     }, 0);
-  }, [isTotalManualEmissionsMode, lines]);
+  }, [subcategory.isTotalManualEmissionsMode, lines]);
 
   return totalEmission;
 };
