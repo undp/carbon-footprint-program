@@ -47,7 +47,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
   });
-  console.log("subcategory", subcategory.id, subcategory);
+
   const mode =
     isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode;
 
