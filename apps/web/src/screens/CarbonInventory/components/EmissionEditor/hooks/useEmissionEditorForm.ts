@@ -1,17 +1,11 @@
-import { useCallback, useMemo, useState } from "react";
-import { useFieldArray, useFormContext, useWatch } from "react-hook-form";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
-import {
-  EmissionFactor,
-  EmissionFactorDimension,
-  RateMeasurementUnit,
-} from "@repo/types";
-import { GridRenderCellParams } from "@mui/x-data-grid";
+import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
 import {
   EmissionCaptureFormValues,
   EmissionCaptureFormLine,
-  LineValidationState,
 } from "../../../types/EmissionCaptureTypes";
 import {
   getCompatibleRateUnitId,
@@ -19,35 +13,29 @@ import {
   getBaseFactorId,
   getFactorData,
 } from "../services/emissionFactorService";
-import {
-  canSelectFactorSource,
-  canEditFactorValue,
-  getDisabledReasonMessage,
-} from "../services/fieldValidationService";
 import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
 import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 interface UseEmissionEditorFormParams {
   subcategoryId: string;
+  initialLines: EmissionCaptureFormLine[];
   emissionFactors: EmissionFactor[];
-  dimensions: EmissionFactorDimension[];
   rateMeasurementUnits: RateMeasurementUnit[];
 }
 
 interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
-  isTotalManualEmissionsMode: boolean;
+  isLocalTotalManualEmissionsMode: boolean | null;
   isManualModeLoading: boolean;
   handleAddLine: () => Promise<void>;
   handleCellChange: (
     value: string | number | null,
-    params: GridRenderCellParams<
-      EmissionCaptureFormLine,
-      string | number | null
-    >
+    params: {
+      field: string;
+      row: EmissionCaptureFormLine;
+    }
   ) => void;
   handleFactorSourceChange: (lineId: string, newFactorSource: string) => void;
-  getLineValidation: (line: EmissionCaptureFormLine) => LineValidationState;
   handleDeleteLine: (lineId: string) => void;
   handleSetTotalEmission: (total: number) => void;
   handleSetManualMode: (isManual: boolean) => Promise<void>;
@@ -55,8 +43,8 @@ interface UseEmssionEditorFormResults {
 
 export const useEmissionEditorForm = ({
   subcategoryId,
+  initialLines,
   emissionFactors,
-  dimensions,
   rateMeasurementUnits,
 }: UseEmissionEditorFormParams): UseEmssionEditorFormResults => {
   const { inventoryId } = useParams({
@@ -79,35 +67,27 @@ export const useEmissionEditorForm = ({
   const [isLocalManualModeLoading, setIsLocalManualModeLoading] =
     useState(false);
 
-  const { control, setValue } = useFormContext<EmissionCaptureFormValues>();
+  // Use local state for temp lines being added
+  const [tempLines, setTempLines] = useState<EmissionCaptureFormLine[]>([]);
 
-  const { append, remove, fields } = useFieldArray({
-    control,
-    name: `subcategories.${subcategoryId}.lines`,
-  });
+  useEffect(() => {
+    setTempLines([]);
+  }, [initialLines]);
 
-  const subcategoryLines = useWatch({
-    control,
-    name: `subcategories.${subcategoryId}.lines`,
-  });
+  const { setValue, getValues } = useFormContext<EmissionCaptureFormValues>();
 
   const rows = useMemo(() => {
-    return fields.map((field, index) => ({
-      ...field,
-      ...subcategoryLines?.[index],
-    }));
-  }, [fields, subcategoryLines]);
+    return [...initialLines, ...tempLines];
+  }, [initialLines, tempLines]);
 
-  const isTotalManualEmissionsMode = useWatch({
-    control,
-    name: `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
-  });
+  const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
+    useState<boolean | null>(null);
 
   // Form actions
   const handleAddLine = useCallback(async () => {
     const tempId = `temp-${Date.now()}`;
 
-    append({
+    const newLine: EmissionCaptureFormLine = {
       id: tempId,
       lineId: tempId,
       subcategoryId,
@@ -122,39 +102,58 @@ export const useEmissionEditorForm = ({
       factorRateMeasurementUnitId: null,
       comment: null,
       manualTotalEmissions: null,
+    };
+
+    setTempLines((prev) => [...prev, newLine]);
+    setValue(`subcategories.${subcategoryId}.lines.${tempId}`, newLine, {
+      shouldDirty: true,
     });
 
     try {
       const result = await createLine();
 
-      const index = rows.findIndex((r) => r.lineId === tempId);
-      if (index !== -1) {
-        setValue(
-          `subcategories.${subcategoryId}.lines.${index}.lineId`,
-          result.id,
-          { shouldDirty: true }
-        );
-      }
+      // RHF: update the line with the real ID
+      const currentValues =
+        (getValues(`subcategories.${subcategoryId}.lines.${tempId}`) as
+          | EmissionCaptureFormLine
+          | undefined) || newLine;
+
+      // Remove temp line from form state and add with new ID
+      const lines = getValues(`subcategories.${subcategoryId}.lines`);
+      const newLines = { ...lines };
+      delete newLines[tempId];
+      newLines[result.id] = {
+        ...currentValues,
+        id: result.id,
+        lineId: result.id,
+      };
+
+      setValue(`subcategories.${subcategoryId}.lines`, newLines, {
+        shouldDirty: true,
+      });
+
+      // Local state: tempLines will be cleared when initialLines refreshes from DB
     } catch {
-      const index = rows.findIndex((r) => r.lineId === tempId);
-      if (index !== -1) remove(index);
+      setTempLines((prev) => prev.filter((l) => l.lineId !== tempId));
+      const lines = getValues(`subcategories.${subcategoryId}.lines`);
+      const newLines = { ...lines };
+      delete newLines[tempId];
+      setValue(`subcategories.${subcategoryId}.lines`, newLines);
     }
-  }, [append, rows, remove, setValue, subcategoryId, createLine]);
+  }, [subcategoryId, createLine, setValue, getValues]);
 
   const handleCellChange = useCallback(
     (
       value: string | number | null,
-      params: GridRenderCellParams<
-        EmissionCaptureFormLine,
-        string | number | null
-      >
+      params: {
+        field: string;
+        row: EmissionCaptureFormLine;
+      }
     ) => {
       const { field, row } = params;
-      const index = rows.findIndex((r) => r.lineId === row.lineId);
-      if (index === -1) return;
 
       setValue(
-        `subcategories.${subcategoryId}.lines.${index}.${field}`,
+        `subcategories.${subcategoryId}.lines.${row.lineId}.${field}`,
         value as never,
         { shouldDirty: true }
       );
@@ -167,43 +166,43 @@ export const useEmissionEditorForm = ({
       ) {
         if (field === "dimensionValue1Id") {
           setValue(
-            `subcategories.${subcategoryId}.lines.${index}.dimensionValue2Id`,
+            `subcategories.${subcategoryId}.lines.${row.lineId}.dimensionValue2Id`,
             null,
             { shouldDirty: true }
           );
         }
 
         setValue(
-          `subcategories.${subcategoryId}.lines.${index}.factorSource`,
+          `subcategories.${subcategoryId}.lines.${row.lineId}.factorSource`,
           null,
           { shouldDirty: true }
         );
         setValue(
-          `subcategories.${subcategoryId}.lines.${index}.baseFactorId`,
+          `subcategories.${subcategoryId}.lines.${row.lineId}.baseFactorId`,
           null,
           { shouldDirty: true }
         );
         setValue(
-          `subcategories.${subcategoryId}.lines.${index}.factorValue`,
+          `subcategories.${subcategoryId}.lines.${row.lineId}.factorValue`,
           null,
           { shouldDirty: true }
         );
         setValue(
-          `subcategories.${subcategoryId}.lines.${index}.factorRateMeasurementUnitId`,
+          `subcategories.${subcategoryId}.lines.${row.lineId}.factorRateMeasurementUnitId`,
           null,
           { shouldDirty: true }
         );
       }
     },
-    [rows, setValue, subcategoryId]
+    [setValue, subcategoryId]
   );
 
   const handleFactorSourceChange = useCallback(
     (lineId: string, newFactorSource: string) => {
-      const index = rows.findIndex((l) => l.lineId === lineId);
-      if (index === -1) return;
-
-      const line = rows[index];
+      const line = getValues(
+        `subcategories.${subcategoryId}.lines.${lineId}`
+      ) as EmissionCaptureFormLine | undefined;
+      if (!line) return;
 
       const compatibleRateUnitId = getCompatibleRateUnitId(
         line.measurementUnitId,
@@ -225,125 +224,112 @@ export const useEmissionEditorForm = ({
       );
 
       setValue(
-        `subcategories.${subcategoryId}.lines.${index}.factorSource`,
+        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
         newFactorSource,
         { shouldDirty: true }
       );
       setValue(
-        `subcategories.${subcategoryId}.lines.${index}.baseFactorId`,
+        `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
         baseFactorId,
         { shouldDirty: true }
       );
       setValue(
-        `subcategories.${subcategoryId}.lines.${index}.factorValue`,
+        `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
         factorValue,
         { shouldDirty: true }
       );
       setValue(
-        `subcategories.${subcategoryId}.lines.${index}.factorRateMeasurementUnitId`,
+        `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
         factorRateMeasurementUnitId,
         { shouldDirty: true }
       );
     },
-    [rows, emissionFactors, rateMeasurementUnits, setValue, subcategoryId]
-  );
-
-  const getLineValidation = useCallback(
-    (line: EmissionCaptureFormLine): LineValidationState => {
-      return {
-        canSelectFactorSource: canSelectFactorSource(line, dimensions),
-        canEditFactorValue: canEditFactorValue(line),
-        factorSourceDisabledReason: getDisabledReasonMessage(
-          "factorSource",
-          line,
-          dimensions
-        ),
-        factorValueDisabledReason: getDisabledReasonMessage(
-          "factorValue",
-          line,
-          dimensions
-        ),
-      };
-    },
-    [dimensions]
+    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
   );
 
   const handleDeleteLine = useCallback(
     async (lineId: string) => {
-      const index = rows.findIndex((r) => r.lineId === lineId);
-      if (index === -1) return;
+      // Optimistic delete from form state
+      const lines = getValues(`subcategories.${subcategoryId}.lines`);
+      const currentLines = { ...lines };
+      const deletedLine = currentLines[lineId];
+      delete currentLines[lineId];
 
-      const row = rows[index];
-      remove(index);
+      setValue(`subcategories.${subcategoryId}.lines`, currentLines, {
+        shouldDirty: true,
+      });
+
+      // If it was a temp line, also remove from tempLines
+      setTempLines((prev) => prev.filter((l) => l.lineId !== lineId));
+
       try {
-        await deleteLine({ lineId: row.lineId });
+        await deleteLine({ lineId });
       } catch {
-        append(row);
+        // Revert on error
+        const linesAfterError = getValues(
+          `subcategories.${subcategoryId}.lines`
+        );
+        const revertedLines = { ...linesAfterError };
+        revertedLines[lineId] = deletedLine;
+        setValue(`subcategories.${subcategoryId}.lines`, revertedLines);
+        if (lineId.startsWith("temp-")) {
+          setTempLines((prev) => [...prev, deletedLine]);
+        }
       }
     },
-    [rows, remove, append, deleteLine]
+    [deleteLine, subcategoryId, getValues, setValue]
   );
 
   const handleSetTotalEmission = useCallback(
     (total: number) => {
-      if (!isTotalManualEmissionsMode || rows.length === 0) return;
+      const lines = getValues(`subcategories.${subcategoryId}.lines`);
+      console.log("lines", subcategoryId, lines);
+      const lineIds = Object.keys(lines || {});
+      console.log("lineIds", subcategoryId, lineIds);
+
+      // In manual mode, we usually have only one line.
+      // We use the first one available or a specific ID if known.
+      const targetId = lineIds[0];
+      console.log("targetId", subcategoryId, targetId);
 
       setValue(
-        `subcategories.${subcategoryId}.lines.0.manualTotalEmissions`,
+        `subcategories.${subcategoryId}.lines.${targetId}.manualTotalEmissions`,
         total,
         { shouldDirty: true }
       );
     },
-    [isTotalManualEmissionsMode, rows, setValue, subcategoryId]
+    [setValue, subcategoryId, getValues]
   );
 
   const handleSetManualMode = useCallback(
     async (isManual: boolean) => {
-      // Guard against multiple clicks using synchronous local state
       if (isLocalManualModeLoading) return;
 
       setIsLocalManualModeLoading(true);
-
-      // 1. Update form state immediately (Optimistic UI)
-      // We use shouldDirty: true to ensure react-hook-form tracks this change
-      setValue(
-        `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
-        isManual,
-        {
-          shouldDirty: true,
-          shouldTouch: true,
-        }
-      );
-
+      setIsLocalTotalManualEmissionsMode(isManual);
       try {
         await toggleManualMode({ activated: isManual });
-        // The lock is released in finally ONLY after the mutation AND the query invalidation finish
       } catch {
-        // 2. Revert on error
-        setValue(
-          `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
-          !isManual,
-          {
-            shouldDirty: true,
-          }
-        );
+        // Error is handled by the mutation's onError or the UI
+        // eslint-disable-next-line no-console
+        console.error("Error toggling manual mode:");
       } finally {
         setIsLocalManualModeLoading(false);
+        setIsLocalTotalManualEmissionsMode(null);
       }
     },
-    [isLocalManualModeLoading, toggleManualMode, setValue, subcategoryId]
+    [isLocalManualModeLoading, toggleManualMode]
   );
 
   return {
     // Form state
     rows,
-    isTotalManualEmissionsMode,
+    isLocalTotalManualEmissionsMode,
     isManualModeLoading: isLocalManualModeLoading,
     // Form actions
     handleAddLine,
     handleCellChange,
     handleFactorSourceChange,
-    getLineValidation,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,

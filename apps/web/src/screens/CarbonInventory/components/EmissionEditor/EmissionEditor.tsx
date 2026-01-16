@@ -1,7 +1,6 @@
 import { FC } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
-import { Subcategory } from "@repo/types";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
 import { EmissionEditorGrid } from "./EmissionEditorGrid";
 import { EmissionEditorCommentDialog } from "./EmissionEditorCommentDialog";
@@ -12,9 +11,10 @@ import {
   useEmissionEditorColumns,
   useEmissionTotal,
 } from "./hooks";
+import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
 
 interface EmissionEditorProps {
-  subcategory: Subcategory;
+  subcategory: SubcategoryWithLines;
   categoryPosition: number;
 }
 
@@ -27,27 +27,29 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
 
   const {
     rows,
-    isTotalManualEmissionsMode,
+    isLocalTotalManualEmissionsMode,
     isManualModeLoading,
     handleAddLine,
     handleCellChange,
     handleFactorSourceChange,
-    getLineValidation,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,
   } = useEmissionEditorForm({
     subcategoryId: subcategory.id,
+    initialLines: subcategory.lines,
     emissionFactors: subcategory.emissionFactors,
-    dimensions,
     rateMeasurementUnits: rateMeasurementUnits || [],
   });
 
-  const totalEmission = useEmissionTotal(subcategory.id);
+  const totalEmission = useEmissionTotal(subcategory);
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
   });
+  console.log("subcategory", subcategory.id, subcategory);
+  const mode =
+    isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode;
 
   const columns = useEmissionEditorColumns({
     dimensions,
@@ -57,7 +59,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     categoryPosition,
     onCellChange: handleCellChange,
     onFactorSourceChange: handleFactorSourceChange,
-    getLineValidation: getLineValidation,
     onDeleteLine: handleDeleteLine,
     onUpdateComment: openCommentDialog,
     onUploadFiles: () => {
@@ -70,14 +71,14 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
-        isTotalManualEmissionsMode={!!isTotalManualEmissionsMode}
+        isTotalManualEmissionsMode={mode}
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isManualModeLoading}
         totalEmission={totalEmission}
         setTotalEmission={handleSetTotalEmission}
       />
 
-      <Collapse in={!isTotalManualEmissionsMode} collapsedSize={0}>
+      <Collapse in={!mode} collapsedSize={0}>
         <Box className="flex flex-col gap-2">
           {/* Content Section */}
           <Box className="flex flex-col gap-2">

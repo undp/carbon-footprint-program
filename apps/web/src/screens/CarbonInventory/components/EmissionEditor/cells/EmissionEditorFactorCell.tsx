@@ -1,28 +1,42 @@
 import { FC } from "react";
+import { useWatch } from "react-hook-form";
 import { Typography, Tooltip } from "@mui/material";
 import { NumericInput } from "@/components";
-import { RateMeasurementUnit } from "@repo/types";
+import { RateMeasurementUnit, EmissionFactorDimension } from "@repo/types";
 import { isFactorValueEditable } from "../services/emissionFactorService";
+import { useLineValidation } from "../hooks/useLineValidation";
 
 interface EmissionEditorFactorCellProps {
-  value: number | null;
-  factorSource: string | null;
-  measurementUnitId: string | null;
+  subcategoryId: string;
+  lineId: string;
+  dimensions: EmissionFactorDimension[];
   rateMeasurementUnits: RateMeasurementUnit[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
-  disabledReason?: string | null;
 }
 
 export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
-  value,
-  factorSource,
-  measurementUnitId,
+  subcategoryId,
+  lineId,
+  dimensions,
   rateMeasurementUnits,
   onChange,
   disabled = false,
-  disabledReason = null,
 }) => {
+  const value = useWatch({
+    name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
+  }) as number | null;
+
+  const factorSource = useWatch({
+    name: `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
+  }) as string | null;
+
+  const measurementUnitId = useWatch({
+    name: `subcategories.${subcategoryId}.lines.${lineId}.measurementUnitId`,
+  }) as string | null;
+
+  const validation = useLineValidation(subcategoryId, lineId, dimensions);
+
   const unit = rateMeasurementUnits?.find(
     (rmu) => rmu.denominatorUnit.id === measurementUnitId
   );
@@ -31,13 +45,16 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 
   const inputElement = isEditableBySource ? (
     <NumericInput
-      value={value}
+      value={value ?? null}
       suffix={unit?.abbreviation ?? ""}
       onChange={onChange}
-      disabled={disabled}
+      disabled={disabled || !validation.canEditFactorValue}
       sx={{
         "& .MuiInputBase-input.Mui-disabled": {
-          WebkitTextFillColor: disabled ? "rgba(0, 0, 0, 0.38)" : "inherit",
+          WebkitTextFillColor:
+            disabled || !validation.canEditFactorValue
+              ? "rgba(0, 0, 0, 0.38)"
+              : "inherit",
         },
       }}
     />
@@ -47,9 +64,17 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     </Typography>
   );
 
-  if (disabled && disabledReason && isEditableBySource) {
+  if (
+    (disabled || !validation.canEditFactorValue) &&
+    validation.factorValueDisabledReason &&
+    isEditableBySource
+  ) {
     return (
-      <Tooltip title={disabledReason} arrow placement="top">
+      <Tooltip
+        title={validation.factorValueDisabledReason}
+        arrow
+        placement="top"
+      >
         <span>{inputElement}</span>
       </Tooltip>
     );

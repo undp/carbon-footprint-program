@@ -37,8 +37,8 @@ export const useEmissionCaptureSubmit = ({
 
         // Get all lines from all subcategories as a flat array
         const allSubcategories = Object.values(data.subcategories || {});
-        const flatLines = allSubcategories.flatMap(
-          (subcategory) => subcategory.lines || []
+        const flatLines = allSubcategories.flatMap((subcategory) =>
+          Object.values(subcategory.lines || {})
         );
 
         if (flatLines.length === 0) {
