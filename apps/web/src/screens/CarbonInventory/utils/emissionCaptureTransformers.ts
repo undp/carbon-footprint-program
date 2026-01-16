@@ -15,7 +15,9 @@ export function mapLinesToRequest(
       baseFactorId: line.baseFactorId ?? null,
       appliedFactorValue: line.factorValue ? Number(line.factorValue) : null,
       appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-      manualTotalEmissions: null,
+      manualTotalEmissions: line.manualTotalEmissions
+        ? Number(line.manualTotalEmissions)
+        : null,
       comment: line.comment,
     };
   });
