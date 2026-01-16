@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
@@ -283,14 +283,11 @@ export const useEmissionEditorForm = ({
   const handleSetTotalEmission = useCallback(
     (total: number) => {
       const lines = getValues(`subcategories.${subcategoryId}.lines`);
-      console.log("lines", subcategoryId, lines);
       const lineIds = Object.keys(lines || {});
-      console.log("lineIds", subcategoryId, lineIds);
 
       // In manual mode, we usually have only one line.
       // We use the first one available or a specific ID if known.
       const targetId = lineIds[0];
-      console.log("targetId", subcategoryId, targetId);
 
       setValue(
         `subcategories.${subcategoryId}.lines.${targetId}.manualTotalEmissions`,
@@ -307,6 +304,15 @@ export const useEmissionEditorForm = ({
 
       setIsLocalManualModeLoading(true);
       setIsLocalTotalManualEmissionsMode(isManual);
+
+      // 1. Set the value in RHF with shouldDirty: true
+      // This allows the global useEffect to detect that the user touched the mode
+      setValue(
+        `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+        isManual,
+        { shouldDirty: true }
+      );
+
       try {
         await toggleManualMode({ activated: isManual });
       } catch {
@@ -318,7 +324,7 @@ export const useEmissionEditorForm = ({
         setIsLocalTotalManualEmissionsMode(null);
       }
     },
-    [isLocalManualModeLoading, toggleManualMode]
+    [isLocalManualModeLoading, toggleManualMode, setValue, subcategoryId]
   );
 
   return {
