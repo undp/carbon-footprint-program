@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
@@ -75,13 +75,6 @@ export const useEmissionEditorForm = ({
   const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
     useState<boolean | null>(null);
 
-  // Use local state for temp lines being added
-  const [tempLines, setTempLines] = useState<EmissionCaptureFormLine[]>([]);
-
-  useEffect(() => {
-    setTempLines([]);
-  }, [initialLines]);
-
   const { setValue, getValues, control } = useFormContext<EmissionCaptureFormValues>();
 
   const isDatabaseTotalManualEmissionsMode = useWatch({
@@ -93,71 +86,20 @@ export const useEmissionEditorForm = ({
     return isLocalTotalManualEmissionsMode || isDatabaseTotalManualEmissionsMode;
   }, [isLocalTotalManualEmissionsMode, isDatabaseTotalManualEmissionsMode]);
 
-  const rows = useMemo(() => {
-    return [...initialLines, ...tempLines];
-  }, [initialLines, tempLines]);
+  const rows = initialLines;
 
   // Form actions
   const handleAddLine = useCallback(async () => {
     startAction();
-    const tempId = `temp-${Date.now()}`;
-
-    const newLine: EmissionCaptureFormLine = {
-      id: tempId,
-      lineId: tempId,
-      subcategoryId,
-      isManualTotalEmissions: false,
-      dimensionValue1Id: null,
-      dimensionValue2Id: null,
-      measurementUnitId: null,
-      quantity: null,
-      factorValue: null,
-      factorSource: null,
-      baseFactorId: null,
-      factorRateMeasurementUnitId: null,
-      comment: null,
-      manualTotalEmissions: null,
-    };
-
-    setTempLines((prev) => [...prev, newLine]);
-    setValue(`subcategories.${subcategoryId}.lines.${tempId}`, newLine, {
-      shouldDirty: true,
-    });
 
     try {
-      const result = await createLine();
-
-      // RHF: update the line with the real ID
-      const currentValues =
-        (getValues(`subcategories.${subcategoryId}.lines.${tempId}`) as
-          | EmissionCaptureFormLine
-          | undefined) || newLine;
-
-      // Remove temp line from form state and add with new ID
-      const lines = getValues(`subcategories.${subcategoryId}.lines`);
-      const newLines = { ...lines };
-      delete newLines[tempId];
-      newLines[result.id] = {
-        ...currentValues,
-        id: result.id,
-        lineId: result.id,
-      };
-
-      setValue(`subcategories.${subcategoryId}.lines`, newLines, {
-        shouldDirty: true,
-      });
-
-      // Local state: tempLines will be cleared when initialLines refreshes from DB
+      await createLine();
     } catch {
-      setTempLines((prev) => prev.filter((l) => l.lineId !== tempId));
-      const lines = getValues(`subcategories.${subcategoryId}.lines`);
-      const newLines = { ...lines };
-      delete newLines[tempId];
-      setValue(`subcategories.${subcategoryId}.lines`, newLines);
+      // Error handling is managed by the mutation or global error handler
     } finally {
       endAction();
     }
-  }, [subcategoryId, createLine, setValue, getValues, startAction, endAction]);
+  }, [createLine, startAction, endAction]);
 
   const handleCellChange = useCallback(
     (
@@ -267,37 +209,16 @@ export const useEmissionEditorForm = ({
   const handleDeleteLine = useCallback(
     async (lineId: string) => {
       startAction();
-      // Optimistic delete from form state
-      const lines = getValues(`subcategories.${subcategoryId}.lines`);
-      const currentLines = { ...lines };
-      const deletedLine = currentLines[lineId];
-      delete currentLines[lineId];
-
-      setValue(`subcategories.${subcategoryId}.lines`, currentLines, {
-        shouldDirty: true,
-      });
-
-      // If it was a temp line, also remove from tempLines
-      setTempLines((prev) => prev.filter((l) => l.lineId !== lineId));
 
       try {
         await deleteLine({ lineId });
       } catch {
-        // Revert on error
-        const linesAfterError = getValues(
-          `subcategories.${subcategoryId}.lines`
-        );
-        const revertedLines = { ...linesAfterError };
-        revertedLines[lineId] = deletedLine;
-        setValue(`subcategories.${subcategoryId}.lines`, revertedLines);
-        if (lineId.startsWith("temp-")) {
-          setTempLines((prev) => [...prev, deletedLine]);
-        }
+        // Error handling is managed by the mutation or global error handler
       } finally {
         endAction();
       }
     },
-    [deleteLine, subcategoryId, getValues, setValue, startAction, endAction]
+    [deleteLine, startAction, endAction]
   );
 
   const handleSetTotalEmission = useCallback(
