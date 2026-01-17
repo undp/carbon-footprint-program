@@ -38,13 +38,13 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
           acc[line.id] = line;
           return acc;
         }, {} as Record<string, EmissionCaptureFormLine>);
-        
+
         formData.subcategories[subcategory.id] = {
           lines: linesRecord,
           isTotalManualEmissionsMode: subcategory.isTotalManualEmissionsMode,
         };
 
-        // 3.2 Detect if the mode changed OR if it's dirty (touched by user)
+        // 1 Detect if the mode changed OR if it's dirty (touched by user)
         const isModeDirty =
           !!form.formState.dirtyFields.subcategories?.[subcategory.id]
             ?.isTotalManualEmissionsMode;
@@ -54,25 +54,25 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
       });
     });
 
-    // 4. Primero, aplicamos el reset global
+    // 2. first, we apply the global reset to match the database state keeping user changes
     reset(formData, { keepDirtyValues: true, keepErrors: true });
 
-    // 5. Para las subcategorías que cambiaron de modo, usamos un "martillo" más fuerte
+    // 3. for the subcategories that changed mode, we use a stronger hammer to force the value of the database
     subcategoriesToForceSync.forEach((id) => {
-      // Usamos setValue para forzar el valor de la base de datos de toda la subcategoría
-      // pero con shouldDirty: false para que RHF limpie el estado de "editado"
+      // we use setValue to force the value of the database of the entire subcategory
+      // but with shouldDirty: false to clean the state of "edited"
       setValue(`subcategories.${id}`, formData.subcategories[id], {
         shouldDirty: false,
         shouldTouch: false,
         shouldValidate: true,
       });
 
-      // Y luego resetField sobre la subcategoría completa para limpiar dirtyFields internamente
+      // then resetField on the entire subcategory to clean dirtyFields internally
       resetField(`subcategories.${id}`, {
         defaultValue: formData.subcategories[id],
       });
     });
-  }, [data, reset, getValues, resetField, setValue, form.formState.dirtyFields]); // 6. Añadimos las dependencias
+  }, [data, reset, getValues, resetField, setValue, form.formState.dirtyFields]);
 
   return form;
 };
