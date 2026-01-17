@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useMemo, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
@@ -13,6 +13,7 @@ import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigati
 import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
 import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
+import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
 
 export const EmissionCaptureScreen: FC = () => {
@@ -29,6 +30,14 @@ export const EmissionCaptureScreen: FC = () => {
 
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
 
+  const activeActionsCount = useEmissionCaptureState(
+    (state) => state.activeActionsCount
+  );
+  const subcategoryTotals = useEmissionCaptureState(
+    (state) => state.subcategoryTotals
+  );
+  const resetStore = useEmissionCaptureState((state) => state.reset);
+
   // Form setup
   const methods = useEmissionCaptureForm({ data });
   const { handleSubmit } = methods;
@@ -42,6 +51,22 @@ export const EmissionCaptureScreen: FC = () => {
     () => data.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
   );
+
+  // Calculate total emissions for the selected category based on subcategory totals in store
+  const categoryEmissions = useMemo(() => {
+    if (!selectedCategoryData) return 0;
+    return selectedCategoryData.subcategories.reduce((acc, subcategory) => {
+      return acc + (subcategoryTotals[subcategory.id] || 0);
+    }, 0);
+  }, [selectedCategoryData, subcategoryTotals]);
+
+  // Reset store on mount and unmount to avoid stale data
+  useEffect(() => {
+    resetStore();
+    return () => resetStore();
+  }, [resetStore]);
+
+  const isBusy = activeActionsCount > 0;
 
   return (
     <FormProvider {...methods}>
@@ -62,7 +87,7 @@ export const EmissionCaptureScreen: FC = () => {
               type: "submit",
               form: "emission-capture-form",
               loading: isSubmitting,
-              disabled: isSubmitting,
+              disabled: isSubmitting || isBusy,
             },
           }}
           isLoading={isLoading}
@@ -91,7 +116,7 @@ export const EmissionCaptureScreen: FC = () => {
               {selectedCategoryData && (
                 <TotalCategoryEmissionCard
                   category={selectedCategoryData}
-                  categoryEmissions={0}
+                  categoryEmissions={categoryEmissions}
                 />
               )}
               <Box className="flex min-h-0 flex-1 flex-col gap-4">

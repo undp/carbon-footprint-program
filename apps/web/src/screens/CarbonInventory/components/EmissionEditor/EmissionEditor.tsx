@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -12,6 +12,7 @@ import {
   useEmissionTotal,
 } from "./hooks";
 import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
+import { useEmissionCaptureState } from "../../hooks/useEmissionCaptureState";
 
 interface EmissionEditorProps {
   subcategory: SubcategoryWithLines;
@@ -43,6 +44,14 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   });
 
   const totalEmission = useEmissionTotal(subcategory);
+  const setSubcategoryTotal = useEmissionCaptureState(
+    (state) => state.setSubcategoryTotal
+  );
+
+  // Sync subcategory total to the global state for category total calculation
+  useEffect(() => {
+    setSubcategoryTotal(subcategory.id, totalEmission);
+  }, [subcategory.id, totalEmission, setSubcategoryTotal]);
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
