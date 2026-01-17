@@ -30,51 +30,27 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
       subcategories: {},
     };
 
-    const currentValues = getValues(); // 2. Obtenemos valores actuales antes del reset
     const subcategoriesToForceSync: string[] = [];
 
     data.forEach((category) => {
       category.subcategories.forEach((subcategory: SubcategoryWithLines) => {
-        const linesRecord: Record<string, EmissionCaptureFormLine> = {};
-
-        if (
-          subcategory.isTotalManualEmissionsMode &&
-          subcategory.lines.length === 0
-        ) {
-          // 3.1 Create a virtual line for manual mode if no lines exist from DB
-          const virtualId = `manual-placeholder-${subcategory.id}`;
-          linesRecord[virtualId] = {
-            id: virtualId,
-            lineId: virtualId,
-            subcategoryId: subcategory.id,
-            manualTotalEmissions: 0,
-            isManualTotalEmissions: true,
-          } as EmissionCaptureFormLine;
-        } else {
-          subcategory.lines.forEach((line) => {
-            linesRecord[line.lineId] = { ...line };
-          });
-        }
-
+        const linesRecord = subcategory.lines.reduce((acc, line) => {
+          acc[line.id] = line;
+          return acc;
+        }, {} as Record<string, EmissionCaptureFormLine>);
+        
         formData.subcategories[subcategory.id] = {
           lines: linesRecord,
           isTotalManualEmissionsMode: subcategory.isTotalManualEmissionsMode,
         };
 
         // 3.2 Detect if the mode changed OR if it's dirty (touched by user)
-        const currentMode =
-          currentValues.subcategories?.[subcategory.id]
-            ?.isTotalManualEmissionsMode;
         const isModeDirty =
           !!form.formState.dirtyFields.subcategories?.[subcategory.id]
             ?.isTotalManualEmissionsMode;
 
-        if (
-          currentMode !== undefined &&
-          (currentMode !== subcategory.isTotalManualEmissionsMode || isModeDirty)
-        ) {
+        if (isModeDirty)
           subcategoriesToForceSync.push(subcategory.id);
-        }
       });
     });
 
