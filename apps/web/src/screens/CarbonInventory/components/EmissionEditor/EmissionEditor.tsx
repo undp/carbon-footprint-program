@@ -27,8 +27,8 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
 
   const {
     rows,
-    isLocalTotalManualEmissionsMode,
-    isManualModeLoading,
+    isTotalManualEmissionsModeLoading,
+    isTotalManualEmissionsMode,
     handleAddLine,
     handleCellChange,
     handleFactorSourceChange,
@@ -48,9 +48,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     subcategoryId: subcategory.id,
   });
 
-  const mode =
-    isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode;
-
   const columns = useEmissionEditorColumns({
     dimensions,
     subcategory,
@@ -64,21 +61,20 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     onUploadFiles: () => {
       // TODO: Implement upload files functionality
     },
-    isManualModeLoading,
   });
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
-        isTotalManualEmissionsMode={mode}
+        isTotalManualEmissionsMode={!!isTotalManualEmissionsMode}
         setIsTotalManualEmissionsMode={handleSetManualMode}
-        isManualModeLoading={isManualModeLoading}
+        isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
         setTotalEmission={handleSetTotalEmission}
       />
 
-      <Collapse in={!mode} collapsedSize={0}>
+      <Collapse in={!isTotalManualEmissionsMode} collapsedSize={0}>
         <Box className="flex flex-col gap-2">
           {/* Content Section */}
           <Box className="flex flex-col gap-2">
@@ -92,7 +88,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
                 rows={rows}
                 columns={columns}
                 categoryPosition={categoryPosition}
-                loading={isManualModeLoading}
+                loading={isTotalManualEmissionsModeLoading}
               />
             )}
           </Box>
@@ -106,10 +102,10 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
               })}
               variant="text"
               onClick={handleAddLine}
-              disabled={isManualModeLoading}
+              disabled={isTotalManualEmissionsModeLoading}
               startIcon={
                 <AddRounded
-                  sx={(theme) => ({
+                  sx={(theme) => ({ 
                     color: theme.palette.category[categoryPosition].dark,
                   })}
                 />

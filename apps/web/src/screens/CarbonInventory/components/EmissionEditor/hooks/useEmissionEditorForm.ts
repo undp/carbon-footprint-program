@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { useFormContext } from "react-hook-form";
+import { Control, useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
@@ -25,8 +25,8 @@ interface UseEmissionEditorFormParams {
 
 interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
-  isLocalTotalManualEmissionsMode: boolean | null;
-  isManualModeLoading: boolean;
+  isTotalManualEmissionsModeLoading: boolean;
+  isTotalManualEmissionsMode: boolean;
   handleAddLine: () => Promise<void>;
   handleCellChange: (
     value: string | number | null,
@@ -64,8 +64,11 @@ export const useEmissionEditorForm = ({
     subcategoryId
   );
 
-  const [isLocalManualModeLoading, setIsLocalManualModeLoading] =
+  const [isTotalManualEmissionsModeLoading, setIsTotalManualEmissionsModeLoading] =
     useState(false);
+
+  const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
+    useState<boolean | null>(null);
 
   // Use local state for temp lines being added
   const [tempLines, setTempLines] = useState<EmissionCaptureFormLine[]>([]);
@@ -74,14 +77,20 @@ export const useEmissionEditorForm = ({
     setTempLines([]);
   }, [initialLines]);
 
-  const { setValue, getValues } = useFormContext<EmissionCaptureFormValues>();
+  const { setValue, getValues, control } = useFormContext<EmissionCaptureFormValues>();
+
+  const isDatabaseTotalManualEmissionsMode = useWatch({
+    control: control,
+    name: `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+  });
+
+  const isTotalManualEmissionsMode = useMemo(() => {
+    return isLocalTotalManualEmissionsMode || isDatabaseTotalManualEmissionsMode;
+  }, [isLocalTotalManualEmissionsMode, isDatabaseTotalManualEmissionsMode]);
 
   const rows = useMemo(() => {
     return [...initialLines, ...tempLines];
   }, [initialLines, tempLines]);
-
-  const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
-    useState<boolean | null>(null);
 
   // Form actions
   const handleAddLine = useCallback(async () => {
@@ -300,9 +309,9 @@ export const useEmissionEditorForm = ({
 
   const handleSetManualMode = useCallback(
     async (isManual: boolean) => {
-      if (isLocalManualModeLoading) return;
+      if (isTotalManualEmissionsModeLoading) return;
 
-      setIsLocalManualModeLoading(true);
+      setIsTotalManualEmissionsModeLoading(true);
       setIsLocalTotalManualEmissionsMode(isManual);
 
       // 1. Set the value in RHF with shouldDirty: true
@@ -320,18 +329,18 @@ export const useEmissionEditorForm = ({
         // eslint-disable-next-line no-console
         console.error("Error toggling manual mode:");
       } finally {
-        setIsLocalManualModeLoading(false);
         setIsLocalTotalManualEmissionsMode(null);
+        setIsTotalManualEmissionsModeLoading(false);
       }
     },
-    [isLocalManualModeLoading, toggleManualMode, setValue, subcategoryId]
+    [isTotalManualEmissionsModeLoading, toggleManualMode, setValue, subcategoryId]
   );
 
   return {
     // Form state
     rows,
-    isLocalTotalManualEmissionsMode,
-    isManualModeLoading: isLocalManualModeLoading,
+    isTotalManualEmissionsModeLoading,
+    isTotalManualEmissionsMode,
     // Form actions
     handleAddLine,
     handleCellChange,
