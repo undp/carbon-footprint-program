@@ -6,6 +6,7 @@ import { Routes } from "@/interfaces";
 import {
   EmissionCaptureFormValues,
   EmissionCaptureFormLine,
+  SubcategoryWithLines,
 } from "../../../types/EmissionCaptureTypes";
 import {
   getCompatibleRateUnitId,
@@ -19,8 +20,7 @@ import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/sub
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
 
 interface UseEmissionEditorFormParams {
-  subcategoryId: string;
-  initialLines: EmissionCaptureFormLine[];
+  subcategory: SubcategoryWithLines;
   emissionFactors: EmissionFactor[];
   rateMeasurementUnits: RateMeasurementUnit[];
 }
@@ -44,14 +44,15 @@ interface UseEmssionEditorFormResults {
 }
 
 export const useEmissionEditorForm = ({
-  subcategoryId,
-  initialLines,
+  subcategory,
   emissionFactors,
   rateMeasurementUnits,
 }: UseEmissionEditorFormParams): UseEmssionEditorFormResults => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
+
+  const { id: subcategoryId, lines: initialLines } = subcategory;
 
   const { mutateAsync: createLine } = useCreateCarbonInventoryLine(
     inventoryId,

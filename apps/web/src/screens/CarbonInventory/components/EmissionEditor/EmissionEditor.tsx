@@ -37,8 +37,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     handleSetTotalEmission,
     handleSetManualMode,
   } = useEmissionEditorForm({
-    subcategoryId: subcategory.id,
-    initialLines: subcategory.lines,
+    subcategory,
     emissionFactors: subcategory.emissionFactors,
     rateMeasurementUnits: rateMeasurementUnits || [],
   });
