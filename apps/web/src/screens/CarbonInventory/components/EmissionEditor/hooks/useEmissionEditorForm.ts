@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState, useEffect } from "react";
-import { Control, useFormContext, useWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
@@ -16,6 +16,8 @@ import {
 import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
 import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
+import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
+
 interface UseEmissionEditorFormParams {
   subcategoryId: string;
   initialLines: EmissionCaptureFormLine[];
@@ -64,6 +66,9 @@ export const useEmissionEditorForm = ({
     subcategoryId
   );
 
+  const startAction = useEmissionCaptureState((state) => state.startAction);
+  const endAction = useEmissionCaptureState((state) => state.endAction);
+
   const [isTotalManualEmissionsModeLoading, setIsTotalManualEmissionsModeLoading] =
     useState(false);
 
@@ -94,6 +99,7 @@ export const useEmissionEditorForm = ({
 
   // Form actions
   const handleAddLine = useCallback(async () => {
+    startAction();
     const tempId = `temp-${Date.now()}`;
 
     const newLine: EmissionCaptureFormLine = {
@@ -148,8 +154,10 @@ export const useEmissionEditorForm = ({
       const newLines = { ...lines };
       delete newLines[tempId];
       setValue(`subcategories.${subcategoryId}.lines`, newLines);
+    } finally {
+      endAction();
     }
-  }, [subcategoryId, createLine, setValue, getValues]);
+  }, [subcategoryId, createLine, setValue, getValues, startAction, endAction]);
 
   const handleCellChange = useCallback(
     (
@@ -258,6 +266,7 @@ export const useEmissionEditorForm = ({
 
   const handleDeleteLine = useCallback(
     async (lineId: string) => {
+      startAction();
       // Optimistic delete from form state
       const lines = getValues(`subcategories.${subcategoryId}.lines`);
       const currentLines = { ...lines };
@@ -284,9 +293,11 @@ export const useEmissionEditorForm = ({
         if (lineId.startsWith("temp-")) {
           setTempLines((prev) => [...prev, deletedLine]);
         }
+      } finally {
+        endAction();
       }
     },
-    [deleteLine, subcategoryId, getValues, setValue]
+    [deleteLine, subcategoryId, getValues, setValue, startAction, endAction]
   );
 
   const handleSetTotalEmission = useCallback(
@@ -311,6 +322,7 @@ export const useEmissionEditorForm = ({
     async (isManual: boolean) => {
       if (isTotalManualEmissionsModeLoading) return;
 
+      startAction();
       setIsTotalManualEmissionsModeLoading(true);
       setIsLocalTotalManualEmissionsMode(isManual);
 
@@ -331,9 +343,17 @@ export const useEmissionEditorForm = ({
       } finally {
         setIsLocalTotalManualEmissionsMode(null);
         setIsTotalManualEmissionsModeLoading(false);
+        endAction();
       }
     },
-    [isTotalManualEmissionsModeLoading, toggleManualMode, setValue, subcategoryId]
+    [
+      isTotalManualEmissionsModeLoading,
+      toggleManualMode,
+      setValue,
+      subcategoryId,
+      startAction,
+      endAction,
+    ]
   );
 
   return {
