@@ -25,7 +25,26 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
   const { reset, getValues, resetField, setValue } = form; // 1. Extraemos getValues y resetField
 
+  const dirtyFields = form.formState.dirtyFields;
+
   useEffect(() => {
+    // STEP 1: Preserve manual total emissions from current form state before reset
+    const currentFormValues = getValues();
+    const preservedManualTotals: Record<string, number> = {};
+
+    // Extract and preserve manual total emissions for each subcategory in manual mode
+    Object.entries(currentFormValues.subcategories || {}).forEach(
+      ([subcatId, subcatData]) => {
+        if (subcatData.isTotalManualEmissionsMode) {
+          const lines = Object.values(subcatData.lines || {});
+          const manualTotal = lines[0]?.manualTotalEmissions;
+          if (manualTotal !== undefined && manualTotal !== null) {
+            preservedManualTotals[subcatId] = manualTotal;
+          }
+        }
+      }
+    );
+
     const formData: EmissionCaptureFormValues = {
       subcategories: {},
     };
@@ -46,11 +65,10 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
         // 1 Detect if the mode changed OR if it's dirty (touched by user)
         const isModeDirty =
-          !!form.formState.dirtyFields.subcategories?.[subcategory.id]
+          !!dirtyFields.subcategories?.[subcategory.id]
             ?.isTotalManualEmissionsMode;
 
-        if (isModeDirty)
-          subcategoriesToForceSync.push(subcategory.id);
+        if (isModeDirty) subcategoriesToForceSync.push(subcategory.id);
       });
     });
 
@@ -72,7 +90,24 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         defaultValue: formData.subcategories[id],
       });
     });
-  }, [data, reset, getValues, resetField, setValue, form.formState.dirtyFields]);
+
+    // STEP 4: Restore preserved manual total emissions
+    Object.entries(preservedManualTotals).forEach(([subcatId, total]) => {
+      const subcatData = formData.subcategories[subcatId];
+      if (subcatData && subcatData.isTotalManualEmissionsMode) {
+        const lineIds = Object.keys(subcatData.lines || {});
+        const targetLineId = lineIds[0];
+
+        if (targetLineId) {
+          setValue(
+            `subcategories.${subcatId}.lines.${targetLineId}.manualTotalEmissions`,
+            total,
+            { shouldDirty: true }
+          );
+        }
+      }
+    });
+  }, [data, reset, getValues, resetField, setValue, dirtyFields]);
 
   return form;
 };
