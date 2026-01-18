@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo } from "react";
+import { FC, useEffect } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -50,7 +50,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   // Sync subcategory total to the global state for category total calculation
   useEffect(() => {
     setSubcategoryTotal(subcategory.id, totalEmission);
-  }, [subcategory.id, totalEmission, setSubcategoryTotal]);
+  }, [subcategory.id, subcategory.name, totalEmission, isTotalManualEmissionsMode, setSubcategoryTotal]);
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
