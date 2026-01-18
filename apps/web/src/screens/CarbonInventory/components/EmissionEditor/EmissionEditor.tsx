@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useMemo } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -70,12 +70,13 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       // TODO: Implement upload files functionality
     },
   });
+
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
-        isTotalManualEmissionsMode={!!isTotalManualEmissionsMode}
+        isTotalManualEmissionsMode={isTotalManualEmissionsMode}
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
