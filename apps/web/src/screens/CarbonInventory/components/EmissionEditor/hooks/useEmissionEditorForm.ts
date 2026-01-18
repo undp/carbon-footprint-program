@@ -256,8 +256,6 @@ export const useEmissionEditorForm = ({
         await toggleManualMode({ activated: isManual });
       } catch {
         // Error is handled by the mutation's onError or the UI
-        // eslint-disable-next-line no-console
-        console.error("Error toggling manual mode:");
       } finally {
         setIsLocalTotalManualEmissionsMode(null);
         setIsTotalManualEmissionsModeLoading(false);

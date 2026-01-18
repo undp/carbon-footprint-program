@@ -55,9 +55,11 @@ export const EmissionCaptureScreen: FC = () => {
   // Calculate total emissions for the selected category based on subcategory totals in store
   const categoryEmissions = useMemo(() => {
     if (!selectedCategoryData) return 0;
-    return selectedCategoryData.subcategories.reduce((acc, subcategory) => {
-      return acc + (subcategoryTotals[subcategory.id] || 0);
+    const total = selectedCategoryData.subcategories.reduce((acc, subcategory) => {
+      const subcatTotal = subcategoryTotals[subcategory.id] || 0;
+      return acc + subcatTotal;
     }, 0);
+    return total;
   }, [selectedCategoryData, subcategoryTotals]);
 
   // Reset store on mount and unmount to avoid stale data
