@@ -76,18 +76,14 @@ export const useEmissionEditorForm = ({
   const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
     useState<boolean | null>(null);
 
-  const { setValue, getValues, control } = useFormContext<EmissionCaptureFormValues>();
+  const { setValue, getValues } = useFormContext<EmissionCaptureFormValues>();
 
-  const isDatabaseTotalManualEmissionsMode = useWatch({
-    control: control,
-    name: `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
-  });
-
-  const isTotalManualEmissionsMode = useMemo(() => {
-    return isLocalTotalManualEmissionsMode || isDatabaseTotalManualEmissionsMode;
-  }, [isLocalTotalManualEmissionsMode, isDatabaseTotalManualEmissionsMode]);
 
   const rows = initialLines;
+
+  const isTotalManualEmissionsMode = useMemo(() => {
+    return isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode;
+  }, [isLocalTotalManualEmissionsMode, subcategory.isTotalManualEmissionsMode]);
 
   // Form actions
   const handleAddLine = useCallback(async () => {
