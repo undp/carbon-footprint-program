@@ -95,18 +95,21 @@ describe("GET /api/users - Integration Tests", () => {
 
   describe("Ordering", () => {
     it("should return users ordered by creation date (newest first)", async () => {
-      // Create users with different creation times
+      // Create users with explicit, distinct creation times
+      const baseDate = new Date();
+      const olderDate = new Date(baseDate.getTime() - 1000); // 1 second ago
+      const newerDate = new Date(baseDate.getTime() + 1000); // 1 second in future
+
       await prisma.user.create({
         data: {
           email: "first@test.example.com",
           countryJobPositionId: testJobPositionId,
           firstName: "First",
           lastName: "User",
+          createdAt: olderDate,
+          updatedAt: olderDate,
         },
       });
-
-      // Small delay to ensure different timestamps
-      await new Promise((resolve) => setTimeout(resolve, 10));
 
       await prisma.user.create({
         data: {
@@ -114,6 +117,8 @@ describe("GET /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Second",
           lastName: "User",
+          createdAt: newerDate,
+          updatedAt: newerDate,
         },
       });
 
