@@ -19,6 +19,7 @@ import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
 import { useBusinessProfilingNavigation } from "./hooks/useBusinessProfilingNavigation";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { useSnackbar } from "notistack";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -119,15 +120,28 @@ export const BusinessProfilingScreen: FC = () => {
           title: "Simulador de Inventario Organizacional",
         }}
         footerProps={{
-          backButtonProps: {
-            onClick: goBack,
-          },
-          nextButtonProps: {
-            type: "submit",
-            form: "business-profiling-form",
-            loading: isSubmitting || isInventoryLoading,
-            disabled: isFormDisabled,
-          },
+          buttons: [
+            {
+              text: "Volver",
+              align: "right",
+              buttonProps: {
+                startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+                onClick: goBack,
+              },
+            },
+            {
+              text: "Siguiente",
+              align: "right",
+              buttonProps: {
+                endIcon: <ArrowRightAltRounded />,
+                variant: "contained",
+                type: "submit",
+                form: "business-profiling-form",
+                loading: isSubmitting || isInventoryLoading,
+                disabled: isFormDisabled,
+              },
+            },
+          ],
         }}
         isLoading={isInventoryLoading}
         hasError={hasInventoryError}
