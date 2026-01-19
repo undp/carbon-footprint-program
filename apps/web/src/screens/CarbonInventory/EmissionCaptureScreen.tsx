@@ -41,16 +41,18 @@ export const EmissionCaptureScreen: FC = () => {
 
   // Form setup
   const methods = useEmissionCaptureForm({ data });
-  const { handleSubmit } = methods;
+  const { handleSubmit, formState } = methods;
 
   const { submit, isSubmitting } = useEmissionCaptureSubmit({
     inventoryId,
     onSuccess: goNext,
+    isDirty: formState.isDirty,
   });
 
   const { submit: submitAndNavigate, isSubmitting: isSubmitting2 } =
     useEmissionCaptureSubmit({
       inventoryId,
+      isDirty: formState.isDirty,
     });
 
   const selectedCategoryData = useMemo(
