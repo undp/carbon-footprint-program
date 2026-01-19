@@ -7,6 +7,7 @@ import { mapLinesToRequest } from "../utils/emissionCaptureTransformers";
 interface Params {
   inventoryId: string;
   onSuccess?: () => void;
+  isDirty?: boolean;
 }
 
 interface HookResult {
@@ -17,6 +18,7 @@ interface HookResult {
 export const useEmissionCaptureSubmit = ({
   inventoryId,
   onSuccess,
+  isDirty,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const updateCarbonInventoryLinesMutation =
@@ -32,6 +34,14 @@ export const useEmissionCaptureSubmit = ({
               variant: "error",
             }
           );
+          return;
+        }
+
+        if (!isDirty) {
+          enqueueSnackbar("No hay cambios para guardar", {
+            variant: "info",
+          });
+          onSuccess?.();
           return;
         }
 
@@ -74,6 +84,7 @@ export const useEmissionCaptureSubmit = ({
     },
     [
       inventoryId,
+      isDirty,
       enqueueSnackbar,
       updateCarbonInventoryLinesMutation,
       onSuccess,
