@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useFormContext, useWatch } from "react-hook-form";
+import { useFormContext } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
@@ -70,19 +70,22 @@ export const useEmissionEditorForm = ({
   const startAction = useEmissionCaptureState((state) => state.startAction);
   const endAction = useEmissionCaptureState((state) => state.endAction);
 
-  const [isTotalManualEmissionsModeLoading, setIsTotalManualEmissionsModeLoading] =
-    useState(false);
+  const [
+    isTotalManualEmissionsModeLoading,
+    setIsTotalManualEmissionsModeLoading,
+  ] = useState(false);
 
   const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
     useState<boolean | null>(null);
 
   const { setValue, getValues } = useFormContext<EmissionCaptureFormValues>();
 
-
   const rows = initialLines;
 
   const isTotalManualEmissionsMode = useMemo(() => {
-    return isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode;
+    return (
+      isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode
+    );
   }, [isLocalTotalManualEmissionsMode, subcategory.isTotalManualEmissionsMode]);
 
   // Form actions
