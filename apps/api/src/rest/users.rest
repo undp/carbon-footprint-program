@@ -1,0 +1,106 @@
+@baseUrl = http://localhost:8080
+
+### Create User
+POST {{baseUrl}}/api/users HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "john.doe@example.com",
+    "firstName": "John",
+    "lastName": "Doe",
+    "countryJobPositionId": "1",
+    "idpUserId": "auth0|123456789",
+    "idpName": "auth0"
+}
+
+
+### Get All Users
+GET {{baseUrl}}/api/users HTTP/1.1
+
+
+### Get User by ID
+GET {{baseUrl}}/api/users/1 HTTP/1.1
+
+
+### Update User - Update Email
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "newemail@example.com"
+}
+
+
+### Update User - Update Job Position
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "countryJobPositionId": "3"
+}
+
+
+### Update User - Update Names
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "firstName": "Don",
+    "lastName": "Joe"
+}
+
+
+### Update User - Update IDP User ID
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpUserId": "auth0|987654321"
+}
+
+
+### Update User - Update IDP Name
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpName": "azure-ad"
+}
+
+
+### Update User - Update IDP Fields
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpUserId": "auth0|111222333",
+    "idpName": "auth0"
+}
+
+
+### Update User - Update All Fields
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "email": "updated@example.com",
+    "countryJobPositionId": "2",
+    "firstName": "Updated",
+    "lastName": "User",
+    "idpUserId": "auth0|999888777",
+    "idpName": "auth0"
+}
+
+
+### Delete User
+DELETE {{baseUrl}}/api/users/1 HTTP/1.1
+
+
+### Get or Create Me - Find by idpUserId or email
+POST {{baseUrl}}/api/users/me HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpUserId": "auth0|123456789",
+    "email": "john.doe@example.com"
+}

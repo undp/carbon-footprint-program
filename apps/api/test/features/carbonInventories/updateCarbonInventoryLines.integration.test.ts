@@ -19,9 +19,10 @@ import {
 import type { UpdateCarbonInventoryLinesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type {
-  NotFoundErrorResponse,
-  ValidationErrorResponse,
+import {
+  VALIDATION_ERROR_CODE,
+  type NotFoundErrorResponse,
+  type ValidationErrorResponse,
 } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import { Prisma } from "@repo/database";
@@ -892,6 +893,7 @@ describe("PATCH /api/carbon-inventories/:id/lines - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toContain("Duplicate line IDs");
     });
   });

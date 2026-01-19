@@ -1,0 +1,48 @@
+import createError from "@fastify/error";
+import { Prisma } from "@repo/database";
+
+export const EmailAlreadyInUseError = createError(
+  "EMAIL_ALREADY_IN_USE",
+  "Email already in use",
+  409
+);
+
+export const IdpUserIdAlreadyInUseError = createError(
+  "IDP_USER_ID_ALREADY_IN_USE",
+  "Idp user ID already in use",
+  409
+);
+
+export const InvalidCountryJobPositionIdError = createError(
+  "INVALID_COUNTRY_JOB_POSITION_ID",
+  "Invalid countryJobPositionId: the provided reference does not exist",
+  400
+);
+
+/**
+ * Extracts the duplicated field names from a Prisma P2002 (unique constraint violation) error.
+ * Handles both standard Prisma error format and driver adapter error format.
+ *
+ * @param error - The Prisma error with code P2002
+ * @returns An array of field names that caused the unique constraint violation
+ */
+export const getDuplicatedFieldsFromP2002Error = (
+  error: Prisma.PrismaClientKnownRequestError
+): string[] => {
+  if (error.code !== "P2002") {
+    return [];
+  }
+
+  // Check standard Prisma error format (uses Prisma field names)
+  const constraintFields = error.meta?.target as string[] | undefined;
+
+  // Check driver adapter error format (uses database column names)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+  const driverAdapterFields = (error.meta?.driverAdapterError as any)?.cause?.constraint
+    ?.fields as string[] | undefined;
+
+  // Combine both sources and remove duplicates
+  const allFields = [...(constraintFields || []), ...(driverAdapterFields || [])];
+  return [...new Set(allFields)];
+};
+

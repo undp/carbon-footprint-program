@@ -120,8 +120,10 @@ CREATE TABLE "system_role" (
 CREATE TABLE "user" (
     "id" BIGSERIAL NOT NULL,
     "uuid" UUID NOT NULL,
-    "email" TEXT NOT NULL,
-    "country_job_position_id" BIGINT NOT NULL,
+    "idp_name" TEXT,
+    "idp_user_id" TEXT,
+    "email" TEXT,
+    "country_job_position_id" BIGINT,
     "first_name" TEXT,
     "last_name" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -181,6 +183,9 @@ CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_uuid_key" ON "user"("uuid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "user_idp_user_id_key" ON "user"("idp_user_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_email_key" ON "user"("email");
@@ -243,7 +248,7 @@ ALTER TABLE "user" ADD CONSTRAINT "user_created_by_id_fkey" FOREIGN KEY ("create
 ALTER TABLE "user" ADD CONSTRAINT "user_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "user" ADD CONSTRAINT "user_country_job_position_id_fkey" FOREIGN KEY ("country_job_position_id") REFERENCES "country_job_position"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "user" ADD CONSTRAINT "user_country_job_position_id_fkey" FOREIGN KEY ("country_job_position_id") REFERENCES "country_job_position"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "rate_measurement_unit" ADD CONSTRAINT "rate_measurement_unit_numerator_measurement_unit_id_fkey" FOREIGN KEY ("numerator_measurement_unit_id") REFERENCES "measurement_unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

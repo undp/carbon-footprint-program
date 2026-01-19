@@ -164,8 +164,10 @@ model SystemRole {
 model User {
   id                                   BigInt                         @id @default(autoincrement())
   uuid                                 String                         @unique @default(uuid()) @db.Uuid
-  email                                String                         @unique
-  countryJobPositionId                 BigInt                         @map("country_job_position_id")
+  idpUserId                            String?                        @unique @map("idp_user_id")
+  idpName                              String?                        @map("idp_name")
+  email                                String?                        @unique
+  countryJobPositionId                 BigInt?                        @map("country_job_position_id")
   firstName                            String?                        @map("first_name")
   lastName                             String?                        @map("last_name")
   createdAt                            DateTime                       @default(now()) @map("created_at")
@@ -204,7 +206,7 @@ model User {
   carbonInventoryLineFactorsUpdated    CarbonInventoryLineFactor[]    @relation("carbon_inventory_line_factor_updated_by")
   carbonInventoryLineResultsCreated    CarbonInventoryLineResult[]    @relation("carbon_inventory_line_result_created_by")
   carbonInventoryLineResultsUpdated    CarbonInventoryLineResult[]    @relation("carbon_inventory_line_result_updated_by")
-  countryJobPosition                   CountryJobPosition             @relation(fields: [countryJobPositionId], references: [id])
+  countryJobPosition                   CountryJobPosition?            @relation(fields: [countryJobPositionId], references: [id])
   creator                              User?                          @relation("user_created_by", fields: [createdById], references: [id])
   usersCreated                         User[]                         @relation("user_created_by")
   updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id])

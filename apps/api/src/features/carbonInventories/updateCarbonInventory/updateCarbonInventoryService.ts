@@ -11,15 +11,6 @@ export const updateCarbonInventoryService = async (
   id: string,
   data: UpdateCarbonInventoryRequest
 ): Promise<UpdateCarbonInventoryResponse | null> => {
-  // Check if the inventory exists
-  const existingInventory = await prismaClient.carbonInventory.findUnique({
-    where: { id: BigInt(id) },
-  });
-
-  if (!existingInventory) {
-    return null;
-  }
-
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.CarbonInventoryUncheckedUpdateInput = {};
 
@@ -69,10 +60,19 @@ export const updateCarbonInventoryService = async (
     updateData.updatedById = null;
   }
 
-  const item = await prismaClient.carbonInventory.update({
-    where: { id: BigInt(id) },
-    data: updateData,
-  });
-
-  return mapCarbonInventoryToResponse(item);
+  try {
+    const item = await prismaClient.carbonInventory.update({
+      where: { id: BigInt(id) },
+      data: updateData,
+    });
+    return mapCarbonInventoryToResponse(item);
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        // Record not found
+        return null;
+      }
+    }
+    throw error;
+  }
 };

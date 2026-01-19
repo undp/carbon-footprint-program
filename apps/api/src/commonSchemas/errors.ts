@@ -1,7 +1,12 @@
 import { z } from "zod";
 
+// TODO: improve the app error handling. For example, all these schemas are the same.
+
+export const VALIDATION_ERROR_CODE = "FST_ERR_VALIDATION";
+
 export const ValidationErrorResponseSchema = z
   .object({
+    code: z.string().describe("Error code"),
     message: z.string().describe("Validation error message"),
   })
   .describe("Validation error response");

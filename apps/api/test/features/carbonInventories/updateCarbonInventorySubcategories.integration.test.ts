@@ -21,10 +21,11 @@ import {
 import type { UpdateCarbonInventorySubcategoriesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type {
-  NotFoundErrorResponse,
-  StructuredErrorResponse,
-  ValidationErrorResponse,
+import {
+  VALIDATION_ERROR_CODE,
+  type NotFoundErrorResponse,
+  type StructuredErrorResponse,
+  type ValidationErrorResponse,
 } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
@@ -824,6 +825,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toContain("Duplicate subcategory IDs");
     });
 
