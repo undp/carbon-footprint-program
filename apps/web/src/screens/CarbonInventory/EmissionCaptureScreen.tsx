@@ -15,6 +15,7 @@ import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -55,10 +56,13 @@ export const EmissionCaptureScreen: FC = () => {
   // Calculate total emissions for the selected category based on subcategory totals in store
   const categoryEmissions = useMemo(() => {
     if (!selectedCategoryData) return 0;
-    const total = selectedCategoryData.subcategories.reduce((acc, subcategory) => {
-      const subcatTotal = subcategoryTotals[subcategory.id] || 0;
-      return acc + subcatTotal;
-    }, 0);
+    const total = selectedCategoryData.subcategories.reduce(
+      (acc, subcategory) => {
+        const subcatTotal = subcategoryTotals[subcategory.id] || 0;
+        return acc + subcatTotal;
+      },
+      0
+    );
     return total;
   }, [selectedCategoryData, subcategoryTotals]);
 
@@ -82,15 +86,28 @@ export const EmissionCaptureScreen: FC = () => {
             title: "Simulador de Inventario Organizacional",
           }}
           footerProps={{
-            backButtonProps: {
-              onClick: goBack,
-            },
-            nextButtonProps: {
-              type: "submit",
-              form: "emission-capture-form",
-              loading: isSubmitting,
-              disabled: isSubmitting || isBusy,
-            },
+            buttons: [
+              {
+                text: "Volver",
+                align: "right",
+                buttonProps: {
+                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+                  onClick: goBack,
+                },
+              },
+              {
+                text: "Siguiente",
+                align: "right",
+                buttonProps: {
+                  endIcon: <ArrowRightAltRounded />,
+                  variant: "contained",
+                  type: "submit",
+                  form: "emission-capture-form",
+                  loading: isSubmitting,
+                  disabled: isSubmitting || isBusy,
+                },
+              },
+            ],
           }}
           isLoading={isLoading}
         >

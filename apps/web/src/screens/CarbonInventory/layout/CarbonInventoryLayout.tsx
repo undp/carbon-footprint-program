@@ -8,7 +8,6 @@ import {
   Typography,
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
-import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces/routes";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/contexts";
@@ -43,20 +42,23 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
 };
 
 interface CarbonInventoryFooterProps {
-  backText?: string;
-  nextText?: string;
-  showBack?: boolean;
-  backButtonProps?: Partial<ButtonProps>;
-  nextButtonProps?: Partial<ButtonProps>;
+  buttons?: {
+    align: "left" | "right";
+    text: string;
+    buttonProps: Partial<ButtonProps>;
+  }[];
 }
 
 export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
-  backText = "Volver",
-  nextText = "Siguiente",
-  showBack = true,
-  backButtonProps = {},
-  nextButtonProps = {},
+  buttons = [],
 }) => {
+  const leftAlignedButtons = buttons.filter(
+    (button) => button.align === "left"
+  );
+  const rightAlignedButtons = buttons.filter(
+    (button) => button.align === "right"
+  );
+
   return (
     <AppBar
       position="sticky"
@@ -65,25 +67,22 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
       className="top-auto bottom-0"
     >
       <Toolbar
-        className="flex h-20 flex-row items-center justify-end gap-6 bg-white px-4 py-4"
+        className="flex h-20 flex-row items-center justify-between gap-6 bg-white px-4 py-4"
         sx={{ boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)" }}
       >
         <Box className="flex flex-row gap-6">
-          {showBack && (
-            <Button
-              startIcon={<ArrowRightAltRounded className="-scale-x-100" />}
-              {...backButtonProps}
-            >
-              {backText}
+          {leftAlignedButtons.map(({ text, buttonProps }, index) => (
+            <Button {...buttonProps} key={index}>
+              {text}
             </Button>
-          )}
-          <Button
-            variant="contained"
-            endIcon={<ArrowRightAltRounded />}
-            {...nextButtonProps}
-          >
-            {nextText}
-          </Button>
+          ))}
+        </Box>
+        <Box className="flex flex-row gap-6">
+          {rightAlignedButtons.map(({ text, buttonProps }, index) => (
+            <Button {...buttonProps} key={index}>
+              {text}
+            </Button>
+          ))}
         </Box>
       </Toolbar>
     </AppBar>
