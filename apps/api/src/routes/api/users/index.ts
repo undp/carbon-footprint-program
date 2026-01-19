@@ -4,6 +4,7 @@ import { getAllUsersRoute } from "@/features/users/getAllUsers/getAllUsersRoute.
 import { getUserByIdRoute } from "@/features/users/getUserById/getUserByIdRoute.js";
 import { updateUserRoute } from "@/features/users/updateUser/updateUserRoute.js";
 import { deleteUserRoute } from "@/features/users/deleteUser/deleteUserRoute.js";
+import { getOrCreateMeRoute } from "@/features/users/getOrCreateMe/getOrCreateMeRoute.js";
 
 export default function usersRoutes(fastify: FastifyZodInstance) {
   createUserRoute(fastify);
@@ -11,4 +12,5 @@ export default function usersRoutes(fastify: FastifyZodInstance) {
   getUserByIdRoute(fastify);
   updateUserRoute(fastify);
   deleteUserRoute(fastify);
+  getOrCreateMeRoute(fastify);
 }
