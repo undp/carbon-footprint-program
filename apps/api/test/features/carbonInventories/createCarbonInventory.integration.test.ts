@@ -13,9 +13,10 @@ import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.
 import type { CreateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type {
-  ValidationErrorResponse,
-  StructuredErrorResponse,
+import {
+  type ValidationErrorResponse,
+  type StructuredErrorResponse,
+  VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
 
 describe("POST /api/carbon-inventories - Integration Tests", () => {
@@ -163,6 +164,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
       expect(body.message).toContain("usageMode");
     });
@@ -178,6 +180,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
     });
 

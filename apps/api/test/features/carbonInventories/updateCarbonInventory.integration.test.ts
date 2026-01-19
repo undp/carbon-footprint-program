@@ -16,7 +16,7 @@ import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.
 import type { UpdateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type { ValidationErrorResponse } from "@/commonSchemas/errors.js";
+import { VALIDATION_ERROR_CODE, type ValidationErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -343,6 +343,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
     });
 
@@ -361,6 +362,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
     });
 
@@ -462,6 +464,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ValidationErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toBeTruthy();
     });
 
