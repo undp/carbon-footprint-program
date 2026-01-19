@@ -4,6 +4,10 @@ import {
   GetOrCreateMeBodySchema,
   GetOrCreateMeResponseSchema,
 } from "@repo/types";
+import {
+  ValidationErrorResponseSchema,
+  ErrorResponseSchema,
+} from "@/commonSchemas/errors.js";
 
 export const getOrCreateMeRoute = (fastify: FastifyZodInstance) => {
   fastify.post(
@@ -17,6 +21,8 @@ export const getOrCreateMeRoute = (fastify: FastifyZodInstance) => {
         body: GetOrCreateMeBodySchema,
         response: {
           200: GetOrCreateMeResponseSchema,
+          400: ValidationErrorResponseSchema,
+          500: ErrorResponseSchema,
         },
       },
     },
