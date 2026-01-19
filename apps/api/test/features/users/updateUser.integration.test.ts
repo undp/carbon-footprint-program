@@ -442,7 +442,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as { code: string; message: string };
       expect(body.code).toBe("EMAIL_ALREADY_IN_USE");
       expect(body.message).toBe("Email already in use");
