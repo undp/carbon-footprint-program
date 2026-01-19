@@ -59,7 +59,7 @@ export const useEmissionCaptureSubmit = ({
           data: requestData,
         });
 
-        enqueueSnackbar("Líneas de emisión guardadas exitosamente", {
+        enqueueSnackbar("Inventario guardado exitosamente", {
           variant: "success",
         });
 
@@ -67,7 +67,7 @@ export const useEmissionCaptureSubmit = ({
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Error al guardar las líneas de emisión:", error);
-        enqueueSnackbar("Error al guardar las líneas de emisión", {
+        enqueueSnackbar("Error al guardar el inventario", {
           variant: "error",
         });
       }
