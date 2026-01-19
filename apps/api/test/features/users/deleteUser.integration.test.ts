@@ -54,6 +54,8 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "ToDelete",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -74,6 +76,8 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Remove",
           lastName: "FromDB",
+          idpUserId: "idp-user-456",
+          idpName: "okta",
         },
       });
 
@@ -104,6 +108,8 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "User",
           lastName: "One",
+          idpUserId: "idp-user-789",
+          idpName: "auth0",
         },
       });
 
@@ -113,6 +119,8 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "User",
           lastName: "Two",
+          idpUserId: "idp-user-101",
+          idpName: "azure-ad",
         },
       });
 
@@ -157,6 +165,8 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Delete",
           lastName: "Twice",
+          idpUserId: "idp-user-202",
+          idpName: "okta",
         },
       });
 

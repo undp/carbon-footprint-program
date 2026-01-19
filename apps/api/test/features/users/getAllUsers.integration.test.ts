@@ -66,6 +66,8 @@ describe("GET /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -84,6 +86,8 @@ describe("GET /api/users - Integration Tests", () => {
       expect(testUser!.id).toBeTruthy();
       expect(testUser!.uuid).toBeTruthy();
       expect(testUser!.countryJobPositionId).toBe(testJobPositionId.toString());
+      expect(testUser!.idpUserId).toBe("idp-user-123");
+      expect(testUser!.idpName).toBe("azure-ad");
       expect(testUser!.createdAt).toBeTruthy();
       expect(testUser!.updatedAt).toBeTruthy();
     });
@@ -162,6 +166,8 @@ describe("GET /api/users - Integration Tests", () => {
       expect(user).toHaveProperty("countryJobPositionId");
       expect(user).toHaveProperty("firstName");
       expect(user).toHaveProperty("lastName");
+      expect(user).toHaveProperty("idpUserId");
+      expect(user).toHaveProperty("idpName");
       expect(user).toHaveProperty("createdAt");
       expect(user).toHaveProperty("updatedAt");
       expect(user).toHaveProperty("createdById");
@@ -175,6 +181,8 @@ describe("GET /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: null,
           lastName: null,
+          idpUserId: null,
+          idpName: null,
         },
       });
 
@@ -190,6 +198,8 @@ describe("GET /api/users - Integration Tests", () => {
       expect(user).toBeDefined();
       expect(user!.firstName).toBeNull();
       expect(user!.lastName).toBeNull();
+      expect(user!.idpUserId).toBeNull();
+      expect(user!.idpName).toBeNull();
     });
   });
 });

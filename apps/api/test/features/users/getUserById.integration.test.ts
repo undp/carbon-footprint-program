@@ -54,6 +54,8 @@ describe("GET /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "GetById",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -71,6 +73,8 @@ describe("GET /api/users/:id - Integration Tests", () => {
       expect(body.lastName).toBe("User");
       expect(body.uuid).toBeTruthy();
       expect(body.countryJobPositionId).toBe(testJobPositionId.toString());
+      expect(body.idpUserId).toBe("idp-user-123");
+      expect(body.idpName).toBe("azure-ad");
     });
 
     it("should return user with all fields", async () => {
@@ -98,6 +102,8 @@ describe("GET /api/users/:id - Integration Tests", () => {
       expect(body).toHaveProperty("countryJobPositionId");
       expect(body).toHaveProperty("firstName");
       expect(body).toHaveProperty("lastName");
+      expect(body).toHaveProperty("idpUserId");
+      expect(body).toHaveProperty("idpName");
       expect(body).toHaveProperty("createdAt");
       expect(body).toHaveProperty("updatedAt");
       expect(body).toHaveProperty("createdById");
@@ -111,6 +117,8 @@ describe("GET /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: null,
           lastName: null,
+          idpUserId: null,
+          idpName: null,
         },
       });
 
@@ -124,6 +132,8 @@ describe("GET /api/users/:id - Integration Tests", () => {
 
       expect(body.firstName).toBeNull();
       expect(body.lastName).toBeNull();
+      expect(body.idpUserId).toBeNull();
+      expect(body.idpName).toBeNull();
       expect(body.createdById).toBeNull();
       expect(body.updatedById).toBeNull();
     });

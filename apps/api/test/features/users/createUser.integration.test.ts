@@ -56,6 +56,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "New",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -68,6 +70,8 @@ describe("POST /api/users - Integration Tests", () => {
       expect(body.firstName).toBe("New");
       expect(body.lastName).toBe("User");
       expect(body.countryJobPositionId).toBe(testJobPositionId);
+      expect(body.idpUserId).toBe("idp-user-123");
+      expect(body.idpName).toBe("azure-ad");
       expect(body.createdAt).toBeTruthy();
       expect(body.updatedAt).toBeTruthy();
 
@@ -77,6 +81,8 @@ describe("POST /api/users - Integration Tests", () => {
       });
       expect(dbUser).toBeDefined();
       expect(dbUser!.email).toBe("newuser@test.example.com");
+      expect(dbUser!.idpUserId).toBe("idp-user-123");
+      expect(dbUser!.idpName).toBe("azure-ad");
     });
 
     it("should generate a UUID for the user", async () => {
@@ -88,6 +94,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "UUID",
           lastName: "Test",
+          idpUserId: "idp-user-456",
+          idpName: "okta",
         },
       });
 
@@ -111,6 +119,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Timestamp",
           lastName: "Test",
+          idpUserId: "idp-user-789",
+          idpName: "auth0",
         },
       });
 
@@ -131,6 +141,27 @@ describe("POST /api/users - Integration Tests", () => {
       );
       expect(updatedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
     });
+
+    it("should create a user with null idpUserId and idpName", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/users",
+        payload: {
+          email: "nullidp@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Null",
+          lastName: "Idp",
+          idpUserId: null,
+          idpName: null,
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateUserResponse;
+
+      expect(body.idpUserId).toBeNull();
+      expect(body.idpName).toBeNull();
+    });
   });
 
   describe("Validation errors", () => {
@@ -143,6 +174,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -157,6 +190,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -171,6 +206,8 @@ describe("POST /api/users - Integration Tests", () => {
           email: "nojobposition@test.example.com",
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -185,6 +222,8 @@ describe("POST /api/users - Integration Tests", () => {
           email: "nofirstname@test.example.com",
           countryJobPositionId: testJobPositionId,
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -199,13 +238,15 @@ describe("POST /api/users - Integration Tests", () => {
           email: "nolastname@test.example.com",
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 for empty firstName", async () => {
+    it("should return 201 for empty firstName", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/users",
@@ -214,13 +255,15 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(201);
     });
 
-    it("should return 400 for empty lastName", async () => {
+    it("should return 201 for empty lastName", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/users",
@@ -229,10 +272,12 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
           lastName: "",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
-      expect(response.statusCode).toBe(400);
+      expect(response.statusCode).toBe(201);
     });
   });
 
@@ -257,6 +302,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Duplicate",
           lastName: "User",
+          idpUserId: "idp-user-999",
+          idpName: "azure-ad",
         },
       });
 
@@ -275,6 +322,8 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: "999999",
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 

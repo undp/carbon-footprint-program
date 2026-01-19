@@ -58,6 +58,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Original",
           lastName: "User",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
         },
       });
 
@@ -84,6 +86,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Original",
           lastName: "Name",
+          idpUserId: "idp-user-456",
+          idpName: "okta",
         },
       });
 
@@ -110,6 +114,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Original",
           lastName: "Name",
+          idpUserId: "idp-user-789",
+          idpName: "auth0",
         },
       });
 
@@ -135,6 +141,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Job",
           lastName: "Update",
+          idpUserId: "idp-user-101",
+          idpName: "azure-ad",
         },
       });
 
@@ -152,6 +160,116 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
       expect(body.countryJobPositionId).toBe(secondJobPositionId.toString());
     });
 
+    it("should update user idpUserId", async () => {
+      const createdUser = await prisma.user.create({
+        data: {
+          email: "updateidpuser@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Idp",
+          lastName: "User",
+          idpUserId: "original-idp-user",
+          idpName: "azure-ad",
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${createdUser.id}`,
+        payload: {
+          idpUserId: "updated-idp-user",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateUserResponse;
+
+      expect(body.idpUserId).toBe("updated-idp-user");
+      expect(body.idpName).toBe("azure-ad"); // Unchanged
+    });
+
+    it("should update user idpName", async () => {
+      const createdUser = await prisma.user.create({
+        data: {
+          email: "updateidpname@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Idp",
+          lastName: "Name",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${createdUser.id}`,
+        payload: {
+          idpName: "okta",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateUserResponse;
+
+      expect(body.idpName).toBe("okta");
+      expect(body.idpUserId).toBe("idp-user-123"); // Unchanged
+    });
+
+    it("should update idpUserId and idpName together", async () => {
+      const createdUser = await prisma.user.create({
+        data: {
+          email: "updatebothidp@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Both",
+          lastName: "Idp",
+          idpUserId: "original-idp-user",
+          idpName: "azure-ad",
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${createdUser.id}`,
+        payload: {
+          idpUserId: "new-idp-user",
+          idpName: "auth0",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateUserResponse;
+
+      expect(body.idpUserId).toBe("new-idp-user");
+      expect(body.idpName).toBe("auth0");
+    });
+
+    it("should set idpUserId and idpName to null", async () => {
+      const createdUser = await prisma.user.create({
+        data: {
+          email: "nullidp@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Null",
+          lastName: "Idp",
+          idpUserId: "idp-user-123",
+          idpName: "azure-ad",
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${createdUser.id}`,
+        payload: {
+          idpUserId: null,
+          idpName: null,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateUserResponse;
+
+      expect(body.idpUserId).toBeNull();
+      expect(body.idpName).toBeNull();
+    });
+
     it("should update all fields at once", async () => {
       const createdUser = await prisma.user.create({
         data: {
@@ -159,6 +277,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Original",
           lastName: "User",
+          idpUserId: "original-idp-user",
+          idpName: "azure-ad",
         },
       });
 
@@ -170,6 +290,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: secondJobPositionId.toString(),
           firstName: "Fully",
           lastName: "Updated",
+          idpUserId: "updated-idp-user",
+          idpName: "okta",
         },
       });
 
@@ -180,6 +302,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
       expect(body.countryJobPositionId).toBe(secondJobPositionId.toString());
       expect(body.firstName).toBe("Fully");
       expect(body.lastName).toBe("Updated");
+      expect(body.idpUserId).toBe("updated-idp-user");
+      expect(body.idpName).toBe("okta");
     });
 
     it("should update updatedAt timestamp", async () => {
@@ -189,6 +313,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Timestamp",
           lastName: "Test",
+          idpUserId: "idp-user-202",
+          idpName: "auth0",
         },
       });
 
@@ -243,6 +369,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-303",
+          idpName: "azure-ad",
         },
       });
 
@@ -264,6 +392,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Test",
           lastName: "User",
+          idpUserId: "idp-user-404",
+          idpName: "okta",
         },
       });
 
@@ -287,6 +417,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "No",
           lastName: "Change",
+          idpUserId: "idp-user-505",
+          idpName: "auth0",
         },
       });
 
