@@ -2,6 +2,11 @@ import type { PrismaClient } from "@repo/database";
 import type { GetOrCreateMeBody, GetOrCreateMeResponse } from "@repo/types";
 import { mapUserToResponse } from "../mappers.js";
 
+/**
+ * TODO: Creation of anonymous users is not yet implemented.
+ * Currently, this function only performs a lookup and returns null when no user exists.
+ * In the future, this should create an anonymous user or session when a user is not found.
+ */
 export const getOrCreateMeService = async (
   prismaClient: PrismaClient,
   data: GetOrCreateMeBody
