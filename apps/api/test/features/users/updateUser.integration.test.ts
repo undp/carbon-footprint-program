@@ -318,8 +318,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         },
       });
 
-      const beforeUpdate = new Date();
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Use the user's existing updatedAt timestamp (same as createdAt on creation)
+      const beforeUpdate = createdUser.updatedAt;
 
       const response = await app.inject({
         method: "PATCH",
