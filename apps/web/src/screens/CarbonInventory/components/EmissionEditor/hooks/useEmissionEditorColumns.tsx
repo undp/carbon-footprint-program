@@ -60,7 +60,10 @@ export const useEmissionEditorColumns = ({
         ? [
             {
               field: `dimensionValue1Id`,
-              headerName: firstDimension?.name || "Dimensión 1",
+              headerName: firstDimension
+                ? firstDimension.name +
+                  (!firstDimension?.isRequired ? " (opcional)" : "")
+                : "Dimensión 1",
               minWidth: 157,
               flex: 1,
               cellClassName: "content-center max-h-[56px]",
@@ -85,7 +88,10 @@ export const useEmissionEditorColumns = ({
         ? [
             {
               field: `dimensionValue2Id`,
-              headerName: secondDimension?.name || "Dimensión 2",
+              headerName: secondDimension
+                ? secondDimension.name +
+                  (!secondDimension?.isRequired ? " (opcional)" : "")
+                : "Dimensión 2",
               minWidth: 157,
               flex: 1,
               cellClassName: "content-center max-h-[56px]",
