@@ -4,9 +4,7 @@ import {
   DeleteUserParamsSchema,
   DeleteUserResponseSchema,
 } from "@repo/types";
-import {
-  NotFoundErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const deleteUserRoute = (fastify: FastifyZodInstance) => {
   fastify.delete(
