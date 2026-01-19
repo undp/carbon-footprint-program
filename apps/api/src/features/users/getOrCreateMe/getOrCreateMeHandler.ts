@@ -10,13 +10,20 @@ export const getOrCreateMeHandler = async (
   log.info({ idpUserId: request.body.idpUserId }, "Finding user by idpUserId or email...");
 
   const prisma = request.server.prisma;
-  const user = await getOrCreateMeService(prisma, request.body);
+  try {
+    const user = await getOrCreateMeService(prisma, request.body);
 
-  if (!user) {
-    log.info("User not found, returning null");
-    return reply.status(200).send(null);
+    if (!user) {
+      log.info("User not found, returning null");
+      return reply.status(200).send(null);
+    }
+
+    log.info({ userId: user.id }, "User found and retrieved successfully");
+    return reply.status(200).send(user);
+  } catch (error) {
+    log.error({ error, idpUserId: request.body.idpUserId }, "Failed to get or create user");
+    return reply.status(500).send({
+      error: "Failed to get or create user",
+    });
   }
-
-  log.info({ userId: user.id }, "User found and retrieved successfully");
-  return reply.status(200).send(user);
 };

@@ -36,6 +36,22 @@ export const updateUserHandler = async (
         });
       }
     }
-    throw error;
+    // Handle Fastify errors (created with createError)
+    if (error && typeof error === "object" && "code" in error) {
+      if (error.code === "INVALID_COUNTRY_JOB_POSITION_ID") {
+        log.warn(
+          { userId: request.params.id, countryJobPositionId: request.body.countryJobPositionId },
+          "Invalid countryJobPositionId"
+        );
+        return reply.status(400).send({
+          code: "INVALID_COUNTRY_JOB_POSITION_ID",
+          message: "Invalid countryJobPositionId",
+        });
+      }
+    }
+    log.error({ error, userId: request.params.id }, "Failed to update user");
+    return reply.status(500).send({
+      error: "Failed to update user",
+    });
   }
 };

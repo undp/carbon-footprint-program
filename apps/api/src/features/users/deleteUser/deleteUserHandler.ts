@@ -10,19 +10,26 @@ export const deleteUserHandler = async (
   log.info({ userId: request.params.id }, "Deleting user...");
 
   const prisma = request.server.prisma;
-  const deleted = await deleteUserService(prisma, request.params.id);
+  try {
+    const deleted = await deleteUserService(prisma, request.params.id);
 
-  if (!deleted) {
-    log.warn({ userId: request.params.id }, "User not found");
-    return reply.status(404).send({
-      code: "USER_NOT_FOUND",
-      message: "User not found",
+    if (!deleted) {
+      log.warn({ userId: request.params.id }, "User not found");
+      return reply.status(404).send({
+        code: "USER_NOT_FOUND",
+        message: "User not found",
+      });
+    }
+
+    log.info("User deleted successfully");
+    return reply.status(200).send({
+      message: "User deleted successfully",
+      id: request.params.id,
+    });
+  } catch (error) {
+    log.error({ error, userId: request.params.id }, "Failed to delete user");
+    return reply.status(500).send({
+      error: "Failed to delete user",
     });
   }
-
-  log.info("User deleted successfully");
-  return reply.status(200).send({
-    message: "User deleted successfully",
-    id: request.params.id,
-  });
 };

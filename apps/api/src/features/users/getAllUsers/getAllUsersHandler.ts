@@ -9,8 +9,15 @@ export const getAllUsersHandler = async (
   log.info("Getting all users...");
 
   const prisma = request.server.prisma;
-  const users = await getAllUsersService(prisma);
+  try {
+    const users = await getAllUsersService(prisma);
 
-  log.info("Users retrieved successfully");
-  return reply.status(200).send(users);
+    log.info("Users retrieved successfully");
+    return reply.status(200).send(users);
+  } catch (error) {
+    log.error({ error }, "Failed to retrieve users");
+    return reply.status(500).send({
+      error: "Failed to retrieve users",
+    });
+  }
 };
