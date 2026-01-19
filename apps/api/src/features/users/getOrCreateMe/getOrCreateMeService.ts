@@ -19,9 +19,6 @@ export const getOrCreateMeService = async (
         { email: data.email },
       ],
     },
-    include: {
-      countryJobPosition: true,
-    },
   });
 
   if (!user) {
