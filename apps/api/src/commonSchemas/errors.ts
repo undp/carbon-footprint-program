@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const ValidationErrorResponseSchema = z
   .object({
+    code: z.string().describe("Error code"),
     message: z.string().describe("Validation error message"),
   })
   .describe("Validation error response");
