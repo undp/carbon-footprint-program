@@ -7,7 +7,7 @@ export const getOrCreateMeHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "users" });
-  log.info({ body: request.body }, "Finding user by idpUserId or email...");
+  log.info({ idpUserId: request.body.idpUserId }, "Finding user by idpUserId or email...");
 
   const prisma = request.server.prisma;
   const user = await getOrCreateMeService(prisma, request.body);
