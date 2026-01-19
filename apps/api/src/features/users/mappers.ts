@@ -1,12 +1,14 @@
-import type { User } from "@repo/database";
+import {User as PrismaUser} from "@repo/database";
 import type { User as UserAtResponse } from "@repo/types";
 
-export function mapUserToResponse(user: User): UserAtResponse {
+export function mapUserToResponse(user: PrismaUser): UserAtResponse {
   return {
     id: user.id.toString(),
     uuid: user.uuid,
+    idpUserId: user.idpUserId,
+    idpName: user.idpName,
     email: user.email,
-    countryJobPositionId: user.countryJobPositionId.toString(),
+    countryJobPositionId: user.countryJobPositionId?.toString() ?? null,
     firstName: user.firstName,
     lastName: user.lastName,
     createdAt: user.createdAt.toISOString(),

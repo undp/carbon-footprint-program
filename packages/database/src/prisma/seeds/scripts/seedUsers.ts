@@ -90,7 +90,7 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
   const users = await prisma.user.findMany({
     where: {
       email: {
-        in: usersData.map((u) => u.email),
+        in: usersData.map((u) => u.email!),
       },
     },
   });

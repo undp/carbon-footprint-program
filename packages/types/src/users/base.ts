@@ -4,8 +4,18 @@ import { IdSchema } from "../zod.js";
 export const UserSchema = z.object({
   id: IdSchema.describe("The ID of the user"),
   uuid: uuid().describe("The UUID of the user"),
-  email: z.email("Invalid email address").describe("The email of the user"),
-  countryJobPositionId: IdSchema.describe("The ID of the country job position"),
+  idpUserId: z
+    .string()
+    .nullable()
+    .describe("The ID of the user in the identity provider"),
+  idpName: z.string().nullable().describe("The name of the identity provider"),
+  email: z
+    .email("Invalid email address")
+    .nullable()
+    .describe("The email of the user"),
+  countryJobPositionId: IdSchema.nullable().describe(
+    "The ID of the country job position"
+  ),
   firstName: z.string().nullable().describe("The first name of the user"),
   lastName: z.string().nullable().describe("The last name of the user"),
   createdAt: z.iso.datetime().describe("The creation date of the user"),
