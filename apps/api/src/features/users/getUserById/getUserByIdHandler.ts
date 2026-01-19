@@ -20,6 +20,6 @@ export const getUserByIdHandler = async (
     });
   }
 
-  log.info("User retrieved successfully");
+  log.info({ userId: request.params.id }, "User retrieved successfully");
   return reply.status(200).send(user);
 };
