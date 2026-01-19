@@ -4,9 +4,11 @@ export const deleteUserService = async (
   prismaClient: PrismaClient,
   id: string
 ): Promise<boolean> => {
+  const userId = BigInt(id);
+
   // Check if the user exists
   const existingUser = await prismaClient.user.findUnique({
-    where: { id: BigInt(id) },
+    where: { id: userId },
   });
 
   if (!existingUser) {
@@ -15,7 +17,7 @@ export const deleteUserService = async (
 
   // Delete the user
   await prismaClient.user.delete({
-    where: { id: BigInt(id) },
+    where: { id: userId },
   });
 
   return true;
