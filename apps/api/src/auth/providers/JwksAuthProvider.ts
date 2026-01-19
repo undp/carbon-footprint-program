@@ -1,0 +1,65 @@
+/**
+ * @fileoverview JWKS Auth Provider
+ *
+ * Authenticates requests using JWT tokens validated against a JWKS endpoint.
+ * Supports any OAuth 2.0 / OpenID Connect provider that exposes JWKS.
+ *
+ * Uses the @fastify/jwt plugin (configured via jwksConfig.ts) for token
+ * validation and types from auth/types.ts for payload typing.
+ *
+ * @see https://datatracker.ietf.org/doc/html/rfc7517 - JSON Web Key (JWK) spec
+ */
+
+import type { FastifyRequest } from "fastify";
+import type { AuthProvider, AuthResult } from "../AuthProvider.js";
+import type { AuthUser, OidcTokenPayload } from "../types.js";
+
+/**
+ * JWKS-based authentication provider.
+ *
+ * Validates JWT tokens using the @fastify/jwt plugin which is configured
+ * to use a JWKS endpoint for key retrieval.
+ *
+ * Flow:
+ * 1. Calls request.jwtVerify() (provided by @fastify/jwt plugin)
+ * 2. Plugin validates token signature using JWKS, issuer, and audience
+ * 3. Payload becomes available as request.user (typed as OidcTokenPayload)
+ * 4. Maps payload to normalized AuthUser interface
+ */
+export class JwksAuthProvider implements AuthProvider {
+  readonly type = "jwks" as const;
+
+  /**
+   * Authenticate using JWT token from Authorization header.
+   * Relies on @fastify/jwt plugin for token validation.
+   */
+  async authenticate(request: FastifyRequest): Promise<AuthResult> {
+    try {
+      // Manually verify and decode the token
+      // This validates: signature (via JWKS), issuer, audience, expiration
+      // Returns the payload directly without modifying request.user
+      const payload = await request.jwtDecode<OidcTokenPayload>();
+
+      if (!payload.sub && !payload.oid) {
+        throw new Error("Token payload missing 'sub' or 'oid' claim");
+      }
+
+      if (!payload.email) {
+        throw new Error("Token payload missing 'email' claim");
+      }
+
+      // Map OidcTokenPayload to normalized AuthUser
+      const user: AuthUser = {
+        idpUserId: payload.sub || payload.oid!,
+        email: payload.email,
+        idpName: this.type,
+      };
+
+      return { success: true, user };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "JWT verification failed";
+      return { success: false, error: message };
+    }
+  }
+}
