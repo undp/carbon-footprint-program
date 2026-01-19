@@ -8,7 +8,6 @@ import {
   Typography,
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
-import { ArrowRightAltRounded } from "@mui/icons-material";
 import { BaseHeader } from "../../../components";
 
 interface CarbonInventoryHeaderProps {
