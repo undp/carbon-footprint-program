@@ -407,6 +407,75 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
     });
+
+    it("should return 400 when email already in use (P2002)", async () => {
+      // Create first user
+      await prisma.user.create({
+        data: {
+          email: "existing@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "First",
+          lastName: "User",
+          idpUserId: "idp-user-606",
+          idpName: "azure-ad",
+        },
+      });
+
+      // Create second user
+      const secondUser = await prisma.user.create({
+        data: {
+          email: "second@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Second",
+          lastName: "User",
+          idpUserId: "idp-user-707",
+          idpName: "okta",
+        },
+      });
+
+      // Try to update second user's email to first user's email
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${secondUser.id}`,
+        payload: {
+          email: "existing@test.example.com",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as { code: string; message: string };
+      expect(body.code).toBe("EMAIL_ALREADY_IN_USE");
+      expect(body.message).toBe("Email already in use");
+    });
+
+    it("should return 400 when countryJobPositionId is invalid (P2003)", async () => {
+      const createdUser = await prisma.user.create({
+        data: {
+          email: "invalidjob@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Test",
+          lastName: "User",
+          idpUserId: "idp-user-808",
+          idpName: "auth0",
+        },
+      });
+
+      // Use a non-existent job position ID (a very large number)
+      const invalidJobPositionId = "999999999999999999";
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${createdUser.id}`,
+        payload: {
+          countryJobPositionId: invalidJobPositionId,
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as { code: string; message: string };
+      expect(body.code).toBe("INVALID_COUNTRY_JOB_POSITION_ID");
+      expect(body.message).toBe("Invalid countryJobPositionId");
+    });
   });
 
   describe("Partial updates", () => {
