@@ -3,12 +3,6 @@ import type { UpdateUserBody, UpdateUserResponse } from "@repo/types";
 import createError from "@fastify/error";
 import { mapUserToResponse } from "../mappers.js";
 
-const EmailAlreadyInUseError = createError(
-  "EMAIL_ALREADY_IN_USE",
-  "Email already in use",
-  400
-);
-
 const InvalidCountryJobPositionIdError = createError(
   "INVALID_COUNTRY_JOB_POSITION_ID",
   "Invalid countryJobPositionId",
@@ -62,9 +56,7 @@ export const updateUserService = async (
         // Record not found
         return null;
       }
-      if (error.code === "P2002") {
-        throw new EmailAlreadyInUseError();
-      }
+      // P2002 (unique constraint violation) is now handled in the handler
       if (error.code === "P2003") {
         throw new InvalidCountryJobPositionIdError();
       }

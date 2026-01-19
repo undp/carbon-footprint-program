@@ -7,6 +7,7 @@ import {
 } from "@repo/types";
 import {
   NotFoundErrorResponseSchema,
+  StructuredErrorResponseSchema,
   ValidationErrorResponseSchema,
 } from "@/commonSchemas/errors.js";
 
@@ -24,6 +25,7 @@ export const updateUserRoute = (fastify: FastifyZodInstance) => {
           200: UpdateUserResponseSchema,
           400: ValidationErrorResponseSchema,
           404: NotFoundErrorResponseSchema,
+          422: StructuredErrorResponseSchema,
         },
       },
     },
