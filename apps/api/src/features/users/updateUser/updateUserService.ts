@@ -20,15 +20,6 @@ export const updateUserService = async (
   id: string,
   data: UpdateUserBody
 ): Promise<UpdateUserResponse | null> => {
-  // Check if the user exists
-  const existingUser = await prismaClient.user.findUnique({
-    where: { id: BigInt(id) },
-  });
-
-  if (!existingUser) {
-    return null;
-  }
-
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.UserUncheckedUpdateInput = {};
 
@@ -59,14 +50,18 @@ export const updateUserService = async (
   // TODO: Add updated by id from logged in user
   updateData.updatedById = null;
 
-  let updatedUser;
   try {
-    updatedUser = await prismaClient.user.update({
+    const updatedUser = await prismaClient.user.update({
       where: { id: BigInt(id) },
       data: updateData,
     });
+    return mapUserToResponse(updatedUser);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        // Record not found
+        return null;
+      }
       if (error.code === "P2002") {
         throw new EmailAlreadyInUseError();
       }
@@ -76,6 +71,4 @@ export const updateUserService = async (
     }
     throw error;
   }
-
-  return mapUserToResponse(updatedUser);
 };
