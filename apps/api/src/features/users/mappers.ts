@@ -1,4 +1,4 @@
-import {User as PrismaUser} from "@repo/database";
+import type { User as PrismaUser } from "@repo/database";
 import type { User as UserAtResponse } from "@repo/types";
 
 export function mapUserToResponse(user: PrismaUser): UserAtResponse {
