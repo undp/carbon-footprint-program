@@ -10,9 +10,6 @@ export const getUserByIdService = async (
     where: {
       id: BigInt(id),
     },
-    include: {
-      countryJobPosition: true,
-    },
   });
 
   if (!user) {
