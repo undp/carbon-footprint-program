@@ -67,6 +67,7 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as DeleteUserResponse;
       expect(body.message).toBe("User deleted successfully");
+      expect(body.id).toBe(createdUser.id.toString());
     });
 
     it("should remove user from database after deletion", async () => {

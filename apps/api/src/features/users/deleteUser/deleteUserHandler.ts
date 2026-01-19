@@ -23,5 +23,6 @@ export const deleteUserHandler = async (
   log.info("User deleted successfully");
   return reply.status(200).send({
     message: "User deleted successfully",
+    id: request.params.id,
   });
 };
