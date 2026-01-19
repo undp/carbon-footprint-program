@@ -32,8 +32,8 @@ export const createUserService = async (
       data: {
         email: data.email,
         countryJobPositionId: data.countryJobPositionId ? BigInt(data.countryJobPositionId) : null,
-        firstName: data.firstName ?? null,
-        lastName: data.lastName ?? null,
+        firstName: data.firstName,
+        lastName: data.lastName,
         idpUserId: data.idpUserId ?? null,
         idpName: data.idpName ?? null,
         createdById: null,
