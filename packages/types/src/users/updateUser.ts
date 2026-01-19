@@ -6,6 +6,8 @@ export const UpdateUserBodySchema = UserSchema.pick({
   countryJobPositionId: true,
   firstName: true,
   lastName: true,
+  idpUserId: true,
+  idpName: true,
 })
   .partial()
   .strict();

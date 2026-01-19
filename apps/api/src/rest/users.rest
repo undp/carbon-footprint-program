@@ -8,7 +8,9 @@ Content-Type: application/json
     "email": "john.doe@example.com",
     "firstName": "John",
     "lastName": "Doe",
-    "countryJobPositionId": "1"
+    "countryJobPositionId": "1",
+    "idpUserId": "auth0|123456789",
+    "idpName": "auth0"
 }
 
 
@@ -48,6 +50,34 @@ Content-Type: application/json
 }
 
 
+### Update User - Update IDP User ID
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpUserId": "auth0|987654321"
+}
+
+
+### Update User - Update IDP Name
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpName": "azure-ad"
+}
+
+
+### Update User - Update IDP Fields
+PATCH {{baseUrl}}/api/users/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "idpUserId": "auth0|111222333",
+    "idpName": "auth0"
+}
+
+
 ### Update User - Update All Fields
 PATCH {{baseUrl}}/api/users/1 HTTP/1.1
 Content-Type: application/json
@@ -56,7 +86,9 @@ Content-Type: application/json
     "email": "updated@example.com",
     "countryJobPositionId": "2",
     "firstName": "Updated",
-    "lastName": "User"
+    "lastName": "User",
+    "idpUserId": "auth0|999888777",
+    "idpName": "auth0"
 }
 
 

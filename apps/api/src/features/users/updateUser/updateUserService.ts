@@ -24,7 +24,7 @@ export const updateUserService = async (
   }
 
   if (data.countryJobPositionId !== undefined) {
-    updateData.countryJobPositionId = BigInt(data.countryJobPositionId);
+    updateData.countryJobPositionId = data.countryJobPositionId ? BigInt(data.countryJobPositionId) : null;
   }
 
   if (data.firstName !== undefined) {
@@ -33,6 +33,14 @@ export const updateUserService = async (
 
   if (data.lastName !== undefined) {
     updateData.lastName = data.lastName;
+  }
+
+  if (data.idpUserId !== undefined) {
+    updateData.idpUserId = data.idpUserId;
+  }
+
+  if (data.idpName !== undefined) {
+    updateData.idpName = data.idpName ?? null;
   }
 
   // TODO: Add updated by id from logged in user
