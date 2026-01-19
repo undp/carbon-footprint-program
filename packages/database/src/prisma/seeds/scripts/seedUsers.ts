@@ -13,8 +13,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type UserData = (Required<
-  Pick<Prisma.UserCreateInput, "email" | "firstName" | "lastName">
+  Pick<Prisma.UserCreateInput, "firstName" | "lastName">
 > & {
+  email: string;
   countryJobPositionName: Prisma.CountryJobPositionCreateInput["name"];
   countryIsoCode: Prisma.CountryCreateInput["isoCode"];
 })[];
@@ -90,7 +91,7 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
   const users = await prisma.user.findMany({
     where: {
       email: {
-        in: usersData.map((u) => u.email!),
+        in: usersData.map((u) => u.email),
       },
     },
   });
