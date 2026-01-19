@@ -18,6 +18,7 @@ export const createUserRoute = (fastify: FastifyZodInstance) => {
         response: {
           201: CreateUserResponseSchema,
           400: ValidationErrorResponseSchema,
+          409: StructuredErrorResponseSchema,
           422: StructuredErrorResponseSchema,
         },
       },

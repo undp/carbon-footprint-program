@@ -11,6 +11,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { CreateUserResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { StructuredErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("POST /api/users - Integration Tests", () => {
   let app: FastifyInstance;
@@ -307,8 +308,11 @@ describe("POST /api/users - Integration Tests", () => {
         },
       });
 
-      // Should fail with an error (500 because service throws Error)
-      expect(response.statusCode).toBe(500);
+      // Should fail with 409 Conflict
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string; message: string };
+      expect(body.code).toBe("EMAIL_ALREADY_IN_USE");
+      expect(body.message).toBe("Email already in use");
     });
   });
 
@@ -327,8 +331,12 @@ describe("POST /api/users - Integration Tests", () => {
         },
       });
 
-      // Should fail due to foreign key constraint
-      expect(response.statusCode).toBe(500);
+      // Should fail with 400 due to foreign key constraint
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      expect(body.code).toBe("INVALID_COUNTRY_JOB_POSITION_ID");
+      expect(body.message).toContain("Invalid countryJobPositionId");
+      expect(body.message).toContain("provided reference does not exist");
     });
   });
 });
