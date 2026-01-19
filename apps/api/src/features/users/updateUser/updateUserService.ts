@@ -28,7 +28,7 @@ export const updateUserService = async (
   }
 
   if (data.countryJobPositionId !== undefined) {
-    updateData.countryJobPositionId = data.countryJobPositionId ? BigInt(data.countryJobPositionId) : null;
+    updateData.countryJobPositionId = data.countryJobPositionId === null ? null : BigInt(data.countryJobPositionId);
   }
 
   if (data.firstName !== undefined) {
