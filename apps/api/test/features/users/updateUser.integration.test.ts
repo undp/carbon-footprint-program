@@ -408,7 +408,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it("should return 400 when email already in use (P2002)", async () => {
+    it("should return 409 when email already in use (P2002)", async () => {
       // Create first user
       await prisma.user.create({
         data: {
@@ -442,10 +442,50 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         },
       });
 
-      expect(response.statusCode).toBe(422);
+      expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string; message: string };
       expect(body.code).toBe("EMAIL_ALREADY_IN_USE");
       expect(body.message).toBe("Email already in use");
+    });
+
+    it("should return 409 when idpUserId already in use (P2002)", async () => {
+      // Create first user with a specific idpUserId
+      await prisma.user.create({
+        data: {
+          email: "original@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Original",
+          lastName: "User",
+          idpUserId: "idp-user-duplicate",
+          idpName: "azure-ad",
+        },
+      });
+
+      // Create second user with different idpUserId
+      const secondUser = await prisma.user.create({
+        data: {
+          email: "second@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Second",
+          lastName: "User",
+          idpUserId: "idp-user-unique",
+          idpName: "okta",
+        },
+      });
+
+      // Try to update second user's idpUserId to first user's idpUserId
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/users/${secondUser.id}`,
+        payload: {
+          idpUserId: "idp-user-duplicate",
+        },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string; message: string };
+      expect(body.code).toBe("IDP_USER_ID_ALREADY_IN_USE");
+      expect(body.message).toBe("Idp user ID already in use");
     });
 
     it("should return 400 when countryJobPositionId is invalid (P2003)", async () => {
@@ -474,7 +514,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as { code: string; message: string };
       expect(body.code).toBe("INVALID_COUNTRY_JOB_POSITION_ID");
-      expect(body.message).toBe("Invalid countryJobPositionId");
+      expect(body.message).toBe("Invalid countryJobPositionId: the provided reference does not exist");
     });
   });
 

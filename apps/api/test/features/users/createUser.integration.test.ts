@@ -314,6 +314,40 @@ describe("POST /api/users - Integration Tests", () => {
       expect(body.code).toBe("EMAIL_ALREADY_IN_USE");
       expect(body.message).toBe("Email already in use");
     });
+
+    it("should return error when idpUserId already exists", async () => {
+      // Create a user first with a specific idpUserId
+      await prisma.user.create({
+        data: {
+          email: "original@test.example.com",
+          countryJobPositionId: BigInt(testJobPositionId),
+          firstName: "Original",
+          lastName: "User",
+          idpUserId: "idp-user-duplicate",
+          idpName: "azure-ad",
+        },
+      });
+
+      // Try to create another user with the same idpUserId but different email
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/users",
+        payload: {
+          email: "different@test.example.com",
+          countryJobPositionId: testJobPositionId,
+          firstName: "Duplicate",
+          lastName: "User",
+          idpUserId: "idp-user-duplicate",
+          idpName: "okta",
+        },
+      });
+
+      // Should fail with 409 Conflict
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string; message: string };
+      expect(body.code).toBe("IDP_USER_ID_ALREADY_IN_USE");
+      expect(body.message).toBe("Idp user ID already in use");
+    });
   });
 
   describe("Foreign key constraints", () => {
@@ -335,8 +369,7 @@ describe("POST /api/users - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as StructuredErrorResponse;
       expect(body.code).toBe("INVALID_COUNTRY_JOB_POSITION_ID");
-      expect(body.message).toContain("Invalid countryJobPositionId");
-      expect(body.message).toContain("provided reference does not exist");
+      expect(body.message).toBe("Invalid countryJobPositionId: the provided reference does not exist");
     });
   });
 });

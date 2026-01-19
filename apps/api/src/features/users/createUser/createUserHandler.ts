@@ -10,15 +10,8 @@ export const createUserHandler = async (
   log.info("Creating user...");
 
   const prisma = request.server.prisma;
-  try {
     const user = await createUserService(prisma, request.body);
 
     log.info("User created successfully");
     return reply.status(201).send(user);
-  } catch (error) {
-    log.error({ error }, "Failed to create user");
-    return reply.status(500).send({
-      error: "Failed to create user",
-    });
-  }
 };
