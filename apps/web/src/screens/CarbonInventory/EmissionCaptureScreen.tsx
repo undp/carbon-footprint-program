@@ -15,7 +15,7 @@ import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
-import { ArrowRightAltRounded } from "@mui/icons-material";
+import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -47,6 +47,11 @@ export const EmissionCaptureScreen: FC = () => {
     inventoryId,
     onSuccess: goNext,
   });
+
+  const { submit: submitAndNavigate, isSubmitting: isSubmitting2 } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+    });
 
   const selectedCategoryData = useMemo(
     () => data.find((category) => category.id === selectedCategory),
@@ -93,6 +98,17 @@ export const EmissionCaptureScreen: FC = () => {
                 buttonProps: {
                   startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
                   onClick: goBack,
+                },
+              },
+              {
+                text: "Guardar",
+                align: "right",
+                buttonProps: {
+                  startIcon: <SaveRounded />,
+                  variant: "contained",
+                  onClick: handleSubmit(submitAndNavigate),
+                  loading: isSubmitting2,
+                  disabled: isSubmitting2 || isBusy,
                 },
               },
               {
