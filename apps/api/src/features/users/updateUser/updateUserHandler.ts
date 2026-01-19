@@ -23,7 +23,7 @@ export const updateUserHandler = async (
       });
     }
 
-    log.info("User updated successfully");
+    log.info({ userId: request.params.id }, "User updated successfully");
     return reply.status(200).send(user);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
