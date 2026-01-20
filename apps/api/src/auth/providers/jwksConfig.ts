@@ -5,7 +5,7 @@
  * Supports any OAuth 2.0 / OpenID Connect provider that exposes a JWKS endpoint.
  *
  * Currently configured providers (via environment variables):
- * - Azure AD / Entra External ID (default if AZURE_AD_TENANT_ID is set)
+ * - Azure AD / Entra External ID (default if AZURE_EXTERNAL_TENANT_ID is set)
  * - Any custom OIDC provider (via JWKS_URI, JWKS_ISSUER, JWKS_AUDIENCE)
  *
  * This configuration is used by:
@@ -47,7 +47,7 @@ const jwksClient = RESOLVED_JWKS_URI
 async function getSigningKey(kid?: string): Promise<string> {
   if (!jwksClient) {
     throw new Error(
-      "JWKS client not configured - check JWKS_URI or AZURE_AD_TENANT_ID"
+      "JWKS client not configured - check JWKS_URI or AZURE_EXTERNAL_TENANT_ID"
     );
   }
 
@@ -83,7 +83,7 @@ export function getJwksUri(): string | undefined {
 /**
  * FastifyJWT configuration for JWKS validation.
  *
- * When JWKS is configured (via JWKS_URI or AZURE_AD_TENANT_ID):
+ * When JWKS is configured (via JWKS_URI or AZURE_EXTERNAL_TENANT_ID):
  * - Uses dynamic secret resolution via JWKS
  * - Validates issuer and audience if configured
  *

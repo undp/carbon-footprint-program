@@ -19,13 +19,13 @@ export const DATABASE_URL = process.env.DATABASE_URL;
 
 /**
  * JWKS URI for fetching public keys.
- * Can be set directly or computed from AZURE_AD_TENANT_ID.
+ * Can be set directly or computed from AZURE_EXTERNAL_TENANT_ID.
  */
 export const JWKS_URI = process.env.JWKS_URI;
 
 /**
  * Expected token issuer (iss claim).
- * Can be set directly or computed from AZURE_AD_TENANT_ID.
+ * Can be set directly or computed from AZURE_EXTERNAL_TENANT_ID.
  */
 export const JWKS_ISSUER = process.env.JWKS_ISSUER;
 
@@ -55,7 +55,7 @@ export const JWKS_AUDIENCE = process.env.JWKS_AUDIENCE;
  * - Found in Azure Portal > Microsoft Entra ID > Overview > "Tenant ID"
  * - Format: UUID (e.g., "12345678-1234-1234-1234-123456789abc")
  */
-export const AZURE_AD_TENANT_ID = process.env.AZURE_AD_TENANT_ID;
+export const AZURE_EXTERNAL_TENANT_ID = process.env.AZURE_EXTERNAL_TENANT_ID;
 
 /**
  * Azure AD Application (Client) ID.
@@ -72,11 +72,11 @@ export const AZURE_API_CLIENT_ID = process.env.AZURE_API_CLIENT_ID;
 
 // Computed Azure AD values for Azure Entra External ID (CIAM)
 // CIAM uses ciamlogin.com instead of login.microsoftonline.com
-const AZURE_AD_ISSUER = AZURE_AD_TENANT_ID
-  ? `https://${AZURE_AD_TENANT_ID}.ciamlogin.com/${AZURE_AD_TENANT_ID}/v2.0`
+const AZURE_AD_ISSUER = AZURE_EXTERNAL_TENANT_ID
+  ? `https://${AZURE_EXTERNAL_TENANT_ID}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0`
   : undefined;
-const AZURE_AD_JWKS_URI = AZURE_AD_TENANT_ID
-  ? `https://${AZURE_AD_TENANT_ID}.ciamlogin.com/${AZURE_AD_TENANT_ID}/discovery/v2.0/keys`
+const AZURE_AD_JWKS_URI = AZURE_EXTERNAL_TENANT_ID
+  ? `https://${AZURE_EXTERNAL_TENANT_ID}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/discovery/v2.0/keys`
   : undefined;
 
 // ============================================================================
