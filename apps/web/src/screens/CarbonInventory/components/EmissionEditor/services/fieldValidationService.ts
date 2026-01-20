@@ -45,9 +45,6 @@ export const getDisabledReasonMessage = (
   dimensions: EmissionFactorDimension[]
 ): string | null => {
   if (fieldName === "factorSource") {
-    if (!isMeasurementUnitSelected(line)) {
-      return "Selecciona una unidad de medida primero";
-    }
     if (!areRequiredDimensionsFilled(line, dimensions)) {
       const missingDimensions = dimensions
         .filter((d) => {
@@ -59,6 +56,9 @@ export const getDisabledReasonMessage = (
         })
         .map((d) => d.name);
       return `Completa las dimensiones requeridas: ${missingDimensions.join(", ")}`;
+    }
+    if (!isMeasurementUnitSelected(line)) {
+      return "Selecciona una unidad de medida primero";
     }
   }
 
