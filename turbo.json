@@ -6,7 +6,10 @@
     "NODE_ENV",
     "DATABASE_URL",
     "JWT_SECRET",
-    "LOG_LEVEL"
+    "LOG_LEVEL",
+    "AZURE_AD_TENANT_ID",
+    "AZURE_AD_CLIENT_ID",
+    "AUTH_PROVIDER"
   ],
   "tasks": {
     "clean": {
