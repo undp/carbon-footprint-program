@@ -128,6 +128,31 @@ else
   az group create --name "$AZURE_RESOURCE_GROUP" --location "$LOCATION"
 fi
 
+# 4.5) Check Azure Authentication Configuration (Optional)
+log "Checking Azure authentication configuration..."
+
+# Check if Azure External ID authentication is configured
+# Support both naming conventions for tenant and client IDs
+TENANT_ID="${AZURE_EXTERNAL_TENANT_ID:-${AZURE_EXTERNAL_TENANT_ID:-}}"
+FRONTEND_CLIENT_ID="${AZURE_FRONT_CLIENT_ID:-${AZURE_FRONTEND_CLIENT_ID:-}}"
+API_CLIENT_ID="${AZURE_API_CLIENT_ID:-}"
+
+if [ -n "$TENANT_ID" ] && [ -n "$FRONTEND_CLIENT_ID" ]; then
+  log "Azure authentication enabled:"
+  log "  - Tenant ID: ${TENANT_ID:0:8}..."
+  log "  - Frontend Client ID: ${FRONTEND_CLIENT_ID:0:8}..."
+  if [ -n "$API_CLIENT_ID" ]; then
+    log "  - API Client ID: ${API_CLIENT_ID:0:8}..."
+  fi
+  ENABLE_AZURE_AUTH="true"
+else
+  log "Azure authentication not configured (optional)"
+  log "  To enable authentication, set in infra/.env:"
+  log "    - AZURE_EXTERNAL_TENANT_ID: Your External ID tenant ID (GUID)"
+  log "    - AZURE_FRONT_CLIENT_ID: Your frontend app registration client ID"
+  log "    - AZURE_API_CLIENT_ID: Your API app registration client ID (optional)"
+  ENABLE_AZURE_AUTH="false"
+fi
 
 # 5) Get Azure AD group Object ID for Key Vault access
 log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
@@ -192,6 +217,14 @@ DEPLOY_PARAMS=(
 if [ -n "${FRONT_DOOR_CUSTOM_DOMAIN:-}" ]; then
   log "Using custom Front Door domain: $FRONT_DOOR_CUSTOM_DOMAIN"
   DEPLOY_PARAMS+=(--parameters frontDoorCustomDomain="$FRONT_DOOR_CUSTOM_DOMAIN")
+fi
+
+# Add Azure authentication parameters if configured
+if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
+  log "Adding Azure authentication parameters to deployment..."
+  DEPLOY_PARAMS+=(--parameters enableAzureAuth=true)
+  DEPLOY_PARAMS+=(--parameters azureAuthTenantId="$TENANT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthClientId="$FRONTEND_CLIENT_ID")
 fi
 
 deployment_result=0
@@ -287,8 +320,37 @@ else
   echo ""
   echo "═══════════════════════════════════════════════════════════════"
   echo ""
+  
+  # 8) Display Azure authentication information
+  if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
+    echo "🔐 Authentication Configuration:"
+    echo "  - Azure auth is ENABLED"
+    echo "  - Tenant ID: ${TENANT_ID:0:8}..."
+    echo "  - Frontend Client ID: ${FRONTEND_CLIENT_ID:0:8}..."
+    if [ -n "$API_CLIENT_ID" ]; then
+      echo "  - API Client ID: ${API_CLIENT_ID:0:8}..."
+    fi
+    echo ""
+    echo "⚠️  IMPORTANT: Enable Easy Auth manually in Azure Portal"
+    echo "  1. Go to: Azure Portal → App Services → Your API"
+    echo "  2. Navigate to: Authentication → Add identity provider"
+    echo "  3. Select: Microsoft"
+    echo "  4. Configure and save"
+    echo ""
+    echo "  See docs/MSAL-EasyAuth-Setup.md for complete setup guide"
+    echo ""
+  else
+    echo "ℹ️  Authentication: Not configured (AUTH_PROVIDER=none)"
+    echo "  To enable authentication, set in infra/.env:"
+    echo "    AZURE_EXTERNAL_TENANT_ID=your-tenant-guid"
+    echo "    AZURE_FRONT_CLIENT_ID=your-frontend-client-id"
+    echo ""
+  fi
+  
   echo "📚 Useful commands:"
   echo "  View stack:    az stack group show --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP"
   echo "  List stacks:   az stack group list --resource-group $AZURE_RESOURCE_GROUP"
   echo "  Delete stack:  az stack group delete --name $STACK_NAME --resource-group $AZURE_RESOURCE_GROUP --action-on-unmanage deleteAll"
 fi
+
+log "=== [deploy.sh] Deployment completed ==="
