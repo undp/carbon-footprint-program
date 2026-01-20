@@ -15,6 +15,7 @@ import { Subcategory } from "@repo/types";
 
 interface EmissionEditorHeaderProps
   extends Pick<Subcategory, "name" | "description"> {
+  isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;
   setTotalEmission: (value: number) => void;
   isTotalManualEmissionsMode: boolean;
@@ -25,6 +26,7 @@ interface EmissionEditorHeaderProps
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
   description,
+  isTotalManualEmissionsModeAvailable,
   totalEmission,
   setTotalEmission,
   isTotalManualEmissionsMode,
@@ -105,7 +107,11 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         </Typography>
       </Box>
 
-      <Box className="align-end flex flex-row-reverse items-center gap-2">
+      <Box
+        className={`align-end flex-row-reverse items-center gap-2 ${
+          isTotalManualEmissionsModeAvailable ? "flex" : "hidden"
+        }`}
+      >
         <FormControlLabel
           control={
             <Checkbox
