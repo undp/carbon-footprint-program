@@ -26,6 +26,15 @@ param allowedOrigin string
 @description('Enable managed identity credentials for container registry')
 param useAcrManagedIdentity bool = false
 
+@description('Enable Azure Entra External ID authentication')
+param enableAzureAuth bool = false
+
+@description('Azure Entra External ID Tenant ID (subdomain)')
+param azureAuthTenantId string = ''
+
+@description('Azure Frontend App Client ID')
+param azureAuthClientId string = ''
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -63,7 +72,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
     siteConfig: {
       linuxFxVersion: linuxFxVersion
       acrUseManagedIdentityCreds: useAcrManagedIdentity
-      appSettings: [
+      appSettings: concat([
         {
           name: 'API_PORT'
           value: '8080'
@@ -88,7 +97,25 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           name: 'DATABASE_URL'
           value: 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
         }
-      ]
+      ], enableAzureAuth ? [
+        {
+          name: 'AZURE_EXTERNAL_TENANT_ID'
+          value: azureAuthTenantId
+        }
+        {
+          name: 'AZURE_API_CLIENT_ID'
+          value: azureAuthClientId
+        }
+        {
+          name: 'AUTH_PROVIDER'
+          value: 'easy-auth'
+        }
+      ] : [
+        {
+          name: 'AUTH_PROVIDER'
+          value: 'none'
+        }
+      ])
     }
   }
 }

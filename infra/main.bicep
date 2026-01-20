@@ -162,6 +162,19 @@ param tags object = {
   ManagedBy: 'Bicep'
 }
 
+// --------- Azure Entra External ID parameters ---------
+@description('Enable Azure Entra External ID authentication')
+param enableAzureAuth bool = false
+
+@secure()
+@description('Azure Entra External ID Tenant ID')
+param azureAuthTenantId string = ''
+
+@secure()
+@description('Azure Entra External ID Client ID')
+param azureAuthClientId string = ''
+
+
 // --------- Key Vault ---------
 // We can create up to 1 key vault per deployment
 module keyVault 'modules/keyVault.bicep' = {
@@ -257,6 +270,9 @@ module appService 'modules/appService.bicep' = {
         : 'https://${frontDoor!.outputs.endpointHostname}')
       : 'https://${staticWebApp.outputs.defaultHostname}'
     useAcrManagedIdentity: true
+    enableAzureAuth: enableAzureAuth
+    azureAuthTenantId: azureAuthTenantId
+    azureAuthClientId: azureAuthClientId
     tags: tags
   }
 }
@@ -286,6 +302,17 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
     enableManagedRules: frontDoorEnableManagedRules
     wafMode: frontDoorWafMode
     rateLimitThreshold: frontDoorRateLimitThreshold
+    tags: tags
+  }
+}
+
+// --------- Azure Entra External ID ---------
+module azureAuth 'modules/azureAuth.bicep' = if (enableAzureAuth) {
+  name: 'azureAuthDeployment'
+  params: {
+    keyVaultName: keyVault.outputs.name
+    tenantId: azureAuthTenantId
+    clientId: azureAuthClientId
     tags: tags
   }
 }
@@ -350,6 +377,17 @@ output infrastructure object = {
     sku: acr.outputs.sku
   }
 }
+
+// Authentication outputs
+@description('Authentication configuration')
+output authentication object = enableAzureAuth ? {
+  authorityUrl: azureAuth.?outputs.authorityUrl ?? ''
+  enabled: true
+} : {
+  authorityUrl: ''
+  enabled: false
+}
+
 
 // Legacy outputs (for backward compatibility)
 @description('Static Web App default hostname')
