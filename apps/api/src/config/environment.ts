@@ -68,7 +68,7 @@ export const AZURE_AD_TENANT_ID = process.env.AZURE_AD_TENANT_ID;
  *
  * Note: This is the same for both Azure Entra External ID and traditional Azure AD.
  */
-export const AZURE_AD_CLIENT_ID = process.env.AZURE_AD_CLIENT_ID;
+export const AZURE_API_CLIENT_ID = process.env.AZURE_API_CLIENT_ID;
 
 // Computed Azure AD values for Azure Entra External ID (CIAM)
 // CIAM uses ciamlogin.com instead of login.microsoftonline.com
@@ -99,9 +99,9 @@ export const RESOLVED_JWKS_ISSUER = JWKS_ISSUER || AZURE_AD_ISSUER;
 
 /**
  * Resolved audience - used for token validation.
- * Priority: JWKS_AUDIENCE > AZURE_AD_CLIENT_ID
+ * Priority: JWKS_AUDIENCE > AZURE_API_CLIENT_ID
  */
-export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_AD_CLIENT_ID;
+export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_API_CLIENT_ID;
 
 // ============================================================================
 // Authentication Provider Configuration
