@@ -1,3 +1,4 @@
+import { GetCarbonInventoryByIdResponse } from "@repo/types";
 import type {
   MethodologyCategory,
   MethodologySubcategory,
@@ -26,7 +27,11 @@ type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
   subcategories: SubcategoryWithLines[];
 };
 
-export type EmissionCaptureMergedData = CategoryWithSubcategoriesAndLines[];
+export type EmissionCaptureMergedData = {
+  year: GetCarbonInventoryByIdResponse["year"];
+  usageMode: GetCarbonInventoryByIdResponse["usageMode"];
+  categories: CategoryWithSubcategoriesAndLines[];
+} | null;
 
 export type EmissionCaptureFormValues = {
   subcategories: Record<
