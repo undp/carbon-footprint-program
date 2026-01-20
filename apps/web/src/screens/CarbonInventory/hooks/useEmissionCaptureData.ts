@@ -21,7 +21,7 @@ export const useEmissionCaptureData = ({
 
   // Merge methodology and inventory data similar to useSubcategoryPreselectionData
   const mergedData = useMemo<EmissionCaptureMergedData>(() => {
-    if (!methodology) return [];
+    if (!methodology || !inventory) return null;
 
     // Create a map of inventory subcategories by id for quick lookup
     const inventorySubcategoriesMap = new Map(
@@ -31,25 +31,29 @@ export const useEmissionCaptureData = ({
       ]) || []
     );
 
-    return methodology.categories.map((category) => ({
-      ...category,
-      subcategories: category.subcategories.map((subcategory) => {
-        const inventorySubcategory = inventorySubcategoriesMap.get(
-          subcategory.id
-        );
+    return {
+      year: inventory?.year || null,
+      usageMode: inventory?.usageMode || null,
+      categories: methodology.categories.map((category) => ({
+        ...category,
+        subcategories: category.subcategories.map((subcategory) => {
+          const inventorySubcategory = inventorySubcategoriesMap.get(
+            subcategory.id
+          );
 
-        return {
-          ...subcategory,
-          lines: (inventorySubcategory?.lines || []).map((line) => ({
-            ...line,
-            lineId: line.id,
-            baseFactorId: null,
-          })),
-          isTotalManualEmissionsMode:
-            inventorySubcategory?.isTotalManualEmissionsMode || false,
-        };
-      }),
-    }));
+          return {
+            ...subcategory,
+            lines: (inventorySubcategory?.lines || []).map((line) => ({
+              ...line,
+              lineId: line.id,
+              baseFactorId: null,
+            })),
+            isTotalManualEmissionsMode:
+              inventorySubcategory?.isTotalManualEmissionsMode || false,
+          };
+        }),
+      })),
+    };
   }, [methodology, inventory]);
 
   return {

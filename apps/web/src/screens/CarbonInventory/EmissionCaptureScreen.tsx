@@ -56,7 +56,7 @@ export const EmissionCaptureScreen: FC = () => {
     });
 
   const selectedCategoryData = useMemo(
-    () => data.find((category) => category.id === selectedCategory),
+    () => data?.categories.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
   );
 
@@ -136,7 +136,7 @@ export const EmissionCaptureScreen: FC = () => {
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
               />
               <Box className="flex flex-row gap-4">
-                {data.map((category) => (
+                {data?.categories.map((category) => (
                   <CategoryCard
                     key={`category_${category.id}`}
                     position={category.position}
