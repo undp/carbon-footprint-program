@@ -47,7 +47,6 @@ export class EasyAuthProvider implements AuthProvider {
    */
   authenticate(request: FastifyRequest): Promise<AuthResult> {
     try {
-      console.log({ request, headers: request.headers });
       const principalHeader = request.headers["x-ms-client-principal"];
 
       if (!principalHeader || typeof principalHeader !== "string") {
