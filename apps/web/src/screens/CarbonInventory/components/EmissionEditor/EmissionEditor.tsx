@@ -15,11 +15,13 @@ import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
 import { useEmissionCaptureState } from "../../hooks/useEmissionCaptureState";
 
 interface EmissionEditorProps {
+  isTotalManualEmissionsModeAvailable: boolean;
   subcategory: SubcategoryWithLines;
   categoryPosition: number;
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
+  isTotalManualEmissionsModeAvailable,
   subcategory,
   categoryPosition,
 }) => {
@@ -50,7 +52,13 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   // Sync subcategory total to the global state for category total calculation
   useEffect(() => {
     setSubcategoryTotal(subcategory.id, totalEmission);
-  }, [subcategory.id, subcategory.name, totalEmission, isTotalManualEmissionsMode, setSubcategoryTotal]);
+  }, [
+    subcategory.id,
+    subcategory.name,
+    totalEmission,
+    isTotalManualEmissionsMode,
+    setSubcategoryTotal,
+  ]);
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
@@ -76,6 +84,9 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
+        isTotalManualEmissionsModeAvailable={
+          isTotalManualEmissionsModeAvailable
+        }
         isTotalManualEmissionsMode={isTotalManualEmissionsMode}
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isTotalManualEmissionsModeLoading}
@@ -114,7 +125,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
               disabled={isTotalManualEmissionsModeLoading}
               startIcon={
                 <AddRounded
-                  sx={(theme) => ({ 
+                  sx={(theme) => ({
                     color: theme.palette.category[categoryPosition].dark,
                   })}
                 />

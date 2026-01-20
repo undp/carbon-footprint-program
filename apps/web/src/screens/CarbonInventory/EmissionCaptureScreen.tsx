@@ -169,6 +169,10 @@ export const EmissionCaptureScreen: FC = () => {
                   return (
                     <EmissionEditor
                       key={subcategory.id}
+                      isTotalManualEmissionsModeAvailable={
+                        // TODO: use enum here (difficult to import from packages based on the current TS config)
+                        data?.usageMode === "EXPERT"
+                      }
                       categoryPosition={Number(selectedCategory)}
                       subcategory={subcategory}
                     />
