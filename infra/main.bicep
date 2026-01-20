@@ -166,8 +166,11 @@ param tags object = {
 @description('Enable Azure Entra External ID authentication')
 param enableAzureAuth bool = false
 
+@description('Azure Entra External ID Tenant subdomain (e.g., "undphuella" from undphuella.ciamlogin.com)')
+param azureAuthTenantSubdomain string = ''
+
 @secure()
-@description('Azure Entra External ID Tenant ID')
+@description('Azure Entra External ID Tenant ID (GUID format)')
 param azureAuthTenantId string = ''
 
 @secure()
@@ -311,6 +314,7 @@ module azureAuth 'modules/azureAuth.bicep' = if (enableAzureAuth) {
   name: 'azureAuthDeployment'
   params: {
     keyVaultName: keyVault.outputs.name
+    tenantSubdomain: azureAuthTenantSubdomain
     tenantId: azureAuthTenantId
     clientId: azureAuthClientId
     tags: tags

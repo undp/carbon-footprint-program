@@ -23,7 +23,10 @@
 @description('Name of the Key Vault where auth secrets will be stored')
 param keyVaultName string
 
-@description('Azure Entra External ID Tenant ID')
+@description('Azure Entra External ID Tenant subdomain (e.g., "undphuella" from undphuella.ciamlogin.com)')
+param tenantSubdomain string
+
+@description('Azure Entra External ID Tenant ID (GUID format)')
 @secure()
 param tenantId string
 
@@ -68,8 +71,9 @@ resource clientIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
 }
 
 
-// Generate authority URL
-var authorityUrl = 'https://${tenantId}.ciamlogin.com/${tenantId}'
+// Generate authority URL with correct format
+// Format: https://{tenant-subdomain}.ciamlogin.com/{tenant-id}/v2.0/
+var authorityUrl = 'https://${tenantSubdomain}.ciamlogin.com/${tenantId}/v2.0/'
 
 // Store Authority URL in Key Vault
 resource authoritySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {

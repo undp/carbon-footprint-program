@@ -132,14 +132,17 @@ fi
 log "Checking Azure authentication configuration..."
 
 # Check if Azure External ID authentication is configured
-# Support both naming conventions for tenant and client IDs
-TENANT_ID="${AZURE_EXTERNAL_TENANT_ID:-${AZURE_EXTERNAL_TENANT_ID:-}}"
+# AZURE_TENANT_SUBDOMAIN should be the subdomain (e.g., "undphuella")
+# AZURE_EXTERNAL_TENANT_ID is the tenant GUID
+TENANT_SUBDOMAIN="${AZURE_TENANT_SUBDOMAIN:-}"
+TENANT_GUID="${AZURE_EXTERNAL_TENANT_ID:-}"
 FRONTEND_CLIENT_ID="${AZURE_FRONT_CLIENT_ID:-${AZURE_FRONTEND_CLIENT_ID:-}}"
 API_CLIENT_ID="${AZURE_API_CLIENT_ID:-}"
 
-if [ -n "$TENANT_ID" ] && [ -n "$FRONTEND_CLIENT_ID" ]; then
+if [ -n "$TENANT_SUBDOMAIN" ] && [ -n "$TENANT_GUID" ] && [ -n "$FRONTEND_CLIENT_ID" ]; then
   log "Azure authentication enabled:"
-  log "  - Tenant ID: ${TENANT_ID:0:8}..."
+  log "  - Tenant Subdomain: $TENANT_SUBDOMAIN"
+  log "  - Tenant GUID: ${TENANT_GUID:0:8}..."
   log "  - Frontend Client ID: ${FRONTEND_CLIENT_ID:0:8}..."
   if [ -n "$API_CLIENT_ID" ]; then
     log "  - API Client ID: ${API_CLIENT_ID:0:8}..."
@@ -148,7 +151,8 @@ if [ -n "$TENANT_ID" ] && [ -n "$FRONTEND_CLIENT_ID" ]; then
 else
   log "Azure authentication not configured (optional)"
   log "  To enable authentication, set in infra/.env:"
-  log "    - AZURE_EXTERNAL_TENANT_ID: Your External ID tenant ID (GUID)"
+  log "    - AZURE_TENANT_SUBDOMAIN: Your External ID tenant subdomain (e.g., 'undphuella')"
+  log "    - AZURE_EXTERNAL_TENANT_ID: Your External ID tenant GUID"
   log "    - AZURE_FRONT_CLIENT_ID: Your frontend app registration client ID"
   log "    - AZURE_API_CLIENT_ID: Your API app registration client ID (optional)"
   ENABLE_AZURE_AUTH="false"
@@ -223,7 +227,8 @@ fi
 if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   log "Adding Azure authentication parameters to deployment..."
   DEPLOY_PARAMS+=(--parameters enableAzureAuth=true)
-  DEPLOY_PARAMS+=(--parameters azureAuthTenantId="$TENANT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthTenantSubdomain="$TENANT_SUBDOMAIN")
+  DEPLOY_PARAMS+=(--parameters azureAuthTenantId="$TENANT_GUID")
   DEPLOY_PARAMS+=(--parameters azureAuthClientId="$FRONTEND_CLIENT_ID")
 fi
 

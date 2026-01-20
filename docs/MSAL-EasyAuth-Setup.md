@@ -371,7 +371,8 @@ LOCATION=eastus
 ENVIRONMENT=development
 
 # Optional: Azure Authentication
-AZURE_EXTERNAL_TENANT_ID=undphuella  # Your External ID tenant subdomain
+AZURE_TENANT_SUBDOMAIN=undphuella  # Your External ID tenant subdomain
+AZURE_EXTERNAL_TENANT_ID=624d9c14-5dae-473d-84a7-a41d2731f46e  # Your External ID tenant GUID
 AZURE_FRONTEND_CLIENT_ID=12345678-1234-1234-1234-123456789abc  # Frontend app client ID
 ```
 
@@ -379,8 +380,11 @@ AZURE_FRONTEND_CLIENT_ID=12345678-1234-1234-1234-123456789abc  # Frontend app cl
 
 **What these variables do:**
 
-- `AZURE_EXTERNAL_TENANT_ID`: Your External ID tenant subdomain (e.g., `undphuella` from `undphuella.ciamlogin.com`)
+- `AZURE_TENANT_SUBDOMAIN`: Your External ID tenant subdomain (e.g., `undphuella` from `undphuella.ciamlogin.com`)
+- `AZURE_EXTERNAL_TENANT_ID`: Your External ID tenant GUID (the full UUID shown in Azure Portal, e.g., `624d9c14-5dae-473d-84a7-a41d2731f46e`)
 - `AZURE_FRONTEND_CLIENT_ID`: Client ID from your **Frontend App Registration** (Step 2)
+
+> **💡 Note**: Both the subdomain and GUID are required to construct the correct authority URL: `https://{subdomain}.ciamlogin.com/{guid}/v2.0/`
 
 If these variables are **not set**, the API will deploy with `AUTH_PROVIDER=none` (no authentication).
 
@@ -395,7 +399,8 @@ using '../main.bicep'
 
 // --------- Azure Authentication ---------
 param enableAzureAuth = true
-param azureAuthTenantId = 'undphuella'  // Your External ID tenant subdomain
+param azureAuthTenantSubdomain = 'undphuella'  // Your External ID tenant subdomain
+param azureAuthTenantId = '624d9c14-5dae-473d-84a7-a41d2731f46e'  // Your External ID tenant GUID
 param azureAuthClientId = '12345678-1234-1234-1234-123456789abc'  // Your frontend app client ID
 ```
 
