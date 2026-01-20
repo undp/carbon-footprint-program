@@ -51,12 +51,15 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
     const subcategoriesToForceSync: string[] = [];
 
-    data.forEach((category) => {
+    data?.categories.forEach((category) => {
       category.subcategories.forEach((subcategory: SubcategoryWithLines) => {
-        const linesRecord = subcategory.lines.reduce((acc, line) => {
-          acc[line.id] = line;
-          return acc;
-        }, {} as Record<string, EmissionCaptureFormLine>);
+        const linesRecord = subcategory.lines.reduce(
+          (acc, line) => {
+            acc[line.id] = line;
+            return acc;
+          },
+          {} as Record<string, EmissionCaptureFormLine>
+        );
 
         formData.subcategories[subcategory.id] = {
           lines: linesRecord,
