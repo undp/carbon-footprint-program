@@ -1,9 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { deleteUserHandler } from "./deleteUserHandler.js";
-import {
-  DeleteUserParamsSchema,
-  DeleteUserResponseSchema,
-} from "@repo/types";
+import { DeleteUserParamsSchema, DeleteUserResponseSchema } from "@repo/types";
 import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const deleteUserRoute = (fastify: FastifyZodInstance) => {
