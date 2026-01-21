@@ -1,4 +1,4 @@
-import { msalInstance } from "@/main";
+import { msalInstance } from "@/auth/initializeMsal";
 import { apiTokenRequest } from "@/config/msalConfig";
 
 /**
