@@ -3,11 +3,27 @@ import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
 import { Options } from "./components/Options";
+import { useAuth } from "@/contexts/AuthContext";
+import { MainLayout } from "../../components";
 
 export const LandingScreen: FC = () => {
   const theme = useTheme();
 
   const alphaDeepForest = alpha(theme.palette.common.deepForest, 0.35);
+
+  const { isAuthenticated, account } = useAuth();
+
+  // TODO: Fetch user data from API
+  // const { data: user } = useUser(account?.username ?? "", { enabled: isAuthenticated });
+
+  if (isAuthenticated && account) {
+    return (
+      <MainLayout>
+        {/* TODO: Replace with real Home screen component */}
+        <div>Hello &quot;/home&quot;!</div>
+      </MainLayout>
+    );
+  }
 
   return (
     <Box
