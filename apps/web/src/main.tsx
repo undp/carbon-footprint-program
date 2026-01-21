@@ -1,13 +1,7 @@
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
-import {
-  PublicClientApplication,
-  EventType,
-  EventMessage,
-  AuthenticationResult,
-} from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
-import { msalConfig } from "./config/msalConfig";
+import { msalInstance, initializeMsal } from "./auth/initializeMsal";
 import { routeTree } from "./routeTree.gen";
 import { AuthProvider } from "./contexts/AuthContext";
 import "./index.css";
@@ -15,9 +9,6 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-
-// Initialize MSAL instance
-const msalInstance = new PublicClientApplication(msalConfig);
 
 // Create router instance
 const router = createRouter({
@@ -33,39 +24,10 @@ declare module "@tanstack/react-router" {
   }
 }
 
-// Initialize MSAL and set up the app
+// Initialize MSAL and render the app
 async function initializeApp() {
-  // Wait for MSAL to initialize
-  await msalInstance.initialize();
-
-  // Add account event callbacks - register before handling redirect
-  msalInstance.addEventCallback((event: EventMessage) => {
-    if (event.eventType === EventType.LOGIN_SUCCESS && event.payload) {
-      const payload = event.payload as AuthenticationResult;
-      const account = payload.account;
-      msalInstance.setActiveAccount(account);
-    }
-
-    if (event.eventType === EventType.LOGOUT_SUCCESS) {
-      msalInstance.setActiveAccount(null);
-    }
-  });
-
-  // Handle redirect promise before rendering
-  // This is crucial for redirect flow to work properly
-  try {
-    await msalInstance.handleRedirectPromise();
-    // Event callback will handle setting active account for successful auth
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error("Error handling redirect:", error);
-  }
-
-  // Set active account if we have accounts (for page refresh)
-  const accounts = msalInstance.getAllAccounts();
-  if (accounts.length > 0 && !msalInstance.getActiveAccount()) {
-    msalInstance.setActiveAccount(accounts[0]);
-  }
+  // Initialize MSAL authentication
+  await initializeMsal();
 
   // Render app
   const rootElement = document.getElementById("root")!;
@@ -83,5 +45,3 @@ async function initializeApp() {
 // Start the app
 // eslint-disable-next-line no-console
 initializeApp().catch(console.error);
-
-export { msalInstance };
