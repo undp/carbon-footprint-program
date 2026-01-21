@@ -10,11 +10,12 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserStore } from "@/stores/userStore";
 import { useState } from "react";
 
 export const UserMenu = () => {
-  //TODO: Fetch user data from API
-  const { account, signOut, isLoading } = useAuth();
+  const { signOut } = useAuth();
+  const { user: me, isLoading } = useUserStore();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -22,11 +23,14 @@ export const UserMenu = () => {
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleClose = () => {
     setAnchorEl(null);
   };
 
-  if (isLoading || !account) {
+  const name = me ? `${me.firstName} ${me.lastName}` : "User";
+
+  if (isLoading || !me) {
     return null;
   }
 
@@ -42,15 +46,14 @@ export const UserMenu = () => {
           sx={(theme) => ({
             backgroundColor: theme.palette.grey[200],
           })}
-        >
-          {account.name?.charAt(0).toUpperCase()}
-        </Avatar>
+        />
+        {me.firstName?.charAt(0).toUpperCase()}
         <Box className="flex flex-col">
           <Typography variant="body1" lineHeight="normal">
-            {account.name}
+            {name}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {account.username}
+            {me.email}
           </Typography>
         </Box>
       </Card>

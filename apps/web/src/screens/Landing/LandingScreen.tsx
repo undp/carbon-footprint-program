@@ -3,7 +3,7 @@ import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
 import { Options } from "./components/Options";
-import { useAuth } from "@/contexts/AuthContext";
+import { useUserStore } from "@/stores/userStore";
 import { MainLayout } from "../../components";
 
 export const LandingScreen: FC = () => {
@@ -11,12 +11,12 @@ export const LandingScreen: FC = () => {
 
   const alphaDeepForest = alpha(theme.palette.common.deepForest, 0.35);
 
-  const { isAuthenticated, account } = useAuth();
+  const { user, isLoading } = useUserStore();
 
-  // TODO: Fetch user data from API
-  // const { data: user } = useUser(account?.username ?? "", { enabled: isAuthenticated });
+  // eslint-disable-next-line no-console
+  console.log({ user });
 
-  if (isAuthenticated && account) {
+  if (user && !isLoading) {
     return (
       <MainLayout>
         {/* TODO: Replace with real Home screen component */}
