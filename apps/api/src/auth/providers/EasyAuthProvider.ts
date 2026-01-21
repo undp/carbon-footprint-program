@@ -70,7 +70,12 @@ export class EasyAuthProvider implements AuthProvider {
       // Common claim types in Easy Auth:
       // - http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress
 
-      const email = claimsMap["email"];
+      const email =
+        claimsMap["preferred_username"] ??
+        claimsMap[
+          "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+        ] ??
+        null;
 
       const userOid =
         claimsMap[
