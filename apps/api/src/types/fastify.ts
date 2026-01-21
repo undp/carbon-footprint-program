@@ -8,7 +8,7 @@ import type {
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { AuthService, AuthUser } from "@/auth/index.js";
-import type { GetOrCreateMeResponse } from "@repo/types";
+import type { GetMeResponse } from "@repo/types";
 import type { UserRole } from "@/plugins/app/authorizationPlugin.js";
 
 /**
@@ -85,7 +85,7 @@ declare module "fastify" {
      * User from the database (available after authentication and user resolution).
      * This is the full user object from the database.
      */
-    currentUser?: GetOrCreateMeResponse;
+    currentUser?: GetMeResponse;
   }
   interface FastifyContextConfig {
     /** Marks a route as public (no authentication required) */

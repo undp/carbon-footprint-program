@@ -4,4 +4,4 @@ export * from "./getAllUsers.js";
 export * from "./getUserById.js";
 export * from "./updateUser.js";
 export * from "./deleteUser.js";
-export * from "./getOrCreateMe.js";
+export * from "./getMe.js";
