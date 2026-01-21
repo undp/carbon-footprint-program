@@ -16,6 +16,7 @@ import {
   SidebarRoutes,
   SidebarRoutesTranslations,
 } from "@/interfaces";
+import { UserMenu } from "./UserMenu";
 
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
@@ -47,11 +48,12 @@ export const Sidebar: FC = () => {
         alignItems: "flex-start",
         width: 268,
         flexShrink: 0,
+        flexGrow: 1,
         px: 1,
         "& .MuiDrawer-paper": {
           width: 268,
           gap: 2,
-          px: 1,
+          px: 2,
         },
       }}
       variant="permanent"
@@ -65,7 +67,8 @@ export const Sidebar: FC = () => {
           }}
         />
       </Toolbar>
-      <Divider variant="middle" />
+      <Divider />
+
       <List sx={{ pt: 0 }}>
         {items.map(({ text, path, icon, selected }) => (
           <Item
@@ -77,6 +80,8 @@ export const Sidebar: FC = () => {
           />
         ))}
       </List>
+
+      <UserMenu />
     </Drawer>
   );
 };
