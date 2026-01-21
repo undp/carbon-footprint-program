@@ -7,6 +7,7 @@ import { deleteUserRoute } from "@/features/users/deleteUser/deleteUserRoute.js"
 import { getMeRoute } from "@/features/users/getMe/getMeRoute.js";
 
 export default function usersRoutes(fastify: FastifyZodInstance) {
+  fastify.addHook("onRequest", fastify.requireAuth);
   createUserRoute(fastify);
   getAllUsersRoute(fastify);
   getUserByIdRoute(fastify);
