@@ -7,6 +7,10 @@ declare module "*.svg" {
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
+  readonly VITE_AZURE_FRONT_CLIENT_ID?: string;
+  readonly VITE_AZURE_AUTH_AUTHORITY?: string;
+  readonly VITE_AZURE_AUTH_REDIRECT_URI?: string;
+  readonly VITE_AZURE_API_CLIENT_ID?: string;
 }
 
 interface ImportMeta {
