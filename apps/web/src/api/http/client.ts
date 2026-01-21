@@ -7,8 +7,9 @@ export const apiClient = ky.create({
   prefixUrl: API_BASE_URL,
   hooks: {
     beforeRequest: [
-      (request) => {
-        const token = getAuthToken();
+      async (request) => {
+        // Get token asynchronously from MSAL
+        const token = await getAuthToken();
         if (token) {
           request.headers.set("Authorization", `Bearer ${token}`);
         }
