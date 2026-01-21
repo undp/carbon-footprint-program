@@ -19,7 +19,11 @@ import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organizat
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoryRouteImport } from './routes/app/carbon-inventory'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
+import { Route as AuthSignUpIndexRouteImport } from './routes/auth/sign-up/index'
+import { Route as AuthSignInIndexRouteImport } from './routes/auth/sign-in/index'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
+import { Route as AuthSignUpValidateUserRouteImport } from './routes/auth/sign-up/validate-user'
+import { Route as AuthSignInValidateUserRouteImport } from './routes/auth/sign-in/validate-user'
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as AppCarbonInventoryInventoryIdEmissionCaptureRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-capture'
 import { Route as AppCarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/app/carbon-inventory/$inventoryId/business-profiling'
@@ -74,10 +78,30 @@ const AppAwardsRoute = AppAwardsRouteImport.update({
   path: '/app/awards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthSignUpIndexRoute = AuthSignUpIndexRouteImport.update({
+  id: '/auth/sign-up/',
+  path: '/auth/sign-up/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignInIndexRoute = AuthSignInIndexRouteImport.update({
+  id: '/auth/sign-in/',
+  path: '/auth/sign-in/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppCarbonInventoryRoute,
+} as any)
+const AuthSignUpValidateUserRoute = AuthSignUpValidateUserRouteImport.update({
+  id: '/auth/sign-up/validate-user',
+  path: '/auth/sign-up/validate-user',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthSignInValidateUserRoute = AuthSignInValidateUserRouteImport.update({
+  id: '/auth/sign-in/validate-user',
+  path: '/auth/sign-in/validate-user',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute =
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
@@ -109,7 +133,11 @@ export interface FileRoutesByFullPath {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/auth/sign-in/validate-user': typeof AuthSignInValidateUserRoute
+  '/auth/sign-up/validate-user': typeof AuthSignUpValidateUserRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
+  '/auth/sign-in': typeof AuthSignInIndexRoute
+  '/auth/sign-up': typeof AuthSignUpIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   '/app/carbon-inventory/$inventoryId/emission-capture': typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
   '/app/carbon-inventory/$inventoryId/subcategory-preselection': typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
@@ -124,7 +152,11 @@ export interface FileRoutesByTo {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/auth/sign-in/validate-user': typeof AuthSignInValidateUserRoute
+  '/auth/sign-up/validate-user': typeof AuthSignUpValidateUserRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
+  '/auth/sign-in': typeof AuthSignInIndexRoute
+  '/auth/sign-up': typeof AuthSignUpIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   '/app/carbon-inventory/$inventoryId/emission-capture': typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
   '/app/carbon-inventory/$inventoryId/subcategory-preselection': typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
@@ -141,7 +173,11 @@ export interface FileRoutesById {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/auth/sign-in/validate-user': typeof AuthSignInValidateUserRoute
+  '/auth/sign-up/validate-user': typeof AuthSignUpValidateUserRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
+  '/auth/sign-in/': typeof AuthSignInIndexRoute
+  '/auth/sign-up/': typeof AuthSignUpIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   '/app/carbon-inventory/$inventoryId/emission-capture': typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
   '/app/carbon-inventory/$inventoryId/subcategory-preselection': typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
@@ -159,7 +195,11 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/auth/sign-in/validate-user'
+    | '/auth/sign-up/validate-user'
     | '/app/carbon-inventory/'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
     | '/app/carbon-inventory/$inventoryId/emission-capture'
     | '/app/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -174,7 +214,11 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/auth/sign-in/validate-user'
+    | '/auth/sign-up/validate-user'
     | '/app/carbon-inventory'
+    | '/auth/sign-in'
+    | '/auth/sign-up'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
     | '/app/carbon-inventory/$inventoryId/emission-capture'
     | '/app/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -190,7 +234,11 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/auth/sign-in/validate-user'
+    | '/auth/sign-up/validate-user'
     | '/app/carbon-inventory/'
+    | '/auth/sign-in/'
+    | '/auth/sign-up/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
     | '/app/carbon-inventory/$inventoryId/emission-capture'
     | '/app/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -207,6 +255,10 @@ export interface RootRouteChildren {
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
   AppReductionProjectsRoute: typeof AppReductionProjectsRoute
+  AuthSignInValidateUserRoute: typeof AuthSignInValidateUserRoute
+  AuthSignUpValidateUserRoute: typeof AuthSignUpValidateUserRoute
+  AuthSignInIndexRoute: typeof AuthSignInIndexRoute
+  AuthSignUpIndexRoute: typeof AuthSignUpIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -281,12 +333,40 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAwardsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/sign-up/': {
+      id: '/auth/sign-up/'
+      path: '/auth/sign-up'
+      fullPath: '/auth/sign-up'
+      preLoaderRoute: typeof AuthSignUpIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-in/': {
+      id: '/auth/sign-in/'
+      path: '/auth/sign-in'
+      fullPath: '/auth/sign-in'
+      preLoaderRoute: typeof AuthSignInIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/carbon-inventory/': {
       id: '/app/carbon-inventory/'
       path: '/'
       fullPath: '/app/carbon-inventory/'
       preLoaderRoute: typeof AppCarbonInventoryIndexRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
+    }
+    '/auth/sign-up/validate-user': {
+      id: '/auth/sign-up/validate-user'
+      path: '/auth/sign-up/validate-user'
+      fullPath: '/auth/sign-up/validate-user'
+      preLoaderRoute: typeof AuthSignUpValidateUserRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/sign-in/validate-user': {
+      id: '/auth/sign-in/validate-user'
+      path: '/auth/sign-in/validate-user'
+      fullPath: '/auth/sign-in/validate-user'
+      preLoaderRoute: typeof AuthSignInValidateUserRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/app/carbon-inventory/$inventoryId/subcategory-preselection': {
       id: '/app/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -343,6 +423,10 @@ const rootRouteChildren: RootRouteChildren = {
   AppMyOrganizationRoute: AppMyOrganizationRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,
   AppReductionProjectsRoute: AppReductionProjectsRoute,
+  AuthSignInValidateUserRoute: AuthSignInValidateUserRoute,
+  AuthSignUpValidateUserRoute: AuthSignUpValidateUserRoute,
+  AuthSignInIndexRoute: AuthSignInIndexRoute,
+  AuthSignUpIndexRoute: AuthSignUpIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
