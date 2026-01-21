@@ -18,6 +18,8 @@
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.27.0",
+    "@azure/msal-react": "^3.0.23",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource-variable/roboto": "^5.2.9",
@@ -36,7 +38,6 @@
     "fuse.js": "^7.1.0",
     "ky": "^1.14.1",
     "notistack": "^3.0.2",
-    "input-otp": "^1.4.2",
     "pino": "catalog:shared",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
