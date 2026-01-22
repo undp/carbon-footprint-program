@@ -17,7 +17,7 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
     const prisma = request.server.prisma;
     const authUser = request.authUser;
 
-    log.info(
+    log.debug(
       {
         idpUserId: authUser.idpUserId,
       },
@@ -46,7 +46,7 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
 
         log.info({ userId: user.id }, "New user created");
       } else {
-        log.info({ userId: user.id }, "Existing user found");
+        log.debug({ userId: user.id }, "Existing user found");
       }
 
       // Attach the user to the request
