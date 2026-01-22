@@ -1,10 +1,20 @@
+# Azure Authentication
+export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
+export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
+export AZURE_TENANT_SUBDOMAIN="" # External Tenant Subdomain  for Azure Entra External Authentication
+export AZURE_EXTERNAL_TENANT_ID=""   # External Tenant ID for Azure Entra External Authentication
+
 # Database
 export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:password@localhost:5432/dbname
 
 # API
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
-export JWT_SECRET=""    # Strong random string for JWT signing (min 32 characters)
+export AUTH_PROVIDER=""    # Options: jwks, easy-auth, none
 
 # Web
-export VITE_API_BASE_URL=""
+export VITE_API_BASE_URL=""  # URL for the API
+export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
+export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
+export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0" # Authority URL for Azure Entra External Authentication
+export VITE_AZURE_SING_IN_REDIRECT_URI=""
