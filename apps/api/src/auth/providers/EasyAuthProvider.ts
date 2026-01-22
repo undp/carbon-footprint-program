@@ -46,13 +46,17 @@ export class EasyAuthProvider implements AuthProvider {
    * Authenticate using Easy Auth headers.
    */
   authenticate(request: FastifyRequest): Promise<AuthResult> {
+    request.log.debug("EasyAuthProvider: authenticate called");
     try {
       const principalHeader = request.headers["x-ms-client-principal"];
 
       if (!principalHeader || typeof principalHeader !== "string") {
+        request.log.warn(
+          "EasyAuthProvider: missing X-MS-CLIENT-PRINCIPAL header"
+        );
         return Promise.resolve({
           success: false,
-          error: "User not authenticated via Easy Auth",
+          error: "Missing X-MS-CLIENT-PRINCIPAL header",
         });
       }
 
@@ -89,10 +93,19 @@ export class EasyAuthProvider implements AuthProvider {
         idpName: this.type,
       };
 
+      request.log.info(
+        { idpUserId: userOid },
+        "EasyAuthProvider: authentication succeeded"
+      );
+
       return Promise.resolve({ success: true, user });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Easy Auth parsing failed";
+      request.log.error(
+        { err: message },
+        "EasyAuthProvider: authentication error"
+      );
       return Promise.resolve({ success: false, error: message });
     }
   }
