@@ -2,7 +2,7 @@ import fp from "fastify-plugin";
 import { FastifyPluginCallback, FastifyRequest } from "fastify";
 import { mapUserToResponse } from "../../features/users/mappers.js";
 
-const userResolvePlugin: FastifyPluginCallback = (fastify) => {
+const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
   // Find or create user on the DB with the data of the authenticated user with oid and email and attach to request
 
   fastify.addHook("preHandler", async function (request: FastifyRequest) {
@@ -54,6 +54,7 @@ const userResolvePlugin: FastifyPluginCallback = (fastify) => {
   });
 
   fastify.log.info("User resolve plugin registered");
+  done();
 };
 
 export default fp(userResolvePlugin, {
