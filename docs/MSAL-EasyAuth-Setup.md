@@ -923,7 +923,7 @@ The backend is already configured with Easy-Auth support through the `EasyAuthPr
 5. **Request forwarded** to your Fastify API with these headers
 6. **EasyAuthProvider** reads the headers and extracts user information
 
-> **✨ Key Benefit**: Your API code doesn't need to validate tokens - Azure App Service does it for you!claims
+> **✨ Key Benefit**: Your API code doesn't need to validate tokens - Azure App Service does it for you!
 
 - `X-MS-CLIENT-PRINCIPAL-ID`: User's unique identifier
 - `X-MS-CLIENT-PRINCIPAL-NAME`: User's display name/email
