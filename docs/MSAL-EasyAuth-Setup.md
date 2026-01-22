@@ -1033,7 +1033,7 @@ And configure your `VITE_API_BASE_URL` to use your deployed backend on Azure
 
 - ✅ Easy Auth enabled on App Service via Azure Portal (Authentication → Add Microsoft)
 - ✅ Bicep variables configured with correct tenant ID
-- ✅ Production environment variables configured for fronten
+- ✅ Production environment variables configured for frontend
 
 ### Deploy Infrastructure
 
