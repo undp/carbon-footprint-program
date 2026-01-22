@@ -38,7 +38,8 @@ export const getAvailableFactors = (
 
   return emissionFactors.filter(
     (ef) =>
-      ef.dimensionValue1Id === dimensionValue1Id &&
+      (ef.dimensionValue1Id === null ||
+        ef.dimensionValue1Id === dimensionValue1Id) &&
       ef.dimensionValue2Id === dimensionValue2Id &&
       ef.rateMeasurementUnitId === rateMeasurementUnitId
   );
