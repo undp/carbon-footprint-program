@@ -9,7 +9,7 @@ import {
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
-  position: 1 | 2 | 3;
+  position: number;
   title: string;
   subtitle: string;
   description: string;
@@ -45,14 +45,18 @@ export const CategoryCard: FC<CategoryCardProps> = ({
     }),
     [theme]
   );
-
-  const backgroundColor = theme.palette.category[position].light;
+  // Ensure the position is between 1 and 3
+  // TODO: In the future should exists a default value for positions greater than 3
+  // For now, we will use the last category
+  const safePosition = Math.max(Math.min(position, 3), 1) as 1 | 2 | 3;
+  const backgroundColor = theme.palette.category[safePosition].light;
   const border =
     variant === "focused"
-      ? `1px solid ${theme.palette.category[position].main}`
+      ? `1px solid ${theme.palette.category[safePosition].main}`
       : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const icon = icons[position];
+  const icon = icons[safePosition];
+  const color = darken(theme.palette.category[safePosition].main, 0.6);
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
@@ -60,7 +64,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
     <Card
       elevation={variant === "focused" ? 2 : 0}
       onClick={isClickable ? onClick : undefined}
-      className={`flex w-full flex-row items-stretch justify-start gap-2 ${opacity}`}
+      className={`flex w-full flex-row items-center justify-start gap-2 ${opacity}`}
       sx={{
         padding: 1,
         borderRadius: 2,
@@ -88,11 +92,18 @@ export const CategoryCard: FC<CategoryCardProps> = ({
         {icon}
       </Box>
       <Box className="flex-1">
-        <Typography variant="body2">{subtitle}</Typography>
-        <Typography variant="body1" fontWeight="fontWeightBold">
+        <Typography
+          fontSize="0.65rem"
+          fontWeight="medium"
+          lineHeight="normal"
+          color={color}
+        >
+          {subtitle.toUpperCase()}
+        </Typography>
+        <Typography variant="body1" fontWeight="medium" color={color}>
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
+        <Typography fontSize="0.65rem" lineHeight="normal" color={color}>
           {description}
         </Typography>
       </Box>
@@ -100,10 +111,10 @@ export const CategoryCard: FC<CategoryCardProps> = ({
         <InfoButton
           label="Más información de la categoría"
           disabled={variant === "unfocused"}
+          sx={{ width: "24px", height: "24px", color }}
           onClick={(e) => {
             e.stopPropagation();
             //TODO: Open a modal with the information
-            // alert("Information");
           }}
         />
       </Box>
