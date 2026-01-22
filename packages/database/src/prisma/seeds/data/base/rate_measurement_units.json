@@ -1,9 +1,5 @@
 [
   {
-    "name": "kg por miligrámo",
-    "abbreviation": "kg/mg"
-  },
-  {
     "name": "kg por gramo",
     "abbreviation": "kg/g"
   },
@@ -28,18 +24,6 @@
     "abbreviation": "kg/m"
   },
   {
-    "name": "kg por centímetro",
-    "abbreviation": "kg/cm"
-  },
-  {
-    "name": "kg por milímetro",
-    "abbreviation": "kg/mm"
-  },
-  {
-    "name": "kg por militro",
-    "abbreviation": "kg/mL"
-  },
-  {
     "name": "kg por litro",
     "abbreviation": "kg/L"
   },
@@ -50,14 +34,6 @@
   {
     "name": "kg por metro cúbico",
     "abbreviation": "kg/m3"
-  },
-  {
-    "name": "kg por segundo",
-    "abbreviation": "kg/s"
-  },
-  {
-    "name": "kg por minuto",
-    "abbreviation": "kg/min"
   },
   {
     "name": "kg por día",
@@ -74,6 +50,10 @@
   {
     "name": "kg por hectárea",
     "abbreviation": "kg/ha"
+  },
+  {
+    "name": "kg por megawatt",
+    "abbreviation": "kg/mWh"
   },
   {
     "name": "kg por kilowatt",

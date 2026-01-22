@@ -21,25 +21,11 @@
     "isBase": false
   },
   {
-    "name": "Miligramo",
-    "magnitude": "MASS",
-    "abbreviation": "mg",
-    "baseFactor": 0.001,
-    "isBase": false
-  },
-  {
     "name": "Litro",
     "magnitude": "VOLUME",
     "abbreviation": "L",
     "baseFactor": 1.0,
     "isBase": true
-  },
-  {
-    "name": "Mililitro",
-    "magnitude": "VOLUME",
-    "abbreviation": "mL",
-    "baseFactor": 0.001,
-    "isBase": false
   },
   {
     "name": "Metros cúbicos",
@@ -70,38 +56,10 @@
     "isBase": false
   },
   {
-    "name": "Centímetro",
-    "magnitude": "DISTANCE",
-    "abbreviation": "cm",
-    "baseFactor": 0.01,
-    "isBase": false
-  },
-  {
-    "name": "Milímetro",
-    "magnitude": "DISTANCE",
-    "abbreviation": "mm",
-    "baseFactor": 0.001,
-    "isBase": false
-  },
-  {
     "name": "Milla",
     "magnitude": "DISTANCE",
     "abbreviation": "mi",
     "baseFactor": 1609.34,
-    "isBase": false
-  },
-  {
-    "name": "Segundo",
-    "magnitude": "TIME",
-    "abbreviation": "s",
-    "baseFactor": 1.0,
-    "isBase": true
-  },
-  {
-    "name": "Minuto",
-    "magnitude": "TIME",
-    "abbreviation": "min",
-    "baseFactor": 60.0,
     "isBase": false
   },
   {
@@ -131,6 +89,13 @@
     "abbreviation": "ha",
     "baseFactor": 1.0,
     "isBase": true
+  },
+  {
+    "name": "Megawatt hora",
+    "magnitude": "POWER",
+    "abbreviation": "mWh",
+    "baseFactor": 1000.0,
+    "isBase": false
   },
   {
     "name": "Kilowatt hora",
