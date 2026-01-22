@@ -154,6 +154,32 @@ export const useEmissionEditorColumns = ({
         ),
       },
 
+      // Factor source column
+      {
+        headerName: "Fuente factor",
+        field: "factorSource",
+        minWidth: 157,
+        flex: 1,
+        cellClassName: "content-center max-h-[56px]",
+        renderCell: (
+          params: GridRenderCellParams<EmissionCaptureFormLine, string>
+        ) => {
+          return (
+            <EmissionEditorFactorSourceCell
+              subcategoryId={subcategory.id}
+              lineId={params.row.lineId}
+              dimensions={dimensions}
+              emissionFactors={subcategory.emissionFactors}
+              rateMeasurementUnits={rateMeasurementUnits || []}
+              disabled={isManualModeLoading}
+              onChange={(value) =>
+                onFactorSourceChange(params.row.lineId, value)
+              }
+            />
+          );
+        },
+      },
+
       // Factor column
       {
         headerName: "Factor",
@@ -176,32 +202,6 @@ export const useEmissionEditorColumns = ({
                 onCellChange(e.target.value, params)
               }
               disabled={isManualModeLoading}
-            />
-          );
-        },
-      },
-
-      // Factor source column
-      {
-        headerName: "Fuente factor",
-        field: "factorSource",
-        minWidth: 157,
-        flex: 1,
-        cellClassName: "content-center max-h-[56px]",
-        renderCell: (
-          params: GridRenderCellParams<EmissionCaptureFormLine, string>
-        ) => {
-          return (
-            <EmissionEditorFactorSourceCell
-              subcategoryId={subcategory.id}
-              lineId={params.row.lineId}
-              dimensions={dimensions}
-              emissionFactors={subcategory.emissionFactors}
-              rateMeasurementUnits={rateMeasurementUnits || []}
-              disabled={isManualModeLoading}
-              onChange={(value) =>
-                onFactorSourceChange(params.row.lineId, value)
-              }
             />
           );
         },
