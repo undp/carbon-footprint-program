@@ -1,5 +1,5 @@
 import { FC, useCallback } from "react";
-import { Folder, InfoOutline } from "@mui/icons-material";
+import { Folder, InfoOutline, WarningRounded } from "@mui/icons-material";
 import {
   Box,
   Avatar,
@@ -16,6 +16,7 @@ import { Subcategory } from "@repo/types";
 interface EmissionEditorHeaderProps
   extends Pick<Subcategory, "name" | "description"> {
   isTotalManualEmissionsModeAvailable: boolean;
+  subcategoryHasEmissionFactors: boolean;
   totalEmission: number;
   setTotalEmission: (value: number) => void;
   isTotalManualEmissionsMode: boolean;
@@ -27,6 +28,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
   description,
   isTotalManualEmissionsModeAvailable,
+  subcategoryHasEmissionFactors,
   totalEmission,
   setTotalEmission,
   isTotalManualEmissionsMode,
@@ -39,6 +41,9 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
     },
     [setTotalEmission]
   );
+
+  const showManualEmissionsMode =
+    isTotalManualEmissionsModeAvailable && subcategoryHasEmissionFactors;
 
   return (
     <Box className="flex h-20 gap-4">
@@ -65,10 +70,27 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           <Typography variant="caption" fontWeight="regular">
             {description}
           </Typography>
+          {!subcategoryHasEmissionFactors && (
+            <Box className="items-bottom flex gap-1">
+              <WarningRounded
+                sx={(theme) => ({
+                  color: theme.palette.warning.main,
+                  height: 18,
+                  width: 18,
+                })}
+              />
+              <Typography
+                variant="caption"
+                fontWeight="regular"
+                color="warning"
+              >
+                Esta subcategoría no tiene factores de emisión disponibles
+              </Typography>
+            </Box>
+          )}
         </Box>
         <Box className="flex flex-col"></Box>
       </Box>
-
       <Box className="flex flex-row content-center items-center gap-2">
         {/* Case 1: Loading and activating manual mode (Skeleton) */}
         {isManualModeLoading && isTotalManualEmissionsMode && (
@@ -106,10 +128,9 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           (tCO₂e)
         </Typography>
       </Box>
-
       <Box
         className={`align-end flex-row-reverse items-center gap-2 ${
-          isTotalManualEmissionsModeAvailable ? "flex" : "hidden"
+          showManualEmissionsMode ? "flex" : "hidden"
         }`}
       >
         <FormControlLabel
