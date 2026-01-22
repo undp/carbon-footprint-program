@@ -11,6 +11,7 @@
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "../AuthProvider.js";
 import type { AuthUser } from "../types.js";
+import { treeifyError, z } from "zod";
 
 /**
  * Structure of a claim in the Easy Auth principal.
@@ -29,6 +30,18 @@ interface EasyAuthPrincipal {
   name_typ: string;
   role_typ: string;
 }
+
+const EasyAuthClaimSchema = z.object({
+  typ: z.string(),
+  val: z.string(),
+});
+
+const EasyAuthPrincipalSchema = z.object({
+  auth_typ: z.string(),
+  claims: z.array(EasyAuthClaimSchema),
+  name_typ: z.string(),
+  role_typ: z.string(),
+});
 
 /**
  * Azure Easy Auth authentication provider.
@@ -62,7 +75,36 @@ export class EasyAuthProvider implements AuthProvider {
 
       // Decode the base64-encoded principal
       const decoded = Buffer.from(principalHeader, "base64").toString("utf-8");
-      const principal = JSON.parse(decoded) as EasyAuthPrincipal;
+
+      // Parse JSON safely
+      let principalObj: unknown;
+      try {
+        principalObj = JSON.parse(decoded);
+      } catch (err) {
+        request.log.warn(
+          { err },
+          "EasyAuthProvider: invalid JSON in X-MS-CLIENT-PRINCIPAL header"
+        );
+        return Promise.resolve({
+          success: false,
+          error: "Invalid X-MS-CLIENT-PRINCIPAL JSON",
+        });
+      }
+
+      // Validate the decoded principal structure with Zod
+      const parsed = EasyAuthPrincipalSchema.safeParse(principalObj);
+      if (!parsed.success) {
+        request.log.warn(
+          { issues: treeifyError(parsed.error) },
+          "EasyAuthProvider: principal validation failed"
+        );
+        return Promise.resolve({
+          success: false,
+          error: "Invalid Easy Auth principal structure",
+        });
+      }
+
+      const principal = parsed.data as EasyAuthPrincipal;
 
       // Convert claims array to a map for easier access
       const claimsMap: Record<string, string> = {};
