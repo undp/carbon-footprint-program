@@ -101,6 +101,32 @@ export const useEmissionEditorForm = ({
     }
   }, [createLine, startAction, endAction]);
 
+  const resetFactorRelatedFields = useCallback(
+    (subcategoryId: string, lineId: string) => {
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
+        null,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+        null,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
+        null,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
+        null,
+        { shouldDirty: true }
+      );
+    },
+    [setValue]
+  );
+
   const handleCellChange = useCallback(
     (
       value: string | number | null,
@@ -111,6 +137,17 @@ export const useEmissionEditorForm = ({
     ) => {
       const { field, row } = params;
 
+      const factorSource = getValues(
+        `subcategories.${subcategoryId}.lines.${row.lineId}.factorSource`
+      );
+
+      const isOwnFactorSelected =
+        !!factorSource && ["Factor Propio", "Otro"].includes(factorSource);
+
+      const areDimensionsHierarchical = subcategory.dimensions.some((dim) =>
+        dim.values.some((val) => val.parentValueId !== null)
+      );
+
       setValue(
         `subcategories.${subcategoryId}.lines.${row.lineId}.${field}`,
         value as never,
@@ -118,12 +155,14 @@ export const useEmissionEditorForm = ({
       );
 
       // resets derivados
-      if (
-        field === "dimensionValue1Id" ||
-        field === "dimensionValue2Id" ||
-        field === "measurementUnitId"
-      ) {
-        if (field === "dimensionValue1Id") {
+      // Goal: reset factor-related fields when dimensions or measurement unit change
+      // If factorSource is "Factor Propio"/"Otro", only resetting when measurementUnitId changes
+      if (field === "dimensionValue1Id") {
+        const isRequired = subcategory.dimensions.find(
+          ({ position }) => position === 1
+        )?.isRequired;
+
+        if (isRequired && areDimensionsHierarchical) {
           setValue(
             `subcategories.${subcategoryId}.lines.${row.lineId}.dimensionValue2Id`,
             null,
@@ -131,29 +170,29 @@ export const useEmissionEditorForm = ({
           );
         }
 
-        setValue(
-          `subcategories.${subcategoryId}.lines.${row.lineId}.factorSource`,
-          null,
-          { shouldDirty: true }
-        );
-        setValue(
-          `subcategories.${subcategoryId}.lines.${row.lineId}.baseFactorId`,
-          null,
-          { shouldDirty: true }
-        );
-        setValue(
-          `subcategories.${subcategoryId}.lines.${row.lineId}.factorValue`,
-          null,
-          { shouldDirty: true }
-        );
-        setValue(
-          `subcategories.${subcategoryId}.lines.${row.lineId}.factorRateMeasurementUnitId`,
-          null,
-          { shouldDirty: true }
-        );
+        if (!isOwnFactorSelected)
+          resetFactorRelatedFields(subcategoryId, row.lineId);
+      }
+
+      if (field === "dimensionValue2Id") {
+        const isRequired = subcategory.dimensions.find(
+          ({ position }) => position === 2
+        )?.isRequired;
+        if (isRequired && !isOwnFactorSelected)
+          resetFactorRelatedFields(subcategoryId, row.lineId);
+      }
+
+      if (field === "measurementUnitId") {
+        resetFactorRelatedFields(subcategoryId, row.lineId);
       }
     },
-    [setValue, subcategoryId]
+    [
+      getValues,
+      setValue,
+      subcategoryId,
+      subcategory.dimensions,
+      resetFactorRelatedFields,
+    ]
   );
 
   const handleFactorSourceChange = useCallback(
