@@ -16,7 +16,13 @@ export const useEmissionTotal = (subcategory: SubcategoryWithLines) => {
 
   const totalEmission = useMemo(() => {
     const linesArray = Object.values(lines || {});
-    if (subcategory.isTotalManualEmissionsMode) {
+
+    const subcategoryHasEmissionFactors =
+      subcategory.emissionFactors.length > 0;
+    const isTotalManualEmissionsModeActive =
+      subcategory.isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
+
+    if (isTotalManualEmissionsModeActive) {
       return linesArray[0]?.manualTotalEmissions || 0;
     }
 
@@ -25,7 +31,7 @@ export const useEmissionTotal = (subcategory: SubcategoryWithLines) => {
       const factorValue = row.factorValue || 0;
       return acc + round(quantity * factorValue, 2);
     }, 0);
-  }, [subcategory.isTotalManualEmissionsMode, lines]);
+  }, [subcategory, lines]);
 
   return totalEmission;
 };

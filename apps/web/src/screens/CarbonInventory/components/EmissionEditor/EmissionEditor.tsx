@@ -79,22 +79,27 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     },
   });
 
+  const subcategoryHasEmissionFactors = subcategory.emissionFactors.length > 0;
+
+  const isTotalManualEmissionsModeActive =
+    isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
+
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
         isTotalManualEmissionsModeAvailable={
-          isTotalManualEmissionsModeAvailable
+          isTotalManualEmissionsModeAvailable && subcategoryHasEmissionFactors
         }
-        isTotalManualEmissionsMode={isTotalManualEmissionsMode}
+        isTotalManualEmissionsMode={isTotalManualEmissionsModeActive}
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
         setTotalEmission={handleSetTotalEmission}
       />
 
-      <Collapse in={!isTotalManualEmissionsMode} collapsedSize={0}>
+      <Collapse in={!isTotalManualEmissionsModeActive} collapsedSize={0}>
         <Box className="flex flex-col gap-2">
           {/* Content Section */}
           <Box className="flex flex-col gap-2">
