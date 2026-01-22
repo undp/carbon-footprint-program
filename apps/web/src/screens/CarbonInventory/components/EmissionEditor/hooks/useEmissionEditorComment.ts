@@ -34,7 +34,13 @@ export const useEmissionEditorComment = ({
       updateLine(subcategoryId, currentRowId, { comment: currentComment });
     }
     closeCommentDialog();
-  }, [currentRowId, currentComment, subcategoryId, updateLine, closeCommentDialog]);
+  }, [
+    currentRowId,
+    currentComment,
+    subcategoryId,
+    updateLine,
+    closeCommentDialog,
+  ]);
 
   // Props object for EmissionEditorCommentDialog
   const commentDialogProps = {
