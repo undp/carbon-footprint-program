@@ -1589,7 +1589,7 @@
           },
           {
             "name": "Procesos industriales - Acero",
-            "description": "Emisiones provenientes de la producción y procesamiento del acero. Incluye emisiones generadas por reacciones químicas en altos hornos, acerías y otros procesos industriales que involucran la producción de acero.",
+            "description": "Emisiones provenientes de la producción y procesamiento del acero. Incluye emisiones generadas por reacciones químicas en altos hornos, acerías y otros procesos industriales que involucranb la producción de acero.",
             "examples": null,
             "emissionFactorDimensions": [
               {
@@ -1718,7 +1718,7 @@
         "subcategories": [
           {
             "name": "Productos comprados",
-            "description": "Emisiones asociadas a la compra de productos. Estas emisiones corresponden a las emisiones que se generaron para lograr la producción de los productos adquiridos.",
+            "description": "Emisiones asociadas a la compra de productos. Estas emisiones corresponden a las emisiones que se generaon para lograr la producción de los productos adquiridos.",
             "examples": null,
             "emissionFactorDimensions": [
               {
@@ -2491,7 +2491,7 @@
           },
           {
             "name": "Consumo de agua y tratamiento de aguas residuales",
-            "description": "Emisiones asociadas al uso de agua y su tratamiento. Incluye las emisiones generadas por el consumo y desecho de las aguas utilizadas en tu empresa.",
+            "description": "Emisiones asociadas al uso de agua y su tratamiento. Incluye las emisiones generadas porel consumo y desecho de las aguas utilizadas en tu empresa.",
             "examples": null,
             "emissionFactorDimensions": [
               {
@@ -3325,7 +3325,7 @@
           },
           {
             "name": "Uso de productos de la organización",
-            "description": "Emisiones generadas durante el uso de los productos vendidos. Incluye las emisiones que se producen cuando los clientes utilizan los productos que la empresa confecciona a lo largo de su vida útil.",
+            "description": "Emisiones generadas durante el uso de los productos vendidos. Incluye las emisiones que se producen cuando los clientes utilizan los productos que la empresa confeccional a lo largo de su vida útil.",
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": []
