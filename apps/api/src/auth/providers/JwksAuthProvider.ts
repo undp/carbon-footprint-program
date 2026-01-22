@@ -45,14 +45,18 @@ export class JwksAuthProvider implements AuthProvider {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
       }
 
-      if (!payload.email) {
-        throw new Error("Token payload missing 'email' claim");
+      // Accept either `email` or `preferred_username` as the user's email
+      const email = payload.email ?? payload.preferred_username;
+      if (!email) {
+        throw new Error(
+          "Token payload missing 'email' or 'preferred_username' claim"
+        );
       }
 
       // Map OidcTokenPayload to normalized AuthUser
       const user: AuthUser = {
         idpUserId: payload.sub || payload.oid!,
-        email: payload.email,
+        email: email,
         idpName: this.type,
       };
 
