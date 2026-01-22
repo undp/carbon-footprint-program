@@ -97,129 +97,174 @@ Before you begin, ensure you have:
 ## 🔧 Azure Portal Configuration
 
 > **🎯 Default Approach**: This guide uses **Easy-Auth** as the default authentication method. This requires minimal code changes and Azure App Service handles token validation automatically.
->
 > **🔧 Custom Authentication**: If you need more control (e.g., custom token validation, non-Azure hosting), see the [Optional Steps](#optional-steps-for-custom-authentication) section at the end of this document.
 
 ---
 
-## ✅ Required Steps (Easy-Auth Default Setup)
+## ✅ Required Steps
 
 These steps configure the recommended Easy-Auth approach where Azure App Service automatically validates tokens and injects user information into request headers.
 
 ### Step 1: Create Azure Entra External ID Tenant
 
 1. Navigate to [Azure Portal](https://portal.azure.com)
-2. Search for **"Microsoft Entra External ID"** or **"External Identities"**
-3. Click **"Create a tenant"** → Select **"External ID tenant"**
-4. Configure:
-   - **Tenant name**: `undp-huella-latam` (or your preferred name)
-   - **Domain name**: `undphuella` (this becomes `undphuella.ciamlogin.com`)
-   - **Location**: Choose closest to your users (e.g., United States, Europe, LATAM)
-5. Review and create (this may take a few minutes)
-6. **Save the Tenant ID** - you'll see it in Overview (format: a short alphanumeric string, e.g., `undphuella`)
+2. Search for **"Microsoft Entra ID"**
+3. Click **"Manage tenants"**
+4. Click **"Create a tenant"**
+5. Select **"Microsoft Entra External ID"** as **"Tenant type"**
+6. Configure:
+   - **Organization name**: e.g `UNDP-HUELLA-LATAM` (or your preferred name)
+   - **Initial domain name**: e.g `undphuella` (this becomes `undphuella.ciamlogin.com`)
+   - **Country/Region**: Choose closest to your users (e.g., United States, Europe, LATAM)
+7. Select your **Azure Subscription** and corresponding **Resource Group**
+8. Review and create (this may take a few minutes)
 
-### Step 2: Register Frontend Application (for MSAL)
+> 💡 _**Tip**: Save the Tenant ID - you'll see it in Overview or in the list inside the **"Manage tenants"** as **"Organization ID"**_
+
+### Step 2: Register Frontend Application
 
 > **📱 Important**: This App Registration is for your **frontend web application** that will use MSAL.js for browser-based authentication.
 
-1. Go to **App registrations** → Click **"New registration"**
-2. Configure the registration:
-
+1. Switch to your External Tenant directory
+2. navigate to **App registrations** → Click **"New registration"**
+3. Configure the registration:
    **Basic Information:**
-   - **Name**: `Huella Latam Web App - Frontend MSAL` (or any descriptive name)
-     - 💡 **Tip**: Use explicit names to differentiate between apps later (e.g., `YourApp-Frontend`, `YourApp-API`)
+   - **Name**: e.g `Huella Latam Web App - Frontend MSAL` (or any descriptive name)
+     - 💡 _**Tip**: Use explicit names to differentiate between apps later (e.g., `YourApp-Frontend`, `YourApp-API`)_
    - **Supported account types**:
      - Select: "Accounts in this organizational directory only"
 
    **Redirect URIs:**
    - **Platform**: Single-page application (SPA)
    - **Development URI**: `http://localhost:5173`
-   - **Production URI**: `https://your-production-domain.com`
-   - _(You can add multiple URIs)_
+   - **Production URI**: `https://<your-production-domain>.com`
+   - _(You can add multiple URIs after the registration on the "Authentication (Preview)" option)_
 
-3. Click **"Register"**
+4. Click **"Register"**
+5. Add the other necessary redirect URIs to your frontend web application:
+   - In your Frontend App registration, navigate to **"Authentication (Preview)"** in the left menu
+   - Select
+     - **Platform**: Single-page application (SPA)
+     - **Development URI**: `http://localhost:5173/auth/sign-in`
+     - **Production URI**: `https://<your-production-domain.com>/auth/sign-in`
+       > 💡 _**Note**: This URIs is used as the post logout redirection on the front._
 
-4. **Save these values** (you'll need them later):
-   - **Application (client) ID** - Located in Overview (UUID format)
-   - **Directory (tenant) ID** - Should match your subdomain
+> 💡 _**Tip**: Save the Front App Registration ID you will need ahead_
 
 ### Step 3: Create Sign-in/Sign-up User Flow
 
 > **🔐 Important**: After creating the Frontend App Registration, you need to set up a User Flow that defines how users will authenticate using Email OTP.
 
-1. In your External ID tenant, navigate to **"External Identities"** in the left menu
+1. In your External Tenant directory, navigate to **"External Identities"** in the left menu
 2. Go to **"User flows"**
 3. Click **"New user flow"**
 4. Select **"Sign up and sign in"** as the user flow type
 5. Configure the user flow:
-   - **Name**: `SignUpSignIn` (or your preferred name)
+   - **Name**: e.g `SignUpSignIn` (or your preferred name)
    - **Identity providers**:
      - ✅ Check **"Email one-time passcode"**
    - **User attributes**: Select which attributes to collect during sign-up:
      - ✅ Email Address (required)
-     - ✅ Display Name (optional but recommended)
      - Add any other attributes your app needs
-   - **Application claims**: Select which claims to include in tokens:
-     - ✅ Email Addresses
-     - ✅ Display Name
-     - ✅ User's Object ID
 6. Click **"Create"**
-7. **Important**: Associate this user flow with your frontend app registration:
-   - Go back to your App Registration (Huella Latam Web App)
-   - The user flow will be available for authentication
+7. Associate the user flow with your Frontend App Registration:
+   - In your External ID tenant, navigate to **"External Identities"** in the left menu
+   - Navigate to the **User flows**
+   - Select your recently create **User flow**
+   - Inside your **User flow**, navigate to **Applications** in the left menu
+   - Click **+ Add application** → Select you frontend web application (e.g `Huella Latam Web App - Frontend MSAL`)
 
-> **💡 Note**: Users will now authenticate using the Email OTP flow you just configured. They'll receive a one-time passcode to their email address when signing in.
+> _Users will now authenticate using the Email OTP flow you just configured. They'll receive a one-time passcode to their email address when signing in._
 
-### Step 4: Enable Easy Auth on App Service (API)
+### Step 4: Register API Application
 
-> **✨ Important**: For the API backend, you don't need to manually create a separate App Registration. Azure App Service can automatically create one when you enable Easy Auth.
+1. Switch to your External Tenant directory
+2. Navigate to **App registrations** → Click **"New registration"**
+3. Configure the registration:
+   - **Name:** e.g `Huella Latam Api` (or any descriptive name)
+     - 💡 _**Tip**: Use explicit names to differentiate between apps later (e.g., `YourApp-Frontend`, `YourApp-API`)_
+   - **Supported account types:**
+     - Choose **Accounts in this organizational directory only (\<your-external-tenant-name\> - Single tenant)**
+4. Click **"Register"**
 
-1. Navigate to **Azure Portal** → **App Services**
-2. Select your API App Service (e.g., `undp-huella-latam-api`)
-3. In the left menu, go to **"Authentication"**
-4. Click **"Add identity provider"**
-5. Select **"Microsoft"** as the identity provider
-6. Configure the settings:
-   - **App registration type**: Choose **"Create new app registration"**
-   - **Name**: `Huella Latam API - Backend EasyAuth` (or keep auto-generated name)
-     - 💡 **Tip**: Use a clear, descriptive name like `YourApp-API-EasyAuth` to easily identify this as the backend API app registration
-   - **Supported account types**:
-     - Select **"Current tenant - Single tenant"** if using External ID
-   - **Restrict access**: Choose **"Require authentication"**
-   - **Unauthenticated requests**: Select **"HTTP 401 Unauthorized"**
-   - **Token store**: Enable (recommended)
-7. Click **"Add"**
+### Step 5: Add Scopes
 
-Azure will automatically:
+1. In your External Tenant directory, navigate to **"App registrations"**
+2. Choose **All app registrations** tab
+3. Select your recently created Api Application registration
+4. Navigate to **"Expose an API"** in the left menu
+5. Click **"Add a scope"**
+   - Configure the scope:
+     - **"Scope name"**: `access_as_user`
+     - **"Who can consent?"**:
+       - Choose **Admins and users**
+     - **Admin consent display name**: e.g `Access Huella Latam API`
+     - **Admin consent description**: e.g `Allow admins to access Huella Latam API`
+     - **State:** `Enabled`
+   - Click **Add scope**
 
-- ✅ Create an App Registration for your API
-- ✅ Configure the necessary redirect URIs
-- ✅ Set up the authentication flow
-- ✅ Inject user information into request headers (`X-MS-CLIENT-PRINCIPAL`)
-
-8. After creation, note down the **Client ID** that was generated for the API App Registration
-
+> 💡 _**Tip**: Save the Api App Registration ID you will need ahead_
+>
 > **🔑 Key Point**: The App Registration you created in Step 2 is for the **frontend** (web app). The App Registration Azure creates here is for the **backend API** Easy Auth. These are two separate app registrations:
 >
 > - **Frontend App**: Used by MSAL in the browser
 > - **Backend API App**: Used by Easy Auth on App Service
 
----
+### Step 5: Enable Easy Auth on your App Service (API)
+
+1. Switch to your principal Tenant directory
+2. Navigate to **Azure Portal** → **Resource Groups**
+3. Select the **Resource Group**
+4. Select your API App Service (e.g., `api-mdzqz43nanpls`)
+5. In the left menu, go to **"Authentication"**
+6. Click **"Add identity provider"**
+7. Select **"Microsoft"** as the identity provider
+8. Configure the settings:
+   - **App registration type:**
+     - Choose **"Provide the details of an existing app registration":**
+       - Configure the settings: - **Application (client) ID**: Add your Api App Registration ID (created on your App Registration on your External Tenant) - **Issuer URL**: `https://<external-tenant-sub-domain>.ciamlogin.com/<external-tenant-id>/v2.0` - **Allowed token audiences**: Add your Api App Registration ID (created on your App Registration on your External Tenant)
+   - **Client application requirement:**:
+     - Choose **Allow requests from specific client applications"**
+     - In **"Allowed client applications"** Add your Front App Registration ID (created on your App Registration on your External Tenant)
+   - **Identity requirement:**
+     - Choose **Allow requests from any identity**
+   - **Tenant requirement:**
+     - Choose **Allow requests from specific tenants**
+     - In **Allowed tenants** add you External Tenant ID
+   - **Restrict access**:
+     - Choose **"Allow unauthenticated access"**
+   - **Token store**: Enable (recommended)
+
+9. Click **"Add"**
+
+### Step 6: Grant permission from Frontend to Backend
+
+1. Switch to your External Tenant directory
+2. navigate to **"App registrations"**
+3. Choose **All app registrations** tab
+4. Go to your **Frontend App Registration**
+5. Navigate to **"API permissions"**.
+6. Click **"Add a permission"** → **"API's my organization uses"**.
+7. on **Select Permissions**.
+   - Check the scope you created before `access_as_user`
+8. Click on **Add permissions**
+9. Now grant admin consent by clicking **"Grant admin consent"** to pre-approved for all users.
+
+### Step 7: Add Branding to your Company
+
+1. Switch to your External Tenant directory
+2. navigate to **Microsoft Entra ID**
+3. Click **Company branding** in the left menu
+4. Select **Default sign-in** tab → **Edit**
 
 ## 📚 Optional Steps for Custom Authentication
 
-> **⚠️ These steps are NOT required for the default Easy-Auth setup.** Only configure these if you need:
->
 > - Custom token validation logic (not using Easy-Auth)
 > - Direct API calls from frontend to backend with custom scopes
 > - Access to Microsoft Graph API beyond basic profile information
 > - Non-Azure hosting requiring manual token validation
 >
 > **Note**: Implementing custom authentication requires additional code changes in your API backend.
-
-### Optional Step 1: Configure API Permissions (Advanced - Microsoft Graph Access)
-
-> **⚠️ Skip this step** if you're only using Email OTP authentication with the default scopes (openid, profile, email, offline_access).
 
 ### Optional Step 1: Configure API Permissions (Advanced - Microsoft Graph Access)
 
@@ -245,64 +290,7 @@ This step is only needed if you plan to:
    - `Calendars.Read` - Read user's calendar
 4. Click **"Grant admin consent"** if required by your organization (typically only needed for non-default permissions)
 
-### Optional Step 2: Expose an API (Custom API Authentication)
-
-> **⚠️ Important**: You need this step **only if** your frontend will call your backend API with the user's access token, and you're **NOT using Easy-Auth** (or implementing custom token validation alongside Easy-Auth).
-
-**When to use this:**
-
-- ✅ Frontend calls API endpoints that validate the user's token from MSAL
-- ✅ You want fine-grained permission scopes for your API (e.g., `api://myapp/read`, `api://myapp/write`)
-- ✅ You're implementing custom token validation (not relying on Easy-Auth)
-- ✅ Hosting your API outside Azure App Service
-
-**When to skip this:**
-
-- ❌ You're using Easy-Auth exclusively (Azure handles tokens for you) - **This is the default approach**
-- ❌ Your backend doesn't validate MSAL tokens directly
-
-> **🔧 Code Changes Required**: If you implement this approach, you'll need to modify your API to validate tokens directly instead of using Easy-Auth. This requires implementing JWKS validation or similar token verification logic.
-
-**To expose your API:**
-
-1. In your **Backend API App Registration** (if created manually, or the one created by Easy Auth in Step 4):
-2. Navigate to **"Expose an API"**
-3. Click **"Set"** next to Application ID URI:
-   - Accept default: `api://{client-id}`
-   - Or use custom: `api://huella-latam-api`
-4. Click **"Add a scope"**:
-   - **Scope name**: `access_as_user`
-   - **Who can consent**: Admins and users
-   - **Admin consent display name**: Access Huella Latam API
-   - **Admin consent description**: Allows the app to access Huella Latam API on behalf of the signed-in user
-   - **User consent display name**: Access Huella Latam API
-   - **User consent description**: Allows the app to access Huella Latam API on your behalf
-   - **State**: Enabled
-5. Click **"Add scope"**
-
-6. **Grant permission from Frontend to Backend**:
-   - Go to your **Frontend App Registration** (from Step 2)
-   - Navigate to **"API permissions"**
-   - Click **"Add a permission"** → **"My APIs"**
-   - Select your Backend API
-   - Check the scope you created (e.g., `access_as_user`)
-   - Click **"Add permissions"**
-   - Optionally click **"Grant admin consent"** to pre-approve for all users
-
-7. **Update your MSAL configuration** to request the API scope:
-   ```typescript
-   export const loginRequest = {
-     scopes: [
-       "openid",
-       "profile",
-       "email",
-       "offline_access",
-       "api://huella-latam-api/access_as_user", // Your custom scope
-     ],
-   };
-   ```
-
-### Optional Step 3: Create Client Secret (Advanced - Server-Side Flows)
+### Optional Step 2: Create Client Secret (Advanced - Server-Side Flows)
 
 > **⚠️ Note**: This is only needed if you want to use the client credentials flow or if your frontend needs to call other Microsoft APIs server-side. For Email OTP with MSAL in the browser, you typically don't need a client secret on the frontend app.
 
@@ -318,8 +306,6 @@ If needed:
 
 ### Optional Step 4: Configure Token Validation (Custom Validation Logic)
 
-> **⚠️ Skip this step** if using Easy-Auth (the default approach). Easy-Auth automatically validates tokens.
-
 If you want to implement custom token validation on your API (instead of using Easy-Auth):
 
 1. Set up JWKS endpoint validation in your API code
@@ -329,23 +315,6 @@ If you want to implement custom token validation on your API (instead of using E
 4. Implement token signature verification using JWKS keys
 
 > **🔧 Code Changes Required**: You'll need to modify `apps/api/src/auth` to implement a custom JWT validation provider instead of using `EasyAuthProvider`.
-
-### Optional Step 5: Configure API Exposure (Custom Scopes - Advanced)
-
-> **⚠️ Skip this step** if using Easy-Auth (the default approach).
-
-If you want to define custom scopes for your API (requires custom token validation - see Optional Step 4):
-
-1. Go to the API's App Registration (created in Step 4 or manually)
-2. Navigate to **"Expose an API"**
-3. Click **"Add a scope"**
-4. Set the Application ID URI (default is usually fine: `api://{client-id}`)
-5. Define your custom scopes (e.g., `read`, `write`)
-6. Grant permissions from your frontend app registration to call the API
-
-> **🔧 Code Changes Required**: Your API must validate these custom scopes in the access token, which requires implementing custom token validation logic.
-
----
 
 ## 🏗️ Infrastructure (Bicep) Configuration
 
@@ -363,17 +332,23 @@ After following the Azure Portal steps above, you'll have:
 The deployment script uses environment variables to configure Azure authentication. Set these in `infra/.env`:
 
 ```bash
-# Required base configuration
-AZURE_SUBSCRIPTION_ID=your-subscription-id
-AZURE_RESOURCE_GROUP=rg-undp-huella-latam-dev
-AZURE_SUBSCRIPTION_GROUP=your-azure-ad-group
-LOCATION=eastus
-ENVIRONMENT=development
+# Azure Subscription
+export ENVIRONMENT=""
+export AZURE_SUBSCRIPTION_ID=""
+export AZURE_TENANT_SUBDOMAIN=""
+export AZURE_EXTERNAL_TENANT_ID=""
+export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
+export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
 
-# Optional: Azure Authentication
-AZURE_TENANT_SUBDOMAIN=undphuella  # Your External ID tenant subdomain
-AZURE_EXTERNAL_TENANT_ID=624d9c14-5dae-473d-84a7-a41d2731f46e  # Your External ID tenant GUID
-AZURE_FRONTEND_CLIENT_ID=12345678-1234-1234-1234-123456789abc  # Frontend app client ID
+# Azure Resource Group
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
+export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
+export SHARED_RESOURCE_GROUP_NAME=""
+
+# Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
+export LOCATION=""
+
+export DRY_RUN=""
 ```
 
 > **💡 Tip**: Copy `infra/.env.example` to `infra/.env` and fill in your values.
@@ -384,29 +359,7 @@ AZURE_FRONTEND_CLIENT_ID=12345678-1234-1234-1234-123456789abc  # Frontend app cl
 - `AZURE_EXTERNAL_TENANT_ID`: Your External ID tenant GUID (the full UUID shown in Azure Portal, e.g., `624d9c14-5dae-473d-84a7-a41d2731f46e`)
 - `AZURE_FRONTEND_CLIENT_ID`: Client ID from your **Frontend App Registration** (Step 2)
 
-> **💡 Note**: Both the subdomain and GUID are required to construct the correct authority URL: `https://{subdomain}.ciamlogin.com/{guid}/v2.0/`
-
 If these variables are **not set**, the API will deploy with `AUTH_PROVIDER=none` (no authentication).
-
-### Step 2: Alternative - Update Bicep Parameters Directly
-
-Alternatively, you can set these directly in `infra/params/main.development.bicepparam`:
-
-```bicep
-using '../main.bicep'
-
-// ... existing parameters ...
-
-// --------- Azure Authentication ---------
-param enableAzureAuth = true
-param azureAuthTenantSubdomain = 'undphuella'  // Your External ID tenant subdomain
-param azureAuthTenantId = '624d9c14-5dae-473d-84a7-a41d2731f46e'  // Your External ID tenant GUID
-param azureAuthClientId = '12345678-1234-1234-1234-123456789abc'  // Your frontend app client ID
-```
-
-> **💡 Important**: The `azureAuthClientId` is your **frontend** app's Client ID from Step 2. The API doesn't need the Easy Auth app registration details - Azure App Service injects authenticated user information directly into headers.
-
-> **🔐 Security Note**: In production, pass these via Azure DevOps/GitHub Actions secure variables or use the environment variable approach.
 
 ### Step 3: Deploy Infrastructure
 
@@ -421,7 +374,7 @@ Deploy using the deployment script:
 
 ```bash
 cd infra
-./deploy.sh development  # or your environment name
+./deploy.sh
 ```
 
 ### Step 3: Verify Key Vault Secrets
@@ -1030,84 +983,11 @@ AUTH_PROVIDER=none
 
 In production, this is set automatically via `infra/modules/appService.bicep`.
 
----
-
-## 🌐 Environment Variables
-
-### Frontend (.env)
-
-Create `apps/web/.env`:
-
-```bash
-# Azure Entra External ID Configuration
-VITE_AZURE_TENANT_ID=undphuella
-VITE_AZURE_CLIENT_ID=12345678-1234-1234-1234-123456789abc
-VITE_AZURE_REDIRECT_URI=http://localhost:5173
-
-# API Configuration
-VITE_API_BASE_URL=http://localhost:8080
-```
-
-### Frontend (.env.production)
-
-Create `apps/web/.env.production`:
-
-```bash
-# Azure Entra External ID Configuration
-VITE_AZURE_TENANT_ID=undphuella
-VITE_AZURE_CLIENT_ID=12345678-1234-1234-1234-123456789abc
-VITE_AZURE_REDIRECT_URI=https://your-production-domain.com
-
-# API Configuration
-VITE_API_BASE_URL=https://your-api-domain.com
-```
-
-### Backend (.env)
-
-Create `apps/api/.env`:
-
-```bash
-# Authentication Provider
-# Options: "jwks" | "easy-auth" | "none"
-AUTH_PROVIDER=none  # Use "none" for local development
-
-# Azure AD Configuration (for JWKS validation if needed)
-AZURE_EXTERNAL_TENANT_ID=undphuella
-AZURE_API_CLIENT_ID=12345678-1234-1234-1234-123456789abc
-
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/huella_latam
-
-# Server
-API_HOST=localhost
-API_PORT=8080
-NODE_ENV=development
-LOG_LEVEL=debug
-```
-
-### Backend (Production via App Service)
-
-These are set automatically via Bicep in Azure App Service:
-
-```bash
-AUTH_PROVIDER=easy-auth
-AZURE_EXTERNAL_TENANT_ID=undphuella
-AZURE_API_CLIENT_ID=12345678-1234-1234-1234-123456789abc
-```
-
----
-
-## 🧪 Testing
-
 ### Test Frontend Authentication Locally
 
 1. Start the development servers:
 
 ```bash
-# Terminal 1 - Start API
-cd apps/api
-pnpm dev
-
 # Terminal 2 - Start Web
 cd apps/web
 pnpm dev
@@ -1134,17 +1014,10 @@ Since Easy-Auth only works on Azure App Service, you can test locally using:
 ```bash
 # Set AUTH_PROVIDER=none for local development
 AUTH_PROVIDER=none
+VITE_API_BASE_URL=api-on-azure.com/api
 ```
 
-Or test with JWKS provider if you want real token validation locally:
-
-```bash
-# Use JWKS for local validation
-AUTH_PROVIDER=jwks
-AZURE_EXTERNAL_TENANT_ID=undphuella
-AZURE_API_CLIENT_ID=your-client-id
-pnpm dev
-```
+And configure your `VITE_API_BASE_URL` to use your deployed backend on Azure
 
 ### Test End-to-End on Azure
 
@@ -1159,18 +1032,8 @@ pnpm dev
 ---Frontend App Registration created with correct redirect URIs
 
 - ✅ Easy Auth enabled on App Service via Azure Portal (Authentication → Add Microsoft)
-- ✅ Bicep parameters configured with correct tenant ID
+- ✅ Bicep variables configured with correct tenant ID
 - ✅ Production environment variables configured for fronten
-
-### Pre-Deployment Checklist
-
-- ✅ Bicep parameters configured with correct tenant and client IDs
-- ✅ Client secret stored securely in Key Vault
-- ✅ Redirect URIs updated in Azure App Registration
-- ✅ Production environment variables configured
-- ✅ CORS configured correctly for your domain
-- ✅ Rate limiting enabled
-- ✅ Application Insights configured
 
 ### Deploy Infrastructure
 
@@ -1192,34 +1055,6 @@ cd infra
 cd infra
 ./deploy-web.sh production
 ```
-
-### Post-Deployment Verification
-
-1. Verify Easy Auth is enabled:
-
-```bash
-az webapp auth show --name <app-service-name> --resource-group <rg-name>
-```
-
-2. Check App Service logs:
-
-```bash
-az webapp log tail --name <app-service-name> --resource-group <rg-name>
-```
-
-3. Test authentication flow on production URL:
-   - Open your frontend app
-   - Click sign in
-   - Complete Email OTP flow
-   - Verify API calls work with authentication
-
-4. Verify user claims are being read correctly:
-   - Check API logs for `X-MS-CLIENT-PRINCIPAL` header
-   - Confirm user information is extracted properly
-
-5. Check Application Insights for any errors
-
----
 
 ## 🐛 Troubleshooting
 
@@ -1297,61 +1132,3 @@ az webapp log tail --name <app-service-name> --resource-group <rg-name>
 - [Azure Entra External ID OTP Guide](./AzureEntraExternalID-OTP.md)
 - [Infrastructure Deployment Guide](./Infra/Deployment.md)
 - [API Deployment Guide](./Infra/ApiDeployment.md)
-
----
-
-## 🔒 Security Best Practices
-
-1. **Never commit secrets** to version control
-2. **Use Key Vault** for all production secrets
-3. **Enable HTTPS only** in production
-4. **Implement rate limiting** to prevent abuse
-5. **Validate all tokens** on the backend, never trust frontend
-6. **Use secure flags** on cookies if applicable
-7. **Monitor authentication logs** for suspicious activity
-8. **Rotate client secrets** periodically
-9. **Implement proper CORS** policies
-10. **Use Content Security Policy (CSP)** headers
-
----
-
-## ✅ Summary
-
-This guide provides a complete authentication system with two approaches:
-
-### 🎯 Default Approach (Recommended): Easy-Auth
-
-**What you get:**
-
-- ✅ **Frontend**: MSAL.js for Azure Entra External ID authentication
-- ✅ **Backend**: Easy-Auth for seamless Azure App Service integration
-- ✅ **Infrastructure**: Bicep templates for automated deployment
-- ✅ **Security**: Secrets stored in Key Vault
-- ✅ **Email OTP**: Passwordless authentication for users
-- ✅ **Minimal Code Changes**: Azure handles token validation automatically
-
-**Follow these steps:**
-
-1. Step 1: Create Azure Entra External ID Tenant
-2. Step 2: Register Frontend Application
-3. Step 3: Create Sign-in/Sign-up User Flow
-4. Step 4: Enable Easy Auth on App Service
-
-### 🔧 Custom Authentication (Advanced)
-
-**When to use:**
-
-- You need custom token validation logic
-- Your API is hosted outside Azure App Service
-- You require fine-grained custom scopes for your API
-- You need access to Microsoft Graph API beyond basic profile
-
-**Additional requirements:**
-
-- ⚠️ **Code Changes Required**: Implement JWKS token validation in your API
-- ⚠️ **More Complexity**: Manual token validation and error handling
-- ⚠️ **Additional Configuration**: See [Optional Steps](#optional-steps-for-custom-authentication)
-
----
-
-For questions or issues, refer to the [Troubleshooting](#troubleshooting) section or contact the development team.
