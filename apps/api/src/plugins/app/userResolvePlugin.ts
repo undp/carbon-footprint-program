@@ -24,33 +24,41 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
       "Processing authenticated user"
     );
 
-    // Find existing user by idpUserId
-    let user = await prisma.user.findUnique({
-      where: { idpUserId: authUser.idpUserId },
-    });
-
-    // If not found, create new user
-    if (!user) {
-      log.info(
-        { idpUserId: authUser.idpUserId },
-        "User not found; creating new user"
-      );
-      user = await prisma.user.create({
-        data: {
-          idpUserId: authUser.idpUserId,
-          email: authUser.email,
-          idpName: authUser.idpName,
-        },
+    try {
+      // Find existing user by idpUserId
+      let user = await prisma.user.findUnique({
+        where: { idpUserId: authUser.idpUserId },
       });
 
-      log.info({ userId: user.id }, "New user created");
-    } else {
-      log.info({ userId: user.id }, "Existing user found");
-    }
+      // If not found, create new user
+      if (!user) {
+        log.info(
+          { idpUserId: authUser.idpUserId },
+          "User not found; creating new user"
+        );
+        user = await prisma.user.create({
+          data: {
+            idpUserId: authUser.idpUserId,
+            email: authUser.email,
+            idpName: authUser.idpName,
+          },
+        });
 
-    // Attach the user to the request
-    request.currentUser = mapUserToResponse(user);
-    log.debug({ userId: user.id }, "User attached to request");
+        log.info({ userId: user.id }, "New user created");
+      } else {
+        log.info({ userId: user.id }, "Existing user found");
+      }
+
+      // Attach the user to the request
+      request.currentUser = mapUserToResponse(user);
+      log.debug({ userId: user.id }, "User attached to request");
+    } catch (error) {
+      log.error(
+        { error, idpUserId: authUser.idpUserId },
+        "Failed to resolve user"
+      );
+      throw error; // Re-throw to trigger error handler
+    }
   });
 
   fastify.log.info("User resolve plugin registered");
