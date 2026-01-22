@@ -29,8 +29,10 @@ export const canSelectFactorSource = (
   dimensions: EmissionFactorDimension[]
 ): boolean => {
   return (
-    areRequiredDimensionsFilled(line, dimensions) &&
-    isMeasurementUnitSelected(line)
+    (!!line.factorSource &&
+      ["Factor Propio", "Otro"].includes(line.factorSource)) ||
+    (areRequiredDimensionsFilled(line, dimensions) &&
+      isMeasurementUnitSelected(line))
   );
 };
 
@@ -45,6 +47,13 @@ export const getDisabledReasonMessage = (
   dimensions: EmissionFactorDimension[]
 ): string | null => {
   if (fieldName === "factorSource") {
+    if (
+      line.factorSource &&
+      ["Factor Propio", "Otro"].includes(line.factorSource)
+    ) {
+      return null;
+    }
+
     if (!areRequiredDimensionsFilled(line, dimensions)) {
       const missingDimensions = dimensions
         .filter((d) => {
