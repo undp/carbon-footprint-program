@@ -18,6 +18,7 @@ import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/line
 import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
+import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
 
 interface UseEmissionEditorFormParams {
   subcategory: SubcategoryWithLines;
@@ -74,6 +75,11 @@ export const useEmissionEditorForm = ({
     isTotalManualEmissionsModeLoading,
     setIsTotalManualEmissionsModeLoading,
   ] = useState(false);
+
+  const { submit } = useEmissionCaptureSubmit({
+    inventoryId,
+    isDirty: true,
+  });
 
   const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
     useState<boolean | null>(null);
@@ -347,6 +353,25 @@ export const useEmissionEditorForm = ({
       );
 
       try {
+        if (isManual) {
+          const values = getValues();
+          const payload: EmissionCaptureFormValues = {
+            subcategories: Object.assign(
+              {},
+              Object.entries(values.subcategories)
+                .filter(([key, _]) => key === subcategoryId)
+                .reduce(
+                  (obj, [key, value]) => {
+                    obj[key] = value;
+                    return obj;
+                  },
+                  {} as Record<string, (typeof values.subcategories)[string]>
+                )
+            ),
+          };
+          await submit(payload);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
         await toggleManualMode({ activated: isManual });
       } catch {
         // Error is handled by the mutation's onError or the UI
@@ -359,6 +384,8 @@ export const useEmissionEditorForm = ({
     [
       isTotalManualEmissionsModeLoading,
       toggleManualMode,
+      getValues,
+      submit,
       setValue,
       subcategoryId,
       startAction,
