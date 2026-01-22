@@ -75,6 +75,7 @@ export class EasyAuthProvider implements AuthProvider {
         claimsMap[
           "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
         ] ??
+        claimsMap["email"] ??
         null;
 
       const userOid =
