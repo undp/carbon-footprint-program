@@ -94,7 +94,7 @@ export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
   ? {
       // Use dynamic secret resolution via JWKS
       secret: async (_request: unknown, token: unknown) => {
-        const decodedToken = token as { header: { kid?: string } };
+        const decodedToken = token as { header?: { kid?: string } };
         const kid = decodedToken.header?.kid;
         return getSigningKey(kid);
       },
