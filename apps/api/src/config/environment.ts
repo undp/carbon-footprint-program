@@ -115,7 +115,12 @@ export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_API_CLIENT_ID;
 // - jwks: Use MSAL tokens with JWKS validation
 // - easy-auth: Use Azure App Service Easy Auth headers
 // - none: Disable authentication (default for local dev)
-export const AUTH_PROVIDER = (process.env.AUTH_PROVIDER || "none") as
-  | "jwks"
-  | "easy-auth"
-  | "none";
+const AUTH_PROVIDER_VALUES = ["jwks", "easy-auth", "none"] as const;
+type AuthProviderValue = (typeof AUTH_PROVIDER_VALUES)[number];
+
+const rawAuthProvider = process.env.AUTH_PROVIDER || "none";
+export const AUTH_PROVIDER: AuthProviderValue = AUTH_PROVIDER_VALUES.includes(
+  rawAuthProvider as AuthProviderValue
+)
+  ? (rawAuthProvider as AuthProviderValue)
+  : "none";
