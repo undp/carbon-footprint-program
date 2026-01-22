@@ -1,0 +1,17 @@
+# Azure Subscription
+export ENVIRONMENT=""
+export AZURE_SUBSCRIPTION_ID=""
+export AZURE_TENANT_SUBDOMAIN=""
+export AZURE_EXTERNAL_TENANT_ID=""
+export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
+export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
+
+# Azure Resource Group
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
+export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
+export SHARED_RESOURCE_GROUP_NAME="undp-huella-latam-shared-rg"
+
+# Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
+export LOCATION="eastus2"
+
+export DRY_RUN="false"
