@@ -62,7 +62,7 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
   const authService = new AuthService(config);
 
   // Decorate fastify with the auth service
-  fastify.decorate("authenticationService", authService);
+  fastify.decorate("authService", authService);
 
   /**
    * Decorator to require authentication on a route.
