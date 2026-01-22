@@ -57,6 +57,9 @@ export const JWKS_AUDIENCE = process.env.JWKS_AUDIENCE;
  */
 export const AZURE_EXTERNAL_TENANT_ID = process.env.AZURE_EXTERNAL_TENANT_ID;
 
+export const AZURE_EXTERNAL_TENANT_SUBDOMAIN =
+  process.env.AZURE_EXTERNAL_TENANT_SUBDOMAIN;
+
 /**
  * Azure AD Application (Client) ID.
  *
@@ -72,12 +75,14 @@ export const AZURE_API_CLIENT_ID = process.env.AZURE_API_CLIENT_ID;
 
 // Computed Azure AD values for Azure Entra External ID (CIAM)
 // CIAM uses ciamlogin.com instead of login.microsoftonline.com
-const AZURE_AD_ISSUER = AZURE_EXTERNAL_TENANT_ID
-  ? `https://${AZURE_EXTERNAL_TENANT_ID}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0`
-  : undefined;
-const AZURE_AD_JWKS_URI = AZURE_EXTERNAL_TENANT_ID
-  ? `https://${AZURE_EXTERNAL_TENANT_ID}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/discovery/v2.0/keys`
-  : undefined;
+const AZURE_AD_ISSUER =
+  AZURE_EXTERNAL_TENANT_ID && AZURE_EXTERNAL_TENANT_SUBDOMAIN
+    ? `https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0`
+    : undefined;
+const AZURE_AD_JWKS_URI =
+  AZURE_EXTERNAL_TENANT_ID && AZURE_EXTERNAL_TENANT_SUBDOMAIN
+    ? `https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/discovery/v2.0/keys`
+    : undefined;
 
 // ============================================================================
 // Resolved JWKS Configuration

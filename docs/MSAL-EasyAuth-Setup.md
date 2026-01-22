@@ -335,7 +335,7 @@ The deployment script uses environment variables to configure Azure authenticati
 # Azure Subscription
 export ENVIRONMENT=""
 export AZURE_SUBSCRIPTION_ID=""
-export AZURE_TENANT_SUBDOMAIN=""
+export AZURE_EXTERNAL_TENANT_SUBDOMAIN=""
 export AZURE_EXTERNAL_TENANT_ID=""
 export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
 export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
@@ -355,7 +355,7 @@ export DRY_RUN=""
 
 **What these variables do:**
 
-- `AZURE_TENANT_SUBDOMAIN`: Your External ID tenant subdomain (e.g., `undphuella` from `undphuella.ciamlogin.com`)
+- `AZURE_EXTERNAL_TENANT_SUBDOMAIN`: Your External ID tenant subdomain (e.g., `undphuella` from `undphuella.ciamlogin.com`)
 - `AZURE_EXTERNAL_TENANT_ID`: Your External ID tenant GUID (the full UUID shown in Azure Portal, e.g., `624d9c14-5dae-473d-84a7-a41d2731f46e`)
 - `AZURE_FRONTEND_CLIENT_ID`: Client ID from your **Frontend App Registration** (Step 2)
 

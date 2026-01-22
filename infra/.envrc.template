@@ -1,7 +1,7 @@
 # Azure Subscription
 export ENVIRONMENT=""
 export AZURE_SUBSCRIPTION_ID=""
-export AZURE_TENANT_SUBDOMAIN=""
+export AZURE_EXTERNAL_TENANT_SUBDOMAIN=""
 export AZURE_EXTERNAL_TENANT_ID=""
 export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
 export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
