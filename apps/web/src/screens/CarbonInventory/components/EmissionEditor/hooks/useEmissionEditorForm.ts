@@ -170,7 +170,7 @@ export const useEmissionEditorForm = ({
           );
         }
 
-        if (!isOwnFactorSelected)
+        if (isRequired && !isOwnFactorSelected)
           resetFactorRelatedFields(subcategoryId, row.lineId);
       }
 
