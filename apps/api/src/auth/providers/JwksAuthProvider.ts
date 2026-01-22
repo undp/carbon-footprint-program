@@ -34,12 +34,18 @@ export class JwksAuthProvider implements AuthProvider {
    * Relies on @fastify/jwt plugin for token validation.
    */
   async authenticate(request: FastifyRequest): Promise<AuthResult> {
+    // Note: `request.jwtVerify()` validates token expiry (`exp`) and will
+    // throw an error (TokenExpiredError) for expired tokens. We log and map
+    // those errors here so callers get a clear failure reason.
+    request.log.debug("JwksAuthProvider: authenticate called");
     try {
       // Verify the token cryptographically against the JWKS provider
       // This validates: signature, issuer, audience, and expiration.
       // The verified payload is returned by the plugin and must be used
       // so forged or tampered tokens are rejected.
       const payload = await request.jwtVerify<OidcTokenPayload>();
+
+      request.log.debug({ sub: payload.sub, oid: payload.oid }, "JwksAuthProvider: token verified");
 
       if (!payload.sub && !payload.oid) {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
@@ -62,6 +68,8 @@ export class JwksAuthProvider implements AuthProvider {
         email: email,
         idpName: this.type,
       };
+
+      request.log.info({ idpUserId }, "JwksAuthProvider: authentication succeeded");
 
       return { success: true, user };
     } catch (error) {
