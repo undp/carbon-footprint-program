@@ -50,8 +50,11 @@ export class AuthService {
     this.providers = new Map();
 
     // Register available providers
-    this.registerProvider(new JwksAuthProvider());
-    this.registerProvider(new EasyAuthProvider());
+    if (config.provider === "jwks") {
+      this.registerProvider(new JwksAuthProvider());
+    } else if (config.provider === "easy-auth") {
+      this.registerProvider(new EasyAuthProvider());
+    }
   }
 
   /**
