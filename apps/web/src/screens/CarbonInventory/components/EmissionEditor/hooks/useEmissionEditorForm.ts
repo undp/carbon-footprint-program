@@ -102,7 +102,7 @@ export const useEmissionEditorForm = ({
   }, [createLine, startAction, endAction]);
 
   const resetFactorRelatedFields = useCallback(
-    (subcategoryId: string, lineId: string) => {
+    (subcategoryId: SubcategoryWithLines["id"], lineId: string) => {
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
         null,
@@ -125,6 +125,104 @@ export const useEmissionEditorForm = ({
       );
     },
     [setValue]
+  );
+
+  const resetFactorValueField = useCallback(
+    (subcategoryId: SubcategoryWithLines["id"], lineId: string) => {
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+        null,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
+        null,
+        { shouldDirty: true }
+      );
+    },
+    [setValue]
+  );
+
+  const handleFactorSourceChange = useCallback(
+    (lineId: string, newFactorSource: string) => {
+      const line = getValues(
+        `subcategories.${subcategoryId}.lines.${lineId}`
+      ) as EmissionCaptureFormLine | undefined;
+      if (!line) return;
+
+      const compatibleRateUnitId = getCompatibleRateUnitId(
+        line.measurementUnitId,
+        rateMeasurementUnits
+      );
+
+      const availableFactors = getAvailableFactors(
+        emissionFactors,
+        line.dimensionValue1Id,
+        line.dimensionValue2Id,
+        compatibleRateUnitId
+      );
+
+      const baseFactorId = getBaseFactorId(availableFactors, newFactorSource);
+
+      const { factorValue, factorRateMeasurementUnitId } = getFactorData(
+        availableFactors,
+        newFactorSource
+      );
+
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
+        newFactorSource,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+        baseFactorId,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
+        factorValue,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
+        factorRateMeasurementUnitId,
+        { shouldDirty: true }
+      );
+    },
+    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
+  );
+
+  const tryToLoadDetermineFactorPlatform = useCallback(
+    (
+      subcategoryId: SubcategoryWithLines["id"],
+      lineId: EmissionCaptureFormLine["id"]
+    ) => {
+      const formLine = getValues(
+        `subcategories.${subcategoryId}.lines.${lineId}`
+      );
+      const isFirstDimensionRequired = subcategory.dimensions.find(
+        ({ position }) => position === 1
+      )?.isRequired;
+
+      const isSecondDimensionRequired = subcategory.dimensions.find(
+        ({ position }) => position === 2
+      )?.isRequired;
+
+      const areAllRequiredFieldsSelected =
+        (!isFirstDimensionRequired || formLine.dimensionValue1Id !== null) &&
+        (!isSecondDimensionRequired || formLine.dimensionValue2Id !== null) &&
+        formLine.measurementUnitId !== null;
+
+      const isOwnFactorSelected =
+        !!formLine.factorSource &&
+        ["Factor Propio", "Otro"].includes(formLine.factorSource);
+
+      if (!isOwnFactorSelected && areAllRequiredFieldsSelected) {
+        handleFactorSourceChange(lineId, "DEFRA 2025");
+      }
+    },
+    [subcategory, getValues, handleFactorSourceChange]
   );
 
   const handleCellChange = useCallback(
@@ -182,9 +280,11 @@ export const useEmissionEditorForm = ({
           resetFactorRelatedFields(subcategoryId, row.lineId);
       }
 
-      if (field === "measurementUnitId") {
-        resetFactorRelatedFields(subcategoryId, row.lineId);
-      }
+      if (field === "measurementUnitId")
+        resetFactorValueField(subcategoryId, row.lineId);
+
+      // Try to fill a platform factor if possible
+      tryToLoadDetermineFactorPlatform(subcategoryId, row.lineId);
     },
     [
       getValues,
@@ -192,57 +292,9 @@ export const useEmissionEditorForm = ({
       subcategoryId,
       subcategory.dimensions,
       resetFactorRelatedFields,
+      resetFactorValueField,
+      tryToLoadDetermineFactorPlatform,
     ]
-  );
-
-  const handleFactorSourceChange = useCallback(
-    (lineId: string, newFactorSource: string) => {
-      const line = getValues(
-        `subcategories.${subcategoryId}.lines.${lineId}`
-      ) as EmissionCaptureFormLine | undefined;
-      if (!line) return;
-
-      const compatibleRateUnitId = getCompatibleRateUnitId(
-        line.measurementUnitId,
-        rateMeasurementUnits
-      );
-
-      const availableFactors = getAvailableFactors(
-        emissionFactors,
-        line.dimensionValue1Id,
-        line.dimensionValue2Id,
-        compatibleRateUnitId
-      );
-
-      const baseFactorId = getBaseFactorId(availableFactors, newFactorSource);
-
-      const { factorValue, factorRateMeasurementUnitId } = getFactorData(
-        availableFactors,
-        newFactorSource
-      );
-
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-        newFactorSource,
-        { shouldDirty: true }
-      );
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
-        baseFactorId,
-        { shouldDirty: true }
-      );
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-        factorValue,
-        { shouldDirty: true }
-      );
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
-        factorRateMeasurementUnitId,
-        { shouldDirty: true }
-      );
-    },
-    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
   );
 
   const handleDeleteLine = useCallback(
