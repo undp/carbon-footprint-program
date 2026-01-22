@@ -53,9 +53,12 @@ export class JwksAuthProvider implements AuthProvider {
         );
       }
 
+      // Determine idp user id (prefer `sub`, fallback to `oid`)
+      const idpUserId = payload.sub ?? payload.oid;
+
       // Map OidcTokenPayload to normalized AuthUser
       const user: AuthUser = {
-        idpUserId: payload.sub || payload.oid!,
+        idpUserId,
         email: email,
         idpName: this.type,
       };
