@@ -35,10 +35,11 @@ export class JwksAuthProvider implements AuthProvider {
    */
   async authenticate(request: FastifyRequest): Promise<AuthResult> {
     try {
-      // Manually verify and decode the token
-      // This validates: signature (via JWKS), issuer, audience, expiration
-      // Returns the payload directly without modifying request.user
-      const payload = await request.jwtDecode<OidcTokenPayload>();
+      // Verify the token cryptographically against the JWKS provider
+      // This validates: signature, issuer, audience, and expiration.
+      // The verified payload is returned by the plugin and must be used
+      // so forged or tampered tokens are rejected.
+      const payload = await request.jwtVerify<OidcTokenPayload>();
 
       if (!payload.sub && !payload.oid) {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
