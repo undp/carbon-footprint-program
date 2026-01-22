@@ -388,6 +388,13 @@ export async function validateEmissionFactors(
         };
       }
 
+      const isDimension1Required = !!subcategory.dimensions.find(
+        (d) => d.position === 1
+      )?.isRequired;
+      const isDimension2Required = !!subcategory.dimensions.find(
+        (d) => d.position === 2
+      )?.isRequired;
+
       // Extract selection1Id and selection2Id from dimension fields
       const selection1Id = mapBigIntField(lineData.dimensionValue1Id);
       const selection2Id = mapBigIntField(lineData.dimensionValue2Id);
@@ -401,8 +408,9 @@ export async function validateEmissionFactors(
       const reqSelection2Id = selection2Id?.toString() ?? null;
 
       if (
-        !stringEquals(efDimension1Id, reqSelection1Id) ||
-        !stringEquals(efDimension2Id, reqSelection2Id)
+        (isDimension1Required &&
+          !stringEquals(efDimension1Id, reqSelection1Id)) ||
+        (isDimension2Required && !stringEquals(efDimension2Id, reqSelection2Id))
       ) {
         return {
           success: false,
