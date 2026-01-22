@@ -90,8 +90,9 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         name={subcategory.name}
         description={subcategory.description}
         isTotalManualEmissionsModeAvailable={
-          isTotalManualEmissionsModeAvailable && subcategoryHasEmissionFactors
+          isTotalManualEmissionsModeAvailable
         }
+        subcategoryHasEmissionFactors={subcategoryHasEmissionFactors}
         isTotalManualEmissionsMode={isTotalManualEmissionsModeActive}
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isTotalManualEmissionsModeLoading}
