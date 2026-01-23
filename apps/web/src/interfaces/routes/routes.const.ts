@@ -22,6 +22,7 @@ export const Routes = {
   TRANSPARENCY: "/transparency",
   CAPINAUT: "/capinaut",
   SIGN_IN: "/sign-in",
+  MAINTAINER: "/app/maintainer",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
