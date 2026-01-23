@@ -1,0 +1,8 @@
+import type { SelectOption } from "./types";
+
+export const NORMATIVA_OPTIONS: SelectOption[] = [
+  { label: "GHG Protocol", value: "GHG Protocol" },
+  { label: "ISO 14064", value: "ISO 14064" },
+  { label: "ISO 14067", value: "ISO 14067" },
+  { label: "PAS 2050", value: "PAS 2050" },
+];
