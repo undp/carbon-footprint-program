@@ -1,0 +1,1 @@
+export { MethodologiesScreen } from "./MethodologiesScreen";
