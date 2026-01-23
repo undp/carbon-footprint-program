@@ -1,0 +1,229 @@
+import { FC, useCallback } from "react";
+import { useNavigate, useBlocker } from "@tanstack/react-router";
+import { Box, Typography } from "@mui/material";
+import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { useMethodologies } from "@/api/query/maintainer";
+import { Routes } from "@/interfaces/routes";
+import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
+import { DataGridWrapper } from "../components/DataGridWrapper";
+import { ToggleCell } from "../components/ToggleCell";
+import { ActionButtons } from "../components/ActionButtons";
+import { EditFooter } from "../components/EditFooter";
+import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { NORMATIVA_OPTIONS } from "../constants";
+import { createEmptyMethodology } from "../mocks/methodologies.mock";
+import { useMaintainerStore } from "../hooks/useMaintainerStore";
+import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
+import { useSaveMethodologies } from "../hooks/useSaveMethodologies";
+import type { Methodology } from "../types";
+
+export const MethodologiesScreen: FC = () => {
+  const navigate = useNavigate();
+  const { data: methodologies = [], isLoading } = useMethodologies();
+  const { form, fieldArray, serverSnapshotRef } =
+    useMethodologiesForm(methodologies);
+  const { save, isSaving } = useSaveMethodologies();
+  const startEditing = useMaintainerStore((s) => s.startEditing);
+
+  const { isDirty, isValid } = form.formState;
+  const currentRows = form.watch("methodologies");
+
+  // Block navigation when there are pending changes
+  const blocker = useBlocker({
+    shouldBlockFn: () => isDirty,
+    enableBeforeUnload: () => isDirty,
+    withResolver: true,
+  });
+
+  // --- Handlers that manipulate the field array ---
+
+  const handleToggle = useCallback(
+    (row: Methodology, checked: boolean) => {
+      const rows = form.getValues("methodologies");
+      if (checked) {
+        rows.forEach((m, i) => {
+          if (m.activo && m.id !== row.id) {
+            fieldArray.update(i, { ...m, activo: false });
+          }
+        });
+      }
+      const rowIndex = rows.findIndex((r) => r.id === row.id);
+      if (rowIndex !== -1) {
+        fieldArray.update(rowIndex, { ...row, activo: checked });
+      }
+    },
+    [form, fieldArray]
+  );
+
+  const handleEdit = useCallback(
+    (row: Methodology) => {
+      startEditing({
+        id: row.id,
+        nombre: row.nombre,
+        normativa: row.normativa,
+      });
+      void navigate({ to: Routes.MAINTAINER_SCOPES });
+    },
+    [startEditing, navigate]
+  );
+
+  const handleDuplicate = useCallback(
+    (row: Methodology) => {
+      const rows = form.getValues("methodologies");
+      const index = rows.findIndex((r) => r.id === row.id);
+      const duplicate: Methodology = {
+        ...row,
+        id: crypto.randomUUID(),
+        nombre: `${row.nombre} (copia)`,
+        activo: false,
+      };
+      fieldArray.insert(index + 1, duplicate);
+    },
+    [form, fieldArray]
+  );
+
+  const handleAddRow = useCallback(() => {
+    fieldArray.append(createEmptyMethodology());
+  }, [fieldArray]);
+
+  const handleDelete = useCallback(
+    (row: Methodology) => {
+      const rows = form.getValues("methodologies");
+      const index = rows.findIndex((r) => r.id === row.id);
+      if (index !== -1) {
+        fieldArray.remove(index);
+      }
+    },
+    [form, fieldArray]
+  );
+
+  const processRowUpdate = useCallback(
+    (newRow: Methodology) => {
+      const rows = form.getValues("methodologies");
+      const index = rows.findIndex((r) => r.id === newRow.id);
+      if (index !== -1) {
+        fieldArray.update(index, newRow);
+      }
+      return newRow;
+    },
+    [form, fieldArray]
+  );
+
+  // --- Save / Discard ---
+
+  const handleSave = useCallback(async () => {
+    const current = form.getValues("methodologies");
+    await save(current, serverSnapshotRef.current);
+    serverSnapshotRef.current = current;
+    form.reset({ methodologies: current });
+  }, [form, save, serverSnapshotRef]);
+
+  const handleDiscard = useCallback(() => {
+    form.reset({ methodologies: serverSnapshotRef.current });
+  }, [form, serverSnapshotRef]);
+
+  // --- Column definitions ---
+
+  const columns: GridColDef<Methodology>[] = [
+    {
+      field: "nombre",
+      headerName: "Nombre",
+      flex: 1,
+      minWidth: 180,
+      editable: true,
+    },
+    {
+      field: "descripcion",
+      headerName: "Descripción",
+      flex: 1.5,
+      minWidth: 220,
+      editable: true,
+    },
+    {
+      field: "normativa",
+      headerName: "Normativa",
+      width: 150,
+      editable: true,
+      type: "singleSelect",
+      valueOptions: NORMATIVA_OPTIONS.map((o) => o.value),
+    },
+    {
+      field: "version",
+      headerName: "Versión",
+      width: 100,
+      editable: true,
+    },
+    {
+      field: "activo",
+      headerName: "Estado",
+      width: 90,
+      renderCell: (params: GridRenderCellParams<Methodology>) => (
+        <ToggleCell
+          value={params.row.activo}
+          onChange={(checked) => handleToggle(params.row, checked)}
+        />
+      ),
+    },
+    {
+      field: "actions",
+      headerName: "Acciones",
+      width: 160,
+      sortable: false,
+      filterable: false,
+      renderCell: (params: GridRenderCellParams<Methodology>) => (
+        <ActionButtons
+          onEdit={!params.row.activo ? () => handleEdit(params.row) : undefined}
+          onView={params.row.activo ? () => handleEdit(params.row) : undefined}
+          onDuplicate={() => handleDuplicate(params.row)}
+          onDelete={() => handleDelete(params.row)}
+        />
+      ),
+    },
+  ];
+
+  return (
+    <>
+      <MaintainerPageHeader
+        title="Metodologías"
+        onAddRow={handleAddRow}
+        addLabel="Agregar fila"
+      />
+      <Box
+        sx={{
+          backgroundColor: "#fff",
+          borderRadius: 2,
+          p: 3,
+        }}
+      >
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Gestiona las metodologías de cálculo. Haz clic en Editar para
+          modificar alcances, subcategorías y factores de emisión. Solo una
+          metodología puede estar activa a la vez.
+        </Typography>
+        <DataGridWrapper
+          rows={currentRows}
+          columns={columns}
+          loading={isLoading || isSaving}
+          processRowUpdate={processRowUpdate}
+          minHeight={200}
+          sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}
+        />
+      </Box>
+      {isDirty && (
+        <EditFooter
+          onCancel={handleDiscard}
+          onSave={handleSave}
+          isSaving={isSaving}
+          cancelLabel="Descartar"
+          saveLabel="Guardar cambios"
+          saveDisabled={!isValid}
+        />
+      )}
+      <UnsavedChangesDialog
+        open={blocker.status === "blocked"}
+        onCancel={() => blocker.reset?.()}
+        onConfirm={() => blocker.proceed?.()}
+      />
+    </>
+  );
+};

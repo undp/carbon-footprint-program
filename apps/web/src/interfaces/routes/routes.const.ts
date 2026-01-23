@@ -19,6 +19,7 @@ export const Routes = {
   LOGIN: "/login",
   REGISTER: "/register",
   MAINTAINER: "/app/maintainer",
+  MAINTAINER_METHODOLOGIES: "/app/maintainer/methodologies",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
