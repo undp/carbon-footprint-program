@@ -2,6 +2,11 @@ import { useEffect, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
+import remarkGfm from 'remark-gfm'
+
+
+import "/src/styles/editor.css";
+
 
 import {
   MDXEditor,
@@ -18,17 +23,17 @@ import {
 } from '@mdxeditor/editor'
 
 export default function Editor() {
-  const [content, setContent] = useState('Cargando...')
+  const [content, setContent] = useState('Loading...')
   const [editorKey, setEditorKey] = useState(0)
 
   function loadMarkdown() {
-    fetch('/default.md')
+    fetch('/example_file.md')
       .then(res => res.text())
       .then(text => {
         setContent(text)
-        setEditorKey(prev => prev + 1) // 🔥 recarga controlada
+        setEditorKey(prev => prev + 1)
       })
-      .catch(() => setContent('# Error cargando archivo'))
+      .catch(() => setContent('# Error loading file'))
   }
 
   useEffect(() => {
@@ -39,16 +44,12 @@ export default function Editor() {
     <div className="editor-page">
       <div className="editor-container">
 
-        {/* HEADER */}
         <header className="editor-header">
-          <h1>MDX Editor</h1>
-          <p>Editor con soporte matemático y preview</p>
+          <h1>Editor con MDX package</h1>
         </header>
 
-        {/* SPLIT VIEW */}
         <div className="editor-split">
 
-          {/* EDITOR */}
           <div className="editor-panel">
             <MDXEditor
               key={editorKey}
@@ -74,10 +75,9 @@ export default function Editor() {
             />
           </div>
 
-          {/* PREVIEW */}
           <div className="preview-panel">
             <ReactMarkdown
-              remarkPlugins={[remarkMath]}
+              remarkPlugins={[remarkMath, remarkGfm]}
               rehypePlugins={[rehypeKatex]}
             >
               {content}
@@ -86,10 +86,9 @@ export default function Editor() {
 
         </div>
 
-        {/* FOOTER */}
         <div className="editor-footer">
           <button onClick={loadMarkdown} className="reload-btn">
-            🔄 Recargar archivo .md
+            Load file
           </button>
         </div>
 
