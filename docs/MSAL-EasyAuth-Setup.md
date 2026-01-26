@@ -28,7 +28,7 @@ This application uses a **two-layer authentication approach**:
 
 - **Purpose**: Authenticate users via Azure Entra External ID
 - **Technology**: `@azure/msal-browser` or `@azure/msal-react`
-- **Flow**: Popup or Redirect-based OAuth 2.0 + OpenID Connect
+- **Flow**: Redirect-based OAuth 2.0 + OpenID Connect
 - **Authentication Method**: Email OTP (One-Time Passcode)
 
 ### Backend Authentication (Easy-Auth) - **Default & Recommended**
