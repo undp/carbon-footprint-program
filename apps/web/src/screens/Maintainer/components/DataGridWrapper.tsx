@@ -15,10 +15,7 @@ export const DataGridWrapper: FC<Props> = ({
     <DataGrid
       editMode="cell"
       disableRowSelectionOnClick
-      pageSizeOptions={[10, 25, 50]}
-      initialState={{
-        pagination: { paginationModel: { pageSize: 10 } },
-      }}
+      hideFooterPagination
       getRowHeight={() => "auto"}
       sx={{
         backgroundColor: "#fff",
