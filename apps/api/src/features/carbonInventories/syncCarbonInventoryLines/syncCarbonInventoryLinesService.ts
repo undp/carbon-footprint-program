@@ -1,14 +1,11 @@
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient, Prisma } from "@repo/database";
 import type {
   SyncCarbonInventoryLinesRequest,
   SyncCarbonInventoryLinesResponse,
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
-import {
-  createLineInput,
-  createLineFactor,
-  createLineResult,
-} from "./syncCarbonInventoryLinesHelper.js";
+import { mapBigIntField } from "@/utils/bigint.js";
+import { mapDecimalField } from "@/utils/decimal.js";
 
 export type SyncCarbonInventoryLinesResult =
   | { success: true; data: SyncCarbonInventoryLinesResponse }
@@ -21,6 +18,42 @@ export type SyncCarbonInventoryLinesResult =
         | "LINE_NOT_FOUND"
         | "LINE_NOT_IN_CARBON_INVENTORY";
     };
+
+/**
+ * Determines the input type based on the provided data
+ */
+function determineInputType(data: {
+  manualTotalEmissions: number | null;
+  factorSource: string | null;
+  baseFactorId: string | null;
+  quantity: number | null;
+  appliedFactorValue: number | null;
+  appliedFactorRateMeasurementUnitId: string | null;
+}): "DIRECT" | "SIMPLIFIED" | "EXPERT" {
+  if (data.manualTotalEmissions !== null) {
+    return "DIRECT";
+  }
+  if (data.factorSource === "Factor Propio") {
+    return "EXPERT";
+  }
+  if (data.baseFactorId !== null) {
+    return "SIMPLIFIED";
+  }
+  if (
+    data.quantity !== null &&
+    data.appliedFactorValue !== null &&
+    data.appliedFactorRateMeasurementUnitId !== null
+  ) {
+    return "SIMPLIFIED";
+  }
+  if (
+    data.appliedFactorValue !== null &&
+    data.appliedFactorRateMeasurementUnitId !== null
+  ) {
+    return "EXPERT";
+  }
+  return "SIMPLIFIED";
+}
 
 export const syncCarbonInventoryLinesService = async (
   prismaClient: PrismaClient,
@@ -134,16 +167,105 @@ export const syncCarbonInventoryLinesService = async (
 
       createdLineIds.push(line.id);
 
-      // Always create input with the provided inputType
-      const inputType = createItem.inputType;
-      const newInput = await createLineInput(
-        tx,
-        line.id,
-        createItem,
-        inputType
-      );
-      await createLineFactor(tx, newInput.id, createItem);
-      await createLineResult(tx, newInput.id, createItem, inputType);
+      // Create input if there's data
+      const hasInputData =
+        createItem.dimensionValue1Id !== null ||
+        createItem.dimensionValue2Id !== null ||
+        createItem.quantity !== null ||
+        createItem.measurementUnitId !== null ||
+        createItem.factorSource !== null ||
+        createItem.manualTotalEmissions !== null;
+
+      if (hasInputData) {
+        const inputType = determineInputType(createItem);
+
+        const newInput = await tx.carbonInventoryLineInput.create({
+          data: {
+            lineId: line.id,
+            inputType,
+            selection1Id: mapBigIntField(createItem.dimensionValue1Id),
+            selection2Id: mapBigIntField(createItem.dimensionValue2Id),
+            quantity:
+              createItem.quantity !== null
+                ? mapDecimalField(createItem.quantity)
+                : null,
+            measurementUnitId: mapBigIntField(createItem.measurementUnitId),
+            directTotalEmissions:
+              createItem.manualTotalEmissions !== null
+                ? mapDecimalField(createItem.manualTotalEmissions)
+                : null,
+            manualFactor:
+              createItem.appliedFactorValue !== null &&
+              createItem.factorSource === "Factor Propio"
+                ? mapDecimalField(createItem.appliedFactorValue)
+                : null,
+            manualFactorSource:
+              createItem.factorSource === "Factor Propio"
+                ? createItem.factorSource
+                : null,
+            manualFactorRateUnitId:
+              createItem.appliedFactorRateMeasurementUnitId !== null &&
+              createItem.factorSource === "Factor Propio"
+                ? BigInt(createItem.appliedFactorRateMeasurementUnitId)
+                : null,
+            comment: createItem.comment ?? null,
+            isActive: true,
+            createdById: null,
+            updatedById: null,
+          },
+        });
+
+        // Create factor if applicable
+        if (
+          createItem.appliedFactorValue !== null &&
+          createItem.appliedFactorRateMeasurementUnitId !== null
+        ) {
+          await tx.carbonInventoryLineFactor.create({
+            data: {
+              lineInputId: newInput.id,
+              emissionFactorId: mapBigIntField(createItem.baseFactorId),
+              appliedFactorValue: mapDecimalField(
+                createItem.appliedFactorValue
+              ),
+              appliedFactorRateUnitId: BigInt(
+                createItem.appliedFactorRateMeasurementUnitId
+              ),
+              appliedFactorSource: createItem.factorSource,
+              createdById: null,
+              updatedById: null,
+            },
+          });
+        }
+
+        // Create result if applicable
+        let totalEmissions: Prisma.Decimal | null = null;
+
+        if (
+          inputType === "DIRECT" &&
+          createItem.manualTotalEmissions !== null
+        ) {
+          totalEmissions = mapDecimalField(createItem.manualTotalEmissions);
+        } else if (
+          (inputType === "SIMPLIFIED" || inputType === "EXPERT") &&
+          createItem.quantity !== null &&
+          createItem.appliedFactorValue !== null
+        ) {
+          totalEmissions = mapDecimalField(createItem.quantity).mul(
+            mapDecimalField(createItem.appliedFactorValue)
+          );
+        }
+
+        if (totalEmissions !== null) {
+          await tx.carbonInventoryLineResult.create({
+            data: {
+              lineInputId: newInput.id,
+              totalEmissions,
+              createdById: null,
+              updatedById: null,
+            },
+          });
+        }
+      }
     }
 
     // 2. UPDATE operations
@@ -157,10 +279,89 @@ export const syncCarbonInventoryLinesService = async (
         data: { isActive: false, updatedById: null },
       });
 
-      const inputType = updateItem.inputType;
-      const newInput = await createLineInput(tx, lineId, updateItem, inputType);
-      await createLineFactor(tx, newInput.id, updateItem);
-      await createLineResult(tx, newInput.id, updateItem, inputType);
+      const inputType = determineInputType(updateItem);
+
+      const newInput = await tx.carbonInventoryLineInput.create({
+        data: {
+          lineId,
+          inputType,
+          selection1Id: mapBigIntField(updateItem.dimensionValue1Id),
+          selection2Id: mapBigIntField(updateItem.dimensionValue2Id),
+          quantity:
+            updateItem.quantity !== null
+              ? mapDecimalField(updateItem.quantity)
+              : null,
+          measurementUnitId: mapBigIntField(updateItem.measurementUnitId),
+          directTotalEmissions:
+            updateItem.manualTotalEmissions !== null
+              ? mapDecimalField(updateItem.manualTotalEmissions)
+              : null,
+          manualFactor:
+            updateItem.appliedFactorValue !== null &&
+            updateItem.factorSource === "Factor Propio"
+              ? mapDecimalField(updateItem.appliedFactorValue)
+              : null,
+          manualFactorSource:
+            updateItem.factorSource === "Factor Propio"
+              ? updateItem.factorSource
+              : null,
+          manualFactorRateUnitId:
+            updateItem.appliedFactorRateMeasurementUnitId !== null &&
+            updateItem.factorSource === "Factor Propio"
+              ? BigInt(updateItem.appliedFactorRateMeasurementUnitId)
+              : null,
+          comment: updateItem.comment ?? null,
+          isActive: true,
+          createdById: null,
+          updatedById: null,
+        },
+      });
+
+      // Create factor if applicable
+      if (
+        updateItem.appliedFactorValue !== null &&
+        updateItem.appliedFactorRateMeasurementUnitId !== null
+      ) {
+        await tx.carbonInventoryLineFactor.create({
+          data: {
+            lineInputId: newInput.id,
+            emissionFactorId: mapBigIntField(updateItem.baseFactorId),
+            appliedFactorValue: mapDecimalField(updateItem.appliedFactorValue),
+            appliedFactorRateUnitId: BigInt(
+              updateItem.appliedFactorRateMeasurementUnitId
+            ),
+            appliedFactorSource: updateItem.factorSource,
+            createdById: null,
+            updatedById: null,
+          },
+        });
+      }
+
+      // Create result if applicable
+      let totalEmissions: Prisma.Decimal | null = null;
+
+      if (inputType === "DIRECT" && updateItem.manualTotalEmissions !== null) {
+        totalEmissions = mapDecimalField(updateItem.manualTotalEmissions);
+      } else if (
+        (inputType === "SIMPLIFIED" || inputType === "EXPERT") &&
+        updateItem.quantity !== null &&
+        updateItem.appliedFactorValue !== null
+      ) {
+        totalEmissions = mapDecimalField(updateItem.quantity).mul(
+          mapDecimalField(updateItem.appliedFactorValue)
+        );
+      }
+
+      if (totalEmissions !== null) {
+        await tx.carbonInventoryLineResult.create({
+          data: {
+            lineInputId: newInput.id,
+            totalEmissions,
+            createdById: null,
+            updatedById: null,
+          },
+        });
+      }
     }
 
     // 3. DELETE operations (soft delete)
