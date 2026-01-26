@@ -189,6 +189,11 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 
 ### Step 5: Add Scopes
 
+> **🔑 Key Point**: The App Registration you created in Step 2 is for the **frontend** (web app). The App Registration Azure creates here is for the **backend API** Easy Auth. These are two separate app registrations:
+>
+> - **Frontend App**: Used by MSAL in the browser
+> - **Backend API App**: Used by Easy Auth on App Service
+
 1. In your External Tenant directory, navigate to **"App registrations"**
 2. Choose **All app registrations** tab
 3. Select your recently created Api Application registration
@@ -204,11 +209,6 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
    - Click **Add scope**
 
 > 💡 _**Tip**: Save the Api App Registration ID you will need ahead_
->
-> **🔑 Key Point**: The App Registration you created in Step 2 is for the **frontend** (web app). The App Registration Azure creates here is for the **backend API** Easy Auth. These are two separate app registrations:
->
-> - **Frontend App**: Used by MSAL in the browser
-> - **Backend API App**: Used by Easy Auth on App Service
 
 ### Step 5: Enable Easy Auth on your App Service (API)
 
