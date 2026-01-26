@@ -113,7 +113,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 4. Click **"Create a tenant"**
 5. Select **"Microsoft Entra External ID"** as **"Tenant type"**
 6. Configure:
-   - **Organization name**: e.g `UNDP-HUELLA-LATAM` (or your preferred name)
+   - **Organization name**: e.g `UNDP-HUELLA-LATAM` (or your preferred name). Choose a name carefully, because it will be seen by users while registering and logging-in.
    - **Initial domain name**: e.g `undphuella` (this becomes `undphuella.ciamlogin.com`)
    - **Country/Region**: Choose closest to your users (e.g., United States, Europe, LATAM)
 7. Select your **Azure Subscription** and corresponding **Resource Group**
