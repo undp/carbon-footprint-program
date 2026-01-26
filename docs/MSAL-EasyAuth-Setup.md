@@ -234,7 +234,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
      - Choose **Allow requests from specific tenants**
      - In **Allowed tenants** add you External Tenant ID
    - **Restrict access**:
-     - Choose **"Allow unauthenticated access"**
+     - Choose **"Allow unauthenticated access"**. The API will be responsible for validating the incoming request.
    - **Token store**: Enable (recommended)
 
 9. Click **"Add"**
