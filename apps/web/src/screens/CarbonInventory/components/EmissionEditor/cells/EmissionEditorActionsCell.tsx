@@ -1,4 +1,4 @@
-import { Box, IconButton, SxProps, Theme } from "@mui/material";
+import { Badge, Box, IconButton, SxProps, Theme } from "@mui/material";
 import {
   SourceOutlined,
   CommentOutlined,
@@ -13,6 +13,7 @@ interface EmissionEditorActionsCellProps {
   deleteSource?: (id: string | number) => void;
   categoryPosition?: number;
   disabled?: boolean;
+  hasComment?: boolean;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -22,6 +23,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   deleteSource,
   categoryPosition,
   disabled = false,
+  hasComment = false,
 }) => {
   const iconSx: SxProps<Theme> = {
     borderRadius: 1,
@@ -49,14 +51,27 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
         </IconButton>
       )}
       {updateComment && (
-        <IconButton
-          sx={iconSx}
-          aria-label="addComment"
-          onClick={() => updateComment(rowId)}
-          disabled={disabled}
+        <Badge
+          variant="dot"
+          color="primary"
+          invisible={!hasComment}
+          overlap="circular"
+          sx={{
+            "& .MuiBadge-badge": {
+              top: 2,
+              right: 2,
+            },
+          }}
         >
-          <CommentOutlined fontSize="inherit" />
-        </IconButton>
+          <IconButton
+            sx={iconSx}
+            aria-label="addComment"
+            onClick={() => updateComment(rowId)}
+            disabled={disabled}
+          >
+            <CommentOutlined fontSize="inherit" />
+          </IconButton>
+        </Badge>
       )}
       {deleteSource && (
         <IconButton

@@ -244,6 +244,7 @@ export const useEmissionEditorColumns = ({
             }
             deleteSource={() => onDeleteLine(params.id.toString())}
             disabled={isManualModeLoading}
+            hasComment={Boolean(params.row.comment)}
           />
         ),
       },
