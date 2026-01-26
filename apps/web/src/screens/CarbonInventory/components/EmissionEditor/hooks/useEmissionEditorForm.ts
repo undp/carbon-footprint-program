@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
@@ -14,8 +14,6 @@ import {
   getBaseFactorId,
   getFactorData,
 } from "../services/emissionFactorService";
-import { useCreateCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useCreateCarbonInventoryLine";
-import { useDeleteCarbonInventoryLine } from "@/api/query/carbonInventories/lines/useDeleteCarbonInventoryLine";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
 import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
@@ -30,7 +28,7 @@ interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
   isTotalManualEmissionsModeLoading: boolean;
   isTotalManualEmissionsMode: boolean;
-  handleAddLine: () => Promise<void>;
+  handleAddLine: () => void;
   handleCellChange: (
     value: string | number | null,
     params: {
@@ -44,6 +42,12 @@ interface UseEmssionEditorFormResults {
   handleSetManualMode: (isManual: boolean) => Promise<void>;
 }
 
+// Extended form context type that includes addLine and removeLine
+interface ExtendedFormContext {
+  addLine: (subcategoryId: string) => EmissionCaptureFormLine;
+  removeLine: (subcategoryId: string, lineId: string) => void;
+}
+
 export const useEmissionEditorForm = ({
   subcategory,
   emissionFactors,
@@ -53,21 +57,14 @@ export const useEmissionEditorForm = ({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
 
-  const { id: subcategoryId, lines: initialLines } = subcategory;
+  const { id: subcategoryId } = subcategory;
 
-  const { mutateAsync: createLine } = useCreateCarbonInventoryLine(
-    inventoryId,
-    subcategoryId
-  );
-  const { mutateAsync: deleteLine } = useDeleteCarbonInventoryLine(
-    inventoryId,
-    subcategoryId
-  );
   const { mutateAsync: toggleManualMode } = useToggleManualTotalEmissions(
     inventoryId,
     subcategoryId
   );
 
+  // startAction/endAction are still needed for manual mode toggle which calls the API
   const startAction = useEmissionCaptureState((state) => state.startAction);
   const endAction = useEmissionCaptureState((state) => state.endAction);
 
@@ -84,9 +81,28 @@ export const useEmissionEditorForm = ({
   const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
     useState<boolean | null>(null);
 
-  const { setValue, getValues } = useFormContext<EmissionCaptureFormValues>();
+  // Get standard form context methods
+  const formContext = useFormContext<EmissionCaptureFormValues>();
+  const { setValue, getValues } = formContext;
 
-  const rows = initialLines;
+  // Get extended methods (addLine, removeLine) from the form context
+  // These are added by useEmissionCaptureForm
+  const { addLine, removeLine } = formContext as unknown as ExtendedFormContext;
+
+  // Watch lines from form state to get reactive updates
+  const formLines = useWatch({
+    control: formContext.control,
+    name: `subcategories.${subcategoryId}.lines` as const,
+  }) as Record<string, EmissionCaptureFormLine> | undefined;
+
+  // Filter out deleted lines for display and convert to array
+  const rows = useMemo(() => {
+    const linesRecord = formLines || {};
+    return Object.values(linesRecord).filter(
+      (line): line is EmissionCaptureFormLine =>
+        line !== undefined && !line.isDeleted
+    );
+  }, [formLines]);
 
   const isTotalManualEmissionsMode = useMemo(() => {
     return (
@@ -94,18 +110,11 @@ export const useEmissionEditorForm = ({
     );
   }, [isLocalTotalManualEmissionsMode, subcategory.isTotalManualEmissionsMode]);
 
-  // Form actions
-  const handleAddLine = useCallback(async () => {
-    startAction();
-
-    try {
-      await createLine();
-    } catch {
-      // Error handling is managed by the mutation or global error handler
-    } finally {
-      endAction();
-    }
-  }, [createLine, startAction, endAction]);
+  // Form actions - now local only, no API calls
+  const handleAddLine = useCallback(() => {
+    // Add line locally - will be persisted on form submit
+    addLine(subcategoryId);
+  }, [addLine, subcategoryId]);
 
   const resetFactorRelatedFields = useCallback(
     (subcategoryId: SubcategoryWithLines["id"], lineId: string) => {
@@ -304,18 +313,11 @@ export const useEmissionEditorForm = ({
   );
 
   const handleDeleteLine = useCallback(
-    async (lineId: string) => {
-      startAction();
-
-      try {
-        await deleteLine({ lineId });
-      } catch {
-        // Error handling is managed by the mutation or global error handler
-      } finally {
-        endAction();
-      }
+    (lineId: string) => {
+      // Remove line locally - will be deleted on form submit
+      removeLine(subcategoryId, lineId);
     },
-    [deleteLine, startAction, endAction]
+    [removeLine, subcategoryId]
   );
 
   const handleSetTotalEmission = useCallback(
