@@ -160,7 +160,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 > **🔐 Important**: After creating the Frontend App Registration, you need to set up a User Flow that defines how users will authenticate using Email OTP.
 
 1. In your External Tenant directory, search for **"External Identities"** at the header
-2. Go to **"User flows"**
+2. Go to **"Self-service sign up"** -> **"User flows"**
 3. Click **"New user flow"**
 4. Select **"Sign up and sign in"** as the user flow type
 5. Configure the user flow:
