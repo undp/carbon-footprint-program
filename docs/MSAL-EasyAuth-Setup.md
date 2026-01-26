@@ -216,7 +216,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 2. Navigate to **Azure Portal** → **Resource Groups**
 3. Select the **Resource Group**
 4. Select your API App Service (e.g., `api-mdzqz43nanpls`)
-5. In the left menu, go to **"Authentication"**
+5. In the left menu, go to **Settings** > **"Authentication"**
 6. Click **"Add identity provider"**
 7. Select **"Microsoft"** as the identity provider
 8. Configure the settings:
