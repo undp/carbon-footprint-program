@@ -2,7 +2,7 @@ import { Configuration } from "@azure/msal-browser";
 import {
   AZURE_FRONT_CLIENT_ID,
   AZURE_AUTHORITY,
-  AZURE_REDIRECT_URI,
+  FRONT_BASE_URL,
   AZURE_API_CLIENT_ID,
 } from "./environment";
 
@@ -14,7 +14,7 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: AZURE_FRONT_CLIENT_ID,
     authority: AZURE_AUTHORITY,
-    redirectUri: `${AZURE_REDIRECT_URI}/app/home`,
+    redirectUri: `${FRONT_BASE_URL}/app/home`,
     postLogoutRedirectUri: `${window.location.origin}/auth/sign-in`,
     navigateToLoginRequestUrl: false,
   },
