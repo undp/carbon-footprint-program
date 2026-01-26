@@ -167,15 +167,19 @@ param tags object = {
 param enableAzureAuth bool = false
 
 @description('Azure Entra External ID Tenant subdomain (e.g., "undphuella" from undphuella.ciamlogin.com)')
-param azureAuthTenantSubdomain string = ''
+param azureAuthExternalTenantSubdomain string = ''
 
 @secure()
 @description('Azure Entra External ID Tenant ID (GUID format)')
-param azureAuthTenantId string = ''
+param azureAuthExternalTenantId string = ''
 
 @secure()
-@description('Azure Entra External ID Client ID')
-param azureAuthClientId string = ''
+@description('Azure Entra External ID Api App Registration ID')
+param azureAuthApiAppId string = ''
+
+@secure()
+@description('Azure Entra External ID Front App Registration ID')
+param azureAuthFrontAppId string = ''
 
 
 // --------- Key Vault ---------
@@ -274,8 +278,8 @@ module appService 'modules/appService.bicep' = {
       : 'https://${staticWebApp.outputs.defaultHostname}'
     useAcrManagedIdentity: true
     enableAzureAuth: enableAzureAuth
-    azureAuthTenantId: azureAuthTenantId
-    azureAuthClientId: azureAuthClientId
+    azureAuthExternalTenantId: azureAuthExternalTenantId
+    azureAuthClientId: azureAuthApiAppId
     tags: tags
   }
 }
@@ -314,9 +318,10 @@ module azureAuth 'modules/azureAuth.bicep' = if (enableAzureAuth) {
   name: 'azureAuthDeployment'
   params: {
     keyVaultName: keyVault.outputs.name
-    tenantSubdomain: azureAuthTenantSubdomain
-    tenantId: azureAuthTenantId
-    clientId: azureAuthClientId
+    externalTenantSubdomain: azureAuthExternalTenantSubdomain
+    externalTenantId: azureAuthExternalTenantId
+    apiAppId: azureAuthApiAppId
+    frontAppId: azureAuthFrontAppId
     tags: tags
   }
 }

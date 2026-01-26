@@ -30,7 +30,7 @@ param useAcrManagedIdentity bool = false
 param enableAzureAuth bool = false
 
 @description('Azure Entra External ID Tenant ID (subdomain)')
-param azureAuthTenantId string = ''
+param azureAuthExternalTenantId string = ''
 
 @description('Azure Frontend App Client ID')
 param azureAuthClientId string = ''
@@ -100,7 +100,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
       ], enableAzureAuth ? [
         {
           name: 'AZURE_EXTERNAL_TENANT_ID'
-          value: azureAuthTenantId
+          value: azureAuthExternalTenantId
         }
         {
           name: 'AZURE_API_CLIENT_ID'

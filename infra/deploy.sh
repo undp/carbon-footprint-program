@@ -132,20 +132,20 @@ fi
 log "Checking Azure authentication configuration..."
 
 # Check if Azure External ID authentication is configured
-# AZURE_EXTERNAL_TENANT_SUBDOMAIN should be the subdomain (e.g., "undphuella")
+# AZURE_EXTERNAL_EXTERNAL_TENANT_SUBDOMAIN should be the subdomain (e.g., "undphuella")
 # AZURE_EXTERNAL_TENANT_ID is the tenant GUID
-TENANT_SUBDOMAIN="${AZURE_EXTERNAL_TENANT_SUBDOMAIN:-}"
-TENANT_GUID="${AZURE_EXTERNAL_TENANT_ID:-}"
-FRONTEND_CLIENT_ID="${AZURE_FRONT_CLIENT_ID:-${AZURE_FRONTEND_CLIENT_ID:-}}"
-API_CLIENT_ID="${AZURE_API_CLIENT_ID:-}"
+EXTERNAL_TENANT_SUBDOMAIN="${AZURE_EXTERNAL_TENANT_SUBDOMAIN:-}"
+EXTERNAL_TENANT_ID="${AZURE_EXTERNAL_TENANT_ID:-}"
+AUTH_FRONTEND_CLIENT_ID="${AZURE_FRONT_CLIENT_ID:-}"
+AUTH_API_CLIENT_ID="${AZURE_API_CLIENT_ID:-}"
 
-if [ -n "$TENANT_SUBDOMAIN" ] && [ -n "$TENANT_GUID" ] && [ -n "$FRONTEND_CLIENT_ID" ]; then
+if [ -n "$EXTERNAL_TENANT_SUBDOMAIN" ] && [ -n "$EXTERNAL_TENANT_ID" ] && [ -n "$AUTH_FRONTEND_CLIENT_ID" ] && [ -n "$AUTH_API_CLIENT_ID" ]; then
   log "Azure authentication enabled:"
-  log "  - Tenant Subdomain: $TENANT_SUBDOMAIN"
-  log "  - Tenant GUID: ${TENANT_GUID:0:8}..."
-  log "  - Frontend Client ID: ${FRONTEND_CLIENT_ID:0:8}..."
-  if [ -n "$API_CLIENT_ID" ]; then
-    log "  - API Client ID: ${API_CLIENT_ID:0:8}..."
+  log "  - Tenant Subdomain: $EXTERNAL_TENANT_SUBDOMAIN"
+  log "  - Tenant GUID: ${EXTERNAL_TENANT_ID:0:8}..."
+  log "  - Frontend Client ID: ${AUTH_FRONTEND_CLIENT_ID:0:8}..."
+  if [ -n "$AUTH_API_CLIENT_ID" ]; then
+    log "  - API Client ID: ${AUTH_API_CLIENT_ID:0:8}..."
   fi
   ENABLE_AZURE_AUTH="true"
 else
@@ -227,9 +227,10 @@ fi
 if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   log "Adding Azure authentication parameters to deployment..."
   DEPLOY_PARAMS+=(--parameters enableAzureAuth=true)
-  DEPLOY_PARAMS+=(--parameters azureAuthTenantSubdomain="$TENANT_SUBDOMAIN")
-  DEPLOY_PARAMS+=(--parameters azureAuthTenantId="$TENANT_GUID")
-  DEPLOY_PARAMS+=(--parameters azureAuthClientId="$FRONTEND_CLIENT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthExternalTenantSubdomain="$EXTERNAL_TENANT_SUBDOMAIN")
+  DEPLOY_PARAMS+=(--parameters azureAuthExternalTenantId="$EXTERNAL_TENANT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthFrontAppId="$AUTH_FRONTEND_CLIENT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthApiAppId="$AUTH_API_CLIENT_ID")
 fi
 
 deployment_result=0
@@ -331,9 +332,9 @@ else
     echo "🔐 Authentication Configuration:"
     echo "  - Azure auth is ENABLED"
     echo "  - Tenant ID: ${TENANT_ID:0:8}..."
-    echo "  - Frontend Client ID: ${FRONTEND_CLIENT_ID:0:8}..."
-    if [ -n "$API_CLIENT_ID" ]; then
-      echo "  - API Client ID: ${API_CLIENT_ID:0:8}..."
+    echo "  - Frontend Client ID: ${AUTH_FRONTEND_CLIENT_ID:0:8}..."
+    if [ -n "$AUTH_API_CLIENT_ID" ]; then
+      echo "  - API Client ID: ${AUTH_API_CLIENT_ID:0:8}..."
     fi
     echo ""
     echo "⚠️  IMPORTANT: Enable Easy Auth manually in Azure Portal"
