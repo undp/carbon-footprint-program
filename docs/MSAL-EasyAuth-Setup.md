@@ -328,7 +328,7 @@ The infrastructure is already set up to support Azure authentication. Here's wha
 After following the Azure Portal steps above, you'll have:
 
 - **Frontend App Registration**: Client ID for MSAL (from Step 2)
-- **API App Registration**: Automatically created by Easy Auth (from Step 5)
+- **API App Registration**: Client ID for the API```
 
 ### Step 1: Configure Deployment Environment Variables
 
