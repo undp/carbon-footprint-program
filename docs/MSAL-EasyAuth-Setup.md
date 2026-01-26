@@ -203,7 +203,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 1. In your External Tenant directory, navigate to **"App registrations"**
 2. Choose **All app registrations** tab
 3. Select your recently created Api Application registration
-4. Navigate to **"Expose an API"** in the left menu
+4. Navigate to **Manage** > **"Expose an API"** in the left menu
 5. Click **"Add a scope"**
    - Configure the scope:
      - **"Scope name"**: `access_as_user`
