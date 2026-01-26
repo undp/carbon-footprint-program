@@ -257,7 +257,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 
 1. Switch to your External Tenant directory
 2. navigate to **Microsoft Entra ID**
-3. Click **Company branding** in the left menu
+3. Click on **Manage** > **Company branding** in the left menu
 4. Select **Default sign-in** tab → **Customize**
 
 ## 📚 Optional Steps for Custom Authentication
