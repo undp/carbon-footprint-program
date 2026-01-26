@@ -1,0 +1,368 @@
+@baseUrl = http://localhost:8080
+
+# Sync Carbon Inventory Lines - Batch create, update, and delete operations
+# This endpoint allows atomic synchronization of multiple line changes in a single request
+
+### Sync Lines - Create only (new empty lines)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "1",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": null
+    }
+  ],
+  "update": [],
+  "delete": []
+}
+
+
+### Sync Lines - Create with data (SIMPLIFIED mode - with factor)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "1",
+      "dimensionValue1Id": "1",
+      "dimensionValue2Id": null,
+      "measurementUnitId": "1",
+      "quantity": 100.5,
+      "factorSource": "Metodología GEI",
+      "baseFactorId": "1",
+      "appliedFactorValue": 2.5,
+      "appliedFactorRateMeasurementUnitId": "1",
+      "manualTotalEmissions": null,
+      "comment": "Line created via sync"
+    }
+  ],
+  "update": [],
+  "delete": []
+}
+
+
+### Sync Lines - Create with manual emissions (DIRECT mode)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "1",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": 500000,
+      "comment": "Manual total emissions entry"
+    }
+  ],
+  "update": [],
+  "delete": []
+}
+
+
+### Sync Lines - Create multiple lines in different subcategories
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "1",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": null
+    },
+    {
+      "subcategoryId": "2",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": null
+    }
+  ],
+  "update": [],
+  "delete": []
+}
+
+
+### Sync Lines - Update only
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "1",
+      "dimensionValue1Id": "2",
+      "dimensionValue2Id": null,
+      "measurementUnitId": "1",
+      "quantity": 250.75,
+      "factorSource": "Metodología GEI",
+      "baseFactorId": "1",
+      "appliedFactorValue": 3.2,
+      "appliedFactorRateMeasurementUnitId": "1",
+      "manualTotalEmissions": null,
+      "comment": "Updated via sync"
+    }
+  ],
+  "delete": []
+}
+
+
+### Sync Lines - Update line to DIRECT mode (manual emissions)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "1",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": 1000000,
+      "comment": "Switched to manual emissions"
+    }
+  ],
+  "delete": []
+}
+
+
+### Sync Lines - Update line to EXPERT mode (Factor Propio)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "1",
+      "dimensionValue1Id": "1",
+      "dimensionValue2Id": null,
+      "measurementUnitId": "1",
+      "quantity": 100,
+      "factorSource": "Factor Propio",
+      "baseFactorId": null,
+      "appliedFactorValue": 5.5,
+      "appliedFactorRateMeasurementUnitId": "1",
+      "manualTotalEmissions": null,
+      "comment": "Custom emission factor"
+    }
+  ],
+  "delete": []
+}
+
+
+### Sync Lines - Delete only
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [],
+  "delete": [
+    { "id": "1" },
+    { "id": "2" }
+  ]
+}
+
+
+### Sync Lines - Mixed operations (create, update, delete)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "1",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": "New line created in batch"
+    }
+  ],
+  "update": [
+    {
+      "id": "3",
+      "dimensionValue1Id": "1",
+      "dimensionValue2Id": null,
+      "measurementUnitId": "1",
+      "quantity": 150,
+      "factorSource": "Metodología GEI",
+      "baseFactorId": "1",
+      "appliedFactorValue": 2.0,
+      "appliedFactorRateMeasurementUnitId": "1",
+      "manualTotalEmissions": null,
+      "comment": "Existing line updated in batch"
+    }
+  ],
+  "delete": [
+    { "id": "4" }
+  ]
+}
+
+
+### Sync Lines - Empty sync (no operations)
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [],
+  "delete": []
+}
+
+
+### Error Case - Carbon inventory not found
+POST {{baseUrl}}/api/carbon-inventories/999999/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [],
+  "delete": []
+}
+
+
+### Error Case - Invalid subcategory ID
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "999999",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": null
+    }
+  ],
+  "update": [],
+  "delete": []
+}
+
+
+### Error Case - Invalid line ID for update
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "999999",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": null
+    }
+  ],
+  "delete": []
+}
+
+
+### Error Case - Invalid line ID for delete
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [],
+  "delete": [
+    { "id": "999999" }
+  ]
+}
+
+
+### Error Case - Line belongs to different inventory
+# First create a line in inventory 2, then try to update it via inventory 1
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "100",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSource": null,
+      "baseFactorId": null,
+      "appliedFactorValue": null,
+      "appliedFactorRateMeasurementUnitId": null,
+      "manualTotalEmissions": null,
+      "comment": "This should fail - line from different inventory"
+    }
+  ],
+  "delete": []
+}
+
+
+### Error Case - Invalid payload structure
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": "invalid",
+  "update": [],
+  "delete": []
+}
