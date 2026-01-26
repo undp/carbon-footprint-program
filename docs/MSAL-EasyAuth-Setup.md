@@ -170,7 +170,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 7. Associate the user flow with your Frontend App Registration:
    - In your External ID tenant, navigate to **"External Identities"** in the left menu
    - Navigate to the **User flows**
-   - Select your recently create **User flow**
+   - Select your recently created **User flow**
    - Inside your **User flow**, navigate to **Applications** in the left menu
    - Click **+ Add application** → Select you frontend web application (e.g `Huella Latam Web App - Frontend MSAL`)
 
