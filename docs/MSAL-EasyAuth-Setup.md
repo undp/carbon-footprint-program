@@ -353,13 +353,6 @@ export LOCATION=""
 export DRY_RUN=""
 ```
 
-> **💡 Tip**: Copy `infra/.env.example` to `infra/.env` and fill in your values.
-
-**What these variables do:**
-
-- `AZURE_EXTERNAL_TENANT_SUBDOMAIN`: Your External ID tenant subdomain (e.g., `undphuella` from `undphuella.ciamlogin.com`)
-- `AZURE_EXTERNAL_TENANT_ID`: Your External ID tenant GUID (the full UUID shown in Azure Portal, e.g., `624d9c14-5dae-473d-84a7-a41d2731f46e`)
-- `AZURE_FRONTEND_CLIENT_ID`: Client ID from your **Frontend App Registration** (Step 2)
 
 If these variables are **not set**, the API will deploy with `AUTH_PROVIDER=none` (no authentication).
 
