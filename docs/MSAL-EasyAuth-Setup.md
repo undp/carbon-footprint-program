@@ -36,7 +36,7 @@ This application uses a **two-layer authentication approach**:
 - **Purpose**: Validate authenticated users on the API
 - **Technology**: Azure App Service Easy Authentication
 - **Flow**: Receives and validates user claims from App Service headers
-- **Headers Used**: `X-MS-CLIENT-PRINCIPAL`, `X-MS-CLIENT-PRINCIPAL-ID`
+- **Headers Used**: `X-MS-CLIENT-PRINCIPAL`
 - **✨ Key Benefit**: Zero code changes needed for token validation - Azure App Service handles everything
 
 > **💡 Note**: Easy-Auth is the **recommended default approach** for this application. Alternative authentication methods (custom token validation, JWKS) are available but require additional code modifications. See [Optional Steps](#optional-steps-for-custom-authentication) if needed.
