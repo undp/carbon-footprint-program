@@ -172,10 +172,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
      - Add any other attributes your app needs
 6. Click **"Create"**
 7. Associate the user flow with your Frontend App Registration:
-   - In your External ID tenant, navigate to **"External Identities"** in the left menu
-   - Navigate to the **User flows**
-   - Select your recently created **User flow**
-   - Inside your **User flow**, navigate to **Applications** in the left menu
+   - Inside your recently created **User flow**, navigate to **Use** -> **Applications** in the left menu
    - Click **+ Add application** → Select you frontend web application (e.g `Huella Latam Web App - Frontend MSAL`)
 
 > _Users will now authenticate using the Email OTP flow you just configured. They'll receive a one-time passcode to their email address when signing in._
