@@ -84,6 +84,10 @@ This application uses a **two-layer authentication approach**:
 
 ## 📋 Prerequisites
 
+> Important: Before following this setup, make sure you have completed the initial infrastructure
+> deployment guide that deploys all required Azure resources for the first-time setup. See
+> `docs/Infra/Deployment.md` for the full first-run deployment steps.
+
 Before you begin, ensure you have:
 
 - ✅ Azure subscription with access to create resources
