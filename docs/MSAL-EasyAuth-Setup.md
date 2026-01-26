@@ -332,7 +332,7 @@ After following the Azure Portal steps above, you'll have:
 
 ### Step 1: Configure Deployment Environment Variables
 
-The deployment script uses environment variables to configure Azure authentication. Set these in `infra/.env`:
+The deployment script uses environment variables to configure Azure authentication. Set these in `infra/.env` (you can start with the `.env.template` file):
 
 ```bash
 # Azure Subscription
