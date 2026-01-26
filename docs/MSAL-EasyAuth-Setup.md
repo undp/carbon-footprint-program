@@ -140,8 +140,8 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 
    **Redirect URIs:**
    - **Platform**: Single-page application (SPA)
-   - **Development URI**: `http://localhost:5173`
-   - **Production URI**: `https://<your-production-domain>.com`
+   - **Development URI**: `http://localhost:5173` and `http://localhost:5173/app/home`
+   - **Production URI**: `https://<your-production-domain>.com` and `https://<your-production-domain>.com/app/home`
    - _(You can add multiple URIs after the registration on the "Authentication (Preview)" option)_
 
 4. Click **"Register"**
