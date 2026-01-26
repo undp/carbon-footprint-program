@@ -213,6 +213,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
      - **Admin consent description**: e.g `Allow admins to access Huella Latam API`
      - **State:** `Enabled`
    - Click **Add scope**
+   - Click **Save and continue** with default values for **Application ID URI**
 
 > 💡 _**Tip**: Save the API App Registration ID you will need ahead_
 
