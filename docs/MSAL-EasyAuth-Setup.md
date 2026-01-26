@@ -250,8 +250,8 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 7. Select the API app registration "Huella Latam API - Node"
 8. on **Select Permissions**.```
    - Check the scope you created before `access_as_user`
-8. Click on **Add permissions**
-9. Now grant admin consent by clicking **"Grant admin consent"** to pre-approved for all users.
+9. Click on **Add permissions**
+10. Now grant admin consent by clicking **"Grant admin consent"** to pre-approved for all users.
 
 ### Step 7: Add Branding to your Company
 
@@ -353,7 +353,6 @@ export LOCATION=""
 export DRY_RUN=""
 ```
 
-
 If these variables are **not set**, the API will deploy with `AUTH_PROVIDER=none` (no authentication).
 
 ### Step 3: Deploy Infrastructure
@@ -361,7 +360,6 @@ If these variables are **not set**, the API will deploy with `AUTH_PROVIDER=none
 The Bicep deployment will:
 
 - ✅ Store credentials securely in Azure Key Vault
-- ✅ Configure App Service with Easy-Auth settings
 - ✅ Set up environment variables for the API
 - ✅ Generate authority URL automatically
 
