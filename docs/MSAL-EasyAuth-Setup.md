@@ -187,6 +187,8 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
      - Choose **Accounts in this organizational directory only (\<your-external-tenant-name\> - Single tenant)**
 4. Click **"Register"**
 
+> 💡 _**Tip**: Save the Api App Registration ID you will need ahead_
+
 ### Step 5: Add Scopes
 
 > **🔑 Key Point**: The App Registration you created in Step 2 is for the **frontend** (web app). The App Registration Azure creates here is for the **backend API** Easy Auth. These are two separate app registrations:
