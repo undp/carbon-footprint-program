@@ -346,7 +346,6 @@ export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra 
 # Azure Resource Group
 export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
-export SHARED_RESOURCE_GROUP_NAME=""
 
 # Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
 export LOCATION=""
