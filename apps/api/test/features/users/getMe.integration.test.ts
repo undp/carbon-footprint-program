@@ -57,7 +57,7 @@ describe("GET /api/users/me - Integration Tests", () => {
 
   describe("Successful retrieval with authentication", () => {
     it("should return user when authenticated via authUser", async () => {
-      const createdUser = await prisma.user.create({
+      await prisma.user.create({
         data: {
           email: "authenticated@test.example.com",
           countryJobPositionId: testJobPositionId,
@@ -77,20 +77,11 @@ describe("GET /api/users/me - Integration Tests", () => {
         },
       });
 
-      // Manually inject authUser for testing (in real scenario, auth plugin does this)
-      const mockRequest = {
-        authUser: {
-          idpUserId: "test-idp-auth-123",
-          email: "authenticated@test.example.com",
-          idpName: "auth0",
-        },
-      };
-
       expect(response.statusCode).toBe(200);
     });
 
     it("should return user with all fields populated", async () => {
-      const createdUser = await prisma.user.create({
+      await prisma.user.create({
         data: {
           email: "fulluser@test.example.com",
           countryJobPositionId: testJobPositionId,
