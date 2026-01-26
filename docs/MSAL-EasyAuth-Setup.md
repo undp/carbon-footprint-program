@@ -247,7 +247,8 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 4. Go to your **Frontend App Registration**
 5. Navigate to **Manage** > **"API permissions"**.
 6. Click **"Add a permission"** → **"API's my organization uses"**.
-7. on **Select Permissions**.
+7. Select the API app registration "Huella Latam API - Node"
+8. on **Select Permissions**.```
    - Check the scope you created before `access_as_user`
 8. Click on **Add permissions**
 9. Now grant admin consent by clicking **"Grant admin consent"** to pre-approved for all users.
