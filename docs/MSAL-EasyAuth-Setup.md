@@ -214,7 +214,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
      - **State:** `Enabled`
    - Click **Add scope**
 
-> 💡 _**Tip**: Save the Api App Registration ID you will need ahead_
+> 💡 _**Tip**: Save the API App Registration ID you will need ahead_
 
 ### Step 5: Enable Easy Auth on your App Service (API)
 
