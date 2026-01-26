@@ -1,8 +1,11 @@
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
-import { useUpdateCarbonInventoryLines } from "@/api/query";
-import { EmissionCaptureFormValues } from "../types/EmissionCaptureTypes";
-import { mapLinesToRequest } from "../utils/emissionCaptureTransformers";
+import { useSyncCarbonInventoryLines } from "@/api/query/carbonInventories/lines/useSyncCarbonInventoryLines";
+import {
+  EmissionCaptureFormValues,
+  EmissionCaptureFormLine,
+} from "../types/EmissionCaptureTypes";
+import { mapLinesToSyncRequest } from "../utils/emissionCaptureTransformers";
 
 interface Params {
   inventoryId: string;
@@ -21,8 +24,8 @@ export const useEmissionCaptureSubmit = ({
   isDirty,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
-  const updateCarbonInventoryLinesMutation =
-    useUpdateCarbonInventoryLines(inventoryId);
+  const syncCarbonInventoryLinesMutation =
+    useSyncCarbonInventoryLines(inventoryId);
 
   const submit = useCallback(
     async (data: EmissionCaptureFormValues) => {
@@ -47,11 +50,17 @@ export const useEmissionCaptureSubmit = ({
 
         // Get all lines from all subcategories as a flat array
         const allSubcategories = Object.values(data.subcategories || {});
-        const flatLines = allSubcategories.flatMap((subcategory) =>
-          Object.values(subcategory.lines || {})
+        const flatLines: EmissionCaptureFormLine[] = allSubcategories.flatMap(
+          (subcategory) => Object.values(subcategory.lines || {})
         );
 
-        if (flatLines.length === 0) {
+        // Check if there are any active (non-deleted) lines
+        const activeLines = flatLines.filter((line) => !line.isDeleted);
+        const hasDeletedLines = flatLines.some(
+          (line) => line.isDeleted && !line.isNew
+        );
+
+        if (activeLines.length === 0 && !hasDeletedLines) {
           enqueueSnackbar(
             "No hay líneas para guardar. Agrega al menos una línea.",
             {
@@ -61,12 +70,11 @@ export const useEmissionCaptureSubmit = ({
           return;
         }
 
-        // Transform to API request format
-        const requestData = mapLinesToRequest(flatLines);
+        // Transform to sync API request format
+        const syncRequest = mapLinesToSyncRequest(flatLines);
 
-        await updateCarbonInventoryLinesMutation.mutateAsync({
-          id: inventoryId,
-          data: requestData,
+        await syncCarbonInventoryLinesMutation.mutateAsync({
+          data: syncRequest,
         });
 
         enqueueSnackbar("Inventario guardado exitosamente", {
@@ -86,13 +94,13 @@ export const useEmissionCaptureSubmit = ({
       inventoryId,
       isDirty,
       enqueueSnackbar,
-      updateCarbonInventoryLinesMutation,
+      syncCarbonInventoryLinesMutation,
       onSuccess,
     ]
   );
 
   return {
     submit,
-    isSubmitting: updateCarbonInventoryLinesMutation.isPending,
+    isSubmitting: syncCarbonInventoryLinesMutation.isPending,
   };
 };

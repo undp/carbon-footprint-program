@@ -1,22 +1,21 @@
 import { z } from "zod";
-import { CarbonInventoryLineSchema, InputTypeSchema } from "./base.js";
+import { CarbonInventoryLineSchema } from "./base.js";
 import { IdSchema } from "../zod.js";
 
 // Schema for creating a new line (no id required, subcategoryId is required)
 export const SyncCreateLineItemSchema = z
   .object({
     subcategoryId: IdSchema.describe("The ID of the subcategory for this line"),
-    inputType: InputTypeSchema.describe(
-      "The input type: DIRECT for manual total emissions, SIMPLIFIED for factor-based, EXPERT for custom factors"
-    ),
     dimensionValue1Id: CarbonInventoryLineSchema.shape.dimensionValue1Id,
     dimensionValue2Id: CarbonInventoryLineSchema.shape.dimensionValue2Id,
     quantity: CarbonInventoryLineSchema.shape.quantity,
     measurementUnitId: CarbonInventoryLineSchema.shape.measurementUnitId,
     factorSource: CarbonInventoryLineSchema.shape.factorSource,
-    baseFactorId: IdSchema.nullable().describe(
-      "The ID of the base emission factor (null for manual factors)"
-    ),
+    baseFactorId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the base emission factor (null for manual factors)"),
     appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,
@@ -37,12 +36,11 @@ export const SyncUpdateLineItemSchema = CarbonInventoryLineSchema.pick({
   comment: true,
 })
   .extend({
-    inputType: InputTypeSchema.describe(
-      "The input type: DIRECT for manual total emissions, SIMPLIFIED for factor-based, EXPERT for custom factors"
-    ),
-    baseFactorId: IdSchema.nullable().describe(
-      "The ID of the base emission factor (null for manual factors)"
-    ),
+    baseFactorId: z
+      .string()
+      .regex(/^\d+$/)
+      .nullable()
+      .describe("The ID of the base emission factor (null for manual factors)"),
     appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,

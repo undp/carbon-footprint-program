@@ -26,11 +26,9 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
       // Invalidate all related queries to ensure UI is in sync
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.all,
-        exact: true,
       });
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(inventoryId),
-        exact: true,
       });
     },
   });
