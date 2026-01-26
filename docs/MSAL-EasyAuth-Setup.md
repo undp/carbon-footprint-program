@@ -222,6 +222,8 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 6. Click **"Add identity provider"**
 7. Select **"Microsoft"** as the identity provider
 8. Configure the settings:
+   - **Choose a tenant for your application and its users:**
+     - Choose **External Configuration**
    - **App registration type:**
      - Choose **"Provide the details of an existing app registration":**
        - Configure the settings: - **Application (client) ID**: Add your Api App Registration ID (created on your App Registration on your External Tenant) - **Issuer URL**: `https://<external-tenant-sub-domain>.ciamlogin.com/<external-tenant-id>/v2.0` - **Allowed token audiences**: Add your Api App Registration ID (created on your App Registration on your External Tenant)
