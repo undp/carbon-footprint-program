@@ -72,6 +72,13 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
     siteConfig: {
       linuxFxVersion: linuxFxVersion
       acrUseManagedIdentityCreds: useAcrManagedIdentity
+      cors: {
+        allowedOrigins: [
+          allowedOrigin
+          
+        ]
+        supportCredentials: true
+        }
       appSettings: concat([
         {
           name: 'API_PORT'
