@@ -159,7 +159,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 
 > **🔐 Important**: After creating the Frontend App Registration, you need to set up a User Flow that defines how users will authenticate using Email OTP.
 
-1. In your External Tenant directory, search for **"External Identities"** at the header 
+1. In your External Tenant directory, search for **"External Identities"** at the header
 2. Go to **"User flows"**
 3. Click **"New user flow"**
 4. Select **"Sign up and sign in"** as the user flow type
@@ -200,11 +200,9 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 > - **Frontend App**: Used by MSAL in the browser
 > - **Backend API App**: Used by Easy Auth on App Service
 
-1. In your External Tenant directory, navigate to **"App registrations"**
-2. Choose **All app registrations** tab
-3. Select your recently created Api Application registration
-4. Navigate to **Manage** > **"Expose an API"** in the left menu
-5. Click **"Add a scope"**
+1. Navigate into your recently created API app registration
+2. Navigate to **Manage** > **"Expose an API"** in the left menu
+3. Click **"Add a scope"**
    - Configure the scope:
      - **"Scope name"**: `access_as_user`
      - **"Who can consent?"**:
