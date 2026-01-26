@@ -179,6 +179,8 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 
 ### Step 4: Register API Application
 
+Registering the API application is required so Azure can issue and validate access tokens specifically for your backend. The API app registration defines the token audience (the App ID) and lets you expose scopes (for example `access_as_user`) that the frontend can request; Easy‑Auth and the API use this information to validate incoming tokens and inject authenticated user headers.
+
 1. At the External Tenant directory
 2. Navigate to **App registrations** → Click **"New registration"**
 3. Configure the registration:
