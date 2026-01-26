@@ -14,7 +14,7 @@ export const msalConfig: Configuration = {
   auth: {
     clientId: AZURE_FRONT_CLIENT_ID,
     authority: AZURE_AUTHORITY,
-    redirectUri: AZURE_REDIRECT_URI,
+    redirectUri: `${AZURE_REDIRECT_URI}/app/home`,
     postLogoutRedirectUri: `${window.location.origin}/auth/sign-in`,
     navigateToLoginRequestUrl: false,
   },
