@@ -363,7 +363,7 @@ The Bicep deployment will:
 - ✅ Set up environment variables for the API
 - ✅ Generate authority URL automatically
 
-After configuring the enviromental variables, deploy again using the deployment script:
+After configuring the environmental variables, deploy again using the deployment script:
 
 ```bash
 cd infra
