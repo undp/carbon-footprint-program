@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   EmissionCaptureFormValues,
@@ -15,6 +15,32 @@ const defaultValues: EmissionCaptureFormValues = {
   subcategories: {},
 };
 
+/**
+ * Creates a new empty line with a temporary ID.
+ * New lines are marked with isNew: true and will be created on the server when submitting.
+ */
+const createNewLine = (subcategoryId: string): EmissionCaptureFormLine => {
+  const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return {
+    id: tempId,
+    lineId: tempId,
+    subcategoryId,
+    isManualTotalEmissions: false,
+    dimensionValue1Id: null,
+    dimensionValue2Id: null,
+    quantity: null,
+    measurementUnitId: null,
+    factorSource: null,
+    factorValue: null,
+    factorRateMeasurementUnitId: null,
+    comment: null,
+    manualTotalEmissions: null,
+    baseFactorId: null,
+    isNew: true,
+    isDeleted: false,
+  };
+};
+
 // apps/web/src/screens/CarbonInventory/hooks/useEmissionCaptureForm.ts
 
 export const useEmissionCaptureForm = ({ data }: Params) => {
@@ -23,24 +49,43 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     mode: "onChange",
   });
 
-  const { reset, getValues, resetField, setValue } = form; // 1. Extraemos getValues y resetField
+  const { reset, getValues, resetField, setValue } = form;
 
   const dirtyFields = form.formState.dirtyFields;
 
   useEffect(() => {
-    // STEP 1: Preserve manual total emissions from current form state before reset
+    // STEP 1: Preserve manual total emissions and new lines from current form state before reset
     const currentFormValues = getValues();
     const preservedManualTotals: Record<string, number> = {};
+    const preservedNewLines: Record<string, EmissionCaptureFormLine[]> = {};
+    const preservedDeletedLineIds: Record<string, string[]> = {};
 
-    // Extract and preserve manual total emissions for each subcategory in manual mode
+    // Extract and preserve data for each subcategory
     Object.entries(currentFormValues.subcategories || {}).forEach(
       ([subcatId, subcatData]) => {
+        // Preserve manual total emissions for subcategories in manual mode
         if (subcatData.isTotalManualEmissionsMode) {
           const lines = Object.values(subcatData.lines || {});
           const manualTotal = lines[0]?.manualTotalEmissions;
           if (manualTotal !== undefined && manualTotal !== null) {
             preservedManualTotals[subcatId] = manualTotal;
           }
+        }
+
+        // Preserve new lines (lines created locally but not yet saved to the server)
+        const newLines = Object.values(subcatData.lines || {}).filter(
+          (line) => line.isNew && !line.isDeleted
+        );
+        if (newLines.length > 0) {
+          preservedNewLines[subcatId] = newLines;
+        }
+
+        // Preserve deleted line IDs (server lines marked for deletion)
+        const deletedLineIds = Object.values(subcatData.lines || {})
+          .filter((line) => line.isDeleted && !line.isNew)
+          .map((line) => line.lineId);
+        if (deletedLineIds.length > 0) {
+          preservedDeletedLineIds[subcatId] = deletedLineIds;
         }
       }
     );
@@ -53,20 +98,44 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
     data?.categories.forEach((category) => {
       category.subcategories.forEach((subcategory: SubcategoryWithLines) => {
-        const linesRecord = subcategory.lines.reduce(
+        // Start with server lines (excluding those marked for deletion)
+        const serverLines = subcategory.lines.filter(
+          (line) =>
+            !preservedDeletedLineIds[subcategory.id]?.includes(line.lineId)
+        );
+
+        const linesRecord = serverLines.reduce(
           (acc, line) => {
-            acc[line.id] = line;
+            acc[line.id] = { ...line, isNew: false, isDeleted: false };
             return acc;
           },
           {} as Record<string, EmissionCaptureFormLine>
         );
+
+        // Add back the new lines that were created locally
+        const newLines = preservedNewLines[subcategory.id] || [];
+        newLines.forEach((line) => {
+          linesRecord[line.lineId] = line;
+        });
+
+        // Add deleted lines (hidden but tracked) for server deletion on submit
+        const deletedServerLines = subcategory.lines.filter((line) =>
+          preservedDeletedLineIds[subcategory.id]?.includes(line.lineId)
+        );
+        deletedServerLines.forEach((line) => {
+          linesRecord[line.lineId] = {
+            ...line,
+            isNew: false,
+            isDeleted: true,
+          };
+        });
 
         formData.subcategories[subcategory.id] = {
           lines: linesRecord,
           isTotalManualEmissionsMode: subcategory.isTotalManualEmissionsMode,
         };
 
-        // 1 Detect if the mode changed OR if it's dirty (touched by user)
+        // Detect if the mode changed OR if it's dirty (touched by user)
         const isModeDirty =
           !!dirtyFields.subcategories?.[subcategory.id]
             ?.isTotalManualEmissionsMode;
@@ -112,5 +181,62 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     });
   }, [data, reset, getValues, resetField, setValue, dirtyFields]);
 
-  return form;
+  /**
+   * Adds a new line to a subcategory locally.
+   * The line is marked with isNew: true and will be created on the server when submitting.
+   */
+  const addLine = useCallback(
+    (subcategoryId: string) => {
+      const newLine = createNewLine(subcategoryId);
+      const currentLines = getValues(`subcategories.${subcategoryId}.lines`);
+
+      setValue(
+        `subcategories.${subcategoryId}.lines`,
+        {
+          ...currentLines,
+          [newLine.lineId]: newLine,
+        },
+        { shouldDirty: true }
+      );
+
+      return newLine;
+    },
+    [getValues, setValue]
+  );
+
+  /**
+   * Removes a line from a subcategory locally.
+   * - For new lines (isNew: true): removes them completely from the form state.
+   * - For existing server lines: marks them as isDeleted: true (they will be deleted on submit).
+   */
+  const removeLine = useCallback(
+    (subcategoryId: string, lineId: string) => {
+      const currentLines = getValues(`subcategories.${subcategoryId}.lines`);
+      const lineToRemove = currentLines?.[lineId];
+
+      if (!lineToRemove) return;
+
+      if (lineToRemove.isNew) {
+        // For new lines, remove them completely from the form state
+        const { [lineId]: _, ...remainingLines } = currentLines;
+        setValue(`subcategories.${subcategoryId}.lines`, remainingLines, {
+          shouldDirty: true,
+        });
+      } else {
+        // For existing server lines, mark them as deleted
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.isDeleted`,
+          true,
+          { shouldDirty: true }
+        );
+      }
+    },
+    [getValues, setValue]
+  );
+
+  return {
+    ...form,
+    addLine,
+    removeLine,
+  };
 };
