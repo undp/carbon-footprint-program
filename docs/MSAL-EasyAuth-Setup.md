@@ -185,7 +185,7 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
 1. Switch to your External Tenant directory
 2. Navigate to **App registrations** → Click **"New registration"**
 3. Configure the registration:
-   - **Name:** e.g `Huella Latam Api` (or any descriptive name)
+   - **Name:** e.g `Huella Latam API - Node` (or any descriptive name)
      - 💡 _**Tip**: Use explicit names to differentiate between apps later (e.g., `YourApp-Frontend`, `YourApp-API`)_
    - **Supported account types:**
      - Choose **Accounts in this organizational directory only (\<your-external-tenant-name\> - Single tenant)**
