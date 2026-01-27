@@ -9,6 +9,8 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import { queryClient } from "./api/query";
+import { QueryClientProvider } from "@tanstack/react-query";
 
 // Create router instance
 const router = createRouter({
@@ -35,9 +37,11 @@ async function initializeApp() {
 
   root.render(
     <MsalProvider instance={msalInstance}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <RouterProvider router={router} />
+        </AuthProvider>
+      </QueryClientProvider>
     </MsalProvider>
   );
 }
