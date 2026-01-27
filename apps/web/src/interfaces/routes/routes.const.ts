@@ -1,4 +1,5 @@
 export const Routes = {
+  LANDING: "/",
   CARBON_INVENTORY_BUSINESS_PROFILING:
     "/app/carbon-inventory/$inventoryId/business-profiling",
   CARBON_INVENTORY_SUBCATEGORY_PRESELECTION:
