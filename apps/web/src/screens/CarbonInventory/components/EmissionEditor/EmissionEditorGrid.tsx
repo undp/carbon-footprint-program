@@ -65,6 +65,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       disableColumnSelector
       disableRowSelectionOnClick
       checkboxSelection={false}
+      localeText={{ noRowsLabel: "Sin fuentes" }}
       loading={loading}
       slotProps={{
         loadingOverlay: {
