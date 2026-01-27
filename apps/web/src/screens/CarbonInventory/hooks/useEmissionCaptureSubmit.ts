@@ -11,6 +11,7 @@ interface Params {
   inventoryId: string;
   onSuccess?: () => void;
   isDirty?: boolean;
+  resetAfterSave: () => void;
 }
 
 interface HookResult {
@@ -22,6 +23,7 @@ export const useEmissionCaptureSubmit = ({
   inventoryId,
   onSuccess,
   isDirty,
+  resetAfterSave,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const syncCarbonInventoryLinesMutation =
@@ -77,6 +79,9 @@ export const useEmissionCaptureSubmit = ({
           data: syncRequest,
         });
 
+        // Reset form state after successful save to clear isNew/isDeleted flags
+        resetAfterSave();
+
         enqueueSnackbar("Inventario guardado exitosamente", {
           variant: "success",
         });
@@ -96,6 +101,7 @@ export const useEmissionCaptureSubmit = ({
       enqueueSnackbar,
       syncCarbonInventoryLinesMutation,
       onSuccess,
+      resetAfterSave,
     ]
   );
 
