@@ -29,7 +29,13 @@ export const UserSchema = z.object({
   termsAccepted: z
     .boolean()
     .nullable()
+    .optional()
     .describe("Whether the user has accepted the terms and conditions"),
+  termsAcceptedAt: z.iso
+    .datetime()
+    .nullable()
+    .optional()
+    .describe("The date when the user accepted the terms and conditions"),
 });
 
 export type User = z.infer<typeof UserSchema>;
