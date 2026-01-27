@@ -130,6 +130,8 @@ CREATE TABLE "user" (
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
+    "terms_accepted" BOOLEAN,
+    "terms_accepted_at" TIMESTAMP(3),
 
     CONSTRAINT "user_pkey" PRIMARY KEY ("id")
 );
