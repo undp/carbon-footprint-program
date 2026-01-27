@@ -6,7 +6,7 @@ import {
   SubcategoryWithLines,
 } from "../../../types/EmissionCaptureTypes";
 
-export const useEmissionTotal = (subcategory: SubcategoryWithLines) => {
+export const useEmissionTotal = (subcategory: SubcategoryWithLines): number => {
   const { control } = useFormContext<EmissionCaptureFormValues>();
 
   const lines = useWatch({
@@ -15,7 +15,11 @@ export const useEmissionTotal = (subcategory: SubcategoryWithLines) => {
   });
 
   const totalEmission = useMemo(() => {
-    const linesArray = Object.values(lines || {});
+    const linesArray = Object.values(lines || {}).filter(
+      (line) => line && !line.isDeleted
+    );
+
+    if (linesArray.length === 0) return 0;
 
     const subcategoryHasEmissionFactors =
       subcategory.emissionFactors.length > 0;
@@ -23,12 +27,22 @@ export const useEmissionTotal = (subcategory: SubcategoryWithLines) => {
       subcategory.isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
 
     if (isTotalManualEmissionsModeActive) {
-      return linesArray[0]?.manualTotalEmissions || 0;
+      const firstLine = linesArray[0];
+      const manualValue = firstLine?.manualTotalEmissions;
+      // Explicitly check for null/undefined, allowing 0 as valid value
+      return manualValue !== null && manualValue !== undefined
+        ? manualValue
+        : 0;
     }
 
     return linesArray.reduce((acc, row) => {
-      const quantity = row.quantity || 0;
-      const factorValue = row.factorValue || 0;
+      // Explicitly check for null/undefined, allowing 0 as valid value
+      const quantity =
+        row.quantity !== null && row.quantity !== undefined ? row.quantity : 0;
+      const factorValue =
+        row.factorValue !== null && row.factorValue !== undefined
+          ? row.factorValue
+          : 0;
       return acc + round(quantity * factorValue, 2);
     }, 0);
   }, [subcategory, lines]);

@@ -322,20 +322,31 @@ export const useEmissionEditorForm = ({
 
   const handleSetTotalEmission = useCallback(
     (total: number) => {
-      const lines = getValues(`subcategories.${subcategoryId}.lines`);
-      const lineIds = Object.keys(lines || {});
-
-      // In manual mode, we usually have only one line.
-      // We use the first one available or a specific ID if known.
-      const targetId = lineIds[0];
-
-      setValue(
-        `subcategories.${subcategoryId}.lines.${targetId}.manualTotalEmissions`,
-        total,
-        { shouldDirty: true }
+      const lines = getValues(`subcategories.${subcategoryId}.lines`) || {};
+      // Filter to get only non-deleted lines
+      const existingLineIds = Object.keys(lines).filter(
+        (id) => lines[id] && !lines[id].isDeleted
       );
+
+      if (existingLineIds.length > 0) {
+        // Update the first existing line's manualTotalEmissions
+        const targetId = existingLineIds[0];
+        setValue(
+          `subcategories.${subcategoryId}.lines.${targetId}.manualTotalEmissions`,
+          total,
+          { shouldDirty: true }
+        );
+      } else {
+        // No existing lines, create a new one for manual mode
+        const newLine = addLine(subcategoryId);
+        setValue(
+          `subcategories.${subcategoryId}.lines.${newLine.lineId}.manualTotalEmissions`,
+          total,
+          { shouldDirty: true }
+        );
+      }
     },
-    [setValue, subcategoryId, getValues]
+    [setValue, subcategoryId, getValues, addLine]
   );
 
   const handleSetManualMode = useCallback(
@@ -357,26 +368,42 @@ export const useEmissionEditorForm = ({
       try {
         if (isManual) {
           const values = getValues();
-          const payload: EmissionCaptureFormValues = {
-            subcategories: Object.assign(
-              {},
-              Object.entries(values.subcategories)
-                .filter(([key, _]) => key === subcategoryId)
-                .reduce(
-                  (obj, [key, value]) => {
-                    obj[key] = value;
-                    return obj;
-                  },
-                  {} as Record<string, (typeof values.subcategories)[string]>
-                )
-            ),
-          };
-          await submit(payload);
-          await new Promise((resolve) => setTimeout(resolve, 2000));
+          const subcategoryData = values.subcategories[subcategoryId];
+
+          // Only submit if there are actual lines with changes to save
+          const hasLinesToSave =
+            subcategoryData?.lines &&
+            Object.values(subcategoryData.lines).some(
+              (line) => line && !line.isDeleted
+            );
+
+          if (hasLinesToSave) {
+            const payload: EmissionCaptureFormValues = {
+              subcategories: {
+                [subcategoryId]: subcategoryData,
+              },
+            };
+
+            // Submit returns void, errors are handled internally with snackbar
+            // We wrap in try-catch to prevent the error from stopping the flow
+            try {
+              await submit(payload);
+            } catch {
+              // Submit already shows error snackbar, we continue with toggle
+              // because the user explicitly requested to switch modes
+            }
+          }
         }
+
         await toggleManualMode({ activated: isManual });
       } catch {
-        // Error is handled by the mutation's onError or the UI
+        // Revert local state if toggleManualMode fails
+        setIsLocalTotalManualEmissionsMode(null);
+        setValue(
+          `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+          !isManual,
+          { shouldDirty: false }
+        );
       } finally {
         setIsLocalTotalManualEmissionsMode(null);
         setIsTotalManualEmissionsModeLoading(false);
