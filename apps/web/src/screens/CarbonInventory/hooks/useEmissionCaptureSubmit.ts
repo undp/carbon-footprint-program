@@ -11,7 +11,7 @@ interface Params {
   inventoryId: string;
   onSuccess?: () => void;
   isDirty?: boolean;
-  resetAfterSave: () => void;
+  resetAfterSave?: () => void;
 }
 
 interface HookResult {
@@ -80,7 +80,7 @@ export const useEmissionCaptureSubmit = ({
         });
 
         // Reset form state after successful save to clear isNew/isDeleted flags
-        resetAfterSave();
+        resetAfterSave?.();
 
         enqueueSnackbar("Inventario guardado exitosamente", {
           variant: "success",
