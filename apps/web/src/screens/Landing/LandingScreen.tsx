@@ -11,20 +11,6 @@ export const LandingScreen: FC = () => {
 
   const alphaDeepForest = alpha(theme.palette.common.deepForest, 0.35);
 
-  const { user, isLoading } = useUserStore();
-
-  // eslint-disable-next-line no-console
-  console.log({ user });
-
-  if (user && !isLoading) {
-    return (
-      <MainLayout>
-        {/* TODO: Replace with real Home screen component */}
-        <div>Hello &quot;/home&quot;!</div>
-      </MainLayout>
-    );
-  }
-
   return (
     <Box
       component="main"
