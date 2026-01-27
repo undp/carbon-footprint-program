@@ -1,9 +1,14 @@
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { AuthenticationLayout } from "@/components/layout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "@tanstack/react-router";
+import { useUserStore } from "@/stores/userStore";
+import { Routes } from "@/interfaces";
 
 export const SignInScreen = () => {
-  const { signInRedirect, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const { signInRedirect, isLoading, account } = useAuth();
+  const { user: me } = useUserStore();
 
   if (isLoading) {
     return (
@@ -11,6 +16,10 @@ export const SignInScreen = () => {
         <CircularProgress />
       </Box>
     );
+  }
+
+  if (me || account) {
+    void navigate({ to: Routes.HOME });
   }
 
   return (
@@ -36,23 +45,6 @@ export const SignInScreen = () => {
         >
           Ingresa tu correo electrónico. Te enviaremos un código de verificación
         </Typography>
-        {/* 
-        <TextField
-          sx={{ width: 324 }}
-          label="Correo electrónico"
-          variant="outlined"
-        />
-
-        <Button variant="contained" sx={{ width: 324 }}>
-          Siguiente
-        </Button>
-
-        <Typography variant="subtitle1">
-          ¿No tienes cuenta?{" "}
-          <Typography component={Link} color="info" to={RegisterRoute.to}>
-            Crear cuenta
-          </Typography>
-        </Typography> */}
       </Box>
     </AuthenticationLayout>
   );
