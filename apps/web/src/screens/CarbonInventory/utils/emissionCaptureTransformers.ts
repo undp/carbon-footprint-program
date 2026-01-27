@@ -18,14 +18,16 @@ function mapLineToCreateRequest(
     dimensionValue1Id: line.dimensionValue1Id,
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
-    quantity: line.quantity ? Number(line.quantity) : null,
+    quantity: line.quantity != null ? Number(line.quantity) : null,
     factorSource: line.factorSource,
     baseFactorId: line.baseFactorId ?? null,
-    appliedFactorValue: line.factorValue ? Number(line.factorValue) : null,
+    appliedFactorValue:
+      line.factorValue != null ? Number(line.factorValue) : null,
     appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-    manualTotalEmissions: line.manualTotalEmissions
-      ? Number(line.manualTotalEmissions)
-      : null,
+    manualTotalEmissions:
+      line.manualTotalEmissions != null
+        ? Number(line.manualTotalEmissions)
+        : null,
     comment: line.comment,
   };
 }
@@ -41,14 +43,16 @@ function mapLineToUpdateRequest(
     dimensionValue1Id: line.dimensionValue1Id,
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
-    quantity: line.quantity ? Number(line.quantity) : null,
+    quantity: line.quantity != null ? Number(line.quantity) : null,
     factorSource: line.factorSource,
     baseFactorId: line.baseFactorId ?? null,
-    appliedFactorValue: line.factorValue ? Number(line.factorValue) : null,
+    appliedFactorValue:
+      line.factorValue != null ? Number(line.factorValue) : null,
     appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-    manualTotalEmissions: line.manualTotalEmissions
-      ? Number(line.manualTotalEmissions)
-      : null,
+    manualTotalEmissions:
+      line.manualTotalEmissions != null
+        ? Number(line.manualTotalEmissions)
+        : null,
     comment: line.comment,
   };
 }
@@ -120,14 +124,16 @@ export function mapLinesToRequest(
       dimensionValue1Id: line.dimensionValue1Id,
       dimensionValue2Id: line.dimensionValue2Id,
       measurementUnitId: line.measurementUnitId,
-      quantity: line.quantity ? Number(line.quantity) : null,
+      quantity: line.quantity != null ? Number(line.quantity) : null,
       factorSource: line.factorSource,
       baseFactorId: line.baseFactorId ?? null,
-      appliedFactorValue: line.factorValue ? Number(line.factorValue) : null,
+      appliedFactorValue:
+        line.factorValue != null ? Number(line.factorValue) : null,
       appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-      manualTotalEmissions: line.manualTotalEmissions
-        ? Number(line.manualTotalEmissions)
-        : null,
+      manualTotalEmissions:
+        line.manualTotalEmissions != null
+          ? Number(line.manualTotalEmissions)
+          : null,
       comment: line.comment,
     };
   });
