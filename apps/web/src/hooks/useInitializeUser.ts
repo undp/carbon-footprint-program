@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserStore } from "@/stores/userStore";
-import { apiClient } from "@/api/http";
-import type { GetMeResponse } from "@repo/types";
+
+import { useMe } from "@/api/query";
 
 /**
  * Hook to initialize user data on app mount
@@ -14,6 +14,7 @@ import type { GetMeResponse } from "@repo/types";
 export function useInitializeUser() {
   const { isAuthenticated, account } = useAuth();
   const { setUser, setLoading, setError, clear } = useUserStore();
+  const { data: me } = useMe();
 
   useEffect(() => {
     // Clear user data if not authenticated
@@ -23,11 +24,12 @@ export function useInitializeUser() {
     }
 
     // Fetch user data from API
-    const fetchUser = async () => {
+    const fetchUser = () => {
       setLoading(true);
       try {
-        const userData = await apiClient.get("users/me").json<GetMeResponse>();
-        setUser(userData);
+        if (me) {
+          setUser(me);
+        }
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error("Failed to fetch user:", err);
@@ -38,5 +40,5 @@ export function useInitializeUser() {
     };
 
     void fetchUser();
-  }, [isAuthenticated, account, setUser, setLoading, setError, clear]);
+  }, [isAuthenticated, account, setUser, setLoading, setError, clear, me]);
 }
