@@ -28,7 +28,7 @@ export const UserMenu = () => {
     setAnchorEl(null);
   }, []);
 
-  const name = me ? `${me.firstName} ${me.lastName}` : "User";
+  const name = me?.firstName ? `${me.firstName} ${me.lastName}` : null;
 
   if (isLoading || !me) {
     return null;
@@ -49,9 +49,11 @@ export const UserMenu = () => {
         />
         {me.firstName?.charAt(0).toUpperCase()}
         <Box className="flex flex-col">
-          <Typography variant="body1" lineHeight="normal">
-            {name}
-          </Typography>
+          {name && (
+            <Typography variant="body1" lineHeight="normal">
+              {name}
+            </Typography>
+          )}
           <Typography variant="caption" color="text.secondary">
             {me.email}
           </Typography>
