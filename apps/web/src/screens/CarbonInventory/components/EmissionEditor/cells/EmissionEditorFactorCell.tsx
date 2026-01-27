@@ -49,6 +49,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
       suffix={unit?.abbreviation ?? ""}
       onChange={onChange}
       disabled={disabled || !validation.canEditFactorValue}
+      min={0}
       sx={{
         "& .MuiInputBase-input.Mui-disabled": {
           WebkitTextFillColor:

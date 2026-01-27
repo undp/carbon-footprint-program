@@ -21,6 +21,7 @@ export const EmissionEditorQuantityCell: FC<
       value={value ?? null}
       onChange={onChange}
       disabled={disabled}
+      min={0}
     />
   );
 };
