@@ -234,9 +234,61 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     [getValues, setValue]
   );
 
+  /**
+   * Resets the form state after a successful save.
+   * This clears isNew flags on created lines (they now exist on server),
+   * removes deleted lines completely (they no longer exist on server),
+   * and resets the dirty state.
+   */
+  const resetAfterSave = useCallback(() => {
+    const currentValues = getValues();
+    const cleanedFormData: EmissionCaptureFormValues = {
+      subcategories: {},
+    };
+
+    Object.entries(currentValues.subcategories || {}).forEach(
+      ([subcatId, subcatData]) => {
+        const cleanedLines: Record<string, EmissionCaptureFormLine> = {};
+
+        Object.entries(subcatData.lines || {}).forEach(([lineId, line]) => {
+          // Skip deleted lines - they no longer exist on the server
+          if (line.isDeleted) {
+            return;
+          }
+
+          // For lines that were new but are now saved, mark them as not new
+          cleanedLines[lineId] = {
+            ...line,
+            isNew: false,
+            isDeleted: false,
+          };
+        });
+
+        cleanedFormData.subcategories[subcatId] = {
+          ...subcatData,
+          lines: cleanedLines,
+        };
+      }
+    );
+
+    // Reset the form with cleaned data, clearing the dirty state
+    reset(cleanedFormData, {
+      keepErrors: false,
+      keepDirty: false,
+      keepDirtyValues: false,
+      keepValues: false,
+      keepDefaultValues: false,
+      keepIsSubmitted: false,
+      keepTouched: false,
+      keepIsValid: false,
+      keepSubmitCount: false,
+    });
+  }, [getValues, reset]);
+
   return {
     ...form,
     addLine,
     removeLine,
+    resetAfterSave,
   };
 };
