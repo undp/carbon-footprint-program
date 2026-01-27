@@ -1,3 +1,3 @@
 export { LandingScreen } from "./Landing";
-export { SignInScreen, SignUpScreen } from "./Auth";
+export { SignInScreen } from "./Auth";
 export { HomeScreen } from "./Home";
