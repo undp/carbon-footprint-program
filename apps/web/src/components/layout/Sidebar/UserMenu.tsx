@@ -46,8 +46,9 @@ export const UserMenu = () => {
           sx={(theme) => ({
             backgroundColor: theme.palette.grey[200],
           })}
-        />
-        {me.firstName?.charAt(0).toUpperCase()}
+        >
+          {me.firstName?.charAt(0).toUpperCase()}
+        </Avatar>
         <Box className="flex flex-col">
           {name && (
             <Typography variant="body1" lineHeight="normal">
