@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect } from "react";
+import { FC, ReactNode, useCallback, useEffect } from "react";
 import {
   AppBar,
   Box,
@@ -12,6 +12,7 @@ import { HuellaLatamLogo } from "@/icons";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces/routes";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/contexts";
 
 interface CarbonInventoryHeaderProps {
   title?: string;
@@ -21,6 +22,15 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   title = "Inventario Organizacional",
 }) => {
   const navigate = useNavigate();
+  const { account } = useAuth();
+
+  const onLogoClick = useCallback(() => {
+    if (account) {
+      void navigate({ to: Routes.CARBON_INVENTORY });
+    } else {
+      void navigate({ to: Routes.LANDING });
+    }
+  }, [navigate, account]);
 
   return (
     <AppBar
@@ -34,12 +44,7 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
         disableGutters
         className="flex h-20 flex-row items-center justify-start gap-6 bg-white px-6 py-4"
       >
-        <Box
-          className="flex cursor-pointer items-center"
-          onClick={() => {
-            void navigate({ to: Routes.HOME });
-          }}
-        >
+        <Box className="flex cursor-pointer items-center" onClick={onLogoClick}>
           <HuellaLatamLogo
             sx={{
               width: 117,
