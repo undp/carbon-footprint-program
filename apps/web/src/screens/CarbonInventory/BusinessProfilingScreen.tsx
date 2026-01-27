@@ -231,6 +231,19 @@ export const BusinessProfilingScreen: FC = () => {
                   required={!!selectedActivityId}
                   requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
                   type="number"
+                  min={0}
+                  minMessage="La cantidad no puede ser negativa"
+                  slotProps={{ htmlInput: { min: 0 } }}
+                  sx={{
+                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                      {
+                        WebkitAppearance: "none",
+                        margin: 0,
+                      },
+                    "& input[type=number]": {
+                      MozAppearance: "textfield",
+                    },
+                  }}
                 />
               </Box>
             </Box>
