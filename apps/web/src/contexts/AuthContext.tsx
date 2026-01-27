@@ -1,5 +1,6 @@
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -39,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   /**
    * Sign in with popup (recommended for SPA)
    */
-  const signInPopup = async () => {
+  const signInPopup = useCallback(async () => {
     try {
       setIsLoading(true);
       const response = await instance.loginPopup(loginRequest);
@@ -51,12 +52,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [instance]);
 
   /**
    * Sign in with redirect (alternative)
    */
-  const signInRedirect = async () => {
+  const signInRedirect = useCallback(async () => {
     try {
       await instance.loginRedirect(loginRequest);
     } catch (error) {
@@ -64,12 +65,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Login redirect failed:", error);
       throw error;
     }
-  };
+  }, [instance]);
 
   /**
    * Sign out
    */
-  const signOut = async () => {
+  const signOut = useCallback(async () => {
     try {
       setIsLoading(true);
       await instance.logoutRedirect({
@@ -82,7 +83,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [instance, account]);
 
   const value: AuthContextType = {
     isAuthenticated,
