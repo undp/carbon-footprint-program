@@ -5,9 +5,12 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { theme } from "@/theme";
 import { queryClient } from "@/api/query/client";
 import { SnackbarProvider } from "notistack";
+import { useInitializeUser } from "@/hooks/useInitializeUser";
 
-export const Route = createRootRoute({
-  component: () => (
+function RootComponent() {
+  useInitializeUser(); // Initialize user data when authenticated
+
+  return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={theme}>
         <CssBaseline />
@@ -16,5 +19,9 @@ export const Route = createRootRoute({
         </SnackbarProvider>
       </ThemeProvider>
     </QueryClientProvider>
-  ),
+  );
+}
+
+export const Route = createRootRoute({
+  component: RootComponent,
 });
