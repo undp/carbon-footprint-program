@@ -8,10 +8,11 @@ import {
   SsidChartRounded,
   EmojiEventsOutlined,
 } from "@mui/icons-material";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@icons/HuellaLatamLogo";
 import { Item } from "./Item";
 import {
+  Routes,
   SidebarRoute,
   SidebarRoutes,
   SidebarRoutesTranslations,
@@ -29,6 +30,7 @@ const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
 
 export const Sidebar: FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const items = useMemo(
     () =>
@@ -64,7 +66,9 @@ export const Sidebar: FC = () => {
           sx={{
             width: 93,
             height: 40,
+            ":hover": { cursor: "pointer" },
           }}
+          onClick={() => void navigate({ to: Routes.LANDING })}
         />
       </Toolbar>
       <Divider />
