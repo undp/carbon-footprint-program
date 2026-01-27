@@ -26,6 +26,10 @@ export const UserSchema = z.object({
   updatedById: IdSchema.nullable().describe(
     "The ID of the user who last updated this user"
   ),
+  termsAccepted: z
+    .boolean()
+    .nullable()
+    .describe("Whether the user has accepted the terms and conditions"),
 });
 
 export type User = z.infer<typeof UserSchema>;
