@@ -32,9 +32,11 @@
 
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "./AuthProvider.js";
-import type { AuthConfig, AuthProviderType } from "./types.js";
+import type { AuthProviderType } from "./types.js";
 import { JwksAuthProvider } from "./providers/JwksAuthProvider.js";
 import { EasyAuthProvider } from "./providers/EasyAuthProvider.js";
+import { NoneProvider } from "./providers/NoneProvider.js";
+import { ForcedUserProvider } from "./providers/ForcedUserProvider.js";
 
 /**
  * Authentication Service Facade
@@ -42,75 +44,50 @@ import { EasyAuthProvider } from "./providers/EasyAuthProvider.js";
  * Provides a unified interface for authentication across multiple providers.
  */
 export class AuthService {
-  private readonly providers: Map<AuthProviderType, AuthProvider>;
-  private readonly config: AuthConfig;
+  private readonly provider_type: AuthProviderType;
+  private readonly provider: AuthProvider | undefined;
 
-  constructor(config: AuthConfig) {
-    this.config = config;
-    this.providers = new Map();
+  constructor(provider_type: AuthProviderType) {
+    this.provider_type = provider_type;
 
-    // Register available providers
-    if (config.provider === "jwks") {
-      this.registerProvider(new JwksAuthProvider());
-    } else if (config.provider === "easy-auth") {
-      this.registerProvider(new EasyAuthProvider());
+    if (this.provider_type === "jwks") {
+      this.provider = new JwksAuthProvider();
+    } else if (this.provider_type === "easy-auth") {
+      this.provider = new EasyAuthProvider();
+    } else if (this.provider_type === "forced-user") {
+      this.provider = new ForcedUserProvider();
+    } else if (this.provider_type === "none") {
+      this.provider = new NoneProvider();
+    } else {
+      this.provider = undefined;
     }
-  }
-
-  /**
-   * Register an authentication provider.
-   */
-  registerProvider(provider: AuthProvider): void {
-    this.providers.set(provider.type, provider);
-  }
-
-  /**
-   * Get a specific provider by type.
-   */
-  getProvider(type: AuthProviderType): AuthProvider | undefined {
-    return this.providers.get(type);
   }
 
   /**
    * Check if authentication is enabled.
    */
   isEnabled(): boolean {
-    return this.config.enabled;
+    return !!this.provider;
   }
 
   /**
    * Get the configured provider type.
    */
   getConfiguredProvider(): AuthProviderType {
-    return this.config.provider;
+    return this.provider_type;
   }
 
   /**
    * Authenticate a request using the configured provider.
    */
   async authenticate(request: FastifyRequest): Promise<AuthResult> {
-    if (!this.config.enabled) {
+    if (!this.isEnabled()) {
       return {
         success: false,
         error: "Authentication is disabled",
       };
     }
 
-    if (this.config.provider === "none") {
-      return {
-        success: false,
-        error: "Authentication provider is set to none",
-      };
-    }
-
-    const provider = this.providers.get(this.config.provider);
-    if (!provider) {
-      return {
-        success: false,
-        error: `Unknown auth provider: ${this.config.provider}`,
-      };
-    }
-
-    return provider.authenticate(request);
+    return this.provider!.authenticate(request);
   }
 }

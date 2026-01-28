@@ -1,3 +1,5 @@
+import { AuthProviderType } from "../auth/types.js";
+
 // Default value for development only - should never reach production
 export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 
@@ -111,16 +113,23 @@ export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_API_CLIENT_ID;
 // ============================================================================
 // Authentication Provider Configuration
 // ============================================================================
-// AUTH_PROVIDER: "jwks" | "easy-auth" | "none"
+// AUTH_PROVIDER: "jwks" | "easy-auth" | "forced-user"
 // - jwks: Use MSAL tokens with JWKS validation
 // - easy-auth: Use Azure App Service Easy Auth headers
-// - none: Disable authentication (default for local dev)
-const AUTH_PROVIDER_VALUES = ["jwks", "easy-auth", "none"] as const;
-type AuthProviderValue = (typeof AUTH_PROVIDER_VALUES)[number];
+// - forced-user: Use a specific user (recommended for local dev)
 
-const rawAuthProvider = process.env.AUTH_PROVIDER || "none";
-export const AUTH_PROVIDER: AuthProviderValue = AUTH_PROVIDER_VALUES.includes(
-  rawAuthProvider as AuthProviderValue
-)
-  ? (rawAuthProvider as AuthProviderValue)
-  : "none";
+export const AUTH_PROVIDER: AuthProviderType = (() => {
+  const rawAuthProvider = process.env.AUTH_PROVIDER;
+  if (!rawAuthProvider) return "none";
+
+  const validValues = ["jwks", "easy-auth", "forced-user"];
+  if (!validValues.includes(rawAuthProvider)) {
+    throw new Error(
+      `Invalid AUTH_PROVIDER value: ${rawAuthProvider}. Allowed values are ${validValues.join(", ")}.`
+    );
+  }
+  return rawAuthProvider as AuthProviderType;
+})();
+
+export const FORCED_USER_EMAIL_WHEN_NO_PROVIDER =
+  process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
