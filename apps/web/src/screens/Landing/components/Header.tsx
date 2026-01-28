@@ -51,7 +51,6 @@ export const Header: FC = () => {
         </Box>
         {user ? (
           <Button
-            component={Link}
             sx={{ backgroundColor: theme.palette.common.deepForest }}
             variant="contained"
             onClick={handleHomeClick}
@@ -60,7 +59,6 @@ export const Header: FC = () => {
           </Button>
         ) : (
           <Button
-            component={Link}
             sx={{ backgroundColor: theme.palette.common.deepForest }}
             variant="contained"
             onClick={handleSignInClick}
