@@ -27,6 +27,8 @@ const UserDataSchema: z.ZodType<UserData> = z.array(
     countryIsoCode: z.string().min(1),
     firstName: z.string(),
     lastName: z.string(),
+    termsAccepted: z.boolean().nullable(),
+    termsAcceptedAt: z.iso.datetime().nullable(),
   })
 );
 
@@ -78,6 +80,8 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
       countryJobPositionId: jobPosition.id,
       firstName: user.firstName,
       lastName: user.lastName,
+      termsAccepted: true,
+      termsAcceptedAt: new Date(),
     };
   });
 

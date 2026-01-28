@@ -175,7 +175,7 @@ model User {
   createdById                          BigInt?                        @map("created_by_id")
   updatedById                          BigInt?                        @map("updated_by_id")
   termsAccepted                        Boolean                        @default(false) @map("terms_accepted")
-  termsAcceptedAt                      DateTime                       @map("terms_accepted_at")
+  termsAcceptedAt                      DateTime?                      @map("terms_accepted_at")
   countryParametersCreated             CountryParameter[]             @relation("country_parameter_created_by")
   countryParametersUpdated             CountryParameter[]             @relation("country_parameter_updated_by")
   countrySectorsCreated                CountrySector[]                @relation("country_sector_created_by")
