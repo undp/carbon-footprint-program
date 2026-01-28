@@ -26,8 +26,7 @@ export const useEmissionCaptureSubmit = ({
   resetAfterSave,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
-  const syncCarbonInventoryLinesMutation =
-    useSyncCarbonInventoryLines(inventoryId);
+  const { mutateAsync, isPending } = useSyncCarbonInventoryLines(inventoryId);
 
   const submit = useCallback(
     async (data: EmissionCaptureFormValues) => {
@@ -75,7 +74,7 @@ export const useEmissionCaptureSubmit = ({
         // Transform to sync API request format
         const syncRequest = mapLinesToSyncRequest(flatLines);
 
-        await syncCarbonInventoryLinesMutation.mutateAsync({
+        await mutateAsync({
           data: syncRequest,
         });
 
@@ -99,7 +98,7 @@ export const useEmissionCaptureSubmit = ({
       inventoryId,
       isDirty,
       enqueueSnackbar,
-      syncCarbonInventoryLinesMutation,
+      mutateAsync,
       onSuccess,
       resetAfterSave,
     ]
@@ -107,6 +106,6 @@ export const useEmissionCaptureSubmit = ({
 
   return {
     submit,
-    isSubmitting: syncCarbonInventoryLinesMutation.isPending,
+    isSubmitting: isPending,
   };
 };
