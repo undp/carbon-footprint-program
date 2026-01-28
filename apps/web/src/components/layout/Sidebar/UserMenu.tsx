@@ -10,12 +10,10 @@ import {
   Typography,
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
-import { useUserStore } from "@/stores/userStore";
 import { useCallback, useState } from "react";
 
 export const UserMenu = () => {
-  const { signOut } = useAuth();
-  const { user: me, isLoading } = useUserStore();
+  const { signOut, user: me, isLoading } = useAuth();
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);

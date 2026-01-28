@@ -16,10 +16,10 @@ import { AuthenticationLayout } from "@/components/layout";
 import { Controller, useForm } from "react-hook-form";
 import { useUpdateUser } from "../../api/query/users/useUpdateUser";
 import { useUserStore } from "../../stores/userStore";
-import { useInitializeUser } from "../../hooks/useInitializeUser";
 import { useJobPositions } from "../../api/query/jobPositions";
 import { enqueueSnackbar } from "notistack";
 import { Routes } from "../../interfaces";
+import { useAuth } from "../../contexts";
 
 type UserFields = {
   firstName: string;
@@ -32,7 +32,7 @@ export const UserFormScreen: FC = () => {
   const navigate = useNavigate();
   const { user } = useUserStore();
 
-  const { refetchUser } = useInitializeUser();
+  const { refetchUser } = useAuth();
   const { mutateAsync: updateUser, isPending } = useUpdateUser();
 
   const { data: jobPositions } = useJobPositions();
