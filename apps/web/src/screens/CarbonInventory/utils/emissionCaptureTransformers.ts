@@ -7,13 +7,10 @@ import {
 import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
 
 /**
- * Maps a single line to the create request format (for new lines)
+ * Maps common fields shared between create and update requests
  */
-function mapLineToCreateRequest(
-  line: EmissionCaptureFormLine
-): SyncCreateLineItem {
+function mapCommonFields(line: EmissionCaptureFormLine) {
   return {
-    subcategoryId: line.subcategoryId,
     dimensionValue1Id: line.dimensionValue1Id,
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
@@ -32,27 +29,26 @@ function mapLineToCreateRequest(
 }
 
 /**
+ * Maps a single line to the create request format (for new lines)
+ */
+function mapLineToCreateRequest(
+  line: EmissionCaptureFormLine
+): SyncCreateLineItem {
+  return {
+    ...mapCommonFields(line),
+    subcategoryId: line.subcategoryId,
+  };
+}
+
+/**
  * Maps a single line to the update request format (for existing lines)
  */
 function mapLineToUpdateRequest(
   line: EmissionCaptureFormLine
 ): SyncUpdateLineItem {
   return {
+    ...mapCommonFields(line),
     id: line.lineId,
-    dimensionValue1Id: line.dimensionValue1Id,
-    dimensionValue2Id: line.dimensionValue2Id,
-    measurementUnitId: line.measurementUnitId,
-    quantity: line.quantity != null ? Number(line.quantity) : null,
-    factorSource: line.factorSource,
-    baseFactorId: line.baseFactorId ?? null,
-    appliedFactorValue:
-      line.factorValue != null ? Number(line.factorValue) : null,
-    appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-    manualTotalEmissions:
-      line.manualTotalEmissions != null
-        ? Number(line.manualTotalEmissions)
-        : null,
-    comment: line.comment,
   };
 }
 
