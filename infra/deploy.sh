@@ -348,8 +348,10 @@ else
   else
     echo "ℹ️  Authentication: Not configured (AUTH_PROVIDER=none)"
     echo "  To enable authentication, set in infra/.env:"
+    echo "    AZURE_EXTERNAL_TENANT_SUBDOMAIN=your-tenant-subdomain"
     echo "    AZURE_EXTERNAL_TENANT_ID=your-tenant-guid"
     echo "    AZURE_FRONT_CLIENT_ID=your-frontend-client-id"
+    echo "    AZURE_API_CLIENT_ID=your-api-client-id"
     echo ""
   fi
   
