@@ -14,7 +14,7 @@ import { useMe } from "@/api/query";
 export function useInitializeUser() {
   const { isAuthenticated, account } = useAuth();
   const { setUser, setLoading, setError, clear } = useUserStore();
-  const { data: me } = useMe();
+  const { data: me, refetch } = useMe();
 
   useEffect(() => {
     // Clear user data if not authenticated
@@ -41,4 +41,6 @@ export function useInitializeUser() {
 
     void fetchUser();
   }, [isAuthenticated, account, setUser, setLoading, setError, clear, me]);
+
+  return { refetchUser: refetch };
 }
