@@ -20,7 +20,7 @@
  *
  * // Authenticate a request
  * const result = await authService.authenticate(request);
- * if (result.success) {
+ * if (result.user) {
  *   console.log(result.user.email);
  * }
  * ```
@@ -83,7 +83,7 @@ export class AuthService {
   async authenticate(request: FastifyRequest): Promise<AuthResult> {
     if (!this.isEnabled()) {
       return {
-        success: false,
+        user: null,
         error: "Authentication is disabled",
       };
     }

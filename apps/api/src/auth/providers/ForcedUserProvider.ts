@@ -20,22 +20,19 @@ export class ForcedUserProvider implements AuthProvider {
    * Authenticate using Easy Auth headers.
    */
   authenticate(_request: FastifyRequest): Promise<AuthResult> {
-    const result = FORCED_USER_EMAIL_WHEN_NO_PROVIDER
-      ? {
-          success: true,
-          user: {
-            idpUserId: FORCED_USER_EMAIL_WHEN_NO_PROVIDER,
-            email: FORCED_USER_EMAIL_WHEN_NO_PROVIDER,
-            idpName: "N/D",
-          },
-        }
-      : {
-          success: false,
-          error: "FORCED_USER_EMAIL_WHEN_NO_PROVIDER was not set",
-        };
+    if (FORCED_USER_EMAIL_WHEN_NO_PROVIDER) {
+      return Promise.resolve({
+        user: {
+          idpUserId: FORCED_USER_EMAIL_WHEN_NO_PROVIDER,
+          email: FORCED_USER_EMAIL_WHEN_NO_PROVIDER,
+          idpName: "N/D",
+        },
+      });
+    }
 
-    return new Promise((resolve) => {
-      resolve(result);
+    return Promise.resolve({
+      user: null,
+      error: "FORCED_USER_EMAIL_WHEN_NO_PROVIDER was not set",
     });
   }
 }

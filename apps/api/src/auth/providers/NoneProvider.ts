@@ -29,11 +29,9 @@ export class NoneProvider implements AuthProvider {
    * Authenticate using Easy Auth headers.
    */
   authenticate(_request: FastifyRequest): Promise<AuthResult> {
-    return new Promise((resolve) => {
-      resolve({
-        success: false,
-        error: "AUTH_PROVIDER was not set",
-      });
+    return Promise.resolve({
+      user: null,
+      error: "AUTH_PROVIDER was not set",
     });
   }
 }

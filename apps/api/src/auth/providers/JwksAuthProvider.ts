@@ -71,11 +71,11 @@ export class JwksAuthProvider implements AuthProvider {
 
       request.log.info({ idpUserId }, "JwksAuthProvider: authentication succeeded");
 
-      return { success: true, user };
+      return { user };
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "JWT verification failed";
-      return { success: false, error: message };
+      return { user: null, error: message };
     }
   }
 }

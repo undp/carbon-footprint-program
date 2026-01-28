@@ -68,7 +68,7 @@ export class EasyAuthProvider implements AuthProvider {
           "EasyAuthProvider: missing X-MS-CLIENT-PRINCIPAL header"
         );
         return Promise.resolve({
-          success: false,
+          user: null,
           error: "Missing X-MS-CLIENT-PRINCIPAL header",
         });
       }
@@ -86,7 +86,7 @@ export class EasyAuthProvider implements AuthProvider {
           "EasyAuthProvider: invalid JSON in X-MS-CLIENT-PRINCIPAL header"
         );
         return Promise.resolve({
-          success: false,
+          user: null,
           error: "Invalid X-MS-CLIENT-PRINCIPAL JSON",
         });
       }
@@ -99,7 +99,7 @@ export class EasyAuthProvider implements AuthProvider {
           "EasyAuthProvider: principal validation failed"
         );
         return Promise.resolve({
-          success: false,
+          user: null,
           error: "Invalid Easy Auth principal structure",
         });
       }
@@ -140,7 +140,7 @@ export class EasyAuthProvider implements AuthProvider {
         "EasyAuthProvider: authentication succeeded"
       );
 
-      return Promise.resolve({ success: true, user });
+      return Promise.resolve({ user });
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Easy Auth parsing failed";
@@ -148,7 +148,7 @@ export class EasyAuthProvider implements AuthProvider {
         { err: message },
         "EasyAuthProvider: authentication error"
       );
-      return Promise.resolve({ success: false, error: message });
+      return Promise.resolve({ user: null, error: message });
     }
   }
 }

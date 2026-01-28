@@ -11,14 +11,18 @@ import type { AuthUser, AuthProviderType } from "./types.js";
 /**
  * Authentication result from a provider.
  */
-export interface AuthResult {
-  /** Whether authentication was successful */
-  success: boolean;
-  /** The authenticated user (if successful) */
-  user?: AuthUser;
-  /** Error message (if failed) */
-  error?: string;
-}
+export type AuthResult =
+  | {
+      /** The authenticated user */
+      user: AuthUser;
+      error?: never;
+    }
+  | {
+      /** No user when authentication fails */
+      user: null;
+      /** Error message */
+      error: string;
+    };
 
 /**
  * Interface that all authentication providers must implement.

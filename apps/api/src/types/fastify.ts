@@ -79,13 +79,13 @@ declare module "fastify" {
      * Authenticated user information (available after requireAuth).
      * This is the normalized user object from any auth provider.
      */
-    authUser?: AuthUser;
+    authUser: AuthUser | null;
 
     /**
      * User from the database (available after authentication and user resolution).
      * This is the full user object from the database.
      */
-    currentUser?: GetMeResponse;
+    currentUser: GetMeResponse | null;
   }
   interface FastifyContextConfig {
     /** Marks a route as public (no authentication required) */
