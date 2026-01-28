@@ -68,7 +68,7 @@ export const Sidebar: FC = () => {
             height: 40,
             ":hover": { cursor: "pointer" },
           }}
-          onClick={() => void navigate({ to: Routes.LANDING })}
+          onClick={() => navigate({ to: Routes.LANDING })}
         />
       </Toolbar>
       <Divider />
