@@ -22,15 +22,15 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   title = "Inventario Organizacional",
 }) => {
   const navigate = useNavigate();
-  const { account } = useAuth();
+  const { user } = useAuth();
 
   const onLogoClick = useCallback(() => {
-    if (account) {
+    if (user) {
       void navigate({ to: Routes.CARBON_INVENTORY });
     } else {
       void navigate({ to: Routes.LANDING });
     }
-  }, [navigate, account]);
+  }, [navigate, user]);
 
   return (
     <AppBar
