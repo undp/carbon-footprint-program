@@ -12,6 +12,7 @@ import type { AccountInfo } from "@azure/msal-browser";
 import { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 import { useInitializeUser } from "../hooks/useInitializeUser";
+import { enqueueSnackbar } from "notistack";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -60,7 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Login popup failed:", error);
-      throw error;
+      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
+        variant: "error",
+      });
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +78,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Login redirect failed:", error);
-      throw error;
+      enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
+        variant: "error",
+      });
     }
   }, [instance]);
 
@@ -91,7 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error("Logout failed:", error);
-      throw error;
+      enqueueSnackbar("Ocurrió un problema al cerrar sesión", {
+        variant: "error",
+      });
     } finally {
       setIsLoading(false);
     }
