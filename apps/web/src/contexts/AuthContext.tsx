@@ -9,7 +9,7 @@ import {
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { loginRequest } from "@/config/msalConfig";
 import type { AccountInfo } from "@azure/msal-browser";
-import { GetMeResponse } from "@repo/types";
+import type { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 import { useInitializeUser } from "../hooks/useInitializeUser";
 import { enqueueSnackbar } from "notistack";
