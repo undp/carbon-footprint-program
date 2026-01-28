@@ -17,11 +17,32 @@ export const NumericInput: FC<Props> = ({
   ...props
 }) => {
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    const numValue = parseFloat(e.target.value);
-    // If min is defined and the value is below min, don't propagate the change
-    if (min !== undefined && e.target.value !== "" && numValue < min) {
+    const inputValue = e.target.value;
+
+    // Allow empty string to pass through
+    if (inputValue === "") {
+      onChange(e);
       return;
     }
+
+    const numValue = parseFloat(inputValue);
+
+    // Clamp to min if defined and value is below min
+    if (min !== undefined && numValue < min) {
+      const valueToEmit = String(min);
+      const clampedEvent = {
+        ...e,
+        target: {
+          ...e.target,
+          value: valueToEmit,
+          name: e.target.name,
+          dataset: e.target.dataset,
+        },
+      };
+      onChange(clampedEvent as React.ChangeEvent<HTMLInputElement>);
+      return;
+    }
+
     onChange(e);
   };
 
