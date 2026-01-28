@@ -89,7 +89,6 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             </Box>
           )}
         </Box>
-        <Box className="flex flex-col"></Box>
       </Box>
       <Box className="flex flex-row content-center items-center gap-2">
         {/* Case 1: Loading and activating manual mode (Skeleton) */}
