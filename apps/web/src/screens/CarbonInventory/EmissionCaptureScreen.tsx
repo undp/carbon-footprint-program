@@ -43,14 +43,15 @@ export const EmissionCaptureScreen: FC = () => {
   const methods = useEmissionCaptureForm({ data });
   const { handleSubmit, formState, resetAfterSave } = methods;
 
-  const { submit, isSubmitting } = useEmissionCaptureSubmit({
-    inventoryId,
-    onSuccess: goNext,
-    isDirty: formState.isDirty,
-    resetAfterSave,
-  });
+  const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      onSuccess: goNext,
+      isDirty: formState.isDirty,
+      resetAfterSave,
+    });
 
-  const { submit: submitAndNavigate, isSubmitting: isSubmitting2 } =
+  const { submit: submitNoNavigate, isSubmitting: isSubmittingNoNavigating } =
     useEmissionCaptureSubmit({
       inventoryId,
       isDirty: formState.isDirty,
@@ -87,7 +88,7 @@ export const EmissionCaptureScreen: FC = () => {
     <FormProvider {...methods}>
       <form
         id="emission-capture-form"
-        onSubmit={handleSubmit(submit)}
+        onSubmit={handleSubmit(submitAndNavigate)}
         noValidate
       >
         <CarbonInventoryLayout
@@ -110,9 +111,9 @@ export const EmissionCaptureScreen: FC = () => {
                 buttonProps: {
                   startIcon: <SaveRounded />,
                   variant: "contained",
-                  onClick: handleSubmit(submitAndNavigate),
-                  loading: isSubmitting2,
-                  disabled: isSubmitting2 || isBusy,
+                  onClick: handleSubmit(submitNoNavigate),
+                  loading: isSubmittingNoNavigating,
+                  disabled: isSubmittingNoNavigating || isBusy,
                 },
               },
               {
@@ -123,8 +124,8 @@ export const EmissionCaptureScreen: FC = () => {
                   variant: "contained",
                   type: "submit",
                   form: "emission-capture-form",
-                  loading: isSubmitting,
-                  disabled: isSubmitting || isBusy,
+                  loading: isSubmittingAndNavigating,
+                  disabled: isSubmittingAndNavigating || isBusy,
                 },
               },
             ],
