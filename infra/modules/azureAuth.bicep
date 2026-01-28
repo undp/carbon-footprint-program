@@ -34,7 +34,7 @@ param externalTenantId string
 @secure()
 param apiAppId string
 
-@description('Azure Entra External ID Application App (Client) ID')
+@description('Azure Entra External ID Front App Registration ID')
 @secure()
 param frontAppId string
 
