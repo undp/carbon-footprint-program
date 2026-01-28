@@ -27,6 +27,7 @@ export const useDeleteCarbonInventoryLine = (
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(inventoryId),
+        exact: true,
       });
     },
   });
