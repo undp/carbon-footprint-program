@@ -252,7 +252,7 @@ Registering the API application is required so Azure can issue and validate acce
 5. Navigate to **Manage** > **"API permissions"**.
 6. Click **"Add a permission"** → **"API's my organization uses"**.
 7. Select the API app registration "Huella Latam API - Node"
-8. on **Select Permissions**.```
+8. on **Select Permissions**.
    - Check the scope you created before `access_as_user`
 9. Click on **Add permissions**
 10. Now grant admin consent by clicking **"Grant admin consent"** to pre-approved for all users.
