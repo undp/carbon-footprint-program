@@ -54,7 +54,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     setSubcategoryTotal(subcategory.id, totalEmission);
   }, [
     subcategory.id,
-    subcategory.name,
     totalEmission,
     isTotalManualEmissionsMode,
     setSubcategoryTotal,
