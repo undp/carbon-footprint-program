@@ -87,10 +87,6 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
 
       // Attach the authenticated user to the request
       request.authUser = result.user;
-      request.log.debug(
-        { idpUserId: result.user.idpUserId },
-        "User authenticated"
-      );
     }
   );
 
