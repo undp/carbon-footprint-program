@@ -11,11 +11,9 @@ export const SyncCreateLineItemSchema = z
     quantity: CarbonInventoryLineSchema.shape.quantity,
     measurementUnitId: CarbonInventoryLineSchema.shape.measurementUnitId,
     factorSource: CarbonInventoryLineSchema.shape.factorSource,
-    baseFactorId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the base emission factor (null for manual factors)"),
+    baseFactorId: IdSchema.nullable().describe(
+      "The ID of the base emission factor (null for manual factors)"
+    ),
     appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,
@@ -36,11 +34,9 @@ export const SyncUpdateLineItemSchema = CarbonInventoryLineSchema.pick({
   comment: true,
 })
   .extend({
-    baseFactorId: z
-      .string()
-      .regex(/^\d+$/)
-      .nullable()
-      .describe("The ID of the base emission factor (null for manual factors)"),
+    baseFactorId: IdSchema.nullable().describe(
+      "The ID of the base emission factor (null for manual factors)"
+    ),
     appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,
