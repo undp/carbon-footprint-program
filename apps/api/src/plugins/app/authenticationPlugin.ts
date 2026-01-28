@@ -61,11 +61,7 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
   fastify.decorate(
     "requireAuth",
     async function (request: FastifyRequest, reply: FastifyReply) {
-      if (request.routeOptions?.config?.public) {
-        request.log.debug("Route marked as public; skipping authentication");
-        return;
-      }
-
+      const isPublicRoute = request.routeOptions?.config?.public;
       // Skip authentication if provider is none (development mode)
       if (!authService.isEnabled()) {
         request.log.debug(
@@ -77,7 +73,7 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
 
       const result = await authService.authenticate(request);
 
-      if (!result.success || !result.user) {
+      if ((!result.success || !result.user) && !isPublicRoute) {
         request.log.warn({ error: result.error }, "Authentication failed");
         return reply.status(401).send({
           code: "UNAUTHORIZED",
