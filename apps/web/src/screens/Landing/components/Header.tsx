@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback } from "react";
 import { AppBar, Box, Button, Toolbar, useTheme } from "@mui/material";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@/icons";
