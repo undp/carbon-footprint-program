@@ -12,10 +12,11 @@ export const Routes = {
   REDUCTION_PROJECTS: "/app/reduction-projects",
   REDUCTION_PLAN: "/app/reduction-plan",
   AWARDS: "/app/awards",
+  USER_FORM: "/app/user/form",
   ABOUT_US: "/about",
   TRANSPARENCY: "/transparency",
   CAPINAUT: "/capinaut",
   SIGN_IN: "/sign-in",
-  } as const;
+} as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
