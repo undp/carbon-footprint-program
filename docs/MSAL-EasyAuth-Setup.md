@@ -332,7 +332,7 @@ The infrastructure is already set up to support Azure authentication. Here's wha
 After following the Azure Portal steps above, you'll have:
 
 - **Frontend App Registration**: Client ID for MSAL (from Step 2)
-- **API App Registration**: Client ID for the API```
+- **API App Registration**: Client ID for the API
 
 ### Step 1: Configure Deployment Environment Variables
 
@@ -1026,8 +1026,9 @@ And configure your `VITE_API_BASE_URL` to use your deployed backend on Azure
 
 4. Check Azure Application Insights for authentication logs
 
----Frontend App Registration created with correct redirect URIs
+## Production Deployment Checklist
 
+- ✅ Frontend App Registration created with correct redirect URIs
 - ✅ Easy Auth enabled on App Service via Azure Portal (Authentication → Add Microsoft)
 - ✅ Bicep variables configured with correct tenant ID
 - ✅ Production environment variables configured for frontend
