@@ -117,12 +117,7 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           name: 'AUTH_PROVIDER'
           value: 'easy-auth'
         }
-      ] : [
-        {
-          name: 'AUTH_PROVIDER'
-          value: 'none'
-        }
-      ])
+      ] : [])
     }
   }
 }
