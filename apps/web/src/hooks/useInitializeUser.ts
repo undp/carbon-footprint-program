@@ -29,7 +29,7 @@ export function useInitializeUser({
   isAuthenticated,
   account,
 }: Props): ReturnType {
-  const { setUser, setLoading, setError, clear } = useUserStore();
+  const { setUser, clear } = useUserStore();
   const { data: me, refetch } = useMe(isAuthenticated);
 
   useEffect(() => {
@@ -39,24 +39,8 @@ export function useInitializeUser({
       return;
     }
 
-    // Fetch user data from API
-    const fetchUser = () => {
-      setLoading(true);
-      try {
-        if (me) {
-          setUser(me);
-        }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error("Failed to fetch user:", err);
-        setError(err as Error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void fetchUser();
-  }, [isAuthenticated, account, setUser, setLoading, setError, clear, me]);
+    if (me) setUser(me);
+  }, [isAuthenticated, account, setUser, clear, me]);
 
   return { user: me, refetchUser: refetch };
 }
