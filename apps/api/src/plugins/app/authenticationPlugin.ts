@@ -32,9 +32,8 @@
 
 import fp from "fastify-plugin";
 import type { FastifyPluginAsync, FastifyRequest, FastifyReply } from "fastify";
-import { AuthService } from "../../auth/AuthService.js";
-import type { AuthProviderType, AuthConfig } from "../../auth/types.js";
-import { AUTH_PROVIDER } from "@/config/environment.js";
+import type { AuthProviderType } from "../../auth/types.js";
+import { authService } from "../../auth/index.js";
 
 /**
  * Plugin options for authentication.
@@ -49,18 +48,8 @@ export interface AuthPluginOptions {
  */
 const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
   fastify,
-  options
+  _options
 ) => {
-  // Create config from environment with option overrides
-  const provider = options.provider ?? AUTH_PROVIDER;
-  const config: AuthConfig = {
-    provider,
-    enabled: Boolean(provider !== "none"),
-  };
-
-  // Create the auth service
-  const authService = new AuthService(config);
-
   // Decorate fastify with the auth service
   fastify.decorate("authService", authService);
 
@@ -78,9 +67,9 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
       }
 
       // Skip authentication if provider is none (development mode)
-      if (!authService.isEnabled() || config.provider === "none") {
+      if (!authService.isEnabled()) {
         request.log.debug(
-          { provider: config.provider },
+          { provider: authService.getConfiguredProvider() },
           "Authentication disabled; allowing request without auth"
         );
         return;
@@ -106,7 +95,9 @@ const authenticationPlugin: FastifyPluginAsync<AuthPluginOptions> = (
   );
 
   fastify.log.info(
-    { provider: config.provider, enabled: config.enabled },
+    {
+      provider: authService.getConfiguredProvider(),
+    },
     "Auth plugin registered"
   );
 

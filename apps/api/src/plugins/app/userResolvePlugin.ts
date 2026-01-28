@@ -1,12 +1,19 @@
 import fp from "fastify-plugin";
 import { FastifyPluginCallback, FastifyRequest } from "fastify";
 import { mapUserToResponse } from "../../features/users/mappers.js";
+import { authService } from "../../auth/index.js";
 
 const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
   // Find or create user on the DB with the data of the authenticated user with oid and email and attach to request
 
   fastify.addHook("preHandler", async function (request: FastifyRequest) {
     const log = request.log.child({ module: "user-resolve-plugin" });
+
+    if (!authService.isEnabled()) {
+      log.debug("AUTH_PROVIDER was not set; skipping user resolution");
+
+      return;
+    }
 
     if (!request.authUser) {
       log.debug(
