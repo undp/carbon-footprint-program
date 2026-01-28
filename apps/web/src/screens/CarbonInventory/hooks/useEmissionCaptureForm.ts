@@ -4,6 +4,8 @@ import {
   EmissionCaptureFormValues,
   EmissionCaptureMergedData,
   EmissionCaptureFormLine,
+  SubcategoryId,
+  LineId,
 } from "../types/EmissionCaptureTypes";
 import { SubcategoryWithLines } from "../types/EmissionCaptureTypes";
 
@@ -19,7 +21,9 @@ const defaultValues: EmissionCaptureFormValues = {
  * Creates a new empty line with a temporary ID.
  * New lines are marked with isNew: true and will be created on the server when submitting.
  */
-const createNewLine = (subcategoryId: string): EmissionCaptureFormLine => {
+const createNewLine = (
+  subcategoryId: SubcategoryId
+): EmissionCaptureFormLine => {
   const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   return {
     id: tempId,
@@ -56,9 +60,10 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
   useEffect(() => {
     // STEP 1: Preserve manual total emissions and new lines from current form state before reset
     const currentFormValues = getValues();
-    const preservedManualTotals: Record<string, number> = {};
-    const preservedNewLines: Record<string, EmissionCaptureFormLine[]> = {};
-    const preservedDeletedLineIds: Record<string, string[]> = {};
+    const preservedManualTotals: Record<SubcategoryId, number> = {};
+    const preservedNewLines: Record<SubcategoryId, EmissionCaptureFormLine[]> =
+      {};
+    const preservedDeletedLineIds: Record<SubcategoryId, LineId[]> = {};
 
     // Extract and preserve data for each subcategory
     Object.entries(currentFormValues.subcategories || {}).forEach(
@@ -94,7 +99,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
       subcategories: {},
     };
 
-    const subcategoriesToForceSync: string[] = [];
+    const subcategoriesToForceSync: SubcategoryId[] = [];
 
     data?.categories.forEach((category) => {
       category.subcategories.forEach((subcategory: SubcategoryWithLines) => {
@@ -109,7 +114,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
             acc[line.id] = { ...line, isNew: false, isDeleted: false };
             return acc;
           },
-          {} as Record<string, EmissionCaptureFormLine>
+          {} as Record<LineId, EmissionCaptureFormLine>
         );
 
         // Add back the new lines that were created locally
@@ -186,7 +191,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
    * The line is marked with isNew: true and will be created on the server when submitting.
    */
   const addLine = useCallback(
-    (subcategoryId: string) => {
+    (subcategoryId: SubcategoryId) => {
       const newLine = createNewLine(subcategoryId);
       const currentLines = getValues(`subcategories.${subcategoryId}.lines`);
 
@@ -210,7 +215,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
    * - For existing server lines: marks them as isDeleted: true (they will be deleted on submit).
    */
   const removeLine = useCallback(
-    (subcategoryId: string, lineId: string) => {
+    (subcategoryId: SubcategoryId, lineId: LineId) => {
       const currentLines = getValues(`subcategories.${subcategoryId}.lines`);
       const lineToRemove = currentLines?.[lineId];
 
@@ -248,7 +253,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
     Object.entries(currentValues.subcategories || {}).forEach(
       ([subcatId, subcatData]) => {
-        const cleanedLines: Record<string, EmissionCaptureFormLine> = {};
+        const cleanedLines: Record<LineId, EmissionCaptureFormLine> = {};
 
         Object.entries(subcatData.lines || {}).forEach(([lineId, line]) => {
           // Skip deleted lines - they no longer exist on the server
