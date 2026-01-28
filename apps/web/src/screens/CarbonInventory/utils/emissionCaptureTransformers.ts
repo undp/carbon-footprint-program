@@ -1,5 +1,4 @@
 import {
-  UpdateCarbonInventoryLineRequestItem,
   SyncCarbonInventoryLinesRequest,
   SyncCreateLineItem,
   SyncUpdateLineItem,
@@ -109,32 +108,4 @@ export function mapLinesToSyncRequest(
     update,
     delete: deleteItems,
   };
-}
-
-/**
- * @deprecated Use mapLinesToSyncRequest instead
- * Maps lines to the legacy update request format (only updates, no creates/deletes)
- */
-export function mapLinesToRequest(
-  lines: EmissionCaptureFormLine[]
-): UpdateCarbonInventoryLineRequestItem[] {
-  return lines.map((line) => {
-    return {
-      id: line.lineId,
-      dimensionValue1Id: line.dimensionValue1Id,
-      dimensionValue2Id: line.dimensionValue2Id,
-      measurementUnitId: line.measurementUnitId,
-      quantity: line.quantity != null ? Number(line.quantity) : null,
-      factorSource: line.factorSource,
-      baseFactorId: line.baseFactorId ?? null,
-      appliedFactorValue:
-        line.factorValue != null ? Number(line.factorValue) : null,
-      appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-      manualTotalEmissions:
-        line.manualTotalEmissions != null
-          ? Number(line.manualTotalEmissions)
-          : null,
-      comment: line.comment,
-    };
-  });
 }
