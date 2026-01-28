@@ -9,8 +9,6 @@ import {
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { loginRequest } from "@/config/msalConfig";
 import type { AccountInfo } from "@azure/msal-browser";
-import { useUserStore } from "../stores/userStore";
-import { useMe } from "../api/query";
 import { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 import { useInitializeUser } from "../hooks/useInitializeUser";
