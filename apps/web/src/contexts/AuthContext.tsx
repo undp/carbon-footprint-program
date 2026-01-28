@@ -9,6 +9,11 @@ import {
 import { useMsal, useIsAuthenticated } from "@azure/msal-react";
 import { loginRequest } from "@/config/msalConfig";
 import type { AccountInfo } from "@azure/msal-browser";
+import { useUserStore } from "../stores/userStore";
+import { useMe } from "../api/query";
+import { GetMeResponse } from "@repo/types";
+import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
+import { useInitializeUser } from "../hooks/useInitializeUser";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -17,6 +22,10 @@ export interface AuthContextType {
   signInPopup: () => Promise<void>;
   signInRedirect: () => Promise<void>;
   signOut: () => Promise<void>;
+  user?: GetMeResponse;
+  refetchUser: (
+    options?: RefetchOptions
+  ) => Promise<QueryObserverResult<GetMeResponse, unknown>>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(
@@ -29,6 +38,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const account: AccountInfo | null = accounts[0] || null;
+
+  const { user, refetchUser } = useInitializeUser({
+    isAuthenticated,
+    account,
+  });
 
   useEffect(() => {
     // Set loading to false once MSAL finishes initialization
@@ -89,6 +103,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isAuthenticated,
     isLoading,
     account,
+    user,
+    refetchUser,
     signInPopup,
     signInRedirect,
     signOut,
