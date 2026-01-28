@@ -93,7 +93,7 @@
   {
     "name": "Megawatt hora",
     "magnitude": "POWER",
-    "abbreviation": "mWh",
+    "abbreviation": "MWh",
     "baseFactor": 1000.0,
     "isBase": false
   },
