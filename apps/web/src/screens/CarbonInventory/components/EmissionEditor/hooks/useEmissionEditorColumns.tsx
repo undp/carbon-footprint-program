@@ -6,7 +6,10 @@ import {
   RateMeasurementUnit,
   Subcategory,
 } from "@repo/types";
-import { EmissionCaptureFormLine } from "../../../types/EmissionCaptureTypes";
+import {
+  EmissionCaptureFormLine,
+  LineId,
+} from "../../../types/EmissionCaptureTypes";
 import {
   EmissionEditorDimensionCell,
   EmissionEditorMeasurementUnitCell,
@@ -30,10 +33,10 @@ interface UseEmissionEditorColumnsParams {
       string | number | null
     >
   ) => void;
-  onFactorSourceChange: (lineId: string, factorSource: string) => void;
-  onDeleteLine: (lineId: string) => void;
-  onUpdateComment: (rowId: string, comment: string) => void;
-  onUploadFiles: (rowId: string) => void;
+  onFactorSourceChange: (lineId: LineId, factorSource: string) => void;
+  onDeleteLine: (lineId: LineId) => void;
+  onUpdateComment: (rowId: LineId, comment: string) => void;
+  onUploadFiles: (rowId: LineId) => void;
   isManualModeLoading?: boolean;
 }
 

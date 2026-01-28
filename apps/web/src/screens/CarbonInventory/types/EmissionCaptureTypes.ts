@@ -43,12 +43,24 @@ export type EmissionCaptureMergedData = {
   categories: CategoryWithSubcategoriesAndLines[];
 } | null;
 
+/**
+ * Type alias for subcategory IDs to prevent ID mix-ups.
+ * Maps to the actual subcategory ID field.
+ */
+export type SubcategoryId = CarbonInventorySubcategory["id"];
+
+/**
+ * Type alias for line IDs to prevent ID mix-ups.
+ * Maps to the actual line ID field.
+ */
+export type LineId = EmissionCaptureFormLine["id"];
+
 export type EmissionCaptureFormValues = {
   subcategories: Record<
-    string,
+    SubcategoryId,
     {
       isTotalManualEmissionsMode: CarbonInventorySubcategory["isTotalManualEmissionsMode"];
-      lines: Record<string, EmissionCaptureFormLine>;
+      lines: Record<LineId, EmissionCaptureFormLine>;
     }
   >;
 };

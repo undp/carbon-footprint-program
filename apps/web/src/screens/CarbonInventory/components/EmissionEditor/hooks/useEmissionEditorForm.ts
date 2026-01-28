@@ -7,6 +7,8 @@ import {
   EmissionCaptureFormValues,
   EmissionCaptureFormLine,
   SubcategoryWithLines,
+  SubcategoryId,
+  LineId,
 } from "../../../types/EmissionCaptureTypes";
 import {
   getCompatibleRateUnitId,
@@ -36,16 +38,16 @@ interface UseEmssionEditorFormResults {
       row: EmissionCaptureFormLine;
     }
   ) => void;
-  handleFactorSourceChange: (lineId: string, newFactorSource: string) => void;
-  handleDeleteLine: (lineId: string) => void;
+  handleFactorSourceChange: (lineId: LineId, newFactorSource: string) => void;
+  handleDeleteLine: (lineId: LineId) => void;
   handleSetTotalEmission: (total: number) => void;
   handleSetManualMode: (isManual: boolean) => Promise<void>;
 }
 
 // Extended form context type that includes addLine and removeLine
 interface ExtendedFormContext {
-  addLine: (subcategoryId: string) => EmissionCaptureFormLine;
-  removeLine: (subcategoryId: string, lineId: string) => void;
+  addLine: (subcategoryId: SubcategoryId) => EmissionCaptureFormLine;
+  removeLine: (subcategoryId: SubcategoryId, lineId: LineId) => void;
 }
 
 export const useEmissionEditorForm = ({
@@ -117,7 +119,7 @@ export const useEmissionEditorForm = ({
   }, [addLine, subcategoryId]);
 
   const resetFactorRelatedFields = useCallback(
-    (subcategoryId: SubcategoryWithLines["id"], lineId: string) => {
+    (subcategoryId: SubcategoryId, lineId: LineId) => {
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
         null,
@@ -143,7 +145,7 @@ export const useEmissionEditorForm = ({
   );
 
   const resetFactorValueField = useCallback(
-    (subcategoryId: SubcategoryWithLines["id"], lineId: string) => {
+    (subcategoryId: SubcategoryId, lineId: LineId) => {
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
         null,
@@ -313,7 +315,7 @@ export const useEmissionEditorForm = ({
   );
 
   const handleDeleteLine = useCallback(
-    (lineId: string) => {
+    (lineId: LineId) => {
       // Remove line locally - will be deleted on form submit
       removeLine(subcategoryId, lineId);
     },
