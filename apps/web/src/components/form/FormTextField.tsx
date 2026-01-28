@@ -34,11 +34,13 @@ export const FormTextField = <T extends FieldValues>({
         required: required ? requiredMessage : false,
         validate:
           min !== undefined
-            ? (value) => {
-                if (value !== "" && value != null && Number(value) < min) {
-                  return minMessage;
-                }
-                return true;
+            ? {
+                min: (value) => {
+                  if (value !== "" && value != null && Number(value) < min) {
+                    return minMessage;
+                  }
+                  return true;
+                },
               }
             : undefined,
       }}
