@@ -10,7 +10,7 @@ export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:
 # API
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
-export AUTH_PROVIDER=""    # Options: jwks, easy-auth, none
+export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
 
 # Web
 export VITE_API_BASE_URL=""  # URL for the API
