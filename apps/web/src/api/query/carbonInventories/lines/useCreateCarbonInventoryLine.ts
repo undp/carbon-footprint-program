@@ -20,6 +20,7 @@ export const useCreateCarbonInventoryLine = (
       // Invalidate the inventory detail to keep server and client in sync
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(inventoryId),
+        exact: true,
       });
     },
   });

@@ -24,6 +24,7 @@ export const useToggleManualTotalEmissions = (
       // Return the promise so that the mutation caller can await the invalidation
       return queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(inventoryId),
+        exact: true,
       });
     },
   });

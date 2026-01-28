@@ -24,9 +24,11 @@ export const useUpdateCarbonInventory = () => {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.all,
+        exact: true,
       });
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(variables.id),
+        exact: true,
       });
     },
   });

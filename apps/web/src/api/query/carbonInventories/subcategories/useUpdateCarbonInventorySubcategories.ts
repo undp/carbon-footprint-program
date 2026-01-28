@@ -19,9 +19,11 @@ export const useUpdateCarbonInventorySubcategories = (
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(carbonInventoryId),
+        exact: true,
       });
       void queryClient.invalidateQueries({
         queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
+        exact: true,
       });
     },
   });
