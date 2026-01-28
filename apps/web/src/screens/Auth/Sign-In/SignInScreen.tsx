@@ -4,11 +4,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "@tanstack/react-router";
 import { useUserStore } from "@/stores/userStore";
 import { Routes } from "@/interfaces";
+import { useEffect } from "react";
 
 export const SignInScreen = () => {
   const navigate = useNavigate();
   const { signInRedirect, isLoading, account } = useAuth();
   const { user: me } = useUserStore();
+
+  useEffect(() => {
+    if (me || account) {
+      void navigate({ to: Routes.HOME });
+    }
+  }, [me, account, navigate]);
 
   if (isLoading) {
     return (
@@ -16,10 +23,6 @@ export const SignInScreen = () => {
         <CircularProgress />
       </Box>
     );
-  }
-
-  if (me || account) {
-    void navigate({ to: Routes.HOME });
   }
 
   return (
