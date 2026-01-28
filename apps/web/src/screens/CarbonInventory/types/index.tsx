@@ -17,4 +17,6 @@ export type { SubcategoryPreselectionMergedData } from "./SubcategoryPreselectio
 export type {
   EmissionCaptureMergedData,
   EmissionCaptureFormValues,
+  SubcategoryId,
+  LineId,
 } from "./EmissionCaptureTypes";
