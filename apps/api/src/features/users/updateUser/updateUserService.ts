@@ -21,7 +21,10 @@ export const updateUserService = async (
   }
 
   if (data.countryJobPositionId !== undefined) {
-    updateData.countryJobPositionId = data.countryJobPositionId === null ? null : BigInt(data.countryJobPositionId);
+    updateData.countryJobPositionId =
+      data.countryJobPositionId === null
+        ? null
+        : BigInt(data.countryJobPositionId);
   }
 
   if (data.firstName !== undefined) {
@@ -58,7 +61,7 @@ export const updateUserService = async (
       if (error.code === "P2002") {
         // Unique constraint violation
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        
+
         if (duplicatedFields.includes("idp_user_id")) {
           throw new IdpUserIdAlreadyInUseError();
         }
