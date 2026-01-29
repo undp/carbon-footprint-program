@@ -80,7 +80,7 @@ export const useEmissionEditorForm = ({
 
   const { submit } = useEmissionCaptureSubmit({
     inventoryId,
-    isDirty: true,
+    isDirty: true, // Always submit on manual mode toggle to persist pending changes
     resultFeedbackWithSnackbar: false,
     throwOnError: true,
   });
@@ -356,6 +356,7 @@ export const useEmissionEditorForm = ({
     [setValue, subcategoryId, getValues, addLine]
   );
 
+  // Note: onSuccess is called even when no changes were made, allowing navigation without requiring edits
   const handleSetManualMode = useCallback(
     async (isManual: boolean) => {
       if (isTotalManualEmissionsModeLoading) return;
