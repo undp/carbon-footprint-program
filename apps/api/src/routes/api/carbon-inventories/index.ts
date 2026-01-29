@@ -5,10 +5,7 @@ import { createCarbonInventoryRoute } from "@/features/carbonInventories/createC
 import { updateCarbonInventoryRoute } from "@/features/carbonInventories/updateCarbonInventory/updateCarbonInventoryRoute.js";
 import { getCarbonInventoryMethodologyRoute } from "@/features/carbonInventories/getCarbonInventoryMethodology/getCarbonInventoryMethodologyRoute.js";
 import { getCarbonInventorySubcategoriesSummaryRoute } from "@/features/carbonInventories/getCarbonInventorySubcategoriesSummary/getCarbonInventorySubcategoriesSummaryRoute.js";
-import { createCarbonInventoryLineRoute } from "@/features/carbonInventories/createCarbonInventoryLine/createCarbonInventoryLineRoute.js";
-import { deleteCarbonInventoryLineRoute } from "@/features/carbonInventories/deleteCarbonInventoryLine/deleteCarbonInventoryLineRoute.js";
 import { addSubcategoriesToCarbonInventoryRoute } from "@/features/carbonInventories/addSubcategoriesToCarbonInventory/addSubcategoriesToCarbonInventoryRoute.js";
-import { updateCarbonInventoryLinesRoute } from "@/features/carbonInventories/updateCarbonInventoryLines/updateCarbonInventoryLinesRoute.js";
 import { updateCarbonInventorySubcategoriesRoute } from "@/features/carbonInventories/updateCarbonInventorySubcategories/updateCarbonInventorySubcategoriesRoute.js";
 import { toggleManualTotalEmissionsRoute } from "@/features/carbonInventories/toggleManualTotalEmissions/toggleManualTotalEmissionsRoute.js";
 import { syncCarbonInventoryLinesRoute } from "@/features/carbonInventories/syncCarbonInventoryLines/syncCarbonInventoryLinesRoute.js";
@@ -20,10 +17,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   updateCarbonInventoryRoute(fastify);
   getCarbonInventoryMethodologyRoute(fastify);
   getCarbonInventorySubcategoriesSummaryRoute(fastify);
-  createCarbonInventoryLineRoute(fastify);
-  deleteCarbonInventoryLineRoute(fastify);
   addSubcategoriesToCarbonInventoryRoute(fastify);
-  updateCarbonInventoryLinesRoute(fastify);
   updateCarbonInventorySubcategoriesRoute(fastify);
   toggleManualTotalEmissionsRoute(fastify);
   syncCarbonInventoryLinesRoute(fastify);
