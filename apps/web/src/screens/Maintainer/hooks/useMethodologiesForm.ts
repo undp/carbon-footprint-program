@@ -59,12 +59,10 @@ export const useMethodologiesForm = (serverData: Methodology[]) => {
     keyName: "_rhfId",
   });
 
-  const serverSnapshotRef = useRef<Methodology[]>([]);
   const initialized = useRef(false);
 
   useEffect(() => {
     if (serverData.length > 0 && !initialized.current) {
-      serverSnapshotRef.current = serverData;
       form.reset({ methodologies: serverData });
       initialized.current = true;
     }
@@ -73,6 +71,5 @@ export const useMethodologiesForm = (serverData: Methodology[]) => {
   return {
     form,
     fieldArray,
-    serverSnapshotRef,
   };
 };
