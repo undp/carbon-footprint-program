@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box } from "@mui/material";
-import { GridColDef } from "@mui/x-data-grid";
+import type { GridColDef } from "@mui/x-data-grid";
 import { StylizedDataGrid } from "@/components";
 import { Methodology } from "../types";
 
@@ -10,6 +10,8 @@ interface MethodologyEditorGridProps {
   processRowUpdate: (newRow: Methodology) => Methodology;
   loading?: boolean;
   editingRowId?: string | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  apiRef?: any;
 }
 
 export const MethodologyEditorGrid: FC<MethodologyEditorGridProps> = ({
@@ -18,6 +20,7 @@ export const MethodologyEditorGrid: FC<MethodologyEditorGridProps> = ({
   processRowUpdate,
   loading = false,
   editingRowId = null,
+  apiRef,
 }) => (
   <Box className="flex w-full">
     <StylizedDataGrid
@@ -26,6 +29,8 @@ export const MethodologyEditorGrid: FC<MethodologyEditorGridProps> = ({
           backgroundColor: theme.palette.grey[200],
         },
       })}
+      editMode="row"
+      apiRef={apiRef}
       columns={columns}
       rows={rows}
       getRowId={(row: Methodology) => row.id}

@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { useGridApiRef } from "@mui/x-data-grid";
 import {
   useMethodologies,
   useUpdateMethodology,
@@ -31,6 +32,7 @@ export const MethodologiesScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const currentRows = form.watch("methodologies");
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const apiRef = useGridApiRef();
 
   const isSaving =
     updateMutation.isPending ||
@@ -39,9 +41,16 @@ export const MethodologiesScreen: FC = () => {
 
   // --- Handlers that manipulate the field array ---
 
-  const handleStartEditRow = useCallback((rowId: string) => {
-    setEditingRowId(rowId);
-  }, []);
+  const handleStartEditRow = useCallback(
+    (rowId: string) => {
+      setEditingRowId(rowId);
+      // Activate edit mode on the first editable cell
+      setTimeout(() => {
+        apiRef.current?.startCellEditMode({ id: rowId, field: "nombre" });
+      }, 0);
+    },
+    [apiRef]
+  );
 
   const handleStopEditRow = useCallback(() => {
     setEditingRowId(null);
@@ -233,6 +242,7 @@ export const MethodologiesScreen: FC = () => {
           loading={isLoading || isSaving}
           processRowUpdate={processRowUpdate}
           editingRowId={editingRowId}
+          apiRef={apiRef}
         />
       </Box>
     </>
