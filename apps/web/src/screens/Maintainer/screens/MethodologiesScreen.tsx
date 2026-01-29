@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -28,6 +28,7 @@ export const MethodologiesScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { isDirty, isValid } = form.formState;
   const currentRows = form.watch("methodologies");
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
   // Block navigation when there are pending changes
   const blocker = useBlocker({
@@ -37,6 +38,14 @@ export const MethodologiesScreen: FC = () => {
   });
 
   // --- Handlers that manipulate the field array ---
+
+  const handleStartEditRow = useCallback((rowId: string) => {
+    setEditingRowId(rowId);
+  }, []);
+
+  const handleStopEditRow = useCallback(() => {
+    setEditingRowId(null);
+  }, []);
 
   const handleToggle = useCallback(
     (row: Methodology, checked: boolean) => {
@@ -183,6 +192,9 @@ export const MethodologiesScreen: FC = () => {
       renderCell: (params: GridRenderCellParams<Methodology>) => (
         <ActionButtons
           isActiveRow={params.row.activo}
+          isEditing={editingRowId === params.row.id}
+          onStartEditCells={() => handleStartEditRow(params.row.id)}
+          onStopEditCells={handleStopEditRow}
           onEdit={!params.row.activo ? () => handleEdit(params.row) : undefined}
           onView={params.row.activo ? () => handleEdit(params.row) : undefined}
           onDuplicate={() => handleDuplicate(params.row)}
@@ -216,6 +228,7 @@ export const MethodologiesScreen: FC = () => {
           rows={currentRows}
           loading={isLoading || isSaving}
           processRowUpdate={processRowUpdate}
+          editingRowId={editingRowId}
         />
       </Box>
       {isDirty && (
