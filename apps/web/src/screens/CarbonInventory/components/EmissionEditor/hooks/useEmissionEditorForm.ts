@@ -442,34 +442,33 @@ export const useEmissionEditorForm = ({
       );
 
       try {
-        if (isManual) {
-          const values = getValues();
-          const subcategoryData = values.subcategories[subcategoryId];
+        // 2. If switching to manual mode, submit current form state to persist any pending changes
+        const values = getValues();
+        const subcategoryData = values.subcategories[subcategoryId];
 
-          // Only submit if there are actual lines with changes to save
-          const hasLinesToSave =
-            subcategoryData?.lines &&
-            Object.values(subcategoryData.lines).some(
-              (line) => line && !line.isDeleted
-            );
+        // Only submit if there are actual lines with changes to save
+        const hasLinesToSave =
+          subcategoryData?.lines &&
+          Object.values(subcategoryData.lines).some(
+            (line) => line && !line.isDeleted
+          );
 
-          if (hasLinesToSave) {
-            const payload: EmissionCaptureFormValues = {
-              subcategories: {
-                [subcategoryId]: subcategoryData,
-              },
-            };
+        if (hasLinesToSave) {
+          const payload: EmissionCaptureFormValues = {
+            subcategories: {
+              [subcategoryId]: subcategoryData,
+            },
+          };
 
-            // Submit returns void, errors are handled internally with snackbar
-            // We wrap in try-catch to rethrow and handle at outer level
-            try {
-              await submit(payload);
-            } catch (err) {
-              // Log for debugging and rethrow to be handled by outer catch
-              // eslint-disable-next-line no-console
-              console.error("EmissionEditor submit error:", err);
-              throw err;
-            }
+          // Submit returns void, errors are handled internally with snackbar
+          // We wrap in try-catch to rethrow and handle at outer level
+          try {
+            await submit(payload);
+          } catch (err) {
+            // Log for debugging and rethrow to be handled by outer catch
+            // eslint-disable-next-line no-console
+            console.error("EmissionEditor submit error:", err);
+            throw err;
           }
         }
 
