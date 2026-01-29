@@ -20,6 +20,7 @@ import {
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
 import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
+import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 
 interface UseEmissionEditorFormParams {
   subcategory: SubcategoryWithLines;
@@ -238,7 +239,7 @@ export const useEmissionEditorForm = ({
 
       const isOwnFactorSelected =
         !!formLine.factorSource &&
-        ["Factor Propio", "Otro"].includes(formLine.factorSource);
+        CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
       if (!isOwnFactorSelected && areAllRequiredFieldsSelected) {
         handleFactorSourceChange(lineId, "DEFRA 2025");
@@ -262,7 +263,7 @@ export const useEmissionEditorForm = ({
       );
 
       const isOwnFactorSelected =
-        !!factorSource && ["Factor Propio", "Otro"].includes(factorSource);
+        !!factorSource && CUSTOM_FACTOR_SOURCES.includes(factorSource);
 
       const areDimensionsHierarchical = subcategory.dimensions.some((dim) =>
         dim.values.some((val) => val.parentValueId !== null)

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { CarbonInventoryLineSchema } from "./base.js";
 
+const CUSTOM_FACTOR_SOURCES = ["Factor Propio", "Otro"];
+
 // Request schema for updating lines
 export const UpdateCarbonInventoryLineRequestItemSchema =
   CarbonInventoryLineSchema.pick({
@@ -50,15 +52,18 @@ export const UpdateCarbonInventoryLineRequestItemSchema =
     )
     .refine(
       (data) => {
-        // If factorSource is "Factor Propio", baseFactorId must be null
-        if (data.factorSource === "Factor Propio") {
+        // If factorSource is a custom source, baseFactorId must be null
+        if (
+          data.factorSource &&
+          CUSTOM_FACTOR_SOURCES.includes(data.factorSource)
+        ) {
           return data.baseFactorId === null;
         }
         return true;
       },
       {
         message:
-          "If factorSource is 'Factor Propio', baseFactorId must be null",
+          "If factorSource is a custom source, baseFactorId must be null",
       }
     );
 
