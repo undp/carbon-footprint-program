@@ -15,10 +15,14 @@ import {
   VisibilityOutlined,
   ContentCopyOutlined,
   DeleteOutlined,
+  CheckOutlined,
 } from "@mui/icons-material";
 
 interface Props {
   isActiveRow: boolean;
+  isEditing?: boolean;
+  onStartEditCells?: () => void;
+  onStopEditCells?: () => void;
   onEdit?: () => void;
   onView?: () => void;
   onDuplicate?: () => void;
@@ -28,6 +32,9 @@ interface Props {
 
 export const ActionButtons: FC<Props> = ({
   isActiveRow,
+  isEditing = false,
+  onStartEditCells,
+  onStopEditCells,
   onEdit,
   onView,
   onDuplicate,
@@ -39,15 +46,28 @@ export const ActionButtons: FC<Props> = ({
   return (
     <>
       <Box sx={{ display: "flex", gap: 0.5 }}>
-        {onEdit && (
-          <Tooltip title="Editar">
-            <IconButton size="small" onClick={onEdit}>
+        {isEditing ? (
+          <Tooltip title="Listo">
+            <IconButton size="small" onClick={onStopEditCells} color="primary">
+              <CheckOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="Editar celdas">
+            <IconButton size="small" onClick={onStartEditCells}>
               <EditOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
+        {onEdit && (
+          <Tooltip title="Editar alcances">
+            <IconButton size="small" onClick={onEdit}>
+              <VisibilityOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
         {onView && (
-          <Tooltip title="Ver">
+          <Tooltip title="Ver alcances">
             <IconButton size="small" onClick={onView}>
               <VisibilityOutlined fontSize="small" />
             </IconButton>

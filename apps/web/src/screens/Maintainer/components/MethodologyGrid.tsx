@@ -9,12 +9,15 @@ interface MethodologyEditorGridProps {
   rows: Methodology[];
   processRowUpdate: (newRow: Methodology) => Methodology;
   loading?: boolean;
+  editingRowId?: string | null;
 }
 
 export const MethodologyEditorGrid: FC<MethodologyEditorGridProps> = ({
   columns,
   rows,
+  processRowUpdate,
   loading = false,
+  editingRowId = null,
 }) => (
   <Box className="flex w-full">
     <StylizedDataGrid
@@ -27,6 +30,8 @@ export const MethodologyEditorGrid: FC<MethodologyEditorGridProps> = ({
       rows={rows}
       getRowId={(row: Methodology) => row.id}
       loading={loading}
+      processRowUpdate={processRowUpdate}
+      isCellEditable={(params) => params.id === editingRowId}
     />
   </Box>
 );
