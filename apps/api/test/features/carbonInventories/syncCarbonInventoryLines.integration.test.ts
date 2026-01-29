@@ -14,10 +14,11 @@ import {
   cleanupCarbonInventoryTestData,
   getSubcategoryIds,
   createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { SyncCarbonInventoryLinesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
@@ -236,6 +237,12 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         firstSubcategoryId
       );
 
+      // Create an initial input that will be deactivated during the update
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "SIMPLIFIED",
+        quantity: Prisma.Decimal(100),
+      });
+
       const response = await app.inject({
         method: "POST",
         url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
@@ -282,7 +289,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       const inactiveInputs = inputs.filter((i) => !i.isActive);
 
       expect(activeInputs).toHaveLength(1);
-      expect(inactiveInputs.length).toBeGreaterThanOrEqual(0);
+      expect(inactiveInputs.length).toBeGreaterThanOrEqual(1);
     });
 
     it("should update multiple lines in a single request", async () => {
