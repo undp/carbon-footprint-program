@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Box, darken } from "@mui/material";
-import { DataGrid, GridColDef } from "@mui/x-data-grid";
+import { GridColDef } from "@mui/x-data-grid";
+import { StylizedDataGrid } from "@/components";
 import { EmissionCaptureFormLine } from "../../types/EmissionCaptureTypes";
 
 interface EmissionEditorGridProps {
@@ -22,58 +23,17 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       width: "100%",
     }}
   >
-    {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
-    <DataGrid
+    <StylizedDataGrid
       sx={(theme) => ({
-        borderRadius: "8px",
         "& .MuiDataGrid-columnHeader": {
-          padding: "10px 8px",
           backgroundColor: theme.palette.category[categoryPosition].light,
           color: darken(theme.palette.category[categoryPosition].main, 0.6),
         },
-        "& .MuiDataGrid-columnHeader:focus": {
-          outline: "none",
-        },
-        "& .MuiDataGrid-columnHeader:focus-within": {
-          outline: "none",
-        },
-        "& .MuiDataGrid-columnSeparator": {
-          display: "none",
-        },
-        "& .MuiDataGrid-cell": {
-          padding: "8px",
-        },
-        "& .MuiDataGrid-cell:focus": {
-          outline: "none",
-        },
-        "& .MuiDataGrid-cell:focus-within": {
-          outline: "none",
-        },
-        "& .MuiDataGrid-row:hover": {
-          backgroundColor: "transparent",
-        },
-        "--DataGrid-overlayHeight": "56px",
       })}
-      hideFooter
       columns={columns}
-      getRowHeight={() => "auto"}
       rows={rows}
-      getRowId={(row) => row.lineId}
-      disableColumnResize
-      disableColumnSorting
-      disableColumnMenu
-      disableColumnFilter
-      disableColumnSelector
-      disableRowSelectionOnClick
-      checkboxSelection={false}
-      localeText={{ noRowsLabel: "Sin fuentes" }}
+      getRowId={(row: EmissionCaptureFormLine) => row.lineId}
       loading={loading}
-      slotProps={{
-        loadingOverlay: {
-          variant: "skeleton",
-          noRowsVariant: "skeleton",
-        },
-      }}
     />
   </Box>
 );

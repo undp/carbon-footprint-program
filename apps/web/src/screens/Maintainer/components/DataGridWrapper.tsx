@@ -1,9 +1,11 @@
 import { Box } from "@mui/material";
-import { DataGrid, type DataGridProps } from "@mui/x-data-grid";
+import { type DataGridProps } from "@mui/x-data-grid";
 import { FC } from "react";
+import { StylizedDataGrid } from "@/components";
 
-type Props = DataGridProps & {
+type Props = Omit<DataGridProps, "sx"> & {
   minHeight?: number;
+  sx?: DataGridProps["sx"];
 };
 
 export const DataGridWrapper: FC<Props> = ({
@@ -12,14 +14,10 @@ export const DataGridWrapper: FC<Props> = ({
   ...props
 }) => (
   <Box sx={{ width: "100%", minHeight }}>
-    <DataGrid
+    <StylizedDataGrid
       editMode="cell"
-      disableRowSelectionOnClick
-      hideFooterPagination
-      getRowHeight={() => "auto"}
       sx={{
         backgroundColor: "#fff",
-        borderRadius: 2,
         "& .MuiDataGrid-cell": {
           py: 1.5,
           display: "flex",
