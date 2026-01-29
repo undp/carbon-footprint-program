@@ -105,8 +105,14 @@ export const MethodologiesScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
-    fieldArray.append(createEmptyMethodology());
-  }, [fieldArray]);
+    const newRow = createEmptyMethodology();
+    fieldArray.append(newRow);
+    addMutation.mutate(newRow, {
+      onSuccess: () => {
+        setEditingRowId(newRow.id);
+      },
+    });
+  }, [fieldArray, addMutation]);
 
   const handleDelete = useCallback(
     (row: Methodology) => {
