@@ -16,6 +16,42 @@ export type ItemData = {
 };
 
 /**
+ * Determines the input type based on the provided data
+ */
+export function determineInputType(data: {
+  manualTotalEmissions: number | null;
+  factorSource: string | null;
+  baseFactorId: string | null;
+  quantity: number | null;
+  appliedFactorValue: number | null;
+  appliedFactorRateMeasurementUnitId: string | null;
+}): "DIRECT" | "SIMPLIFIED" | "EXPERT" {
+  if (data.manualTotalEmissions !== null) {
+    return InputType.DIRECT;
+  }
+  if (data.factorSource === "Factor Propio") {
+    return InputType.EXPERT;
+  }
+  if (data.baseFactorId !== null) {
+    return InputType.SIMPLIFIED;
+  }
+  if (
+    data.quantity !== null &&
+    data.appliedFactorValue !== null &&
+    data.appliedFactorRateMeasurementUnitId !== null
+  ) {
+    return InputType.SIMPLIFIED;
+  }
+  if (
+    data.appliedFactorValue !== null &&
+    data.appliedFactorRateMeasurementUnitId !== null
+  ) {
+    return InputType.EXPERT;
+  }
+  return InputType.SIMPLIFIED;
+}
+
+/**
  * Creates a carbon inventory line input
  */
 export async function createLineInput(
