@@ -5,7 +5,6 @@ import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useMethodologies } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { DataGridWrapper } from "../components/DataGridWrapper";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
 import { EditFooter } from "../components/EditFooter";
@@ -16,6 +15,7 @@ import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
 import { useSaveMethodologies } from "../hooks/useSaveMethodologies";
 import type { Methodology } from "../types";
+import { MethodologyEditorGrid } from "../components/MethodologyGrid";
 
 export const MethodologiesScreen: FC = () => {
   const navigate = useNavigate();
@@ -200,13 +200,11 @@ export const MethodologiesScreen: FC = () => {
           modificar alcances, subcategorías y factores de emisión. Solo una
           metodología puede estar activa a la vez.
         </Typography>
-        <DataGridWrapper
-          rows={currentRows}
+        <MethodologyEditorGrid
           columns={columns}
+          rows={currentRows}
           loading={isLoading || isSaving}
           processRowUpdate={processRowUpdate}
-          minHeight={200}
-          sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}
         />
       </Box>
       {isDirty && (
