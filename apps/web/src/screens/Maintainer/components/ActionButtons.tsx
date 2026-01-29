@@ -46,18 +46,20 @@ export const ActionButtons: FC<Props> = ({
   return (
     <>
       <Box sx={{ display: "flex", gap: 0.5 }}>
-        {isEditing ? (
+        {isEditing && onStopEditCells ? (
           <Tooltip title="Listo">
             <IconButton size="small" onClick={onStopEditCells} color="primary">
               <CheckOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         ) : (
-          <Tooltip title="Editar celdas">
-            <IconButton size="small" onClick={onStartEditCells}>
-              <EditOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
+          onStartEditCells && (
+            <Tooltip title="Editar celdas">
+              <IconButton size="small" onClick={onStartEditCells}>
+                <EditOutlined fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          )
         )}
         {onEdit && (
           <Tooltip title="Editar alcances">
