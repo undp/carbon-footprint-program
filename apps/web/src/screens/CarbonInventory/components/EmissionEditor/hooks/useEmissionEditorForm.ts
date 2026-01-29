@@ -14,6 +14,7 @@ import {
 import {
   getCompatibleRateUnitId,
   getAvailableFactors,
+  getAvailableSources,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
@@ -128,13 +129,8 @@ export const useEmissionEditorForm = ({
     addLine(subcategoryId);
   }, [addLine, subcategoryId]);
 
-  const resetFactorRelatedFields = useCallback(
+  const resetFactorValueFields = useCallback(
     (subcategoryId: SubcategoryId, lineId: LineId) => {
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-        null,
-        { shouldDirty: true }
-      );
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
         null,
@@ -154,29 +150,38 @@ export const useEmissionEditorForm = ({
     [setValue]
   );
 
-  const resetFactorValueField = useCallback(
+  const resetFactorRelatedFields = useCallback(
     (subcategoryId: SubcategoryId, lineId: LineId) => {
       setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
         null,
         { shouldDirty: true }
       );
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-        null,
-        { shouldDirty: true }
-      );
+      resetFactorValueFields(subcategoryId, lineId);
     },
-    [setValue]
+    [setValue, resetFactorValueFields]
   );
 
   const handleFactorSourceChange = useCallback(
-    (lineId: string) => {
+    (lineId: string, newFactorSource: string) => {
       const line = getValues(
         `subcategories.${subcategoryId}.lines.${lineId}`
       ) as EmissionCaptureFormLine | undefined;
       if (!line) return;
 
+      // Fast update factor source at the form
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
+        newFactorSource,
+        { shouldDirty: true }
+      );
+
+      if (CUSTOM_FACTOR_SOURCES.includes(newFactorSource)) {
+        resetFactorValueFields(subcategoryId, lineId);
+        return;
+      }
+
+      // Then, load the value of the selected factor source
       const compatibleRateUnitId = getCompatibleRateUnitId(
         line.measurementUnitId,
         rateMeasurementUnits
@@ -189,38 +194,37 @@ export const useEmissionEditorForm = ({
         compatibleRateUnitId
       );
 
-      if (!availableFactors.length) {
+      const sourceFilteredFactors = availableFactors.filter(
+        (factor) => factor.source === newFactorSource
+      );
+
+      if (!sourceFilteredFactors.length) {
         // eslint-disable-next-line no-console
         console.warn(
-          "There are no available factors for the selected parameters. Cannot auto-select a factor."
+          "There are no available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
         return;
       }
 
-      if (availableFactors.length > 1) {
+      if (sourceFilteredFactors.length > 1) {
         // eslint-disable-next-line no-console
         console.warn(
-          "There are multiple available factors for the selected parameters. Cannot auto-select a factor."
+          "There are multiple available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
         return;
       }
 
-      const factor = availableFactors[0];
+      const factor = sourceFilteredFactors[0];
       const factorValue = parseFloat(factor.value);
 
       if (isNaN(factorValue)) {
         // eslint-disable-next-line no-console
         console.warn(
-          "The available factor has an invalid value. Cannot auto-select a factor."
+          "The available factor has an invalid value. Cannot auto-fill a factor value."
         );
         return;
       }
 
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-        factor.source,
-        { shouldDirty: true }
-      );
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
         factor.originalEmissionFactorId,
@@ -237,7 +241,39 @@ export const useEmissionEditorForm = ({
         { shouldDirty: true }
       );
     },
-    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
+    [
+      emissionFactors,
+      rateMeasurementUnits,
+      setValue,
+      subcategoryId,
+      getValues,
+      resetFactorValueFields,
+    ]
+  );
+
+  const determineAutoLoadFactorSource = useCallback(
+    (line: EmissionCaptureFormLine): string | null => {
+      // 1. Get compatible rate unit
+      const compatibleRateUnitId = getCompatibleRateUnitId(
+        line.measurementUnitId,
+        rateMeasurementUnits
+      );
+
+      // 2. Get available factors for this context (dimensions + rate unit)
+      const availableFactors = getAvailableFactors(
+        emissionFactors,
+        line.dimensionValue1Id,
+        line.dimensionValue2Id,
+        compatibleRateUnitId
+      );
+
+      // 3. Get unique sources
+      const factorSources = getAvailableSources(availableFactors);
+
+      if (factorSources.length === 1) return factorSources[0];
+      return null;
+    },
+    [emissionFactors, rateMeasurementUnits]
   );
 
   const tryToLoadDetermineFactorPlatform = useCallback(
@@ -266,10 +302,17 @@ export const useEmissionEditorForm = ({
         CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
       if (!isOwnFactorSelected && areAllRequiredFieldsSelected) {
-        handleFactorSourceChange(lineId);
+        const autoLoadedFactorSource = determineAutoLoadFactorSource(formLine);
+        if (autoLoadedFactorSource)
+          handleFactorSourceChange(lineId, autoLoadedFactorSource);
       }
     },
-    [subcategory, getValues, handleFactorSourceChange]
+    [
+      subcategory,
+      getValues,
+      determineAutoLoadFactorSource,
+      handleFactorSourceChange,
+    ]
   );
 
   const handleCellChange = useCallback(
@@ -328,7 +371,7 @@ export const useEmissionEditorForm = ({
       }
 
       if (field === "measurementUnitId")
-        resetFactorValueField(subcategoryId, row.lineId);
+        resetFactorValueFields(subcategoryId, row.lineId);
 
       // Try to fill a platform factor if possible
       tryToLoadDetermineFactorPlatform(subcategoryId, row.lineId);
@@ -339,7 +382,7 @@ export const useEmissionEditorForm = ({
       subcategoryId,
       subcategory.dimensions,
       resetFactorRelatedFields,
-      resetFactorValueField,
+      resetFactorValueFields,
       tryToLoadDetermineFactorPlatform,
     ]
   );
