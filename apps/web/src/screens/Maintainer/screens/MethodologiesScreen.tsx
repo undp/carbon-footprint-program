@@ -34,11 +34,6 @@ export const MethodologiesScreen: FC = () => {
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const apiRef = useGridApiRef();
 
-  const isSaving =
-    updateMutation.isPending ||
-    addMutation.isPending ||
-    deleteMutation.isPending;
-
   // --- Handlers that manipulate the field array ---
 
   const handleStartEditRow = useCallback(
@@ -238,7 +233,7 @@ export const MethodologiesScreen: FC = () => {
         <MethodologyEditorGrid
           columns={columns}
           rows={currentRows}
-          loading={isLoading || isSaving}
+          loading={isLoading}
           processRowUpdate={processRowUpdate}
           apiRef={apiRef}
         />
