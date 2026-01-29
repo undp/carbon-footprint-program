@@ -34,9 +34,6 @@ export const StylizedDataGrid = ({
 }: StylizedDataGridProps) => {
   const baseStyles: SxProps<Theme> = {
     borderRadius: "8px",
-    "& .MuiDataGrid-columnHeader": {
-      padding: "10px 8px",
-    },
     "& .MuiDataGrid-columnHeader:focus": {
       outline: "none",
     },
@@ -47,7 +44,7 @@ export const StylizedDataGrid = ({
       display: "none",
     },
     "& .MuiDataGrid-cell": {
-      padding: "10px 8px",
+      padding: "8px",
     },
     "& .MuiDataGrid-cell:focus": {
       outline: "none",
