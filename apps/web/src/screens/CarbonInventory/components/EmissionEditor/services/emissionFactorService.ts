@@ -34,7 +34,8 @@ export const getAvailableFactors = (
     (ef) =>
       (ef.dimensionValue1Id === null ||
         ef.dimensionValue1Id === dimensionValue1Id) &&
-      ef.dimensionValue2Id === dimensionValue2Id &&
+      (ef.dimensionValue2Id === null ||
+        ef.dimensionValue2Id === dimensionValue2Id) &&
       ef.rateMeasurementUnitId === rateMeasurementUnitId
   );
 };
