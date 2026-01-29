@@ -1,24 +1,11 @@
-import { FC, PropsWithChildren } from "react";
 import { Box } from "@mui/material";
+import { FC, PropsWithChildren } from "react";
 import { MaintainerSidebar } from "./MaintainerSidebar";
 
 export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => (
-  <Box sx={{ display: "flex", minHeight: "100vh" }}>
+  <Box className="min-h-screen pl-[268px]">
     <MaintainerSidebar width={268} />
-    <Box
-      component="main"
-      sx={{
-        flexGrow: 1,
-        pt: 4,
-        px: 4,
-        pb: 3,
-        backgroundColor: "#f9fafb",
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        gap: 3,
-      }}
-    >
+    <Box className="flex min-h-screen flex-col gap-3 bg-gray-50 px-6 py-6">
       {children}
     </Box>
   </Box>
