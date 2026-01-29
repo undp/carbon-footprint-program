@@ -1,41 +1,41 @@
 import { FC, useCallback, useState } from "react";
-import { useNavigate, useBlocker } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { useMethodologies } from "@/api/query/maintainer";
+import {
+  useMethodologies,
+  useUpdateMethodology,
+  useAddMethodology,
+  useDeleteMethodology,
+} from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
-import { EditFooter } from "../components/EditFooter";
-import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { NORMATIVA_OPTIONS } from "../constants";
 import { createEmptyMethodology } from "../mocks/methodologies.mock";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
-import { useSaveMethodologies } from "../hooks/useSaveMethodologies";
 import type { Methodology } from "../types";
 import { MethodologyEditorGrid } from "../components/MethodologyGrid";
 
 export const MethodologiesScreen: FC = () => {
   const navigate = useNavigate();
   const { data: methodologies = [], isLoading } = useMethodologies();
-  const { form, fieldArray, serverSnapshotRef } =
-    useMethodologiesForm(methodologies);
-  const { save, isSaving } = useSaveMethodologies();
+  const { form, fieldArray } = useMethodologiesForm(methodologies);
+  const updateMutation = useUpdateMethodology();
+  const addMutation = useAddMethodology();
+  const deleteMutation = useDeleteMethodology();
   const startEditing = useMaintainerStore((s) => s.startEditing);
   const { enqueueSnackbar } = useSnackbar();
-  const { isDirty, isValid } = form.formState;
   const currentRows = form.watch("methodologies");
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
 
-  // Block navigation when there are pending changes
-  const blocker = useBlocker({
-    shouldBlockFn: () => isDirty,
-    enableBeforeUnload: () => isDirty,
-    withResolver: true,
-  });
+  const isSaving =
+    updateMutation.isPending ||
+    addMutation.isPending ||
+    deleteMutation.isPending;
 
   // --- Handlers that manipulate the field array ---
 
@@ -60,16 +60,20 @@ export const MethodologiesScreen: FC = () => {
       if (checked) {
         rows.forEach((m, i) => {
           if (m.activo && m.id !== row.id) {
-            fieldArray.update(i, { ...m, activo: false });
+            const updatedRow = { ...m, activo: false };
+            fieldArray.update(i, updatedRow);
+            updateMutation.mutate(updatedRow);
           }
         });
       }
       const rowIndex = rows.findIndex((r) => r.id === row.id);
       if (rowIndex !== -1) {
-        fieldArray.update(rowIndex, { ...row, activo: checked });
+        const updatedRow = { ...row, activo: checked };
+        fieldArray.update(rowIndex, updatedRow);
+        updateMutation.mutate(updatedRow);
       }
     },
-    [form, fieldArray, enqueueSnackbar]
+    [form, fieldArray, enqueueSnackbar, updateMutation]
   );
 
   const handleEdit = useCallback(
@@ -95,8 +99,9 @@ export const MethodologiesScreen: FC = () => {
         activo: false,
       };
       fieldArray.insert(index + 1, duplicate);
+      addMutation.mutate(duplicate);
     },
-    [form, fieldArray]
+    [form, fieldArray, addMutation]
   );
 
   const handleAddRow = useCallback(() => {
@@ -109,9 +114,10 @@ export const MethodologiesScreen: FC = () => {
       const index = rows.findIndex((r) => r.id === row.id);
       if (index !== -1) {
         fieldArray.remove(index);
+        deleteMutation.mutate(row.id);
       }
     },
-    [form, fieldArray]
+    [form, fieldArray, deleteMutation]
   );
 
   const processRowUpdate = useCallback(
@@ -120,24 +126,12 @@ export const MethodologiesScreen: FC = () => {
       const index = rows.findIndex((r) => r.id === newRow.id);
       if (index !== -1) {
         fieldArray.update(index, newRow);
+        updateMutation.mutate(newRow);
       }
       return newRow;
     },
-    [form, fieldArray]
+    [form, fieldArray, updateMutation]
   );
-
-  // --- Save / Discard ---
-
-  const handleSave = useCallback(async () => {
-    const current = form.getValues("methodologies");
-    await save(current, serverSnapshotRef.current);
-    serverSnapshotRef.current = current;
-    form.reset({ methodologies: current });
-  }, [form, save, serverSnapshotRef]);
-
-  const handleDiscard = useCallback(() => {
-    form.reset({ methodologies: serverSnapshotRef.current });
-  }, [form, serverSnapshotRef]);
 
   // --- Column definitions ---
 
@@ -231,21 +225,6 @@ export const MethodologiesScreen: FC = () => {
           editingRowId={editingRowId}
         />
       </Box>
-      {isDirty && (
-        <EditFooter
-          onCancel={handleDiscard}
-          onSave={handleSave}
-          isSaving={isSaving}
-          cancelLabel="Descartar"
-          saveLabel="Guardar cambios"
-          saveDisabled={!isValid}
-        />
-      )}
-      <UnsavedChangesDialog
-        open={blocker.status === "blocked"}
-        onCancel={() => blocker.reset?.()}
-        onConfirm={() => blocker.proceed?.()}
-      />
     </>
   );
 };
