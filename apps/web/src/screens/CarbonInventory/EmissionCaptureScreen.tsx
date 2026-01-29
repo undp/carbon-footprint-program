@@ -49,6 +49,7 @@ export const EmissionCaptureScreen: FC = () => {
       onSuccess: goNext,
       isDirty: formState.isDirty,
       resetAfterSave,
+      showNoChangesMessage: false,
     });
 
   const { submit: submitNoNavigate, isSubmitting: isSubmittingNoNavigating } =
@@ -56,6 +57,15 @@ export const EmissionCaptureScreen: FC = () => {
       inventoryId,
       isDirty: formState.isDirty,
       resetAfterSave,
+    });
+
+  const { submit: submitAndGoBack, isSubmitting: isSubmittingAndGoingBack } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      onSuccess: goBack,
+      isDirty: formState.isDirty,
+      resetAfterSave,
+      showNoChangesMessage: false,
     });
 
   const selectedCategoryData = useMemo(
@@ -102,7 +112,9 @@ export const EmissionCaptureScreen: FC = () => {
                 align: "right",
                 buttonProps: {
                   startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                  onClick: goBack,
+                  onClick: handleSubmit(submitAndGoBack),
+                  loading: isSubmittingAndGoingBack,
+                  disabled: isSubmittingAndGoingBack || isBusy,
                 },
               },
               {
