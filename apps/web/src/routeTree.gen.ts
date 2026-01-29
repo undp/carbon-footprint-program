@@ -22,7 +22,14 @@ import { Route as AppCarbonInventoryRouteImport } from './routes/app/carbon-inve
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AppMaintainerIndexRouteImport } from './routes/app/maintainer/index'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
+import { Route as AppMaintainerUnitsRouteImport } from './routes/app/maintainer/units'
+import { Route as AppMaintainerSubcategoriesRouteImport } from './routes/app/maintainer/subcategories'
+import { Route as AppMaintainerScopesRouteImport } from './routes/app/maintainer/scopes'
+import { Route as AppMaintainerPrincipalActivitiesRouteImport } from './routes/app/maintainer/principal-activities'
+import { Route as AppMaintainerParametersRouteImport } from './routes/app/maintainer/parameters'
 import { Route as AppMaintainerMethodologiesRouteImport } from './routes/app/maintainer/methodologies'
+import { Route as AppMaintainerEmissionFactorsRouteImport } from './routes/app/maintainer/emission-factors'
+import { Route as AppMaintainerCategoriesRouteImport } from './routes/app/maintainer/categories'
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as AppCarbonInventoryInventoryIdEmissionCaptureRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-capture'
 import { Route as AppCarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/app/carbon-inventory/$inventoryId/business-profiling'
@@ -92,12 +99,50 @@ const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppCarbonInventoryRoute,
 } as any)
+const AppMaintainerUnitsRoute = AppMaintainerUnitsRouteImport.update({
+  id: '/units',
+  path: '/units',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
+const AppMaintainerSubcategoriesRoute =
+  AppMaintainerSubcategoriesRouteImport.update({
+    id: '/subcategories',
+    path: '/subcategories',
+    getParentRoute: () => AppMaintainerRoute,
+  } as any)
+const AppMaintainerScopesRoute = AppMaintainerScopesRouteImport.update({
+  id: '/scopes',
+  path: '/scopes',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
+const AppMaintainerPrincipalActivitiesRoute =
+  AppMaintainerPrincipalActivitiesRouteImport.update({
+    id: '/principal-activities',
+    path: '/principal-activities',
+    getParentRoute: () => AppMaintainerRoute,
+  } as any)
+const AppMaintainerParametersRoute = AppMaintainerParametersRouteImport.update({
+  id: '/parameters',
+  path: '/parameters',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
 const AppMaintainerMethodologiesRoute =
   AppMaintainerMethodologiesRouteImport.update({
     id: '/methodologies',
     path: '/methodologies',
     getParentRoute: () => AppMaintainerRoute,
   } as any)
+const AppMaintainerEmissionFactorsRoute =
+  AppMaintainerEmissionFactorsRouteImport.update({
+    id: '/emission-factors',
+    path: '/emission-factors',
+    getParentRoute: () => AppMaintainerRoute,
+  } as any)
+const AppMaintainerCategoriesRoute = AppMaintainerCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
 const AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute =
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
     id: '/$inventoryId/subcategory-preselection',
@@ -129,7 +174,14 @@ export interface FileRoutesByFullPath {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
+  '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
+  '/app/maintainer/parameters': typeof AppMaintainerParametersRoute
+  '/app/maintainer/principal-activities': typeof AppMaintainerPrincipalActivitiesRoute
+  '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
+  '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
+  '/app/maintainer/units': typeof AppMaintainerUnitsRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer/': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -146,7 +198,14 @@ export interface FileRoutesByTo {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
+  '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
+  '/app/maintainer/parameters': typeof AppMaintainerParametersRoute
+  '/app/maintainer/principal-activities': typeof AppMaintainerPrincipalActivitiesRoute
+  '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
+  '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
+  '/app/maintainer/units': typeof AppMaintainerUnitsRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -166,7 +225,14 @@ export interface FileRoutesById {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
+  '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
+  '/app/maintainer/parameters': typeof AppMaintainerParametersRoute
+  '/app/maintainer/principal-activities': typeof AppMaintainerPrincipalActivitiesRoute
+  '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
+  '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
+  '/app/maintainer/units': typeof AppMaintainerUnitsRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer/': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -187,7 +253,14 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/maintainer/categories'
+    | '/app/maintainer/emission-factors'
     | '/app/maintainer/methodologies'
+    | '/app/maintainer/parameters'
+    | '/app/maintainer/principal-activities'
+    | '/app/maintainer/scopes'
+    | '/app/maintainer/subcategories'
+    | '/app/maintainer/units'
     | '/app/carbon-inventory/'
     | '/app/maintainer/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -204,7 +277,14 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/maintainer/categories'
+    | '/app/maintainer/emission-factors'
     | '/app/maintainer/methodologies'
+    | '/app/maintainer/parameters'
+    | '/app/maintainer/principal-activities'
+    | '/app/maintainer/scopes'
+    | '/app/maintainer/subcategories'
+    | '/app/maintainer/units'
     | '/app/carbon-inventory'
     | '/app/maintainer'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -223,7 +303,14 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/maintainer/categories'
+    | '/app/maintainer/emission-factors'
     | '/app/maintainer/methodologies'
+    | '/app/maintainer/parameters'
+    | '/app/maintainer/principal-activities'
+    | '/app/maintainer/scopes'
+    | '/app/maintainer/subcategories'
+    | '/app/maintainer/units'
     | '/app/carbon-inventory/'
     | '/app/maintainer/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -339,11 +426,60 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarbonInventoryIndexRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
     }
+    '/app/maintainer/units': {
+      id: '/app/maintainer/units'
+      path: '/units'
+      fullPath: '/app/maintainer/units'
+      preLoaderRoute: typeof AppMaintainerUnitsRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/subcategories': {
+      id: '/app/maintainer/subcategories'
+      path: '/subcategories'
+      fullPath: '/app/maintainer/subcategories'
+      preLoaderRoute: typeof AppMaintainerSubcategoriesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/scopes': {
+      id: '/app/maintainer/scopes'
+      path: '/scopes'
+      fullPath: '/app/maintainer/scopes'
+      preLoaderRoute: typeof AppMaintainerScopesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/principal-activities': {
+      id: '/app/maintainer/principal-activities'
+      path: '/principal-activities'
+      fullPath: '/app/maintainer/principal-activities'
+      preLoaderRoute: typeof AppMaintainerPrincipalActivitiesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/parameters': {
+      id: '/app/maintainer/parameters'
+      path: '/parameters'
+      fullPath: '/app/maintainer/parameters'
+      preLoaderRoute: typeof AppMaintainerParametersRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
     '/app/maintainer/methodologies': {
       id: '/app/maintainer/methodologies'
       path: '/methodologies'
       fullPath: '/app/maintainer/methodologies'
       preLoaderRoute: typeof AppMaintainerMethodologiesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/emission-factors': {
+      id: '/app/maintainer/emission-factors'
+      path: '/emission-factors'
+      fullPath: '/app/maintainer/emission-factors'
+      preLoaderRoute: typeof AppMaintainerEmissionFactorsRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/categories': {
+      id: '/app/maintainer/categories'
+      path: '/categories'
+      fullPath: '/app/maintainer/categories'
+      preLoaderRoute: typeof AppMaintainerCategoriesRouteImport
       parentRoute: typeof AppMaintainerRoute
     }
     '/app/carbon-inventory/$inventoryId/subcategory-preselection': {
@@ -391,12 +527,26 @@ const AppCarbonInventoryRouteWithChildren =
   AppCarbonInventoryRoute._addFileChildren(AppCarbonInventoryRouteChildren)
 
 interface AppMaintainerRouteChildren {
+  AppMaintainerCategoriesRoute: typeof AppMaintainerCategoriesRoute
+  AppMaintainerEmissionFactorsRoute: typeof AppMaintainerEmissionFactorsRoute
   AppMaintainerMethodologiesRoute: typeof AppMaintainerMethodologiesRoute
+  AppMaintainerParametersRoute: typeof AppMaintainerParametersRoute
+  AppMaintainerPrincipalActivitiesRoute: typeof AppMaintainerPrincipalActivitiesRoute
+  AppMaintainerScopesRoute: typeof AppMaintainerScopesRoute
+  AppMaintainerSubcategoriesRoute: typeof AppMaintainerSubcategoriesRoute
+  AppMaintainerUnitsRoute: typeof AppMaintainerUnitsRoute
   AppMaintainerIndexRoute: typeof AppMaintainerIndexRoute
 }
 
 const AppMaintainerRouteChildren: AppMaintainerRouteChildren = {
+  AppMaintainerCategoriesRoute: AppMaintainerCategoriesRoute,
+  AppMaintainerEmissionFactorsRoute: AppMaintainerEmissionFactorsRoute,
   AppMaintainerMethodologiesRoute: AppMaintainerMethodologiesRoute,
+  AppMaintainerParametersRoute: AppMaintainerParametersRoute,
+  AppMaintainerPrincipalActivitiesRoute: AppMaintainerPrincipalActivitiesRoute,
+  AppMaintainerScopesRoute: AppMaintainerScopesRoute,
+  AppMaintainerSubcategoriesRoute: AppMaintainerSubcategoriesRoute,
+  AppMaintainerUnitsRoute: AppMaintainerUnitsRoute,
   AppMaintainerIndexRoute: AppMaintainerIndexRoute,
 }
 

@@ -20,6 +20,13 @@ export const Routes = {
   REGISTER: "/register",
   MAINTAINER: "/app/maintainer",
   MAINTAINER_METHODOLOGIES: "/app/maintainer/methodologies",
+  MAINTAINER_SCOPES: "/app/maintainer/scopes",
+  MAINTAINER_SUBCATEGORIES: "/app/maintainer/subcategories",
+  MAINTAINER_EMISSION_FACTORS: "/app/maintainer/emission-factors",
+  MAINTAINER_UNITS: "/app/maintainer/units",
+  MAINTAINER_PARAMETERS: "/app/maintainer/parameters",
+  MAINTAINER_CATEGORIES: "/app/maintainer/categories",
+  MAINTAINER_PRINCIPAL_ACTIVITIES: "/app/maintainer/principal-activities",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];
