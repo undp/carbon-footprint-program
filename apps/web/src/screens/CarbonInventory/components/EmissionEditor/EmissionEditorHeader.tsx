@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { NumericInput } from "@/components";
 import { Subcategory } from "@repo/types";
+import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 
 interface EmissionEditorHeaderProps
   extends Pick<Subcategory, "name" | "description"> {
@@ -22,6 +23,12 @@ interface EmissionEditorHeaderProps
   isTotalManualEmissionsMode: boolean;
   setIsTotalManualEmissionsMode: (value: boolean) => Promise<void>;
   isManualModeLoading?: boolean;
+  // Manual mode line actions
+  categoryPosition?: number;
+  hasManualModeLine?: boolean;
+  manualModeLineHasComment?: boolean;
+  onManualModeLineDelete?: () => void;
+  onManualModeLineComment?: () => void;
 }
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
@@ -34,6 +41,11 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   isTotalManualEmissionsMode,
   setIsTotalManualEmissionsMode,
   isManualModeLoading = false,
+  categoryPosition,
+  hasManualModeLine = false,
+  manualModeLineHasComment = false,
+  onManualModeLineDelete,
+  onManualModeLineComment,
 }) => {
   const onChangeTotalEmission = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,6 +164,20 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           }
         />
       </Box>
+      {/* Action buttons for manual mode line */}
+      {isTotalManualEmissionsMode && hasManualModeLine && (
+        <Box className="flex items-center">
+          <EmissionEditorActionsCell
+            rowId="manual-mode-line"
+            categoryPosition={categoryPosition}
+            disabled={isManualModeLoading}
+            hasComment={manualModeLineHasComment}
+            uploadFiles={() => null}
+            updateComment={onManualModeLineComment}
+            deleteSource={onManualModeLineDelete}
+          />
+        </Box>
+      )}
     </Box>
   );
 };

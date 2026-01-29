@@ -28,6 +28,7 @@ interface UseEmissionEditorFormParams {
 
 interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
+  manualModeLine: EmissionCaptureFormLine | null;
   isTotalManualEmissionsModeLoading: boolean;
   isTotalManualEmissionsMode: boolean;
   handleAddLine: () => void;
@@ -115,6 +116,11 @@ export const useEmissionEditorForm = ({
       isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode
     );
   }, [isLocalTotalManualEmissionsMode, subcategory.isTotalManualEmissionsMode]);
+
+  // Get the first non-deleted line (used for manual mode actions)
+  const manualModeLine = useMemo(() => {
+    return isTotalManualEmissionsMode && rows.length > 0 ? rows[0] : null;
+  }, [rows, isTotalManualEmissionsMode]);
 
   // Form actions - now local only, no API calls
   const handleAddLine = useCallback(() => {
@@ -461,6 +467,7 @@ export const useEmissionEditorForm = ({
   return {
     // Form state
     rows,
+    manualModeLine,
     isTotalManualEmissionsModeLoading,
     isTotalManualEmissionsMode,
     // Form actions

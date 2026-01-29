@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useCallback, useEffect } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -30,6 +30,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
 
   const {
     rows,
+    manualModeLine,
     isTotalManualEmissionsModeLoading,
     isTotalManualEmissionsMode,
     handleAddLine,
@@ -83,6 +84,24 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   const isTotalManualEmissionsModeActive =
     isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
 
+  // Handlers for manual mode line actions
+  const handleManualModeLineComment = useCallback(() => {
+    if (manualModeLine) {
+      openCommentDialog(manualModeLine.lineId, manualModeLine.comment || "");
+    }
+  }, [manualModeLine, openCommentDialog]);
+
+  const handleManualModeLineDelete = useCallback(() => {
+    if (manualModeLine) {
+      handleDeleteLine(manualModeLine.lineId);
+    }
+  }, [manualModeLine, handleDeleteLine]);
+
+  // Don't render if in manual mode but no line exists to store data
+  if (isTotalManualEmissionsModeActive && !manualModeLine) {
+    return null;
+  }
+
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
@@ -97,6 +116,12 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
         setTotalEmission={handleSetTotalEmission}
+        // Manual mode line actions
+        categoryPosition={categoryPosition}
+        hasManualModeLine={!!manualModeLine}
+        manualModeLineHasComment={!!manualModeLine?.comment}
+        onManualModeLineDelete={handleManualModeLineDelete}
+        onManualModeLineComment={handleManualModeLineComment}
       />
 
       <Collapse in={!isTotalManualEmissionsModeActive} collapsedSize={0}>
