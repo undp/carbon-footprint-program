@@ -1,5 +1,6 @@
 import { EmissionFactorDimension } from "@repo/types";
 import { EmissionCaptureFormLine } from "../../../types/EmissionCaptureTypes";
+import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 
 const areRequiredDimensionsFilled = (
   line: EmissionCaptureFormLine,
@@ -30,7 +31,7 @@ export const canSelectFactorSource = (
 ): boolean => {
   return (
     (!!line.factorSource &&
-      ["Factor Propio", "Otro"].includes(line.factorSource)) ||
+      CUSTOM_FACTOR_SOURCES.includes(line.factorSource)) ||
     (areRequiredDimensionsFilled(line, dimensions) &&
       isMeasurementUnitSelected(line))
   );
@@ -49,7 +50,7 @@ export const getDisabledReasonMessage = (
   if (fieldName === "factorSource") {
     if (
       line.factorSource &&
-      ["Factor Propio", "Otro"].includes(line.factorSource)
+      CUSTOM_FACTOR_SOURCES.includes(line.factorSource)
     ) {
       return null;
     }

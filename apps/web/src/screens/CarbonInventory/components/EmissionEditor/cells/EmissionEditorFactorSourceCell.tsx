@@ -2,7 +2,6 @@ import { FC, useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { Select, MenuItem, Tooltip } from "@mui/material";
 import {
-  CUSTOM_FACTOR_SOURCES,
   getCompatibleRateUnitId,
   getAvailableFactors,
   getAvailableSources,
@@ -13,6 +12,7 @@ import {
   EmissionFactorDimension,
 } from "@repo/types";
 import { useLineValidation } from "../hooks/useLineValidation";
+import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 
 interface EmissionEditorFactorSourceCellProps {
   subcategoryId: string;
@@ -100,12 +100,11 @@ export const EmissionEditorFactorSourceCell: FC<
           {source}
         </MenuItem>
       ))}
-      <MenuItem value={CUSTOM_FACTOR_SOURCES.OWN_FACTOR}>
-        {CUSTOM_FACTOR_SOURCES.OWN_FACTOR}
-      </MenuItem>
-      <MenuItem value={CUSTOM_FACTOR_SOURCES.OTHER}>
-        {CUSTOM_FACTOR_SOURCES.OTHER}
-      </MenuItem>
+      {CUSTOM_FACTOR_SOURCES.map((source) => (
+        <MenuItem key={source} value={source}>
+          {source}
+        </MenuItem>
+      ))}
     </Select>
   );
 
