@@ -8,6 +8,7 @@ export const UpdateUserBodySchema = UserSchema.pick({
   lastName: true,
   idpUserId: true,
   idpName: true,
+  termsAccepted: true,
 })
   .partial()
   .strict();

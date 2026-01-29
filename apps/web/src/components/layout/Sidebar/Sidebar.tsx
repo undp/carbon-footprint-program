@@ -8,14 +8,16 @@ import {
   SsidChartRounded,
   EmojiEventsOutlined,
 } from "@mui/icons-material";
-import { useLocation } from "@tanstack/react-router";
+import { useLocation, useNavigate } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@icons/HuellaLatamLogo";
 import { Item } from "./Item";
 import {
+  Routes,
   SidebarRoute,
   SidebarRoutes,
   SidebarRoutesTranslations,
 } from "@/interfaces";
+import { UserMenu } from "./UserMenu";
 
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
@@ -28,6 +30,7 @@ const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
 
 export const Sidebar: FC = () => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const items = useMemo(
     () =>
@@ -47,11 +50,12 @@ export const Sidebar: FC = () => {
         alignItems: "flex-start",
         width: 268,
         flexShrink: 0,
+        flexGrow: 1,
         px: 1,
         "& .MuiDrawer-paper": {
           width: 268,
           gap: 2,
-          px: 1,
+          px: 2,
         },
       }}
       variant="permanent"
@@ -62,10 +66,13 @@ export const Sidebar: FC = () => {
           sx={{
             width: 93,
             height: 40,
+            ":hover": { cursor: "pointer" },
           }}
+          onClick={() => navigate({ to: Routes.LANDING })}
         />
       </Toolbar>
-      <Divider variant="middle" />
+      <Divider />
+
       <List sx={{ pt: 0 }}>
         {items.map(({ text, path, icon, selected }) => (
           <Item
@@ -77,6 +84,8 @@ export const Sidebar: FC = () => {
           />
         ))}
       </List>
+
+      <UserMenu />
     </Drawer>
   );
 };

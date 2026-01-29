@@ -18,10 +18,13 @@
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
+    "@azure/msal-browser": "^4.27.0",
+    "@azure/msal-react": "^3.0.23",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@fontsource-variable/roboto": "^5.2.9",
     "@fontsource/roboto": "^5.2.9",
+    "@hookform/resolvers": "^5.2.2",
     "@mui/icons-material": "^7.3.5",
     "@mui/material": "^7.3.5",
     "@mui/x-charts": "^8.20.0",

@@ -1,16 +1,36 @@
-const TOKEN_KEY = "auth_token";
+import { msalInstance } from "@/auth/initializeMsal";
+import { apiTokenRequest } from "@/config/msalConfig";
 
-export function getAuthToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(TOKEN_KEY);
-}
+/**
+ * Gets the current access token from MSAL
+ * Automatically handles token refresh if needed
+ */
+export async function getAuthToken(): Promise<string | null> {
+  const account = msalInstance.getActiveAccount();
 
-export function setAuthToken(token: string) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(TOKEN_KEY, token);
-}
+  if (!account) {
+    return null;
+  }
 
-export function clearAuthToken() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(TOKEN_KEY);
+  try {
+    // Try to acquire token silently
+    const response = await msalInstance.acquireTokenSilent({
+      ...apiTokenRequest,
+      account,
+    });
+    return response.accessToken;
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error("Failed to acquire token silently:", error);
+
+    // If silent acquisition fails, try interactive popup
+    try {
+      const response = await msalInstance.acquireTokenPopup(apiTokenRequest);
+      return response.accessToken;
+    } catch (popupError) {
+      // eslint-disable-next-line no-console
+      console.error("Failed to acquire token with popup:", popupError);
+      return null;
+    }
+  }
 }

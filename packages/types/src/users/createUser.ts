@@ -8,6 +8,8 @@ export const CreateUserBodySchema = UserSchema.pick({
   idpName: true,
   firstName: true,
   lastName: true,
+  termsAccepted: true,
+  termsAcceptedAt: true,
 }).strict();
 
 export const CreateUserResponseSchema = UserSchema;

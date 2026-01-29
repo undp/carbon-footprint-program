@@ -1,11 +1,13 @@
-import { FC } from "react";
+import { FC, useCallback } from "react";
 import { AppBar, Box, Button, Toolbar, useTheme } from "@mui/material";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { HuellaLatamLogo } from "@/icons";
 import {
   LandingHeaderRoutes,
   LandingHeaderRoutesTranslations,
 } from "@/interfaces";
+import { Route as HomeRoute } from "@/routes/app/home";
+import { useAuth } from "../../../contexts";
 
 const pages = Object.values(LandingHeaderRoutes).map((route) => ({
   text: LandingHeaderRoutesTranslations[route],
@@ -14,6 +16,16 @@ const pages = Object.values(LandingHeaderRoutes).map((route) => ({
 
 export const Header: FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
+  const { signInRedirect, user } = useAuth();
+
+  const handleHomeClick = useCallback(() => {
+    void navigate({ to: HomeRoute.to });
+  }, [navigate]);
+
+  const handleSignInClick = useCallback(() => {
+    void signInRedirect();
+  }, [signInRedirect]);
 
   return (
     <AppBar color="transparent" elevation={0} position="static">
@@ -37,12 +49,23 @@ export const Header: FC = () => {
             </Link>
           ))}
         </Box>
-        <Button
-          sx={{ backgroundColor: theme.palette.common.deepForest }}
-          variant="contained"
-        >
-          INICIAR SESIÓN
-        </Button>
+        {user ? (
+          <Button
+            sx={{ backgroundColor: theme.palette.common.deepForest }}
+            variant="contained"
+            onClick={handleHomeClick}
+          >
+            IR AL HOME
+          </Button>
+        ) : (
+          <Button
+            sx={{ backgroundColor: theme.palette.common.deepForest }}
+            variant="contained"
+            onClick={handleSignInClick}
+          >
+            INICIAR SESIÓN
+          </Button>
+        )}
       </Toolbar>
     </AppBar>
   );

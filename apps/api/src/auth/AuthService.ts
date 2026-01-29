@@ -1,0 +1,93 @@
+/**
+ * @fileoverview Authentication Service (Facade)
+ *
+ * Implements the Facade pattern to provide a unified interface for authentication.
+ * Supports multiple identity providers and can be configured to use different
+ * strategies based on environment.
+ *
+ * ## Design Pattern: Facade
+ *
+ * The AuthService acts as a facade that:
+ * 1. Hides the complexity of multiple auth providers
+ * 2. Provides a simple, unified API for authentication
+ * 3. Allows configuration of different providers via environment
+ *
+ * ## Usage
+ *
+ * ```typescript
+ * // Create service with specific provider
+ * const authService = new AuthService({ provider: "jwks", enabled: true });
+ *
+ * // Authenticate a request
+ * const result = await authService.authenticate(request);
+ * if (result.user) {
+ *   console.log(result.user.email);
+ * }
+ * ```
+ *
+ * @see AuthProvider - Interface for implementing new providers
+ * @see JwksAuthProvider - JWT/JWKS-based authentication
+ * @see EasyAuthProvider - Azure App Service Easy Auth
+ */
+
+import type { FastifyRequest } from "fastify";
+import type { AuthProvider, AuthResult } from "./AuthProvider.js";
+import type { AuthProviderType } from "./types.js";
+import { JwksAuthProvider } from "./providers/JwksAuthProvider.js";
+import { EasyAuthProvider } from "./providers/EasyAuthProvider.js";
+import { NoneProvider } from "./providers/NoneProvider.js";
+import { ForcedUserProvider } from "./providers/ForcedUserProvider.js";
+
+/**
+ * Authentication Service Facade
+ *
+ * Provides a unified interface for authentication across multiple providers.
+ */
+export class AuthService {
+  private readonly provider_type: AuthProviderType;
+  private readonly provider: AuthProvider | undefined;
+
+  constructor(provider_type: AuthProviderType) {
+    this.provider_type = provider_type;
+
+    if (this.provider_type === "jwks") {
+      this.provider = new JwksAuthProvider();
+    } else if (this.provider_type === "easy-auth") {
+      this.provider = new EasyAuthProvider();
+    } else if (this.provider_type === "forced-user") {
+      this.provider = new ForcedUserProvider();
+    } else if (this.provider_type === "none") {
+      this.provider = new NoneProvider();
+    } else {
+      this.provider = undefined;
+    }
+  }
+
+  /**
+   * Check if authentication is enabled.
+   */
+  isEnabled(): boolean {
+    return !!this.provider;
+  }
+
+  /**
+   * Get the configured provider type.
+   */
+  getConfiguredProvider(): AuthProviderType {
+    return this.provider_type;
+  }
+
+  /**
+   * Authenticate a request using the configured provider.
+   */
+  async authenticate(request: FastifyRequest): Promise<AuthResult> {
+    if (!this.isEnabled()) {
+      return {
+        user: null,
+        error: "Authentication is disabled",
+      };
+    }
+
+    return this.provider!.authenticate(request);
+  }
+}

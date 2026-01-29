@@ -16,13 +16,19 @@ export const createUserService = async (
     const user = await prismaClient.user.create({
       data: {
         email: data.email,
-        countryJobPositionId: data.countryJobPositionId ? BigInt(data.countryJobPositionId) : null,
+        countryJobPositionId: data.countryJobPositionId
+          ? BigInt(data.countryJobPositionId)
+          : null,
         firstName: data.firstName,
         lastName: data.lastName,
         idpUserId: data.idpUserId ?? null,
         idpName: data.idpName ?? null,
         createdById: null,
         updatedById: null,
+        termsAccepted: data.termsAccepted,
+        termsAcceptedAt: data.termsAcceptedAt
+          ? new Date(data.termsAcceptedAt)
+          : null,
       },
     });
 
@@ -32,7 +38,7 @@ export const createUserService = async (
       if (error.code === "P2002") {
         // Unique constraint violation
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        
+
         if (duplicatedFields.includes("idp_user_id")) {
           throw new IdpUserIdAlreadyInUseError();
         }

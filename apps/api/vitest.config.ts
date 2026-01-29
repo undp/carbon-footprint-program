@@ -90,5 +90,8 @@ export default defineConfig({
       clean: true,
       cleanOnRerun: true,
     },
+    env: {
+      AUTH_PROVIDER: "none", // Set AUTH_PROVIDER for all tests
+    },
   },
 });

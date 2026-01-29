@@ -7,14 +7,14 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 
-// Set up a Router instance
+// Create router instance
 const router = createRouter({
   routeTree,
   defaultPreload: "intent",
   scrollRestoration: true,
 });
 
-// Register things for typesafety
+// Extend TanStack Router types
 declare module "@tanstack/react-router" {
   interface Register {
     router: typeof router;
@@ -22,8 +22,6 @@ declare module "@tanstack/react-router" {
 }
 
 const rootElement = document.getElementById("root")!;
+const root = ReactDOM.createRoot(rootElement);
 
-if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
-  root.render(<RouterProvider router={router} />);
-}
+root.render(<RouterProvider router={router} />);

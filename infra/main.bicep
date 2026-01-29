@@ -162,6 +162,26 @@ param tags object = {
   ManagedBy: 'Bicep'
 }
 
+// --------- Azure Entra External ID parameters ---------
+@description('Enable Azure Entra External ID authentication')
+param enableAzureAuth bool = false
+
+@description('Azure Entra External ID Tenant subdomain (e.g., "undphuella" from undphuella.ciamlogin.com)')
+param azureAuthExternalTenantSubdomain string = ''
+
+@secure()
+@description('Azure Entra External ID Tenant ID (GUID format)')
+param azureAuthExternalTenantId string = ''
+
+@secure()
+@description('Azure Entra External ID Api App Registration ID')
+param azureAuthApiAppId string = ''
+
+@secure()
+@description('Azure Entra External ID Front App Registration ID')
+param azureAuthFrontAppId string = ''
+
+
 // --------- Key Vault ---------
 // We can create up to 1 key vault per deployment
 module keyVault 'modules/keyVault.bicep' = {
@@ -257,6 +277,9 @@ module appService 'modules/appService.bicep' = {
         : 'https://${frontDoor!.outputs.endpointHostname}')
       : 'https://${staticWebApp.outputs.defaultHostname}'
     useAcrManagedIdentity: true
+    enableAzureAuth: enableAzureAuth
+    azureAuthExternalTenantId: azureAuthExternalTenantId
+    azureAuthClientId: azureAuthApiAppId
     tags: tags
   }
 }
@@ -286,6 +309,19 @@ module frontDoor 'modules/frontDoor.bicep' = if (enableFrontDoor) {
     enableManagedRules: frontDoorEnableManagedRules
     wafMode: frontDoorWafMode
     rateLimitThreshold: frontDoorRateLimitThreshold
+    tags: tags
+  }
+}
+
+// --------- Azure Entra External ID ---------
+module azureAuth 'modules/azureAuth.bicep' = if (enableAzureAuth) {
+  name: 'azureAuthDeployment'
+  params: {
+    keyVaultName: keyVault.outputs.name
+    externalTenantSubdomain: azureAuthExternalTenantSubdomain
+    externalTenantId: azureAuthExternalTenantId
+    apiAppId: azureAuthApiAppId
+    frontAppId: azureAuthFrontAppId
     tags: tags
   }
 }
@@ -350,6 +386,17 @@ output infrastructure object = {
     sku: acr.outputs.sku
   }
 }
+
+// Authentication outputs
+@description('Authentication configuration')
+output authentication object = enableAzureAuth ? {
+  authorityUrl: azureAuth.?outputs.authorityUrl ?? ''
+  enabled: true
+} : {
+  authorityUrl: ''
+  enabled: false
+}
+
 
 // Legacy outputs (for backward compatibility)
 @description('Static Web App default hostname')

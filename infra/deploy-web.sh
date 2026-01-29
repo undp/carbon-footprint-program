@@ -147,6 +147,13 @@ if [ -z "$SWA_NAME" ]; then
   exit 1
 fi
 
+# Get the hostname
+SWA_HOSTNAME=$(az staticwebapp show \
+  --name "$SWA_NAME" \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --query defaultHostname \
+  --output tsv)
+
 # Get app and output locations from deployment (to match infrastructure config)
 APP_LOCATION=$(az staticwebapp show \
   --name "$SWA_NAME" \
@@ -190,6 +197,33 @@ else
   export VITE_API_BASE_URL
   log "${GREEN}   ✓ VITE_API_BASE_URL set to ${VITE_API_BASE_URL}${NC}"
 fi
+echo ""
+
+
+log "${YELLOW}[1c/5] Validating required VITE_ environment variables for Azure authentication...${NC}"
+log "Using values from infra/.envrc:"
+
+if [ -z "$AZURE_FRONT_CLIENT_ID" ] || [ -z "$AZURE_API_CLIENT_ID" ] || [ -z "$AZURE_AUTH_AUTHORITY" ] || [ -z "$AZURE_EXTERNAL_TENANT_ID" ] || [ -z "$AZURE_EXTERNAL_TENANT_SUBDOMAIN" ]; then
+  log "${RED}Error: Missing required VITE_ environment variables for Azure authentication.${NC}"
+  log "Please ensure the following are set in infra/.envrc:"
+  log "  - AZURE_FRONT_CLIENT_ID=${AZURE_FRONT_CLIENT_ID:0:8}"
+  log "  - AZURE_API_CLIENT_ID=${AZURE_API_CLIENT_ID:0:8}"
+  log "  - AZURE_EXTERNAL_TENANT_SUBDOMAIN=${AZURE_EXTERNAL_TENANT_SUBDOMAIN:0:8}"
+  log "  - AZURE_EXTERNAL_TENANT_ID=${AZURE_EXTERNAL_TENANT_ID:0:8}"
+  log "  - AZURE_AUTH_AUTHORITY=${AZURE_AUTH_AUTHORITY:0:30}"
+  exit 1
+fi
+
+export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
+export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
+export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
+export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
+
+log "${GREEN}   ✓ All required VITE_ environment variables are set.${NC}"
+log "  - VITE_AZURE_FRONT_CLIENT_ID=${VITE_AZURE_FRONT_CLIENT_ID:0:8}..."
+log "  - VITE_AZURE_API_CLIENT_ID=${VITE_AZURE_API_CLIENT_ID:0:8}..."
+log "  - VITE_AZURE_AUTH_AUTHORITY=${VITE_AZURE_AUTH_AUTHORITY:0:30}..."
+log "  - VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}"
 echo ""
 
 # Get deployment token
@@ -296,22 +330,15 @@ echo ""
 
 log "${YELLOW}[6/6] Verifying deployment...${NC}"
 
-# Initialize SWA_HOSTNAME with placeholder (always defined for final output)
-SWA_HOSTNAME="<not-available-in-dry-run>"
 
 if [ "$DRY_RUN" = "true" ]; then
+# Initialize SWA_HOSTNAME with placeholder (always defined for final output)
+  SWA_HOSTNAME="<not-available-in-dry-run>"
   log "${CYAN}[DRY RUN] Would wait 3 seconds for deployment to register${NC}"
   log "${CYAN}[DRY RUN] Would verify: https://$SWA_HOSTNAME${NC}"
 else
   # Wait a few seconds for deployment to register
   sleep 3
-
-  # Get the hostname
-  SWA_HOSTNAME=$(az staticwebapp show \
-    --name "$SWA_NAME" \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --query defaultHostname \
-    --output tsv)
 
   if [ -n "$SWA_HOSTNAME" ]; then
     # Check if site responds (basic HTTP check)

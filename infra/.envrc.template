@@ -1,0 +1,18 @@
+export ENVIRONMENT=""
+
+# Azure Subscription
+export AZURE_SUBSCRIPTION_ID=""
+export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
+export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
+
+# Azure Entra
+export AZURE_EXTERNAL_TENANT_SUBDOMAIN=""
+export AZURE_EXTERNAL_TENANT_ID=""
+export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
+export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
+export AZURE_AUTH_AUTHORITY="https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0"
+
+# Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
+export LOCATION="eastus2"
+
+export DRY_RUN="false"
