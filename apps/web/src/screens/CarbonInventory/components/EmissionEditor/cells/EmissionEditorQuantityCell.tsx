@@ -22,6 +22,7 @@ export const EmissionEditorQuantityCell: FC<
       onChange={onChange}
       disabled={disabled}
       min={0}
+      sx={{ minHeight: "unset" }}
     />
   );
 };
