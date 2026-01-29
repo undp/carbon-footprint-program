@@ -148,6 +148,7 @@ export const MethodologiesScreen: FC = () => {
       headerName: "Nombre",
       flex: 0.5,
       minWidth: 180,
+      editable: true,
     },
     {
       field: "descripcion",
@@ -155,6 +156,7 @@ export const MethodologiesScreen: FC = () => {
       headerName: "Descripción",
       flex: 1.5,
       minWidth: 220,
+      editable: true,
     },
     {
       field: "normativa",
@@ -163,12 +165,14 @@ export const MethodologiesScreen: FC = () => {
       width: 150,
       type: "singleSelect",
       valueOptions: NORMATIVA_OPTIONS.map((o) => o.value),
+      editable: true,
     },
     {
       field: "version",
       cellClassName: "content-center max-h-[56px]",
       headerName: "Versión",
       width: 100,
+      editable: true,
     },
     {
       field: "activo",
