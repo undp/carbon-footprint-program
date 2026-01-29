@@ -5,7 +5,6 @@ import type {
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
-  determineInputType,
   createLineInput,
   createLineFactor,
   createLineResult,
@@ -135,26 +134,16 @@ export const syncCarbonInventoryLinesService = async (
 
       createdLineIds.push(line.id);
 
-      // Create input if there's data
-      const hasInputData =
-        createItem.dimensionValue1Id !== null ||
-        createItem.dimensionValue2Id !== null ||
-        createItem.quantity !== null ||
-        createItem.measurementUnitId !== null ||
-        createItem.factorSource !== null ||
-        createItem.manualTotalEmissions !== null;
-
-      if (hasInputData) {
-        const inputType = determineInputType(createItem);
-        const newInput = await createLineInput(
-          tx,
-          line.id,
-          createItem,
-          inputType
-        );
-        await createLineFactor(tx, newInput.id, createItem);
-        await createLineResult(tx, newInput.id, createItem, inputType);
-      }
+      // Always create input with the provided inputType
+      const inputType = createItem.inputType;
+      const newInput = await createLineInput(
+        tx,
+        line.id,
+        createItem,
+        inputType
+      );
+      await createLineFactor(tx, newInput.id, createItem);
+      await createLineResult(tx, newInput.id, createItem, inputType);
     }
 
     // 2. UPDATE operations
@@ -168,7 +157,7 @@ export const syncCarbonInventoryLinesService = async (
         data: { isActive: false, updatedById: null },
       });
 
-      const inputType = determineInputType(updateItem);
+      const inputType = updateItem.inputType;
       const newInput = await createLineInput(tx, lineId, updateItem, inputType);
       await createLineFactor(tx, newInput.id, updateItem);
       await createLineResult(tx, newInput.id, updateItem, inputType);

@@ -11,6 +11,8 @@ export const InventoryStatusSchema = z.enum([
 
 export const UsageModeSchema = z.enum(["SIMPLIFIED", "EXPERT"]);
 
+export const InputTypeSchema = z.enum(["DIRECT", "SIMPLIFIED", "EXPERT"]);
+
 // Line schema
 export const CarbonInventoryLineSchema = z
   .object({

@@ -3,6 +3,7 @@ import {
   SyncCreateLineItem,
   SyncUpdateLineItem,
   SyncDeleteLineItem,
+  InputTypeSchema,
 } from "@repo/types";
 import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
 
@@ -11,6 +12,9 @@ import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
  */
 function mapCommonFields(line: EmissionCaptureFormLine) {
   return {
+    inputType: line.isManualTotalEmissions
+      ? InputTypeSchema.parse("DIRECT")
+      : InputTypeSchema.parse("SIMPLIFIED"),
     dimensionValue1Id: line.dimensionValue1Id,
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
