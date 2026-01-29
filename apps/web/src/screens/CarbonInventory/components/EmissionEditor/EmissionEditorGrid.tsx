@@ -40,7 +40,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
           display: "none",
         },
         "& .MuiDataGrid-cell": {
-          padding: "10px 8px",
+          padding: "8px",
         },
         "& .MuiDataGrid-cell:focus": {
           outline: "none",
