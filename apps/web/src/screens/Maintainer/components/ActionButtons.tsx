@@ -18,6 +18,7 @@ import {
 } from "@mui/icons-material";
 
 interface Props {
+  isActiveRow: boolean;
   onEdit?: () => void;
   onView?: () => void;
   onDuplicate?: () => void;
@@ -26,6 +27,7 @@ interface Props {
 }
 
 export const ActionButtons: FC<Props> = ({
+  isActiveRow,
   onEdit,
   onView,
   onDuplicate,
@@ -63,7 +65,7 @@ export const ActionButtons: FC<Props> = ({
             <IconButton
               size="small"
               onClick={() => setDeleteOpen(true)}
-              color="error"
+              disabled={isActiveRow}
             >
               <DeleteOutlined fontSize="small" />
             </IconButton>
