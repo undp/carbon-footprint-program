@@ -44,17 +44,16 @@ export const MethodologiesScreen: FC = () => {
   const handleStartEditRow = useCallback(
     (rowId: string) => {
       setEditingRowId(rowId);
-      // Activate edit mode on the first editable cell
-      setTimeout(() => {
-        apiRef.current?.startCellEditMode({ id: rowId, field: "nombre" });
-      }, 0);
+      apiRef.current?.startRowEditMode({ id: rowId });
     },
     [apiRef]
   );
 
   const handleStopEditRow = useCallback(() => {
+    if (!editingRowId) return;
+    apiRef.current?.stopRowEditMode({ id: editingRowId });
     setEditingRowId(null);
-  }, []);
+  }, [apiRef, editingRowId]);
 
   const handleToggle = useCallback(
     (row: Methodology, checked: boolean) => {
@@ -241,7 +240,6 @@ export const MethodologiesScreen: FC = () => {
           rows={currentRows}
           loading={isLoading || isSaving}
           processRowUpdate={processRowUpdate}
-          editingRowId={editingRowId}
           apiRef={apiRef}
         />
       </Box>
