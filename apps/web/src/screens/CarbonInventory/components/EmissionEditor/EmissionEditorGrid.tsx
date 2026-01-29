@@ -34,6 +34,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       rows={rows}
       getRowId={(row: EmissionCaptureFormLine) => row.lineId}
       loading={loading}
+      localeText={{ noRowsLabel: "Sin fuentes" }}
     />
   </Box>
 );
