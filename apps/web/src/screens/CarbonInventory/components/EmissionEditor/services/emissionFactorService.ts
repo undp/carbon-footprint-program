@@ -1,15 +1,9 @@
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
-
-export const CUSTOM_FACTOR_SOURCES = {
-  OWN_FACTOR: "Factor Propio",
-  OTHER: "Otro",
-} as const;
+import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 
 const isCustomFactorSource = (factorSource: string | null): boolean => {
   if (!factorSource) return false;
-  return (Object.values(CUSTOM_FACTOR_SOURCES) as string[]).includes(
-    factorSource
-  );
+  return CUSTOM_FACTOR_SOURCES.includes(factorSource);
 };
 
 export const isFactorValueEditable = (factorSource: string | null): boolean => {
