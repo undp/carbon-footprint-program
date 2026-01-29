@@ -14,6 +14,7 @@ interface Params {
   resetAfterSave?: () => void;
   throwOnError?: boolean;
   resultFeedbackWithSnackbar?: boolean;
+  showNoChangesMessage?: boolean;
 }
 
 interface HookResult {
@@ -28,6 +29,7 @@ export const useEmissionCaptureSubmit = ({
   resetAfterSave,
   resultFeedbackWithSnackbar = true,
   throwOnError = false,
+  showNoChangesMessage = true,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync, isPending } = useSyncCarbonInventoryLines(inventoryId);
@@ -46,9 +48,11 @@ export const useEmissionCaptureSubmit = ({
         }
 
         if (!isDirty) {
-          enqueueSnackbar("No hay cambios para guardar", {
-            variant: "info",
-          });
+          if (showNoChangesMessage) {
+            enqueueSnackbar("No hay cambios para guardar", {
+              variant: "info",
+            });
+          }
           onSuccess?.();
           return;
         }
@@ -110,6 +114,7 @@ export const useEmissionCaptureSubmit = ({
       resetAfterSave,
       resultFeedbackWithSnackbar,
       throwOnError,
+      showNoChangesMessage,
     ]
   );
 
