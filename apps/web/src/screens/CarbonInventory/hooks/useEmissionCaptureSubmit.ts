@@ -12,6 +12,8 @@ interface Params {
   onSuccess?: () => void;
   isDirty?: boolean;
   resetAfterSave?: () => void;
+  throwOnError?: boolean;
+  resultFeedbackWithSnackbar?: boolean;
 }
 
 interface HookResult {
@@ -24,6 +26,8 @@ export const useEmissionCaptureSubmit = ({
   onSuccess,
   isDirty,
   resetAfterSave,
+  resultFeedbackWithSnackbar = true,
+  throwOnError = false,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync, isPending } = useSyncCarbonInventoryLines(inventoryId);
@@ -81,17 +85,20 @@ export const useEmissionCaptureSubmit = ({
         // Reset form state after successful save to clear isNew/isDeleted flags
         resetAfterSave?.();
 
-        enqueueSnackbar("Inventario guardado exitosamente", {
-          variant: "success",
-        });
+        if (resultFeedbackWithSnackbar)
+          enqueueSnackbar("Inventario guardado exitosamente", {
+            variant: "success",
+          });
 
         onSuccess?.();
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Error al guardar las líneas de emisión:", error);
-        enqueueSnackbar("Error al guardar el inventario", {
-          variant: "error",
-        });
+        if (resultFeedbackWithSnackbar)
+          enqueueSnackbar("Error al guardar el inventario", {
+            variant: "error",
+          });
+        if (throwOnError) throw error;
       }
     },
     [
@@ -101,6 +108,8 @@ export const useEmissionCaptureSubmit = ({
       mutateAsync,
       onSuccess,
       resetAfterSave,
+      resultFeedbackWithSnackbar,
+      throwOnError,
     ]
   );
 

@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { Routes } from "@/interfaces";
 import {
@@ -59,6 +60,8 @@ export const useEmissionEditorForm = ({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
 
+  const { enqueueSnackbar } = useSnackbar();
+
   const { id: subcategoryId } = subcategory;
 
   const { mutateAsync: toggleManualMode } = useToggleManualTotalEmissions(
@@ -78,6 +81,8 @@ export const useEmissionEditorForm = ({
   const { submit } = useEmissionCaptureSubmit({
     inventoryId,
     isDirty: true,
+    resultFeedbackWithSnackbar: false,
+    throwOnError: true,
   });
 
   const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
@@ -387,25 +392,33 @@ export const useEmissionEditorForm = ({
             };
 
             // Submit returns void, errors are handled internally with snackbar
-            // We wrap in try-catch to prevent the error from stopping the flow
+            // We wrap in try-catch to rethrow and handle at outer level
             try {
               await submit(payload);
-            } catch {
-              // Submit already shows error snackbar, we continue with toggle
-              // because the user explicitly requested to switch modes
+            } catch (err) {
+              // Log for debugging and rethrow to be handled by outer catch
+              // eslint-disable-next-line no-console
+              console.error("EmissionEditor submit error:", err);
+              throw err;
             }
           }
         }
 
         await toggleManualMode({ activated: isManual });
-      } catch {
-        // Revert local state if toggleManualMode fails
+      } catch (err) {
+        // Revert local state on error (both submit and toggleManualMode)
         setIsLocalTotalManualEmissionsMode(null);
         setValue(
           `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
           !isManual,
           { shouldDirty: false }
         );
+        // eslint-disable-next-line no-console
+        console.error("EmissionEditor error:", err);
+        // Display snackbar to alert user about the failure
+        enqueueSnackbar("Ocurrió un error al cambiar el modo de emisiones.", {
+          variant: "error",
+        });
       } finally {
         setIsLocalTotalManualEmissionsMode(null);
         setIsTotalManualEmissionsModeLoading(false);
@@ -421,6 +434,7 @@ export const useEmissionEditorForm = ({
       subcategoryId,
       startAction,
       endAction,
+      enqueueSnackbar,
     ]
   );
 
