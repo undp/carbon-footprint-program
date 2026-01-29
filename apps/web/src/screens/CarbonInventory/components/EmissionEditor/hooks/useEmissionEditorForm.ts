@@ -14,8 +14,6 @@ import {
 import {
   getCompatibleRateUnitId,
   getAvailableFactors,
-  getBaseFactorId,
-  getFactorData,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
@@ -167,7 +165,7 @@ export const useEmissionEditorForm = ({
   );
 
   const handleFactorSourceChange = useCallback(
-    (lineId: string, newFactorSource: string) => {
+    (lineId: string) => {
       const line = getValues(
         `subcategories.${subcategoryId}.lines.${lineId}`
       ) as EmissionCaptureFormLine | undefined;
@@ -185,21 +183,41 @@ export const useEmissionEditorForm = ({
         compatibleRateUnitId
       );
 
-      const baseFactorId = getBaseFactorId(availableFactors, newFactorSource);
+      if (!availableFactors.length) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "There are no available factors for the selected parameters. Cannot auto-select a factor."
+        );
+        return;
+      }
 
-      const { factorValue, factorRateMeasurementUnitId } = getFactorData(
-        availableFactors,
-        newFactorSource
-      );
+      if (availableFactors.length > 1) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "There are multiple available factors for the selected parameters. Cannot auto-select a factor."
+        );
+        return;
+      }
+
+      const factor = availableFactors[0];
+      const factorValue = parseFloat(factor.value);
+
+      if (isNaN(factorValue)) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          "The available factor has an invalid value. Cannot auto-select a factor."
+        );
+        return;
+      }
 
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-        newFactorSource,
+        factor.source,
         { shouldDirty: true }
       );
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
-        baseFactorId,
+        factor.originalEmissionFactorId,
         { shouldDirty: true }
       );
       setValue(
@@ -209,7 +227,7 @@ export const useEmissionEditorForm = ({
       );
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
-        factorRateMeasurementUnitId,
+        factor.rateMeasurementUnitId,
         { shouldDirty: true }
       );
     },
@@ -242,7 +260,7 @@ export const useEmissionEditorForm = ({
         CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
       if (!isOwnFactorSelected && areAllRequiredFieldsSelected) {
-        handleFactorSourceChange(lineId, "DEFRA 2025");
+        handleFactorSourceChange(lineId);
       }
     },
     [subcategory, getValues, handleFactorSourceChange]

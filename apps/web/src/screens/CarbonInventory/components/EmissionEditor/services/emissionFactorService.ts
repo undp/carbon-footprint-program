@@ -44,36 +44,3 @@ export const getAvailableSources = (
 ): string[] => {
   return [...new Set(availableFactors.map((f) => f.source))];
 };
-
-export const getBaseFactorId = (
-  availableFactors: EmissionFactor[],
-  factorSource: string | null
-): string | null => {
-  if (!factorSource || isCustomFactorSource(factorSource)) return null;
-
-  const factor = availableFactors.find((ef) => ef.source === factorSource);
-  if (!factor) return null;
-
-  return factor.originalEmissionFactorId ?? factor.id;
-};
-
-export const getFactorData = (
-  availableFactors: EmissionFactor[],
-  factorSource: string | null
-): {
-  factorValue: number | null;
-  factorRateMeasurementUnitId: string | null;
-} => {
-  if (!factorSource || isCustomFactorSource(factorSource)) {
-    return { factorValue: null, factorRateMeasurementUnitId: null };
-  }
-
-  const factor = availableFactors.find((ef) => ef.source === factorSource);
-  if (!factor) return { factorValue: null, factorRateMeasurementUnitId: null };
-
-  const value = parseFloat(factor.value);
-  return {
-    factorValue: isNaN(value) ? null : value,
-    factorRateMeasurementUnitId: factor.rateMeasurementUnitId,
-  };
-};
