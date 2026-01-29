@@ -200,8 +200,12 @@ export const MethodologiesScreen: FC = () => {
         <ActionButtons
           isActiveRow={params.row.activo}
           isEditing={editingRowId === params.row.id}
-          onStartEditCells={() => handleStartEditRow(params.row.id)}
-          onStopEditCells={handleStopEditRow}
+          onStartEditCells={
+            !params.row.activo
+              ? () => handleStartEditRow(params.row.id)
+              : undefined
+          }
+          onStopEditCells={!params.row.activo ? handleStopEditRow : undefined}
           onEdit={!params.row.activo ? () => handleEdit(params.row) : undefined}
           onView={params.row.activo ? () => handleEdit(params.row) : undefined}
           onDuplicate={() => handleDuplicate(params.row)}
