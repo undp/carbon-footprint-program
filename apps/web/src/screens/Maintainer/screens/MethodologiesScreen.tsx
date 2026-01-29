@@ -1,6 +1,7 @@
 import { FC, useCallback } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
+import { useSnackbar } from "notistack";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useMethodologies } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
@@ -24,7 +25,7 @@ export const MethodologiesScreen: FC = () => {
     useMethodologiesForm(methodologies);
   const { save, isSaving } = useSaveMethodologies();
   const startEditing = useMaintainerStore((s) => s.startEditing);
-
+  const { enqueueSnackbar } = useSnackbar();
   const { isDirty, isValid } = form.formState;
   const currentRows = form.watch("methodologies");
 
@@ -39,6 +40,13 @@ export const MethodologiesScreen: FC = () => {
 
   const handleToggle = useCallback(
     (row: Methodology, checked: boolean) => {
+      if (!checked) {
+        void enqueueSnackbar({
+          message: "Siempre debe haber una metodología activa",
+          variant: "warning",
+        });
+        return;
+      }
       const rows = form.getValues("methodologies");
       if (checked) {
         rows.forEach((m, i) => {
@@ -52,7 +60,7 @@ export const MethodologiesScreen: FC = () => {
         fieldArray.update(rowIndex, { ...row, activo: checked });
       }
     },
-    [form, fieldArray]
+    [form, fieldArray, enqueueSnackbar]
   );
 
   const handleEdit = useCallback(
@@ -127,34 +135,35 @@ export const MethodologiesScreen: FC = () => {
   const columns: GridColDef<Methodology>[] = [
     {
       field: "nombre",
+      cellClassName: "content-center max-h-[56px]",
       headerName: "Nombre",
-      flex: 1,
+      flex: 0.5,
       minWidth: 180,
-      editable: true,
     },
     {
       field: "descripcion",
+      cellClassName: "content-center max-h-[56px]",
       headerName: "Descripción",
       flex: 1.5,
       minWidth: 220,
-      editable: true,
     },
     {
       field: "normativa",
+      cellClassName: "content-center max-h-[56px]",
       headerName: "Normativa",
       width: 150,
-      editable: true,
       type: "singleSelect",
       valueOptions: NORMATIVA_OPTIONS.map((o) => o.value),
     },
     {
       field: "version",
+      cellClassName: "content-center max-h-[56px]",
       headerName: "Versión",
       width: 100,
-      editable: true,
     },
     {
       field: "activo",
+      cellClassName: "content-center max-h-[56px]",
       headerName: "Estado",
       width: 90,
       renderCell: (params: GridRenderCellParams<Methodology>) => (
@@ -166,12 +175,14 @@ export const MethodologiesScreen: FC = () => {
     },
     {
       field: "actions",
+      cellClassName: "content-center max-h-[56px]",
       headerName: "Acciones",
       width: 160,
       sortable: false,
       filterable: false,
       renderCell: (params: GridRenderCellParams<Methodology>) => (
         <ActionButtons
+          isActiveRow={params.row.activo}
           onEdit={!params.row.activo ? () => handleEdit(params.row) : undefined}
           onView={params.row.activo ? () => handleEdit(params.row) : undefined}
           onDuplicate={() => handleDuplicate(params.row)}
@@ -197,8 +208,8 @@ export const MethodologiesScreen: FC = () => {
       >
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Solo una
-          metodología puede estar activa a la vez.
+          modificar alcances, subcategorías y factores de emisión. Siempre debe
+          existir una única metodología activa.
         </Typography>
         <MethodologyEditorGrid
           columns={columns}
