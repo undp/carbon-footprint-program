@@ -54,34 +54,27 @@ const SIDEBAR_DEFS: (SidebarItem | SidebarGroup)[] = [
         label: "Unidades",
         icon: <SquareFootOutlined fontSize="small" />,
         path: Routes.MAINTAINER_UNITS,
-        disabled: true,
       },
     ],
   },
   {
     label: "Rubros",
     icon: <CategoryOutlined />,
-    disabled: true,
+    path: Routes.MAINTAINER_CATEGORIES,
     children: [
       {
-        label: "Actividades",
+        label: "Actividades Principales",
         icon: <CategoryOutlined />,
-        path: "#",
-        disabled: true,
+        path: Routes.MAINTAINER_PRINCIPAL_ACTIVITIES,
       },
     ],
   },
   {
     label: "Parámetros",
     icon: <TuneOutlined />,
-    disabled: false,
+    path: Routes.MAINTAINER_PARAMETERS,
+    disabled: true,
     children: [
-      {
-        label: "Unidades",
-        icon: <SquareFootOutlined />,
-        path: "#",
-        disabled: true,
-      },
       { label: "Alias", icon: <TuneOutlined />, path: "#", disabled: true },
     ],
   },
@@ -99,7 +92,6 @@ export const MaintainerSidebar: FC<Props> = ({ width }) => {
       variant="permanent"
       anchor="left"
       sx={{
-        width,
         flexShrink: 0,
         "& .MuiDrawer-paper": {
           width,
