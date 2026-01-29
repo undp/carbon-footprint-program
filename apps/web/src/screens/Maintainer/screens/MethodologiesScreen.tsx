@@ -135,11 +135,18 @@ export const MethodologiesScreen: FC = () => {
       const index = rows.findIndex((r) => r.id === newRow.id);
       if (index !== -1) {
         fieldArray.update(index, newRow);
-        updateMutation.mutate(newRow);
+        updateMutation.mutate(newRow, {
+          onSuccess: () => {
+            void enqueueSnackbar({
+              message: "Cambios guardados satisfactoriamente",
+              variant: "success",
+            });
+          },
+        });
       }
       return newRow;
     },
-    [form, fieldArray, updateMutation]
+    [form, fieldArray, updateMutation, enqueueSnackbar]
   );
 
   // --- Column definitions ---
