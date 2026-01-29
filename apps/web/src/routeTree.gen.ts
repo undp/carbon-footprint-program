@@ -24,10 +24,21 @@ import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AppMaintainerIndexRouteImport } from './routes/app/maintainer/index'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Route as AppUserFormRouteImport } from './routes/app/user/form'
 =======
 import { Route as AppMaintainerMethodologiesRouteImport } from './routes/app/maintainer/methodologies'
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+import { Route as AppMaintainerUnitsRouteImport } from './routes/app/maintainer/units'
+import { Route as AppMaintainerSubcategoriesRouteImport } from './routes/app/maintainer/subcategories'
+import { Route as AppMaintainerScopesRouteImport } from './routes/app/maintainer/scopes'
+import { Route as AppMaintainerPrincipalActivitiesRouteImport } from './routes/app/maintainer/principal-activities'
+import { Route as AppMaintainerParametersRouteImport } from './routes/app/maintainer/parameters'
+import { Route as AppMaintainerMethodologiesRouteImport } from './routes/app/maintainer/methodologies'
+import { Route as AppMaintainerEmissionFactorsRouteImport } from './routes/app/maintainer/emission-factors'
+import { Route as AppMaintainerCategoriesRouteImport } from './routes/app/maintainer/categories'
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as AppCarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-summary'
 import { Route as AppCarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-results'
@@ -105,19 +116,63 @@ const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
   getParentRoute: () => AppCarbonInventoryRoute,
 } as any)
 <<<<<<< HEAD
+<<<<<<< HEAD
 const AppUserFormRoute = AppUserFormRouteImport.update({
   id: '/app/user/form',
   path: '/app/user/form',
   getParentRoute: () => rootRouteImport,
 } as any)
 =======
+=======
+const AppMaintainerUnitsRoute = AppMaintainerUnitsRouteImport.update({
+  id: '/units',
+  path: '/units',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
+const AppMaintainerSubcategoriesRoute =
+  AppMaintainerSubcategoriesRouteImport.update({
+    id: '/subcategories',
+    path: '/subcategories',
+    getParentRoute: () => AppMaintainerRoute,
+  } as any)
+const AppMaintainerScopesRoute = AppMaintainerScopesRouteImport.update({
+  id: '/scopes',
+  path: '/scopes',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
+const AppMaintainerPrincipalActivitiesRoute =
+  AppMaintainerPrincipalActivitiesRouteImport.update({
+    id: '/principal-activities',
+    path: '/principal-activities',
+    getParentRoute: () => AppMaintainerRoute,
+  } as any)
+const AppMaintainerParametersRoute = AppMaintainerParametersRouteImport.update({
+  id: '/parameters',
+  path: '/parameters',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
 const AppMaintainerMethodologiesRoute =
   AppMaintainerMethodologiesRouteImport.update({
     id: '/methodologies',
     path: '/methodologies',
     getParentRoute: () => AppMaintainerRoute,
   } as any)
+<<<<<<< HEAD
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+const AppMaintainerEmissionFactorsRoute =
+  AppMaintainerEmissionFactorsRouteImport.update({
+    id: '/emission-factors',
+    path: '/emission-factors',
+    getParentRoute: () => AppMaintainerRoute,
+  } as any)
+const AppMaintainerCategoriesRoute = AppMaintainerCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AppMaintainerRoute,
+} as any)
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
 const AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute =
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
     id: '/$inventoryId/subcategory-preselection',
@@ -163,10 +218,21 @@ export interface FileRoutesByFullPath {
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
 <<<<<<< HEAD
+<<<<<<< HEAD
   '/app/user/form': typeof AppUserFormRoute
 =======
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+  '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
+  '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
+  '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
+  '/app/maintainer/parameters': typeof AppMaintainerParametersRoute
+  '/app/maintainer/principal-activities': typeof AppMaintainerPrincipalActivitiesRoute
+  '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
+  '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
+  '/app/maintainer/units': typeof AppMaintainerUnitsRoute
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer/': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -187,10 +253,21 @@ export interface FileRoutesByTo {
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
 <<<<<<< HEAD
+<<<<<<< HEAD
   '/app/user/form': typeof AppUserFormRoute
 =======
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+  '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
+  '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
+  '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
+  '/app/maintainer/parameters': typeof AppMaintainerParametersRoute
+  '/app/maintainer/principal-activities': typeof AppMaintainerPrincipalActivitiesRoute
+  '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
+  '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
+  '/app/maintainer/units': typeof AppMaintainerUnitsRoute
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -214,10 +291,21 @@ export interface FileRoutesById {
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
 <<<<<<< HEAD
+<<<<<<< HEAD
   '/app/user/form': typeof AppUserFormRoute
 =======
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+  '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
+  '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
+  '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
+  '/app/maintainer/parameters': typeof AppMaintainerParametersRoute
+  '/app/maintainer/principal-activities': typeof AppMaintainerPrincipalActivitiesRoute
+  '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
+  '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
+  '/app/maintainer/units': typeof AppMaintainerUnitsRoute
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer/': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -242,10 +330,21 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
 <<<<<<< HEAD
+<<<<<<< HEAD
     | '/app/user/form'
 =======
     | '/app/maintainer/methodologies'
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+    | '/app/maintainer/categories'
+    | '/app/maintainer/emission-factors'
+    | '/app/maintainer/methodologies'
+    | '/app/maintainer/parameters'
+    | '/app/maintainer/principal-activities'
+    | '/app/maintainer/scopes'
+    | '/app/maintainer/subcategories'
+    | '/app/maintainer/units'
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
     | '/app/carbon-inventory/'
     | '/app/maintainer/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -266,10 +365,21 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
 <<<<<<< HEAD
+<<<<<<< HEAD
     | '/app/user/form'
 =======
     | '/app/maintainer/methodologies'
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+    | '/app/maintainer/categories'
+    | '/app/maintainer/emission-factors'
+    | '/app/maintainer/methodologies'
+    | '/app/maintainer/parameters'
+    | '/app/maintainer/principal-activities'
+    | '/app/maintainer/scopes'
+    | '/app/maintainer/subcategories'
+    | '/app/maintainer/units'
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
     | '/app/carbon-inventory'
     | '/app/maintainer'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -292,10 +402,21 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
 <<<<<<< HEAD
+<<<<<<< HEAD
     | '/app/user/form'
 =======
     | '/app/maintainer/methodologies'
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+=======
+    | '/app/maintainer/categories'
+    | '/app/maintainer/emission-factors'
+    | '/app/maintainer/methodologies'
+    | '/app/maintainer/parameters'
+    | '/app/maintainer/principal-activities'
+    | '/app/maintainer/scopes'
+    | '/app/maintainer/subcategories'
+    | '/app/maintainer/units'
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
     | '/app/carbon-inventory/'
     | '/app/maintainer/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -422,6 +543,7 @@ declare module '@tanstack/react-router' {
       parentRoute: typeof AppCarbonInventoryRoute
     }
 <<<<<<< HEAD
+<<<<<<< HEAD
     '/app/user/form': {
       id: '/app/user/form'
       path: '/app/user/form'
@@ -429,6 +551,43 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUserFormRouteImport
       parentRoute: typeof rootRouteImport
 =======
+=======
+    '/app/maintainer/units': {
+      id: '/app/maintainer/units'
+      path: '/units'
+      fullPath: '/app/maintainer/units'
+      preLoaderRoute: typeof AppMaintainerUnitsRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/subcategories': {
+      id: '/app/maintainer/subcategories'
+      path: '/subcategories'
+      fullPath: '/app/maintainer/subcategories'
+      preLoaderRoute: typeof AppMaintainerSubcategoriesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/scopes': {
+      id: '/app/maintainer/scopes'
+      path: '/scopes'
+      fullPath: '/app/maintainer/scopes'
+      preLoaderRoute: typeof AppMaintainerScopesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/principal-activities': {
+      id: '/app/maintainer/principal-activities'
+      path: '/principal-activities'
+      fullPath: '/app/maintainer/principal-activities'
+      preLoaderRoute: typeof AppMaintainerPrincipalActivitiesRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/parameters': {
+      id: '/app/maintainer/parameters'
+      path: '/parameters'
+      fullPath: '/app/maintainer/parameters'
+      preLoaderRoute: typeof AppMaintainerParametersRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+>>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
     '/app/maintainer/methodologies': {
       id: '/app/maintainer/methodologies'
       path: '/methodologies'
@@ -436,6 +595,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMaintainerMethodologiesRouteImport
       parentRoute: typeof AppMaintainerRoute
 >>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
+    }
+    '/app/maintainer/emission-factors': {
+      id: '/app/maintainer/emission-factors'
+      path: '/emission-factors'
+      fullPath: '/app/maintainer/emission-factors'
+      preLoaderRoute: typeof AppMaintainerEmissionFactorsRouteImport
+      parentRoute: typeof AppMaintainerRoute
+    }
+    '/app/maintainer/categories': {
+      id: '/app/maintainer/categories'
+      path: '/categories'
+      fullPath: '/app/maintainer/categories'
+      preLoaderRoute: typeof AppMaintainerCategoriesRouteImport
+      parentRoute: typeof AppMaintainerRoute
     }
     '/app/carbon-inventory/$inventoryId/subcategory-preselection': {
       id: '/app/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -502,12 +675,26 @@ const AppCarbonInventoryRouteWithChildren =
   AppCarbonInventoryRoute._addFileChildren(AppCarbonInventoryRouteChildren)
 
 interface AppMaintainerRouteChildren {
+  AppMaintainerCategoriesRoute: typeof AppMaintainerCategoriesRoute
+  AppMaintainerEmissionFactorsRoute: typeof AppMaintainerEmissionFactorsRoute
   AppMaintainerMethodologiesRoute: typeof AppMaintainerMethodologiesRoute
+  AppMaintainerParametersRoute: typeof AppMaintainerParametersRoute
+  AppMaintainerPrincipalActivitiesRoute: typeof AppMaintainerPrincipalActivitiesRoute
+  AppMaintainerScopesRoute: typeof AppMaintainerScopesRoute
+  AppMaintainerSubcategoriesRoute: typeof AppMaintainerSubcategoriesRoute
+  AppMaintainerUnitsRoute: typeof AppMaintainerUnitsRoute
   AppMaintainerIndexRoute: typeof AppMaintainerIndexRoute
 }
 
 const AppMaintainerRouteChildren: AppMaintainerRouteChildren = {
+  AppMaintainerCategoriesRoute: AppMaintainerCategoriesRoute,
+  AppMaintainerEmissionFactorsRoute: AppMaintainerEmissionFactorsRoute,
   AppMaintainerMethodologiesRoute: AppMaintainerMethodologiesRoute,
+  AppMaintainerParametersRoute: AppMaintainerParametersRoute,
+  AppMaintainerPrincipalActivitiesRoute: AppMaintainerPrincipalActivitiesRoute,
+  AppMaintainerScopesRoute: AppMaintainerScopesRoute,
+  AppMaintainerSubcategoriesRoute: AppMaintainerSubcategoriesRoute,
+  AppMaintainerUnitsRoute: AppMaintainerUnitsRoute,
   AppMaintainerIndexRoute: AppMaintainerIndexRoute,
 }
 
