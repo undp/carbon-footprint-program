@@ -1,4 +1,4 @@
-import { FC, useMemo, useEffect } from "react";
+import { FC, useMemo, useEffect, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
@@ -68,6 +68,14 @@ export const EmissionCaptureScreen: FC = () => {
       showNoChangesMessage: false,
     });
 
+  const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
+    inventoryId,
+    isDirty: formState.isDirty,
+    resetAfterSave,
+    showNoChangesMessage: false,
+    resultFeedbackWithSnackbar: true,
+  });
+
   const selectedCategoryData = useMemo(
     () => data?.categories.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
@@ -93,6 +101,16 @@ export const EmissionCaptureScreen: FC = () => {
   }, [resetStore]);
 
   const isBusy = activeActionsCount > 0;
+
+  const handleCategoryChangeWithSave = useCallback(
+    (categoryId: string) => {
+      void handleSubmit(async (data) => {
+        await submitOnCategoryChange(data);
+        handleCategoryChange(categoryId);
+      })();
+    },
+    [handleSubmit, submitOnCategoryChange, handleCategoryChange]
+  );
 
   return (
     <FormProvider {...methods}>
@@ -161,7 +179,7 @@ export const EmissionCaptureScreen: FC = () => {
                     title={category.name}
                     subtitle={category.synonyms}
                     description={category.description}
-                    onClick={() => handleCategoryChange(category.id)}
+                    onClick={() => handleCategoryChangeWithSave(category.id)}
                   />
                 ))}
               </Box>
