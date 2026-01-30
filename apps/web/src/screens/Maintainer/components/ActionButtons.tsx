@@ -45,7 +45,7 @@ export const ActionButtons: FC<Props> = ({
 
   return (
     <>
-      <Box sx={{ display: "flex", gap: 0.5 }}>
+      <Box className="flex justify-end gap-1 pr-4">
         {isEditing && onStopEditCells ? (
           <Tooltip title="Listo">
             <IconButton size="small" onClick={onStopEditCells} color="primary">

@@ -1,75 +1,63 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import type { Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import type { Methodology } from "../types";
 
 export interface MethodologiesFormValues {
   methodologies: Methodology[];
 }
 
-const resolver: Resolver<MethodologiesFormValues> = (values) => {
-  const errors: Record<string, unknown> = {};
-  const methodologyErrors: Record<number, Record<string, unknown>> = {};
-
-  values.methodologies.forEach((item, index) => {
-    const fieldErrors: Record<string, unknown> = {};
-    if (!item.nombre.trim()) {
-      fieldErrors.nombre = { type: "required", message: "Campo obligatorio" };
-    }
-    if (!item.descripcion.trim()) {
-      fieldErrors.descripcion = {
-        type: "required",
-        message: "Campo obligatorio",
-      };
-    }
-    if (!item.normativa.trim()) {
-      fieldErrors.normativa = {
-        type: "required",
-        message: "Campo obligatorio",
-      };
-    }
-    if (!item.version.trim()) {
-      fieldErrors.version = { type: "required", message: "Campo obligatorio" };
-    }
-    if (Object.keys(fieldErrors).length > 0) {
-      methodologyErrors[index] = fieldErrors;
-    }
-  });
-
-  if (Object.keys(methodologyErrors).length > 0) {
-    errors.methodologies = methodologyErrors;
-  }
-
-  return {
-    values: Object.keys(errors).length === 0 ? values : {},
-    errors: Object.keys(errors).length === 0 ? {} : errors,
-  };
-};
+const methodologiesFormSchema = z.object({
+  methodologies: z.array(
+    z.object({
+      id: z.string().min(1, "ID inválido"),
+      nombre: z.string().min(1, "Campo obligatorio"),
+      descripcion: z.string().min(1, "Campo obligatorio"),
+      normativa: z.string().min(1, "Campo obligatorio"),
+      version: z.string().min(1, "Campo obligatorio"),
+      activo: z.boolean(),
+    })
+  ),
+});
 
 export const useMethodologiesForm = (serverData: Methodology[]) => {
   const form = useForm<MethodologiesFormValues>({
     defaultValues: { methodologies: [] },
-    mode: "onChange",
-    resolver,
+    mode: "onBlur",
+    resolver: zodResolver(methodologiesFormSchema),
   });
 
   const fieldArray = useFieldArray({
     control: form.control,
     name: "methodologies",
-    keyName: "_rhfId",
   });
 
   const initialized = useRef(false);
 
   useEffect(() => {
     if (serverData.length > 0 && !initialized.current) {
-      form.reset({ methodologies: serverData });
+      // Deep clone to avoid "read-only" errors (React Query data is immutable)
+      const clonedData = structuredClone(serverData);
+      form.reset({ methodologies: clonedData });
       initialized.current = true;
     }
   }, [serverData, form]);
 
+  const handleCellChange = useCallback(
+    (rowIndex: number, field: keyof Methodology, value: string) => {
+      const currentRow = form.getValues(`methodologies.${rowIndex}`);
+      if (currentRow) {
+        fieldArray.update(rowIndex, { ...currentRow, [field]: value });
+        void form.trigger(`methodologies.${rowIndex}.${field}`);
+      }
+    },
+    [form, fieldArray]
+  );
+
   return {
     form,
     fieldArray,
+    handleCellChange,
   };
 };
