@@ -2,8 +2,7 @@ import { FC, useCallback, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
-import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { useGridApiRef } from "@mui/x-data-grid";
+import { FormProvider } from "react-hook-form";
 import {
   useMethodologies,
   useUpdateMethodology,
@@ -12,50 +11,83 @@ import {
 } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { ToggleCell } from "../components/ToggleCell";
-import { ActionButtons } from "../components/ActionButtons";
-import { NORMATIVA_OPTIONS } from "../constants";
 import { createEmptyMethodology } from "../mocks/methodologies.mock";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
+import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import type { Methodology } from "../types";
-import { MethodologyEditorGrid } from "../components/MethodologyGrid";
+import { StylizedDataGrid } from "../../../components";
 
 export const MethodologiesScreen: FC = () => {
   const navigate = useNavigate();
-  const { data: methodologies = [], isLoading } = useMethodologies();
-  const { form, fieldArray } = useMethodologiesForm(methodologies);
-  const updateMutation = useUpdateMethodology();
-  const addMutation = useAddMethodology();
-  const deleteMutation = useDeleteMethodology();
-  const startEditing = useMaintainerStore((s) => s.startEditing);
   const { enqueueSnackbar } = useSnackbar();
-  const currentRows = form.watch("methodologies");
-  const [editingRowId, setEditingRowId] = useState<string | null>(null);
-  const apiRef = useGridApiRef();
 
-  // --- Handlers that manipulate the field array ---
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+
+  // --- Data fetching ---
+  const { data: methodologies = [], isLoading } = useMethodologies();
+  const addMutation = useAddMethodology();
+  const updateMutation = useUpdateMethodology();
+  const deleteMutation = useDeleteMethodology();
+
+  // --- Form setup ---
+  const { form, fieldArray, handleCellChange } =
+    useMethodologiesForm(methodologies);
+  const startEditing = useMaintainerStore((s) => s.startEditing);
+  const currentRows = form.watch("methodologies");
+
+  const handleStopEditRow = useCallback(async () => {
+    if (!editingRowId) return;
+
+    const rows = form.getValues("methodologies");
+    const rowIndex = rows.findIndex((r) => r.id === editingRowId);
+    const row = rows[rowIndex];
+
+    // Validate the row before allowing exit
+    const isValid = await form.trigger(`methodologies.${rowIndex}`);
+    if (!isValid) {
+      void enqueueSnackbar({
+        message: "Corrige los errores antes de guardar",
+        variant: "error",
+        autoHideDuration: 2000,
+      });
+      return;
+    }
+
+    const dirtyFields = form.formState.dirtyFields;
+    const isRowDirty = dirtyFields.methodologies?.[rowIndex];
+
+    if (row && isRowDirty) {
+      updateMutation.mutate(row, {
+        onSuccess: () => {
+          void enqueueSnackbar({
+            message: "Cambios guardados satisfactoriamente",
+            variant: "success",
+            autoHideDuration: 2000,
+          });
+        },
+      });
+    }
+
+    setEditingRowId(null);
+  }, [editingRowId, form, updateMutation, enqueueSnackbar]);
 
   const handleStartEditRow = useCallback(
-    (rowId: string) => {
+    async (rowId: string) => {
+      if (rowId) await handleStopEditRow();
       setEditingRowId(rowId);
-      apiRef.current?.startRowEditMode({ id: rowId });
     },
-    [apiRef]
+    [handleStopEditRow]
   );
 
-  const handleStopEditRow = useCallback(() => {
-    if (!editingRowId) return;
-    apiRef.current?.stopRowEditMode({ id: editingRowId });
-    setEditingRowId(null);
-  }, [apiRef, editingRowId]);
-
+  // Comment: Creo que esto se podria mejorar, asi como esta siempre son dos llamadas a la API.
   const handleToggle = useCallback(
     (row: Methodology, checked: boolean) => {
       if (!checked) {
         void enqueueSnackbar({
           message: "Siempre debe haber una metodología activa",
           variant: "warning",
+          autoHideDuration: 2000,
         });
         return;
       }
@@ -73,7 +105,15 @@ export const MethodologiesScreen: FC = () => {
       if (rowIndex !== -1) {
         const updatedRow = { ...row, activo: checked };
         fieldArray.update(rowIndex, updatedRow);
-        updateMutation.mutate(updatedRow);
+        updateMutation.mutate(updatedRow, {
+          onSuccess: () => {
+            void enqueueSnackbar({
+              message: "Metodología activa actualizada",
+              variant: "success",
+              autoHideDuration: 2000,
+            });
+          },
+        });
       }
     },
     [form, fieldArray, enqueueSnackbar, updateMutation]
@@ -102,9 +142,17 @@ export const MethodologiesScreen: FC = () => {
         activo: false,
       };
       fieldArray.insert(index + 1, duplicate);
-      addMutation.mutate(duplicate);
+      addMutation.mutate(duplicate, {
+        onSuccess: () => {
+          void enqueueSnackbar({
+            message: "Metodología duplicada exitosamente",
+            variant: "success",
+            autoHideDuration: 2000,
+          });
+        },
+      });
     },
-    [form, fieldArray, addMutation]
+    [form, fieldArray, addMutation, enqueueSnackbar]
   );
 
   const handleAddRow = useCallback(() => {
@@ -113,9 +161,14 @@ export const MethodologiesScreen: FC = () => {
     addMutation.mutate(newRow, {
       onSuccess: () => {
         setEditingRowId(newRow.id);
+        void enqueueSnackbar({
+          message: "Nueva metodología creada",
+          variant: "success",
+          autoHideDuration: 2000,
+        });
       },
     });
-  }, [fieldArray, addMutation]);
+  }, [fieldArray, addMutation, enqueueSnackbar]);
 
   const handleDelete = useCallback(
     (row: Methodology) => {
@@ -123,107 +176,36 @@ export const MethodologiesScreen: FC = () => {
       const index = rows.findIndex((r) => r.id === row.id);
       if (index !== -1) {
         fieldArray.remove(index);
-        deleteMutation.mutate(row.id);
-      }
-    },
-    [form, fieldArray, deleteMutation]
-  );
-
-  const processRowUpdate = useCallback(
-    (newRow: Methodology) => {
-      const rows = form.getValues("methodologies");
-      const index = rows.findIndex((r) => r.id === newRow.id);
-      if (index !== -1) {
-        fieldArray.update(index, newRow);
-        updateMutation.mutate(newRow, {
+        deleteMutation.mutate(row.id, {
           onSuccess: () => {
             void enqueueSnackbar({
-              message: "Cambios guardados satisfactoriamente",
+              message: "Metodología eliminada",
               variant: "success",
+              autoHideDuration: 2000,
             });
           },
         });
       }
-      return newRow;
     },
-    [form, fieldArray, updateMutation, enqueueSnackbar]
+    [form, fieldArray, deleteMutation, enqueueSnackbar]
   );
 
-  // --- Column definitions ---
+  // --- Column definitions via hook ---
 
-  const columns: GridColDef<Methodology>[] = [
-    {
-      field: "nombre",
-      cellClassName: "content-center max-h-[56px]",
-      headerName: "Nombre",
-      flex: 0.5,
-      minWidth: 180,
-      editable: true,
-    },
-    {
-      field: "descripcion",
-      cellClassName: "content-center max-h-[56px]",
-      headerName: "Descripción",
-      flex: 1.5,
-      minWidth: 220,
-      editable: true,
-    },
-    {
-      field: "normativa",
-      cellClassName: "content-center max-h-[56px]",
-      headerName: "Normativa",
-      width: 150,
-      type: "singleSelect",
-      valueOptions: NORMATIVA_OPTIONS.map((o) => o.value),
-      editable: true,
-    },
-    {
-      field: "version",
-      cellClassName: "content-center max-h-[56px]",
-      headerName: "Versión",
-      width: 100,
-      editable: true,
-    },
-    {
-      field: "activo",
-      cellClassName: "content-center max-h-[56px]",
-      headerName: "Estado",
-      width: 90,
-      renderCell: (params: GridRenderCellParams<Methodology>) => (
-        <ToggleCell
-          value={params.row.activo}
-          onChange={(checked) => handleToggle(params.row, checked)}
-        />
-      ),
-    },
-    {
-      field: "actions",
-      cellClassName: "content-center max-h-[56px]",
-      headerName: "Acciones",
-      width: 160,
-      sortable: false,
-      filterable: false,
-      renderCell: (params: GridRenderCellParams<Methodology>) => (
-        <ActionButtons
-          isActiveRow={params.row.activo}
-          isEditing={editingRowId === params.row.id}
-          onStartEditCells={
-            !params.row.activo
-              ? () => handleStartEditRow(params.row.id)
-              : undefined
-          }
-          onStopEditCells={!params.row.activo ? handleStopEditRow : undefined}
-          onEdit={!params.row.activo ? () => handleEdit(params.row) : undefined}
-          onView={params.row.activo ? () => handleEdit(params.row) : undefined}
-          onDuplicate={() => handleDuplicate(params.row)}
-          onDelete={() => handleDelete(params.row)}
-        />
-      ),
-    },
-  ];
+  const columns = useMethodologyColumns({
+    editingRowId,
+    onCellChange: handleCellChange,
+    onToggle: handleToggle,
+    onStartEditRow: handleStartEditRow,
+    onStopEditRow: handleStopEditRow,
+    onEdit: handleEdit,
+    onDuplicate: handleDuplicate,
+    onDelete: handleDelete,
+    rows: currentRows,
+  });
 
   return (
-    <>
+    <FormProvider {...form}>
       <MaintainerPageHeader
         title="Metodologías"
         onAddRow={handleAddRow}
@@ -241,14 +223,29 @@ export const MethodologiesScreen: FC = () => {
           modificar alcances, subcategorías y factores de emisión. Siempre debe
           existir una única metodología activa.
         </Typography>
-        <MethodologyEditorGrid
-          columns={columns}
-          rows={currentRows}
-          loading={isLoading}
-          processRowUpdate={processRowUpdate}
-          apiRef={apiRef}
-        />
+        <Box className="flex w-full">
+          <StylizedDataGrid
+            sx={(theme) => ({
+              "& .MuiDataGrid-columnHeader": {
+                backgroundColor: theme.palette.grey[200],
+              },
+              "& .MuiDataGrid-cell": {
+                display: "flex",
+                alignItems: "center",
+                py: 1,
+              },
+              "& .MuiDataGrid-cell .MuiTextField-root": {
+                alignSelf: "center",
+              },
+            })}
+            columns={columns}
+            rows={currentRows}
+            rowHeight={60}
+            getRowId={(row: Methodology) => row.id}
+            loading={isLoading}
+          />
+        </Box>
       </Box>
-    </>
+    </FormProvider>
   );
 };

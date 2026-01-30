@@ -4,14 +4,20 @@ import { Switch, useTheme } from "@mui/material";
 interface Props {
   value: boolean;
   onChange: (checked: boolean) => void;
+  disabled?: boolean;
 }
 
-export const ToggleCell: FC<Props> = ({ value, onChange }) => {
+export const ToggleCell: FC<Props> = ({
+  value,
+  onChange,
+  disabled = false,
+}) => {
   const theme = useTheme();
   return (
     <Switch
       checked={value}
       onChange={(_e, checked) => onChange(checked)}
+      disabled={disabled}
       sx={{
         width: 42,
         height: 26,
