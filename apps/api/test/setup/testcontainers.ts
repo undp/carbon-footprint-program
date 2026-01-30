@@ -17,7 +17,7 @@ function getDatabasePackagePath(): string {
 function createPrismaExecOptions(databaseUrl: string) {
   return {
     cwd: getDatabasePackagePath(),
-    stdio: "pipe" as const,
+    stdio: "inherit" as const,
     env: {
       // eslint-disable-next-line turbo/no-undeclared-env-vars
       PATH: process.env.PATH,
