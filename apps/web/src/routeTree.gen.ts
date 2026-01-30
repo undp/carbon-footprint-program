@@ -23,13 +23,7 @@ import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-in
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AppMaintainerIndexRouteImport } from './routes/app/maintainer/index'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
-<<<<<<< HEAD
-<<<<<<< HEAD
 import { Route as AppUserFormRouteImport } from './routes/app/user/form'
-=======
-import { Route as AppMaintainerMethodologiesRouteImport } from './routes/app/maintainer/methodologies'
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
 import { Route as AppMaintainerUnitsRouteImport } from './routes/app/maintainer/units'
 import { Route as AppMaintainerSubcategoriesRouteImport } from './routes/app/maintainer/subcategories'
 import { Route as AppMaintainerScopesRouteImport } from './routes/app/maintainer/scopes'
@@ -38,7 +32,6 @@ import { Route as AppMaintainerParametersRouteImport } from './routes/app/mainta
 import { Route as AppMaintainerMethodologiesRouteImport } from './routes/app/maintainer/methodologies'
 import { Route as AppMaintainerEmissionFactorsRouteImport } from './routes/app/maintainer/emission-factors'
 import { Route as AppMaintainerCategoriesRouteImport } from './routes/app/maintainer/categories'
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as AppCarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-summary'
 import { Route as AppCarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-results'
@@ -115,15 +108,11 @@ const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppCarbonInventoryRoute,
 } as any)
-<<<<<<< HEAD
-<<<<<<< HEAD
 const AppUserFormRoute = AppUserFormRouteImport.update({
   id: '/app/user/form',
   path: '/app/user/form',
   getParentRoute: () => rootRouteImport,
 } as any)
-=======
-=======
 const AppMaintainerUnitsRoute = AppMaintainerUnitsRouteImport.update({
   id: '/units',
   path: '/units',
@@ -151,16 +140,12 @@ const AppMaintainerParametersRoute = AppMaintainerParametersRouteImport.update({
   path: '/parameters',
   getParentRoute: () => AppMaintainerRoute,
 } as any)
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
 const AppMaintainerMethodologiesRoute =
   AppMaintainerMethodologiesRouteImport.update({
     id: '/methodologies',
     path: '/methodologies',
     getParentRoute: () => AppMaintainerRoute,
   } as any)
-<<<<<<< HEAD
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
 const AppMaintainerEmissionFactorsRoute =
   AppMaintainerEmissionFactorsRouteImport.update({
     id: '/emission-factors',
@@ -172,7 +157,6 @@ const AppMaintainerCategoriesRoute = AppMaintainerCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AppMaintainerRoute,
 } as any)
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
 const AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute =
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
     id: '/$inventoryId/subcategory-preselection',
@@ -217,13 +201,6 @@ export interface FileRoutesByFullPath {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
-<<<<<<< HEAD
-<<<<<<< HEAD
-  '/app/user/form': typeof AppUserFormRoute
-=======
-  '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
   '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
   '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
@@ -232,7 +209,7 @@ export interface FileRoutesByFullPath {
   '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
   '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
   '/app/maintainer/units': typeof AppMaintainerUnitsRoute
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
+  '/app/user/form': typeof AppUserFormRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer/': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -252,13 +229,6 @@ export interface FileRoutesByTo {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
-<<<<<<< HEAD
-<<<<<<< HEAD
-  '/app/user/form': typeof AppUserFormRoute
-=======
-  '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
   '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
   '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
@@ -267,7 +237,7 @@ export interface FileRoutesByTo {
   '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
   '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
   '/app/maintainer/units': typeof AppMaintainerUnitsRoute
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
+  '/app/user/form': typeof AppUserFormRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -290,13 +260,6 @@ export interface FileRoutesById {
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
-<<<<<<< HEAD
-<<<<<<< HEAD
-  '/app/user/form': typeof AppUserFormRoute
-=======
-  '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
   '/app/maintainer/categories': typeof AppMaintainerCategoriesRoute
   '/app/maintainer/emission-factors': typeof AppMaintainerEmissionFactorsRoute
   '/app/maintainer/methodologies': typeof AppMaintainerMethodologiesRoute
@@ -305,7 +268,7 @@ export interface FileRoutesById {
   '/app/maintainer/scopes': typeof AppMaintainerScopesRoute
   '/app/maintainer/subcategories': typeof AppMaintainerSubcategoriesRoute
   '/app/maintainer/units': typeof AppMaintainerUnitsRoute
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
+  '/app/user/form': typeof AppUserFormRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/maintainer/': typeof AppMaintainerIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -329,13 +292,6 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
-<<<<<<< HEAD
-<<<<<<< HEAD
-    | '/app/user/form'
-=======
-    | '/app/maintainer/methodologies'
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
     | '/app/maintainer/categories'
     | '/app/maintainer/emission-factors'
     | '/app/maintainer/methodologies'
@@ -344,7 +300,7 @@ export interface FileRouteTypes {
     | '/app/maintainer/scopes'
     | '/app/maintainer/subcategories'
     | '/app/maintainer/units'
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
+    | '/app/user/form'
     | '/app/carbon-inventory/'
     | '/app/maintainer/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -364,13 +320,6 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
-<<<<<<< HEAD
-<<<<<<< HEAD
-    | '/app/user/form'
-=======
-    | '/app/maintainer/methodologies'
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
     | '/app/maintainer/categories'
     | '/app/maintainer/emission-factors'
     | '/app/maintainer/methodologies'
@@ -379,7 +328,7 @@ export interface FileRouteTypes {
     | '/app/maintainer/scopes'
     | '/app/maintainer/subcategories'
     | '/app/maintainer/units'
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
+    | '/app/user/form'
     | '/app/carbon-inventory'
     | '/app/maintainer'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -401,13 +350,6 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
-<<<<<<< HEAD
-<<<<<<< HEAD
-    | '/app/user/form'
-=======
-    | '/app/maintainer/methodologies'
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
-=======
     | '/app/maintainer/categories'
     | '/app/maintainer/emission-factors'
     | '/app/maintainer/methodologies'
@@ -416,7 +358,7 @@ export interface FileRouteTypes {
     | '/app/maintainer/scopes'
     | '/app/maintainer/subcategories'
     | '/app/maintainer/units'
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
+    | '/app/user/form'
     | '/app/carbon-inventory/'
     | '/app/maintainer/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -542,16 +484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarbonInventoryIndexRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
     }
-<<<<<<< HEAD
-<<<<<<< HEAD
     '/app/user/form': {
       id: '/app/user/form'
       path: '/app/user/form'
       fullPath: '/app/user/form'
       preLoaderRoute: typeof AppUserFormRouteImport
       parentRoute: typeof rootRouteImport
-=======
-=======
+    }
     '/app/maintainer/units': {
       id: '/app/maintainer/units'
       path: '/units'
@@ -587,14 +526,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMaintainerParametersRouteImport
       parentRoute: typeof AppMaintainerRoute
     }
->>>>>>> 675bb1a (feat: new "under construction" routes to facilitate sidebar behaviors)
     '/app/maintainer/methodologies': {
       id: '/app/maintainer/methodologies'
       path: '/methodologies'
       fullPath: '/app/maintainer/methodologies'
       preLoaderRoute: typeof AppMaintainerMethodologiesRouteImport
       parentRoute: typeof AppMaintainerRoute
->>>>>>> 291fe04 (chore: regenerate route tree for methodologies only)
     }
     '/app/maintainer/emission-factors': {
       id: '/app/maintainer/emission-factors'
