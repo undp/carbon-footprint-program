@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import {
   EmissionCaptureFormValues,
@@ -57,7 +57,24 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
   const dirtyFields = form.formState.dirtyFields;
 
+  // Ref to track if we're waiting for fresh data after a save.
+  // This prevents the reconciliation useEffect from re-applying stale data
+  // between when resetAfterSave is called and when the refetch completes.
+  const waitingForFreshDataRef = useRef(false);
+  // Track the last data reference to detect when fresh data arrives
+  const lastDataRef = useRef(data);
+
   useEffect(() => {
+    // If we're waiting for fresh data, check if data has changed
+    if (waitingForFreshDataRef.current) {
+      if (data === lastDataRef.current) {
+        // Data hasn't changed yet, skip reconciliation
+        return;
+      }
+      // Fresh data has arrived, clear the flag and proceed with reconciliation
+      waitingForFreshDataRef.current = false;
+    }
+    lastDataRef.current = data;
     // STEP 1: Preserve manual total emissions and new lines from current form state before reset
     const currentFormValues = getValues();
     const preservedManualTotals: Record<SubcategoryId, number> = {};
@@ -275,6 +292,11 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         };
       }
     );
+
+    // Set flag to wait for fresh data before reconciling again.
+    // This prevents the useEffect from re-applying stale server data
+    // between now and when the refetch completes.
+    waitingForFreshDataRef.current = true;
 
     // Reset the form with cleaned data, clearing the dirty state
     reset(cleanedFormData, {
