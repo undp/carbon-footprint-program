@@ -11,6 +11,7 @@ import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hook
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
 import { SubcategoryPreselectionField } from "./components";
 import { CategoryCard } from "./components/CategoryCard";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 
 const ERROR_MESSAGE = {
   title:
@@ -60,16 +61,29 @@ export const SubcategoryPreselectionScreen: FC = () => {
             title: "Simulador de Inventario Organizacional",
           }}
           footerProps={{
-            backButtonProps: {
-              disabled: isSubmitting,
-              onClick: goBack,
-            },
-            nextButtonProps: {
-              type: "submit",
-              form: "subcategory-preselection-form",
-              loading: isSubmitting,
-              disabled: isFormDisabled,
-            },
+            buttons: [
+              {
+                text: "Volver",
+                align: "right",
+                buttonProps: {
+                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+                  disabled: isSubmitting,
+                  onClick: goBack,
+                },
+              },
+              {
+                text: "Siguiente",
+                align: "right",
+                buttonProps: {
+                  endIcon: <ArrowRightAltRounded />,
+                  variant: "contained",
+                  type: "submit",
+                  form: "subcategory-preselection-form",
+                  loading: isSubmitting,
+                  disabled: isFormDisabled,
+                },
+              },
+            ],
           }}
           isLoading={isLoading}
           hasError={hasError}

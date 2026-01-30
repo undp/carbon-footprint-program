@@ -4,3 +4,4 @@ export * from "./useCreateCarbonInventory";
 export * from "./useUpdateCarbonInventory";
 export * from "./methodologies";
 export * from "./subcategories";
+export * from "./lines";

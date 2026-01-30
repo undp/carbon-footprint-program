@@ -6,6 +6,8 @@ type Props<T extends FieldValues> = {
   control: Control<T>;
   required?: boolean;
   requiredMessage?: string;
+  min?: number;
+  minMessage?: string;
   helperText?: string;
   fullWidth?: boolean;
 } & Omit<
@@ -19,6 +21,8 @@ export const FormTextField = <T extends FieldValues>({
   helperText,
   required,
   requiredMessage = "Este campo es obligatorio",
+  min,
+  minMessage = "El valor es demasiado bajo",
   fullWidth = true,
   ...props
 }: Props<T>) => {
@@ -28,6 +32,21 @@ export const FormTextField = <T extends FieldValues>({
       control={control}
       rules={{
         required: required ? requiredMessage : false,
+        validate:
+          min !== undefined
+            ? {
+                min: (value) => {
+                  if (value === "" || value == null) {
+                    return true;
+                  }
+                  const valueNum = Number(value);
+                  if (isNaN(valueNum) || valueNum < min) {
+                    return minMessage;
+                  }
+                  return true;
+                },
+              }
+            : undefined,
       }}
       render={({ field, fieldState }) => (
         <TextField

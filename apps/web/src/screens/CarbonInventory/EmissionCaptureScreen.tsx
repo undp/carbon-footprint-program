@@ -1,76 +1,221 @@
-import { FC, useState } from "react";
+import { FC, useMemo, useEffect, useCallback } from "react";
+import { Box } from "@mui/material";
+import { useParams } from "@tanstack/react-router";
+import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout } from "./layout";
-import { Box, useTheme } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
-import { Routes } from "../../interfaces";
+import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { CategoryCard } from "./components/CategoryCard";
+import { EmissionEditor } from "./components/EmissionEditor";
+import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
+import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
+import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
+import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
+import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
+import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
+import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
+import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
+import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
-  const navigate = useNavigate();
-  const theme = useTheme();
 
-  const [selectedCategory, setSelectedCategory] = useState<number>(1);
+  const { selectedCategory, handleCategoryChange } =
+    useEmissionCaptureCategory();
+
+  const { data, isLoading } = useEmissionCaptureData({
+    inventoryId,
+  });
+
+  const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
+
+  const activeActionsCount = useEmissionCaptureState(
+    (state) => state.activeActionsCount
+  );
+  const subcategoryTotals = useEmissionCaptureState(
+    (state) => state.subcategoryTotals
+  );
+  const resetStore = useEmissionCaptureState((state) => state.reset);
+
+  // Form setup
+  const methods = useEmissionCaptureForm({ data });
+  const { handleSubmit, formState, resetAfterSave } = methods;
+
+  const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      onSuccess: goNext,
+      isDirty: formState.isDirty,
+      resetAfterSave,
+      showNoChangesMessage: false,
+    });
+
+  const { submit: submitNoNavigate, isSubmitting: isSubmittingNoNavigating } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      isDirty: formState.isDirty,
+      resetAfterSave,
+    });
+
+  const { submit: submitAndGoBack, isSubmitting: isSubmittingAndGoingBack } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      onSuccess: goBack,
+      isDirty: formState.isDirty,
+      resetAfterSave,
+      showNoChangesMessage: false,
+    });
+
+  const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
+    inventoryId,
+    isDirty: formState.isDirty,
+    resetAfterSave,
+    showNoChangesMessage: false,
+    resultFeedbackWithSnackbar: true,
+  });
+
+  const selectedCategoryData = useMemo(
+    () => data?.categories.find((category) => category.id === selectedCategory),
+    [data, selectedCategory]
+  );
+
+  // Calculate total emissions for the selected category based on subcategory totals in store
+  const categoryEmissions = useMemo(() => {
+    if (!selectedCategoryData) return 0;
+    const total = selectedCategoryData.subcategories.reduce(
+      (acc, subcategory) => {
+        const subcatTotal = subcategoryTotals[subcategory.id] || 0;
+        return acc + subcatTotal;
+      },
+      0
+    );
+    return total;
+  }, [selectedCategoryData, subcategoryTotals]);
+
+  // Reset store on mount and unmount to avoid stale data
+  useEffect(() => {
+    resetStore();
+    return () => resetStore();
+  }, [resetStore]);
+
+  const isBusy = activeActionsCount > 0;
+
+  const handleCategoryChangeWithSave = useCallback(
+    (categoryId: string) => {
+      void handleSubmit(async (data) => {
+        await submitOnCategoryChange(data);
+        handleCategoryChange(categoryId);
+      })();
+    },
+    [handleSubmit, submitOnCategoryChange, handleCategoryChange]
+  );
 
   return (
-    <CarbonInventoryLayout
-      headerProps={{
-        title: "Simulador de Inventario Organizacional",
-      }}
-      footerProps={{
-        backButtonProps: {
-          onClick: () =>
-            navigate({
-              to: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
-              params: { inventoryId },
-            }),
-        },
-      }}
-    >
-      <Box className="flex min-h-0 flex-1 flex-col">
-        <Box className="flex min-h-0 flex-1 flex-col gap-6 rounded-lg bg-white p-6">
-          <StepHeader
-            title="Paso 3: Completa los datos de tus fuentes de emisión"
-            description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
-          />
-          <Box className="flex flex-row gap-4">
-            <CategoryCard
-              position={1}
-              variant={selectedCategory === 1 ? "focused" : "unfocused"}
-              title="Alcance 1"
-              subtitle="Categoria 1 / Alcance 1"
-              description="Generadas dentro de tu empresa"
-              onClick={() => setSelectedCategory(1)}
-            />
-            <CategoryCard
-              position={2}
-              variant={selectedCategory === 2 ? "focused" : "unfocused"}
-              title="Alcance 2"
-              subtitle="Categoria 2 / Alcance 2"
-              description="Generadas por la electricidad consumida"
-              onClick={() => setSelectedCategory(2)}
-            />
-            <CategoryCard
-              position={3}
-              variant={selectedCategory === 3 ? "focused" : "unfocused"}
-              title="Alcance 3"
-              subtitle="Categorias 3,4,5 y 6 / Alcance 3"
-              description="Generadas fuera de tu empresa"
-              onClick={() => setSelectedCategory(3)}
-            />
+    <FormProvider {...methods}>
+      <form
+        id="emission-capture-form"
+        onSubmit={handleSubmit(submitAndNavigate)}
+        noValidate
+      >
+        <CarbonInventoryLayout
+          headerProps={{
+            title: "Simulador de Inventario Organizacional",
+          }}
+          footerProps={{
+            buttons: [
+              {
+                text: "Volver",
+                align: "right",
+                buttonProps: {
+                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+                  onClick: handleSubmit(submitAndGoBack),
+                  loading: isSubmittingAndGoingBack,
+                  disabled: isSubmittingAndGoingBack || isBusy,
+                },
+              },
+              {
+                text: "Guardar",
+                align: "right",
+                buttonProps: {
+                  startIcon: <SaveRounded />,
+                  variant: "contained",
+                  onClick: handleSubmit(submitNoNavigate),
+                  loading: isSubmittingNoNavigating,
+                  disabled: isSubmittingNoNavigating || isBusy,
+                },
+              },
+              {
+                text: "Siguiente",
+                align: "right",
+                buttonProps: {
+                  endIcon: <ArrowRightAltRounded />,
+                  variant: "contained",
+                  type: "submit",
+                  form: "emission-capture-form",
+                  loading: isSubmittingAndNavigating,
+                  disabled: isSubmittingAndNavigating || isBusy,
+                },
+              },
+            ],
+          }}
+          isLoading={isLoading}
+        >
+          <Box className="flex min-h-0 flex-1 flex-col">
+            <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-scroll rounded-lg bg-white p-6">
+              <StepHeader
+                title="Paso 3: Completa los datos de tus fuentes de emisión"
+                description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
+              />
+              <Box className="flex flex-row gap-4">
+                {data?.categories.map((category) => (
+                  <CategoryCard
+                    key={`category_${category.id}`}
+                    position={category.position}
+                    variant={
+                      selectedCategory === category.id ? "focused" : "unfocused"
+                    }
+                    title={category.name}
+                    subtitle={category.synonyms}
+                    description={category.description}
+                    onClick={() => handleCategoryChangeWithSave(category.id)}
+                  />
+                ))}
+              </Box>
+              {selectedCategoryData && (
+                <TotalCategoryEmissionCard
+                  category={selectedCategoryData}
+                  categoryEmissions={categoryEmissions}
+                />
+              )}
+              <Box className="flex min-h-0 flex-1 flex-col gap-4">
+                {(
+                  selectedCategoryData?.subcategories ||
+                  ([] as SubcategoryWithLines[])
+                ).map((subcategory) => {
+                  if (
+                    subcategory.lines.length === 0 &&
+                    !subcategory.isTotalManualEmissionsMode
+                  )
+                    return null;
+                  return (
+                    <EmissionEditor
+                      key={subcategory.id}
+                      isTotalManualEmissionsModeAvailable={
+                        // TODO: use enum here (difficult to import from packages based on the current TS config)
+                        data?.usageMode === "EXPERT"
+                      }
+                      categoryPosition={Number(selectedCategory)}
+                      subcategory={subcategory}
+                    />
+                  );
+                })}
+              </Box>
+            </Box>
           </Box>
-          <Box
-            className="flex min-h-0 flex-1 flex-col"
-            sx={{
-              border: `1px solid ${theme.palette.category[selectedCategory].main}`,
-              borderRadius: "8px",
-            }}
-          ></Box>
-        </Box>
-      </Box>
-    </CarbonInventoryLayout>
+        </CarbonInventoryLayout>
+      </form>
+    </FormProvider>
   );
 };

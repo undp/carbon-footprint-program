@@ -20,6 +20,7 @@ export const useCreateCarbonInventory = () => {
       // Invalidate and refetch carbon inventories list
       void queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.all,
+        exact: true,
       });
     },
   });

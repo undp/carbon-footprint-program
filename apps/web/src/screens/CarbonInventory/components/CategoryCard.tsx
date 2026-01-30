@@ -11,8 +11,8 @@ interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
   position: number;
   title: string;
-  subtitle: string;
-  description: string;
+  subtitle: string | null;
+  description: string | null;
   onClick?: () => void;
 }
 
@@ -25,7 +25,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   onClick,
 }) => {
   const theme = useTheme();
-  const icons = useMemo(
+  const icons: Record<number, React.ReactNode> = useMemo(
     () => ({
       1: (
         <DirectEmissionCategoryIcon
@@ -98,7 +98,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           lineHeight="normal"
           color={color}
         >
-          {subtitle.toUpperCase()}
+          {subtitle?.toUpperCase() ?? ""}
         </Typography>
         <Typography variant="body1" fontWeight="medium" color={color}>
           {title}
@@ -109,9 +109,13 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       </Box>
       <Box className="flex flex-col items-end justify-center">
         <InfoButton
+          sx={{
+            width: "24px",
+            height: "24px",
+            color: darken(theme.palette.category[safePosition].main, 0.6),
+          }}
           label="Más información de la categoría"
           disabled={variant === "unfocused"}
-          sx={{ width: "24px", height: "24px", color }}
           onClick={(e) => {
             e.stopPropagation();
             //TODO: Open a modal with the information

@@ -30,7 +30,7 @@ export const useSubcategoryPreselectionSubmit = (
 
         await mutateAsync(payload);
 
-        enqueueSnackbar("Subcategorías guardadas exitosamente", {
+        enqueueSnackbar("Subcategorías actualizadas exitosamente", {
           variant: "success",
         });
 

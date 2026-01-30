@@ -3,8 +3,6 @@ import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
 import { Options } from "./components/Options";
-import { useUserStore } from "@/stores/userStore";
-import { MainLayout } from "../../components";
 
 export const LandingScreen: FC = () => {
   const theme = useTheme();
