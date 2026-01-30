@@ -5,9 +5,6 @@ import {
 } from "./testcontainers.js";
 import type { TestProject } from "vitest/node";
 
-// Disable authentication for all tests
-process.env.AUTH_PROVIDER = "none";
-
 export default async function setup(project: TestProject) {
   const { databaseUrl, container } = await setupTestDatabase();
   project.provide("databaseUrl", databaseUrl);

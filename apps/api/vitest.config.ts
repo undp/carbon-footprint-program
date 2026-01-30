@@ -91,7 +91,8 @@ export default defineConfig({
       cleanOnRerun: true,
     },
     env: {
-      AUTH_PROVIDER: "none", // Set AUTH_PROVIDER for all tests
+      AUTH_PROVIDER: "forced-user", // Set AUTH_PROVIDER for all tests
+      FORCED_USER_EMAIL_WHEN_NO_PROVIDER: "creator@test.com",
     },
   },
 });
