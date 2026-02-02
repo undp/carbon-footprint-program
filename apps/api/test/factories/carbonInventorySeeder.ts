@@ -480,7 +480,7 @@ export async function createInventoryWithEmissions(
   // If emissions by category specified, use those; otherwise create default emissions
   const emissionsByCategory =
     options?.emissionsByCategory ??
-    methodologyVersion.categories.map((cat: any, index: number) => ({
+    methodologyVersion.categories.map((cat, index: number) => ({
       categoryPosition: cat.position,
       emissions: (index + 1) * 1000, // Default: 1000, 2000, 3000, etc.
     }));
@@ -488,11 +488,19 @@ export async function createInventoryWithEmissions(
   // Create lines, inputs, and results for each category
   for (const emissionConfig of emissionsByCategory) {
     const category = methodologyVersion.categories.find(
-      (c: any) => c.position === emissionConfig.categoryPosition
+      (c) => c.position === emissionConfig.categoryPosition
     );
 
-    if (!category || category.subcategories.length === 0) {
-      continue;
+    if (!category) {
+      throw new Error(
+        `Category with position ${emissionConfig.categoryPosition} not found in methodology version`
+      );
+    }
+
+    if (category.subcategories.length === 0) {
+      throw new Error(
+        `Category at position ${emissionConfig.categoryPosition} has no subcategories`
+      );
     }
 
     const subcategory = category.subcategories[0];

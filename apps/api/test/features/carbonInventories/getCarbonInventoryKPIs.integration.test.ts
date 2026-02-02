@@ -247,10 +247,10 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
     });
 
     it("should return zero when no inventories match the year filter", async () => {
-      await createInventoryWithEmissions(
-        prisma,
-        { ...carbonInventoryPatterns.verified(), year: 2023 }
-      );
+      await createInventoryWithEmissions(prisma, {
+        ...carbonInventoryPatterns.verified(),
+        year: 2023,
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -325,9 +325,9 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
 
       if (body.categoryTotals.length > 1) {
         for (let i = 1; i < body.categoryTotals.length; i++) {
-          expect(body.categoryTotals[i].categoryPosition).toBeGreaterThanOrEqual(
-            body.categoryTotals[i - 1].categoryPosition
-          );
+          expect(
+            body.categoryTotals[i].categoryPosition
+          ).toBeGreaterThanOrEqual(body.categoryTotals[i - 1].categoryPosition);
         }
       }
     });
