@@ -17,8 +17,16 @@ export const getAllCarbonInventoriesHandler = async (
   log.info({ year }, "Getting all carbon inventories...");
 
   const prisma = request.server.prisma;
-  const data = await getAllCarbonInventoriesService(prisma, year);
 
-  log.info("Carbon inventories retrieved successfully");
-  return reply.status(200).send(data);
+  try {
+    const data = await getAllCarbonInventoriesService(prisma, year);
+
+    log.info("Carbon inventories retrieved successfully");
+    return reply.status(200).send(data);
+  } catch (error) {
+    log.error({ error }, "Failed to retrieve carbon inventories");
+    return reply.status(500).send({
+      error: "Failed to retrieve carbon inventories",
+    });
+  }
 };
