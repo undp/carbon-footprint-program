@@ -2,6 +2,7 @@ import { InventoryStatus, type PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryKPIsResponse } from "@repo/types";
 import { groupBy, sumBy, sortBy, uniq, keyBy } from "lodash-es";
 import { toNumberOrNull } from "@/utils/number.js";
+import { parseYearParam } from "../utils.js";
 
 export type GetCarbonInventoryKPIsResult =
   | { success: true; data: GetCarbonInventoryKPIsResponse }
@@ -15,7 +16,7 @@ export const getCarbonInventoryKPIsService = async (
     // Build where clause for year filtering
     const whereClause: {
       status: { not: InventoryStatus };
-      year?: number | null;
+      year?: number;
     } = {
       status: {
         not: InventoryStatus.DRAFT,
@@ -23,13 +24,9 @@ export const getCarbonInventoryKPIsService = async (
     };
 
     // Handle year parameter
-    // - If year is undefined or "all", don't add year filter (show all years)
-    // - If year is a specific year number, filter by that year
-    if (year && year !== "all") {
-      const yearNumber = parseInt(year, 10);
-      if (!isNaN(yearNumber)) {
-        whereClause.year = yearNumber;
-      }
+    const parsedYear = parseYearParam(year);
+    if (parsedYear !== undefined) {
+      whereClause.year = parsedYear;
     }
 
     // Get all non-DRAFT carbon inventories with their subtotals from the view

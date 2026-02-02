@@ -48,3 +48,17 @@ export const isCarbonInventoryLineEdited = (
       activeInput.comment !== null)
   );
 };
+
+/**
+ * Parses the year query parameter and returns a number or undefined.
+ * - If year is undefined or "all", returns undefined (no filter)
+ * - If year is a valid number string, returns the parsed number
+ * - Otherwise, returns undefined
+ */
+export const parseYearParam = (year?: string): number | undefined => {
+  if (!year || year === "all") {
+    return undefined;
+  }
+  const yearNumber = parseInt(year, 10);
+  return !isNaN(yearNumber) ? yearNumber : undefined;
+};

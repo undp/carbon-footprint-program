@@ -3,6 +3,7 @@ import type { GetAllCarbonInventoriesResponse } from "@repo/types";
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { toNumberOrNull } from "@/utils/number.js";
+import { parseYearParam } from "../utils.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
@@ -10,17 +11,13 @@ export const getAllCarbonInventoriesService = async (
 ): Promise<GetAllCarbonInventoriesResponse> => {
   // Build where clause for year filtering
   const whereClause: {
-    year?: number | null;
+    year?: number;
   } = {};
 
   // Handle year parameter
-  // - If year is undefined or "all", don't add year filter (show all years)
-  // - If year is a specific year number, filter by that year
-  if (year && year !== "all") {
-    const yearNumber = parseInt(year, 10);
-    if (!isNaN(yearNumber)) {
-      whereClause.year = yearNumber;
-    }
+  const parsedYear = parseYearParam(year);
+  if (parsedYear !== undefined) {
+    whereClause.year = parsedYear;
   }
 
   const data = await prismaClient.carbonInventory.findMany({
