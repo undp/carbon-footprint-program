@@ -8,7 +8,7 @@ import { mapBigIntField } from "@/utils/bigint.js";
 export async function getTestUser(
   prisma: PrismaClient,
   email: string
-): Promise<{ id: bigint; email: string }> {
+): Promise<{ id: bigint; email: string | null }> {
   const user = await prisma.user.findUnique({
     where: { email },
     select: { id: true, email: true },
@@ -30,7 +30,7 @@ export async function getTestUser(
 export async function getTestUsers(
   prisma: PrismaClient,
   emails: string[]
-): Promise<Array<{ id: bigint; email: string }>> {
+): Promise<Array<{ id: bigint; email: string | null }>> {
   return Promise.all(emails.map((email) => getTestUser(prisma, email)));
 }
 
