@@ -6,7 +6,7 @@ export async function createTestApp(
   databaseUrl: string
 ): Promise<FastifyInstance> {
   const app = await createApp(false);
-  app.log.level = "silent";
+  app.log.level = "debug";
   await app.register(prismaPlugin, {
     databaseUrl: databaseUrl,
   });
