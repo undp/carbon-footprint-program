@@ -18,16 +18,24 @@ export const getCarbonInventoryKPIsHandler = async (
 
   const prisma = request.server.prisma;
 
-  const result = await getCarbonInventoryKPIsService(prisma, year);
+  try {
+    const result = await getCarbonInventoryKPIsService(prisma, year);
 
-  if (!result.success) {
-    log.error("Error getting carbon inventory KPIs");
+    if (!result.success) {
+      log.error("Error getting carbon inventory KPIs");
+      return reply.status(500).send({
+        code: "INTERNAL_ERROR",
+        message: "Error getting carbon inventory KPIs",
+      });
+    }
+
+    log.info("Carbon inventory KPIs retrieved successfully");
+    return reply.status(200).send(result.data);
+  } catch (err) {
+    log.error({ err }, "Error getting carbon inventory KPIs");
     return reply.status(500).send({
       code: "INTERNAL_ERROR",
       message: "Error getting carbon inventory KPIs",
     });
   }
-
-  log.info("Carbon inventory KPIs retrieved successfully");
-  return reply.status(200).send(result.data);
 };
