@@ -389,8 +389,6 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
 
       expect(body.total).toBe(6000);
       expect(sumOfCategories).toBe(6000);
-      // Allow for small floating point differences
-      expect(Math.abs(body.total - sumOfCategories)).toBeLessThan(0.01);
     });
 
     it("should return numeric totals, not Decimal objects", async () => {
