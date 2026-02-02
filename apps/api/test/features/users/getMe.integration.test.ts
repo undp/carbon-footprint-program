@@ -120,7 +120,7 @@ describe("GET /api/users/me - Integration Tests", () => {
   });
 
   describe("No authentication", () => {
-    it("should return null when no authUser is present", async () => {
+    it("should return tester user when no authUser is present", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/users/me",
@@ -128,23 +128,7 @@ describe("GET /api/users/me - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetMeResponse;
-      expect(body).toBeNull();
-    });
-  });
-
-  describe("User not found in database", () => {
-    it("should return null when authenticated user does not exist in database", async () => {
-      // This simulates a user authenticated via IDP but not yet in our DB
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/users/me",
-        // Would need to mock authUser with non-existent idpUserId
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetMeResponse;
-      // Should return null as user doesn't exist yet
-      expect(body).toBeNull();
+      expect(body?.idpUserId).toBe("me@test.com");
     });
   });
 });

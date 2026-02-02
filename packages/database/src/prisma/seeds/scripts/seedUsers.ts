@@ -13,7 +13,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type UserData = (Required<
-  Pick<Prisma.UserCreateInput, "firstName" | "lastName">
+  Pick<Prisma.UserCreateInput, "firstName" | "lastName" | "idpUserId">
 > & {
   email: string;
   countryJobPositionName: Prisma.CountryJobPositionCreateInput["name"];
@@ -22,6 +22,7 @@ type UserData = (Required<
 
 const UserDataSchema: z.ZodType<UserData> = z.array(
   z.object({
+    idpUserId: z.string().min(1),
     email: z.email(),
     countryJobPositionName: z.string().min(1),
     countryIsoCode: z.string().min(1),
@@ -74,6 +75,7 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
       );
 
     return {
+      idpUserId: user.idpUserId,
       email: user.email,
       countryJobPositionId: jobPosition.id,
       firstName: user.firstName,
