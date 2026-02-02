@@ -25,10 +25,6 @@ export const createUserService = async (
         idpName: data.idpName ?? null,
         createdById: null,
         updatedById: null,
-        termsAccepted: data.termsAccepted,
-        termsAcceptedAt: data.termsAcceptedAt
-          ? new Date(data.termsAcceptedAt)
-          : null,
       },
     });
 
