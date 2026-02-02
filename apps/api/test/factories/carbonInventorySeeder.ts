@@ -421,3 +421,104 @@ export async function createCarbonInventoryLineInput(
     },
   });
 }
+
+/**
+ * Creates a carbon inventory line result
+ */
+export async function createCarbonInventoryLineResult(
+  prisma: PrismaClient,
+  lineInputId: bigint,
+  totalEmissions: number | Prisma.Decimal
+) {
+  return prisma.carbonInventoryLineResult.create({
+    data: {
+      lineInputId,
+      totalEmissions:
+        typeof totalEmissions === "number"
+          ? new Prisma.Decimal(totalEmissions)
+          : totalEmissions,
+      resultDetails: {},
+    },
+  });
+}
+
+/**
+ * Creates a complete carbon inventory with lines, inputs, and results for testing
+ * This creates a ready-to-use inventory with actual emissions data
+ */
+export async function createInventoryWithEmissions(
+  prisma: PrismaClient,
+  inventoryData: Prisma.CarbonInventoryUncheckedCreateInput,
+  options?: {
+    emissionsByCategory?: { categoryPosition: number; emissions: number }[];
+  }
+) {
+  // Create the inventory
+  const inventory = await prisma.carbonInventory.create({
+    data: inventoryData,
+  });
+
+  // Get methodology version
+  const methodologyVersion = await prisma.methodologyVersion.findFirst({
+    include: {
+      categories: {
+        include: {
+          subcategories: {
+            take: 1, // Take first subcategory from each category
+          },
+        },
+      },
+    },
+  });
+
+  if (!methodologyVersion) {
+    throw new Error("No methodology version found for testing");
+  }
+
+  const activeStatusId = await getActiveStatusId(prisma);
+
+  // If emissions by category specified, use those; otherwise create default emissions
+  const emissionsByCategory =
+    options?.emissionsByCategory ??
+    methodologyVersion.categories.map((cat: any, index: number) => ({
+      categoryPosition: cat.position,
+      emissions: (index + 1) * 1000, // Default: 1000, 2000, 3000, etc.
+    }));
+
+  // Create lines, inputs, and results for each category
+  for (const emissionConfig of emissionsByCategory) {
+    const category = methodologyVersion.categories.find(
+      (c: any) => c.position === emissionConfig.categoryPosition
+    );
+
+    if (!category || category.subcategories.length === 0) {
+      continue;
+    }
+
+    const subcategory = category.subcategories[0];
+
+    // Create line
+    const line = await createCarbonInventoryLine(
+      prisma,
+      inventory.id,
+      subcategory.id,
+      { statusId: activeStatusId }
+    );
+
+    // Create input
+    const input = await createCarbonInventoryLineInput(prisma, line.id, {
+      inputType: "DIRECT",
+      directTotalEmissions: new Prisma.Decimal(emissionConfig.emissions),
+      isActive: true,
+    });
+
+    // Create result
+    await createCarbonInventoryLineResult(
+      prisma,
+      input.id,
+      emissionConfig.emissions
+    );
+  }
+
+  return inventory;
+}

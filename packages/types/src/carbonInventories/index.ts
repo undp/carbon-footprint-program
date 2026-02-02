@@ -9,3 +9,4 @@ export * from "./getCarbonInventoryMethodology.js";
 export * from "./getCarbonInventorySubcategoriesSummary.js";
 export * from "./toggleManualTotalEmissions.js";
 export * from "./syncCarbonInventoryLines.js";
+export * from "./getCarbonInventoryKPIs.js";
