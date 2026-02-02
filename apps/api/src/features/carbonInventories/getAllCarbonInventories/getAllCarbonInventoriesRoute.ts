@@ -1,6 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCarbonInventoriesHandler } from "./getAllCarbonInventoriesHandler.js";
-import { GetAllCarbonInventoriesResponseSchema } from "@repo/types";
+import {
+  GetAllCarbonInventoriesQuerySchema,
+  GetAllCarbonInventoriesResponseSchema,
+} from "@repo/types";
 
 export const getAllCarbonInventoriesRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
@@ -10,7 +13,8 @@ export const getAllCarbonInventoriesRoute = (fastify: FastifyZodInstance) => {
         tags: ["carbon-inventories"],
         summary: "Get all carbon inventories",
         description:
-          "Get all carbon inventories ordered by creation date (newest first)",
+          'Get all carbon inventories ordered by creation date (newest first). Filter by year using query parameter (e.g., ?year=2024 or ?year=all)',
+        querystring: GetAllCarbonInventoriesQuerySchema,
         response: {
           200: GetAllCarbonInventoriesResponseSchema,
         },

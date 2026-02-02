@@ -1,11 +1,24 @@
-import { createGetAllHandler } from "@/handlerFactory/index.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
+import type { GetAllCarbonInventoriesQuery } from "@repo/types";
 import { getAllCarbonInventoriesService } from "./getAllCarbonInventoriesService.js";
-import type { GetAllCarbonInventoriesResponse } from "@repo/types";
 
-export const getAllCarbonInventoriesHandler =
-  createGetAllHandler<GetAllCarbonInventoriesResponse>(
-    "carbonInventories",
-    getAllCarbonInventoriesService,
-    "Carbon inventories",
-    false // We don't want to throw an error if no carbon inventories are found
-  );
+export const getAllCarbonInventoriesHandler = async (
+  request: FastifyRequest<{
+    Querystring: GetAllCarbonInventoriesQuery;
+  }>,
+  reply: FastifyReply
+) => {
+  const log = request.log.child({
+    module: "carbonInventories",
+  });
+
+  const { year } = request.query;
+
+  log.info({ year }, "Getting all carbon inventories...");
+
+  const prisma = request.server.prisma;
+  const data = await getAllCarbonInventoriesService(prisma, year);
+
+  log.info("Carbon inventories retrieved successfully");
+  return reply.status(200).send(data);
+};
