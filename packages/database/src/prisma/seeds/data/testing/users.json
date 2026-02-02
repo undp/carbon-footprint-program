@@ -1,5 +1,6 @@
 [
   {
+    "idpUserId": "creator@test.com",
     "email": "creator@test.com",
     "countryJobPositionName": "Otro",
     "countryIsoCode": "CL",
@@ -7,10 +8,19 @@
     "lastName": "Creator"
   },
   {
+    "idpUserId": "updater@test.com",
     "email": "updater@test.com",
     "countryJobPositionName": "Otro",
     "countryIsoCode": "CL",
     "firstName": "Test",
     "lastName": "Updater"
+  },
+  {
+    "idpUserId": "me@test.com",
+    "email": "me@test.com",
+    "countryJobPositionName": "Otro",
+    "countryIsoCode": "CL",
+    "firstName": "Test",
+    "lastName": "Tester"
   }
 ]
