@@ -6,6 +6,8 @@ const {
   VITE_AZURE_API_CLIENT_ID,
 } = import.meta.env;
 
+export const IS_DEVELOPMENT = process.env.NODE_ENV === "development";
+
 export const API_BASE_URL = VITE_API_BASE_URL!;
 
 // Azure External ID Configuration
