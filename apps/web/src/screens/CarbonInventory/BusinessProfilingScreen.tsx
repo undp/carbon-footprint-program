@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import capinautPointing from "@assets/capinaut-pointing.png";
@@ -84,6 +84,7 @@ export const BusinessProfilingScreen: FC = () => {
 
   const {
     yearLabel,
+    nameLabel,
     companyNameLabel,
     companySizeLabel,
     sectorLabel,
@@ -153,11 +154,11 @@ export const BusinessProfilingScreen: FC = () => {
           <Box className="flex min-h-0 flex-1 flex-col gap-6">
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
               <StepHeader
-                title="Paso 1: Perfil de empresa"
-                description="Esta información nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
+                title="Paso 1: Perfilamiento"
+                description="La información de tu empresa nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
               />
-              <Box className="flex flex-row gap-6">
-                <Box className="flex flex-1 flex-col gap-2">
+              <Box className="flex flex-col gap-2">
+                <Box className="flex flex-1 flex-row gap-6">
                   <FormSelectField
                     name="year"
                     control={control}
@@ -169,6 +170,20 @@ export const BusinessProfilingScreen: FC = () => {
                     }))}
                     required
                   />
+                  <FormTextField
+                    name="name"
+                    control={control}
+                    label={nameLabel}
+                    required
+                  />
+                </Box>
+                <Divider />
+                <Box className="mt-6 flex flex-1 flex-row gap-6">
+                  <FormTextField
+                    name="companyName"
+                    control={control}
+                    label={companyNameLabel}
+                  />
 
                   <FormSelectField
                     name="companySize"
@@ -179,16 +194,7 @@ export const BusinessProfilingScreen: FC = () => {
                     disabled={organizationSizesLoading}
                   />
                 </Box>
-                <Box className="flex flex-1 flex-col gap-8">
-                  <FormTextField
-                    name="companyName"
-                    control={control}
-                    label={companyNameLabel}
-                  />
-                </Box>
               </Box>
-            </Box>
-            <Box className="flex flex-col gap-2 rounded-lg bg-white p-6">
               <Box className="flex flex-1 flex-row gap-6">
                 <FormAutocompleteField
                   name="sector"

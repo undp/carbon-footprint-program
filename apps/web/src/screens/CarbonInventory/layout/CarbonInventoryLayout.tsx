@@ -15,10 +15,12 @@ import { BaseHeader } from "../../../components";
 
 interface CarbonInventoryHeaderProps {
   title?: string;
+  subtitle?: string;
 }
 
 export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   title = "Inventario Organizacional",
+  subtitle,
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -35,7 +37,26 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
     <BaseHeader
       position="sticky"
       showLogo
-      titleComponent={<Typography variant="subtitle1">{title}</Typography>}
+      titleComponent={
+        <Box className="flex flex-row items-center gap-2">
+          <Typography variant="h6">{title}</Typography>
+          {subtitle && (
+            <>
+              <Typography color="textSecondary" variant="h6">
+                •
+              </Typography>
+              <Typography
+                color="textSecondary"
+                noWrap
+                variant="h6"
+                title={subtitle}
+              >
+                {subtitle}
+              </Typography>
+            </>
+          )}
+        </Box>
+      }
       onLogoClick={onLogoClick}
     />
   );

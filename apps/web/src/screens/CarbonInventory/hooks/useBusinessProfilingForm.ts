@@ -6,6 +6,7 @@ import { useResetOnChange } from "@/hooks";
 
 export type BusinessProfilingFormValues = {
   year: string;
+  name: string;
   companyName: string;
   sector: string;
   subSector: string;
@@ -21,6 +22,7 @@ type Params = {
 
 const defaultValues: BusinessProfilingFormValues = {
   year: "",
+  name: "",
   companyName: "",
   sector: "",
   subSector: "",

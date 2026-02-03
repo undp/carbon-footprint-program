@@ -38,6 +38,7 @@ type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
 };
 
 export type EmissionCaptureMergedData = {
+  name: GetCarbonInventoryByIdResponse["name"];
   year: GetCarbonInventoryByIdResponse["year"];
   usageMode: GetCarbonInventoryByIdResponse["usageMode"];
   categories: CategoryWithSubcategoriesAndLines[];
