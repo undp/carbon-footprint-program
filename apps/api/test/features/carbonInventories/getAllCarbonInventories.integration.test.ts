@@ -284,4 +284,75 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(usageModes).toContain("EXPERT");
     });
   });
+
+  describe("Year filtering", () => {
+    beforeEach(async () => {
+      // Create inventories for different years
+      await createCarbonInventories(prisma, [
+        { ...carbonInventoryPatterns.simplifiedDraft(), year: 2022 },
+        { ...carbonInventoryPatterns.expertDraft(), year: 2022 },
+        { ...carbonInventoryPatterns.submitted(), year: 2023 },
+        { ...carbonInventoryPatterns.verified(), year: 2024 },
+        { ...carbonInventoryPatterns.simplifiedDraft(), year: 2024 },
+      ]);
+    });
+
+    it("should return all inventories when year parameter is not provided", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body.length).toBe(5);
+    });
+
+    it("should filter inventories by year 2022", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories?year=2022",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body.length).toBe(2);
+      expect(body.every((inv) => inv.year === 2022)).toBe(true);
+    });
+
+    it("should filter inventories by year 2023", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories?year=2023",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body.length).toBe(1);
+      expect(body[0].year).toBe(2023);
+    });
+
+    it("should filter inventories by year 2024", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories?year=2024",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body.length).toBe(2);
+      expect(body.every((inv) => inv.year === 2024)).toBe(true);
+    });
+
+    it("should return empty array when filtering by year with no inventories", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/carbon-inventories?year=2025",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
+      expect(body.length).toBe(0);
+    });
+  });
 });
