@@ -14,6 +14,10 @@ export const updateCarbonInventoryService = async (
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.CarbonInventoryUncheckedUpdateInput = {};
 
+  if (data.name !== undefined) {
+    updateData.name = data.name;
+  }
+
   const organizationId = mapBigIntField(data.organizationId);
   if (organizationId !== undefined) {
     updateData.organizationId = organizationId;
