@@ -4,6 +4,10 @@
 GET {{baseUrl}}/api/carbon-inventories HTTP/1.1
 
 
+### Get All Carbon Inventories - Filter by Year
+GET {{baseUrl}}/api/carbon-inventories?year=2024 HTTP/1.1
+
+
 ### Get Carbon Inventory by ID
 GET {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 
