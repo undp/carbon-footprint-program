@@ -5,10 +5,9 @@ import { CarbonInventorySchema } from "./base.js";
 export const GetAllCarbonInventoriesQuerySchema = z.object({
   year: z
     .string()
+    .regex(/^\d+$/, "Year must be a valid number")
     .optional()
-    .describe(
-      'Optional year filter. Use "all" for all years, a specific year (e.g., "2024"), or omit for all years'
-    ),
+    .describe('Optional year filter. Must be a number (e.g., "2024"). Omit to get all years.'),
 });
 
 // Response item schema with totalEmissions field added

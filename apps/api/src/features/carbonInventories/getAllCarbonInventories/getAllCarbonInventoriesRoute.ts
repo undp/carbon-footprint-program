@@ -13,7 +13,7 @@ export const getAllCarbonInventoriesRoute = (fastify: FastifyZodInstance) => {
         tags: ["carbon-inventories"],
         summary: "Get all carbon inventories",
         description:
-          'Get all carbon inventories ordered by creation date (newest first). Filter by year using query parameter (e.g., ?year=2024 or ?year=all)',
+          'Get all carbon inventories ordered by creation date (newest first). Optional parameter: year (e.g., ?year=2024)',
         querystring: GetAllCarbonInventoriesQuerySchema,
         response: {
           200: GetAllCarbonInventoriesResponseSchema,

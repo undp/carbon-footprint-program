@@ -4,9 +4,10 @@ import { z } from "zod";
 export const GetCarbonInventoryKPIsQuerySchema = z.object({
   year: z
     .string()
+    .regex(/^\d+$/, "Year must be a valid number")
     .optional()
     .describe(
-      'Optional year filter. Use "all" for all years, a specific year (e.g., "2024"), or omit for all years'
+      'Optional year filter. Must be a number (e.g., "2024"). Omit to get all years.'
     ),
 });
 

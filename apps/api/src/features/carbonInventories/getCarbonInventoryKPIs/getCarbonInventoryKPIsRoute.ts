@@ -13,7 +13,7 @@ export const getCarbonInventoryKPIsRoute = (fastify: FastifyZodInstance) => {
         tags: ["carbon-inventories"],
         summary: "Get carbon inventory KPIs",
         description:
-          'Get aggregated emissions KPIs (total and by category) from VERIFIED carbon inventories. Filter by year using query parameter (e.g., ?year=2024 or ?year=all)',
+          'Get aggregated emissions KPIs (total and by category) from non-DRAFT carbon inventories (SUBMITTED and VERIFIED). Optional parameter: year (e.g., ?year=2024)',
         querystring: GetCarbonInventoryKPIsQuerySchema,
         response: {
           200: GetCarbonInventoryKPIsResponseSchema,
