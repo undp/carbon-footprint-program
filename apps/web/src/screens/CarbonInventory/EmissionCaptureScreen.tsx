@@ -124,6 +124,7 @@ export const EmissionCaptureScreen: FC = () => {
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
+            subtitle: data?.name ?? undefined,
           }}
           footerProps={{
             buttons: [

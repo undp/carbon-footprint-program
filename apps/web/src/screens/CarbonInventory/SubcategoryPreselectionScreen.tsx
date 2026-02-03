@@ -14,6 +14,7 @@ import { CategoryCard } from "./components/CategoryCard";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
+import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 
 const ERROR_MESSAGE = {
   title:
@@ -26,6 +27,10 @@ const ERROR_MESSAGE = {
 export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
+  });
+
+  const { data } = useEmissionCaptureData({
+    inventoryId,
   });
 
   const {
@@ -61,6 +66,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
+            subtitle: data?.name ?? undefined,
           }}
           footerProps={{
             buttons: [
