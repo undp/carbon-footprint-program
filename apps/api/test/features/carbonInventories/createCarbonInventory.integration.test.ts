@@ -144,6 +144,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
+      expect(body.name).toBeNull();
       expect(body.organizationId).toBeNull();
       expect(body.organizationBranchId).toBeNull();
       expect(body.organizationData).toBeNull();
