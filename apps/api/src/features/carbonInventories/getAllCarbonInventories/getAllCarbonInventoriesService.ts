@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetAllCarbonInventoriesResponse } from "@repo/types";
+import type {
+  GetAllCarbonInventoriesResponse,
+  GetAllCarbonInventoriesQuery,
+} from "@repo/types";
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { toNumberOrNull } from "@/utils/number.js";
@@ -7,7 +10,7 @@ import { parseYearParam } from "../utils.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
-  year?: string
+  query?: GetAllCarbonInventoriesQuery
 ): Promise<GetAllCarbonInventoriesResponse> => {
   // Build where clause for year filtering
   const whereClause: {
@@ -15,7 +18,7 @@ export const getAllCarbonInventoriesService = async (
   } = {};
 
   // Handle year parameter
-  const parsedYear = parseYearParam(year);
+  const parsedYear = parseYearParam(query?.year);
   if (parsedYear !== undefined) {
     whereClause.year = parsedYear;
   }
