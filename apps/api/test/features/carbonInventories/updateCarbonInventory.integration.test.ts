@@ -16,7 +16,10 @@ import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.
 import type { UpdateCarbonInventoryResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { VALIDATION_ERROR_CODE, type ValidationErrorResponse } from "@/commonSchemas/errors.js";
+import {
+  VALIDATION_ERROR_CODE,
+  type ValidationErrorResponse,
+} from "@/commonSchemas/errors.js";
 
 describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -140,6 +143,31 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
 
       expect(body.organizationId).toBe("123");
+    });
+
+    it("should update name", async () => {
+      const inventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${inventory.id}`,
+        payload: {
+          name: "Updated Inventory Name",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+
+      expect(body.name).toBe("Updated Inventory Name");
+
+      // Verify in database
+      const dbInventory = await prisma.carbonInventory.findUnique({
+        where: { id: inventory.id },
+      });
+      expect(dbInventory?.name).toBe("Updated Inventory Name");
     });
 
     it("should update organizationBranchId", async () => {

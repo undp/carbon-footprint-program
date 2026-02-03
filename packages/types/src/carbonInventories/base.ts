@@ -76,6 +76,7 @@ export const OrganizationDataSchema = makeAllFieldsNullable(
 export const CarbonInventorySchema = z
   .object({
     id: IdSchema.describe("The ID of the carbon inventory"),
+    name: z.string().nullable().describe("The name of the carbon inventory"),
     organizationId: IdSchema.nullable().describe("The ID of the organization"),
     organizationBranchId: IdSchema.nullable().describe(
       "The ID of the organization branch"

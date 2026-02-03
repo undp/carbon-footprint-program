@@ -451,6 +451,7 @@ model EmissionFactor {
 
 model CarbonInventory {
   id                   BigInt                         @id @default(autoincrement())
+  name                 String?
   organizationId       BigInt?                        @map("organization_id")
   organizationBranchId BigInt?                        @map("organization_branch_id")
   organizationData     Json?                          @map("organization_data") @db.JsonB
