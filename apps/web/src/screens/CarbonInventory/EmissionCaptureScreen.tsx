@@ -15,7 +15,9 @@ import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
+import { IS_DEVELOPMENT } from "@/config/environment";
 import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
+import { DevTool } from "@hookform/devtools";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -216,6 +218,7 @@ export const EmissionCaptureScreen: FC = () => {
           </Box>
         </CarbonInventoryLayout>
       </form>
+      {IS_DEVELOPMENT && <DevTool control={methods.control} />}
     </FormProvider>
   );
 };

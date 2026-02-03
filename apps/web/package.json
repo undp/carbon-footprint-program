@@ -49,6 +49,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@hookform/devtools": "^4.4.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.139.3",

@@ -14,7 +14,8 @@
     "FORCED_USER_EMAIL_WHEN_NO_PROVIDER",
     "JWKS_URI",
     "JWKS_ISSUER",
-    "JWKS_AUDIENCE"
+    "JWKS_AUDIENCE",
+    "DEV"
   ],
   "tasks": {
     "clean": {

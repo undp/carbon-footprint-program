@@ -12,6 +12,8 @@ import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/
 import { SubcategoryPreselectionField } from "./components";
 import { CategoryCard } from "./components/CategoryCard";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { DevTool } from "@hookform/devtools";
+import { IS_DEVELOPMENT } from "@/config/environment";
 
 const ERROR_MESSAGE = {
   title:
@@ -130,6 +132,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           </Box>
         </CarbonInventoryLayout>
       </form>
+      {IS_DEVELOPMENT && <DevTool control={methods.control} />}
     </FormProvider>
   );
 };
