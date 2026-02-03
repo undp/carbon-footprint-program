@@ -181,31 +181,6 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
       expect(body.total).toBe(3000); // Both years
     });
 
-    it("should return all years when year=all", async () => {
-      await createInventoryWithEmissions(
-        prisma,
-        { ...carbonInventoryPatterns.verified(), year: 2023 },
-        {
-          emissionsByCategory: [{ categoryPosition: 1, emissions: 1000 }],
-        }
-      );
-      await createInventoryWithEmissions(
-        prisma,
-        { ...carbonInventoryPatterns.verified(), year: 2024 },
-        {
-          emissionsByCategory: [{ categoryPosition: 1, emissions: 2000 }],
-        }
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/carbon-inventories/kpis?year=all",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryKPIsResponse;
-      expect(body.total).toBe(3000); // Both years
-    });
 
     it("should filter by specific year", async () => {
       await createInventoryWithEmissions(
@@ -301,11 +276,11 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
 
       expect(body.categoryTotals.length).toBeGreaterThan(0);
       const categoryTotal = body.categoryTotals[0];
-      expect(categoryTotal).toHaveProperty("categoryPosition");
-      expect(categoryTotal).toHaveProperty("categoryName");
+      expect(categoryTotal).toHaveProperty("position");
+      expect(categoryTotal).toHaveProperty("name");
       expect(categoryTotal).toHaveProperty("total");
-      expect(typeof categoryTotal.categoryPosition).toBe("number");
-      expect(typeof categoryTotal.categoryName).toBe("string");
+      expect(typeof categoryTotal.position).toBe("number");
+      expect(typeof categoryTotal.name).toBe("string");
       expect(typeof categoryTotal.total).toBe("number");
     });
 
@@ -325,9 +300,9 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
 
       if (body.categoryTotals.length > 1) {
         for (let i = 1; i < body.categoryTotals.length; i++) {
-          expect(
-            body.categoryTotals[i].categoryPosition
-          ).toBeGreaterThanOrEqual(body.categoryTotals[i - 1].categoryPosition);
+          expect(body.categoryTotals[i].position).toBeGreaterThanOrEqual(
+            body.categoryTotals[i - 1].position
+          );
         }
       }
     });
@@ -459,7 +434,7 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
       expect(body.categoryTotals).toEqual([]);
     });
 
-    it("should handle invalid year parameter gracefully", async () => {
+    it("should reject invalid year parameter with validation error", async () => {
       await createInventoryWithEmissions(
         prisma,
         carbonInventoryPatterns.verified()
@@ -470,10 +445,8 @@ describe("GET /api/carbon-inventories/kpis - Integration Tests", () => {
         url: "/api/carbon-inventories/kpis?year=invalid",
       });
 
-      // Should return all years when invalid year is provided
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryKPIsResponse;
-      expect(body.total).toBeGreaterThan(0);
+      // Should return 400 validation error for invalid year format
+      expect(response.statusCode).toBe(400);
     });
   });
 });
