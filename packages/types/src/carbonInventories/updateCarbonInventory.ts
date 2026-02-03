@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CarbonInventorySchema } from "./base.js";
 
 export const UpdateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
+  name: true,
   organizationId: true,
   organizationBranchId: true,
   organizationData: true,
