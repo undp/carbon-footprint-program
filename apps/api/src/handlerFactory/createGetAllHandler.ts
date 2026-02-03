@@ -30,13 +30,12 @@ export const createGetAllHandler =
 
     if (treatEmptyAsNotFound && (!data || data.length === 0)) {
       log.warn(`${resourceName} not found`);
-      reply.status(404).send({
+      return reply.status(404).send({
         code: "RESOURCE_NOT_FOUND",
         message: `${resourceName} not found`,
       });
-      return;
     }
     log.info(`${resourceName} found successfully`);
 
-    reply.status(200).send(data);
+    return reply.status(200).send(data);
   };
