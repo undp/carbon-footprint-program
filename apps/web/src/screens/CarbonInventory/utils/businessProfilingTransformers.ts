@@ -19,6 +19,7 @@ export const mapInventoryToFormValues = (
 
   return {
     year: toSafeString(inventory.year),
+    name: toSafeString(inventory.name),
     usageMode: inventory.usageMode,
     companyName: toSafeString(organizationData?.name),
     sector: toSafeString(organizationData?.sectorId),
@@ -34,6 +35,7 @@ export const mapFormValuesToRequest = (
 ): UpdateCarbonInventoryRequest => {
   return {
     year: values.year !== "" ? Number(values.year) : undefined,
+    name: values.name ?? undefined,
     usageMode: values.usageMode,
     organizationData: {
       name: values.companyName || null,

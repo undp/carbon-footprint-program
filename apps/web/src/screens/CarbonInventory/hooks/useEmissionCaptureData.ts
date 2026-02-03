@@ -33,6 +33,7 @@ export const useEmissionCaptureData = ({
 
     return {
       year: inventory?.year || null,
+      name: inventory?.name || null,
       usageMode: inventory?.usageMode || null,
       categories: methodology.categories.map((category) => ({
         ...category,
