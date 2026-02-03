@@ -12,11 +12,11 @@ export const GetCarbonInventoryKPIsQuerySchema = z.object({
 
 // Category total schema
 export const CategoryTotalSchema = z.object({
-  categoryPosition: z
+  position: z
     .number()
     .int()
     .describe("The position of the category (1, 2, or 3)"),
-  categoryName: z
+  name: z
     .string()
     .describe("The name of the category (e.g., Scope 1, Scope 2, Scope 3)"),
   total: z.number().describe("The total emissions for this category"),

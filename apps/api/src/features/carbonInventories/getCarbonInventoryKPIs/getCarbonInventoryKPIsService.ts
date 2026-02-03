@@ -66,7 +66,7 @@ export const getCarbonInventoryKPIsService = async (
       select: {
         id: true,
         position: true,
-        name: true,
+        synonyms: true,
       },
     });
 
@@ -80,12 +80,12 @@ export const getCarbonInventoryKPIsService = async (
       Object.entries(groupedByCategory).map(([categoryId, items]) => {
         const category = categoryMap[categoryId];
         return {
-          categoryPosition: category?.position ?? 0,
-          categoryName: category?.name ?? "Unknown",
+          position: category?.position ?? 0,
+          name: category?.synonyms ?? "Unknown",
           total: sumBy(items, ({ value }) => toNumberOrNull(value) ?? 0),
         };
       }),
-      "categoryPosition"
+      "position"
     );
 
     // Calculate grand total
