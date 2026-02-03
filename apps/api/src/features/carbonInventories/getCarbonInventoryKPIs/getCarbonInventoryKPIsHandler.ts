@@ -21,7 +21,7 @@ export const getCarbonInventoryKPIsHandler = async (
   try {
     const result = await getCarbonInventoryKPIsService(prisma, year);
 
-    if (!result.success) {
+    if (result.error) {
       log.error("Error getting carbon inventory KPIs");
       return reply.status(500).send({
         code: "INTERNAL_ERROR",

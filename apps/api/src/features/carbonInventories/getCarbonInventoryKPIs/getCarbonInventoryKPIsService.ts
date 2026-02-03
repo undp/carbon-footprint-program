@@ -5,8 +5,8 @@ import { toNumberOrNull } from "@/utils/number.js";
 import { parseYearParam } from "../utils.js";
 
 export type GetCarbonInventoryKPIsResult =
-  | { success: true; data: GetCarbonInventoryKPIsResponse }
-  | { success: false; error: "INTERNAL_ERROR" };
+  | { data: GetCarbonInventoryKPIsResponse; error?: never }
+  | { data: null; error: string };
 
 export const getCarbonInventoryKPIsService = async (
   prismaClient: PrismaClient,
@@ -45,7 +45,6 @@ export const getCarbonInventoryKPIsService = async (
     // If no subtotals found, return zeros
     if (allSubtotals.length === 0) {
       return {
-        success: true,
         data: {
           total: 0,
           categoryTotals: [],
@@ -92,7 +91,6 @@ export const getCarbonInventoryKPIsService = async (
     const total = sumBy(categoryTotals, "total");
 
     return {
-      success: true,
       data: {
         total,
         categoryTotals,
@@ -100,7 +98,7 @@ export const getCarbonInventoryKPIsService = async (
     };
   } catch (error) {
     return {
-      success: false,
+      data: null,
       error: "INTERNAL_ERROR",
     };
   }
