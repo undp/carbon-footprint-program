@@ -22,7 +22,7 @@ import { UserMenu } from "./UserMenu";
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
   [SidebarRoutes.MY_ORGANIZATION]: <Business />,
-  [SidebarRoutes.CARBON_INVENTORY]: <SouthAmerica />,
+  [SidebarRoutes.CARBON_INVENTORIES]: <SouthAmerica />,
   [SidebarRoutes.REDUCTION_PROJECTS]: <TrendingDown />,
   [SidebarRoutes.REDUCTION_PLAN]: <SsidChartRounded />,
   [SidebarRoutes.AWARDS]: <EmojiEventsOutlined />,
@@ -66,7 +66,7 @@ export const Sidebar: FC = () => {
           sx={{
             width: 93,
             height: 40,
-            ":hover": { cursor: "pointer" },
+            cursor: "pointer",
           }}
           onClick={() => navigate({ to: Routes.LANDING })}
         />
