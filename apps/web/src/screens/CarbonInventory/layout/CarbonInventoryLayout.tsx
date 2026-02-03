@@ -45,7 +45,12 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
               <Typography color="textSecondary" variant="h6">
                 •
               </Typography>
-              <Typography color="textSecondary" variant="h6">
+              <Typography
+                color="textSecondary"
+                noWrap
+                variant="h6"
+                title={subtitle}
+              >
                 {subtitle}
               </Typography>
             </>
