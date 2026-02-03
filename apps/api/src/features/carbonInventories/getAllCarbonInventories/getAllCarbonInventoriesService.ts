@@ -6,7 +6,6 @@ import type {
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { toNumberOrNull } from "@/utils/number.js";
-import { parseYearParam } from "../utils.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
@@ -17,11 +16,7 @@ export const getAllCarbonInventoriesService = async (
     year?: number;
   } = {};
 
-  // Handle year parameter
-  const parsedYear = parseYearParam(query?.year);
-  if (parsedYear !== undefined) {
-    whereClause.year = parsedYear;
-  }
+  whereClause.year = query?.year ? parseInt(query.year, 10) : undefined;
 
   const data = await prismaClient.carbonInventory.findMany({
     where: whereClause,
