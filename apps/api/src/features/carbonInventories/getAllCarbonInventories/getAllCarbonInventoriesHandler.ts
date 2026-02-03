@@ -1,11 +1,16 @@
 import { createGetAllHandler } from "@/handlerFactory/index.js";
 import { getAllCarbonInventoriesService } from "./getAllCarbonInventoriesService.js";
-import type { GetAllCarbonInventoriesResponse } from "@repo/types";
+import type {
+  GetAllCarbonInventoriesResponse,
+  GetAllCarbonInventoriesQuery,
+} from "@repo/types";
 
-export const getAllCarbonInventoriesHandler =
-  createGetAllHandler<GetAllCarbonInventoriesResponse>(
-    "carbonInventories",
-    getAllCarbonInventoriesService,
-    "Carbon inventories",
-    false // We don't want to throw an error if no carbon inventories are found
-  );
+export const getAllCarbonInventoriesHandler = createGetAllHandler<
+  GetAllCarbonInventoriesResponse,
+  GetAllCarbonInventoriesQuery
+>(
+  "carbonInventories",
+  getAllCarbonInventoriesService,
+  "Carbon inventories",
+  false // Don't treat empty array as not found
+);

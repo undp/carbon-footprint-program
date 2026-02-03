@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../generated/client"
+  provider        = "prisma-client-js"
+  output          = "../generated/client"
+  previewFeatures = ["views"]
 }
 
 datasource db {
@@ -449,24 +450,25 @@ model EmissionFactor {
 }
 
 model CarbonInventory {
-  id                   BigInt                @id @default(autoincrement())
-  organizationId       BigInt?               @map("organization_id")
-  organizationBranchId BigInt?               @map("organization_branch_id")
-  organizationData     Json?                 @map("organization_data") @db.JsonB
+  id                   BigInt                         @id @default(autoincrement())
+  organizationId       BigInt?                        @map("organization_id")
+  organizationBranchId BigInt?                        @map("organization_branch_id")
+  organizationData     Json?                          @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus       @default(DRAFT)
-  usageMode            UsageMode             @map("usage_mode")
-  methodologyVersionId BigInt?               @map("methodology_version_id")
-  preselectedNodesId   BigInt?               @map("preselected_nodes_id")
-  isEditable           Boolean               @default(true) @map("is_editable")
-  createdAt            DateTime              @default(now()) @map("created_at")
-  updatedAt            DateTime              @default(now()) @updatedAt @map("updated_at")
-  createdById          BigInt?               @map("created_by_id")
-  updatedById          BigInt?               @map("updated_by_id")
-  methodologyVersion   MethodologyVersion?   @relation(fields: [methodologyVersionId], references: [id])
-  creator              User?                 @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
-  updater              User?                 @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+  status               InventoryStatus                @default(DRAFT)
+  usageMode            UsageMode                      @map("usage_mode")
+  methodologyVersionId BigInt?                        @map("methodology_version_id")
+  preselectedNodesId   BigInt?                        @map("preselected_nodes_id")
+  isEditable           Boolean                        @default(true) @map("is_editable")
+  createdAt            DateTime                       @default(now()) @map("created_at")
+  updatedAt            DateTime                       @default(now()) @updatedAt @map("updated_at")
+  createdById          BigInt?                        @map("created_by_id")
+  updatedById          BigInt?                        @map("updated_by_id")
+  methodologyVersion   MethodologyVersion?            @relation(fields: [methodologyVersionId], references: [id])
+  creator              User?                          @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
+  updater              User?                          @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
   lines                CarbonInventoryLine[]
+  subtotals            CarbonInventorySubtotalsView[]
 
   @@map("carbon_inventory")
 }
@@ -568,4 +570,14 @@ model CarbonInventoryLineResult {
 
   @@unique([lineInputId])
   @@map("carbon_inventory_line_result")
+}
+
+view CarbonInventorySubtotalsView {
+  carbonInventoryId BigInt          @map("carbon_inventory_id")
+  categoryId        BigInt          @map("category_id")
+  subcategoryId     BigInt          @map("subcategory_id")
+  value             Decimal         @db.Decimal(28, 10)
+  carbonInventory   CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
+
+  @@map("carbon_inventory_subtotals_view")
 }
