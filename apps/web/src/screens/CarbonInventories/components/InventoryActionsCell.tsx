@@ -138,6 +138,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
                 onClick={() => onViewClick(inventoryId)}
                 color="primary"
                 size="small"
+                aria-label="Revisar huella"
               >
                 <FileCopyOutlined fontSize="small" />
               </BaseIconButton>
@@ -148,6 +149,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             <BaseIconButton
               onClick={() => onEditClick(inventoryId)}
               disabled={!canEdit}
+              aria-label="Editar huella"
             >
               <EditOutlined fontSize="small" />
             </BaseIconButton>
@@ -160,6 +162,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             <BaseIconButton
               disabled
               onClick={() => onDownloadClick(inventoryId)}
+              aria-label="Descargar"
             >
               <FileDownloadOutlined fontSize="small" />
             </BaseIconButton>
@@ -169,7 +172,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         {/* Verify button */}
         <Tooltip title={"Ver Diploma o sello"}>
           <span>
-            <BaseIconButton onClick={onVerifyClick} disabled={!canVerify}>
+            <BaseIconButton
+              onClick={onVerifyClick}
+              disabled={!canVerify}
+              aria-label="Ver Diploma o sello"
+            >
               <VerifiedOutlined fontSize="small" />
             </BaseIconButton>
           </span>
@@ -181,6 +188,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             <BaseIconButton
               disabled
               onClick={() => onRewardsClick(inventoryId)}
+              aria-label="Postular a sello"
             >
               <EmojiEventsOutlined fontSize="small" />
             </BaseIconButton>
@@ -196,7 +204,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           }
         >
           <span>
-            <BaseIconButton onClick={onDeleteClick} disabled={!canDelete}>
+            <BaseIconButton
+              onClick={onDeleteClick}
+              disabled={!canDelete}
+              aria-label="Eliminar"
+            >
               <DeleteOutlined fontSize="small" />
             </BaseIconButton>
           </span>
