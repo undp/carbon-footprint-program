@@ -10,5 +10,4 @@ export const useCarbonInventoriesAvailableYears = () =>
     queryFn: () => apiClient.get("carbon-inventories/available-years").json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
-    refetchOnMount: true,
   });

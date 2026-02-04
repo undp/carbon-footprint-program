@@ -15,8 +15,5 @@ export const useCarbonInventories = (year?: string) => {
         .json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
-    refetchOnMount: true,
-    select: (data) =>
-      data.filter((inventory) => inventory.status !== "DELETED"),
   });
 };
