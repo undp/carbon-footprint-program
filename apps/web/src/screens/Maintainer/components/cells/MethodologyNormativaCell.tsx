@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { TextField, MenuItem, Typography, Tooltip } from "@mui/material";
+import { Autocomplete, TextField, Typography, Tooltip } from "@mui/material";
 import { NORMATIVA_OPTIONS } from "../../constants";
 import type { MethodologiesFormValues } from "../../hooks/useMethodologiesForm";
 
@@ -31,26 +31,32 @@ export const MethodologyNormativaCell: FC<MethodologyNormativaCellProps> = ({
 
   return (
     <Tooltip title={fieldError?.message ?? ""} arrow placement="top">
-      <TextField
-        select
+      <Autocomplete
+        freeSolo
         fullWidth
         size="small"
+        options={NORMATIVA_OPTIONS.map((option) => option.value)}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        error={!!fieldError}
+        onChange={(_, newValue) => onChange(newValue ?? "")}
+        onInputChange={(_, newInputValue) => onChange(newInputValue)}
         sx={{
-          "& .MuiOutlinedInput-root": {
-            backgroundColor: "white",
+          "& .MuiAutocomplete-inputRoot": {
+            py: 0,
           },
-          justifyContent: "center",
         }}
-      >
-        {NORMATIVA_OPTIONS.map((option) => (
-          <MenuItem key={option.value} value={option.value}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </TextField>
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            error={!!fieldError}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                backgroundColor: "white",
+              },
+              minHeight: 0,
+            }}
+          />
+        )}
+      />
     </Tooltip>
   );
 };

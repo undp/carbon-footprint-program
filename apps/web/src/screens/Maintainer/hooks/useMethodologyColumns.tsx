@@ -91,7 +91,7 @@ export const useMethodologyColumns = ({
       {
         field: "normativa",
         headerName: "Normativa",
-        width: 150,
+        width: 200,
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
