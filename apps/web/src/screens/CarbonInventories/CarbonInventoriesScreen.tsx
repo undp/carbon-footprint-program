@@ -66,9 +66,9 @@ export const CarbonInventoriesScreen: FC = () => {
 
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
-  const onYearSelectChange = (event: SelectChangeEvent) => {
+  const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
-  };
+  }, []);
 
   const {
     data: inventories = [],
