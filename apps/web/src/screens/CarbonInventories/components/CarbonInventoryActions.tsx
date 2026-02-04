@@ -13,17 +13,11 @@ export const CarbonInventoryActions: FC<CarbonInventoriesHeaderProps> = ({
   onNewInventory,
 }) => {
   return (
-    <Box
-      sx={{
-        display: "flex",
-        justifyContent: "space-between",
-        alignItems: "center",
-      }}
-    >
+    <Box className="flex items-center justify-between">
       <Typography variant="h6" fontWeight={600}>
         Mis Huellas
       </Typography>
-      <Box sx={{ display: "flex", gap: 2 }}>
+      <Box className="flex gap-2">
         {hasDraftInventory && (
           <Button variant="outlined" color="primary" onClick={onContinueDraft}>
             Continuar borrador
