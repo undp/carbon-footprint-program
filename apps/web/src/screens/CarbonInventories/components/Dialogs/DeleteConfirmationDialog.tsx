@@ -20,10 +20,17 @@ export const DeleteConfirmationDialog: FC<DeleteConfirmationDialogProps> = ({
   onConfirm,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Eliminar huella de Carbono</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      aria-labelledby="delete-dialog-title"
+      aria-describedby="delete-dialog-description"
+    >
+      <DialogTitle id="delete-dialog-title">
+        Eliminar huella de Carbono
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
+        <DialogContentText id="delete-dialog-description">
           ¿Estás seguro de que deseas eliminar esta huella de carbono? Esta
           acción no se puede deshacer.
         </DialogContentText>
