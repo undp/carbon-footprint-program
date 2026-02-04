@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "./zod.js";
-import { Magnitude } from "@repo/database";
+import { Magnitude } from "@repo/database/enums";
 
 export const MeasurementUnitSchema = z.object({
   id: IdSchema.describe("The ID of the measurement unit"),

@@ -1,2 +1,2 @@
-import { CarbonInventoryLineStatus } from "@repo/database";
+import { CarbonInventoryLineStatus } from "@repo/database/enums";
 export { CarbonInventoryLineStatus };

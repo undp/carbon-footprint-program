@@ -1,2 +1,2 @@
-import { EmissionFactorStatus } from "@repo/database";
+import { EmissionFactorStatus } from "@repo/database/enums";
 export { EmissionFactorStatus };

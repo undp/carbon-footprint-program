@@ -1,2 +1,2 @@
-import { MethodologyVersionStatus } from "@repo/database";
+import { MethodologyVersionStatus } from "@repo/database/enums";
 export { MethodologyVersionStatus };

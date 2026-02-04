@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { makeAllFieldsNullable, IdSchema } from "../zod.js";
 
-export { InventoryStatus } from "@repo/database";
+export { InventoryStatus } from "@repo/database/enums";
 
 // Enums
 export const InventoryStatusSchema = z.enum([
