@@ -40,7 +40,7 @@ export const MethodologiesScreen: FC = () => {
     if (!editingRowId) return;
 
     const rows = form.getValues("methodologies");
-    const rowIndex = rows.findIndex((r) => r.id === editingRowId);
+    const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
     const row = rows[rowIndex];
 
     // Validate the row before allowing exit
