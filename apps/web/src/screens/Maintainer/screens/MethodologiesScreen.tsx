@@ -82,7 +82,7 @@ export const MethodologiesScreen: FC = () => {
 
   // Comment: Creo que esto se podria mejorar, asi como esta siempre son dos llamadas a la API.
   const handleToggle = useCallback(
-    (row: Methodology, checked: boolean) => {
+    async (row: Methodology, checked: boolean) => {
       if (!checked) {
         void enqueueSnackbar({
           message: "Siempre debe haber una metodología activa",
@@ -93,26 +93,25 @@ export const MethodologiesScreen: FC = () => {
       }
       const rows = form.getValues("methodologies");
       if (checked) {
-        rows.forEach((m, i) => {
-          if (m.activo && m.id !== row.id) {
-            const updatedRow = { ...m, activo: false };
-            fieldArray.update(i, updatedRow);
-            updateMutation.mutate(updatedRow);
-          }
-        });
+        await Promise.all(
+          rows
+            .filter((m) => m.activo && m.id !== row.id)
+            .map((m, i) => {
+              const updatedRow = { ...m, activo: false };
+              fieldArray.update(i, updatedRow);
+              return updateMutation.mutateAsync(updatedRow);
+            })
+        );
       }
       const rowIndex = rows.findIndex((r) => r.id === row.id);
       if (rowIndex !== -1) {
         const updatedRow = { ...row, activo: checked };
         fieldArray.update(rowIndex, updatedRow);
-        updateMutation.mutate(updatedRow, {
-          onSuccess: () => {
-            void enqueueSnackbar({
-              message: "Metodología activa actualizada",
-              variant: "success",
-              autoHideDuration: 2000,
-            });
-          },
+        await updateMutation.mutateAsync(updatedRow);
+        void enqueueSnackbar({
+          message: "Metodología activa actualizada",
+          variant: "success",
+          autoHideDuration: 2000,
         });
       }
     },
@@ -132,7 +131,7 @@ export const MethodologiesScreen: FC = () => {
   );
 
   const handleDuplicate = useCallback(
-    (row: Methodology) => {
+    async (row: Methodology) => {
       const rows = form.getValues("methodologies");
       const index = rows.findIndex((r) => r.id === row.id);
       const duplicate: Methodology = {
@@ -142,48 +141,55 @@ export const MethodologiesScreen: FC = () => {
         activo: false,
       };
       fieldArray.insert(index + 1, duplicate);
-      addMutation.mutate(duplicate, {
-        onSuccess: () => {
-          void enqueueSnackbar({
-            message: "Metodología duplicada exitosamente",
-            variant: "success",
-            autoHideDuration: 2000,
-          });
-        },
-      });
+      try {
+        await addMutation.mutateAsync(duplicate);
+        void enqueueSnackbar({
+          message: "Metodología duplicada exitosamente",
+          variant: "success",
+          autoHideDuration: 2000,
+        });
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al duplicar metodología",
+          variant: "error",
+          autoHideDuration: 2000,
+        });
+      }
     },
     [form, fieldArray, addMutation, enqueueSnackbar]
   );
 
-  const handleAddRow = useCallback(() => {
-    const newRow = createEmptyMethodology();
-    fieldArray.append(newRow);
-    addMutation.mutate(newRow, {
-      onSuccess: () => {
-        setEditingRowId(newRow.id);
-        void enqueueSnackbar({
-          message: "Nueva metodología creada",
-          variant: "success",
-          autoHideDuration: 2000,
-        });
-      },
-    });
+  const handleAddRow = useCallback(async () => {
+    try {
+      const newRow = createEmptyMethodology();
+      await addMutation.mutateAsync(newRow);
+      fieldArray.append(newRow);
+      setEditingRowId(newRow.id);
+      void enqueueSnackbar({
+        message: "Nueva metodología creada",
+        variant: "success",
+        autoHideDuration: 2000,
+      });
+    } catch {
+      void enqueueSnackbar({
+        message: "Error al crear nueva metodología",
+        variant: "error",
+        autoHideDuration: 2000,
+      });
+    }
   }, [fieldArray, addMutation, enqueueSnackbar]);
 
   const handleDelete = useCallback(
-    (row: Methodology) => {
+    async (row: Methodology) => {
       const rows = form.getValues("methodologies");
       const index = rows.findIndex((r) => r.id === row.id);
       if (index !== -1) {
         fieldArray.remove(index);
-        deleteMutation.mutate(row.id, {
-          onSuccess: () => {
-            void enqueueSnackbar({
-              message: "Metodología eliminada",
-              variant: "success",
-              autoHideDuration: 2000,
-            });
-          },
+        await deleteMutation.mutateAsync(row.id);
+        void enqueueSnackbar({
+          message: "Metodología eliminada",
+          variant: "success",
+          autoHideDuration: 2000,
         });
       }
     },
