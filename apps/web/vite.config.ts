@@ -48,7 +48,11 @@ export default defineConfig(({ mode }) => {
         "@emotion/react",
         "@emotion/styled",
       ],
-      exclude: ["@prisma/client"],
+      exclude: [
+        "@prisma/client",
+        "@prisma/client/runtime/client",
+        "@repo/database",
+      ],
     },
     build: {
       rollupOptions: {
