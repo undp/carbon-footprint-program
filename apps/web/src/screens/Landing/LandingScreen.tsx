@@ -2,7 +2,7 @@ import { FC } from "react";
 import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "./components/Header";
-import { Options } from "./components/Options";
+import { CreateInventoryOptions } from "./components/CreateInventoryOptions";
 
 export const LandingScreen: FC = () => {
   const theme = useTheme();
@@ -46,7 +46,7 @@ export const LandingScreen: FC = () => {
             organizacional
           </Typography>
         </Box>
-        <Options />
+        <CreateInventoryOptions />
       </Container>
     </Box>
   );

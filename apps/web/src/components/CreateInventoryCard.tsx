@@ -23,17 +23,24 @@ interface Props {
   description: string;
   buttonText: string;
   usageMode: "SIMPLIFIED" | "EXPERT";
+  backgroundColor?: string;
+  textColor?: string;
+  iconColor?: string;
 }
 
-export const CardOption: FC<Props> = ({
+export const CreateInventoryCard: FC<Props> = ({
   AvatarIcon,
   title,
   description,
   buttonText,
   usageMode,
+  backgroundColor,
+  textColor,
+  iconColor,
 }) => {
   const theme = useTheme();
-  const backgroundColor = alpha(theme.palette.common.white, 0.1);
+  const bgColor = alpha(backgroundColor ?? theme.palette.common.white, 0.1);
+  const txtColor = textColor ?? theme.palette.common.white;
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
   const createInventory = useCreateCarbonInventory();
@@ -65,7 +72,7 @@ export const CardOption: FC<Props> = ({
   return (
     <Card
       sx={{
-        background: backgroundColor,
+        background: bgColor,
         borderRadius: 5,
         maxWidth: 364,
         p: 2,
@@ -76,28 +83,24 @@ export const CardOption: FC<Props> = ({
         avatar={
           <Avatar
             sx={{
-              background: backgroundColor,
+              background: bgColor,
               width: 56,
               height: 56,
             }}
           >
-            <AvatarIcon />
+            <AvatarIcon
+              sx={{
+                color: iconColor ?? theme.palette.common.white,
+              }}
+            />
           </Avatar>
         }
       />
       <CardContent sx={{ height: 152 }}>
-        <Typography
-          variant="subtitle1"
-          fontWeight="600"
-          color={theme.palette.common.white}
-        >
+        <Typography variant="subtitle1" fontWeight="600" color={txtColor}>
           {title}
         </Typography>
-        <Typography
-          variant="subtitle1"
-          color={theme.palette.common.white}
-          sx={{ mt: 1 }}
-        >
+        <Typography variant="subtitle1" color={txtColor} sx={{ mt: 1 }}>
           {description}
         </Typography>
       </CardContent>

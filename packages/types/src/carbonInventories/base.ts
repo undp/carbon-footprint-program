@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { makeAllFieldsNullable, IdSchema } from "../zod.js";
 
-export { InventoryStatus } from "@repo/database/enums";
+export { InventoryStatus, UsageMode } from "@repo/database/enums";
 
 // Enums
 export const InventoryStatusSchema = z.enum([
@@ -125,7 +125,6 @@ export const CarbonInventorySchema = z
   .strict();
 
 // TypeScript Types
-export type UsageMode = z.infer<typeof UsageModeSchema>;
 export type OrganizationData = z.infer<typeof OrganizationDataSchema>;
 export type CarbonInventory = z.infer<typeof CarbonInventorySchema>;
 export type CarbonInventoryLine = z.infer<typeof CarbonInventoryLineSchema>;
