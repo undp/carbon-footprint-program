@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { CalculatorIcon, ApplicationFormIcon } from "@/icons";
 import { CreateInventoryCard } from "@/components/CreateInventoryCard";
 
-export const Options: FC = () => (
+export const CreateInventoryOptions: FC = () => (
   <Box className="flex flex-col items-center justify-center gap-4">
     <Typography variant="h5" fontWeight="600" color="white">
       Elige cómo empezar
