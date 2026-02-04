@@ -6,3 +6,6 @@ export * from "./measurementUnits.js";
 export * from "./organizationMainActivities.js";
 export * from "./users/index.js";
 export * from "./zod.js";
+export * from "./methodologies.js";
+export * from "./carbonInventoryLines.js";
+export * from "./emissionFactors.js";

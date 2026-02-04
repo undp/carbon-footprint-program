@@ -1,2 +1,2 @@
-export * from "./generated/client/index.js";
+export * from "./generated/prisma/client.js";
 export * from "./adapter.js";

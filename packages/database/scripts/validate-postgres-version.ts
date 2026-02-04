@@ -17,7 +17,7 @@
  *   1 - PostgreSQL version is incompatible (<15) or validation failed
  */
 
-import { PrismaClient } from "../src/generated/client/index.js";
+import { PrismaClient } from "../src/generated/prisma/client.js";
 import { generatePrismaAdapter } from "../src/adapter.js";
 
 const MINIMUM_MAJOR_VERSION = 15;

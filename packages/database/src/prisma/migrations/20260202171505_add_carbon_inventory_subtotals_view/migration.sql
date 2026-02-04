@@ -8,10 +8,7 @@ SELECT
   FROM carbon_inventory ci
   INNER JOIN carbon_inventory_line l
     ON l.carbon_inventory_id = ci.id 
-    AND l.status_id = (
-      SELECT id FROM status_catalog 
-      WHERE scope = 'ENTITY' AND code = 'ACTIVE'
-    )
+    AND l.status = 'ACTIVE'
   INNER JOIN subcategory s
       ON l.subcategory_id = s.id
   LEFT JOIN carbon_inventory_line_input i

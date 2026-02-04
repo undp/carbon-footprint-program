@@ -15,7 +15,10 @@ import {
   getTestUsers,
   cleanupCarbonInventoryTestData,
 } from "@test/factories/carbonInventorySeeder.js";
-import type { GetAllCarbonInventoriesResponse } from "@repo/types";
+import {
+  type GetAllCarbonInventoriesResponse,
+  InventoryStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
@@ -256,10 +259,10 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(body.length).toBe(4);
 
       const statuses = body.map((inv) => inv.status);
-      expect(statuses).toContain("DRAFT");
-      expect(statuses).toContain("SUBMITTED");
-      expect(statuses).toContain("VERIFIED");
-      expect(statuses).toContain("DELETED");
+      expect(statuses).toContain(InventoryStatus.DRAFT);
+      expect(statuses).toContain(InventoryStatus.SUBMITTED);
+      expect(statuses).toContain(InventoryStatus.VERIFIED);
+      expect(statuses).toContain(InventoryStatus.DELETED);
     });
   });
 

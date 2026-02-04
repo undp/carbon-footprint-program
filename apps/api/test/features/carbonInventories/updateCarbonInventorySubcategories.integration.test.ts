@@ -15,12 +15,13 @@ import {
   getSubcategoryIds,
   createCarbonInventoryLine,
   createCarbonInventoryLineInput,
-  getActiveStatusId,
-  getDeletedStatusId,
 } from "@test/factories/carbonInventorySeeder.js";
-import type { UpdateCarbonInventorySubcategoriesResponse } from "@repo/types";
+import {
+  type UpdateCarbonInventorySubcategoriesResponse,
+  CarbonInventoryLineStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
 import {
   VALIDATION_ERROR_CODE,
   type NotFoundErrorResponse,
@@ -31,7 +32,6 @@ import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
 } from "@test/factories/methodologyFactory.js";
-import { Prisma } from "@repo/database";
 
 describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -92,14 +92,13 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       expect(body.skipped).toBe(0);
 
       // Verify lines were created in the database
-      const activeStatus = await getActiveStatusId(prisma);
       const createdLines = await prisma.carbonInventoryLine.findMany({
         where: {
           carbonInventoryId: carbonInventory.id,
           subcategoryId: {
             in: subcategoryIds.slice(0, 3),
           },
-          statusId: activeStatus,
+          status: CarbonInventoryLineStatus.ACTIVE,
         },
       });
 
@@ -153,14 +152,13 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       expect(body.skipped).toBe(0);
 
       // Verify lines were soft deleted
-      const deletedStatus = await getDeletedStatusId(prisma);
       const deletedLines = await prisma.carbonInventoryLine.findMany({
         where: {
           carbonInventoryId: carbonInventory.id,
           subcategoryId: {
             in: subcategoryIds.slice(0, 2),
           },
-          statusId: deletedStatus,
+          status: CarbonInventoryLineStatus.DELETED,
         },
       });
 
@@ -361,13 +359,12 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       expect(body.skipped).toBe(0);
 
       // Verify all lines were soft deleted
-      const deletedStatus = await getDeletedStatusId(prisma);
       const deletedLines = await prisma.carbonInventoryLine.findMany({
         where: {
           id: {
             in: [line1.id, line2.id, line3.id],
           },
-          statusId: deletedStatus,
+          status: CarbonInventoryLineStatus.DELETED,
         },
       });
 
@@ -412,12 +409,11 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       expect(body.skipped).toBe(1);
 
       // Verify no additional lines were created
-      const activeStatus = await getActiveStatusId(prisma);
       const lines = await prisma.carbonInventoryLine.findMany({
         where: {
           carbonInventoryId: carbonInventory.id,
           subcategoryId: subcategoryIds[0],
-          statusId: activeStatus,
+          status: CarbonInventoryLineStatus.ACTIVE,
         },
       });
 
@@ -685,13 +681,12 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       expect(body.code).toBe("SUBCATEGORY_HAS_NON_EMPTY_LINES");
 
       // Verify no lines were deleted (transaction rolled back)
-      const activeStatus = await getActiveStatusId(prisma);
       const activeLines = await prisma.carbonInventoryLine.findMany({
         where: {
           id: {
             in: [emptyLine1.id, emptyLine2.id, nonEmptyLine.id],
           },
-          statusId: activeStatus,
+          status: CarbonInventoryLineStatus.ACTIVE,
         },
       });
 

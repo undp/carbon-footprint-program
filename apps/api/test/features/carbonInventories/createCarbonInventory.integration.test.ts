@@ -10,7 +10,10 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import type { CreateCarbonInventoryResponse } from "@repo/types";
+import {
+  type CreateCarbonInventoryResponse,
+  MethodologyVersionStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import {
@@ -333,47 +336,26 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
 
   describe("Business logic errors", () => {
     it("should return 422 when no active methodology is found", async () => {
-      // Get the ACTIVE and DELETED status IDs
-      const activeStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "ACTIVE",
-        },
-      });
-
-      const deletedStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "DELETED",
-        },
-      });
-
-      if (!activeStatus || !deletedStatus) {
-        throw new Error(
-          "Required status codes (ACTIVE or DELETED) not found in database"
-        );
-      }
-
       // Temporarily change all active methodologies to DELETED
       const activeMethodologies = await prisma.methodologyVersion.findMany({
         where: {
-          statusId: activeStatus.id,
+          status: MethodologyVersionStatus.ACTIVE,
         },
       });
 
       // Store original status IDs to restore later
       const originalStatusIds = activeMethodologies.map((m) => ({
         id: m.id,
-        statusId: m.statusId,
+        status: m.status,
       }));
 
       // Update all active methodologies to DELETED
       await prisma.methodologyVersion.updateMany({
         where: {
-          statusId: activeStatus.id,
+          status: MethodologyVersionStatus.ACTIVE,
         },
         data: {
-          statusId: deletedStatus.id,
+          status: MethodologyVersionStatus.DELETED,
         },
       });
 
@@ -392,10 +374,10 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         expect(body.message).toBe("No active methodology version found");
       } finally {
         // Restore original statuses
-        for (const { id, statusId } of originalStatusIds) {
+        for (const { id, status } of originalStatusIds) {
           await prisma.methodologyVersion.update({
             where: { id },
-            data: { statusId: statusId },
+            data: { status },
           });
         }
       }

@@ -1,23 +1,11 @@
 import { z } from "zod";
 import { IdSchema } from "./zod.js";
-
-export const MagnitudeSchema = z.enum([
-  "MASS",
-  "VOLUME",
-  "DISTANCE",
-  "TIME",
-  "ANIMALS",
-  "AREA",
-  "POWER",
-  "ENERGY",
-  "DISTANCE_MASS",
-  "ROOMS",
-]);
+import { Magnitude } from "@repo/database/enums";
 
 export const MeasurementUnitSchema = z.object({
   id: IdSchema.describe("The ID of the measurement unit"),
   name: z.string().min(1).describe("The name of the measurement unit"),
-  magnitude: MagnitudeSchema,
+  magnitude: z.enum(Magnitude),
   abbreviation: z
     .string()
     .min(1)
@@ -55,7 +43,6 @@ export const GetAllRateMeasurementUnitsResponseSchema = z.array(
   RateMeasurementUnitSchema
 );
 
-export type Magnitude = z.infer<typeof MagnitudeSchema>;
 export type MeasurementUnit = z.infer<typeof MeasurementUnitSchema>;
 export type RateMeasurementUnit = z.infer<typeof RateMeasurementUnitSchema>;
 export type GetAllMeasurementUnitsResponse = z.infer<

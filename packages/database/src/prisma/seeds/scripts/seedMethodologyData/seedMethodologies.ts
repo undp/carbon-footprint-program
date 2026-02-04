@@ -18,7 +18,6 @@ export async function seedMethodologies(
     countryIsoCode: methodology.countryIsoCode,
     name: methodology.name,
     description: methodology.description,
-    statusCode: methodology.statusCode,
   }));
 
   // Check the data has no duplicates based on countryIsoCode and name
@@ -30,16 +29,6 @@ export async function seedMethodologies(
     countries.map((country) => [country.isoCode, country])
   );
 
-  // Fetch status catalog entity entries to map code to id
-  const statusCatalogEntries = await prisma.statusCatalog.findMany({
-    where: {
-      scope: "ENTITY",
-    },
-  });
-  const statusByCode = new Map(
-    statusCatalogEntries.map((status) => [status.code, status])
-  );
-
   // Prepare methodologies data
   const methodologiesToCreate = methodologiesData.map((methodology) => {
     const country = countriesByIsoCode.get(methodology.countryIsoCode);
@@ -49,18 +38,10 @@ export async function seedMethodologies(
       );
     }
 
-    const status = statusByCode.get(methodology.statusCode);
-    if (!status) {
-      throw new Error(
-        `Status with code '${methodology.statusCode}' not found for dataset ${dataset}`
-      );
-    }
-
     return {
       countryId: country.id,
       name: methodology.name,
       description: methodology.description || null,
-      statusId: status.id,
     };
   });
 

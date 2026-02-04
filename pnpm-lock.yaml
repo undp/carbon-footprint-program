@@ -128,7 +128,7 @@ importers:
         version: 24.10.4
       '@vitest/coverage-v8':
         specifier: ^4.0.15
-        version: 4.0.15(vitest@4.0.15(@types/node@24.10.4)(@vitest/ui@4.0.14)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
+        version: 4.0.15(vitest@4.0.15)
       '@vitest/ui':
         specifier: ^4.0.14
         version: 4.0.14(vitest@4.0.15)
@@ -311,9 +311,6 @@ importers:
       '@repo/eslint-config':
         specifier: workspace:*
         version: link:../eslint-config
-      '@repo/types':
-        specifier: workspace:*
-        version: link:../types
       '@types/node':
         specifier: catalog:shared
         version: 24.10.4
@@ -371,6 +368,9 @@ importers:
 
   packages/types:
     dependencies:
+      '@repo/database':
+        specifier: workspace:*
+        version: link:../database
       zod:
         specifier: catalog:shared
         version: 4.1.12
@@ -6124,7 +6124,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@vitest/coverage-v8@4.0.15(vitest@4.0.15(@types/node@24.10.4)(@vitest/ui@4.0.14)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))':
+  '@vitest/coverage-v8@4.0.15(vitest@4.0.15)':
     dependencies:
       '@bcoe/v8-coverage': 1.0.2
       '@vitest/utils': 4.0.15

@@ -1,5 +1,5 @@
-import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
+import { CarbonInventoryLineStatus } from "@repo/types";
 import { mapBigIntField } from "@/utils/bigint.js";
 
 /**
@@ -263,79 +263,6 @@ export async function cleanupCarbonInventoryTestData(
 }
 
 /**
- * Gets the ACTIVE status ID for lines
- */
-export async function getActiveStatusId(prisma: PrismaClient): Promise<bigint> {
-  const activeStatus = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "ACTIVE",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!activeStatus) {
-    throw new Error(
-      "ACTIVE status not found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return activeStatus.id;
-}
-
-/**
- * Gets the DELETED status ID for lines
- */
-export async function getDeletedStatusId(
-  prisma: PrismaClient
-): Promise<bigint> {
-  const deletedStatus = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "DELETED",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!deletedStatus) {
-    throw new Error(
-      "DELETED status not found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return deletedStatus.id;
-}
-
-/**
- * Gets the OUTDATED status ID for lines
- */
-export async function getOutdatedStatusId(
-  prisma: PrismaClient
-): Promise<bigint> {
-  const outdatedStatus = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "OUTDATED",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!outdatedStatus) {
-    throw new Error(
-      "OUTDATED status not found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return outdatedStatus.id;
-}
-
-/**
  * Gets all subcategory IDs from a methodology version
  */
 export async function getSubcategoryIds(
@@ -376,16 +303,14 @@ export async function createCarbonInventoryLine(
   carbonInventoryId: bigint,
   subcategoryId: bigint,
   options?: {
-    statusId?: bigint;
+    status?: CarbonInventoryLineStatus;
   }
 ) {
-  const statusId = options?.statusId ?? (await getActiveStatusId(prisma));
-
   return prisma.carbonInventoryLine.create({
     data: {
       carbonInventoryId,
       subcategoryId,
-      statusId,
+      status: options?.status ?? CarbonInventoryLineStatus.ACTIVE,
     },
   });
 }
@@ -475,8 +400,6 @@ export async function createInventoryWithEmissions(
     throw new Error("No methodology version found for testing");
   }
 
-  const activeStatusId = await getActiveStatusId(prisma);
-
   // If emissions by category specified, use those; otherwise create default emissions
   const emissionsByCategory =
     options?.emissionsByCategory ??
@@ -510,7 +433,7 @@ export async function createInventoryWithEmissions(
       prisma,
       inventory.id,
       subcategory.id,
-      { statusId: activeStatusId }
+      { status: CarbonInventoryLineStatus.ACTIVE }
     );
 
     // Create input

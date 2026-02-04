@@ -1,6 +1,7 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../generated/client"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  moduleFormat    = "esm"
   previewFeatures = ["views"]
 }
 
@@ -262,64 +263,26 @@ enum Magnitude {
   @@map("Magnitude")
 }
 
-enum InventoryStatus {
-  DRAFT
-  SUBMITTED
-  VERIFIED
+enum MethodologyVersionStatus {
+  ACTIVE
   DELETED
 
-  @@map("inventory_status")
-}
-
-enum UsageMode {
-  SIMPLIFIED
-  EXPERT
-
-  @@map("usage_mode")
-}
-
-/// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
-enum InputType {
-  SIMPLIFIED
-  EXPERT
-  DIRECT
-
-  @@map("input_type")
-}
-
-model StatusCatalog {
-  id                  BigInt                @id @default(autoincrement())
-  scope               String
-  code                String
-  name                String
-  isTerminal          Boolean?              @map("is_terminal")
-  isVisible           Boolean?              @map("is_visible")
-  sortOrder           Int?                  @map("sort_order")
-  isActive            Boolean?              @map("is_active")
-  createdAt           DateTime              @default(now()) @map("created_at")
-  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at")
-  methodologyVersions MethodologyVersion[]
-  emissionFactors     EmissionFactor[]
-  inventoryLines      CarbonInventoryLine[]
-
-  @@unique([scope, code])
-  @@map("status_catalog")
+  @@map("methodology_version_status")
 }
 
 model MethodologyVersion {
-  id                BigInt            @id @default(autoincrement())
-  countryId         BigInt            @map("country_id")
+  id                BigInt                   @id @default(autoincrement())
+  countryId         BigInt                   @map("country_id")
   name              String
   description       String?
-  statusId          BigInt            @map("status_id")
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
-  createdById       BigInt?           @map("created_by_id")
-  updatedById       BigInt?           @map("updated_by_id")
-  country           Country           @relation(fields: [countryId], references: [id])
-  status            StatusCatalog     @relation(fields: [statusId], references: [id])
-  creator           User?             @relation("methodology_version_created_by", fields: [createdById], references: [id])
-  updater           User?             @relation("methodology_version_updated_by", fields: [updatedById], references: [id])
+  status            MethodologyVersionStatus @default(ACTIVE)
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime                 @default(now()) @updatedAt @map("updated_at")
+  createdById       BigInt?                  @map("created_by_id")
+  updatedById       BigInt?                  @map("updated_by_id")
+  country           Country                  @relation(fields: [countryId], references: [id])
+  creator           User?                    @relation("methodology_version_created_by", fields: [createdById], references: [id])
+  updater           User?                    @relation("methodology_version_updated_by", fields: [updatedById], references: [id])
   categories        Category[]
   carbonInventories CarbonInventory[]
 
@@ -420,6 +383,13 @@ model EmissionFactorDimensionValue {
   @@map("emission_factor_dimension_value")
 }
 
+enum EmissionFactorStatus {
+  ACTIVE
+  DELETED
+
+  @@map("emission_factor_status")
+}
+
 model EmissionFactor {
   id                    BigInt                        @id @default(autoincrement())
   subcategoryId         BigInt                        @map("subcategory_id")
@@ -429,7 +399,7 @@ model EmissionFactor {
   source                String
   gasDetails            Json                          @map("gas_details") @db.JsonB
   value                 Decimal                       @db.Decimal(28, 10)
-  statusId              BigInt                        @map("status_id")
+  status                EmissionFactorStatus          @default(ACTIVE)
   createdAt             DateTime                      @default(now()) @map("created_at")
   updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at")
   createdById           BigInt?                       @map("created_by_id")
@@ -438,7 +408,6 @@ model EmissionFactor {
   dimensionValue1       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id])
   dimensionValue2       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id])
   rateMeasurementUnit   RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id])
-  status                StatusCatalog                 @relation(fields: [statusId], references: [id])
   creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
   updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
   lineFactors           CarbonInventoryLineFactor[]
@@ -447,6 +416,22 @@ model EmissionFactor {
 
   @@unique([subcategoryId, dimensionValue1Id, dimensionValue2Id, source], map: "emission_factor_unique_subcategory_dims_source")
   @@map("emission_factor")
+}
+
+enum InventoryStatus {
+  DRAFT
+  SUBMITTED
+  VERIFIED
+  DELETED
+
+  @@map("inventory_status")
+}
+
+enum UsageMode {
+  SIMPLIFIED
+  EXPERT
+
+  @@map("usage_mode")
 }
 
 model CarbonInventory {
@@ -474,25 +459,41 @@ model CarbonInventory {
   @@map("carbon_inventory")
 }
 
+enum CarbonInventoryLineStatus {
+  ACTIVE
+  OUTDATED
+  DELETED
+
+  @@map("carbon_inventory_line_status")
+}
+
 // A "line" represents what is being measured (subcategory + optional selections) for a given inventory.
 // We do not store quantities/factors here. It's the anchor.
 model CarbonInventoryLine {
   id                BigInt                     @id @default(autoincrement())
   carbonInventoryId BigInt                     @map("carbon_inventory_id")
   subcategoryId     BigInt                     @map("subcategory_id")
-  statusId          BigInt                     @map("status_id")
+  status            CarbonInventoryLineStatus  @default(ACTIVE)
   createdAt         DateTime                   @default(now()) @map("created_at")
   updatedAt         DateTime                   @default(now()) @updatedAt @map("updated_at")
   createdById       BigInt?                    @map("created_by_id")
   updatedById       BigInt?                    @map("updated_by_id")
   carbonInventory   CarbonInventory            @relation(fields: [carbonInventoryId], references: [id])
   subcategory       Subcategory                @relation(fields: [subcategoryId], references: [id])
-  status            StatusCatalog              @relation(fields: [statusId], references: [id])
   creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id])
   updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
   inputs            CarbonInventoryLineInput[]
 
   @@map("carbon_inventory_line")
+}
+
+/// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
+enum InputType {
+  SIMPLIFIED
+  EXPERT
+  DIRECT
+
+  @@map("input_type")
 }
 
 model CarbonInventoryLineInput {

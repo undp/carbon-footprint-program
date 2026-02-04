@@ -78,17 +78,6 @@ export async function seedEmissionFactors(
     )
   );
 
-  // Fetch status catalog for ACTIVE status
-  const activeStatus = await prisma.statusCatalog.findFirst({
-    where: { code: "ACTIVE" },
-  });
-
-  if (!activeStatus) {
-    throw new Error(
-      `Status with code 'ACTIVE' not found for dataset ${dataset}`
-    );
-  }
-
   // Prepare emission factors data
   const emissionFactorsToCreate = emissionFactorsData.map((ef) => {
     const subcategory = subcategoriesByFullPath.get(
@@ -161,7 +150,6 @@ export async function seedEmissionFactors(
       source: ef.source,
       gasDetails: {},
       value: ef.value,
-      statusId: activeStatus.id,
     };
   });
 

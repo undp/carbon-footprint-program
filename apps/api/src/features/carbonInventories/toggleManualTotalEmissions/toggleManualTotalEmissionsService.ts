@@ -1,4 +1,5 @@
 import type { Prisma, PrismaClient } from "@repo/database";
+import { CarbonInventoryLineStatus } from "@repo/types";
 import { cleanupDirectLines } from "./toggleManualTotalEmissionsHelper.js";
 
 export type ToggleManualTotalEmissionsResult =
@@ -52,31 +53,12 @@ export const toggleManualTotalEmissionsService = async (
     return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
   }
 
-  // 3. Get Status IDs
-  const statuses = await prismaClient.statusCatalog.findMany({
-    where: {
-      scope: "ENTITY",
-      code: { in: ["ACTIVE", "OUTDATED", "DELETED"] },
-    },
-    select: { id: true, code: true },
-  });
-
-  const activeStatusId = statuses.find((s) => s.code === "ACTIVE")?.id;
-  const outdatedStatusId = statuses.find((s) => s.code === "OUTDATED")?.id;
-  const deletedStatusId = statuses.find((s) => s.code === "DELETED")?.id;
-
-  if (!activeStatusId || !outdatedStatusId || !deletedStatusId) {
-    throw new Error(
-      "Required statuses (ACTIVE, OUTDATED, DELETED) not found in database"
-    );
-  }
-
-  // 4. Fetch lines for the subcategory in this inventory
+  // 3. Fetch lines for the subcategory in this inventory
   const lines = await prismaClient.carbonInventoryLine.findMany({
     where: {
       carbonInventoryId,
       subcategoryId,
-      statusId: { not: deletedStatusId },
+      status: { not: CarbonInventoryLineStatus.DELETED },
     },
     include: {
       inputs: {
@@ -87,7 +69,9 @@ export const toggleManualTotalEmissionsService = async (
   });
 
   // Identify lines
-  const activeLines = lines.filter((l) => l.statusId === activeStatusId);
+  const activeLines = lines.filter(
+    ({ status }) => status === CarbonInventoryLineStatus.ACTIVE
+  );
   const directActiveLine = activeLines.find(
     (l) => l.inputs[0]?.inputType === "DIRECT"
   );
@@ -95,7 +79,9 @@ export const toggleManualTotalEmissionsService = async (
     .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
     .map((l) => l.id);
 
-  const outdatedLines = lines.filter((l) => l.statusId === outdatedStatusId);
+  const outdatedLines = lines.filter(
+    ({ status }) => status === CarbonInventoryLineStatus.OUTDATED
+  );
   const nonDirectOutdatedLinesIds = outdatedLines
     .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
     .map((l) => l.id);
@@ -112,13 +98,13 @@ export const toggleManualTotalEmissionsService = async (
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates
-      const directLine = await cleanupDirectLines(tx, lines, deletedStatusId);
+      const directLine = await cleanupDirectLines(tx, lines);
 
       // 2. Mark all non-DIRECT ACTIVE lines as OUTDATED
       if (nonDirectActiveLinesIds.length > 0) {
         await tx.carbonInventoryLine.updateMany({
           where: { id: { in: nonDirectActiveLinesIds } },
-          data: { statusId: outdatedStatusId },
+          data: { status: CarbonInventoryLineStatus.OUTDATED },
         });
       }
 
@@ -126,7 +112,7 @@ export const toggleManualTotalEmissionsService = async (
       if (directLine) {
         await tx.carbonInventoryLine.update({
           where: { id: directLine.id },
-          data: { statusId: activeStatusId },
+          data: { status: CarbonInventoryLineStatus.ACTIVE },
         });
       } else {
         // Create new DIRECT line
@@ -134,7 +120,7 @@ export const toggleManualTotalEmissionsService = async (
           data: {
             carbonInventoryId,
             subcategoryId,
-            statusId: activeStatusId,
+            status: CarbonInventoryLineStatus.ACTIVE,
           },
         });
         await tx.carbonInventoryLineInput.create({
@@ -160,18 +146,18 @@ export const toggleManualTotalEmissionsService = async (
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates (though directActiveLine should be unique if logic is followed)
-      await cleanupDirectLines(tx, lines, deletedStatusId);
+      await cleanupDirectLines(tx, lines);
 
       // 2. Mark DIRECT line as OUTDATED
       await tx.carbonInventoryLine.update({
         where: { id: directActiveLine.id },
-        data: { statusId: outdatedStatusId },
+        data: { status: CarbonInventoryLineStatus.OUTDATED },
       });
 
       // 3. Mark all non-DIRECT OUTDATED lines as ACTIVE
       await tx.carbonInventoryLine.updateMany({
         where: { id: { in: nonDirectOutdatedLinesIds } },
-        data: { statusId: activeStatusId },
+        data: { status: CarbonInventoryLineStatus.ACTIVE },
       });
     });
   }

@@ -1,18 +1,8 @@
--- CreateTable
-CREATE TABLE "status_catalog" (
-    "id" BIGSERIAL NOT NULL,
-    "scope" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "is_terminal" BOOLEAN,
-    "is_visible" BOOLEAN,
-    "sort_order" INTEGER,
-    "is_active" BOOLEAN,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+-- CreateEnum
+CREATE TYPE "methodology_version_status" AS ENUM ('ACTIVE', 'DELETED');
 
-    CONSTRAINT "status_catalog_pkey" PRIMARY KEY ("id")
-);
+-- CreateEnum
+CREATE TYPE "emission_factor_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateTable
 CREATE TABLE "methodology_version" (
@@ -20,7 +10,7 @@ CREATE TABLE "methodology_version" (
     "country_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "status_id" BIGINT NOT NULL,
+    "status" "methodology_version_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
@@ -102,7 +92,7 @@ CREATE TABLE "emission_factor" (
     "source" TEXT NOT NULL,
     "gas_details" JSONB NOT NULL,
     "value" DECIMAL(28,10) NOT NULL,
-    "status_id" BIGINT NOT NULL,
+    "status" "emission_factor_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
@@ -110,9 +100,6 @@ CREATE TABLE "emission_factor" (
 
     CONSTRAINT "emission_factor_pkey" PRIMARY KEY ("id")
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "status_catalog_scope_code_key" ON "status_catalog"("scope", "code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "methodology_version_country_id_name_key" ON "methodology_version"("country_id", "name");
@@ -140,9 +127,6 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source" ON "emissio
 
 -- AddForeignKey
 ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "status_catalog"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -200,9 +184,6 @@ ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_dimension_value_2_
 
 -- AddForeignKey
 ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_rate_measurement_unit_id_fkey" FOREIGN KEY ("rate_measurement_unit_id") REFERENCES "rate_measurement_unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "status_catalog"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

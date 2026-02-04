@@ -1,4 +1,7 @@
 -- CreateEnum
+CREATE TYPE "carbon_inventory_line_status" AS ENUM ('ACTIVE', 'OUTDATED', 'DELETED');
+
+-- CreateEnum
 CREATE TYPE "input_type" AS ENUM ('SIMPLIFIED', 'EXPERT', 'DIRECT');
 
 -- CreateTable
@@ -6,7 +9,7 @@ CREATE TABLE "carbon_inventory_line" (
     "id" BIGSERIAL NOT NULL,
     "carbon_inventory_id" BIGINT NOT NULL,
     "subcategory_id" BIGINT NOT NULL,
-    "status_id" BIGINT NOT NULL,
+    "status" "carbon_inventory_line_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
@@ -81,9 +84,6 @@ ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_carbon
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_status_id_fkey" FOREIGN KEY ("status_id") REFERENCES "status_catalog"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory_line" ADD CONSTRAINT "carbon_inventory_line_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

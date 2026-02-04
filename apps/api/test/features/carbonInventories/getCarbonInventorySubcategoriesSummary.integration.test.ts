@@ -16,10 +16,12 @@ import {
   createCarbonInventoryLine,
   createCarbonInventoryLineInput,
 } from "@test/factories/carbonInventorySeeder.js";
-import type { GetCarbonInventorySubcategoriesSummaryResponse } from "@repo/types";
+import {
+  type GetCarbonInventorySubcategoriesSummaryResponse,
+  CarbonInventoryLineStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
 import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
@@ -428,23 +430,6 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
-      // Get DELETED status
-      const deletedStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "DELETED",
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!deletedStatus) {
-        throw new Error(
-          "DELETED status not found in database. Please ensure the database is properly seeded."
-        );
-      }
-
       const firstSubcategoryId = subcategoryIds[0];
       // Create a deleted line
       await createCarbonInventoryLine(
@@ -452,7 +437,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
         carbonInventory.id,
         firstSubcategoryId,
         {
-          statusId: deletedStatus.id,
+          status: CarbonInventoryLineStatus.DELETED,
         }
       );
 
