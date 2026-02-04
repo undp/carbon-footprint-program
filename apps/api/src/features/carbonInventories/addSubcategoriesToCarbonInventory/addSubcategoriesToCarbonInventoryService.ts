@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type { AddSubcategoriesToCarbonInventoryResponse } from "@repo/types";
+import {
+  type AddSubcategoriesToCarbonInventoryResponse,
+  CarbonInventoryLineStatus,
+} from "@repo/types";
 
 export type AddSubcategoriesToCarbonInventoryResult =
   | { success: true; data: AddSubcategoriesToCarbonInventoryResponse }
@@ -33,22 +36,6 @@ export const addSubcategoriesToCarbonInventoryService = async (
 
   if (!carbonInventory.methodologyVersionId) {
     return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
-
-  // Get the ACTIVE status ID for lines
-  const activeStatus = await prismaClient.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "ACTIVE",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!activeStatus) {
-    // This shouldn't happen in production, but handle gracefully
-    throw new Error("ACTIVE status not found in database");
   }
 
   // Fetch all subcategories with category for validation
@@ -90,7 +77,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
       subcategoryId: {
         in: subcategoryIds,
       },
-      statusId: activeStatus.id,
+      status: CarbonInventoryLineStatus.ACTIVE,
     },
     select: {
       subcategoryId: true,
@@ -122,7 +109,6 @@ export const addSubcategoriesToCarbonInventoryService = async (
   const recordsToCreate = subcategoryIdsToCreate.map((subcategoryId) => ({
     carbonInventoryId,
     subcategoryId,
-    statusId: activeStatus.id,
     createdById: null, // TODO: Add created by id from logged in user
     updatedById: null, // TODO: Add updated by id from logged in user
   }));

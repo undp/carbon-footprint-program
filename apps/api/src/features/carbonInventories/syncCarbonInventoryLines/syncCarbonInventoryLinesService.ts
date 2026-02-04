@@ -1,7 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  SyncCarbonInventoryLinesRequest,
-  SyncCarbonInventoryLinesResponse,
+import {
+  type SyncCarbonInventoryLinesRequest,
+  type SyncCarbonInventoryLinesResponse,
+  CarbonInventoryLineStatus,
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
@@ -35,22 +36,6 @@ export const syncCarbonInventoryLinesService = async (
 
   if (!carbonInventory) {
     return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
-  }
-
-  // Get status IDs
-  const [activeStatus, deletedStatus] = await Promise.all([
-    prismaClient.statusCatalog.findFirst({
-      where: { scope: "ENTITY", code: "ACTIVE" },
-      select: { id: true },
-    }),
-    prismaClient.statusCatalog.findFirst({
-      where: { scope: "ENTITY", code: "DELETED" },
-      select: { id: true },
-    }),
-  ]);
-
-  if (!activeStatus || !deletedStatus) {
-    throw new Error("Required status codes not found in database");
   }
 
   // Validate subcategories for create operations
@@ -94,7 +79,7 @@ export const syncCarbonInventoryLinesService = async (
     const existingLines = await prismaClient.carbonInventoryLine.findMany({
       where: {
         id: { in: lineIdsToValidate },
-        statusId: activeStatus.id, // Only consider active lines
+        status: CarbonInventoryLineStatus.ACTIVE, // Only consider active lines
       },
       select: { id: true, carbonInventoryId: true },
     });
@@ -126,7 +111,7 @@ export const syncCarbonInventoryLinesService = async (
         data: {
           carbonInventoryId,
           subcategoryId: BigInt(createItem.subcategoryId),
-          statusId: activeStatus.id,
+          status: CarbonInventoryLineStatus.ACTIVE,
           createdById: null,
           updatedById: null,
         },
@@ -167,7 +152,7 @@ export const syncCarbonInventoryLinesService = async (
     for (const deleteItem of request.delete) {
       await tx.carbonInventoryLine.update({
         where: { id: BigInt(deleteItem.id) },
-        data: { statusId: deletedStatus.id, updatedById: null },
+        data: { status: CarbonInventoryLineStatus.DELETED, updatedById: null },
       });
       deletedLineIds.push(deleteItem.id);
     }

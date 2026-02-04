@@ -1,7 +1,8 @@
 import { type PrismaClient } from "@repo/database";
-import type {
-  CreateCarbonInventoryRequest,
-  CreateCarbonInventoryResponse,
+import {
+  type CreateCarbonInventoryRequest,
+  type CreateCarbonInventoryResponse,
+  MethodologyVersionStatus,
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 
@@ -19,10 +20,7 @@ export const createCarbonInventoryService = async (
   // Find the first available methodology version (status: ENTITY/ACTIVE)
   const availableMethodology = await prismaClient.methodologyVersion.findFirst({
     where: {
-      status: {
-        scope: "ENTITY",
-        code: "ACTIVE",
-      },
+      status: MethodologyVersionStatus.ACTIVE,
     },
     orderBy: {
       id: "asc",

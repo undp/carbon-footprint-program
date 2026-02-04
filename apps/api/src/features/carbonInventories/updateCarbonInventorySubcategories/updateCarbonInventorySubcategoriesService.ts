@@ -1,6 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { UpdateCarbonInventorySubcategoriesRequest } from "@repo/types";
-import type { UpdateCarbonInventorySubcategoriesResponse } from "@repo/types";
+import {
+  type UpdateCarbonInventorySubcategoriesRequest,
+  type UpdateCarbonInventorySubcategoriesResponse,
+  CarbonInventoryLineStatus,
+} from "@repo/types";
 import { groupBy } from "lodash-es";
 import { isCarbonInventoryLineEdited } from "../utils.js";
 
@@ -38,32 +41,6 @@ export const updateCarbonInventorySubcategoriesService = async (
 
   if (!carbonInventory.methodologyVersionId) {
     return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
-
-  // Get status IDs
-  const [activeStatus, deletedStatus] = await Promise.all([
-    prismaClient.statusCatalog.findFirst({
-      where: {
-        scope: "ENTITY",
-        code: "ACTIVE",
-      },
-      select: {
-        id: true,
-      },
-    }),
-    prismaClient.statusCatalog.findFirst({
-      where: {
-        scope: "ENTITY",
-        code: "DELETED",
-      },
-      select: {
-        id: true,
-      },
-    }),
-  ]);
-
-  if (!activeStatus || !deletedStatus) {
-    throw new Error("ACTIVE or DELETED status not found in database");
   }
 
   // Extract subcategory IDs from request
@@ -107,7 +84,7 @@ export const updateCarbonInventorySubcategoriesService = async (
       subcategoryId: {
         in: subcategoryIds,
       },
-      statusId: activeStatus.id,
+      status: CarbonInventoryLineStatus.ACTIVE,
     },
     include: {
       inputs: {
@@ -160,7 +137,7 @@ export const updateCarbonInventorySubcategoriesService = async (
             data: {
               carbonInventoryId,
               subcategoryId,
-              statusId: activeStatus.id,
+              status: CarbonInventoryLineStatus.ACTIVE,
               createdById: null, // TODO: Add created by id from logged in user
               updatedById: null, // TODO: Add updated by id from logged in user
             },
@@ -182,7 +159,7 @@ export const updateCarbonInventorySubcategoriesService = async (
               },
             },
             data: {
-              statusId: deletedStatus.id,
+              status: CarbonInventoryLineStatus.DELETED,
               updatedById: null, // TODO: Add updated by id from logged in user
             },
           });
