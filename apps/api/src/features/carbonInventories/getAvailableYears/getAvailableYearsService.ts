@@ -11,6 +11,7 @@ export const getAvailableYearsService = async (
     },
     where: {
       NOT: { status: InventoryStatus.DELETED },
+      year: { not: null },
     },
     distinct: ["year"],
     orderBy: {
@@ -19,7 +20,6 @@ export const getAvailableYearsService = async (
   });
 
   return chain(data)
-    .map((inventory) => inventory.year?.toString())
-    .compact()
+    .map((inventory) => inventory.year!.toString())
     .value();
 };
