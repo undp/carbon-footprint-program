@@ -48,12 +48,15 @@ export default defineConfig(({ mode }) => {
         "@emotion/react",
         "@emotion/styled",
       ],
+      exclude: ["@prisma/client"],
     },
     build: {
-      commonjsOptions: {
-        // Include the Prisma client CJS module for proper ESM interop
-        include: [/node_modules/, /@repo\/database/],
-        transformMixedEsModules: true,
+      rollupOptions: {
+        external: [
+          "@prisma/client",
+          "@prisma/client/runtime/client",
+          /^@repo\/database$/,
+        ],
       },
     },
   };
