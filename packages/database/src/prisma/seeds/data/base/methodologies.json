@@ -3,7 +3,6 @@
     "countryIsoCode": "CL",
     "name": "Metodología inicial",
     "description": "Metodología inicial para Chile",
-    "statusCode": "ACTIVE",
     "categories": [
       {
         "name": "Emisiones directas",

@@ -3,7 +3,6 @@ import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
-import { MagnitudeSchema } from "@repo/types";
 import {
   checkForDuplicates,
   generateSeedDataPath,
@@ -20,7 +19,7 @@ type MeasurementUnitData = Pick<
 
 const MeasurementUnitDataSchema: z.ZodType<MeasurementUnitData> = z.array(
   z.object({
-    magnitude: MagnitudeSchema,
+    magnitude: z.enum(Magnitude),
     name: z.string().min(1),
     abbreviation: z.string().min(1),
     baseFactor: z.number(),
