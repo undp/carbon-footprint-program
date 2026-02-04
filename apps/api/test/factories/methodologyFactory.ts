@@ -41,31 +41,6 @@ export async function getTestCountryId(prisma: PrismaClient): Promise<bigint> {
 }
 
 /**
- * Gets an ENTITY status with the specified code from the database
- * This is useful for tests that need a statusId for methodology versions
- */
-export async function getTestEntityStatusId(
-  prisma: PrismaClient,
-  code: string = "ACTIVE"
-): Promise<bigint> {
-  const status = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code,
-    },
-    select: { id: true },
-  });
-
-  if (!status) {
-    throw new Error(
-      `Status with code '${code}' and scope 'ENTITY' not found in database. Please ensure the database is properly seeded.`
-    );
-  }
-
-  return status.id;
-}
-
-/**
  * Creates a methodology version with no categories (and therefore no subcategories)
  * This is useful for testing edge cases where a methodology has no subcategories
  */
@@ -77,7 +52,6 @@ export async function createEmptyMethodologyVersion(
   }
 ): Promise<{ id: bigint }> {
   const countryId = await getTestCountryId(prisma);
-  const statusId = await getTestEntityStatusId(prisma);
 
   // Generate a unique name to avoid unique constraint violations on (country_id, name)
   const baseName = options?.name ?? "Empty Methodology for Testing";
@@ -91,7 +65,6 @@ export async function createEmptyMethodologyVersion(
       description:
         options?.description ??
         "A methodology with no subcategories for testing purposes",
-      statusId,
     },
     select: { id: true },
   });

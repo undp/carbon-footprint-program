@@ -15,7 +15,10 @@ import {
   getSubcategoryIds,
   createCarbonInventoryLine,
 } from "@test/factories/carbonInventorySeeder.js";
-import type { AddSubcategoriesToCarbonInventoryResponse } from "@repo/types";
+import {
+  type AddSubcategoriesToCarbonInventoryResponse,
+  CarbonInventoryLineStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type {
@@ -79,22 +82,13 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
       expect(body.added).toBe(3);
       expect(body.skipped).toBe(0);
 
-      // Verify lines were created in the database
-      const activeStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "ACTIVE",
-        },
-      });
-
-      expect(activeStatus).toBeDefined();
       const createdLines = await prisma.carbonInventoryLine.findMany({
         where: {
           carbonInventoryId: carbonInventory.id,
           subcategoryId: {
             in: subcategoryIds.slice(0, 3),
           },
-          statusId: activeStatus!.id,
+          status: CarbonInventoryLineStatus.ACTIVE,
         },
       });
 

@@ -15,9 +15,12 @@ import {
   getSubcategoryIds,
   createCarbonInventoryLine,
   createCarbonInventoryLineInput,
-  getActiveStatusId,
 } from "@test/factories/carbonInventorySeeder.js";
-import type { SyncCarbonInventoryLinesResponse } from "@repo/types";
+import {
+  type SyncCarbonInventoryLinesResponse,
+  CarbonInventoryLineStatus,
+  EmissionFactorStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import { Prisma, type PrismaClient } from "@repo/database";
 import {
@@ -295,11 +298,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
           : null;
 
       // Get or create an emission factor for this subcategory
-      const activeStatus = await getActiveStatusId(prisma);
       let emissionFactor = await prisma.emissionFactor.findFirst({
         where: {
           subcategoryId: subcategory.id,
-          statusId: activeStatus,
+          status: EmissionFactorStatus.ACTIVE,
           dimensionValue1Id: dimensionValue1?.id ?? null,
           dimensionValue2Id: null,
         },
@@ -316,7 +318,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
             source: "DEFRA 2025",
             gasDetails: {},
             value: new Prisma.Decimal("2.31"),
-            statusId: activeStatus,
+            status: EmissionFactorStatus.ACTIVE,
           },
         });
       }
@@ -662,13 +664,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(body.deleted[0]).toBe(line.id.toString());
 
       // Verify line is soft deleted (status changed to DELETED)
-      const deletedStatus = await prisma.statusCatalog.findFirst({
-        where: { scope: "ENTITY", code: "DELETED" },
-      });
       const lineAfterDelete = await prisma.carbonInventoryLine.findUnique({
         where: { id: line.id },
       });
-      expect(lineAfterDelete?.statusId).toBe(deletedStatus!.id);
+      expect(lineAfterDelete?.status).toBe(CarbonInventoryLineStatus.DELETED);
     });
 
     it("should delete multiple lines in a single request", async () => {
@@ -1125,18 +1124,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         subcategoryIds[0]
       );
 
-      // Get DELETED status
-      const deletedStatus = await prisma.statusCatalog.findFirst({
-        where: {
-          scope: "ENTITY",
-          code: "DELETED",
-        },
-      });
-
       // Manually delete the line by setting its status to DELETED
       await prisma.carbonInventoryLine.update({
         where: { id: line.id },
-        data: { statusId: deletedStatus!.id },
+        data: { status: CarbonInventoryLineStatus.DELETED },
       });
 
       // Try to delete the already-deleted line
@@ -1355,13 +1346,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(lineCountAfter).toBe(lineCountBefore);
 
       // Verify the existing line was not modified
-      const activeStatus = await prisma.statusCatalog.findFirst({
-        where: { scope: "ENTITY", code: "ACTIVE" },
-      });
       const unchangedLine = await prisma.carbonInventoryLine.findUnique({
         where: { id: existingLine.id },
       });
-      expect(unchangedLine?.statusId).toBe(activeStatus!.id);
+      expect(unchangedLine?.status).toBe(CarbonInventoryLineStatus.ACTIVE);
     });
   });
 });

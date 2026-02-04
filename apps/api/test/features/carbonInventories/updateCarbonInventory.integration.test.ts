@@ -13,7 +13,10 @@ import {
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import type { UpdateCarbonInventoryResponse } from "@repo/types";
+import {
+  type UpdateCarbonInventoryResponse,
+  InventoryStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import {
@@ -309,7 +312,12 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update all status values", async () => {
-      const statuses = ["DRAFT", "SUBMITTED", "VERIFIED", "DELETED"] as const;
+      const statuses: InventoryStatus[] = [
+        InventoryStatus.DRAFT,
+        InventoryStatus.SUBMITTED,
+        InventoryStatus.VERIFIED,
+        InventoryStatus.DELETED,
+      ];
 
       for (const status of statuses) {
         const inventory = await seedCarbonInventory(prisma, {

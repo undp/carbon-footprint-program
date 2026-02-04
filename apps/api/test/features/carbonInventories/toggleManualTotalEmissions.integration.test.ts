@@ -15,12 +15,11 @@ import {
   getSubcategoryIds,
   createCarbonInventoryLine,
   createCarbonInventoryLineInput,
-  getActiveStatusId,
-  getOutdatedStatusId,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { CarbonInventoryLineStatus } from "@repo/types";
 
 describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-total-emissions - Integration Tests", () => {
   let app: FastifyInstance;
@@ -88,18 +87,15 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         where: { id: line2.id },
       });
 
-      const outdatedStatusId = await getOutdatedStatusId(prisma);
-      const activeStatusId = await getActiveStatusId(prisma);
-
-      expect(updatedLine1?.statusId).toBe(outdatedStatusId);
-      expect(updatedLine2?.statusId).toBe(outdatedStatusId);
+      expect(updatedLine1?.status).toBe(CarbonInventoryLineStatus.OUTDATED);
+      expect(updatedLine2?.status).toBe(CarbonInventoryLineStatus.OUTDATED);
 
       // Verify new DIRECT line
       const directLine = await prisma.carbonInventoryLine.findFirst({
         where: {
           carbonInventoryId: carbonInventory.id,
           subcategoryId,
-          statusId: activeStatusId,
+          status: CarbonInventoryLineStatus.ACTIVE,
           inputs: { some: { inputType: "DIRECT", isActive: true } },
         },
       });
@@ -117,15 +113,12 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
       const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       const subcategoryId = subcategoryIds[0];
 
-      const activeStatusId = await getActiveStatusId(prisma);
-      const outdatedStatusId = await getOutdatedStatusId(prisma);
-
       // Create some outdated non-DIRECT lines
       const line1 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryId,
-        { statusId: outdatedStatusId }
+        { status: CarbonInventoryLineStatus.OUTDATED }
       );
       await createCarbonInventoryLineInput(prisma, line1.id, {
         inputType: "SIMPLIFIED",
@@ -136,7 +129,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         prisma,
         carbonInventory.id,
         subcategoryId,
-        { statusId: activeStatusId }
+        { status: CarbonInventoryLineStatus.ACTIVE }
       );
       await createCarbonInventoryLineInput(prisma, directLine.id, {
         inputType: "DIRECT",
@@ -158,8 +151,10 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         where: { id: directLine.id },
       });
 
-      expect(updatedLine1?.statusId).toBe(activeStatusId);
-      expect(updatedDirectLine?.statusId).toBe(outdatedStatusId);
+      expect(updatedLine1?.status).toBe(CarbonInventoryLineStatus.ACTIVE);
+      expect(updatedDirectLine?.status).toBe(
+        CarbonInventoryLineStatus.OUTDATED
+      );
     });
   });
 

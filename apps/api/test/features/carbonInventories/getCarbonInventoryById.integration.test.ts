@@ -14,11 +14,13 @@ import {
   getTestUsers,
   cleanupCarbonInventoryTestData,
   createCarbonInventoryLine,
-  getActiveStatusId,
-  getDeletedStatusId,
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
-import type { GetCarbonInventoryByIdResponse } from "@repo/types";
+import {
+  type GetCarbonInventoryByIdResponse,
+  CarbonInventoryLineStatus,
+  InventoryStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
@@ -241,7 +243,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe("DELETED");
+      expect(body.status).toBe(InventoryStatus.DELETED);
     });
   });
 
@@ -371,22 +373,18 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThanOrEqual(2);
 
-      // Get status IDs
-      const activeStatus = await getActiveStatusId(prisma);
-      const deletedStatusId = await getDeletedStatusId(prisma);
-
       // Create ACTIVE lines
       const activeLine1 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[0],
-        { statusId: activeStatus }
+        { status: CarbonInventoryLineStatus.ACTIVE }
       );
       const activeLine2 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[1],
-        { statusId: activeStatus }
+        { status: CarbonInventoryLineStatus.ACTIVE }
       );
 
       // Create DELETED lines
@@ -394,13 +392,13 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
         prisma,
         carbonInventory.id,
         subcategoryIds[0],
-        { statusId: deletedStatusId }
+        { status: CarbonInventoryLineStatus.DELETED }
       );
       const deletedLine2 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[1],
-        { statusId: deletedStatusId }
+        { status: CarbonInventoryLineStatus.DELETED }
       );
 
       // Fetch the inventory
@@ -446,15 +444,12 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThan(0);
 
-      // Get DELETED status
-      const deletedStatusId = await getDeletedStatusId(prisma);
-
       // Create only DELETED lines
       await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[0],
-        { statusId: deletedStatusId }
+        { status: CarbonInventoryLineStatus.DELETED }
       );
 
       // Fetch the inventory
@@ -484,26 +479,24 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
       expect(subcategoryIds.length).toBeGreaterThanOrEqual(3);
 
-      const activeStatus = await getActiveStatusId(prisma);
-
       // Create multiple ACTIVE lines
       const activeLine1 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[0],
-        { statusId: activeStatus }
+        { status: CarbonInventoryLineStatus.ACTIVE }
       );
       const activeLine2 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[1],
-        { statusId: activeStatus }
+        { status: CarbonInventoryLineStatus.ACTIVE }
       );
       const activeLine3 = await createCarbonInventoryLine(
         prisma,
         carbonInventory.id,
         subcategoryIds[2],
-        { statusId: activeStatus }
+        { status: CarbonInventoryLineStatus.ACTIVE }
       );
 
       // Fetch the inventory
