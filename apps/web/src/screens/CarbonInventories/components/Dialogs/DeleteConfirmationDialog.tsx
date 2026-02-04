@@ -30,7 +30,7 @@ export const DeleteConfirmationDialog: FC<DeleteConfirmationDialogProps> = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
-        <Button onClick={onConfirm} color="error" autoFocus>
+        <Button onClick={onConfirm} color="error">
           Eliminar
         </Button>
       </DialogActions>
