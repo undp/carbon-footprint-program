@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, PropsWithChildren } from "react";
-import { Box, ButtonProps, IconButton, Tooltip } from "@mui/material";
+import { Box, IconButtonProps, IconButton, Tooltip } from "@mui/material";
 import {
   EditOutlined,
   FileDownloadOutlined,
@@ -17,7 +17,7 @@ import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 
-const BaseIconButton: FC<PropsWithChildren<ButtonProps>> = ({
+const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
   ...props
 }) => (
