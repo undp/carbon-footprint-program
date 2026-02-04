@@ -38,7 +38,7 @@ const SIDEBAR_DEFS: (SidebarItem | SidebarGroup)[] = [
       {
         label: "Categorías/Alcances",
         icon: <ScienceOutlined fontSize="small" />,
-        path: Routes.ADMIN_SCOPES,
+        path: Routes.ADMIN_CATEGORIES,
       },
       {
         label: "Sub-categorías",
@@ -60,7 +60,7 @@ const SIDEBAR_DEFS: (SidebarItem | SidebarGroup)[] = [
   {
     label: "Rubros",
     icon: <CategoryOutlined />,
-    path: Routes.ADMIN_CATEGORIES,
+    path: Routes.ADMIN_ITEMS,
     children: [
       {
         label: "Actividades Principales",

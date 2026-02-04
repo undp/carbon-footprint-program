@@ -125,7 +125,7 @@ export const MethodologiesScreen: FC = () => {
         nombre: row.nombre,
         normativa: row.normativa,
       });
-      void navigate({ to: Routes.ADMIN_SCOPES });
+      void navigate({ to: Routes.ADMIN_ITEMS });
     },
     [startEditing, navigate]
   );

@@ -24,7 +24,7 @@ export const Routes = {
   SIGN_IN: "/sign-in",
   ADMIN: "/admin",
   ADMIN_METHODOLOGIES: "/admin/methodologies",
-  ADMIN_SCOPES: "/admin/scopes",
+  ADMIN_ITEMS: "/admin/items",
   ADMIN_SUBCATEGORIES: "/admin/subcategories",
   ADMIN_EMISSION_FACTORS: "/admin/emission-factors",
   ADMIN_UNITS: "/admin/units",

@@ -23,10 +23,10 @@ import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-in
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
-import { Route as AdminScopesRouteImport } from './routes/admin/scopes'
 import { Route as AdminPrincipalActivitiesRouteImport } from './routes/admin/principal-activities'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
+import { Route as AdminItemsRouteImport } from './routes/admin/items'
 import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
@@ -107,11 +107,6 @@ const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
   path: '/subcategories',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminScopesRoute = AdminScopesRouteImport.update({
-  id: '/scopes',
-  path: '/scopes',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminPrincipalActivitiesRoute =
   AdminPrincipalActivitiesRouteImport.update({
     id: '/principal-activities',
@@ -126,6 +121,11 @@ const AdminParametersRoute = AdminParametersRouteImport.update({
 const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
   id: '/methodologies',
   path: '/methodologies',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminItemsRoute = AdminItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminEmissionFactorsRoute = AdminEmissionFactorsRouteImport.update({
@@ -187,10 +187,10 @@ export interface FileRoutesByFullPath {
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/items': typeof AdminItemsRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/parameters': typeof AdminParametersRoute
   '/admin/principal-activities': typeof AdminPrincipalActivitiesRoute
-  '/admin/scopes': typeof AdminScopesRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -216,10 +216,10 @@ export interface FileRoutesByTo {
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/items': typeof AdminItemsRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/parameters': typeof AdminParametersRoute
   '/admin/principal-activities': typeof AdminPrincipalActivitiesRoute
-  '/admin/scopes': typeof AdminScopesRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -245,10 +245,10 @@ export interface FileRoutesById {
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/items': typeof AdminItemsRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/parameters': typeof AdminParametersRoute
   '/admin/principal-activities': typeof AdminPrincipalActivitiesRoute
-  '/admin/scopes': typeof AdminScopesRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -276,10 +276,10 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/categories'
     | '/admin/emission-factors'
+    | '/admin/items'
     | '/admin/methodologies'
     | '/admin/parameters'
     | '/admin/principal-activities'
-    | '/admin/scopes'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -305,10 +305,10 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/categories'
     | '/admin/emission-factors'
+    | '/admin/items'
     | '/admin/methodologies'
     | '/admin/parameters'
     | '/admin/principal-activities'
-    | '/admin/scopes'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -333,10 +333,10 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/categories'
     | '/admin/emission-factors'
+    | '/admin/items'
     | '/admin/methodologies'
     | '/admin/parameters'
     | '/admin/principal-activities'
-    | '/admin/scopes'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -471,13 +471,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubcategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/scopes': {
-      id: '/admin/scopes'
-      path: '/scopes'
-      fullPath: '/admin/scopes'
-      preLoaderRoute: typeof AdminScopesRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/principal-activities': {
       id: '/admin/principal-activities'
       path: '/principal-activities'
@@ -497,6 +490,13 @@ declare module '@tanstack/react-router' {
       path: '/methodologies'
       fullPath: '/admin/methodologies'
       preLoaderRoute: typeof AdminMethodologiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/items': {
+      id: '/admin/items'
+      path: '/items'
+      fullPath: '/admin/items'
+      preLoaderRoute: typeof AdminItemsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/emission-factors': {
@@ -568,10 +568,10 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
+  AdminItemsRoute: typeof AdminItemsRoute
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
   AdminParametersRoute: typeof AdminParametersRoute
   AdminPrincipalActivitiesRoute: typeof AdminPrincipalActivitiesRoute
-  AdminScopesRoute: typeof AdminScopesRoute
   AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
   AdminUnitsRoute: typeof AdminUnitsRoute
 }
@@ -579,10 +579,10 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,
+  AdminItemsRoute: AdminItemsRoute,
   AdminMethodologiesRoute: AdminMethodologiesRoute,
   AdminParametersRoute: AdminParametersRoute,
   AdminPrincipalActivitiesRoute: AdminPrincipalActivitiesRoute,
-  AdminScopesRoute: AdminScopesRoute,
   AdminSubcategoriesRoute: AdminSubcategoriesRoute,
   AdminUnitsRoute: AdminUnitsRoute,
 }
