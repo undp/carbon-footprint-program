@@ -301,68 +301,61 @@ export const CarbonInventoriesScreen: FC = () => {
           />
 
           {/* DataGrid */}
-          {filteredInventories.length === 0 && !isLoadingInventories ? (
-            <Box className="py-8 text-center">
-              <Typography variant="h6" color="text.secondary">
-                No hay huellas disponibles
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Crea tu primera huella para comenzar
-              </Typography>
-            </Box>
-          ) : (
-            <DataGrid
-              autoHeight
-              columnHeaderHeight={40}
-              rows={filteredInventories}
-              columns={columns}
-              checkboxSelection={false}
-              disableColumnResize
-              disableColumnSorting
-              disableColumnMenu
-              disableColumnFilter
-              disableColumnSelector
-              disableRowSelectionOnClick
-              hideFooter
-              getRowHeight={() => "auto"}
-              loading={isLoadingInventories}
-              slotProps={{
-                loadingOverlay: {
-                  variant: "skeleton",
-                  noRowsVariant: "skeleton",
-                },
-              }}
-              sx={(theme) => ({
-                borderRadius: "8px",
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.background.default,
-                  padding: "10px 8px",
-                },
-                "& .MuiDataGrid-columnHeader:focus": {
-                  outline: "none",
-                },
-                "& .MuiDataGrid-columnHeader:focus-within": {
-                  outline: "none",
-                },
-                "& .MuiDataGrid-columnSeparator": {
-                  display: "none",
-                },
-                "& .MuiDataGrid-cell": {
-                  padding: "10px 8px",
-                },
-                "& .MuiDataGrid-cell:focus": {
-                  outline: "none",
-                },
-                "& .MuiDataGrid-cell:focus-within": {
-                  outline: "none",
-                },
-                "& .MuiDataGrid-row:hover": {
-                  backgroundColor: "transparent",
-                },
-                "--DataGrid-overlayHeight": "56px",
-              })}
-            />
-          )}
+          <DataGrid
+            autoHeight
+            columnHeaderHeight={40}
+            rows={filteredInventories}
+            columns={columns}
+            checkboxSelection={false}
+            disableColumnResize
+            disableColumnSorting
+            disableColumnMenu
+            disableColumnFilter
+            disableColumnSelector
+            disableRowSelectionOnClick
+            hideFooter
+            getRowHeight={() => "auto"}
+            localeText={{
+              noRowsLabel:
+                "No hay huellas disponibles. Crea tu primera huella para comenzar",
+            }}
+            loading={isLoadingInventories}
+            slotProps={{
+              loadingOverlay: {
+                variant: "skeleton",
+                noRowsVariant: "skeleton",
+              },
+            }}
+            sx={(theme) => ({
+              borderRadius: "8px",
+              "& .MuiDataGrid-columnHeader": {
+                backgroundColor: theme.palette.background.default,
+                padding: "10px 8px",
+              },
+              "& .MuiDataGrid-columnHeader:focus": {
+                outline: "none",
+              },
+              "& .MuiDataGrid-columnHeader:focus-within": {
+                outline: "none",
+              },
+              "& .MuiDataGrid-columnSeparator": {
+                display: "none",
+              },
+              "& .MuiDataGrid-cell": {
+                padding: "10px 8px",
+              },
+              "& .MuiDataGrid-cell:focus": {
+                outline: "none",
+              },
+              "& .MuiDataGrid-cell:focus-within": {
+                outline: "none",
+              },
+              "& .MuiDataGrid-row:hover": {
+                backgroundColor: "transparent",
+              },
+              "--DataGrid-overlayHeight": "56px",
+            })}
+          />
         </Box>
       </Box>
       <NewInventoryDialog
