@@ -74,10 +74,10 @@ export const MethodologiesScreen: FC = () => {
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
-      if (rowId) await handleStopEditRow();
+      if (editingRowId) await handleStopEditRow();
       setEditingRowId(rowId);
     },
-    [handleStopEditRow]
+    [editingRowId, handleStopEditRow]
   );
 
   // Comment: Creo que esto se podria mejorar, asi como esta siempre son dos llamadas a la API.
