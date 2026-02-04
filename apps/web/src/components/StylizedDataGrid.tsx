@@ -3,15 +3,15 @@ import { SxProps, Theme } from "@mui/material";
 
 export interface StylizedDataGridProps extends Omit<DataGridProps, "sx"> {
   /**
-   * Estilos personalizados que se combinan con los estilos base.
-   * Permite sobrescribir los estilos predeterminados del DataGrid.
+   * Custom styles that are merged with the base styles.
+   * Allows overriding the default DataGrid styles.
    */
   sx?: SxProps<Theme>;
 }
 
 /**
- * DataGrid con estilos reutilizables aplicados por defecto.
- * Los estilos pueden ser sobrescritos mediante la prop `sx`.
+ * DataGrid with reusable styles applied by default.
+ * Styles can be overridden via the `sx` prop.
  */
 export const StylizedDataGrid = ({
   sx,
@@ -58,7 +58,7 @@ export const StylizedDataGrid = ({
     "--DataGrid-overlayHeight": "56px",
   };
 
-  // Combinar estilos base con estilos personalizados
+  // Merge base styles with custom styles
   const sxArray = (Array.isArray(sx) ? sx : sx ? [sx] : []) as SxProps<Theme>[];
   const combinedStyles = [baseStyles, ...sxArray] as SxProps<Theme>;
 
