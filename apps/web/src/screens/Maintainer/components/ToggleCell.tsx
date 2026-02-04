@@ -29,7 +29,7 @@ export const ToggleCell: FC<Props> = ({
           transitionDuration: "300ms",
           "&.Mui-checked": {
             transform: "translateX(15px)",
-            color: "#fff",
+            color: theme.palette.common.white,
             "& + .MuiSwitch-track": {
               opacity: 1,
               border: 0,
@@ -39,7 +39,7 @@ export const ToggleCell: FC<Props> = ({
             },
           },
           "&.Mui-focusVisible .MuiSwitch-thumb": {
-            border: "6px solid #fff",
+            border: `6px solid ${theme.palette.common.white}`,
           },
           "&.Mui-disabled .MuiSwitch-thumb": {
             color: theme.palette.grey[100],

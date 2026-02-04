@@ -18,7 +18,7 @@ import {
   CheckOutlined,
 } from "@mui/icons-material";
 
-interface Props {
+interface ActionButtonProps {
   isActiveRow: boolean;
   isEditing?: boolean;
   onStartEditCells?: () => void;
@@ -30,7 +30,7 @@ interface Props {
   deleteConfirmMessage?: string;
 }
 
-export const ActionButtons: FC<Props> = ({
+export const ActionButtons: FC<ActionButtonProps> = ({
   isActiveRow,
   isEditing = false,
   onStartEditCells,
