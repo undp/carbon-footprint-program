@@ -119,11 +119,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setVerifyDialogOpen(false);
   }, []);
 
-  const onRewardsClick = useCallback((inventoryId: string) => {
+  const onRewardsClick = useCallback((_inventoryId: string) => {
     //TODO: Implement rewards functionality
   }, []);
 
-  const onDownloadClick = useCallback((inventoryId: string) => {
+  const onDownloadClick = useCallback((_inventoryId: string) => {
     //TODO: Implement download functionality
   }, []);
 
