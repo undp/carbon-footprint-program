@@ -29,7 +29,6 @@
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
-    "@repo/types": "workspace:*",
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
     "prisma": "^7.0.1",
