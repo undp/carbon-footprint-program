@@ -61,7 +61,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
       expect(body.id).toBe(testInventory.id.toString());
       expect(body.year).toBeNull();
-      expect(body.status).toBe("DRAFT");
+      expect(body.status).toBe(InventoryStatus.DRAFT);
       expect(body.usageMode).toBe("SIMPLIFIED");
       expect(body.isEditable).toBe(true);
     });
@@ -106,7 +106,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
         mainActivityQuantity: 250,
       });
       expect(body.year).toBe(2023);
-      expect(body.status).toBe("VERIFIED");
+      expect(body.status).toBe(InventoryStatus.VERIFIED);
       expect(body.usageMode).toBe("EXPERT");
       expect(body.methodologyVersionId).toBe(methodologyVersionId.toString());
       expect(body.preselectedNodesId).toBe("111");
@@ -195,7 +195,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe("DRAFT");
+      expect(body.status).toBe(InventoryStatus.DRAFT);
     });
 
     it("should retrieve inventory with SUBMITTED status", async () => {
@@ -211,7 +211,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe("SUBMITTED");
+      expect(body.status).toBe(InventoryStatus.SUBMITTED);
     });
 
     it("should retrieve inventory with VERIFIED status", async () => {
@@ -227,7 +227,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe("VERIFIED");
+      expect(body.status).toBe(InventoryStatus.VERIFIED);
     });
 
     it("should retrieve inventory with DELETED status", async () => {

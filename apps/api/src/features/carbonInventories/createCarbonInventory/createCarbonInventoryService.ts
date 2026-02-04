@@ -17,7 +17,7 @@ export const createCarbonInventoryService = async (
   prismaClient: PrismaClient,
   data: CreateCarbonInventoryRequest
 ): Promise<CreateCarbonInventoryResult> => {
-  // Find the first available methodology version (status: ENTITY/ACTIVE)
+  // Find the first methodology version with status MethodologyVersionStatus.ACTIVE
   const availableMethodology = await prismaClient.methodologyVersion.findFirst({
     where: {
       status: MethodologyVersionStatus.ACTIVE,

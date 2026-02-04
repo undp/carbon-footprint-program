@@ -104,7 +104,7 @@ export const toggleManualTotalEmissionsService = async (
       if (nonDirectActiveLinesIds.length > 0) {
         await tx.carbonInventoryLine.updateMany({
           where: { id: { in: nonDirectActiveLinesIds } },
-          data: { status: "OUTDATED" },
+          data: { status: CarbonInventoryLineStatus.OUTDATED },
         });
       }
 
