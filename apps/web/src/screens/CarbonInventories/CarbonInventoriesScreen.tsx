@@ -102,7 +102,7 @@ export const CarbonInventoriesScreen: FC = () => {
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
-              InventoryStatus
+              GetAllCarbonInventoriesResponse[number]["name"]
             >
           ) =>
             params.value ? (
@@ -129,7 +129,25 @@ export const CarbonInventoriesScreen: FC = () => {
           cellClassName: "content-center",
           minWidth: 100,
           flex: 1,
-          valueGetter: (value: number | null) => value ?? "—",
+          renderCell: (
+            params: GridRenderCellParams<
+              GetAllCarbonInventoriesResponse[number],
+              GetAllCarbonInventoriesResponse[number]["year"]
+            >
+          ) =>
+            params.value ? (
+              <Typography variant="body2" noWrap>
+                {params.value}
+              </Typography>
+            ) : (
+              <Typography
+                color="textDisabled"
+                className="italic"
+                variant="body2"
+              >
+                (sin año)
+              </Typography>
+            ),
         },
         {
           field: "usageMode",
