@@ -1,9 +1,8 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import {
   Box,
   Chip,
   Typography,
-  CircularProgress,
   alpha,
   Theme,
   useTheme,
@@ -21,10 +20,12 @@ import { MainLayout } from "@/components/layout";
 import { Routes } from "@/interfaces";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
-import { useCarbonInventories } from "@/api/query";
+import {
+  useCarbonInventories,
+  useCarbonInventoriesAvailableYears,
+} from "@/api/query";
 import { GetAllCarbonInventoriesResponse, InventoryStatus } from "@repo/types";
 import { NewInventoryDialog } from "./components/Dialogs";
-import uniqBy from "lodash-es/uniqBy";
 
 const getStatusColor = (theme: Theme, status: InventoryStatus): string => {
   switch (status) {
@@ -66,10 +67,6 @@ export const CarbonInventoriesScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
   const onYearSelectChange = (event: SelectChangeEvent) => {
-    if (event.target.value === "all") {
-      setSelectedYear("");
-      return;
-    }
     setSelectedYear(event.target.value);
   };
 
@@ -78,6 +75,9 @@ export const CarbonInventoriesScreen: FC = () => {
     isLoading: isLoadingInventories,
     refetch: refetchInventories,
   } = useCarbonInventories(selectedYear);
+
+  const { data: availableYears = [], isLoading: isLoadingYears } =
+    useCarbonInventoriesAvailableYears();
 
   const [newInventoryDialogOpen, setNewInventoryDialogOpen] = useState(false);
 
@@ -218,20 +218,14 @@ export const CarbonInventoriesScreen: FC = () => {
   );
 
   const navigateToDraftInventory = useCallback(() => {
-    const draftInventory = filteredInventories.find(
-      (inv) => inv.status === "DRAFT"
-    );
+    const draftInventory = inventories.find((inv) => inv.status === "DRAFT");
     if (draftInventory) {
       void navigate({
         to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
         params: { inventoryId: draftInventory.id },
       });
     }
-  }, [filteredInventories, navigate]);
-
-  useEffect(() => {
-    void refetchInventories();
-  }, [refetchInventories]);
+  }, [inventories, navigate]);
 
   return (
     <MainLayout>
@@ -248,15 +242,13 @@ export const CarbonInventoriesScreen: FC = () => {
               label="Año"
               value={selectedYear}
               onChange={onYearSelectChange}
+              readOnly={isLoadingYears}
             >
               <MenuItem key="all" value="all">
                 Todos
               </MenuItem>
-              {/* TODO: cambiar a uniqBy year una vez se permita crear multiples inventarios por año */}
-              {uniqBy(
-                inventories.filter((inv) => inv.year != null),
-                "year"
-              ).map(({ year }) => (
+
+              {availableYears.map((year) => (
                 <MenuItem key={year} value={`${year}`}>
                   {year}
                 </MenuItem>
@@ -275,11 +267,7 @@ export const CarbonInventoriesScreen: FC = () => {
           />
 
           {/* DataGrid */}
-          {isLoadingInventories ? (
-            <Box className="flex items-center justify-center py-8">
-              <CircularProgress />
-            </Box>
-          ) : filteredInventories.length === 0 ? (
+          {filteredInventories.length === 0 && !isLoadingInventories ? (
             <Box className="py-8 text-center">
               <Typography variant="h6" color="text.secondary">
                 No hay huellas disponibles
@@ -292,7 +280,7 @@ export const CarbonInventoriesScreen: FC = () => {
             <DataGrid
               autoHeight
               columnHeaderHeight={40}
-              rows={filteredInventories}
+              rows={inventories}
               columns={columns}
               checkboxSelection={false}
               disableColumnResize
@@ -303,6 +291,7 @@ export const CarbonInventoriesScreen: FC = () => {
               disableRowSelectionOnClick
               hideFooter
               getRowHeight={() => "auto"}
+              loading={isLoadingInventories}
               slotProps={{
                 loadingOverlay: {
                   variant: "skeleton",
