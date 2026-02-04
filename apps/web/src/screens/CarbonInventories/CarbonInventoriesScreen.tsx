@@ -258,7 +258,7 @@ export const CarbonInventoriesScreen: FC = () => {
               label="Año"
               value={selectedYear}
               onChange={onYearSelectChange}
-              readOnly={isLoadingYears}
+              disabled={isLoadingYears}
             >
               <MenuItem key="all" value="all">
                 Todos
