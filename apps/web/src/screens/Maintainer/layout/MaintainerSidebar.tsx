@@ -33,46 +33,46 @@ const SIDEBAR_DEFS: (SidebarItem | SidebarGroup)[] = [
   {
     label: "Metodologías",
     icon: <MenuBookOutlined />,
-    path: Routes.MAINTAINER_METHODOLOGIES,
+    path: Routes.ADMIN_METHODOLOGIES,
     children: [
       {
         label: "Categorías/Alcances",
         icon: <ScienceOutlined fontSize="small" />,
-        path: Routes.MAINTAINER_SCOPES,
+        path: Routes.ADMIN_SCOPES,
       },
       {
         label: "Sub-categorías",
         icon: <AccountTreeOutlined fontSize="small" />,
-        path: Routes.MAINTAINER_SUBCATEGORIES,
+        path: Routes.ADMIN_SUBCATEGORIES,
       },
       {
         label: "Factores de emisión",
         icon: <Co2Outlined fontSize="small" />,
-        path: Routes.MAINTAINER_EMISSION_FACTORS,
+        path: Routes.ADMIN_EMISSION_FACTORS,
       },
       {
         label: "Unidades",
         icon: <SquareFootOutlined fontSize="small" />,
-        path: Routes.MAINTAINER_UNITS,
+        path: Routes.ADMIN_UNITS,
       },
     ],
   },
   {
     label: "Rubros",
     icon: <CategoryOutlined />,
-    path: Routes.MAINTAINER_CATEGORIES,
+    path: Routes.ADMIN_CATEGORIES,
     children: [
       {
         label: "Actividades Principales",
         icon: <CategoryOutlined />,
-        path: Routes.MAINTAINER_PRINCIPAL_ACTIVITIES,
+        path: Routes.ADMIN_MAIN_ACTIVITIES,
       },
     ],
   },
   {
     label: "Parámetros",
     icon: <TuneOutlined />,
-    path: Routes.MAINTAINER_PARAMETERS,
+    path: Routes.ADMIN_PARAMETERS,
     disabled: true,
     children: [
       { label: "Alias", icon: <TuneOutlined />, path: "#", disabled: true },

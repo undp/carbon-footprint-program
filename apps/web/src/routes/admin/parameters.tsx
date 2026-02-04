@@ -2,6 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { Routes } from "@/interfaces/routes";
 import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConstructionScreen";
 
-export const Route = createFileRoute(Routes.MAINTAINER_EMISSION_FACTORS)({
+export const Route = createFileRoute(Routes.ADMIN_PARAMETERS)({
   component: () => <UnderConstructionScreen />,
 });
