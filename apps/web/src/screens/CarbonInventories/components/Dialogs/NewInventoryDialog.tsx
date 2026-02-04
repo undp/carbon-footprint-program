@@ -27,8 +27,10 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
       keepMounted={false}
       disableAutoFocus={false}
       disableEnforceFocus={false}
+      aria-labelledby="newInventoryDialog-title"
+      aria-describedby="newInventoryDialog-description"
     >
-      <DialogTitle>Crear huella</DialogTitle>
+      <DialogTitle id="newInventoryDialog-title">Crear huella</DialogTitle>
       <IconButton
         aria-label="close"
         onClick={onClose}
@@ -42,7 +44,10 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
         <Close />
       </IconButton>
       <DialogContent>
-        <Box className="flex flex-row items-center justify-center gap-4">
+        <Box
+          id="newInventoryDialog-description"
+          className="flex flex-row items-center justify-center gap-4"
+        >
           <CreateInventoryCard
             AvatarIcon={CalculatorIcon}
             title="Quiero calcular mi huella"
