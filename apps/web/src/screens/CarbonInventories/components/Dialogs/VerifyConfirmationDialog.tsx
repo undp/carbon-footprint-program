@@ -20,10 +20,17 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
   onConfirm,
 }) => {
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Enviar para Verificación</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      aria-labelledby="verify-dialog-title"
+      aria-describedby="verify-dialog-description"
+    >
+      <DialogTitle id="verify-dialog-title">
+        Enviar para Verificación
+      </DialogTitle>
       <DialogContent>
-        <DialogContentText>
+        <DialogContentText id="verify-dialog-description">
           ¿Estás seguro de que deseas enviar esta huella de carbono para
           verificación? Una vez enviado, no podrás realizar más cambios hasta
           que el proceso de verificación se complete.
