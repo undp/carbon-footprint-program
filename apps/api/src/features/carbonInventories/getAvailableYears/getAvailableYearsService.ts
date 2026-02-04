@@ -1,5 +1,6 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
 import { CarbonInventoryAvailableYearsResponse } from "@repo/types";
+import { chain } from "lodash-es";
 
 export const getAvailableYearsService = async (
   prismaClient: PrismaClient
@@ -11,20 +12,14 @@ export const getAvailableYearsService = async (
     where: {
       NOT: { status: InventoryStatus.DELETED },
     },
+    distinct: ["year"],
     orderBy: {
-      createdAt: "desc",
+      year: "desc",
     },
   });
 
-  if (data.length === 0) {
-    return [];
-  }
-
-  const years = new Set<string>();
-
-  data.forEach((inventory) => {
-    if (inventory.year) years.add(inventory.year.toString());
-  });
-
-  return Array.from(years);
+  return chain(data)
+    .map((inventory) => inventory.year?.toString())
+    .compact()
+    .value();
 };
