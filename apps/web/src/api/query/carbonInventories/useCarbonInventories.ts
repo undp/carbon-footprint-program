@@ -5,12 +5,14 @@ import { apiClient } from "@/api/http";
 import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
 
 export const useCarbonInventories = (year?: string) => {
+  const normalizedYear = year === "all" ? undefined : year;
+
   return useQuery<GetAllCarbonInventoriesResponse>({
-    queryKey: [...carbonInventoryKeys.all, { year }],
+    queryKey: [...carbonInventoryKeys.all, { year: normalizedYear }],
     queryFn: () =>
       apiClient
         .get("carbon-inventories", {
-          searchParams: year && year !== "all" ? { year } : undefined,
+          searchParams: normalizedYear ? { year: normalizedYear } : undefined,
         })
         .json(),
     staleTime: STALE_TIME_MS,
