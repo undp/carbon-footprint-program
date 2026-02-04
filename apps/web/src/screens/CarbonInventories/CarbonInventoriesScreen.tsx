@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
   Chip,
@@ -76,8 +76,11 @@ export const CarbonInventoriesScreen: FC = () => {
     refetch: refetchInventories,
   } = useCarbonInventories(selectedYear);
 
-  const { data: availableYears = [], isLoading: isLoadingYears } =
-    useCarbonInventoriesAvailableYears();
+  const {
+    data: availableYears = [],
+    isLoading: isLoadingYears,
+    refetch: refetchAvailableYears,
+  } = useCarbonInventoriesAvailableYears();
 
   const [newInventoryDialogOpen, setNewInventoryDialogOpen] = useState(false);
 
@@ -226,6 +229,11 @@ export const CarbonInventoriesScreen: FC = () => {
       });
     }
   }, [inventories, navigate]);
+
+  useEffect(() => {
+    void refetchInventories();
+    void refetchAvailableYears();
+  }, []);
 
   return (
     <MainLayout>
