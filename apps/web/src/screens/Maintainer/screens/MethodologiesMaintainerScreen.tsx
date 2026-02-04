@@ -18,7 +18,7 @@ import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import type { Methodology } from "../types";
 import { StylizedDataGrid } from "../../../components";
 
-export const MethodologiesScreen: FC = () => {
+export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
