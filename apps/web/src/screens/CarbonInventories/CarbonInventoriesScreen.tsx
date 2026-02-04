@@ -24,36 +24,40 @@ import {
   useCarbonInventories,
   useCarbonInventoriesAvailableYears,
 } from "@/api/query";
-import { GetAllCarbonInventoriesResponse, InventoryStatus } from "@repo/types";
+import {
+  GetAllCarbonInventoriesResponse,
+  InventoryStatus,
+  UsageMode,
+} from "@repo/types";
 import { NewInventoryDialog } from "./components/Dialogs";
 
 const getStatusColor = (theme: Theme, status: InventoryStatus): string => {
   switch (status) {
-    case "DRAFT":
+    case InventoryStatus.DRAFT:
       return theme.palette.grey[400];
-    case "SUBMITTED":
+    case InventoryStatus.SUBMITTED:
       return theme.palette.info.main;
-    case "VERIFIED":
+    case InventoryStatus.VERIFIED:
       return theme.palette.category[1].main;
-    case "DELETED":
+    case InventoryStatus.DELETED:
       return theme.palette.error.main;
     default:
       return "default";
   }
 };
 
-const getUsageModeLabel = (mode: string) =>
-  mode === "SIMPLIFIED" ? "Asistido" : "Experto";
+const getUsageModeLabel = (mode: UsageMode) =>
+  mode === UsageMode.SIMPLIFIED ? "Asistido" : "Experto";
 
 const getStatusLabel = (status: InventoryStatus) => {
   switch (status) {
-    case "DRAFT":
+    case InventoryStatus.DRAFT:
       return "Borrador";
-    case "SUBMITTED":
+    case InventoryStatus.SUBMITTED:
       return "Enviado";
-    case "VERIFIED":
+    case InventoryStatus.VERIFIED:
       return "Verificado";
-    case "DELETED":
+    case InventoryStatus.DELETED:
       return "Eliminado";
     default:
       return status;
@@ -135,7 +139,7 @@ export const CarbonInventoriesScreen: FC = () => {
           cellClassName: "content-center",
           minWidth: 100,
           flex: 1,
-          valueGetter: (value: string) => getUsageModeLabel(value),
+          valueGetter: (value: UsageMode) => getUsageModeLabel(value),
         },
         {
           field: "totalEmissions",
@@ -211,17 +215,20 @@ export const CarbonInventoriesScreen: FC = () => {
     );
 
   const filteredInventories = useMemo(
-    () => inventories.filter((inv) => inv.status !== "DELETED"),
+    () => inventories.filter((inv) => inv.status !== InventoryStatus.DELETED),
     [inventories]
   );
 
   const hasDraftInventory = useMemo(
-    () => filteredInventories.some((inv) => inv.status === "DRAFT"),
+    () =>
+      filteredInventories.some((inv) => inv.status === InventoryStatus.DRAFT),
     [filteredInventories]
   );
 
   const navigateToDraftInventory = useCallback(() => {
-    const draftInventory = inventories.find((inv) => inv.status === "DRAFT");
+    const draftInventory = inventories.find(
+      (inv) => inv.status === InventoryStatus.DRAFT
+    );
     if (draftInventory) {
       void navigate({
         to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
@@ -233,6 +240,7 @@ export const CarbonInventoriesScreen: FC = () => {
   useEffect(() => {
     void refetchInventories();
     void refetchAvailableYears();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -10,6 +10,7 @@ import { ApplicationFormIcon, CalculatorIcon } from "@/icons";
 import { CreateInventoryCard } from "@/components/CreateInventoryCard";
 import { grey } from "@mui/material/colors";
 import { Close } from "@mui/icons-material";
+import { UsageMode } from "@repo/types";
 
 interface Props {
   open: boolean;
@@ -47,7 +48,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
             title="Quiero calcular mi huella"
             description="Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos."
             buttonText="USAR CALCULADORA"
-            usageMode="SIMPLIFIED"
+            usageMode={UsageMode.SIMPLIFIED}
             textColor="text.primary"
             iconColor="text.primary"
             backgroundColor={grey[400]}
@@ -57,7 +58,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
             title="Ya tengo mis cálculos"
             description="Sube tus datos y genera reportes en segundos."
             buttonText="SUBIR EMISIONES"
-            usageMode="EXPERT"
+            usageMode={UsageMode.EXPERT}
             textColor="text.primary"
             iconColor="text.primary"
             backgroundColor={grey[400]}

@@ -52,10 +52,10 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
 
-  const isDraft = status === "DRAFT";
-  const isVerified = status === "VERIFIED";
+  const isDraft = status === InventoryStatus.DRAFT;
+  const isVerified = status === InventoryStatus.VERIFIED;
   const canEdit = !isVerified;
-  const canVerify = status === "SUBMITTED";
+  const canVerify = status === InventoryStatus.SUBMITTED;
   const canDelete = !isVerified;
   const canView = !isDraft;
 
@@ -90,7 +90,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     try {
       await updateInventory({
         id: inventoryId,
-        data: { status: "DELETED" },
+        data: { status: InventoryStatus.DELETED },
       });
       setDeleteDialogOpen(false);
       void refetchInventories();
