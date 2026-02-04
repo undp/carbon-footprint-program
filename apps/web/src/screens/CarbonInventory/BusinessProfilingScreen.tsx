@@ -13,7 +13,7 @@ import {
 } from "@/components";
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventory } from "@/api/query";
-import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
+import { useOrganizationData } from "@/hooks";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
@@ -76,7 +76,7 @@ export const BusinessProfilingScreen: FC = () => {
     sectorsLoading,
     organizationSizesLoading,
     activitiesLoading,
-  } = useBusinessProfilingData({
+  } = useOrganizationData({
     selectedSectorId,
     selectedSubsectorId,
     selectedActivityId,
