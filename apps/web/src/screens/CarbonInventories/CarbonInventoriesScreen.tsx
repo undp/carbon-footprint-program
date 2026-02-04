@@ -288,7 +288,7 @@ export const CarbonInventoriesScreen: FC = () => {
             <DataGrid
               autoHeight
               columnHeaderHeight={40}
-              rows={inventories}
+              rows={filteredInventories}
               columns={columns}
               checkboxSelection={false}
               disableColumnResize
