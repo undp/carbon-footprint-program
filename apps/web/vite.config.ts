@@ -49,5 +49,12 @@ export default defineConfig(({ mode }) => {
         "@emotion/styled",
       ],
     },
+    build: {
+      commonjsOptions: {
+        // Include the Prisma client CJS module for proper ESM interop
+        include: [/node_modules/, /@repo\/database/],
+        transformMixedEsModules: true,
+      },
+    },
   };
 });
