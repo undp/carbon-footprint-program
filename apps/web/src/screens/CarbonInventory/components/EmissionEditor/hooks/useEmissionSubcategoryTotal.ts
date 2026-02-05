@@ -6,28 +6,28 @@ import {
   SubcategoryWithLines,
 } from "../../../types/EmissionCaptureTypes";
 
-export const useEmissionTotal = (subcategory: SubcategoryWithLines): number => {
+export const useEmissionSubcategoryTotal = (
+  subcategoryId: SubcategoryWithLines["id"]
+): number => {
   const { control } = useFormContext<EmissionCaptureFormValues>();
 
-  const lines = useWatch({
+  const subcategory = useWatch({
     control: control as Control<EmissionCaptureFormValues>,
-    name: `subcategories.${subcategory.id}.lines` as const,
+    name: `subcategories.${subcategoryId}` as const,
   });
 
   const totalEmission = useMemo(() => {
-    const linesArray = Object.values(lines || {}).filter(
+    if (!subcategory) return 0;
+    const { isTotalManualEmissionsModeActive, lines } = subcategory;
+
+    const filteredLines = Object.values(lines || {}).filter(
       (line) => line && !line.isDeleted
     );
 
-    if (linesArray.length === 0) return 0;
-
-    const subcategoryHasEmissionFactors =
-      subcategory.emissionFactors.length > 0;
-    const isTotalManualEmissionsModeActive =
-      subcategory.isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
+    if (filteredLines.length === 0) return 0;
 
     if (isTotalManualEmissionsModeActive) {
-      const firstLine = linesArray[0];
+      const firstLine = filteredLines[0];
       const manualValue = firstLine?.manualTotalEmissions;
       // Explicitly check for null/undefined, allowing 0 as valid value
       return manualValue !== null && manualValue !== undefined
@@ -35,7 +35,7 @@ export const useEmissionTotal = (subcategory: SubcategoryWithLines): number => {
         : 0;
     }
 
-    return linesArray.reduce((acc, row) => {
+    return filteredLines.reduce((acc, row) => {
       // Explicitly check for null/undefined, allowing 0 as valid value
       const quantity =
         row.quantity !== null && row.quantity !== undefined ? row.quantity : 0;
@@ -45,7 +45,7 @@ export const useEmissionTotal = (subcategory: SubcategoryWithLines): number => {
           : 0;
       return acc + round(quantity * factorValue, 2);
     }, 0);
-  }, [subcategory, lines]);
+  }, [subcategory]);
 
   return totalEmission;
 };
