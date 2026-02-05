@@ -221,7 +221,9 @@ model User {
   updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id])
   usersUpdated                         User[]                         @relation("user_updated_by")
   organizationsCreated                 Organization[]                 @relation("organization_created_by")
-  organizationDataCreated              OrganizationData[]             @relation("organization_data_created_by")
+  organizationsUpdated                 Organization[]                 @relation("organization_updated_by")
+  organizationsDataCreated             OrganizationData[]             @relation("organization_data_created_by")
+  organizationsDataUpdated             OrganizationData[]             @relation("organization_data_updated_by")
 
   @@map("user")
 }
@@ -462,6 +464,7 @@ model CarbonInventory {
   updater              User?                          @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
   lines                CarbonInventoryLine[]
   subtotals            CarbonInventorySubtotalsView[]
+  organization         Organization?                  @relation(fields: [organizationId], references: [id])
 
   @@map("carbon_inventory")
 }
@@ -602,12 +605,17 @@ enum OrganizationStatus {
 model Organization {
   id          BigInt             @id @default(autoincrement())
   countryId   BigInt             @map("country_id")
-  createdById BigInt?            @map("created_by_id")
-  createdAt   DateTime           @default(now()) @map("created_at")
   status      OrganizationStatus @default(NOT_ACCREDITED)
-  country     Country            @relation(fields: [countryId], references: [id])
-  creator     User?              @relation("organization_created_by", fields: [createdById], references: [id])
-  history     OrganizationData[]
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById BigInt?            @map("created_by_id")
+  updatedById BigInt?            @map("updated_by_id")
+
+  country           Country            @relation(fields: [countryId], references: [id])
+  creator           User?              @relation("organization_created_by", fields: [createdById], references: [id])
+  updater           User?              @relation("organization_updated_by", fields: [updatedById], references: [id])
+  data              OrganizationData[]
+  carbonInventories CarbonInventory[]
 
   @@map("organization")
 }
@@ -624,6 +632,7 @@ enum OrganizationDataStatus {
 model OrganizationData {
   id                                 BigInt                   @id @default(autoincrement())
   organizationId                     BigInt                   @map("organization_id")
+  status                             OrganizationDataStatus   @default(DRAFT)
   legalName                          String                   @map("legal_name")
   tradeName                          String?                  @map("trade_name")
   taxId                              String                   @map("tax_id")
@@ -638,14 +647,16 @@ model OrganizationData {
   representativePhone                String                   @map("representative_phone")
   representativeEmail                String                   @map("representative_email")
   createdAt                          DateTime                 @default(now()) @map("created_at")
+  updatedAt                          DateTime                 @default(now()) @updatedAt @map("updated_at")
   createdById                        BigInt?                  @map("created_by_id")
-  status                             OrganizationDataStatus   @default(DRAFT)
+  updatedById                        BigInt?                  @map("updated_by_id")
   organization                       Organization             @relation(fields: [organizationId], references: [id])
   countryOrganizationSize            CountryOrganizationSize? @relation(fields: [countryOrganizationSizeId], references: [id])
   sector                             CountrySector?           @relation(fields: [sectorId], references: [id])
   subsector                          CountrySubsector?        @relation(fields: [subsectorId], references: [id])
   representativeCountryJobPosition   CountryJobPosition       @relation(fields: [representativeCountryJobPositionId], references: [id])
   creator                            User?                    @relation("organization_data_created_by", fields: [createdById], references: [id])
+  updater                            User?                    @relation("organization_data_updated_by", fields: [updatedById], references: [id])
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'
