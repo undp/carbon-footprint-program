@@ -114,7 +114,15 @@ export const MethodologiesMaintainerScreen: FC = () => {
     }
 
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, addMutation, fieldArray, updateMutation, enqueueSnackbar]);
+  }, [
+    editingRowId,
+    form,
+    isNewRow,
+    addMutation,
+    fieldArray,
+    updateMutation,
+    enqueueSnackbar,
+  ]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -126,6 +134,15 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const handleToggle = useCallback(
     (row: FormMethodology, checked: boolean) => {
+      // Don't allow unchecking the active methodology
+      if (!checked) {
+        void enqueueSnackbar({
+          message: "Siempre debe haber una metodología activa",
+          variant: "warning",
+          autoHideDuration: 2000,
+        });
+        return;
+      }
       // Don't allow toggling for unsaved rows
       if (isNewRow(row.id)) {
         void enqueueSnackbar({
