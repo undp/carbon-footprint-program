@@ -13,7 +13,7 @@ import type { GetAllCountrySectorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
-describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
+describe("GET /api/country-sectors - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
 
@@ -32,7 +32,130 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
 
   afterEach(async () => {});
 
-  describe("Successful retrieval", () => {
+  describe("Sectors - Successful retrieval", () => {
+    it("should return exactly 17 country sectors", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+      expect(body).toHaveLength(17);
+    });
+
+    it("should return country sectors with expected attributes", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+
+      const testSector = body.find((s) => s.name.includes("Energía"));
+      expect(testSector).toBeDefined();
+      expect(testSector!.name).toBe("Energía");
+    });
+  });
+
+  describe("Sectors - Categories", () => {
+    it("should return all expected sector categories", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+
+      const expectedNames = [
+        "Administración Pública",
+        "Agricultura, Ganadería, Silvicultura y Pesca",
+        "Agua y Saneamiento",
+        "Bienes Raíces",
+        "Comercio",
+        "Construcción",
+        "Educación",
+        "Energía",
+        "Gestión de Residuos",
+        "Manufactura / Industria Manufacturera",
+        "Minería",
+        "Salud",
+        "Servicios Financieros",
+        "Servicios Profesionales y Empresariales",
+        "Telecomunicaciones",
+        "Transporte y Logística",
+        "Turismo, Hotelería y Restaurantes",
+      ];
+
+      expectedNames.forEach((expectedName) => {
+        const found = body.find((s) => s.name === expectedName);
+        expect(found).toBeDefined();
+      });
+    });
+  });
+
+  describe("Sectors - Ordering", () => {
+    it("should return sectors ordered by name", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+      const names = body.map((s) => s.name);
+      const sortedNames = [...names].sort();
+      expect(names).toEqual(sortedNames);
+    });
+  });
+
+  describe("Sectors - Data integrity", () => {
+    it("should have unique IDs", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+      const ids = body.map((s) => s.id);
+      const uniqueIds = new Set(ids);
+
+      expect(uniqueIds.size).toBe(ids.length);
+    });
+
+    it("should have unique names", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+      const names = body.map((s) => s.name);
+      const uniqueNames = new Set(names);
+
+      expect(uniqueNames.size).toBe(names.length);
+    });
+
+    it("should have all sectors containing at least one subsector", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/country-sectors",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
+
+      body.forEach((sector) => {
+        expect(sector.subsectors.length).toBeGreaterThan(0);
+      });
+    });
+  });
+
+  describe("Subsectors - Successful retrieval", () => {
     it("should return exactly 143 subsectors across all sectors", async () => {
       const response = await app.inject({
         method: "GET",
@@ -71,7 +194,7 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
     });
   });
 
-  describe("Subsector categories per sector", () => {
+  describe("Subsectors - Categories per sector", () => {
     it("should return correct subsector count per sector", async () => {
       const response = await app.inject({
         method: "GET",
@@ -139,7 +262,7 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
     });
   });
 
-  describe("Ordering", () => {
+  describe("Subsectors - Ordering", () => {
     it("should return subsectors ordered by name within each sector", async () => {
       const response = await app.inject({
         method: "GET",
@@ -157,7 +280,7 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
     });
   });
 
-  describe("Data integrity", () => {
+  describe("Subsectors - Data integrity", () => {
     it("should have unique subsector IDs across all sectors", async () => {
       const response = await app.inject({
         method: "GET",
@@ -188,20 +311,6 @@ describe("GET /api/country-sectors - Subsectors Integration Tests", () => {
         const names = sector.subsectors.map((sub) => sub.name);
         const uniqueNames = new Set(names);
         expect(uniqueNames.size).toBe(names.length);
-      });
-    });
-
-    it("should have all sectors containing at least one subsector", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/country-sectors",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllCountrySectorsResponse;
-
-      body.forEach((sector) => {
-        expect(sector.subsectors.length).toBeGreaterThan(0);
       });
     });
   });
