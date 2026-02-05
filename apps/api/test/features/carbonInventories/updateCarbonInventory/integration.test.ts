@@ -12,10 +12,11 @@ import {
   cleanupCarbonInventoryTestData,
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
-  getTestMethodologyVersionId,
-  getTestCountryId,
-} from "@test/factories/methodologyFactory.js";
+  createTestOrganization,
+  cleanupOrganizations,
+} from "@test/factories/organizationFactory.js";
 import {
   type UpdateCarbonInventoryResponse,
   InventoryStatus,
@@ -44,6 +45,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
   beforeEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupOrganizations(prisma);
   });
 
   describe("Successful updates", () => {
@@ -133,13 +135,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update organizationId", async () => {
-      const countryId = await getTestCountryId(prisma);
-      const organization = await prisma.organization.create({
-        data: {
-          countryId,
-          status: "ACCREDITED",
-        },
-      });
+      const organization = await createTestOrganization(prisma);
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -251,13 +247,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update multiple fields at once", async () => {
-      const countryId = await getTestCountryId(prisma);
-      const organization = await prisma.organization.create({
-        data: {
-          countryId,
-          status: "ACCREDITED",
-        },
-      });
+      const organization = await createTestOrganization(prisma);
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -305,13 +295,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should set nullable fields to null", async () => {
-      const countryId = await getTestCountryId(prisma);
-      const organization = await prisma.organization.create({
-        data: {
-          countryId,
-          status: "ACCREDITED",
-        },
-      });
+      const organization = await createTestOrganization(prisma);
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -339,13 +323,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should return complete data including all nullable fields when populated", async () => {
-      const countryId = await getTestCountryId(prisma);
-      const organization = await prisma.organization.create({
-        data: {
-          countryId,
-          status: "ACCREDITED",
-        },
-      });
+      const organization = await createTestOrganization(prisma);
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",

@@ -21,10 +21,11 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
-  getTestMethodologyVersionId,
-  getTestCountryId,
-} from "@test/factories/methodologyFactory.js";
+  createTestOrganization,
+  cleanupOrganizations,
+} from "@test/factories/organizationFactory.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -43,6 +44,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
   beforeEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupOrganizations(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -159,15 +161,9 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       ]);
 
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
-      const countryId = await getTestCountryId(prisma);
 
       // Create a test organization to satisfy foreign key constraint
-      const organization = await prisma.organization.create({
-        data: {
-          countryId,
-          status: "ACCREDITED",
-        },
-      });
+      const organization = await createTestOrganization(prisma);
 
       const testInventory = await createInventoryFromPattern(prisma, () => ({
         organizationId: organization.id,
