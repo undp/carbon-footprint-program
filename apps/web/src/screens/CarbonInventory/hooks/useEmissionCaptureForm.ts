@@ -86,7 +86,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     Object.entries(currentFormValues.subcategories || {}).forEach(
       ([subcatId, subcatData]) => {
         // Preserve manual total emissions for subcategories in manual mode
-        if (subcatData.isTotalManualEmissionsMode) {
+        if (subcatData.isTotalManualEmissionsModeActive) {
           const lines = Object.values(subcatData.lines || {});
           const manualTotal = lines[0]?.manualTotalEmissions;
           if (manualTotal !== undefined && manualTotal !== null) {
@@ -153,14 +153,16 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         });
 
         formData.subcategories[subcategory.id] = {
+          categoryId: category.id,
           lines: linesRecord,
-          isTotalManualEmissionsMode: subcategory.isTotalManualEmissionsMode,
+          isTotalManualEmissionsModeActive:
+            subcategory.isTotalManualEmissionsModeActive,
         };
 
         // Detect if the mode changed OR if it's dirty (touched by user)
         const isModeDirty =
           !!dirtyFields.subcategories?.[subcategory.id]
-            ?.isTotalManualEmissionsMode;
+            ?.isTotalManualEmissionsModeActive;
 
         if (isModeDirty) subcategoriesToForceSync.push(subcategory.id);
       });
@@ -188,7 +190,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     // STEP 4: Restore preserved manual total emissions
     Object.entries(preservedManualTotals).forEach(([subcatId, total]) => {
       const subcatData = formData.subcategories[subcatId];
-      if (subcatData && subcatData.isTotalManualEmissionsMode) {
+      if (subcatData && subcatData.isTotalManualEmissionsModeActive) {
         const lineIds = Object.keys(subcatData.lines || {});
         const targetLineId = lineIds[0];
 
