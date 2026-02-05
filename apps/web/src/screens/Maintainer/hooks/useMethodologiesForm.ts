@@ -2,21 +2,30 @@ import { useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { Methodology } from "../types";
+import type { Methodology } from "@repo/types";
+
+export type FormMethodology = Omit<
+  Methodology,
+  | "createdAt"
+  | "updatedAt"
+  | "countryId"
+  | "createdById"
+  | "updatedById"
+  | "status"
+>;
 
 export interface MethodologiesFormValues {
-  methodologies: Methodology[];
+  methodologies: FormMethodology[];
 }
 
 const methodologiesFormSchema = z.object({
   methodologies: z.array(
     z.object({
       id: z.string().min(1, "ID inválido"),
-      nombre: z.string().min(1, "Campo obligatorio"),
-      descripcion: z.string().min(1, "Campo obligatorio"),
-      normativa: z.string().min(1, "Campo obligatorio"),
+      name: z.string().min(1, "Campo obligatorio"),
+      description: z.string().min(1, "Campo obligatorio"),
+      regulation: z.string().min(1, "Campo obligatorio"),
       version: z.string().min(1, "Campo obligatorio"),
-      activo: z.boolean(),
     })
   ),
 });
@@ -45,7 +54,7 @@ export const useMethodologiesForm = (serverData: Methodology[]) => {
   }, [serverData, form]);
 
   const handleCellChange = useCallback(
-    (rowIndex: number, field: keyof Methodology, value: string) => {
+    (rowIndex: number, field: keyof FormMethodology, value: string) => {
       const currentRow = form.getValues(`methodologies.${rowIndex}`);
       if (currentRow) {
         fieldArray.update(rowIndex, { ...currentRow, [field]: value });

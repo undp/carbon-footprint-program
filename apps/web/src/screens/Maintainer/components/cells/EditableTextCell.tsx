@@ -1,19 +1,14 @@
 import { FC, useState, useEffect } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import {
-  TextField,
-  Typography,
-  Tooltip,
-  SxProps,
-  Theme,
-  Box,
-} from "@mui/material";
-import type { MethodologiesFormValues } from "../../hooks/useMethodologiesForm";
-import type { Methodology } from "../../types";
+import { TextField, Typography, Tooltip, SxProps, Theme } from "@mui/material";
+import type {
+  FormMethodology,
+  MethodologiesFormValues,
+} from "../../hooks/useMethodologiesForm";
 
 interface EditableTextCellProps {
   rowIndex: number;
-  fieldName: keyof Methodology;
+  fieldName: keyof FormMethodology;
   isEditing: boolean;
   onChange: (value: string) => void;
   multiline?: boolean;

@@ -1,17 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { Methodology } from "@/screens/Maintainer/types";
-import { mockMethodologies } from "@/screens/Maintainer/mocks/methodologies.mock";
+import { apiClient } from "@/api/http";
 import { maintainerKeys } from "./keys";
-
-let localData = [...mockMethodologies];
+import { STALE_TIME_MS } from "@/config/constants";
+import type {
+  GetAllMethodologiesResponse,
+} from "@repo/types";
 
 export const useMethodologies = () =>
-  useQuery<Methodology[]>({
+  useQuery<GetAllMethodologiesResponse>({
     queryKey: maintainerKeys.methodologies.all,
-    queryFn: async () => {
-      await new Promise((r) => setTimeout(r, 300));
-      return [...localData];
-    },
+    queryFn: () => apiClient.get("methodologies").json(),
+    staleTime: STALE_TIME_MS,
   });
 
 export const useUpdateMethodology = () => {

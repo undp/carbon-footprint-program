@@ -1,19 +1,9 @@
-export interface Methodology {
-  id: string;
-  nombre: string;
-  descripcion: string;
-  normativa: string;
-  version: string;
-  activo: boolean;
-}
-
-
 export interface MaintainerState {
-  editingMethodology: { id: string; nombre: string; normativa: string } | null;
+  editingMethodology: { id: string; name: string; regulation: string } | null;
   startEditing: (methodology: {
     id: string;
-    nombre: string;
-    normativa: string;
+    name: string;
+    regulation: string;
   }) => void;
   stopEditing: () => void;
 }

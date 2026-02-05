@@ -1,27 +1,29 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { Methodology } from "../types";
+import type { MethodologyWithRelations as Methodology } from "@repo/types";
+
 import {
   EditableTextCell,
-  MethodologyNormativaCell,
+  MethodologyRegulationCell,
 } from "../components/cells";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
+import { FormMethodology } from "./useMethodologiesForm";
 
 interface UseMethodologyColumnsParams {
   editingRowId: string | null;
   onCellChange: (
     rowIndex: number,
-    field: keyof Methodology,
+    field: keyof FormMethodology,
     value: string
   ) => void;
-  onToggle: (row: Methodology, checked: boolean) => void;
+  onToggle: (row: FormMethodology, checked: boolean) => void;
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => void;
-  onEdit: (row: Methodology) => void;
-  onDuplicate: (row: Methodology) => void;
-  onDelete: (row: Methodology) => void;
-  rows: Methodology[];
+  onEdit: (row: FormMethodology) => void;
+  onDuplicate: (row: FormMethodology) => void;
+  onDelete: (row: FormMethodology) => void;
+  rows: FormMethodology[];
 }
 
 export const useMethodologyColumns = ({
@@ -49,7 +51,7 @@ export const useMethodologyColumns = ({
   return useMemo(
     () => [
       {
-        field: "nombre",
+        field: "name",
         headerName: "Nombre",
         flex: 0.5,
         maxWidth: 250,
@@ -59,16 +61,16 @@ export const useMethodologyColumns = ({
           return (
             <EditableTextCell
               rowIndex={rowIndex}
-              fieldName="nombre"
+              fieldName="name"
               isEditing={isEditing(params.row.id)}
-              onChange={(value) => onCellChange(rowIndex, "nombre", value)}
+              onChange={(value) => onCellChange(rowIndex, "name", value)}
               truncateLines={1}
             />
           );
         },
       },
       {
-        field: "descripcion",
+        field: "description",
         headerName: "Descripción",
         flex: 1,
         minWidth: 200,
@@ -78,9 +80,9 @@ export const useMethodologyColumns = ({
           return (
             <EditableTextCell
               rowIndex={rowIndex}
-              fieldName="descripcion"
+              fieldName="description"
               isEditing={isEditing(params.row.id)}
-              onChange={(value) => onCellChange(rowIndex, "descripcion", value)}
+              onChange={(value) => onCellChange(rowIndex, "description", value)}
               multiline
               maxRows={3}
               truncateLines={2}
@@ -89,17 +91,17 @@ export const useMethodologyColumns = ({
         },
       },
       {
-        field: "normativa",
+        field: "regulation",
         headerName: "Normativa",
         width: 200,
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
           return (
-            <MethodologyNormativaCell
+            <MethodologyRegulationCell
               rowIndex={rowIndex}
               isEditing={isEditing(params.row.id)}
-              onChange={(value) => onCellChange(rowIndex, "normativa", value)}
+              onChange={(value) => onCellChange(rowIndex, "regulation", value)}
             />
           );
         },
@@ -123,7 +125,7 @@ export const useMethodologyColumns = ({
         },
       },
       {
-        field: "activo",
+        field: "active",
         headerName: "Estado",
         width: 90,
         cellClassName: baseCellClass,
@@ -131,7 +133,7 @@ export const useMethodologyColumns = ({
         align: "center",
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ToggleCell
-            value={params.row.activo}
+            value={params.row.status === "PUBLISHED"}
             onChange={(checked) => onToggle(params.row, checked)}
             disabled={editingRowId !== null}
           />
@@ -147,16 +149,12 @@ export const useMethodologyColumns = ({
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ActionButtons
-            isActiveRow={params.row.activo}
+            isActiveRow={params.row.status === "PUBLISHED"}
             isEditing={isEditing(params.row.id)}
-            onStartEditCells={
-              !params.row.activo
-                ? () => onStartEditRow(params.row.id)
-                : undefined
-            }
-            onStopEditCells={!params.row.activo ? onStopEditRow : undefined}
-            onEdit={!params.row.activo ? () => onEdit(params.row) : undefined}
-            onView={params.row.activo ? () => onEdit(params.row) : undefined}
+            onStartEditCells={() => onStartEditRow(params.row.id)}
+            onStopEditCells={onStopEditRow}
+            onEdit={() => onEdit(params.row)}
+            onView={() => onEdit(params.row)}
             onDuplicate={() => onDuplicate(params.row)}
             onDelete={() => onDelete(params.row)}
           />

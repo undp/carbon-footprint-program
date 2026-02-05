@@ -8,14 +8,17 @@ import {
   useUpdateMethodology,
   useAddMethodology,
   useDeleteMethodology,
+  useDuplicateMethodology,
 } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { createEmptyMethodology } from "../mocks/methodologies.mock";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
-import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
+import {
+  FormMethodology,
+  useMethodologiesForm,
+} from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
-import type { Methodology } from "../types";
+import type { Methodology } from "@repo/types";
 import { StylizedDataGrid } from "../../../components";
 
 export const MethodologiesMaintainerScreen: FC = () => {
@@ -29,6 +32,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const addMutation = useAddMethodology();
   const updateMutation = useUpdateMethodology();
   const deleteMutation = useDeleteMethodology();
+  const duplicateMutation = useDuplicateMethodology();
 
   // --- Form setup ---
   const { form, fieldArray, handleCellChange } =
@@ -58,15 +62,26 @@ export const MethodologiesMaintainerScreen: FC = () => {
     const isRowDirty = dirtyFields.methodologies?.[rowIndex];
 
     if (row && isRowDirty) {
-      updateMutation.mutate(row, {
-        onSuccess: () => {
-          void enqueueSnackbar({
-            message: "Cambios guardados satisfactoriamente",
-            variant: "success",
-            autoHideDuration: 2000,
-          });
+      updateMutation.mutate(
+        {
+          id: row.id,
+          data: {
+            name: row.name,
+            description: row.description,
+            regulation: row.regulation,
+            version: row.version,
+          },
         },
-      });
+        {
+          onSuccess: () => {
+            void enqueueSnackbar({
+              message: "Cambios guardados satisfactoriamente",
+              variant: "success",
+              autoHideDuration: 2000,
+            });
+          },
+        }
+      );
     }
 
     setEditingRowId(null);
@@ -80,50 +95,25 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [editingRowId, handleStopEditRow]
   );
 
-  // Comment: Creo que esto se podria mejorar, asi como esta siempre son dos llamadas a la API.
+  // TODO: The active toggle is disabled until the API supports updating active status
   const handleToggle = useCallback(
-    async (row: Methodology, checked: boolean) => {
-      if (!checked) {
-        void enqueueSnackbar({
-          message: "Siempre debe haber una metodología activa",
-          variant: "warning",
-          autoHideDuration: 2000,
-        });
-        return;
-      }
-      const rows = form.getValues("methodologies");
-      if (checked) {
-        await Promise.all(
-          rows
-            .filter((m) => m.activo && m.id !== row.id)
-            .map((m, i) => {
-              const updatedRow = { ...m, activo: false };
-              fieldArray.update(i, updatedRow);
-              return updateMutation.mutateAsync(updatedRow);
-            })
-        );
-      }
-      const rowIndex = rows.findIndex((r) => r.id === row.id);
-      if (rowIndex !== -1) {
-        const updatedRow = { ...row, activo: checked };
-        fieldArray.update(rowIndex, updatedRow);
-        await updateMutation.mutateAsync(updatedRow);
-        void enqueueSnackbar({
-          message: "Metodología activa actualizada",
-          variant: "success",
-          autoHideDuration: 2000,
-        });
-      }
+    (_row: FormMethodology, _checked: boolean) => {
+      void enqueueSnackbar({
+        message:
+          "La funcionalidad de activar/desactivar no está disponible aún",
+        variant: "info",
+        autoHideDuration: 2000,
+      });
     },
-    [form, fieldArray, enqueueSnackbar, updateMutation]
+    [enqueueSnackbar]
   );
 
   const handleEdit = useCallback(
-    (row: Methodology) => {
+    (row: FormMethodology) => {
       startEditing({
         id: row.id,
-        nombre: row.nombre,
-        normativa: row.normativa,
+        name: row.name,
+        regulation: row.regulation,
       });
       void navigate({ to: Routes.ADMIN_ITEMS });
     },
@@ -131,18 +121,12 @@ export const MethodologiesMaintainerScreen: FC = () => {
   );
 
   const handleDuplicate = useCallback(
-    async (row: Methodology) => {
+    async (row: FormMethodology) => {
       const rows = form.getValues("methodologies");
       const index = rows.findIndex((r) => r.id === row.id);
-      const duplicate: Methodology = {
-        ...row,
-        id: crypto.randomUUID(),
-        nombre: `${row.nombre} (copia)`,
-        activo: false,
-      };
-      fieldArray.insert(index + 1, duplicate);
       try {
-        await addMutation.mutateAsync(duplicate);
+        const result = await duplicateMutation.mutateAsync(row.id);
+        fieldArray.insert(index + 1, result);
         void enqueueSnackbar({
           message: "Metodología duplicada exitosamente",
           variant: "success",
@@ -156,13 +140,17 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
       }
     },
-    [form, fieldArray, addMutation, enqueueSnackbar]
+    [form, fieldArray, duplicateMutation, enqueueSnackbar]
   );
 
   const handleAddRow = useCallback(async () => {
     try {
-      const newRow = createEmptyMethodology();
-      await addMutation.mutateAsync(newRow);
+      const newRow = await addMutation.mutateAsync({
+        name: "Nueva metodología",
+        description: null,
+        regulation: "GHG Protocol",
+        version: "1.0",
+      });
       fieldArray.append(newRow);
       setEditingRowId(newRow.id);
       void enqueueSnackbar({
@@ -180,7 +168,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   }, [fieldArray, addMutation, enqueueSnackbar]);
 
   const handleDelete = useCallback(
-    async (row: Methodology) => {
+    async (row: FormMethodology) => {
       const rows = form.getValues("methodologies");
       const index = rows.findIndex((r) => r.id === row.id);
       if (index !== -1) {

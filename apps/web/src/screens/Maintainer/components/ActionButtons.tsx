@@ -46,13 +46,14 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   return (
     <>
       <Box className="flex justify-end gap-1 pr-4">
-        {isEditing && onStopEditCells ? (
+        {!isActiveRow && isEditing && onStopEditCells ? (
           <Tooltip title="Listo">
             <IconButton size="small" onClick={onStopEditCells} color="primary">
               <CheckOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         ) : (
+          !isActiveRow &&
           onStartEditCells && (
             <Tooltip title="Editar celdas">
               <IconButton size="small" onClick={onStartEditCells}>
@@ -64,7 +65,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
         {onEdit && (
           <Tooltip title="Editar alcances">
             <IconButton size="small" onClick={onEdit}>
-              <VisibilityOutlined fontSize="small" />
+              <EditOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         )}

@@ -4,26 +4,26 @@ import { Autocomplete, TextField, Typography, Tooltip } from "@mui/material";
 import { NORMATIVA_OPTIONS } from "../../constants";
 import type { MethodologiesFormValues } from "../../hooks/useMethodologiesForm";
 
-interface MethodologyNormativaCellProps {
+interface MethodologyRegulationCellProps {
   rowIndex: number;
   isEditing: boolean;
   onChange: (value: string) => void;
 }
 
-export const MethodologyNormativaCell: FC<MethodologyNormativaCellProps> = ({
+export const MethodologyRegulationCell: FC<MethodologyRegulationCellProps> = ({
   rowIndex,
   isEditing,
   onChange,
 }) => {
   const { control } = useFormContext<MethodologiesFormValues>();
   const value = useWatch<MethodologiesFormValues>({
-    name: `methodologies.${rowIndex}.normativa`,
+    name: `methodologies.${rowIndex}.regulation`,
   }) as string;
   const { errors } = useFormState({
     control,
-    name: `methodologies.${rowIndex}.normativa`,
+    name: `methodologies.${rowIndex}.regulation`,
   });
-  const fieldError = errors.methodologies?.[rowIndex]?.normativa;
+  const fieldError = errors.methodologies?.[rowIndex]?.regulation;
 
   if (!isEditing) {
     return <Typography sx={{ px: 1 }}>{value}</Typography>;
