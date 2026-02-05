@@ -6,6 +6,8 @@ import type {
   GetAllMethodologiesResponse,
   UpdateMethodologyRequest,
   UpdateMethodologyResponse,
+  DeleteMethodologyResponse,
+  DuplicateMethodologyResponse,
 } from "@repo/types";
 
 export const useMethodologies = () =>
