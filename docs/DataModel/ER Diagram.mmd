@@ -332,23 +332,41 @@ erDiagram
 	%% ============================================================
 	
 	organization {
-		BIGINT id PK ""  
-		BIGINT country_id FK ""  
-		string unique_identifier  "UNIQUE"  
-		string legal_name  ""  
-		string industry  ""  
-		string subindustry  ""  
-		BIGINT country_organization_size_id FK ""  
-		string main_activity  ""  
-		string scale_of_activity  ""  
-		string address  ""  
-		string region  ""  
-		int workers_count  ""  
-		string territorial_scope  ""  
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT id PK
+		BIGINT country_id FK
+		enum status "NOT_ACCREDITED | ACCREDITED | BLOCKED" 
+		timestamptz created_at
+		timestamptz updated_at
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"
+  	}
+
+	organization_data {
+		BIGINT id PK
+		BIGINT organization_id FK
+		enum status "DRAFT | SUBMITTED | COMPLETED | OUTDATED"
+
+		%% organization data
+		string legal_name
+		string trade_name
+		string tax_id
+		BIGINT country_organization_size_id FK
+		BIGINT sector_id FK
+		BIGINT subsector_id FK
+		string address
+		int workers_count
+
+		%% representative data
+		string representative_full_name
+		string representative_tax_id
+		BIGINT representative_country_job_position_id FK
+		string representative_phone
+		string representative_email
+
+		timestamptz created_at
+		timestamptz updated_at
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"
 	}
 
 	organization_branch {
@@ -392,13 +410,14 @@ erDiagram
 	organization_role {
 		BIGINT id PK "FK(role.id)" 
 	}
+
 	
 	user_organization_membership {
 		BIGINT id PK ""  
-		BIGINT user_id FK ""  
+		BIGINT user_id FK "" 
 		BIGINT organization_id FK ""  
 		BIGINT organization_role_id FK ""  
-		enum accreditation_status  "REQUESTED|VALIDATED|REJECTED"  
+		enum status "ACTIVE|DELETED"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
@@ -581,7 +600,7 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject {
 		BIGINT id PK "" 
-		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN"
+		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN | ORGANIZATION_DATA"
 		timestamptz created_at  ""  
 		BIGINT created_by FK ""  
 	}
@@ -589,32 +608,38 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject_carbon_inventory {
 		BIGINT subject_id PK "FK"
-		BIGINT carbon_inventory_id FK ""
+		BIGINT carbon_inventory_id FK "UNIQUE carbon_inventory(id)"
 	}
 	
 	%% The data within this table is immutable once created
 	submission_subject_reduction_project {
 		BIGINT subject_id PK "FK"
-		BIGINT reduction_project_id FK ""
+		BIGINT reduction_project_id FK "UNIQUE reduction_project(id)"
 	}
 	
 	%% The data within this table is immutable once created
 	submission_subject_neutralization_plan {
 		BIGINT subject_id PK "FK"
-		BIGINT neutralization_plan_id FK ""
+		BIGINT neutralization_plan_id FK "UNIQUE neutralization_plan(id)"
+	}
+
+	%% The data within this table is immutable once created
+	submission_subject_organization_data {
+		BIGINT subject_id PK "FK"
+		BIGINT organization_data_id FK "UNIQUE organization_data(id)"
 	}
 
 	submission {
 		BIGINT id PK "" 
 		BIGINT subject_id FK "submission_subject(id)" 
-		enum status "NOT_IMPLEMENTED_YET"
-		string seal_type  "NULLABLE"  
-		TEXT reviewer_entity "NULLABLE"
-		TEXT review_comments "NULLABLE"
+		enum status "PENDING | APPROVED | REJECTED"
+		BIGINT reviewer_id FK "NULLABLE, user(id)"
+		text review_comments "NULLABLE"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"  
+		%% UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
 	}
 
 	recognition_catalog {
@@ -653,6 +678,7 @@ country
 	country ||--o{ user_role_assignment : "has"
 	country ||--o{ country_organization_size: "has many"
 	country ||--o{ country_job_position : "has many"
+	country ||--o{ organization : "has"
 
 country_sector
 	country_sector ||--o{ country_subsector : "has"
@@ -666,7 +692,15 @@ organization
 	organization ||--o{ organization_branch : "may have"
 	organization ||--o{ recognition : "awards"
 	organization ||--o{ user_organization_membership : "grant access via"
-	organization }o--|| country_organization_size : "has"
+	organization ||--o{ organization_data : "has"
+
+organization_data
+	organization_data }o--|| country_organization_size : "has"
+	organization_data }o--|| country_sector : "has"
+	organization_data }o--|| country_subsector : "has"
+	organization_data ||--|| country_job_position : "has"
+	organization_data ||--o{ submission_subject_organization_data : "submitted via"
+
 
 organization_branch
 	organization_branch |o--o{ reduction_project : "may execute"
@@ -741,9 +775,11 @@ submission_subject
 	submission_subject ||--|| submission_subject_carbon_inventory : "associated via"
 	submission_subject ||--|| submission_subject_reduction_project : "associated via"
 	submission_subject ||--|| submission_subject_neutralization_plan : "associated via"
+	submission_subject ||--|| submission_subject_organization_data : "associated via"
 
 submission
 	submission ||--o| recognition: "may award"
+	submission ||--o{ submission_subject: "has"
 
 neutralization_plan
 	neutralization_plan ||--o{ submission_subject_neutralization_plan : "submitted via"

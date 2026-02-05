@@ -20,6 +20,7 @@ model Country {
   countrySectors           CountrySector[]
   countryParameters        CountryParameter[]
   methodologyVersions      MethodologyVersion[]
+  organizations            Organization[]
 
   @@map("country")
 }
@@ -60,12 +61,13 @@ model SystemParameter {
 }
 
 model CountryOrganizationSize {
-  id        BigInt   @id @default(autoincrement())
-  countryId BigInt   @map("country_id")
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  country   Country  @relation(fields: [countryId], references: [id])
+  id               BigInt             @id @default(autoincrement())
+  countryId        BigInt             @map("country_id")
+  name             String
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
+  country          Country            @relation(fields: [countryId], references: [id])
+  organizationData OrganizationData[]
 
   @@unique([countryId, name])
   @@map("country_organization_size")
@@ -84,6 +86,7 @@ model CountrySector {
   updater                    User?                      @relation("country_sector_updated_by", fields: [updatedById], references: [id])
   subsectors                 CountrySubsector[]
   organizationMainActivities OrganizationMainActivity[]
+  organizationData           OrganizationData[]
 
   @@unique([countryId, name])
   @@map("country_sector")
@@ -101,6 +104,7 @@ model CountrySubsector {
   creator                    User?                      @relation("country_subsector_created_by", fields: [createdById], references: [id])
   updater                    User?                      @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
   organizationMainActivities OrganizationMainActivity[]
+  organizationData           OrganizationData[]
 
   @@unique([countrySectorId, name])
   @@map("country_subsector")
@@ -125,13 +129,14 @@ model OrganizationMainActivity {
 }
 
 model CountryJobPosition {
-  id        BigInt   @id @default(autoincrement())
-  countryId BigInt   @map("country_id")
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  country   Country  @relation(fields: [countryId], references: [id])
-  users     User[]
+  id               BigInt             @id @default(autoincrement())
+  countryId        BigInt             @map("country_id")
+  name             String
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @default(now()) @updatedAt @map("updated_at")
+  country          Country            @relation(fields: [countryId], references: [id])
+  users            User[]
+  organizationData OrganizationData[]
 
   @@unique([countryId, name])
   @@map("country_job_position")
@@ -150,10 +155,39 @@ model Role {
 }
 
 model OrganizationRole {
-  id   BigInt @id
-  role Role   @relation(fields: [id], references: [id], onDelete: Cascade)
+  id          BigInt                       @id
+  role        Role                         @relation(fields: [id], references: [id], onDelete: Cascade)
+  memberships UserOrganizationMembership[]
 
   @@map("organization_role")
+}
+
+enum MembershipStatus {
+  ACTIVE
+  DELETED
+
+  @@map("membership_status")
+}
+
+model UserOrganizationMembership {
+  id                 BigInt           @id @default(autoincrement())
+  userId             BigInt           @map("user_id")
+  organizationId     BigInt           @map("organization_id")
+  organizationRoleId BigInt           @map("organization_role_id")
+  status             MembershipStatus @default(ACTIVE)
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @default(now()) @updatedAt @map("updated_at")
+  createdById        BigInt?          @map("created_by_id")
+  updatedById        BigInt?          @map("updated_by_id")
+
+  user             User             @relation("user_memberships", fields: [userId], references: [id])
+  organization     Organization     @relation(fields: [organizationId], references: [id])
+  organizationRole OrganizationRole @relation(fields: [organizationRoleId], references: [id])
+  creator          User?            @relation("membership_created_by", fields: [createdById], references: [id])
+  updater          User?            @relation("membership_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([userId, organizationId, organizationRoleId])
+  @@map("user_organization_membership")
 }
 
 model SystemRole {
@@ -215,6 +249,17 @@ model User {
   usersCreated                         User[]                         @relation("user_created_by")
   updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id])
   usersUpdated                         User[]                         @relation("user_updated_by")
+  organizationsCreated                 Organization[]                 @relation("organization_created_by")
+  organizationsUpdated                 Organization[]                 @relation("organization_updated_by")
+  organizationsDataCreated             OrganizationData[]             @relation("organization_data_created_by")
+  organizationsDataUpdated             OrganizationData[]             @relation("organization_data_updated_by")
+  submissionSubjectsCreated            SubmissionSubject[]            @relation("submission_subject_created_by")
+  submissionsReviewed                  Submission[]                   @relation("submission_reviewer")
+  submissionsCreated                   Submission[]                   @relation("submission_created_by")
+  submissionsUpdated                   Submission[]                   @relation("submission_updated_by")
+  memberships                          UserOrganizationMembership[]   @relation("user_memberships")
+  membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
+  membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
 
   @@map("user")
 }
@@ -449,26 +494,28 @@ enum UsageMode {
 }
 
 model CarbonInventory {
-  id                   BigInt                         @id @default(autoincrement())
+  id                   BigInt                            @id @default(autoincrement())
   name                 String?
-  organizationId       BigInt?                        @map("organization_id")
-  organizationBranchId BigInt?                        @map("organization_branch_id")
-  organizationData     Json?                          @map("organization_data") @db.JsonB
+  organizationId       BigInt?                           @map("organization_id")
+  organizationBranchId BigInt?                           @map("organization_branch_id")
+  organizationData     Json?                             @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus                @default(DRAFT)
-  usageMode            UsageMode                      @map("usage_mode")
-  methodologyVersionId BigInt?                        @map("methodology_version_id")
-  preselectedNodesId   BigInt?                        @map("preselected_nodes_id")
-  isEditable           Boolean                        @default(true) @map("is_editable")
-  createdAt            DateTime                       @default(now()) @map("created_at")
-  updatedAt            DateTime                       @default(now()) @updatedAt @map("updated_at")
-  createdById          BigInt?                        @map("created_by_id")
-  updatedById          BigInt?                        @map("updated_by_id")
-  methodologyVersion   MethodologyVersion?            @relation(fields: [methodologyVersionId], references: [id])
-  creator              User?                          @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
-  updater              User?                          @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+  status               InventoryStatus                   @default(DRAFT)
+  usageMode            UsageMode                         @map("usage_mode")
+  methodologyVersionId BigInt?                           @map("methodology_version_id")
+  preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
+  isEditable           Boolean                           @default(true) @map("is_editable")
+  createdAt            DateTime                          @default(now()) @map("created_at")
+  updatedAt            DateTime                          @default(now()) @updatedAt @map("updated_at")
+  createdById          BigInt?                           @map("created_by_id")
+  updatedById          BigInt?                           @map("updated_by_id")
+  methodologyVersion   MethodologyVersion?               @relation(fields: [methodologyVersionId], references: [id])
+  creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
+  updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
   lines                CarbonInventoryLine[]
   subtotals            CarbonInventorySubtotalsView[]
+  organization         Organization?                     @relation(fields: [organizationId], references: [id])
+  submission           SubmissionSubjectCarbonInventory?
 
   @@map("carbon_inventory")
 }
@@ -596,4 +643,144 @@ view CarbonInventorySubtotalsView {
   carbonInventory   CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
 
   @@map("carbon_inventory_subtotals_view")
+}
+
+enum OrganizationStatus {
+  NOT_ACCREDITED
+  ACCREDITED
+  BLOCKED
+
+  @@map("organization_status")
+}
+
+model Organization {
+  id          BigInt             @id @default(autoincrement())
+  countryId   BigInt             @map("country_id")
+  status      OrganizationStatus @default(NOT_ACCREDITED)
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById BigInt?            @map("created_by_id")
+  updatedById BigInt?            @map("updated_by_id")
+
+  country           Country                      @relation(fields: [countryId], references: [id])
+  creator           User?                        @relation("organization_created_by", fields: [createdById], references: [id])
+  updater           User?                        @relation("organization_updated_by", fields: [updatedById], references: [id])
+  data              OrganizationData[]
+  carbonInventories CarbonInventory[]
+  memberships       UserOrganizationMembership[]
+
+  @@map("organization")
+}
+
+enum OrganizationDataStatus {
+  DRAFT
+  SUBMITTED
+  COMPLETED
+  OUTDATED
+
+  @@map("organization_data_status")
+}
+
+model OrganizationData {
+  id                                 BigInt                             @id @default(autoincrement())
+  organizationId                     BigInt                             @map("organization_id")
+  status                             OrganizationDataStatus             @default(DRAFT)
+  legalName                          String                             @map("legal_name")
+  tradeName                          String?                            @map("trade_name")
+  taxId                              String                             @map("tax_id")
+  countryOrganizationSizeId          BigInt?                            @map("country_organization_size_id")
+  sectorId                           BigInt?                            @map("sector_id")
+  subsectorId                        BigInt?                            @map("subsector_id")
+  address                            String?
+  workersCount                       Int?                               @map("workers_count")
+  representativeFullName             String                             @map("representative_full_name")
+  representativeTaxId                String                             @map("representative_tax_id")
+  representativeCountryJobPositionId BigInt                             @map("representative_country_job_position_id")
+  representativePhone                String                             @map("representative_phone")
+  representativeEmail                String                             @map("representative_email")
+  createdAt                          DateTime                           @default(now()) @map("created_at")
+  updatedAt                          DateTime                           @default(now()) @updatedAt @map("updated_at")
+  createdById                        BigInt?                            @map("created_by_id")
+  updatedById                        BigInt?                            @map("updated_by_id")
+  organization                       Organization                       @relation(fields: [organizationId], references: [id])
+  countryOrganizationSize            CountryOrganizationSize?           @relation(fields: [countryOrganizationSizeId], references: [id])
+  sector                             CountrySector?                     @relation(fields: [sectorId], references: [id])
+  subsector                          CountrySubsector?                  @relation(fields: [subsectorId], references: [id])
+  representativeCountryJobPosition   CountryJobPosition                 @relation(fields: [representativeCountryJobPositionId], references: [id])
+  creator                            User?                              @relation("organization_data_created_by", fields: [createdById], references: [id])
+  updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
+  submission                         SubmissionSubjectOrganizationData?
+
+  // NOTE: The following constraints are implemented on the migrations:
+  // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'
+  // - UNIQUE INDEX on organization_id WHERE status IN ('DRAFT', 'SUBMITTED')
+  @@map("organization_data")
+}
+
+enum SubmissionSubjectType {
+  CARBON_INVENTORY
+  ORGANIZATION_DATA
+
+  @@map("submission_subject_type")
+}
+
+model SubmissionSubject {
+  id          BigInt                @id @default(autoincrement())
+  subjectType SubmissionSubjectType @map("subject_type")
+  createdAt   DateTime              @default(now()) @map("created_at")
+  createdById BigInt?               @map("created_by_id")
+  creator     User?                 @relation("submission_subject_created_by", fields: [createdById], references: [id])
+
+  submissions      Submission[]
+  carbonInventory  SubmissionSubjectCarbonInventory?
+  organizationData SubmissionSubjectOrganizationData?
+
+  @@map("submission_subject")
+}
+
+model SubmissionSubjectCarbonInventory {
+  subjectId         BigInt            @id @map("subject_id")
+  carbonInventoryId BigInt            @unique @map("carbon_inventory_id")
+  subject           SubmissionSubject @relation(fields: [subjectId], references: [id])
+  carbonInventory   CarbonInventory   @relation(fields: [carbonInventoryId], references: [id])
+
+  @@map("submission_subject_carbon_inventory")
+}
+
+model SubmissionSubjectOrganizationData {
+  subjectId          BigInt            @id @map("subject_id")
+  organizationDataId BigInt            @unique @map("organization_data_id")
+  subject            SubmissionSubject @relation(fields: [subjectId], references: [id])
+  organizationData   OrganizationData  @relation(fields: [organizationDataId], references: [id])
+
+  @@map("submission_subject_organization_data")
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@map("submission_status")
+}
+
+model Submission {
+  id             BigInt           @id @default(autoincrement())
+  subjectId      BigInt           @map("subject_id")
+  status         SubmissionStatus @default(PENDING)
+  reviewerId     BigInt?          @map("reviewer_id")
+  reviewComments String?          @map("review_comments")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @default(now()) @updatedAt @map("updated_at")
+  createdById    BigInt?          @map("created_by_id")
+  updatedById    BigInt?          @map("updated_by_id")
+
+  subject  SubmissionSubject @relation(fields: [subjectId], references: [id])
+  reviewer User?             @relation("submission_reviewer", fields: [reviewerId], references: [id])
+  creator  User?             @relation("submission_created_by", fields: [createdById], references: [id])
+  updater  User?             @relation("submission_updated_by", fields: [updatedById], references: [id])
+
+  // NOTE: The following constraints are implemented on the migrations:
+  // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
+  @@map("submission")
 }

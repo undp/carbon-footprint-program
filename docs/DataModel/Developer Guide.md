@@ -27,7 +27,19 @@ Think of the system as **event-sourced–like**, even though it is relational:
 
 ## 2. Core Invariants (Must Always Hold)
 
-### 2.1 Inventory & Methodology
+### 2.1 Organizations & Data
+
+- An `organization` can have multiple `organization_data` rows (history).
+- Exactly **one COMPLETED** row per organization is allowed at any time.
+- Exactly **one DRAFT or SUBMITTED** row per organization is allowed (they cannot coexist).
+- Multiple **OUTDATED** rows are allowed (previous COMPLETED versions).
+
+Violation symptom:
+
+- Ambiguous "current" accredited data for an organization.
+- Multiple pending accreditation requests for the same organization.
+
+### 2.2 Inventory & Methodology
 
 - Every `carbon_inventory` references **exactly one methodology_version**
 - That methodology version must belong to the same country as the inventory’s organization (if any)
@@ -88,6 +100,17 @@ For `carbon_inventory_line_result`:
 - Audit fields (`created_by_id`, `updated_by_id`) are kept for administrative tracking purposes, but results themselves are system-generated and not attributed to user actions
 
 If a result changes, something upstream changed.
+
+---
+
+### 2.6 Submissions
+
+For `submission`:
+
+- A `submission_subject` can have multiple `submission` records (history of attempts).
+- **Business Rule**: Only one **PENDING** or **APPROVED** submission is allowed per subject.
+- This is enforced via a partial unique index on `subject_id` where `status IN ('PENDING', 'APPROVED')`.
+- `carbon_inventory_id` and `organization_data_id` must be unique across their respective subject relation tables.
 
 ---
 

@@ -95,9 +95,21 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 
 ## 7. Organizations & Users
 
-- Organizations may have branches
-- Users can act independently or within organizations
-- Roles are split into system roles and organization roles
+### 7.1 Organizations
+
+- Organizations represent the legal entities participating in the platform.
+- They follow a versioned data model via `organization_data`.
+- **Lifecycle Flow**:
+  1. **Creation**: Create a new `organization` with status **NOT_ACCREDITED**, and create a new row in `organization_data` with status **DRAFT** associated with this new `organization`.
+  2. **Submission**: User sends an accreditation request (`organization_data` status changes from **DRAFT** to **SUBMITTED**) and `organization` status remains **NOT_ACCREDITED**.
+  3. **Review**: Upon admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` status changes from **SUBMITTED** to **COMPLETED**. If rejected, `organization` status remains **NOT_ACCREDITED** and `organization_data` status changes from **SUBMITTED** to **DRAFT**.
+  4. **Updates**: Editing an accredited organization creates a new `organization_data` row with status **DRAFT** associated to the same `organization`, leaving the **COMPLETED** row intact.
+  5. **Re-accreditation**: User sends an accreditation request again (`organization_data` status changes from **DRAFT** to **SUBMITTED**) and `organization` status remains **ACCREDITED** (maintaining its previous accreditation status). When the new submission is approved, the previous COMPLETED row in `organization_data` moves to **OUTDATED**, and the current **SUBMITTED** row status changes to **COMPLETED** ( `organization` status remains **ACCREDITED**). If the new submission is rejected, the current **SUBMITTED** row status changes to **DRAFT** and `organization` status remains **ACCREDITED**.
+
+### 7.2 Users
+
+- Users can act independently or within organizations.
+- Roles are split into system roles and organization roles.
 
 ---
 
@@ -137,6 +149,13 @@ Purely derived emissions results, immutable and timestamped.
 ### Submissions
 
 Immutable review artifacts representing validation processes.
+
+**Submission Flow**:
+
+1.  **Subject Creation**: A `submission_subject` is created and linked to a concrete entity (e.g., `carbon_inventory` or `organization_data`).
+2.  **Submission**: A `submission` record is created with status **PENDING**.
+3.  **Review**: A reviewer (admin) transitions the status to **APPROVED** or **REJECTED**.
+4.  **Constraints**: A subject can have only one **PENDING** or **APPROVED** submission at a time. If rejected, the user can submit again.
 
 ### Recognition
 
