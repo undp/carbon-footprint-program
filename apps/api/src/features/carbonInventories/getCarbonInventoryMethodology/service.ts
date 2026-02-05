@@ -135,8 +135,7 @@ export const getCarbonInventoryMethodologyService = async (
     },
   });
 
-  if (!methodology)
-    throw MethodologyNotFoundError(carbonInventory.methodologyVersionId);
+  if (!methodology) throw MethodologyNotFoundError(carbonInventoryId);
 
   // Build the rate units by magnitude map for conversion
   const rateUnitsByMagnitude = await buildRateUnitsByMagnitudeMap(prismaClient);
