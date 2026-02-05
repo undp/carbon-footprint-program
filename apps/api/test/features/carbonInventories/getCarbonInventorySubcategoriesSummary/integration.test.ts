@@ -501,7 +501,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Carbon inventory not found");
+      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
     it("should return 404 for carbon inventory without methodology", async () => {
@@ -518,7 +518,9 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Methodology not found");
+      expect(body.message).toMatch(
+        /Methodology not found for carbon inventory with ID .+/
+      );
     });
 
     it("should return 400 for invalid ID format (non-numeric)", async () => {

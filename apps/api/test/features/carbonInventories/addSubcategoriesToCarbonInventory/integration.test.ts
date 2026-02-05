@@ -223,7 +223,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Carbon inventory not found");
+      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
     it("should return 404 when carbon inventory has no methodology", async () => {
@@ -253,7 +253,9 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Methodology not found");
+      expect(body.message).toMatch(
+        /Methodology not found for carbon inventory with ID .+/
+      );
     });
 
     it("should return 404 when one or more subcategories do not exist", async () => {

@@ -829,7 +829,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Carbon inventory not found");
+      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
     it("should return 404 when subcategory does not exist for create", async () => {
@@ -867,7 +867,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Subcategory not found");
+      expect(body.message).toBe("One or more subcategories not found");
     });
 
     it("should return 404 when line does not exist for update", async () => {
@@ -1105,7 +1105,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       const body = JSON.parse(response.body) as StructuredErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
       expect(body.message).toBe(
-        "Subcategory does not belong to the carbon inventory's methodology"
+        "One or more subcategories do not belong to the carbon inventory's methodology"
       );
     });
 
