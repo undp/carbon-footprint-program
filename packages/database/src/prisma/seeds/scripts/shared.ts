@@ -14,7 +14,9 @@ export const FullMethodologyDataSchema = z.array(
   z.object({
     countryIsoCode: z.string().min(1),
     name: z.string().min(1),
-    description: z.string().nullable().optional(),
+    description: z.string(),
+    regulation: z.string().min(1),
+    version: z.string().min(1),
     categories: z.array(
       z.object({
         name: z.string().min(1),
