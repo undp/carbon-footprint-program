@@ -334,14 +334,17 @@ erDiagram
 	organization {
 		BIGINT id PK
 		BIGINT country_id FK
-		BIGINT created_by FK "NULLABLE, user(id)"
-		timestamptz created_at
 		enum status "NOT_ACCREDITED | ACCREDITED | BLOCKED" 
+		timestamptz created_at
+		timestamptz updated_at
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"
   	}
 
 	organization_data {
 		BIGINT id PK
 		BIGINT organization_id FK
+		enum status "DRAFT | SUBMITTED | COMPLETED | OUTDATED"
 
 		%% organization data
 		string legal_name
@@ -361,8 +364,9 @@ erDiagram
 		string representative_email
 
 		timestamptz created_at
+		timestamptz updated_at
 		BIGINT created_by FK "NULLABLE, user(id)"
-		enum status "DRAFT | SUBMITTED | COMPLETED | OUTDATED"
+		BIGINT updated_by FK "NULLABLE, user(id)"
 	}
 
 	organization_branch {
