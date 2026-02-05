@@ -68,11 +68,8 @@ export const useAddMethodology = () => {
 
 export const useDeleteMethodology = () => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error, string>({
-    mutationFn: async (id) => {
-      await new Promise((r) => setTimeout(r, 200));
-      localData = localData.filter((m) => m.id !== id);
-    },
+  return useMutation<DeleteMethodologyResponse, Error, string>({
+    mutationFn: (id) => apiClient.delete(`methodologies/${id}`).json(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.methodologies.all,
