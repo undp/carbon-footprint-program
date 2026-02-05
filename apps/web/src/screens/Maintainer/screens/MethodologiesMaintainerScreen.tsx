@@ -95,17 +95,53 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [editingRowId, handleStopEditRow]
   );
 
-  // TODO: The active toggle is disabled until the API supports updating active status
   const handleToggle = useCallback(
-    (_row: FormMethodology, _checked: boolean) => {
-      void enqueueSnackbar({
-        message:
-          "La funcionalidad de activar/desactivar no está disponible aún",
-        variant: "info",
-        autoHideDuration: 2000,
-      });
+    (row: FormMethodology, checked: boolean) => {
+      const rows = form.getValues("methodologies");
+      const previousRows = structuredClone(rows);
+
+      // Optimistically update: set selected row to PUBLISHED, others to UNPUBLISHED
+      const newStatus = checked ? "PUBLISHED" : "UNPUBLISHED";
+      const updatedRows = rows.map((r) => ({
+        ...r,
+        status: checked
+          ? r.id === row.id
+            ? "PUBLISHED"
+            : "UNPUBLISHED"
+          : r.id === row.id
+            ? "UNPUBLISHED"
+            : r.status,
+      })) as FormMethodology[];
+      fieldArray.replace(updatedRows);
+
+      updateMutation.mutate(
+        {
+          id: row.id,
+          data: { status: newStatus },
+        },
+        {
+          onSuccess: () => {
+            void enqueueSnackbar({
+              message: checked
+                ? "Metodología activada"
+                : "Metodología desactivada",
+              variant: "success",
+              autoHideDuration: 2000,
+            });
+          },
+          onError: () => {
+            // Revert optimistic update on error
+            fieldArray.replace(previousRows);
+            void enqueueSnackbar({
+              message: "Error al cambiar el estado de la metodología",
+              variant: "error",
+              autoHideDuration: 2000,
+            });
+          },
+        }
+      );
     },
-    [enqueueSnackbar]
+    [form, fieldArray, updateMutation, enqueueSnackbar]
   );
 
   const handleEdit = useCallback(

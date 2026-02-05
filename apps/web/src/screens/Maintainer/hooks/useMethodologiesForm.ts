@@ -6,12 +6,7 @@ import type { Methodology } from "@repo/types";
 
 export type FormMethodology = Omit<
   Methodology,
-  | "createdAt"
-  | "updatedAt"
-  | "countryId"
-  | "createdById"
-  | "updatedById"
-  | "status"
+  "createdAt" | "updatedAt" | "countryId" | "createdById" | "updatedById"
 >;
 
 export interface MethodologiesFormValues {
@@ -26,6 +21,7 @@ const methodologiesFormSchema = z.object({
       description: z.string().min(1, "Campo obligatorio"),
       regulation: z.string().min(1, "Campo obligatorio"),
       version: z.string().min(1, "Campo obligatorio"),
+      status: z.enum(["PUBLISHED", "UNPUBLISHED", "DELETED"]),
     })
   ),
 });
@@ -57,8 +53,14 @@ export const useMethodologiesForm = (serverData: Methodology[]) => {
     (rowIndex: number, field: keyof FormMethodology, value: string) => {
       const currentRow = form.getValues(`methodologies.${rowIndex}`);
       if (currentRow) {
-        fieldArray.update(rowIndex, { ...currentRow, [field]: value });
-        void form.trigger(`methodologies.${rowIndex}.${field}`);
+        // Clone the row and update the field to avoid mutating frozen objects
+        const updatedRow = { ...structuredClone(currentRow), [field]: value };
+        fieldArray.update(rowIndex, updatedRow);
+        // Manually mark as dirty since fieldArray.update() doesn't track dirty state well
+        form.setValue(`methodologies.${rowIndex}.${field}` as const, value, {
+          shouldDirty: true,
+        });
+        void form.trigger(`methodologies.${rowIndex}.${field}` as const);
       }
     },
     [form, fieldArray]

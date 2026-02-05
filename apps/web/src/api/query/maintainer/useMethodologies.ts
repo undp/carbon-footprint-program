@@ -4,6 +4,8 @@ import { maintainerKeys } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetAllMethodologiesResponse,
+  UpdateMethodologyRequest,
+  UpdateMethodologyResponse,
 } from "@repo/types";
 
 export const useMethodologies = () =>
@@ -50,14 +52,20 @@ export const useUpdateMethodology = () => {
   });
 };
 
-export const useAddMethodology = () => {
+interface UpdateMethodologyVariables {
+  id: string;
+  data: UpdateMethodologyRequest;
+}
+
+export const useUpdateMethodology = () => {
   const queryClient = useQueryClient();
-  return useMutation<Methodology, Error, Methodology>({
-    mutationFn: async (data) => {
-      await new Promise((r) => setTimeout(r, 200));
-      localData = [...localData, data];
-      return data;
-    },
+  return useMutation<
+    UpdateMethodologyResponse,
+    Error,
+    UpdateMethodologyVariables
+  >({
+    mutationFn: ({ id, data }) =>
+      apiClient.patch(`methodologies/${id}`, { json: data }).json(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.methodologies.all,
