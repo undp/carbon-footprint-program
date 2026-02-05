@@ -170,7 +170,7 @@ export const useMethodologyColumns = ({
         sortable: false,
         filterable: false,
         headerAlign: "center",
-        align: "center",
+        align: "right",
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ActionButtons
