@@ -1,7 +1,7 @@
 import { FC, useMemo, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
-import { FormProvider } from "react-hook-form";
+import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
@@ -92,6 +92,12 @@ export const EmissionCaptureScreen: FC = () => {
     [handleSubmit, submitOnCategoryChange, handleCategoryChange]
   );
 
+  // Watch subcategories for reactive updates
+  const watchedSubcategories = useWatch({
+    control: methods.control,
+    name: "subcategories",
+  });
+
   return (
     <FormProvider {...methods}>
       <form
@@ -173,7 +179,7 @@ export const EmissionCaptureScreen: FC = () => {
                   ([] as SubcategoryWithLines[])
                 ).map((subcategory) => {
                   const formSubcategory =
-                    methods.getValues().subcategories[subcategory.id];
+                    watchedSubcategories?.[subcategory.id];
                   const allLinesDeleted = Object.values(
                     formSubcategory?.lines ?? {}
                   ).every(({ isDeleted }) => isDeleted);
