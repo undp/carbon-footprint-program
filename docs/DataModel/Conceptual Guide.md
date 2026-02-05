@@ -101,10 +101,10 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 - They follow a versioned data model via `organization_data`.
 - **Lifecycle Flow**:
   1. **Creation**: Create a new `organization` with status **NOT_ACCREDITED**, and create a new row in `organization_data` with status **DRAFT** associated to this new `organization`.
-  2. **Submission**: User send an accreditation request (moves DRAFT to **SUBMITTED**) (`organization` status is still **NOT_ACCREDITED**).
-  3. **Review**: In case of admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` **SUBMITED** row status is changed to **COMPLETED**. In case of rejection, `organization` status is kept **NOT_ACCREDITED** and `organization_data` **SUBMITED** row status is changed to **DRAFT**.
+  2. **Submission**: User sends an accreditation request (moves DRAFT to **SUBMITTED**) (`organization` status is still **NOT_ACCREDITED**).
+  3. **Review**: In case of admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` **SUBMITTED** row status is changed to **COMPLETED**. In case of rejection, `organization` status is kept **NOT_ACCREDITED** and `organization_data` **SUBMITTED** row status is changed to **DRAFT**.
   4. **Updates**: Editing an accredited organization creates a new `organization_data` row with status **DRAFT** associated to the same `organization`, leaving the **COMPLETED** row intact.
-  5. **Re-accreditation**: User send an accreditation request again (moves DRAFT to **SUBMITTED**) and `organization` status is still **ACCREDITED** (because the previous one was approved). When the new SUBMITTED row is approved, the previous COMPLETED row in `organization_data` becomes **OUTDATED**, and the **SUBMITTED** row becomes **COMPLETED** (and `organization` status is kept **ACCREDITED**).
+  5. **Re-accreditation**: User sends an accreditation request again (moves DRAFT to **SUBMITTED**) and `organization` status is still **ACCREDITED** (because the previous one was approved). When the new SUBMITTED row is approved, the previous COMPLETED row in `organization_data` becomes **OUTDATED**, and the **SUBMITTED** row becomes **COMPLETED** (and `organization` status is kept **ACCREDITED**).
 
 ### 7.2 Users
 
