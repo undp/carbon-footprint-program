@@ -1,4 +1,4 @@
-import { FC, useMemo, useEffect, useCallback } from "react";
+import { FC, useMemo, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
@@ -18,6 +18,7 @@ import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
+import { UsageMode } from "@repo/types";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -36,10 +37,6 @@ export const EmissionCaptureScreen: FC = () => {
   const activeActionsCount = useEmissionCaptureState(
     (state) => state.activeActionsCount
   );
-  const subcategoryTotals = useEmissionCaptureState(
-    (state) => state.subcategoryTotals
-  );
-  const resetStore = useEmissionCaptureState((state) => state.reset);
 
   // Form setup
   const methods = useEmissionCaptureForm({ data });
@@ -82,25 +79,6 @@ export const EmissionCaptureScreen: FC = () => {
     () => data?.categories.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
   );
-
-  // Calculate total emissions for the selected category based on subcategory totals in store
-  const categoryEmissions = useMemo(() => {
-    if (!selectedCategoryData) return 0;
-    const total = selectedCategoryData.subcategories.reduce(
-      (acc, subcategory) => {
-        const subcatTotal = subcategoryTotals[subcategory.id] || 0;
-        return acc + subcatTotal;
-      },
-      0
-    );
-    return total;
-  }, [selectedCategoryData, subcategoryTotals]);
-
-  // Reset store on mount and unmount to avoid stale data
-  useEffect(() => {
-    resetStore();
-    return () => resetStore();
-  }, [resetStore]);
 
   const isBusy = activeActionsCount > 0;
 
@@ -187,30 +165,38 @@ export const EmissionCaptureScreen: FC = () => {
                 ))}
               </Box>
               {selectedCategoryData && (
-                <TotalCategoryEmissionCard
-                  category={selectedCategoryData}
-                  categoryEmissions={categoryEmissions}
-                />
+                <TotalCategoryEmissionCard category={selectedCategoryData} />
               )}
               <Box className="flex min-h-0 flex-1 flex-col gap-4">
                 {(
                   selectedCategoryData?.subcategories ||
                   ([] as SubcategoryWithLines[])
                 ).map((subcategory) => {
+                  const formSubcategory =
+                    methods.getValues().subcategories[subcategory.id];
+                  const allLinesDeleted = Object.values(
+                    formSubcategory?.lines ?? {}
+                  ).every(({ isDeleted }) => isDeleted);
+
+                  if (
+                    formSubcategory?.isTotalManualEmissionsModeActive &&
+                    allLinesDeleted
+                  )
+                    return null;
+
                   if (
                     subcategory.lines.length === 0 &&
-                    !subcategory.isTotalManualEmissionsMode
+                    !subcategory.isTotalManualEmissionsModeActive
                   )
                     return null;
                   return (
                     <EmissionEditor
                       key={subcategory.id}
-                      isTotalManualEmissionsModeAvailable={
-                        // TODO: use enum here (difficult to import from packages based on the current TS config)
-                        data?.usageMode === "EXPERT"
-                      }
                       categoryPosition={Number(selectedCategory)}
                       subcategory={subcategory}
+                      inventoryUsageMode={
+                        data?.usageMode ?? UsageMode.SIMPLIFIED
+                      }
                     />
                   );
                 })}
