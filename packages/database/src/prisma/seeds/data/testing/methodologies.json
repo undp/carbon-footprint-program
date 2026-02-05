@@ -147,7 +147,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Gas natural"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2
               },
@@ -160,7 +160,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Gas licuado del petróleo"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 1557
               },
@@ -173,7 +173,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Diésel"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2570
               },
@@ -186,7 +186,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Gasolina/Nafta"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2339
               },
@@ -199,7 +199,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Queroseno"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2540
               },
@@ -212,7 +212,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Fuel oil / Petróleo pesado"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 3174
               },
@@ -264,7 +264,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Bioethanol"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 9
               },
@@ -277,7 +277,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Biodiésel"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 167.5
               },
@@ -295,10 +295,7 @@
                 "value": 1.24
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "m³",
-              "ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["m3", "ton"]
           },
           {
             "name": "Combustión móvil",

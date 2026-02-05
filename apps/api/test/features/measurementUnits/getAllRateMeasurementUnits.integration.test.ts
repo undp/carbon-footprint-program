@@ -180,14 +180,14 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
 
-      // Check for kg por metro cúbico which should have m³ in denominator
+      // Check for kg por metro cúbico which should have m3 in denominator
       const kgPerCubicMeter = body.find(
         (ru) => ru.name === "kg por metro cúbico"
       );
       expect(kgPerCubicMeter).toBeDefined();
-      expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toBe("m³");
+      expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toBe("m3");
       expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toContain("³");
-      expect(kgPerCubicMeter!.abbreviation).toContain("m³");
+      expect(kgPerCubicMeter!.abbreviation).toContain("m3");
 
       // Ensure superscripts haven't been corrupted to ASCII equivalents
       body.forEach((rateUnit) => {
