@@ -4,6 +4,7 @@ import {
   CarbonInventoryLineStatus,
 } from "@repo/types";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
+import { map, uniq } from "lodash-es";
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
@@ -35,5 +36,21 @@ export const getCarbonInventoryByIdService = async (
 
   if (!inventory) return null;
 
-  return mapCarbonInventoryWithLinesToResponse(inventory);
+  const subcategories = await prismaClient.subcategory.findMany({
+    where: {
+      id: {
+        in: uniq(map(inventory.lines, "subcategoryId")),
+      },
+    },
+    select: {
+      id: true,
+      dimensions: {
+        select: {
+          id: true,
+        },
+      },
+    },
+  });
+
+  return mapCarbonInventoryWithLinesToResponse(inventory, subcategories);
 };

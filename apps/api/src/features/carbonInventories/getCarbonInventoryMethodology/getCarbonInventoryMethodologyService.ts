@@ -123,6 +123,11 @@ export const getCarbonInventoryMethodologyService = async (
                   id: "asc",
                 },
               },
+              subcategoryMeasurementUnits: {
+                select: {
+                  measurementUnitId: true,
+                },
+              },
             },
             orderBy: {
               name: "asc",
@@ -151,8 +156,10 @@ export const getCarbonInventoryMethodologyService = async (
         ...category,
         id: category.id.toString(),
         subcategories: category.subcategories.map((subcategory) => ({
-          ...subcategory,
           id: subcategory.id.toString(),
+          name: subcategory.name,
+          description: subcategory.description,
+          examples: subcategory.examples,
           dimensions: subcategory.dimensions.map((dimension) => ({
             ...dimension,
             id: dimension.id.toString(),
@@ -172,6 +179,10 @@ export const getCarbonInventoryMethodologyService = async (
                 gasDetails: factor.gasDetails as unknown as JSONType,
               }))
           ),
+          allowedMeasurementUnitIds:
+            subcategory.subcategoryMeasurementUnits.map((smu) =>
+              smu.measurementUnitId.toString()
+            ),
         })),
       })),
     },
