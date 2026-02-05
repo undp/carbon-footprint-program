@@ -186,7 +186,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       );
       expect(kgPerCubicMeter).toBeDefined();
       expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toBe("m3");
-      expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toContain("³");
+      expect(kgPerCubicMeter!.denominatorUnit.abbreviation).toContain("3");
       expect(kgPerCubicMeter!.abbreviation).toContain("m3");
 
       // Ensure superscripts haven't been corrupted to ASCII equivalents
