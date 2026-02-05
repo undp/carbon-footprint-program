@@ -29,3 +29,15 @@ export const NoActiveMethodologyError = createError(
   "No active methodology version found",
   422
 );
+
+export const LineNotFoundError = createError(
+  "LINE_NOT_FOUND",
+  "Line not found",
+  404
+);
+
+export const LineNotInCarbonInventoryError = createError(
+  "LINE_NOT_IN_CARBON_INVENTORY",
+  "Line does not belong to this carbon inventory",
+  422
+);

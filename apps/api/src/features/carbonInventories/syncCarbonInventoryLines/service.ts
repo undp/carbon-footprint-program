@@ -10,20 +10,13 @@ import {
   createLineFactor,
   createLineResult,
 } from "./helper.js";
-import createError from "@fastify/error";
 import {
   CarbonInventoryNotFoundError,
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
+  LineNotFoundError,
+  LineNotInCarbonInventoryError,
 } from "../errors.js";
-
-const LineNotFoundError = createError("LINE_NOT_FOUND", "Line not found", 404);
-
-const LineNotInCarbonInventoryError = createError(
-  "LINE_NOT_IN_CARBON_INVENTORY",
-  "Line does not belong to this carbon inventory",
-  422
-);
 
 export const syncCarbonInventoryLinesService = async (
   prismaClient: PrismaClient,
