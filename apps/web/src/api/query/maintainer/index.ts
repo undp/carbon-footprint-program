@@ -4,4 +4,5 @@ export {
   useUpdateMethodology,
   useAddMethodology,
   useDeleteMethodology,
+  useDuplicateMethodology,
 } from "./useMethodologies";

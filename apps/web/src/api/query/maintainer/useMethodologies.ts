@@ -77,3 +77,15 @@ export const useDeleteMethodology = () => {
     },
   });
 };
+
+export const useDuplicateMethodology = () => {
+  const queryClient = useQueryClient();
+  return useMutation<DuplicateMethodologyResponse, Error, string>({
+    mutationFn: (id) => apiClient.post(`methodologies/${id}/duplicate`).json(),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: maintainerKeys.methodologies.all,
+      });
+    },
+  });
+};
