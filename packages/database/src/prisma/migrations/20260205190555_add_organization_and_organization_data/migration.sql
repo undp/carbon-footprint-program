@@ -8,9 +8,11 @@ CREATE TYPE "organization_data_status" AS ENUM ('DRAFT', 'SUBMITTED', 'COMPLETED
 CREATE TABLE "organization" (
     "id" BIGSERIAL NOT NULL,
     "country_id" BIGINT NOT NULL,
-    "created_by_id" BIGINT,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "status" "organization_status" NOT NULL DEFAULT 'NOT_ACCREDITED',
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by_id" BIGINT,
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "organization_pkey" PRIMARY KEY ("id")
 );
@@ -19,6 +21,7 @@ CREATE TABLE "organization" (
 CREATE TABLE "organization_data" (
     "id" BIGSERIAL NOT NULL,
     "organization_id" BIGINT NOT NULL,
+    "status" "organization_data_status" NOT NULL DEFAULT 'DRAFT',
     "legal_name" TEXT NOT NULL,
     "trade_name" TEXT,
     "tax_id" TEXT NOT NULL,
@@ -33,17 +36,24 @@ CREATE TABLE "organization_data" (
     "representative_phone" TEXT NOT NULL,
     "representative_email" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
-    "status" "organization_data_status" NOT NULL DEFAULT 'DRAFT',
+    "updated_by_id" BIGINT,
 
     CONSTRAINT "organization_data_pkey" PRIMARY KEY ("id")
 );
+
+-- AddForeignKey
+ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization" ADD CONSTRAINT "organization_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization" ADD CONSTRAINT "organization_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization" ADD CONSTRAINT "organization_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -62,6 +72,9 @@ ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_representative
 
 -- AddForeignKey
 ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- Only one organization data can be COMPLETED for an organization
 CREATE UNIQUE INDEX "organization_data_only_one_completed" ON "organization_data"("organization_id") WHERE "status" = 'COMPLETED';
