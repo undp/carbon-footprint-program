@@ -23,3 +23,9 @@ export const SubcategoryNotInMethodologyError = createError(
   "One or more subcategories do not belong to the carbon inventory's methodology",
   422
 );
+
+export const NoActiveMethodologyError = createError(
+  "NO_ACTIVE_METHODOLOGY",
+  "No active methodology version found",
+  422
+);

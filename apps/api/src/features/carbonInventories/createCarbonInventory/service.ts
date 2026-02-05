@@ -5,13 +5,7 @@ import {
   MethodologyVersionStatus,
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
-import createError from "@fastify/error";
-
-const NoActiveMethodologyError = createError(
-  "NO_ACTIVE_METHODOLOGY",
-  "No active methodology version found",
-  422
-);
+import { NoActiveMethodologyError } from "../errors.js";
 
 export const createCarbonInventoryService = async (
   prismaClient: PrismaClient,
