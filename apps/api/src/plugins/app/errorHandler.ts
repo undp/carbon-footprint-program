@@ -48,7 +48,8 @@ const errorHandler = (
   return reply.status(statusCode).send(response);
 };
 
-const errorHandlerPlugin = (fastify: FastifyInstance) => {
+// eslint-disable-next-line @typescript-eslint/require-await
+const errorHandlerPlugin = async (fastify: FastifyInstance) => {
   fastify.setErrorHandler(errorHandler);
 };
 
