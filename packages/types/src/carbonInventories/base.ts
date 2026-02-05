@@ -54,7 +54,12 @@ export const CarbonInventoryLineSchema = z
 export const CarbonInventorySubcategorySchema = z
   .object({
     id: IdSchema.describe("The ID of the subcategory"),
-    isTotalManualEmissionsMode: z
+    isTotalManualEmissionsModeAvailable: z
+      .boolean()
+      .describe(
+        "Whether manual total emissions mode is available for this subcategory"
+      ),
+    isTotalManualEmissionsModeActive: z
       .boolean()
       .describe("Whether manual total emissions are used"),
     lines: z

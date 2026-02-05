@@ -5,6 +5,7 @@ import {
   MeasurementUnit,
   RateMeasurementUnit,
   Subcategory,
+  UsageMode,
 } from "@repo/types";
 import {
   EmissionCaptureFormLine,
@@ -38,6 +39,7 @@ interface UseEmissionEditorColumnsParams {
   onUpdateComment: (rowId: LineId, comment: string) => void;
   onUploadFiles: (rowId: LineId) => void;
   isManualModeLoading?: boolean;
+  inventoryUsageMode: UsageMode;
 }
 
 export const useEmissionEditorColumns = ({
@@ -51,8 +53,39 @@ export const useEmissionEditorColumns = ({
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
+  inventoryUsageMode,
   isManualModeLoading = false,
 }: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
+  const unitIdsWithEmissionFactors = useMemo<Set<string>>(() => {
+    const ids = new Set<string>();
+    subcategory.emissionFactors.forEach((ef) => {
+      const rateMeasurementUnit = rateMeasurementUnits?.find(
+        (mu) => mu.id === ef.rateMeasurementUnitId
+      );
+      if (rateMeasurementUnit) ids.add(rateMeasurementUnit.denominatorUnit.id);
+    });
+    return ids;
+  }, [subcategory.emissionFactors, rateMeasurementUnits]);
+
+  const displayedUnits = useMemo(() => {
+    const allowedUnits =
+      measurementUnits?.filter((mu) =>
+        subcategory.allowedMeasurementUnitIds.includes(mu.id)
+      ) || [];
+
+    const filtered = allowedUnits.filter(
+      (mu) =>
+        inventoryUsageMode === UsageMode.EXPERT ||
+        unitIdsWithEmissionFactors.has(mu.id)
+    );
+    return filtered;
+  }, [
+    inventoryUsageMode,
+    measurementUnits,
+    unitIdsWithEmissionFactors,
+    subcategory.allowedMeasurementUnitIds,
+  ]);
+
   return useMemo(() => {
     const firstDimension = dimensions.find((d) => d.position === 1);
     const secondDimension = dimensions.find((d) => d.position === 2);
@@ -129,7 +162,7 @@ export const useEmissionEditorColumns = ({
           <EmissionEditorMeasurementUnitCell
             subcategoryId={subcategory.id}
             lineId={params.row.lineId}
-            measurementUnits={measurementUnits || []}
+            measurementUnits={displayedUnits}
             onChange={(value: string) => onCellChange(value, params)}
             disabled={isManualModeLoading}
           />
@@ -255,7 +288,7 @@ export const useEmissionEditorColumns = ({
   }, [
     dimensions,
     subcategory.emissionFactors,
-    measurementUnits,
+    displayedUnits,
     rateMeasurementUnits,
     categoryPosition,
     onCellChange,

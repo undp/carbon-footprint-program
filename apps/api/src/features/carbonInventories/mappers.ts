@@ -1,7 +1,7 @@
 import type { Prisma } from "@repo/database";
 import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
 import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
-import { OrganizationDataSchema } from "@repo/types";
+import { OrganizationDataSchema, UsageMode } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import { groupBy } from "lodash-es";
 import { toNumberOrNull } from "@/utils/number.js";
@@ -17,6 +17,17 @@ type CarbonInventoryWithLines = Prisma.CarbonInventoryGetPayload<{
             factor: true;
           };
         };
+      };
+    };
+  };
+}>;
+
+type SubcategoryWithDimensions = Prisma.SubcategoryGetPayload<{
+  select: {
+    id: true;
+    dimensions: {
+      select: {
+        id: true;
       };
     };
   };
@@ -119,7 +130,8 @@ function mapBaseCarbonInventory(
 
 // Map carbon inventory with subcategories to response (includes subcategories field)
 export function mapCarbonInventoryWithLinesToResponse(
-  item: CarbonInventoryWithLines
+  item: CarbonInventoryWithLines,
+  subcategories: SubcategoryWithDimensions[]
 ): ResponseCarbonInventory {
   const base = mapBaseCarbonInventory(item);
   const parsedLines: LineResponse[] = item.lines.map(mapLineToResponse);
@@ -129,18 +141,27 @@ export function mapCarbonInventoryWithLinesToResponse(
     "subcategoryId"
   );
 
+  const subcategoryById = Object.fromEntries(
+    subcategories.map((subcategory) => [subcategory.id.toString(), subcategory])
+  );
+
   return {
     ...base,
     subcategories: Object.entries(linesBySubcategoryId).map(
       ([subcategoryId, lines]) => {
-        // isTotalManualEmissionsMode is true if all lines in the subcategory use manual total emissions
-        const isTotalManualEmissionsMode =
+        const subcategoryHasDimensions =
+          !!subcategoryById[subcategoryId]?.dimensions?.length;
+
+        // isTotalManualEmissionsModeActive is true if all lines in the subcategory use manual total emissions
+        const isTotalManualEmissionsModeActive =
           lines.length > 0 &&
           lines.every((line) => line.isManualTotalEmissions === true);
 
         return {
           id: subcategoryId,
-          isTotalManualEmissionsMode,
+          isTotalManualEmissionsModeAvailable:
+            base.usageMode === UsageMode.EXPERT || !subcategoryHasDimensions, // Available in expert mode
+          isTotalManualEmissionsModeActive,
           lines,
         };
       }

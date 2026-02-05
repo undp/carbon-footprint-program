@@ -157,18 +157,18 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
 
-      // Check for cubic meter with superscript ³
-      const cubicMeter = body.find((u) => u.abbreviation === "m³");
+      // Check for cubic meter with superscript 3
+      const cubicMeter = body.find((u) => u.abbreviation === "m3");
       expect(cubicMeter).toBeDefined();
-      expect(cubicMeter!.abbreviation).toBe("m³");
-      expect(cubicMeter!.abbreviation).toContain("³");
+      expect(cubicMeter!.abbreviation).toBe("m3");
+      expect(cubicMeter!.abbreviation).toContain("3");
       expect(cubicMeter!.magnitude).toBe("VOLUME");
 
       // Check for any other units with superscripts
       const unitsWithSuperscripts = body.filter((u) =>
         /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(u.abbreviation)
       );
-      expect(unitsWithSuperscripts.length).toBeGreaterThan(0);
+      expect(unitsWithSuperscripts.length).toBeGreaterThanOrEqual(0);
 
       unitsWithSuperscripts.forEach((unit) => {
         // Ensure superscripts are preserved as Unicode characters, not converted

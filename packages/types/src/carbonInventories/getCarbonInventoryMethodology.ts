@@ -77,6 +77,9 @@ const SubcategorySchema = z.object({
   emissionFactors: z
     .array(EmissionFactorSchema)
     .describe("The emission factors for this subcategory"),
+  allowedMeasurementUnitIds: z
+    .array(IdSchema)
+    .describe("The IDs of the allowed measurement units for this subcategory"),
 });
 
 const CategorySchema = z.object({

@@ -101,6 +101,16 @@ CREATE TABLE "emission_factor" (
     CONSTRAINT "emission_factor_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "subcategory_measurement_unit" (
+    "id" BIGSERIAL NOT NULL,
+    "subcategory_id" BIGINT NOT NULL,
+    "measurement_unit_id" BIGINT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "subcategory_measurement_unit_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "methodology_version_country_id_name_key" ON "methodology_version"("country_id", "name");
 
@@ -124,6 +134,9 @@ CREATE UNIQUE INDEX "emission_factor_dimension_value_dimension_id_value_key" ON 
 
 -- CreateIndex
 CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source" ON "emission_factor"("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "source");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "subcategory_measurement_unit_subcategory_id_measurement_uni_key" ON "subcategory_measurement_unit"("subcategory_id", "measurement_unit_id");
 
 -- AddForeignKey
 ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -193,3 +206,10 @@ ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_updated_by_id_fkey
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_methodology_version_id_fkey" FOREIGN KEY ("methodology_version_id") REFERENCES "methodology_version"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subcategory_measurement_unit" ADD CONSTRAINT "subcategory_measurement_unit_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "subcategory_measurement_unit" ADD CONSTRAINT "subcategory_measurement_unit_measurement_unit_id_fkey" FOREIGN KEY ("measurement_unit_id") REFERENCES "measurement_unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+

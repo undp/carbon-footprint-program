@@ -22,11 +22,26 @@
                 "position": 1,
                 "isRequired": false,
                 "values": [
-                  { "name": "Gaseosos", "parentValue": null },
-                  { "name": "Líquidos", "parentValue": null },
-                  { "name": "Sólidos", "parentValue": null },
-                  { "name": "Bio-combustibles", "parentValue": null },
-                  { "name": "Bio-gas", "parentValue": null }
+                  {
+                    "name": "Gaseosos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Líquidos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Sólidos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Bio-combustibles",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Bio-gas",
+                    "parentValue": null
+                  }
                 ]
               },
               {
@@ -49,7 +64,6 @@
                       "valueName": "Gaseosos"
                     }
                   },
-
                   {
                     "name": "Diésel",
                     "parentValue": {
@@ -78,7 +92,6 @@
                       "valueName": "Líquidos"
                     }
                   },
-
                   {
                     "name": "Carbón industrial",
                     "parentValue": {
@@ -134,7 +147,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Gas natural"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2
               },
@@ -147,7 +160,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Gas licuado del petróleo"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 1557
               },
@@ -160,7 +173,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Diésel"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2570
               },
@@ -173,7 +186,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Gasolina/Nafta"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2339
               },
@@ -186,7 +199,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Queroseno"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 2540
               },
@@ -199,7 +212,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Fuel oil / Petróleo pesado"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 3174
               },
@@ -251,7 +264,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Bioethanol"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 9
               },
@@ -264,7 +277,7 @@
                   "dimensionCode": "FUEL",
                   "valueName": "Biodiésel"
                 },
-                "rateMeasurementUnitAbbreviation": "kg/m³",
+                "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "value": 167.5
               },
@@ -281,32 +294,38 @@
                 "source": "DEFRA 2025",
                 "value": 1.24
               }
-            ]
+            ],
+            "allowedMeasurementUnitsAbbreviations": ["m3", "ton"]
           },
           {
             "name": "Combustión móvil",
             "description": "Uso de combustible en vehículos de reparto o camionetas de la empresa.",
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Agricultura y uso de suelos",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Procesos industriales",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Emisiones fugitivas",
             "description": "Fugas o recargas de gas refrigerantes en A/C de oficinas o vehículos.",
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Remociones",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           }
         ]
       },
@@ -320,12 +339,14 @@
           {
             "name": "Electricidad general",
             "description": "Electricidad usada en oficinas, bodegas y centros operativos",
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Energía térmica o de vapor para calefacción",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           }
         ]
       },
@@ -339,67 +360,80 @@
           {
             "name": "Agua consumida",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Aguas servidas",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Energía indirecta",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Combustiones estacionarias",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Transporte empleados o contratistas",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Trabajo remoto",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Estadía en hotel",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Bienes adquiridos",
             "description": "Material utilizado en embalaje de tus productos (cartón, plástico, papel, etc.)",
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Residuos generados",
             "description": "Residuos de la operación (oficinas o bodegas) que se envían a relleno sanitario o reciclaje.",
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Transporte logístico",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Uso de artículos vendidos",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Fin vida útil artículos vendidos",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           },
           {
             "name": "Otros",
             "description": null,
-            "examples": null
+            "examples": null,
+            "allowedMeasurementUnitsAbbreviations": []
           }
         ]
       }

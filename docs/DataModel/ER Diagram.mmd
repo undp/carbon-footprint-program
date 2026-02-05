@@ -172,7 +172,7 @@ erDiagram
 	}
 
 	%% ============================================================
-	%% 🟩 Methodology & factors (9)
+	%% 🟩 Methodology & factors (10)
 	%% ============================================================
 	
 	methodology_version {
@@ -306,13 +306,21 @@ erDiagram
 	}
 
 	rate_measurement_unit {
-		BIGINT id PK ""  
-		string name  ""  
-		string abbreviation  ""  
-		BIGINT numerator_measurement_unit_id FK ""  
-		BIGINT denominator_measurement_unit_id FK ""  
+		BIGINT id PK ""
+		string name  ""
+		string abbreviation  ""
+		BIGINT numerator_measurement_unit_id FK ""
+		BIGINT denominator_measurement_unit_id FK ""
 	}
-	
+
+	subcategory_measurement_unit {
+		BIGINT id PK ""
+		BIGINT subcategory_id FK "subcategory(id)"
+		BIGINT measurement_unit_id FK "measurement_unit(id)"
+		timestamptz created_at ""
+		%% UNIQUE(subcategory_id, measurement_unit_id)
+	}
+
 	global_warming_potential {
 		BIGINT id PK ""  
 		string name "UNIQUE"
@@ -692,6 +700,10 @@ subcategory
 	subcategory ||--o{ sector_profiling: "could appear at"
 	subcategory ||--o{ subsector_profiling: "could appear at"
 	subcategory ||--o{ carbon_inventory_line: "could have many"
+	subcategory ||--o{ subcategory_measurement_unit: "accepts"
+
+measurement_unit
+	measurement_unit ||--o{ subcategory_measurement_unit: "allowed in"
 
 emission_factor_dimension
 	emission_factor_dimension ||--o{ emission_factor_dimension_value : "has many" 

@@ -220,15 +220,16 @@ model User {
 }
 
 model MeasurementUnit {
-  id                     BigInt                     @id @default(autoincrement())
-  name                   String
-  magnitude              Magnitude
-  abbreviation           String                     @unique
-  baseFactor             Float                      @map("base_factor")
-  isBase                 Boolean                    @map("is_base")
-  rateUnitsAsDenominator RateMeasurementUnit[]      @relation("denominator_measurement_unit")
-  rateUnitsAsNumerator   RateMeasurementUnit[]      @relation("numerator_measurement_unit")
-  lineInputs             CarbonInventoryLineInput[]
+  id                          BigInt                       @id @default(autoincrement())
+  name                        String
+  magnitude                   Magnitude
+  abbreviation                String                       @unique
+  baseFactor                  Float                        @map("base_factor")
+  isBase                      Boolean                      @map("is_base")
+  rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
+  rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
+  lineInputs                  CarbonInventoryLineInput[]
+  subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
   @@map("measurement_unit")
 }
@@ -317,24 +318,37 @@ model Category {
 }
 
 model Subcategory {
-  id              BigInt                    @id @default(autoincrement())
-  categoryId      BigInt                    @map("category_id")
-  name            String
-  description     String?
-  examples        String?
-  createdAt       DateTime                  @default(now()) @map("created_at")
-  updatedAt       DateTime                  @default(now()) @updatedAt @map("updated_at")
-  createdById     BigInt?                   @map("created_by_id")
-  updatedById     BigInt?                   @map("updated_by_id")
-  category        Category                  @relation(fields: [categoryId], references: [id])
-  creator         User?                     @relation("subcategory_created_by", fields: [createdById], references: [id])
-  updater         User?                     @relation("subcategory_updated_by", fields: [updatedById], references: [id])
-  dimensions      EmissionFactorDimension[]
-  emissionFactors EmissionFactor[]
-  inventoryLines  CarbonInventoryLine[]
+  id                          BigInt                       @id @default(autoincrement())
+  categoryId                  BigInt                       @map("category_id")
+  name                        String
+  description                 String?
+  examples                    String?
+  createdAt                   DateTime                     @default(now()) @map("created_at")
+  updatedAt                   DateTime                     @default(now()) @updatedAt @map("updated_at")
+  createdById                 BigInt?                      @map("created_by_id")
+  updatedById                 BigInt?                      @map("updated_by_id")
+  category                    Category                     @relation(fields: [categoryId], references: [id])
+  creator                     User?                        @relation("subcategory_created_by", fields: [createdById], references: [id])
+  updater                     User?                        @relation("subcategory_updated_by", fields: [updatedById], references: [id])
+  dimensions                  EmissionFactorDimension[]
+  emissionFactors             EmissionFactor[]
+  inventoryLines              CarbonInventoryLine[]
+  subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
   @@unique([categoryId, name])
   @@map("subcategory")
+}
+
+model SubcategoryMeasurementUnit {
+  id                BigInt          @id @default(autoincrement())
+  subcategoryId     BigInt          @map("subcategory_id")
+  measurementUnitId BigInt          @map("measurement_unit_id")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id])
+  measurementUnit   MeasurementUnit @relation(fields: [measurementUnitId], references: [id])
+
+  @@unique([subcategoryId, measurementUnitId])
+  @@map("subcategory_measurement_unit")
 }
 
 model EmissionFactorDimension {

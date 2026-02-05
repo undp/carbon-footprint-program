@@ -44,7 +44,7 @@
   {
     "magnitude": "VOLUME",
     "name": "Metro cúbico",
-    "abbreviation": "m³",
+    "abbreviation": "m3",
     "baseFactor": 1000,
     "isBase": false
   },

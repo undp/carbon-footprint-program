@@ -521,7 +521,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       body.subcategories.forEach((subcat) => {
         expect(subcat.lines.length).toBe(1);
         expect(subcat.id).toBeTruthy();
-        expect(subcat.isTotalManualEmissionsMode).toBe(false);
+        expect(subcat.isTotalManualEmissionsModeActive).toBe(false);
       });
     });
   });
