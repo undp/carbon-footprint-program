@@ -687,7 +687,7 @@ organization_data
 	organization_data }o--|| country_organization_size : "has"
 	organization_data }o--|| country_sector : "has"
 	organization_data }o--|| country_subsector : "has"
-	organization_data }o--|| country_job_position : "has"
+	organization_data ||--|| country_job_position : "has"
 
 organization_branch
 	organization_branch |o--o{ reduction_project : "may execute"
