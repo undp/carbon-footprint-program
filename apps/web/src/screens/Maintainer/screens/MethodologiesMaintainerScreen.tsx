@@ -40,6 +40,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const startEditing = useMaintainerStore((s) => s.startEditing);
   const currentRows = form.watch("methodologies");
 
+  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+
   const handleStopEditRow = useCallback(async () => {
     if (!editingRowId) return;
 
@@ -58,34 +60,61 @@ export const MethodologiesMaintainerScreen: FC = () => {
       return;
     }
 
-    const dirtyFields = form.formState.dirtyFields;
-    const isRowDirty = dirtyFields.methodologies?.[rowIndex];
+    if (row && isNewRow(row.id)) {
+      // New row - create in database
+      try {
+        const result = await addMutation.mutateAsync({
+          name: row.name,
+          description: row.description,
+          regulation: row.regulation,
+          version: row.version,
+        });
+        // Replace temp row with the real one from the server
+        fieldArray.update(rowIndex, result);
+        void enqueueSnackbar({
+          message: "Metodología creada exitosamente",
+          variant: "success",
+          autoHideDuration: 2000,
+        });
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al crear metodología",
+          variant: "error",
+          autoHideDuration: 2000,
+        });
+        return;
+      }
+    } else {
+      // Existing row - update if dirty
+      const dirtyFields = form.formState.dirtyFields;
+      const isRowDirty = dirtyFields.methodologies?.[rowIndex];
 
-    if (row && isRowDirty) {
-      updateMutation.mutate(
-        {
-          id: row.id,
-          data: {
-            name: row.name,
-            description: row.description,
-            regulation: row.regulation,
-            version: row.version,
+      if (row && isRowDirty) {
+        updateMutation.mutate(
+          {
+            id: row.id,
+            data: {
+              name: row.name,
+              description: row.description,
+              regulation: row.regulation,
+              version: row.version,
+            },
           },
-        },
-        {
-          onSuccess: () => {
-            void enqueueSnackbar({
-              message: "Cambios guardados satisfactoriamente",
-              variant: "success",
-              autoHideDuration: 2000,
-            });
-          },
-        }
-      );
+          {
+            onSuccess: () => {
+              void enqueueSnackbar({
+                message: "Cambios guardados satisfactoriamente",
+                variant: "success",
+                autoHideDuration: 2000,
+              });
+            },
+          }
+        );
+      }
     }
 
     setEditingRowId(null);
-  }, [editingRowId, form, updateMutation, enqueueSnackbar]);
+  }, [editingRowId, form, isNewRow, addMutation, fieldArray, updateMutation, enqueueSnackbar]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -97,6 +126,16 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const handleToggle = useCallback(
     (row: FormMethodology, checked: boolean) => {
+      // Don't allow toggling for unsaved rows
+      if (isNewRow(row.id)) {
+        void enqueueSnackbar({
+          message: "Guarda la metodología antes de cambiar su estado",
+          variant: "warning",
+          autoHideDuration: 2000,
+        });
+        return;
+      }
+
       const rows = form.getValues("methodologies");
       const previousRows = structuredClone(rows);
 
@@ -141,11 +180,19 @@ export const MethodologiesMaintainerScreen: FC = () => {
         }
       );
     },
-    [form, fieldArray, updateMutation, enqueueSnackbar]
+    [form, fieldArray, isNewRow, updateMutation, enqueueSnackbar]
   );
 
   const handleEdit = useCallback(
     (row: FormMethodology) => {
+      if (isNewRow(row.id)) {
+        void enqueueSnackbar({
+          message: "Guarda la metodología antes de editarla",
+          variant: "warning",
+          autoHideDuration: 2000,
+        });
+        return;
+      }
       startEditing({
         id: row.id,
         name: row.name,
@@ -153,11 +200,19 @@ export const MethodologiesMaintainerScreen: FC = () => {
       });
       void navigate({ to: Routes.ADMIN_ITEMS });
     },
-    [startEditing, navigate]
+    [isNewRow, enqueueSnackbar, startEditing, navigate]
   );
 
   const handleDuplicate = useCallback(
     async (row: FormMethodology) => {
+      if (isNewRow(row.id)) {
+        void enqueueSnackbar({
+          message: "Guarda la metodología antes de duplicarla",
+          variant: "warning",
+          autoHideDuration: 2000,
+        });
+        return;
+      }
       const rows = form.getValues("methodologies");
       const index = rows.findIndex((r) => r.id === row.id);
       try {
@@ -176,32 +231,22 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
       }
     },
-    [form, fieldArray, duplicateMutation, enqueueSnackbar]
+    [isNewRow, enqueueSnackbar, form, fieldArray, duplicateMutation]
   );
 
-  const handleAddRow = useCallback(async () => {
-    try {
-      const newRow = await addMutation.mutateAsync({
-        name: "Nueva metodología",
-        description: null,
-        regulation: "GHG Protocol",
-        version: "1.0",
-      });
-      fieldArray.append(newRow);
-      setEditingRowId(newRow.id);
-      void enqueueSnackbar({
-        message: "Nueva metodología creada",
-        variant: "success",
-        autoHideDuration: 2000,
-      });
-    } catch {
-      void enqueueSnackbar({
-        message: "Error al crear nueva metodología",
-        variant: "error",
-        autoHideDuration: 2000,
-      });
-    }
-  }, [fieldArray, addMutation, enqueueSnackbar]);
+  const handleAddRow = useCallback(() => {
+    const tempId = `temp_${Date.now()}`;
+    const newRow: FormMethodology = {
+      id: tempId,
+      name: "",
+      description: "",
+      regulation: "GHG Protocol",
+      version: "1.0",
+      status: "UNPUBLISHED",
+    };
+    fieldArray.append(newRow);
+    setEditingRowId(tempId);
+  }, [fieldArray]);
 
   const handleDelete = useCallback(
     async (row: FormMethodology) => {
@@ -209,7 +254,14 @@ export const MethodologiesMaintainerScreen: FC = () => {
       const index = rows.findIndex((r) => r.id === row.id);
       if (index !== -1) {
         fieldArray.remove(index);
-        await deleteMutation.mutateAsync(row.id);
+        // Clear editing state if deleting the row being edited
+        if (editingRowId === row.id) {
+          setEditingRowId(null);
+        }
+        // Only call API if it's not a new unsaved row
+        if (!isNewRow(row.id)) {
+          await deleteMutation.mutateAsync(row.id);
+        }
         void enqueueSnackbar({
           message: "Metodología eliminada",
           variant: "success",
@@ -217,7 +269,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
       }
     },
-    [form, fieldArray, deleteMutation, enqueueSnackbar]
+    [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
   );
 
   // --- Column definitions via hook ---
