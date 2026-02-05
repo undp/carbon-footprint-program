@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { getAllMeasurementUnitsRoute } from "@/features/measurementUnits/getAllMeasurementUnits/getAllMeasurementUnitsRoute.js";
-import { getAllRateMeasurementUnitsRoute } from "@/features/measurementUnits/getAllRateMeasurementUnits/getAllRateMeasurementUnitsRoute.js";
+import { getAllMeasurementUnitsRoute } from "@/features/measurementUnits/getAllMeasurementUnits/route.js";
+import { getAllRateMeasurementUnitsRoute } from "@/features/measurementUnits/getAllRateMeasurementUnits/route.js";
 
 export default function measurementUnitsRoutes(fastify: FastifyZodInstance) {
   getAllMeasurementUnitsRoute(fastify);

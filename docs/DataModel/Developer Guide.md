@@ -103,6 +103,17 @@ If a result changes, something upstream changed.
 
 ---
 
+### 2.6 Submissions
+
+For `submission`:
+
+- A `submission_subject` can have multiple `submission` records (history of attempts).
+- **Business Rule**: Only one **PENDING** or **APPROVED** submission is allowed per subject.
+- This is enforced via a partial unique index on `subject_id` where `status IN ('PENDING', 'APPROVED')`.
+- `carbon_inventory_id` and `organization_data_id` must be unique across their respective subject relation tables.
+
+---
+
 ## 3. Canonical Query Patterns
 
 ### 3.1 Get Current Inventory State (Most Common)

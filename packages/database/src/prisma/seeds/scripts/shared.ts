@@ -27,6 +27,7 @@ export const FullMethodologyDataSchema = z.array(
             name: z.string().min(1),
             description: z.string().nullable().optional(),
             examples: z.string().nullable().optional(),
+            allowedMeasurementUnitsAbbreviations: z.array(z.string()).optional(),
             emissionFactorDimensions: z
               .array(
                 z.object({

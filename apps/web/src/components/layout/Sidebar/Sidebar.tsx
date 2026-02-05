@@ -18,11 +18,12 @@ import {
   SidebarRoutesTranslations,
 } from "@/interfaces";
 import { UserMenu } from "./UserMenu";
+import { SIDEBAR_WIDTH } from "@/config/constants";
 
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
   [SidebarRoutes.MY_ORGANIZATION]: <Business />,
-  [SidebarRoutes.CARBON_INVENTORY]: <SouthAmerica />,
+  [SidebarRoutes.CARBON_INVENTORIES]: <SouthAmerica />,
   [SidebarRoutes.REDUCTION_PROJECTS]: <TrendingDown />,
   [SidebarRoutes.REDUCTION_PLAN]: <SsidChartRounded />,
   [SidebarRoutes.AWARDS]: <EmojiEventsOutlined />,
@@ -48,12 +49,12 @@ export const Sidebar: FC = () => {
       sx={{
         display: "flex",
         alignItems: "flex-start",
-        width: 268,
+        width: SIDEBAR_WIDTH,
         flexShrink: 0,
         flexGrow: 1,
         px: 1,
         "& .MuiDrawer-paper": {
-          width: 268,
+          width: SIDEBAR_WIDTH,
           gap: 2,
           px: 2,
         },
@@ -61,14 +62,14 @@ export const Sidebar: FC = () => {
       variant="permanent"
       anchor="left"
     >
-      <Toolbar>
+      <Toolbar sx={{ px: "8px", py: "16px" }} disableGutters>
         <HuellaLatamLogo
           sx={{
-            width: 93,
-            height: 40,
-            ":hover": { cursor: "pointer" },
+            width: 116,
+            height: 50,
+            cursor: "pointer",
           }}
-          onClick={() => navigate({ to: Routes.LANDING })}
+          onClick={() => navigate({ to: Routes.HOME })}
         />
       </Toolbar>
       <Divider />

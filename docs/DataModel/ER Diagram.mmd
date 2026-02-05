@@ -172,7 +172,7 @@ erDiagram
 	}
 
 	%% ============================================================
-	%% 🟩 Methodology & factors (9)
+	%% 🟩 Methodology & factors (10)
 	%% ============================================================
 	
 	methodology_version {
@@ -306,13 +306,21 @@ erDiagram
 	}
 
 	rate_measurement_unit {
-		BIGINT id PK ""  
-		string name  ""  
-		string abbreviation  ""  
-		BIGINT numerator_measurement_unit_id FK ""  
-		BIGINT denominator_measurement_unit_id FK ""  
+		BIGINT id PK ""
+		string name  ""
+		string abbreviation  ""
+		BIGINT numerator_measurement_unit_id FK ""
+		BIGINT denominator_measurement_unit_id FK ""
 	}
-	
+
+	subcategory_measurement_unit {
+		BIGINT id PK ""
+		BIGINT subcategory_id FK "subcategory(id)"
+		BIGINT measurement_unit_id FK "measurement_unit(id)"
+		timestamptz created_at ""
+		%% UNIQUE(subcategory_id, measurement_unit_id)
+	}
+
 	global_warming_potential {
 		BIGINT id PK ""  
 		string name "UNIQUE"
@@ -402,13 +410,14 @@ erDiagram
 	organization_role {
 		BIGINT id PK "FK(role.id)" 
 	}
+
 	
 	user_organization_membership {
 		BIGINT id PK ""  
-		BIGINT user_id FK ""  
+		BIGINT user_id FK "" 
 		BIGINT organization_id FK ""  
 		BIGINT organization_role_id FK ""  
-		enum accreditation_status  "REQUESTED|VALIDATED|REJECTED"  
+		enum status "ACTIVE|DELETED"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
@@ -591,7 +600,7 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject {
 		BIGINT id PK "" 
-		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN"
+		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN | ORGANIZATION_DATA"
 		timestamptz created_at  ""  
 		BIGINT created_by FK ""  
 	}
@@ -599,32 +608,38 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject_carbon_inventory {
 		BIGINT subject_id PK "FK"
-		BIGINT carbon_inventory_id FK ""
+		BIGINT carbon_inventory_id FK "UNIQUE carbon_inventory(id)"
 	}
 	
 	%% The data within this table is immutable once created
 	submission_subject_reduction_project {
 		BIGINT subject_id PK "FK"
-		BIGINT reduction_project_id FK ""
+		BIGINT reduction_project_id FK "UNIQUE reduction_project(id)"
 	}
 	
 	%% The data within this table is immutable once created
 	submission_subject_neutralization_plan {
 		BIGINT subject_id PK "FK"
-		BIGINT neutralization_plan_id FK ""
+		BIGINT neutralization_plan_id FK "UNIQUE neutralization_plan(id)"
+	}
+
+	%% The data within this table is immutable once created
+	submission_subject_organization_data {
+		BIGINT subject_id PK "FK"
+		BIGINT organization_data_id FK "UNIQUE organization_data(id)"
 	}
 
 	submission {
 		BIGINT id PK "" 
 		BIGINT subject_id FK "submission_subject(id)" 
-		enum status "NOT_IMPLEMENTED_YET"
-		string seal_type  "NULLABLE"  
-		TEXT reviewer_entity "NULLABLE"
-		TEXT review_comments "NULLABLE"
+		enum status "PENDING | APPROVED | REJECTED"
+		BIGINT reviewer_id FK "NULLABLE, user(id)"
+		text review_comments "NULLABLE"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"  
+		%% UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
 	}
 
 	recognition_catalog {
@@ -683,7 +698,9 @@ organization_data
 	organization_data }o--|| country_organization_size : "has"
 	organization_data }o--|| country_sector : "has"
 	organization_data }o--|| country_subsector : "has"
-	organization_data }o--|| country_job_position : "has"
+	organization_data ||--|| country_job_position : "has"
+	organization_data ||--o{ submission_subject_organization_data : "submitted via"
+
 
 organization_branch
 	organization_branch |o--o{ reduction_project : "may execute"
@@ -717,6 +734,10 @@ subcategory
 	subcategory ||--o{ sector_profiling: "could appear at"
 	subcategory ||--o{ subsector_profiling: "could appear at"
 	subcategory ||--o{ carbon_inventory_line: "could have many"
+	subcategory ||--o{ subcategory_measurement_unit: "accepts"
+
+measurement_unit
+	measurement_unit ||--o{ subcategory_measurement_unit: "allowed in"
 
 emission_factor_dimension
 	emission_factor_dimension ||--o{ emission_factor_dimension_value : "has many" 
@@ -754,9 +775,11 @@ submission_subject
 	submission_subject ||--|| submission_subject_carbon_inventory : "associated via"
 	submission_subject ||--|| submission_subject_reduction_project : "associated via"
 	submission_subject ||--|| submission_subject_neutralization_plan : "associated via"
+	submission_subject ||--|| submission_subject_organization_data : "associated via"
 
 submission
 	submission ||--o| recognition: "may award"
+	submission ||--o{ submission_subject: "has"
 
 neutralization_plan
 	neutralization_plan ||--o{ submission_subject_neutralization_plan : "submitted via"

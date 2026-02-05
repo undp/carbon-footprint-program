@@ -16,6 +16,7 @@ import {
   IndirectEmissionCategoryIcon,
   OthersCategoryIcon,
 } from "@/icons";
+import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
 
 const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
   1: DirectEmissionCategoryIcon,
@@ -25,15 +26,13 @@ const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
 
 interface Props {
   category: Category;
-  categoryEmissions: number | null;
 }
 
-export const TotalCategoryEmissionCard: React.FC<Props> = ({
-  category,
-  categoryEmissions,
-}) => {
+export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
   const IconComponent =
     ICONS_PER_CATEGORY_POSITION[category.position] ?? OthersCategoryIcon;
+
+  const totalEmissions = useEmissionCategoryTotal(category.id);
 
   return (
     <Box className="flex">
@@ -68,7 +67,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({
         </Box>
         <Box className="justify-left flex flex-1 items-center">
           <Typography variant="subtitle1" fontWeight="bold">
-            {round(categoryEmissions ?? 0, 2)} tCO₂e
+            {round(totalEmissions ?? 0, 2)} tCO₂e
           </Typography>
         </Box>
       </Card>

@@ -49,8 +49,11 @@ export const useEmissionCaptureData = ({
               lineId: line.id,
               baseFactorId: null,
             })),
-            isTotalManualEmissionsMode:
-              inventorySubcategory?.isTotalManualEmissionsMode || false,
+            isTotalManualEmissionsModeAvailable:
+              inventorySubcategory?.isTotalManualEmissionsModeAvailable ??
+              false,
+            isTotalManualEmissionsModeActive:
+              inventorySubcategory?.isTotalManualEmissionsModeActive ?? false,
           };
         }),
       })),

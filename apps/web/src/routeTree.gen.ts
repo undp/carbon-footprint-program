@@ -18,6 +18,7 @@ import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-pla
 import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoryRouteImport } from './routes/app/carbon-inventory'
+import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-inventories'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
 import { Route as AppUserFormRouteImport } from './routes/app/user/form'
@@ -70,6 +71,11 @@ const AppCarbonInventoryRoute = AppCarbonInventoryRouteImport.update({
   path: '/app/carbon-inventory',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppCarbonInventoriesRoute = AppCarbonInventoriesRouteImport.update({
+  id: '/app/carbon-inventories',
+  path: '/app/carbon-inventories',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppAwardsRoute = AppAwardsRouteImport.update({
   id: '/app/awards',
   path: '/app/awards',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryRouteWithChildren
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/app/awards': typeof AppAwardsRoute
+  '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryRouteWithChildren
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
@@ -163,6 +172,7 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
+    | '/app/carbon-inventories'
     | '/app/carbon-inventory'
     | '/app/home'
     | '/app/my-organization'
@@ -180,6 +190,7 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
+    | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
     | '/app/reduction-plan'
@@ -196,6 +207,7 @@ export interface FileRouteTypes {
     | '/capinaut'
     | '/transparency'
     | '/app/awards'
+    | '/app/carbon-inventories'
     | '/app/carbon-inventory'
     | '/app/home'
     | '/app/my-organization'
@@ -214,6 +226,7 @@ export interface RootRouteChildren {
   CapinautRoute: typeof CapinautRoute
   TransparencyRoute: typeof TransparencyRoute
   AppAwardsRoute: typeof AppAwardsRoute
+  AppCarbonInventoriesRoute: typeof AppCarbonInventoriesRoute
   AppCarbonInventoryRoute: typeof AppCarbonInventoryRouteWithChildren
   AppHomeRoute: typeof AppHomeRoute
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
@@ -287,6 +300,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarbonInventoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/carbon-inventories': {
+      id: '/app/carbon-inventories'
+      path: '/app/carbon-inventories'
+      fullPath: '/app/carbon-inventories'
+      preLoaderRoute: typeof AppCarbonInventoriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/app/awards': {
       id: '/app/awards'
       path: '/app/awards'
@@ -358,6 +378,7 @@ const rootRouteChildren: RootRouteChildren = {
   CapinautRoute: CapinautRoute,
   TransparencyRoute: TransparencyRoute,
   AppAwardsRoute: AppAwardsRoute,
+  AppCarbonInventoriesRoute: AppCarbonInventoriesRoute,
   AppCarbonInventoryRoute: AppCarbonInventoryRouteWithChildren,
   AppHomeRoute: AppHomeRoute,
   AppMyOrganizationRoute: AppMyOrganizationRoute,

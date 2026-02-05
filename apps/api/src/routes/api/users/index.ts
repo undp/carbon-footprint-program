@@ -1,10 +1,10 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { createUserRoute } from "@/features/users/createUser/createUserRoute.js";
-import { getAllUsersRoute } from "@/features/users/getAllUsers/getAllUsersRoute.js";
-import { getUserByIdRoute } from "@/features/users/getUserById/getUserByIdRoute.js";
-import { updateUserRoute } from "@/features/users/updateUser/updateUserRoute.js";
-import { deleteUserRoute } from "@/features/users/deleteUser/deleteUserRoute.js";
-import { getMeRoute } from "@/features/users/getMe/getMeRoute.js";
+import { createUserRoute } from "@/features/users/createUser/route.js";
+import { getAllUsersRoute } from "@/features/users/getAllUsers/route.js";
+import { getUserByIdRoute } from "@/features/users/getUserById/route.js";
+import { updateUserRoute } from "@/features/users/updateUser/route.js";
+import { deleteUserRoute } from "@/features/users/deleteUser/route.js";
+import { getMeRoute } from "@/features/users/getMe/route.js";
 
 export default function usersRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);

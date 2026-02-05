@@ -66,14 +66,14 @@
     "name": "Hora",
     "magnitude": "TIME",
     "abbreviation": "h",
-    "baseFactor": 3600.0,
-    "isBase": false
+    "baseFactor": 1.0,
+    "isBase": true
   },
   {
     "name": "Día",
     "magnitude": "TIME",
     "abbreviation": "d",
-    "baseFactor": 86400.0,
+    "baseFactor": 24.0,
     "isBase": false
   },
   {
