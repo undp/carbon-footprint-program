@@ -13,6 +13,19 @@ import type { GetAllMeasurementUnitsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
+const MAGNITUDES = [
+  "MASS",
+  "VOLUME",
+  "DISTANCE",
+  "TIME",
+  "ANIMALS",
+  "AREA",
+  "POWER",
+  "ENERGY",
+  "DISTANCE_MASS",
+  "ROOMS",
+] as const;
+
 describe("GET /api/measurement-units - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -41,7 +54,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
-      expect(body).toHaveLength(17);
+      expect(body).toHaveLength(18);
     });
 
     it("should return measurement units with expected attributes", async () => {
@@ -55,7 +68,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       const testUnit = body.find((u) => u.abbreviation === "kg");
       expect(testUnit).toBeDefined();
-      expect(testUnit!.name).toBe("Kilogramo");
+      expect(testUnit!.name).toBe("Kilógramo");
       expect(testUnit!.magnitude).toBe("MASS");
       expect(testUnit!.abbreviation).toBe("kg");
       expect(testUnit!.baseFactor).toBe(1000);
@@ -75,9 +88,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
 
       const magnitudes = new Set(body.map((u) => u.magnitude));
 
-      expect(magnitudes).toEqual(
-        new Set(["MASS", "VOLUME", "DISTANCE", "TIME"])
-      );
+      expect(magnitudes).toEqual(new Set(MAGNITUDES));
     });
   });
 
@@ -109,8 +120,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllMeasurementUnitsResponse;
 
-      const magnitudes = ["MASS", "VOLUME", "DISTANCE", "TIME"] as const;
-      magnitudes.forEach((mag) => {
+      MAGNITUDES.forEach((mag) => {
         const baseUnits = body.filter((u) => u.magnitude === mag && u.isBase);
         expect(baseUnits).toHaveLength(1);
       });

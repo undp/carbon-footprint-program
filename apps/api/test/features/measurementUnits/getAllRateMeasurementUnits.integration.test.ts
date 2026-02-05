@@ -43,7 +43,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       const body = JSON.parse(
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
-      expect(body).toHaveLength(11);
+      expect(body).toHaveLength(18);
     });
 
     it("should return rate measurement units with expected attributes", async () => {
@@ -81,13 +81,20 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         "kg por kg",
         "kg por tonelada",
         "kg por kilómetro",
+        "kg por milla",
         "kg por metro",
-        "kg por centímetro",
         "kg por litro",
+        "kg por galón",
         "kg por metro cúbico",
-        "kg por segundo",
-        "kg por minuto",
+        "kg por día",
         "kg por hora",
+        "kg por animal",
+        "kg por hectárea",
+        "kg por megawatt",
+        "kg por kilowatt",
+        "kg por gigajoule",
+        "kg por kiloómetro-hora",
+        "kg por pieza arrendada",
       ];
 
       expectedNames.forEach((expectedName) => {
@@ -112,7 +119,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       // Check kg por litro has correct nested units
       const kgPerLiter = body.find((ru) => ru.name === "kg por litro");
       expect(kgPerLiter).toBeDefined();
-      expect(kgPerLiter!.numeratorUnit.name).toBe("Kilogramo");
+      expect(kgPerLiter!.numeratorUnit.name).toBe("Kilógramo");
       expect(kgPerLiter!.numeratorUnit.magnitude).toBe("MASS");
       expect(kgPerLiter!.denominatorUnit.name).toBe("Litro");
       expect(kgPerLiter!.denominatorUnit.magnitude).toBe("VOLUME");
@@ -120,7 +127,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       // Check kg por hora has correct nested units
       const kgPerHour = body.find((ru) => ru.name === "kg por hora");
       expect(kgPerHour).toBeDefined();
-      expect(kgPerHour!.numeratorUnit.name).toBe("Kilogramo");
+      expect(kgPerHour!.numeratorUnit.name).toBe("Kilógramo");
       expect(kgPerHour!.numeratorUnit.magnitude).toBe("MASS");
       expect(kgPerHour!.denominatorUnit.name).toBe("Hora");
       expect(kgPerHour!.denominatorUnit.magnitude).toBe("TIME");
