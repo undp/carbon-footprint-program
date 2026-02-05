@@ -7,13 +7,14 @@ interface WithId {
 
 // Generic handler factory for patching/updating a resource
 // Note: Errors are handled by the global error handler in app.ts
+// Services should throw errors using @fastify/error's createError for not found or other error cases
 export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
   moduleName: string,
   serviceFn: (
     prisma: PrismaClient,
     id: string,
     data: TBody
-  ) => Promise<TResponse | null>,
+  ) => Promise<TResponse>,
   resourceName: string
 ) => {
   return async (
@@ -29,14 +30,6 @@ export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
 
     const prisma = request.server.prisma;
     const data = await serviceFn(prisma, id, body);
-
-    if (!data) {
-      log.warn(`${resourceName} with ID ${id} not found`);
-      return reply.status(404).send({
-        code: "RESOURCE_NOT_FOUND",
-        message: `${resourceName} not found`,
-      });
-    }
 
     log.info(`${resourceName} ${id} updated successfully`);
 

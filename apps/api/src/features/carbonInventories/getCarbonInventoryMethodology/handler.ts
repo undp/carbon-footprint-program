@@ -20,25 +20,6 @@ export const getCarbonInventoryMethodologyHandler = async (
     carbonInventoryId
   );
 
-  if (!result.success) {
-    if (result.error === "CARBON_INVENTORY_NOT_FOUND") {
-      log.warn({ carbonInventoryId }, "Carbon inventory not found");
-      return reply.status(404).send({
-        code: "CARBON_INVENTORY_NOT_FOUND",
-        message: "Carbon inventory not found",
-      });
-    }
-
-    log.warn(
-      { carbonInventoryId },
-      "Methodology not found for carbon inventory"
-    );
-    return reply.status(404).send({
-      code: "METHODOLOGY_NOT_FOUND",
-      message: "Methodology not found",
-    });
-  }
-
   log.info({ carbonInventoryId }, "Methodology found successfully");
-  return reply.status(200).send(result.data);
+  return reply.status(200).send(result);
 };

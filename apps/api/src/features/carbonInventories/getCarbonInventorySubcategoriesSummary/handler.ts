@@ -22,35 +22,6 @@ export const getCarbonInventorySubcategoriesSummaryHandler = async (
     carbonInventoryId
   );
 
-  if (!result.success) {
-    if (result.error === "CARBON_INVENTORY_NOT_FOUND") {
-      log.warn({ carbonInventoryId }, "Carbon inventory not found");
-      return reply.status(404).send({
-        code: "CARBON_INVENTORY_NOT_FOUND",
-        message: "Carbon inventory not found",
-      });
-    }
-
-    if (result.error === "METHODOLOGY_NOT_FOUND") {
-      log.warn(
-        { carbonInventoryId },
-        "Methodology not found for carbon inventory"
-      );
-      return reply.status(404).send({
-        code: "METHODOLOGY_NOT_FOUND",
-        message: "Methodology not found",
-      });
-    }
-
-    log.warn(
-      { carbonInventoryId },
-      "Error getting subcategories summary for carbon inventory"
-    );
-    return reply.status(500).send({
-      message: "Error getting subcategories summary for carbon inventory",
-    });
-  }
-
   log.info({ carbonInventoryId }, "Subcategories summary found successfully");
-  return reply.status(200).send(result.data);
+  return reply.status(200).send(result);
 };

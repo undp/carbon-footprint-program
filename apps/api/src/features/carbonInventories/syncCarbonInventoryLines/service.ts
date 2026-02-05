@@ -10,33 +10,33 @@ import {
   createLineFactor,
   createLineResult,
 } from "./helper.js";
+import createError from "@fastify/error";
+import {
+  CarbonInventoryNotFoundError,
+  SubcategoryNotFoundError,
+  SubcategoryNotInMethodologyError,
+} from "../errors.js";
 
-export type SyncCarbonInventoryLinesResult =
-  | { success: true; data: SyncCarbonInventoryLinesResponse }
-  | {
-      success: false;
-      error:
-        | "CARBON_INVENTORY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_IN_METHODOLOGY"
-        | "LINE_NOT_FOUND"
-        | "LINE_NOT_IN_CARBON_INVENTORY";
-    };
+const LineNotFoundError = createError("LINE_NOT_FOUND", "Line not found", 404);
+
+const LineNotInCarbonInventoryError = createError(
+  "LINE_NOT_IN_CARBON_INVENTORY",
+  "Line does not belong to this carbon inventory",
+  422
+);
 
 export const syncCarbonInventoryLinesService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
   request: SyncCarbonInventoryLinesRequest
-): Promise<SyncCarbonInventoryLinesResult> => {
+): Promise<SyncCarbonInventoryLinesResponse> => {
   // Validate carbon inventory exists
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: { id: carbonInventoryId },
     select: { id: true, methodologyVersionId: true },
   });
 
-  if (!carbonInventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
-  }
+  if (!carbonInventory) throw CarbonInventoryNotFoundError(carbonInventoryId);
 
   // Validate subcategories for create operations
   if (request.create.length > 0) {
@@ -57,15 +57,12 @@ export const syncCarbonInventoryLinesService = async (
 
     for (const item of request.create) {
       const subcategory = subcategoryMap.get(item.subcategoryId);
-      if (!subcategory) {
-        return { success: false, error: "SUBCATEGORY_NOT_FOUND" };
-      }
+      if (!subcategory) throw SubcategoryNotFoundError();
       if (
         subcategory.category.methodologyVersionId !==
         carbonInventory.methodologyVersionId
-      ) {
-        return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
-      }
+      )
+        throw SubcategoryNotInMethodologyError();
     }
   }
 
@@ -90,12 +87,9 @@ export const syncCarbonInventoryLinesService = async (
 
     for (const item of [...request.update, ...request.delete]) {
       const line = existingLineMap.get(item.id);
-      if (!line) {
-        return { success: false, error: "LINE_NOT_FOUND" };
-      }
-      if (line.carbonInventoryId !== carbonInventoryId) {
-        return { success: false, error: "LINE_NOT_IN_CARBON_INVENTORY" };
-      }
+      if (!line) throw LineNotFoundError();
+      if (line.carbonInventoryId !== carbonInventoryId)
+        throw LineNotInCarbonInventoryError();
     }
   }
 
@@ -192,11 +186,8 @@ export const syncCarbonInventoryLinesService = async (
     .map(mapLineToResponse);
 
   return {
-    success: true,
-    data: {
-      created: createdLines,
-      updated: updatedLines,
-      deleted: deletedLineIds,
-    },
+    created: createdLines,
+    updated: updatedLines,
+    deleted: deletedLineIds,
   };
 };

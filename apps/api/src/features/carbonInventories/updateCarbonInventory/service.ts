@@ -5,12 +5,13 @@ import type {
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { mapBigIntField } from "@/utils/bigint.js";
+import { CarbonInventoryNotFoundError } from "../errors.js";
 
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateCarbonInventoryRequest
-): Promise<UpdateCarbonInventoryResponse | null> => {
+): Promise<UpdateCarbonInventoryResponse> => {
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.CarbonInventoryUncheckedUpdateInput = {};
 
@@ -73,8 +74,7 @@ export const updateCarbonInventoryService = async (
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
-        // Record not found
-        return null;
+        throw CarbonInventoryNotFoundError(id);
       }
     }
     throw error;
