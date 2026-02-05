@@ -410,13 +410,14 @@ erDiagram
 	organization_role {
 		BIGINT id PK "FK(role.id)" 
 	}
+
 	
 	user_organization_membership {
 		BIGINT id PK ""  
-		BIGINT user_id FK ""  
+		BIGINT user_id FK "" 
 		BIGINT organization_id FK ""  
 		BIGINT organization_role_id FK ""  
-		enum accreditation_status  "REQUESTED|VALIDATED|REJECTED"  
+		enum status "ACTIVE|DELETED"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
