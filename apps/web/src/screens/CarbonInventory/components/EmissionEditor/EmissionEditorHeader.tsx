@@ -77,6 +77,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             {description}
           </Typography>
           {/* Warning message temporally hidden */}
+          {/* TODO: remove warning block - implement proper emission factor availability check */}
           {/* eslint-disable-next-line no-constant-binary-expression */}
           {false && (
             <Box className="items-bottom flex gap-1">
