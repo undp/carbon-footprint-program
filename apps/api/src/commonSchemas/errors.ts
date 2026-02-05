@@ -11,7 +11,4 @@ export const ApiErrorResponseSchema = z.object({
 
 export type ApiErrorResponse = z.infer<typeof ApiErrorResponseSchema>;
 
-// Legacy aliases for backward compatibility
-// TODO: Migrate all usages to ApiErrorResponseSchema and remove these
-
 export const VALIDATION_ERROR_CODE = "FST_ERR_VALIDATION";
