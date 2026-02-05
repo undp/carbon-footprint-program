@@ -418,8 +418,12 @@
             "allowedMeasurementUnitsAbbreviations": [
               "GJ",
               "kWh",
-              "kg",
+              "MWh",
+              "L",
               "m3",
+              "gal",
+              "g",
+              "kg",
               "ton"
             ]
           },
@@ -635,7 +639,12 @@
             ],
             "allowedMeasurementUnitsAbbreviations": [
               "kWh",
+              "MWh",
+              "L",
               "m3",
+              "gal",
+              "g",
+              "kg",
               "ton"
             ]
           },
@@ -1117,9 +1126,7 @@
                 "value": 16100
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "kg"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Emisiones por uso de suelo - Ganadería",
@@ -1291,9 +1298,7 @@
                 "value": 1710
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "cant anim"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["cant anim"]
           },
           {
             "name": "Emisiones por uso de suelo - Agricultura",
@@ -1339,9 +1344,7 @@
                 "value": 4368
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "ha"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["ha"]
           },
           {
             "name": "Emisiones por uso de suelo - Aplicación de fertilizantes",
@@ -1401,9 +1404,7 @@
                 "value": 0.61
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "kg"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Procesos industriales - Cinc",
@@ -1463,9 +1464,7 @@
                 "value": 3.66
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Procesos industriales - Cemento",
@@ -1497,9 +1496,7 @@
                 "value": 0.52
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "kg"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Procesos industriales - Vidrio",
@@ -1615,9 +1612,7 @@
                 "value": 0.1
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "kg"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Procesos industriales - Acero",
@@ -1691,9 +1686,7 @@
                 "value": 1.06
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Emisiones provenientes de otras fuentes",
@@ -1742,9 +1735,7 @@
                 "value": 0.5349499999999999
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "kWh"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["kWh", "MWh"]
           }
         ]
       },
@@ -2086,9 +2077,7 @@
                 "value": 1402
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Disposición de residuos sólidos",
@@ -2530,9 +2519,7 @@
                 "value": 8.9
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
           },
           {
             "name": "Consumo de agua y tratamiento de aguas residuales",
@@ -2578,9 +2565,7 @@
                 "value": 0.1913
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "m3"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["L", "m3", "gal"]
           },
           {
             "name": "Desplazamiento diario de empleados y trabajo remoto",
@@ -2900,9 +2885,7 @@
                 "value": 38.5
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "pieza arre"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["pieza arre"]
           },
           {
             "name": "Viajes de negocio - Traslado",
@@ -3060,9 +3043,7 @@
                 "value": 0.148
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "km"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi"]
           },
           {
             "name": "Transporte y distribución de bienes aguas arriba",
@@ -3220,10 +3201,7 @@
                 "value": 0.00691
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "km",
-              "km-ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"]
           },
           {
             "name": "Transporte y distribución de bienes aguas abajo",
@@ -3381,10 +3359,7 @@
                 "value": 0.00691
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": [
-              "km",
-              "km-ton"
-            ]
+            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"]
           },
           {
             "name": "Uso de productos de la organización",
