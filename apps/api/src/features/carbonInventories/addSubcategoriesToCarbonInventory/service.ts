@@ -26,11 +26,11 @@ export const addSubcategoriesToCarbonInventoryService = async (
   });
 
   if (!carbonInventory) {
-    throw CarbonInventoryNotFoundError();
+    throw CarbonInventoryNotFoundError(carbonInventoryId);
   }
 
   if (!carbonInventory.methodologyVersionId) {
-    throw MethodologyNotFoundError();
+    throw MethodologyNotFoundError(carbonInventoryId);
   }
 
   // Fetch all subcategories with category for validation
