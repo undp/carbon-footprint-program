@@ -62,6 +62,7 @@ export type EmissionCaptureFormValues = {
     SubcategoryId,
     {
       categoryId: CategoryWithSubcategoriesAndLines["id"];
+      isTotalManualEmissionsModeAvailable: CarbonInventorySubcategory["isTotalManualEmissionsModeAvailable"];
       isTotalManualEmissionsModeActive: CarbonInventorySubcategory["isTotalManualEmissionsModeActive"];
       lines: Record<LineId, EmissionCaptureFormLine>;
     }

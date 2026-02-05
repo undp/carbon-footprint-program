@@ -157,6 +157,8 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
           lines: linesRecord,
           isTotalManualEmissionsModeActive:
             subcategory.isTotalManualEmissionsModeActive,
+          isTotalManualEmissionsModeAvailable:
+            subcategory.isTotalManualEmissionsModeAvailable,
         };
 
         // Detect if the mode changed OR if it's dirty (touched by user)
