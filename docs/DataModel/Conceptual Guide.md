@@ -95,9 +95,21 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 
 ## 7. Organizations & Users
 
-- Organizations may have branches
-- Users can act independently or within organizations
-- Roles are split into system roles and organization roles
+### 7.1 Organizations
+
+- Organizations represent the legal entities participating in the platform.
+- They follow a versioned data model via `organization_data`.
+- **Lifecycle Flow**:
+  1. **Creation**: New `organization` with an associated `organization_data` in **DRAFT**.
+  2. **Submission**: User moves DRAFT to **SUBMITTED** for accreditation.
+  3. **Review**: Admin approves (moves to **COMPLETED**) or rejects (moves back to **DRAFT**).
+  4. **Updates**: Editing a COMPLETED organization creates a new **DRAFT**, leaving the COMPLETED row intact.
+  5. **Re-accreditation**: When the new SUBMITTED row is approved, the previous COMPLETED row becomes **OUTDATED**, and the new one becomes **COMPLETED**.
+
+### 7.2 Users
+
+- Users can act independently or within organizations.
+- Roles are split into system roles and organization roles.
 
 ---
 

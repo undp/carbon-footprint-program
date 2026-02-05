@@ -27,7 +27,19 @@ Think of the system as **event-sourced–like**, even though it is relational:
 
 ## 2. Core Invariants (Must Always Hold)
 
-### 2.1 Inventory & Methodology
+### 2.1 Organizations & Data
+
+- An `organization` can have multiple `organization_data` rows (history).
+- Exactly **one COMPLETED** row per organization is allowed at any time.
+- Exactly **one DRAFT or SUBMITTED** row per organization is allowed (they cannot coexist).
+- Multiple **OUTDATED** rows are allowed (previous COMPLETED versions).
+
+Violation symptom:
+
+- Ambiguous "current" accredited data for an organization.
+- Multiple pending accreditation requests for the same organization.
+
+### 2.2 Inventory & Methodology
 
 - Every `carbon_inventory` references **exactly one methodology_version**
 - That methodology version must belong to the same country as the inventory’s organization (if any)
