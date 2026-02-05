@@ -150,6 +150,13 @@ Purely derived emissions results, immutable and timestamped.
 
 Immutable review artifacts representing validation processes.
 
+**Submission Flow**:
+
+1.  **Subject Creation**: A `submission_subject` is created and linked to a concrete entity (e.g., `carbon_inventory` or `organization_data`).
+2.  **Submission**: A `submission` record is created with status **PENDING**.
+3.  **Review**: A reviewer (admin) transitions the status to **APPROVED** or **REJECTED**.
+4.  **Constraints**: A subject can have only one **PENDING** or **APPROVED** submission at a time. If rejected, the user can submit again.
+
 ### Recognition
 
 Awards are always linked to submissions, ensuring traceability.

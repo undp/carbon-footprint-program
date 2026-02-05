@@ -599,7 +599,7 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject {
 		BIGINT id PK "" 
-		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN"
+		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN | ORGANIZATION_DATA"
 		timestamptz created_at  ""  
 		BIGINT created_by FK ""  
 	}
@@ -638,6 +638,7 @@ erDiagram
 		timestamptz updated_at  ""  
 		BIGINT created_by FK "NULLABLE, user(id)"
 		BIGINT updated_by FK "NULLABLE, user(id)"  
+		%% UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
 	}
 
 	recognition_catalog {
@@ -776,7 +777,7 @@ submission_subject
 
 submission
 	submission ||--o| recognition: "may award"
-	submission ||--o| submission_subject: "has"
+	submission ||--o{ submission_subject: "has"
 
 neutralization_plan
 	neutralization_plan ||--o{ submission_subject_neutralization_plan : "submitted via"
