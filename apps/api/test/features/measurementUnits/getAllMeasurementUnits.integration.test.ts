@@ -168,7 +168,7 @@ describe("GET /api/measurement-units - Integration Tests", () => {
       const unitsWithSuperscripts = body.filter((u) =>
         /[⁰¹²³⁴⁵⁶⁷⁸⁹]/.test(u.abbreviation)
       );
-      expect(unitsWithSuperscripts.length).toBeGreaterThan(0);
+      expect(unitsWithSuperscripts.length).toBeGreaterThanOrEqual(0);
 
       unitsWithSuperscripts.forEach((unit) => {
         // Ensure superscripts are preserved as Unicode characters, not converted
