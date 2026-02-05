@@ -32,12 +32,12 @@ export const NoActiveMethodologyError = createError(
 
 export const LineNotFoundError = createError(
   "LINE_NOT_FOUND",
-  "Line not found",
+  "Line with ID %s not found",
   404
 );
 
 export const LineNotInCarbonInventoryError = createError(
   "LINE_NOT_IN_CARBON_INVENTORY",
-  "Line does not belong to this carbon inventory",
+  "Line %s does not belong to carbon inventory %s (found in inventory %s)",
   422
 );

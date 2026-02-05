@@ -80,9 +80,13 @@ export const syncCarbonInventoryLinesService = async (
 
     for (const item of [...request.update, ...request.delete]) {
       const line = existingLineMap.get(item.id);
-      if (!line) throw LineNotFoundError();
+      if (!line) throw LineNotFoundError(item.id);
       if (line.carbonInventoryId !== carbonInventoryId)
-        throw LineNotInCarbonInventoryError();
+        throw LineNotInCarbonInventoryError(
+          item.id,
+          carbonInventoryId.toString(),
+          line.carbonInventoryId.toString()
+        );
     }
   }
 
