@@ -15,7 +15,7 @@ import {
   VisibilityOutlined,
   ContentCopyOutlined,
   DeleteOutlined,
-  CheckOutlined,
+  SaveOutlined,
 } from "@mui/icons-material";
 
 interface ActionButtonProps {
@@ -46,8 +46,8 @@ export const ActionButtons: FC<ActionButtonProps> = ({
       <Box className="flex justify-end gap-1 pr-4">
         {isEditing && onStopEditCells && (
           <Tooltip title="Guardar cambios">
-            <IconButton size="small" onClick={onStopEditCells} color="primary">
-              <CheckOutlined fontSize="small" />
+            <IconButton size="small" onClick={onStopEditCells}>
+              <SaveOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
