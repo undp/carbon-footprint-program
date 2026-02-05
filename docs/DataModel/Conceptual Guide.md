@@ -100,11 +100,11 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 - Organizations represent the legal entities participating in the platform.
 - They follow a versioned data model via `organization_data`.
 - **Lifecycle Flow**:
-  1. **Creation**: Create a new `organization` with status **NOT_ACCREDITED**, and create a new row in `organization_data` with status **DRAFT** associated to this new `organization`.
-  2. **Submission**: User sends an accreditation request (moves DRAFT to **SUBMITTED**) (`organization` status is still **NOT_ACCREDITED**).
-  3. **Review**: In case of admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` **SUBMITTED** row status is changed to **COMPLETED**. In case of rejection, `organization` status is kept **NOT_ACCREDITED** and `organization_data` **SUBMITTED** row status is changed to **DRAFT**.
+  1. **Creation**: Create a new `organization` with status **NOT_ACCREDITED**, and create a new row in `organization_data` with status **DRAFT** associated with this new `organization`.
+  2. **Submission**: User sends an accreditation request (`organization_data` status changes from **DRAFT** to **SUBMITTED**) and `organization` status remains **NOT_ACCREDITED**.
+  3. **Review**: Upon admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` status changes from **SUBMITTED** to **COMPLETED**. If rejected, `organization` status remains **NOT_ACCREDITED** and `organization_data` status changes from **SUBMITTED** to **DRAFT**.
   4. **Updates**: Editing an accredited organization creates a new `organization_data` row with status **DRAFT** associated to the same `organization`, leaving the **COMPLETED** row intact.
-  5. **Re-accreditation**: User sends an accreditation request again (moves DRAFT to **SUBMITTED**) and `organization` status is still **ACCREDITED** (because the previous one was approved). When the new SUBMITTED row is approved, the previous COMPLETED row in `organization_data` becomes **OUTDATED**, and the **SUBMITTED** row becomes **COMPLETED** (and `organization` status is kept **ACCREDITED**).
+  5. **Re-accreditation**: User sends an accreditation request again (`organization_data` status changes from **DRAFT** to **SUBMITTED**) and `organization` status remains **ACCREDITED** (maintaining its previous accreditation status). When the new submission is approved, the previous COMPLETED row in `organization_data` moves to **OUTDATED**, and the current **SUBMITTED** row status changes to **COMPLETED** ( `organization` status remains **ACCREDITED**). If the new submission is rejected, the current **SUBMITTED** row status changes to **DRAFT** and `organization` status remains **ACCREDITED**.
 
 ### 7.2 Users
 
