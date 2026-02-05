@@ -15,7 +15,10 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { VALIDATION_ERROR_CODE, type ValidationErrorResponse } from "@/commonSchemas/errors.js";
+import {
+  VALIDATION_ERROR_CODE,
+  type ValidationErrorResponse,
+} from "@/commonSchemas/errors.js";
 
 describe("GET /api/organization-main-activities - Integration Tests", () => {
   let app: FastifyInstance;

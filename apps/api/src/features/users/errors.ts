@@ -38,11 +38,13 @@ export const getDuplicatedFieldsFromP2002Error = (
 
   // Check driver adapter error format (uses database column names)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-  const driverAdapterFields = (error.meta?.driverAdapterError as any)?.cause?.constraint
-    ?.fields as string[] | undefined;
+  const driverAdapterFields = (error.meta?.driverAdapterError as any)?.cause
+    ?.constraint?.fields as string[] | undefined;
 
   // Combine both sources and remove duplicates
-  const allFields = [...(constraintFields || []), ...(driverAdapterFields || [])];
+  const allFields = [
+    ...(constraintFields || []),
+    ...(driverAdapterFields || []),
+  ];
   return [...new Set(allFields)];
 };
-

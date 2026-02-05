@@ -310,7 +310,10 @@ describe("POST /api/users - Integration Tests", () => {
 
       // Should fail with 409 Conflict
       expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as { code: string; message: string };
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
       expect(body.code).toBe("EMAIL_ALREADY_IN_USE");
       expect(body.message).toBe("Email already in use");
     });
@@ -344,7 +347,10 @@ describe("POST /api/users - Integration Tests", () => {
 
       // Should fail with 409 Conflict
       expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as { code: string; message: string };
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
       expect(body.code).toBe("IDP_USER_ID_ALREADY_IN_USE");
       expect(body.message).toBe("Idp user ID already in use");
     });
@@ -369,7 +375,9 @@ describe("POST /api/users - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as StructuredErrorResponse;
       expect(body.code).toBe("INVALID_COUNTRY_JOB_POSITION_ID");
-      expect(body.message).toBe("Invalid countryJobPositionId: the provided reference does not exist");
+      expect(body.message).toBe(
+        "Invalid countryJobPositionId: the provided reference does not exist"
+      );
     });
   });
 });
