@@ -100,11 +100,11 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 - Organizations represent the legal entities participating in the platform.
 - They follow a versioned data model via `organization_data`.
 - **Lifecycle Flow**:
-  1. **Creation**: New `organization` with an associated `organization_data` in **DRAFT**.
-  2. **Submission**: User moves DRAFT to **SUBMITTED** for accreditation.
-  3. **Review**: Admin approves (moves to **COMPLETED**) or rejects (moves back to **DRAFT**).
-  4. **Updates**: Editing a COMPLETED organization creates a new **DRAFT**, leaving the COMPLETED row intact.
-  5. **Re-accreditation**: When the new SUBMITTED row is approved, the previous COMPLETED row becomes **OUTDATED**, and the new one becomes **COMPLETED**.
+  1. **Creation**: Create a new `organization` with status **NOT_ACCREDITED**, and create a new row in `organization_data` with status **DRAFT** associated to this new `organization`.
+  2. **Submission**: User send an accreditation request (moves DRAFT to **SUBMITTED**) (`organization` status is still **NOT_ACCREDITED**).
+  3. **Review**: In case of admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` **SUBMITED** row status is changed to **COMPLETED**. In case of rejection, `organization` status is kept **NOT_ACCREDITED** and `organization_data` **SUBMITED** row status is changed to **DRAFT**.
+  4. **Updates**: Editing an accredited organization creates a new `organization_data` row with status **DRAFT** associated to the same `organization`, leaving the **COMPLETED** row intact.
+  5. **Re-accreditation**: User send an accreditation request again (moves DRAFT to **SUBMITTED**) and `organization` status is still **ACCREDITED** (because the previous one was approved). When the new SUBMITTED row is approved, the previous COMPLETED row in `organization_data` becomes **OUTDATED**, and the **SUBMITTED** row becomes **COMPLETED** (and `organization` status is kept **ACCREDITED**).
 
 ### 7.2 Users
 
