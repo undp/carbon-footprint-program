@@ -21,7 +21,6 @@ import {
 interface ActionButtonProps {
   isActiveRow: boolean;
   isEditing?: boolean;
-  onStartEditCells?: () => void;
   onStopEditCells?: () => void;
   onEdit?: () => void;
   onView?: () => void;
@@ -33,7 +32,6 @@ interface ActionButtonProps {
 export const ActionButtons: FC<ActionButtonProps> = ({
   isActiveRow,
   isEditing = false,
-  onStartEditCells,
   onStopEditCells,
   onEdit,
   onView,
@@ -46,30 +44,21 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   return (
     <>
       <Box className="flex justify-end gap-1 pr-4">
-        {!isActiveRow && isEditing && onStopEditCells ? (
-          <Tooltip title="Listo">
+        {isEditing && onStopEditCells && (
+          <Tooltip title="Guardar cambios">
             <IconButton size="small" onClick={onStopEditCells} color="primary">
               <CheckOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
-        ) : (
-          !isActiveRow &&
-          onStartEditCells && (
-            <Tooltip title="Editar celdas">
-              <IconButton size="small" onClick={onStartEditCells}>
-                <EditOutlined fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )
         )}
-        {onEdit && (
+        {onEdit && !isActiveRow && !isEditing && (
           <Tooltip title="Editar alcances">
             <IconButton size="small" onClick={onEdit}>
               <EditOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
-        {onView && (
+        {onView && isActiveRow && (
           <Tooltip title="Ver alcances">
             <IconButton size="small" onClick={onView}>
               <VisibilityOutlined fontSize="small" />

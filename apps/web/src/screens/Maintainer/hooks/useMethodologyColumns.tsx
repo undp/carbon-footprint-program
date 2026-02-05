@@ -58,12 +58,18 @@ export const useMethodologyColumns = ({
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const isActive = params.row.status === "PUBLISHED";
+          const canEdit = !editing && !isActive;
           return (
             <EditableTextCell
               rowIndex={rowIndex}
               fieldName="name"
-              isEditing={isEditing(params.row.id)}
+              isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "name", value)}
+              onClick={
+                canEdit ? () => onStartEditRow(params.row.id) : undefined
+              }
               truncateLines={1}
             />
           );
@@ -77,12 +83,18 @@ export const useMethodologyColumns = ({
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const isActive = params.row.status === "PUBLISHED";
+          const canEdit = !editing && !isActive;
           return (
             <EditableTextCell
               rowIndex={rowIndex}
               fieldName="description"
-              isEditing={isEditing(params.row.id)}
+              isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "description", value)}
+              onClick={
+                canEdit ? () => onStartEditRow(params.row.id) : undefined
+              }
               multiline
               maxRows={3}
               truncateLines={2}
@@ -97,11 +109,17 @@ export const useMethodologyColumns = ({
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const isActive = params.row.status === "PUBLISHED";
+          const canEdit = !editing && !isActive;
           return (
             <MethodologyRegulationCell
               rowIndex={rowIndex}
-              isEditing={isEditing(params.row.id)}
+              isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "regulation", value)}
+              onClick={
+                canEdit ? () => onStartEditRow(params.row.id) : undefined
+              }
             />
           );
         },
@@ -113,12 +131,18 @@ export const useMethodologyColumns = ({
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const isActive = params.row.status === "PUBLISHED";
+          const canEdit = !editing && !isActive;
           return (
             <EditableTextCell
               rowIndex={rowIndex}
               fieldName="version"
-              isEditing={isEditing(params.row.id)}
+              isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "version", value)}
+              onClick={
+                canEdit ? () => onStartEditRow(params.row.id) : undefined
+              }
               truncateLines={1}
             />
           );
@@ -146,12 +170,12 @@ export const useMethodologyColumns = ({
         sortable: false,
         filterable: false,
         headerAlign: "center",
+        align: "center",
         cellClassName: baseCellClass,
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ActionButtons
             isActiveRow={params.row.status === "PUBLISHED"}
             isEditing={isEditing(params.row.id)}
-            onStartEditCells={() => onStartEditRow(params.row.id)}
             onStopEditCells={onStopEditRow}
             onEdit={() => onEdit(params.row)}
             onView={() => onEdit(params.row)}

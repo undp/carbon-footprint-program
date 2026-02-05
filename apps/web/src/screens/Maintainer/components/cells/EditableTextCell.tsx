@@ -11,6 +11,7 @@ interface EditableTextCellProps {
   fieldName: keyof FormMethodology;
   isEditing: boolean;
   onChange: (value: string) => void;
+  onClick?: () => void;
   multiline?: boolean;
   maxRows?: number;
   /** Number of lines to show before truncating (1 = single line with ellipsis) */
@@ -22,6 +23,7 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   fieldName,
   isEditing,
   onChange,
+  onClick,
   multiline = false,
   maxRows = 1,
   truncateLines = 1,
@@ -63,7 +65,24 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
 
     return (
       <Tooltip title={formValue} arrow placement="top" enterDelay={500}>
-        <Typography sx={{ px: 1, ...truncateSx }}>{formValue}</Typography>
+        <Typography
+          onClick={onClick}
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: 1,
+            cursor: onClick ? "pointer" : "default",
+            transition: "background-color 0.15s ease",
+            "&:hover": onClick
+              ? {
+                  backgroundColor: "grey.100",
+                }
+              : {},
+            ...truncateSx,
+          }}
+        >
+          {formValue}
+        </Typography>
       </Tooltip>
     );
   }

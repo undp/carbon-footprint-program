@@ -8,12 +8,14 @@ interface MethodologyRegulationCellProps {
   rowIndex: number;
   isEditing: boolean;
   onChange: (value: string) => void;
+  onClick?: () => void;
 }
 
 export const MethodologyRegulationCell: FC<MethodologyRegulationCellProps> = ({
   rowIndex,
   isEditing,
   onChange,
+  onClick,
 }) => {
   const { control } = useFormContext<MethodologiesFormValues>();
   const value = useWatch<MethodologiesFormValues>({
@@ -26,7 +28,25 @@ export const MethodologyRegulationCell: FC<MethodologyRegulationCellProps> = ({
   const fieldError = errors.methodologies?.[rowIndex]?.regulation;
 
   if (!isEditing) {
-    return <Typography sx={{ px: 1 }}>{value}</Typography>;
+    return (
+      <Typography
+        onClick={onClick}
+        sx={{
+          px: 1,
+          py: 0.5,
+          borderRadius: 1,
+          cursor: onClick ? "pointer" : "default",
+          transition: "background-color 0.15s ease",
+          "&:hover": onClick
+            ? {
+                backgroundColor: "grey.100",
+              }
+            : {},
+        }}
+      >
+        {value}
+      </Typography>
+    );
   }
 
   return (
