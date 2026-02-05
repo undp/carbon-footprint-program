@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCountrySectorsHandler } from "./handler.js";
 import { GetAllCountrySectorsResponseSchema } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getAllCountrySectorsRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
@@ -13,7 +13,7 @@ export const getAllCountrySectorsRoute = (fastify: FastifyZodInstance) => {
         description: "Retrieves all country sectors with their details",
         response: {
           200: GetAllCountrySectorsResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getCarbonInventoryByIdHandler } from "./handler.js";
 import { IdSchema, GetCarbonInventoryByIdResponseSchema } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -19,7 +19,7 @@ export const getCarbonInventoryByIdRoute = (fastify: FastifyZodInstance) => {
         params: ParamsSchema,
         response: {
           200: GetCarbonInventoryByIdResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

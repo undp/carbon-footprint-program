@@ -4,10 +4,7 @@ import {
   IdSchema,
   GetCarbonInventorySubcategoriesSummaryResponseSchema,
 } from "@repo/types";
-import {
-  ErrorResponseSchema,
-  NotFoundErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -28,8 +25,8 @@ export const getCarbonInventorySubcategoriesSummaryRoute = (
         params: ParamsSchema,
         response: {
           200: GetCarbonInventorySubcategoriesSummaryResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          500: ErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          500: ApiErrorResponseSchema,
         },
       },
     },

@@ -21,10 +21,7 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type {
-  NotFoundErrorResponse,
-  StructuredErrorResponse,
-} from "@/commonSchemas/errors.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
@@ -222,7 +219,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
@@ -252,7 +249,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toMatch(
         /Methodology not found for carbon inventory with ID .+/
       );
@@ -275,7 +272,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toBe("One or more subcategories not found");
     });
 
@@ -310,7 +307,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
         });
 
         expect(response.statusCode).toBe(422);
-        const body = JSON.parse(response.body) as StructuredErrorResponse;
+        const body = JSON.parse(response.body) as ApiErrorResponse;
         expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
         expect(body.message).toBe(
           "One or more subcategories do not belong to the carbon inventory's methodology"

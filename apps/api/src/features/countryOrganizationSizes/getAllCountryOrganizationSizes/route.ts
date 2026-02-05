@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCountryOrganizationSizesHandler } from "./handler.js";
 import { GetAllCountryOrganizationSizesResponseSchema } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getAllCountryOrganizationSizesRoute = (
   fastify: FastifyZodInstance
@@ -16,7 +16,7 @@ export const getAllCountryOrganizationSizesRoute = (
           "Retrieves all country organization sizes with their details",
         response: {
           200: GetAllCountryOrganizationSizesResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

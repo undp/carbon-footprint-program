@@ -22,7 +22,7 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import { type PrismaClient, Prisma } from "@repo/database";
-import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
   createEmptyMethodologyVersion,
@@ -500,7 +500,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
@@ -517,7 +517,7 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toMatch(
         /Methodology not found for carbon inventory with ID .+/
       );

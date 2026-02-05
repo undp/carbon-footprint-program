@@ -5,11 +5,7 @@ import {
   UpdateCarbonInventorySubcategoriesRequestSchema,
   UpdateCarbonInventorySubcategoriesResponseSchema,
 } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const UpdateCarbonInventorySubcategoriesParamsSchema = z.object({
@@ -31,9 +27,9 @@ export const updateCarbonInventorySubcategoriesRoute = (
         body: UpdateCarbonInventorySubcategoriesRequestSchema,
         response: {
           200: UpdateCarbonInventorySubcategoriesResponseSchema,
-          400: ValidationErrorResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          422: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          422: ApiErrorResponseSchema,
         },
       },
     },

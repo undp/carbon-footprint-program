@@ -4,7 +4,7 @@ import {
   GetUserByIdParamsSchema,
   GetUserByIdResponseSchema,
 } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
@@ -17,7 +17,7 @@ export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
         params: GetUserByIdParamsSchema,
         response: {
           200: GetUserByIdResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

@@ -1,10 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getMeHandler } from "./handler.js";
 import { GetMeResponseSchema } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  ErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getMeRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
@@ -16,8 +13,8 @@ export const getMeRoute = (fastify: FastifyZodInstance) => {
         description: "Find a user by idpUserId. Returns null if not found",
         response: {
           200: GetMeResponseSchema,
-          400: ValidationErrorResponseSchema,
-          500: ErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          500: ApiErrorResponseSchema,
         },
       },
     },

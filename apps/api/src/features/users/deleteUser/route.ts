@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { deleteUserHandler } from "./handler.js";
 import { DeleteUserParamsSchema, DeleteUserResponseSchema } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const deleteUserRoute = (fastify: FastifyZodInstance) => {
   fastify.delete(
@@ -14,7 +14,7 @@ export const deleteUserRoute = (fastify: FastifyZodInstance) => {
         params: DeleteUserParamsSchema,
         response: {
           200: DeleteUserResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

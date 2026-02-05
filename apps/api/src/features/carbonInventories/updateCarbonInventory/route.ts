@@ -5,10 +5,7 @@ import {
   UpdateCarbonInventoryRequestSchema,
   UpdateCarbonInventoryResponseSchema,
 } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  NotFoundErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const UpdateCarbonInventoryParamsSchema = z.object({
@@ -28,8 +25,8 @@ export const updateCarbonInventoryRoute = (fastify: FastifyZodInstance) => {
         body: UpdateCarbonInventoryRequestSchema,
         response: {
           200: UpdateCarbonInventoryResponseSchema,
-          400: ValidationErrorResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllJobPositionsHandler } from "./handler.js";
 import { GetAllJobPositionsResponseSchema } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
@@ -13,7 +13,7 @@ export const getAllJobPositionsRoute = (fastify: FastifyZodInstance) => {
         description: "Get all job positions",
         response: {
           200: GetAllJobPositionsResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },
