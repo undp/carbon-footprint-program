@@ -21,7 +21,10 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import {
+  getTestMethodologyVersionId,
+  getTestCountryId,
+} from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -156,9 +159,18 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       ]);
 
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const countryId = await getTestCountryId(prisma);
+
+      // Create a test organization to satisfy foreign key constraint
+      const organization = await prisma.organization.create({
+        data: {
+          countryId,
+          status: "ACCREDITED",
+        },
+      });
 
       const testInventory = await createInventoryFromPattern(prisma, () => ({
-        organizationId: BigInt(123),
+        organizationId: organization.id,
         organizationBranchId: BigInt(456),
         organizationData: {
           name: "Test Org",
@@ -189,7 +201,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const inventory = body[0];
       expect(inventory.id).toBe(testInventory.id.toString());
-      expect(inventory.organizationId).toBe("123");
+      expect(inventory.organizationId).toBe(organization.id.toString());
       expect(inventory.organizationBranchId).toBe("456");
       expect(inventory.organizationData).toEqual({
         name: "Test Org",
