@@ -53,21 +53,17 @@ export async function seedOrganizations(
     );
   }
 
-  // Batch create organizations (skips duplicates)
-  await prisma.organization.createMany({
+  // Batch create organizations
+  const result = await prisma.organization.createMany({
     data: organizationsData.map((org) => ({
       countryId: country.id,
       status: org.status,
     })),
-    skipDuplicates: true,
   });
 
-  // Verify all organizations were created
-  const organizations = await prisma.organization.findMany();
-
-  if (organizations.length !== organizationsData.length)
+  if (result.count !== organizationsData.length)
     throw new Error(
-      `Expected ${organizationsData.length} organizations but found ${organizations.length} for dataset ${dataset}`
+      `Expected to create ${organizationsData.length} organizations but created ${result.count} for dataset ${dataset}`
     );
 
   console.log(
