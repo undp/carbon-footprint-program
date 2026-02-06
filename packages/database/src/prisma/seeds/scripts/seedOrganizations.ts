@@ -8,9 +8,9 @@ import { generateSeedDataPath, type SeedsDataset } from "../utils/index.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type OrganizationData = { status: OrganizationStatus }[];
+type SeedOrganizationData = { status: OrganizationStatus }[];
 
-const OrganizationDataSchema: z.ZodType<OrganizationData> = z.array(
+const SeedOrganizationDataSchema: z.ZodType<SeedOrganizationData> = z.array(
   z.object({
     status: z.enum(OrganizationStatus),
   })
@@ -36,7 +36,7 @@ export async function seedOrganizations(
   }
 
   // Read organizations
-  const organizationsData = OrganizationDataSchema.parse(
+  const organizationsData = SeedOrganizationDataSchema.parse(
     JSON.parse(readFileSync(dataPath, "utf-8"))
   );
 
