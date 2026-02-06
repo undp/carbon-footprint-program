@@ -5,6 +5,7 @@ import {
   EmailAlreadyInUseError,
   IdpUserIdAlreadyInUseError,
   InvalidCountryJobPositionIdError,
+  UserNotFoundError,
   getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
 
@@ -12,7 +13,7 @@ export const updateUserService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateUserBody
-): Promise<UpdateUserResponse | null> => {
+): Promise<UpdateUserResponse> => {
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.UserUncheckedUpdateInput = {};
 
@@ -55,8 +56,7 @@ export const updateUserService = async (
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
-        // Record not found
-        return null;
+        throw new UserNotFoundError(id);
       }
       if (error.code === "P2002") {
         // Unique constraint violation

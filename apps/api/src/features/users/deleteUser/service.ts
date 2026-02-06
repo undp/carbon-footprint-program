@@ -1,24 +1,21 @@
 import { type PrismaClient } from "@repo/database";
+import { UserNotFoundError } from "../errors.js";
 
 export const deleteUserService = async (
   prismaClient: PrismaClient,
   id: string
-): Promise<boolean> => {
+): Promise<void> => {
   const userId = BigInt(id);
 
-  // Check if the user exists
   const existingUser = await prismaClient.user.findUnique({
     where: { id: userId },
   });
 
   if (!existingUser) {
-    return false;
+    throw new UserNotFoundError(id);
   }
 
-  // Delete the user
   await prismaClient.user.delete({
     where: { id: userId },
   });
-
-  return true;
 };
