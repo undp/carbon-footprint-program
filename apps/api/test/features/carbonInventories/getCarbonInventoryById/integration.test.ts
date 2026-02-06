@@ -25,10 +25,7 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import {
-  createTestOrganization,
-  cleanupOrganizations,
-} from "@test/factories/organizationFactory.js";
+import { getTestOrganizationId } from "@test/factories/organizationFactory.js";
 
 describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -47,7 +44,6 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   beforeEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
-    await cleanupOrganizations(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -80,12 +76,12 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
-      // Create a test organization to satisfy foreign key constraint
-      const organization = await createTestOrganization(prisma);
+      // Get a seeded organization to satisfy foreign key constraint
+      const organizationId = await getTestOrganizationId(prisma);
 
       const testInventory = await createInventoryFromPattern(prisma, () =>
         carbonInventoryPatterns.complete(
-          organization.id,
+          organizationId,
           BigInt(456),
           BigInt(methodologyVersionId),
           BigInt(111),
@@ -103,7 +99,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
 
       expect(body.id).toBe(testInventory.id.toString());
-      expect(body.organizationId).toBe(organization.id.toString());
+      expect(body.organizationId).toBe(organizationId.toString());
       expect(body.organizationBranchId).toBe("456");
       expect(body.organizationData).toEqual({
         name: "Test Organization",

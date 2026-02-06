@@ -1,0 +1,63 @@
+import { type PrismaClient, type Prisma } from "../../../index.js";
+import { readFileSync } from "fs";
+import { dirname } from "path";
+import { fileURLToPath } from "url";
+import { z } from "zod";
+import { generateSeedDataPath, type SeedsDataset } from "../utils/index.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+type OrganizationData = Pick<Prisma.OrganizationCreateManyInput, "status">[];
+
+const OrganizationDataSchema: z.ZodType<OrganizationData> = z.array(
+  z.object({
+    status: z.enum(["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"]),
+  })
+);
+
+export async function seedOrganizations(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
+  console.log("Seeding organizations...");
+
+  // Read organizations
+  const organizationsData = OrganizationDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "organizations.json", dataset),
+        "utf-8"
+      )
+    )
+  );
+
+  // Look up first country's ID for countryId
+  const country = await prisma.country.findFirst({ select: { id: true } });
+  if (!country) {
+    throw new Error(
+      "No country found in database. Please ensure countries are seeded before organizations."
+    );
+  }
+
+  // Batch create organizations (skips duplicates)
+  await prisma.organization.createMany({
+    data: organizationsData.map((org) => ({
+      countryId: country.id,
+      status: org.status,
+    })),
+    skipDuplicates: true,
+  });
+
+  // Verify all organizations were created
+  const organizations = await prisma.organization.findMany();
+
+  if (organizations.length !== organizationsData.length)
+    throw new Error(
+      `Expected ${organizationsData.length} organizations but found ${organizations.length} for dataset ${dataset}`
+    );
+
+  console.log(
+    `✓ Ensured ${organizationsData.length} organizations exist for dataset ${dataset}`
+  );
+}
