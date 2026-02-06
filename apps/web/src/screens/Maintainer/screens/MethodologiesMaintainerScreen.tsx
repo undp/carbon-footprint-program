@@ -89,9 +89,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
       const dirtyFields = form.formState.dirtyFields;
       const isRowDirty = dirtyFields.methodologies?.[rowIndex];
 
-      if (row && isRowDirty) {
-        updateMutation.mutate(
-          {
+      try {
+        if (row && isRowDirty) {
+          await updateMutation.mutateAsync({
             id: row.id,
             data: {
               name: row.name,
@@ -99,21 +99,22 @@ export const MethodologiesMaintainerScreen: FC = () => {
               regulation: row.regulation,
               version: row.version,
             },
-          },
-          {
-            onSuccess: () => {
-              void enqueueSnackbar({
-                message: "Cambios guardados satisfactoriamente",
-                variant: "success",
-                autoHideDuration: 2000,
-              });
-            },
-          }
-        );
+          });
+          void enqueueSnackbar({
+            message: "Cambios guardados satisfactoriamente",
+            variant: "success",
+            autoHideDuration: 2000,
+          });
+        }
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al guardar cambios",
+          variant: "error",
+          autoHideDuration: 2000,
+        });
       }
+      setEditingRowId(null);
     }
-
-    setEditingRowId(null);
   }, [
     editingRowId,
     form,
