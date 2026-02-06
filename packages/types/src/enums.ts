@@ -1,4 +1,6 @@
 export {
+  OrganizationStatus,
+  OrganizationDataStatus,
   InventoryStatus,
   UsageMode,
   EmissionFactorStatus,

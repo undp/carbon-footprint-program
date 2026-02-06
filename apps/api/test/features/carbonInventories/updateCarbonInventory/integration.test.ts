@@ -13,6 +13,7 @@ import {
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { getTestOrganizationId } from "@test/factories/organizationFactory.js";
 import {
   type UpdateCarbonInventoryResponse,
   InventoryStatus,
@@ -130,6 +131,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update organizationId", async () => {
+      const organizationId = await getTestOrganizationId(prisma);
+
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
       });
@@ -138,14 +141,14 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         method: "PATCH",
         url: `/api/carbon-inventories/${inventory.id}`,
         payload: {
-          organizationId: "123",
+          organizationId: organizationId.toString(),
         },
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
 
-      expect(body.organizationId).toBe("123");
+      expect(body.organizationId).toBe(organizationId.toString());
     });
 
     it("should update name", async () => {
@@ -240,6 +243,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update multiple fields at once", async () => {
+      const organizationId = await getTestOrganizationId(prisma);
+
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
       });
@@ -251,7 +256,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
           year: 2024,
           usageMode: "EXPERT",
           status: "SUBMITTED",
-          organizationId: "123",
+          organizationId: organizationId.toString(),
           organizationBranchId: "456",
         },
       });
@@ -262,7 +267,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.year).toBe(2024);
       expect(body.usageMode).toBe("EXPERT");
       expect(body.status).toBe("SUBMITTED");
-      expect(body.organizationId).toBe("123");
+      expect(body.organizationId).toBe(organizationId.toString());
       expect(body.organizationBranchId).toBe("456");
     });
 
@@ -286,9 +291,11 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should set nullable fields to null", async () => {
+      const organizationId = await getTestOrganizationId(prisma);
+
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
-        organizationId: 123,
+        organizationId,
         organizationBranchId: 456,
       });
 
@@ -309,6 +316,52 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationId).toBeNull();
       expect(body.organizationBranchId).toBeNull();
       expect(body.organizationData).toBeNull();
+    });
+
+    it("should return complete data including all nullable fields when populated", async () => {
+      const organizationId = await getTestOrganizationId(prisma);
+
+      const inventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const organizationData = {
+        name: "Full Org Data",
+        sectorId: "10",
+        subsectorId: "20",
+        sizeId: "5",
+        mainActivityId: "15",
+        mainActivityQuantity: 1000,
+      };
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${inventory.id}`,
+        payload: {
+          year: 2024,
+          name: "Full Inventory",
+          organizationId: organizationId.toString(),
+          organizationBranchId: "789",
+          organizationData,
+          status: "VERIFIED",
+          usageMode: "EXPERT",
+          isEditable: false,
+          preselectedNodesId: "999",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+
+      expect(body.year).toBe(2024);
+      expect(body.name).toBe("Full Inventory");
+      expect(body.organizationId).toBe(organizationId.toString());
+      expect(body.organizationBranchId).toBe("789");
+      expect(body.organizationData).toEqual(organizationData);
+      expect(body.status).toBe("VERIFIED");
+      expect(body.usageMode).toBe("EXPERT");
+      expect(body.isEditable).toBe(false);
+      expect(body.preselectedNodesId).toBe("999");
     });
 
     it("should update all status values", async () => {
