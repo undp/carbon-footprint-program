@@ -1,5 +1,5 @@
 import { type PrismaClient, OrganizationStatus } from "../../../index.js";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import { z } from "zod";
@@ -22,15 +22,28 @@ export async function seedOrganizations(
 ) {
   console.log("Seeding organizations...");
 
+  const dataPath = generateSeedDataPath(
+    __dirname,
+    "organizations.json",
+    dataset
+  );
+
+  if (!existsSync(dataPath)) {
+    console.log(
+      `No organizations data found for dataset ${dataset} at ${dataPath}. Skipping...`
+    );
+    return;
+  }
+
   // Read organizations
   const organizationsData = OrganizationDataSchema.parse(
-    JSON.parse(
-      readFileSync(
-        generateSeedDataPath(__dirname, "organizations.json", dataset),
-        "utf-8"
-      )
-    )
+    JSON.parse(readFileSync(dataPath, "utf-8"))
   );
+
+  if (organizationsData.length === 0) {
+    console.log(`✓ No organizations to seed for dataset ${dataset}`);
+    return;
+  }
 
   // Look up first country's ID for countryId
   const country = await prisma.country.findFirst({ select: { id: true } });
