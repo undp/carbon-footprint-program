@@ -145,7 +145,11 @@ const errorHandler = (
   return reply.status(statusCode).send(response);
 };
 
-const errorHandlerPlugin = (fastify: FastifyInstance, _opts: unknown, done: () => void) => {
+const errorHandlerPlugin = (
+  fastify: FastifyInstance,
+  _opts: unknown,
+  done: () => void
+) => {
   fastify.setErrorHandler(errorHandler);
   done();
 };
