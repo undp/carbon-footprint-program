@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import { type PrismaClient, OrganizationStatus } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -8,11 +8,11 @@ import { generateSeedDataPath, type SeedsDataset } from "../utils/index.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type OrganizationData = Pick<Prisma.OrganizationCreateManyInput, "status">[];
+type OrganizationData = { status: OrganizationStatus }[];
 
 const OrganizationDataSchema: z.ZodType<OrganizationData> = z.array(
   z.object({
-    status: z.enum(["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"]),
+    status: z.enum(OrganizationStatus),
   })
 );
 
