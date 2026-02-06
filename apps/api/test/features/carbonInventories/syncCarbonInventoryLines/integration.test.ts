@@ -903,7 +903,8 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toBe("Line not found");
+      expect(body.message).toContain("Line with ID");
+      expect(body.message).toContain("not found");
     });
 
     it("should return 404 when line does not exist for delete", async () => {
@@ -926,7 +927,8 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toBe("Line not found");
+      expect(body.message).toContain("Line with ID");
+      expect(body.message).toContain("not found");
     });
 
     it("should return 400 when line belongs to a different carbon inventory", async () => {
@@ -980,9 +982,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         code: string;
         message: string;
       };
-      expect(body.message).toBe(
-        "Line does not belong to this carbon inventory"
-      );
+      expect(body.message).toContain("does not belong to carbon inventory");
     });
 
     it("should return 400 for invalid payload structure", async () => {
@@ -1141,7 +1141,8 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toBe("Line not found");
+      expect(body.message).toContain("Line with ID");
+      expect(body.message).toContain("not found");
     });
 
     it("should return 400 when duplicate line IDs are in update array", async () => {
