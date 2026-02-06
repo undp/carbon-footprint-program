@@ -8,6 +8,7 @@ import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNameAlreadyExistsError,
   getDuplicatedFieldsFromP2002Error,
+  MethodologyIsDeletedError,
 } from "../errors.js";
 
 export const updateMethodologyService = async (
@@ -15,6 +16,19 @@ export const updateMethodologyService = async (
   id: string,
   data: UpdateMethodologyRequest
 ): Promise<UpdateMethodologyResponse | null> => {
+  const targetMethodology = await prismaClient.methodologyVersion.findUnique({
+    where: { id: BigInt(id) },
+    select: { countryId: true, status: true },
+  });
+
+  if (!targetMethodology) {
+    return null;
+  }
+
+  if (targetMethodology.status === MethodologyVersionStatus.DELETED) {
+    throw new MethodologyIsDeletedError();
+  }
+
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.MethodologyVersionUncheckedUpdateInput = {};
 
@@ -47,15 +61,6 @@ export const updateMethodologyService = async (
   try {
     // If setting status to PUBLISHED, unpublish other methodologies of the same country
     if (data.status === MethodologyVersionStatus.PUBLISHED) {
-      const targetMethodology = await prismaClient.methodologyVersion.findUnique({
-        where: { id: BigInt(id) },
-        select: { countryId: true },
-      });
-
-      if (!targetMethodology) {
-        return null;
-      }
-
       // Use transaction to ensure atomicity
       const methodology = await prismaClient.$transaction(async (tx) => {
         // Unpublish all other PUBLISHED methodologies for this country
