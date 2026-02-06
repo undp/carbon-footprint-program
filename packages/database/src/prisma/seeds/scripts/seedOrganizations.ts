@@ -59,6 +59,7 @@ export async function seedOrganizations(
       countryId: country.id,
       status: org.status,
     })),
+    skipDuplicates: true,
   });
 
   if (result.count !== organizationsData.length)
