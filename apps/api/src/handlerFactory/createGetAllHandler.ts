@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { EmptyResourceError } from "../errors/EmptyResourceError.js";
 
 /**
  * Creates a generic GET all handler
@@ -29,11 +30,7 @@ export const createGetAllHandler =
     const data = await serviceFn(prisma, query);
 
     if (treatEmptyAsNotFound && (!data || data.length === 0)) {
-      log.warn(`${resourceName} not found`);
-      return reply.status(404).send({
-        code: "RESOURCE_NOT_FOUND",
-        message: `${resourceName} not found`,
-      });
+      throw new EmptyResourceError(resourceName);
     }
     log.info(`${resourceName} found successfully`);
 
