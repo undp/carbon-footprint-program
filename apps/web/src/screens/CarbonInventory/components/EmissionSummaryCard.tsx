@@ -24,7 +24,7 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
 }) => {
   return (
     <Box
-      className="flex w-full flex-col items-start justify-center gap-2 rounded-lg p-3"
+      className="flex h-full w-full flex-col items-start justify-center gap-2 rounded-lg p-3"
       sx={{ backgroundColor }}
     >
       <Box className="flex w-full items-center justify-between">
