@@ -1,6 +1,7 @@
 import { FC, useState } from "react";
 import { Avatar, Box, Typography, Chip, Divider } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
+import { StyledToggleButtonGroup } from "@/components/StyledToggleButtonGroup";
 import type { RankingSeverity } from "@repo/types";
 
 interface RankingItem {
@@ -98,7 +99,6 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   sectorRankings,
   categories,
 }) => {
-  const theme = useTheme();
   const [viewMode, setViewMode] = useState<"own" | "sector">("own");
 
   const rankings = viewMode === "own" ? ownRankings : sectorRankings;
@@ -112,56 +112,17 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
         </Typography>
-        <Box className="border-primary flex overflow-hidden rounded border">
-          <Box
-            className="cursor-pointer px-2 py-1"
-            sx={{
-              backgroundColor:
-                viewMode === "own" ? theme.palette.primary.main : "transparent",
-              backdropFilter: "blur(10px)",
-              boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.06)",
-            }}
-            onClick={() => setViewMode("own")}
-          >
-            <Typography
-              variant="caption"
-              fontWeight="fontWeightMedium"
-              sx={{
-                color:
-                  viewMode === "own"
-                    ? theme.palette.common.white
-                    : theme.palette.primary.main,
-              }}
-            >
-              VER PROPIAS
-            </Typography>
-          </Box>
-          <Box
-            className="cursor-pointer px-2 py-1"
-            sx={{
-              backgroundColor:
-                viewMode === "sector"
-                  ? theme.palette.primary.main
-                  : "transparent",
-              backdropFilter: "blur(10px)",
-              boxShadow: "0px 4px 4px 0px rgba(0, 0, 0, 0.06)",
-            }}
-            onClick={() => setViewMode("sector")}
-          >
-            <Typography
-              variant="caption"
-              fontWeight="fontWeightMedium"
-              sx={{
-                color:
-                  viewMode === "sector"
-                    ? theme.palette.common.white
-                    : theme.palette.primary.main,
-              }}
-            >
-              VER RUBRO
-            </Typography>
-          </Box>
-        </Box>
+        <StyledToggleButtonGroup
+          sx={{
+            height: 20,
+          }}
+          value={viewMode}
+          onChange={setViewMode}
+          options={[
+            { value: "own", label: "VER PROPIAS" },
+            { value: "sector", label: "VER RUBRO" },
+          ]}
+        />
       </Box>
 
       <Box className="flex flex-1 flex-col gap-3 overflow-y-auto">
