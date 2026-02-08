@@ -40,7 +40,7 @@ function TotalEmissionsCard({ totalEmissions }: { totalEmissions: number }) {
   const theme = useTheme();
   return (
     <Box
-      className="flex items-center justify-between rounded-lg p-3"
+      className="flex h-full items-center justify-between rounded-lg p-3"
       sx={{ backgroundColor: alpha(theme.palette.common.deepForest, 0.1) }}
     >
       <Box className="flex items-center gap-2">
@@ -162,70 +162,67 @@ export const EmissionResultsScreen: FC = () => {
       }}
       isLoading={isLoading}
     >
-      <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-4">
         <StepHeader
           title="Paso 5: Resultados"
           description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
         />
 
-        <Box className="flex flex-1 gap-3">
-          {/* Left column: emission cards + bottom row */}
+        {/* Top container: Emission category cards + reduction plan */}
+        <Box className="flex flex-row gap-4">
+          {/* Emission category cards */}
           <Box className="flex flex-1 flex-col gap-3">
-            {/* Emission category cards */}
-            <Box className="flex flex-col gap-3">
-              <TotalEmissionsCard totalEmissions={totalEmissions} />
-              {categories.map((category) => (
-                <CategoryEmissionCard key={category.id} category={category} />
-              ))}
-            </Box>
-
-            {/* Bottom row: Equivalence + Pie chart + Ranking */}
-            <Box className="flex flex-1 gap-3">
-              <Box className="flex-1">
-                <EmissionEquivalenceCard
-                  value={
-                    equivalence
-                      ? equivalence.rate.toFixed(2).replace(".", ",")
-                      : "—"
-                  }
-                  unit={
-                    equivalence
-                      ? `kg CO₂e/${equivalence.activityName}`
-                      : "kg CO₂e/unidad"
-                  }
-                />
-              </Box>
-              <Box className="flex-1">
-                <EmissionsPieChart
-                  categories={categories.map((c) => ({
-                    name: c.name,
-                    subtotal: c.subtotal,
-                    percentage: c.percentage,
-                  }))}
-                  totalEmissions={totalEmissions}
-                />
-              </Box>
-              <Box className="flex-1">
-                <EmissionRankingCard
-                  ownRankings={ranking?.own ?? []}
-                  sectorRankings={ranking?.sector ?? []}
-                  categories={categories.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                    synonyms: c.synonyms,
-                    position: c.position,
-                  }))}
-                />
-              </Box>
-            </Box>
+            <TotalEmissionsCard totalEmissions={totalEmissions} />
+            {categories.map((category) => (
+              <CategoryEmissionCard key={category.id} category={category} />
+            ))}
           </Box>
-
           {/* Right column: Reduction plan */}
           <Box className="w-[480px] shrink-0">
             <ReductionPlanCard
               title="Plan de reducción sugerido"
               mainGoal={reductionPlan?.summary ?? ""}
               actions={reductionPlan?.items ?? []}
+            />
+          </Box>
+        </Box>
+
+        {/* Bottom container: Equivalence + Pie chart + Ranking */}
+        <Box className="flex min-h-0 flex-1 gap-3">
+          <Box className="flex min-h-0 flex-1">
+            <EmissionEquivalenceCard
+              value={
+                equivalence
+                  ? equivalence.rate.toFixed(2).replace(".", ",")
+                  : "—"
+              }
+              unit={
+                equivalence
+                  ? `kg CO₂e/${equivalence.activityName}`
+                  : "kg CO₂e/unidad"
+              }
+            />
+          </Box>
+          <Box className="flex min-h-0 flex-1">
+            <EmissionsPieChart
+              categories={categories.map((c) => ({
+                name: c.name,
+                subtotal: c.subtotal,
+                percentage: c.percentage,
+              }))}
+              totalEmissions={totalEmissions}
+            />
+          </Box>
+          <Box className="flex min-h-0 flex-1">
+            <EmissionRankingCard
+              ownRankings={ranking?.own ?? []}
+              sectorRankings={ranking?.sector ?? []}
+              categories={categories.map((c) => ({
+                id: c.id,
+                name: c.name,
+                synonyms: c.synonyms,
+                position: c.position,
+              }))}
             />
           </Box>
         </Box>
