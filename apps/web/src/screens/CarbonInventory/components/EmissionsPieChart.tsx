@@ -40,12 +40,12 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   }));
 
   return (
-    <Box className="flex h-full w-full flex-col gap-2 rounded-xl border border-grey-300 p-4">
+    <Box className="border-grey-300 flex h-full w-full flex-col gap-2 rounded-xl border p-4">
       <Typography variant="body1" fontWeight="fontWeightMedium">
         Tus emisiones más importantes en tCO₂e
       </Typography>
 
-      <Box className="flex flex-1 items-center justify-center pt-3">
+      <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
         <Box className="relative">
           <PieChart
             series={[
@@ -74,6 +74,20 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
               tCO₂e
             </Typography>
           </Box>
+        </Box>
+
+        <Box className="flex flex-col gap-1.5">
+          {pieData.map((item) => (
+            <Box key={item.id} className="flex items-center gap-2">
+              <Box
+                className="size-3 shrink-0 rounded-full"
+                sx={{ backgroundColor: item.color }}
+              />
+              <Typography variant="caption" color="text.secondary">
+                {item.label}
+              </Typography>
+            </Box>
+          ))}
         </Box>
       </Box>
     </Box>
