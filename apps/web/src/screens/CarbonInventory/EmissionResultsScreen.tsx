@@ -19,6 +19,7 @@ import {
 import { Routes } from "@/interfaces";
 import { useEmissionResultsData } from "./hooks/useEmissionResultsData";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 
 export const EmissionResultsScreen: FC = () => {
   const theme = useTheme();
@@ -26,7 +27,7 @@ export const EmissionResultsScreen: FC = () => {
     from: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
   });
 
-  const { goBack } = useEmissionResultsNavigation(inventoryId);
+  const { goBack, goToList } = useEmissionResultsNavigation(inventoryId);
 
   // TODO: Replace with actual data from API
   const {
@@ -64,11 +65,25 @@ export const EmissionResultsScreen: FC = () => {
         title: "Simulador de Inventario Organizacional",
       }}
       footerProps={{
-        backButtonProps: {
-          onClick: goBack,
-        },
-        showBack: true,
-        nextText: "Finalizar",
+        buttons: [
+          {
+            text: "Volver",
+            align: "right",
+            buttonProps: {
+              startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+              onClick: goBack,
+            },
+          },
+          {
+            text: "Terminar Borrador",
+            align: "right",
+            buttonProps: {
+              // startIcon: <SaveRounded />,
+              variant: "contained",
+              onClick: goToList,
+            },
+          },
+        ],
       }}
       isLoading={isLoading}
     >
