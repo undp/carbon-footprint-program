@@ -1,8 +1,7 @@
 import { FC } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { Folder } from "@mui/icons-material";
-// import { PackageIcon } from "lucide-react";
+import { EmissionResultsScreenTrashIcon } from "@/icons";
 
 interface EmissionEquivalenceCardProps {
   value: string;
@@ -22,7 +21,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
 
   return (
     <Box
-      className="flex h-full w-full flex-col items-start justify-between gap-6 rounded-lg p-4"
+      className="relative flex h-full w-full flex-col items-start overflow-hidden rounded-lg p-4"
       sx={{ background: gradient }}
     >
       <Typography
@@ -33,7 +32,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         Tu huella de carbono equivale
       </Typography>
 
-      <Box className="flex w-full flex-col">
+      <Box className="flex w-full flex-1 flex-col justify-center pb-3">
         <Typography
           variant="h2"
           fontWeight="fontWeightBold"
@@ -50,13 +49,9 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         </Typography>
       </Box>
 
-      <Box className="flex w-full items-end justify-end">
-        <Folder
-          className="size-16"
-          strokeWidth={1}
-          style={{ color: alpha(theme.palette.primary.main, 0.3) }}
-        />
-      </Box>
+      <EmissionResultsScreenTrashIcon
+        sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
+      />
     </Box>
   );
 };
