@@ -5,7 +5,6 @@ export * from "./TotalCategoryEmissionCard";
 export * from "./EmissionEditor";
 export * from "./EmissionSummaryCard";
 export * from "./EmissionEquivalenceCard";
-export * from "./EmissionsBarChart";
 export * from "./EmissionsPieChart";
 export * from "./EmissionRankingCard";
 export * from "./ReductionPlanCard";
