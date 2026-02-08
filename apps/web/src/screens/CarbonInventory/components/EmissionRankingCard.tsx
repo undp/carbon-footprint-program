@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Box, Typography, Chip, Divider } from "@mui/material";
+import { Avatar, Box, Typography, Chip, Divider } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import type { RankingSeverity } from "@repo/types";
 
@@ -45,17 +45,21 @@ function RankingRow({
   const colors = SEVERITY_COLORS[item.severity];
 
   return (
-    <Box className="flex items-center justify-between">
+    <Box className="flex items-center justify-between pr-2">
       <Box className="flex items-center gap-2">
-        <Box
-          className="flex size-10 shrink-0 items-center justify-center rounded-full"
-          sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
+        <Avatar
+          sx={{
+            width: 40,
+            height: 40,
+            backgroundColor: alpha(theme.palette.text.primary, 0.03),
+            color: theme.palette.text.primary,
+            fontSize: "1rem",
+            fontWeight: "fontWeightSemiBold",
+          }}
         >
-          <Typography variant="body1" fontWeight="fontWeightSemiBold">
-            {item.position}
-          </Typography>
-        </Box>
-        <Box className="flex flex-col gap-1">
+          {item.position}
+        </Avatar>
+        <Box className="flex flex-col items-start gap-1">
           <Typography variant="body2">{item.name}</Typography>
           <Chip
             label={categoryName}
@@ -103,8 +107,8 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
   return (
-    <Box className="border-grey-300 flex h-full w-full flex-col gap-6 rounded-xl border bg-white p-4">
-      <Box className="flex items-center justify-between">
+    <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-6 rounded-xl border bg-white p-4">
+      <Box className="flex items-center justify-between px-2">
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
         </Typography>
