@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { ArrowRight } from "@mui/icons-material";
+import { AutoAwesome } from "@mui/icons-material";
 
 interface ReductionPlanCardProps {
   title: string;
@@ -58,15 +58,14 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
             background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
-            opacity: 0.2,
           }}
         >
           Ver plan completo
         </Typography>
         <Box className="flex size-6 items-center justify-center">
-          <ArrowRight
+          <AutoAwesome
             sx={{
-              color: alpha(theme.palette.primary.main, 0.2),
+              color: "#63E4CF",
             }}
           />
         </Box>
