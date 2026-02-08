@@ -7,8 +7,7 @@ import { STALE_TIME_MS } from "@/config/constants";
 export const useEmissionResults = (id: string) => {
   return useQuery<GetCarbonInventoryResultsResponse>({
     queryKey: carbonInventoryKeys.results(id),
-    queryFn: () =>
-      apiClient.get(`carbon-inventories/${id}/results`).json(),
+    queryFn: () => apiClient.get(`carbon-inventories/${id}/results`).json(),
     staleTime: STALE_TIME_MS,
     enabled: !!id,
   });
