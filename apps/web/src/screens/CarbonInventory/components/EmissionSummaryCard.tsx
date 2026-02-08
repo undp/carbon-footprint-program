@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography, Avatar, alpha } from "@mui/material";
+import { Box, Typography, alpha } from "@mui/material";
 
 interface EmissionSummaryCardProps {
   icon: React.ReactNode;
