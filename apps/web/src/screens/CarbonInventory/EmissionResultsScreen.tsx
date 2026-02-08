@@ -183,6 +183,8 @@ export const EmissionResultsScreen: FC = () => {
               title="Plan de reducción sugerido"
               mainGoal={reductionPlan?.summary ?? ""}
               actions={reductionPlan?.items ?? []}
+              // TODO: implement navigation to full reduction plan
+              onViewFullPlan={() => {}}
             />
           </Box>
         </Box>

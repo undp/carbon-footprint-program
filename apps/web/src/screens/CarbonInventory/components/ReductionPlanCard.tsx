@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome } from "@mui/icons-material";
 
@@ -7,12 +7,14 @@ interface ReductionPlanCardProps {
   title: string;
   mainGoal: string;
   actions: string[];
+  onViewFullPlan: () => void;
 }
 
 export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
   title,
   mainGoal,
   actions,
+  onViewFullPlan,
 }) => {
   const theme = useTheme();
 
@@ -49,7 +51,13 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         </Box>
       </Box>
 
-      <Box className="flex w-full cursor-pointer items-center justify-center gap-4">
+      <Button
+        variant="text"
+        onClick={onViewFullPlan}
+        endIcon={<AutoAwesome sx={{ color: "#63E4CF" }} />}
+        className="self-center gap-4"
+        sx={{ textTransform: "none" }}
+      >
         <Typography
           variant="body1"
           fontWeight="fontWeightSemiBold"
@@ -62,14 +70,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         >
           Ver plan completo
         </Typography>
-        <Box className="flex size-6 items-center justify-center">
-          <AutoAwesome
-            sx={{
-              color: "#63E4CF",
-            }}
-          />
-        </Box>
-      </Box>
+      </Button>
     </Box>
   );
 };
