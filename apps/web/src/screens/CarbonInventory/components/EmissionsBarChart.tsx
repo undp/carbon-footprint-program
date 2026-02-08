@@ -50,9 +50,7 @@ export const EmissionsBarChart: FC<EmissionsBarChartProps> = ({ data }) => {
           colors={colors}
           height={240}
           margin={{ left: 40, right: 10, top: 10, bottom: 60 }}
-          slotProps={{
-            legend: { hidden: true },
-          }}
+          hideLegend
         />
       </Box>
 
