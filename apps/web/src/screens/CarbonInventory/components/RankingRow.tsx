@@ -5,7 +5,7 @@ import type { RankingSeverity } from "@repo/types";
 import { CategoryChip } from "./CategoryChip";
 
 interface RankingRowItem {
-  position: number;
+  rank: number;
   name: string;
   percentage: number;
   severity: RankingSeverity;
@@ -44,7 +44,7 @@ export const RankingRow: FC<RankingRowProps> = ({
             fontWeight: "fontWeightSemiBold",
           }}
         >
-          {item.position}
+          {item.rank}
         </Avatar>
         <Box className="flex flex-col items-start gap-1">
           <Typography variant="body2">{item.name}</Typography>

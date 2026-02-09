@@ -50,7 +50,7 @@ const CategoryResultSchema = z
 
 const RankingItemSchema = z
   .object({
-    position: z
+    rank: z
       .number()
       .int()
       .positive()

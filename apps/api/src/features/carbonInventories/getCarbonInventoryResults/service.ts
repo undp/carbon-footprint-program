@@ -175,7 +175,7 @@ export const getCarbonInventoryResultsService = async (
   }
 
   const rankingItems = sorted.map((item, idx) => ({
-    position: positions[idx],
+    rank: positions[idx],
     name: item.name,
     categoryId: item.categoryId,
     subtotal: roundEmissions(item.subtotal),

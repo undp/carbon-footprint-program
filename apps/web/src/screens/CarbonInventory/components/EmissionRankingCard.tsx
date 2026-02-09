@@ -6,7 +6,7 @@ import { RankingRow } from "./RankingRow";
 import type { RankingSeverity } from "@repo/types";
 
 interface RankingItem {
-  position: number;
+  rank: number;
   name: string;
   categoryId: string;
   subtotal: number;
@@ -70,7 +70,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
         ) : (
           rankings.map((item, index) => (
             <Box
-              key={`${item.position}-${item.name}`}
+              key={`${item.rank}-${item.name}`}
               className="flex flex-col gap-3"
             >
               <RankingRow
