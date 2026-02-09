@@ -69,7 +69,7 @@ const RankingItemSchema = z
         "The percentage as a 3-decimal float between 0 and 1, relative to total emissions"
       ),
     severity: RankingSeveritySchema.describe(
-      "Severity level: HIGH for position 1, MEDIUM for positions 2-4, LOW for the rest"
+      "Severity level based on percentage: HIGH for >= 25%, MEDIUM for >= 10%, LOW for the rest"
     ),
   })
   .strict();
