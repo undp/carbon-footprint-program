@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Avatar, Box, Typography } from "@mui/material";
-import { alpha, useTheme } from "@mui/material/styles";
+import { alpha, useTheme, type Theme } from "@mui/material/styles";
 import type { RankingSeverity } from "@repo/types";
 import { CategoryChip } from "./CategoryChip";
 
@@ -17,10 +17,27 @@ interface RankingRowProps {
   categoryPosition: number;
 }
 
-const SEVERITY_COLORS: Record<RankingSeverity, { text: string; bg: string }> = {
-  HIGH: { text: "#C62828", bg: alpha("#D32F2F", 0.1) },
-  MEDIUM: { text: "#E65100", bg: alpha("#ED6C02", 0.1) },
-  LOW: { text: "#1B5E20", bg: alpha("#2E7D32", 0.1) },
+const getSeverityColors = (
+  severity: RankingSeverity,
+  theme: Theme
+): { text: string; bg: string } => {
+  switch (severity) {
+    case "HIGH":
+      return {
+        text: theme.palette.error.dark,
+        bg: alpha(theme.palette.error.main, 0.1),
+      };
+    case "MEDIUM":
+      return {
+        text: theme.palette.warning.dark,
+        bg: alpha(theme.palette.warning.main, 0.1),
+      };
+    case "LOW":
+      return {
+        text: theme.palette.success.dark,
+        bg: alpha(theme.palette.success.main, 0.1),
+      };
+  }
 };
 
 export const RankingRow: FC<RankingRowProps> = ({
@@ -29,7 +46,7 @@ export const RankingRow: FC<RankingRowProps> = ({
   categoryPosition,
 }) => {
   const theme = useTheme();
-  const colors = SEVERITY_COLORS[item.severity];
+  const colors = getSeverityColors(item.severity, theme);
 
   return (
     <Box className="flex items-center justify-between pr-2">
