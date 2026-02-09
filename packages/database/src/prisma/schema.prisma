@@ -645,6 +645,20 @@ view CarbonInventorySubtotalsView {
   @@map("carbon_inventory_subtotals_view")
 }
 
+view AdminOrganizationsView {
+  id                    BigInt             @unique
+  name                  String?
+  sector                String?
+  subsector             String?
+  size                  String?
+  status                OrganizationStatus
+  hasCarbonInventories  Boolean            @map("hasCarbonInventories")
+  lastEdition           DateTime           @map("lastEdition")
+  emissions             Decimal            @db.Decimal(28, 10)
+
+  @@map("admin_organizations_view")
+}
+
 enum OrganizationStatus {
   NOT_ACCREDITED
   ACCREDITED
