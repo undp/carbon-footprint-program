@@ -44,7 +44,8 @@ export const toggleManualTotalEmissionsService = async (
     select: { id: true, methodologyVersionId: true },
   });
 
-  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory)
+    throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   // 2. Validate subcategory exists and belongs to the inventory methodology
   const subcategory = await prismaClient.subcategory.findUnique({
@@ -145,7 +146,8 @@ export const toggleManualTotalEmissionsService = async (
     if (!directActiveLine) throw new ManualModeNotActiveError();
 
     // TODO: remove this error when no-lines subcategory is supported
-    if (nonDirectOutdatedLinesIds.length === 0) throw new NoLinesToRestoreError();
+    if (nonDirectOutdatedLinesIds.length === 0)
+      throw new NoLinesToRestoreError();
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates (though directActiveLine should be unique if logic is followed)

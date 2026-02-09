@@ -26,7 +26,8 @@ export const getCarbonInventoryMethodologyService = async (
     },
   });
 
-  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory)
+    throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   if (!carbonInventory.methodologyVersionId)
     throw new MethodologyNotFoundError(carbonInventoryId);

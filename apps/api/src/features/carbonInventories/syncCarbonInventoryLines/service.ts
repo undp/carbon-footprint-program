@@ -29,7 +29,8 @@ export const syncCarbonInventoryLinesService = async (
     select: { id: true, methodologyVersionId: true },
   });
 
-  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory)
+    throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   // Validate subcategories for create operations
   if (request.create.length > 0) {
