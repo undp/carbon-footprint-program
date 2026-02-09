@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useTheme } from "@mui/material/styles";
+import { EmptyStateMessage } from "./EmptyStateMessage";
 
 interface CategoryData {
   name: string;
@@ -42,42 +43,52 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   }));
 
   return (
-    <Box className="border-grey-300 flex h-full w-full flex-col gap-2 rounded-xl border p-4">
+    <Box className="border-grey-300 flex h-full w-full flex-col gap-4 rounded-xl border p-4">
       <Typography variant="body1" fontWeight="fontWeightMedium">
         Tus emisiones más importantes en tCO₂e
       </Typography>
 
-      <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
-        <Box className="relative">
-          <PieChart
-            series={[
-              {
-                data: pieData,
-                innerRadius: 55,
-                outerRadius: 80,
-                paddingAngle: 1,
-                cornerRadius: 2,
-              },
-            ]}
-            width={260}
-            height={195}
-            hideLegend={!showLegend}
-            margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
-          />
-          <Box className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-            <Typography
-              variant="h6"
-              fontWeight="fontWeightSemiBold"
-              color="text.primary"
-            >
-              {formatNumber(totalEmissions)}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              tCO₂e
-            </Typography>
+      {!!categories.length && (
+        <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
+          <Box className="relative">
+            <PieChart
+              series={[
+                {
+                  data: pieData,
+                  innerRadius: 55,
+                  outerRadius: 80,
+                  paddingAngle: 1,
+                  cornerRadius: 2,
+                },
+              ]}
+              width={260}
+              height={195}
+              hideLegend={!showLegend}
+              margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
+            />
+            <Box className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+              <Typography
+                variant="h6"
+                fontWeight="fontWeightSemiBold"
+                color="text.primary"
+              >
+                {formatNumber(totalEmissions)}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                tCO₂e
+              </Typography>
+            </Box>
           </Box>
         </Box>
-      </Box>
+      )}
+
+      {!categories.length && (
+        <EmptyStateMessage
+          message={
+            "Cuando registres tus actividades, verás aquí un resumen por alcance"
+          }
+        />
+      )}
     </Box>
   );
 };
