@@ -12,6 +12,7 @@ interface CategoryData {
 interface EmissionsPieChartProps {
   categories: CategoryData[];
   totalEmissions: number;
+  showLegend?: boolean;
 }
 
 const formatNumber = (value: number): string =>
@@ -23,6 +24,7 @@ const formatNumber = (value: number): string =>
 export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   categories,
   totalEmissions,
+  showLegend = false,
 }) => {
   const theme = useTheme();
 
@@ -35,7 +37,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   const pieData = categories.map((cat, index) => ({
     id: index,
     value: cat.subtotal,
-    label: `${cat.name} (${formatNumber(cat.subtotal)})`,
+    label: cat.name,
     color: categoryColors[index % categoryColors.length],
   }));
 
@@ -59,7 +61,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
             ]}
             width={260}
             height={195}
-            hideLegend
+            hideLegend={!showLegend}
             margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
           />
           <Box className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
@@ -74,20 +76,6 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
               tCO₂e
             </Typography>
           </Box>
-        </Box>
-
-        <Box className="flex flex-col gap-1.5">
-          {pieData.map((item) => (
-            <Box key={item.id} className="flex items-center gap-2">
-              <Box
-                className="size-3 shrink-0 rounded-full"
-                sx={{ backgroundColor: item.color }}
-              />
-              <Typography variant="caption" color="text.secondary">
-                {item.label}
-              </Typography>
-            </Box>
-          ))}
         </Box>
       </Box>
     </Box>
