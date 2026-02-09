@@ -141,17 +141,23 @@ export const getCarbonInventoryResultsService = async (
     };
   });
 
-  // 7. Build subcategories ranking (sorted descending by subtotal)
+  // 7. Build subcategories ranking (sorted descending by subtotal,
+  //    ties broken by category position asc, then name alphabetically)
   const allSubcategories = categoryData.flatMap((category) =>
     category.subcategories.map((sub) => ({
       name: sub.name,
       categoryId: category.id,
+      categoryPosition: category.position,
       subtotal: sub.subtotal,
     }))
   );
 
-  // Sort descending by subtotal
-  const sorted = [...allSubcategories].sort((a, b) => b.subtotal - a.subtotal);
+  const sorted = [...allSubcategories].sort(
+    (a, b) =>
+      b.subtotal - a.subtotal ||
+      a.categoryPosition - b.categoryPosition ||
+      a.name.localeCompare(b.name)
+  );
 
   // Calculate percentages for ranking (relative to total emissions)
   const rankingSubtotals = sorted.map((s) => s.subtotal);
@@ -160,8 +166,19 @@ export const getCarbonInventoryResultsService = async (
     totalEmissions
   );
 
+  // Standard competition ranking: tied items share the same position,
+  // next position after a tie skips (e.g. 1, 2, 2, 4)
+  const positions: number[] = [];
+  for (let i = 0; i < sorted.length; i++) {
+    positions.push(
+      i > 0 && sorted[i].subtotal === sorted[i - 1].subtotal
+        ? positions[i - 1]
+        : i + 1
+    );
+  }
+
   const rankingItems = sorted.map((item, idx) => ({
-    position: idx + 1,
+    position: positions[idx],
     name: item.name,
     categoryId: item.categoryId,
     subtotal: item.subtotal,
