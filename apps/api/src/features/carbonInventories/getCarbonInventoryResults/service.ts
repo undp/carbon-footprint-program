@@ -180,10 +180,11 @@ export const getCarbonInventoryResultsService = async (
     severity: getRankingSeverity(rankingPercentages[idx]),
   }));
 
-  // Reuse own ranking for both own and sector
+  // TODO: subcategoriesRanking.sector is a stub that duplicates own (rankingItems).
+  // Replace with real sector-level ranking data once the sector comparison API is available.
   const subcategoriesRanking = {
     own: rankingItems,
-    sector: rankingItems,
+    sector: rankingItems.map((item) => ({ ...item })),
   };
 
   // 8. Calculate mainActivityEquivalence
