@@ -9,6 +9,7 @@ import {
 } from "@/icons";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
+import { formatEmissions, formatPercentage } from "../utils/formatting";
 
 interface CategoryData {
   id: string;
@@ -29,12 +30,6 @@ const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
   2: IndirectEmissionCategoryIcon,
   3: OthersCategoryIcon,
 };
-
-const formatEmissions = (value: number): string =>
-  `${value.toLocaleString("es", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}  tCO₂e`;
-
-const formatPercentage = (value: number): string =>
-  `${(value * 100).toFixed(1).replace(".", ",")}%`;
 
 export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   totalEmissions,
