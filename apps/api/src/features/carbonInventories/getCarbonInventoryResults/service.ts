@@ -201,6 +201,7 @@ export const getCarbonInventoryResultsService = async (
   }
 
   // 9. Build suggested reduction plan (placeholder - could be AI-generated in the future)
+  // TODO: implement someday
   const suggestedReductionPlan = {
     summary:
       "Reducir las emisiones de proceso y combustión, en línea con la Ley Marco de Cambio Climático y los objetivos globales del sector.",
