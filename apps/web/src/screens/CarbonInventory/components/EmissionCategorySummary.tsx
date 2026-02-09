@@ -10,7 +10,7 @@ import {
 } from "@/icons";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
-import { formatEmissions, formatPercentage } from "../utils/formatting";
+import { formatEmissions, formatPercentage } from "@/utils/formatting";
 
 type CategoryData = GetCarbonInventoryResultsResponse["categories"][number];
 

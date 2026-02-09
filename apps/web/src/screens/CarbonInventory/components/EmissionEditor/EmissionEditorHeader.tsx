@@ -11,6 +11,8 @@ import {
   Skeleton,
 } from "@mui/material";
 import { NumericInput } from "@/components";
+import { formatEmissions } from "@/utils/formatting";
+import { kgToTon } from "@/utils/number";
 import { Subcategory } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 
@@ -128,7 +130,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         {/* Case 4: Detailed mode active and not loading (Shows the real total) */}
         {!isManualModeLoading && !isTotalManualEmissionsModeActive && (
           <Typography variant="subtitle1" fontWeight="bold">
-            {totalEmission}
+            {formatEmissions(kgToTon(totalEmission))}
           </Typography>
         )}
 
