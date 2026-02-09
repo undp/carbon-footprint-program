@@ -29,7 +29,7 @@ export const syncCarbonInventoryLinesService = async (
     select: { id: true, methodologyVersionId: true },
   });
 
-  if (!carbonInventory) throw CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   // Validate subcategories for create operations
   if (request.create.length > 0) {
@@ -50,12 +50,12 @@ export const syncCarbonInventoryLinesService = async (
 
     for (const item of request.create) {
       const subcategory = subcategoryMap.get(item.subcategoryId);
-      if (!subcategory) throw SubcategoryNotFoundError();
+      if (!subcategory) throw new SubcategoryNotFoundError();
       if (
         subcategory.category.methodologyVersionId !==
         carbonInventory.methodologyVersionId
       )
-        throw SubcategoryNotInMethodologyError();
+        throw new SubcategoryNotInMethodologyError();
     }
   }
 
@@ -80,9 +80,9 @@ export const syncCarbonInventoryLinesService = async (
 
     for (const item of [...request.update, ...request.delete]) {
       const line = existingLineMap.get(item.id);
-      if (!line) throw LineNotFoundError(item.id);
+      if (!line) throw new LineNotFoundError(item.id);
       if (line.carbonInventoryId !== carbonInventoryId)
-        throw LineNotInCarbonInventoryError(
+        throw new LineNotInCarbonInventoryError(
           item.id,
           carbonInventoryId.toString(),
           line.carbonInventoryId.toString()

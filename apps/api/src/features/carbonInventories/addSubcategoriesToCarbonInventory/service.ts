@@ -26,11 +26,11 @@ export const addSubcategoriesToCarbonInventoryService = async (
   });
 
   if (!carbonInventory) {
-    throw CarbonInventoryNotFoundError(carbonInventoryId);
+    throw new CarbonInventoryNotFoundError(carbonInventoryId);
   }
 
   if (!carbonInventory.methodologyVersionId) {
-    throw MethodologyNotFoundError(carbonInventoryId);
+    throw new MethodologyNotFoundError(carbonInventoryId);
   }
 
   // Fetch all subcategories with category for validation
@@ -52,7 +52,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
   // Validate all subcategories exist
   if (subcategories.length !== subcategoryIds.length) {
     // Return error for missing subcategory
-    throw SubcategoryNotFoundError();
+    throw new SubcategoryNotFoundError();
   }
 
   // Validate all subcategories belong to the same methodology
@@ -61,7 +61,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
       subcategory.category.methodologyVersionId !==
       carbonInventory.methodologyVersionId
     ) {
-      throw SubcategoryNotInMethodologyError();
+      throw new SubcategoryNotInMethodologyError();
     }
   }
 

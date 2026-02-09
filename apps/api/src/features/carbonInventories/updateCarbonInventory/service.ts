@@ -74,7 +74,7 @@ export const updateCarbonInventoryService = async (
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
-        throw CarbonInventoryNotFoundError(id);
+        throw new CarbonInventoryNotFoundError(id);
       }
     }
     throw error;

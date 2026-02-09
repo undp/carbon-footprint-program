@@ -36,10 +36,10 @@ export const updateCarbonInventorySubcategoriesService = async (
     },
   });
 
-  if (!carbonInventory) throw CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   if (!carbonInventory.methodologyVersionId)
-    throw MethodologyNotFoundError(carbonInventoryId);
+    throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Extract subcategory IDs from request
   const subcategoryIds = request.map(({ id }) => BigInt(id));
@@ -62,7 +62,7 @@ export const updateCarbonInventorySubcategoriesService = async (
 
   // Validate all subcategories exist
   if (subcategories.length !== subcategoryIds.length)
-    throw SubcategoryNotFoundError();
+    throw new SubcategoryNotFoundError();
 
   // Validate all subcategories belong to the same methodology
   for (const subcategory of subcategories) {
@@ -70,7 +70,7 @@ export const updateCarbonInventorySubcategoriesService = async (
       subcategory.category.methodologyVersionId !==
       carbonInventory.methodologyVersionId
     )
-      throw SubcategoryNotInMethodologyError();
+      throw new SubcategoryNotInMethodologyError();
   }
 
   // Fetch existing ACTIVE lines for these subcategories
@@ -105,7 +105,7 @@ export const updateCarbonInventorySubcategoriesService = async (
       // Check if ANY line is non-empty
       for (const line of lines) {
         if (isCarbonInventoryLineEdited(line))
-          throw SubcategoryHasNonEmptyLinesError();
+          throw new SubcategoryHasNonEmptyLinesError();
       }
     }
   }

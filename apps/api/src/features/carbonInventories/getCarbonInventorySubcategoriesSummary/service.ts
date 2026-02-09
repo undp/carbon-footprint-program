@@ -23,10 +23,10 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
     },
   });
 
-  if (!carbonInventory) throw CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   if (!carbonInventory.methodologyVersionId)
-    throw MethodologyNotFoundError(carbonInventoryId);
+    throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Get all subcategories for the methodology version
   const methodology = await prismaClient.methodologyVersion.findUnique({
@@ -46,7 +46,7 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
     },
   });
 
-  if (!methodology) throw MethodologyNotFoundError(carbonInventoryId);
+  if (!methodology) throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Flatten subcategories from all categories
   const allSubcategoryIds = methodology.categories.flatMap((category) =>

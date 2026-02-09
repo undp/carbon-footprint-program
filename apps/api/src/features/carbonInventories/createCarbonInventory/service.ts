@@ -25,7 +25,7 @@ export const createCarbonInventoryService = async (
   });
 
   if (!availableMethodology) {
-    throw NoActiveMethodologyError();
+    throw new NoActiveMethodologyError();
   }
 
   const item = await prismaClient.carbonInventory.create({

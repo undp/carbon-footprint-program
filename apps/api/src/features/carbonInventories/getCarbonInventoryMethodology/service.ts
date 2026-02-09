@@ -26,10 +26,10 @@ export const getCarbonInventoryMethodologyService = async (
     },
   });
 
-  if (!carbonInventory) throw CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   if (!carbonInventory.methodologyVersionId)
-    throw MethodologyNotFoundError(carbonInventoryId);
+    throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Then, get the methodology with all its related data
   /*
@@ -135,7 +135,7 @@ export const getCarbonInventoryMethodologyService = async (
     },
   });
 
-  if (!methodology) throw MethodologyNotFoundError(carbonInventoryId);
+  if (!methodology) throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Build the rate units by magnitude map for conversion
   const rateUnitsByMagnitude = await buildRateUnitsByMagnitudeMap(prismaClient);

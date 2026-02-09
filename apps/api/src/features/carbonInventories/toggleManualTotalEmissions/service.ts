@@ -44,7 +44,7 @@ export const toggleManualTotalEmissionsService = async (
     select: { id: true, methodologyVersionId: true },
   });
 
-  if (!carbonInventory) throw CarbonInventoryNotFoundError(carbonInventoryId);
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   // 2. Validate subcategory exists and belongs to the inventory methodology
   const subcategory = await prismaClient.subcategory.findUnique({
@@ -56,13 +56,13 @@ export const toggleManualTotalEmissionsService = async (
     },
   });
 
-  if (!subcategory) throw SubcategoryNotFoundError();
+  if (!subcategory) throw new SubcategoryNotFoundError();
 
   if (
     subcategory.category.methodologyVersionId !==
     carbonInventory.methodologyVersionId
   )
-    throw SubcategoryNotInMethodologyError();
+    throw new SubcategoryNotInMethodologyError();
 
   // 3. Fetch lines for the subcategory in this inventory
   const lines = await prismaClient.carbonInventoryLine.findMany({
@@ -99,9 +99,9 @@ export const toggleManualTotalEmissionsService = async (
 
   if (activated) {
     // Caso 1: activated: true (Activar modo manual)
-    if (activeLines.length === 0) throw NoActiveLinesToConvertError();
+    if (activeLines.length === 0) throw new NoActiveLinesToConvertError();
 
-    if (directActiveLine) throw ManualModeAlreadyActiveError();
+    if (directActiveLine) throw new ManualModeAlreadyActiveError();
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates
@@ -142,10 +142,10 @@ export const toggleManualTotalEmissionsService = async (
     });
   } else {
     // Caso 2: activated: false
-    if (!directActiveLine) throw ManualModeNotActiveError();
+    if (!directActiveLine) throw new ManualModeNotActiveError();
 
     // TODO: remove this error when no-lines subcategory is supported
-    if (nonDirectOutdatedLinesIds.length === 0) throw NoLinesToRestoreError();
+    if (nonDirectOutdatedLinesIds.length === 0) throw new NoLinesToRestoreError();
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates (though directActiveLine should be unique if logic is followed)
