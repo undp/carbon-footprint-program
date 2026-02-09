@@ -108,7 +108,7 @@ export const CarbonInventoriesScreen: FC = () => {
           ) =>
             params.value ? (
               <Tooltip title={params.value}>
-                <Typography variant="body2" title={params.value} noWrap>
+                <Typography variant="body2" noWrap>
                   {params.value}
                 </Typography>
               </Tooltip>
