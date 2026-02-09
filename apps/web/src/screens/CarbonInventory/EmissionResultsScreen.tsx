@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography, alpha } from "@mui/material";
+import { Avatar, Box, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout } from "./layout";
@@ -19,7 +19,7 @@ import {
 import { Routes } from "@/interfaces";
 import { useEmissionResults } from "@/api/query";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
-import { ArrowRightAltRounded } from "@mui/icons-material";
+import { ArrowRightAltRounded, BarChartOutlined } from "@mui/icons-material";
 import type { GetCarbonInventoryResultsResponse } from "@repo/types";
 
 type CategoryResult = GetCarbonInventoryResultsResponse["categories"][number];
@@ -44,35 +44,15 @@ function TotalEmissionsCard({ totalEmissions }: { totalEmissions: number }) {
       sx={{ backgroundColor: alpha(theme.palette.common.deepForest, 0.1) }}
     >
       <Box className="flex items-center gap-2">
-        <Box
-          className="flex size-8 items-center justify-center rounded-full"
+        <Avatar
           sx={{
+            width: 32,
+            height: 32,
             backgroundColor: alpha(theme.palette.common.deepForest, 0.1),
           }}
         >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 18 18"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M9 2L2 6L9 10L16 6L9 2Z"
-              fill={theme.palette.common.deepForest}
-            />
-            <path
-              d="M2 10L9 14L16 10"
-              stroke={theme.palette.common.deepForest}
-              strokeWidth="1.5"
-            />
-            <path
-              d="M2 14L9 18L16 14"
-              stroke={theme.palette.common.deepForest}
-              strokeWidth="1.5"
-            />
-          </svg>
-        </Box>
+          <BarChartOutlined color="disabled" />
+        </Avatar>
         <Typography
           variant="body1"
           fontWeight="fontWeightSemiBold"
