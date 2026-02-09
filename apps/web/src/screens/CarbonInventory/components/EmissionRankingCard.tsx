@@ -126,19 +126,33 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
       </Box>
 
       <Box className="flex flex-1 flex-col gap-3 overflow-y-auto">
-        {rankings.map((item, index) => (
-          <Box
-            key={`${item.position}-${item.name}`}
-            className="flex flex-col gap-3"
-          >
-            <RankingRow
-              item={item}
-              categoryName={categoryMap.get(item.categoryId)?.name ?? ""}
-              categoryPosition={categoryMap.get(item.categoryId)?.position ?? 3}
-            />
-            {index < rankings.length - 1 && <Divider sx={{ opacity: 0.2 }} />}
+        {rankings.length === 0 ? (
+          <Box className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              className="py-4 text-center"
+            >
+              No hay datos de ranking disponibles
+            </Typography>
           </Box>
-        ))}
+        ) : (
+          rankings.map((item, index) => (
+            <Box
+              key={`${item.position}-${item.name}`}
+              className="flex flex-col gap-3"
+            >
+              <RankingRow
+                item={item}
+                categoryName={categoryMap.get(item.categoryId)?.name ?? ""}
+                categoryPosition={
+                  categoryMap.get(item.categoryId)?.position ?? 3
+                }
+              />
+              {index < rankings.length - 1 && <Divider sx={{ opacity: 0.2 }} />}
+            </Box>
+          ))
+        )}
       </Box>
     </Box>
   );
