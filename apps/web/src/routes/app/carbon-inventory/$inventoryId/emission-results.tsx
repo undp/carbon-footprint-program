@@ -4,5 +4,5 @@ import { EmissionResultsScreen } from "@/screens/CarbonInventory/EmissionResults
 export const Route = createFileRoute(
   "/app/carbon-inventory/$inventoryId/emission-results"
 )({
-  component: () => <EmissionResultsScreen />,
+  component: EmissionResultsScreen,
 });
