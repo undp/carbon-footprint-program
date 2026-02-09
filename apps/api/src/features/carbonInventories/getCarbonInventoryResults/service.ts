@@ -79,28 +79,31 @@ export const getCarbonInventoryResultsService = async (
     subtotalMap.set(row.subcategoryId.toString(), Number(row.value));
   }
 
-  // 4. Build categories with subtotals, ensuring all methodology entities are present
-  const categoryData = methodology.categories.map((category) => {
-    const subcategories = category.subcategories.map((sub) => ({
-      id: sub.id.toString(),
-      name: sub.name,
-      subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
-    }));
+  // 4. Build categories with subtotals, keeping only entities with emissions
+  const categoryData = methodology.categories
+    .map((category) => {
+      const subcategories = category.subcategories
+        .map((sub) => ({
+          id: sub.id.toString(),
+          name: sub.name,
+          subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
+        }))
+        .filter((sub) => sub.subtotal > 0);
 
-    const categorySubtotal = subcategories.reduce(
-      (sum, sub) => sum + sub.subtotal,
-      0
-    );
+      const categorySubtotal = subcategories.reduce(
+        (sum, sub) => sum + sub.subtotal,
+        0
+      );
 
-    return {
-      id: category.id.toString(),
-      name: category.name,
-      synonyms: category.synonyms,
-      position: category.position,
-      subtotal: categorySubtotal,
-      subcategories,
-    };
-  });
+      return {
+        id: category.id.toString(),
+        name: category.name,
+        synonyms: category.synonyms,
+        position: category.position,
+        subtotal: categorySubtotal,
+        subcategories,
+      };
+    });
 
   const totalEmissions = categoryData.reduce(
     (sum, cat) => sum + cat.subtotal,
