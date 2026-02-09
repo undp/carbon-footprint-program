@@ -29,7 +29,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
           Plan de reducción sugerido
         </Typography>
 
-        {existsPlan && (
+        {mainGoal != null && mainGoal !== "" && (
           <Box
             className="flex w-full items-center justify-center rounded px-2 py-4"
             sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
@@ -40,9 +40,9 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
           </Box>
         )}
 
-        {existsPlan && (
+        {Array.isArray(actions) && actions.length > 0 && (
           <Box component="ul" className="m-0 flex flex-col gap-2 p-0">
-            {actions?.map((action, index) => (
+            {actions.map((action, index) => (
               <Box
                 component="li"
                 key={index}
