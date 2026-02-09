@@ -49,7 +49,7 @@ export const RankingRow: FC<RankingRowProps> = ({
   const colors = getSeverityColors(item.severity, theme);
 
   return (
-    <Box className="flex items-center justify-between pr-2">
+    <Box className="flex items-center justify-between gap-2 pr-2">
       <Box className="flex items-center gap-2">
         <Avatar
           sx={{
@@ -73,7 +73,7 @@ export const RankingRow: FC<RankingRowProps> = ({
       </Box>
       <Box
         className="flex size-8 shrink-0 items-center justify-center rounded"
-        sx={{ backgroundColor: colors.bg }}
+        sx={{ backgroundColor: colors.bg, px: 2.5 }}
       >
         <Typography
           variant="caption"
