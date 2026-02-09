@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { IdSchema } from "../zod.js";
+import { IdSchema } from "../../zod.js";
 
 // Params Schema
 export const DeleteMethodologyParamsSchema = z
@@ -15,7 +15,3 @@ export const DeleteMethodologyResponseSchema = z
     id: IdSchema.describe("The ID of the deleted methodology"),
   })
   .strict();
-
-// TypeScript Types
-export type DeleteMethodologyParams = z.infer<typeof DeleteMethodologyParamsSchema>;
-export type DeleteMethodologyResponse = z.infer<typeof DeleteMethodologyResponseSchema>;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { MethodologySchema } from "./base.js";
+import { MethodologySchema } from "../baseSchemas.js";
 
 // Request Schema
 export const CreateMethodologyRequestSchema = z
@@ -17,11 +17,3 @@ export const CreateMethodologyRequestSchema = z
 
 // Response Schema
 export const CreateMethodologyResponseSchema = MethodologySchema;
-
-// TypeScript Types
-export type CreateMethodologyRequest = z.infer<
-  typeof CreateMethodologyRequestSchema
->;
-export type CreateMethodologyResponse = z.infer<
-  typeof CreateMethodologyResponseSchema
->;

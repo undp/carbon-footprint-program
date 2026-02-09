@@ -58,10 +58,3 @@ export const MethodologyWithRelationsSchema = MethodologySchema.extend({
     .optional()
     .describe("Number of carbon inventories using this methodology"),
 });
-
-// TypeScript Types
-export type MethodologyCountry = z.infer<typeof MethodologyCountrySchema>;
-export type Methodology = z.infer<typeof MethodologySchema>;
-export type MethodologyWithRelations = z.infer<
-  typeof MethodologyWithRelationsSchema
->;

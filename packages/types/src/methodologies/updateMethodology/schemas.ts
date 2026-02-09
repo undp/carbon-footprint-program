@@ -1,6 +1,9 @@
 import { z } from "zod";
-import { MethodologySchema, MethodologyVersionStatusSchema } from "./base.js";
-import { IdSchema } from "../zod.js";
+import {
+  MethodologySchema,
+  MethodologyVersionStatusSchema,
+} from "../baseSchemas.js";
+import { IdSchema } from "../../zod.js";
 
 // Params Schema
 export const UpdateMethodologyParamsSchema = z
@@ -30,14 +33,3 @@ export const UpdateMethodologyRequestSchema = z
 
 // Response Schema
 export const UpdateMethodologyResponseSchema = MethodologySchema;
-
-// TypeScript Types
-export type UpdateMethodologyParams = z.infer<
-  typeof UpdateMethodologyParamsSchema
->;
-export type UpdateMethodologyRequest = z.infer<
-  typeof UpdateMethodologyRequestSchema
->;
-export type UpdateMethodologyResponse = z.infer<
-  typeof UpdateMethodologyResponseSchema
->;
