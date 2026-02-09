@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetCarbonInventoryResultsResponse } from "@repo/types";
+import type {
+  GetCarbonInventoryResultsResponse,
+  OrganizationData,
+} from "@repo/types";
 import {
   distributePercentages,
   getRankingSeverity,
@@ -9,15 +12,6 @@ import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
 } from "../errors.js";
-
-type OrganizationData = {
-  name?: string | null;
-  sectorId?: string | null;
-  subsectorId?: string | null;
-  sizeId?: string | null;
-  mainActivityId?: string | null;
-  mainActivityQuantity?: number | null;
-};
 
 export const getCarbonInventoryResultsService = async (
   prismaClient: PrismaClient,
@@ -198,7 +192,7 @@ export const getCarbonInventoryResultsService = async (
     typeof orgData?.mainActivityQuantity === "number"
       ? orgData.mainActivityQuantity
       : null;
-  const mainActivityId = orgData?.mainActivityId ?? null;
+  const mainActivityId = (orgData?.mainActivityId as string | null) ?? null;
 
   let mainActivityEquivalence: GetCarbonInventoryResultsResponse["mainActivityEquivalence"] =
     null;
