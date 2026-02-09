@@ -1,5 +1,5 @@
 import { createPatchHandler } from "@/handlerFactory/index.js";
-import { updateMethodologyService } from "./updateMethodologyService.js";
+import { updateMethodologyService } from "./service.js";
 import type {
   UpdateMethodologyRequest,
   UpdateMethodologyResponse,

@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { duplicateMethodologyService } from "./duplicateMethodologyService.js";
+import { duplicateMethodologyService } from "./service.js";
 import type { DuplicateMethodologyParams } from "@repo/types";
 
 export const duplicateMethodologyHandler = async (
@@ -10,8 +10,14 @@ export const duplicateMethodologyHandler = async (
   log.info({ methodologyId: request.params.id }, "Duplicating methodology...");
 
   const prisma = request.server.prisma;
-  const methodology = await duplicateMethodologyService(prisma, request.params.id);
+  const methodology = await duplicateMethodologyService(
+    prisma,
+    request.params.id
+  );
 
-  log.info({ methodologyId: methodology.id }, "Methodology duplicated successfully");
+  log.info(
+    { methodologyId: methodology.id },
+    "Methodology duplicated successfully"
+  );
   return reply.status(201).send(methodology);
 };

@@ -1,5 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { deleteMethodologyHandler } from "./deleteMethodologyHandler.js";
+import { deleteMethodologyHandler } from "./handler.js";
 import {
   DeleteMethodologyParamsSchema,
   DeleteMethodologyResponseSchema,
@@ -16,7 +16,8 @@ export const deleteMethodologyRoute = (fastify: FastifyZodInstance) => {
       schema: {
         tags: ["methodologies"],
         summary: "Delete a methodology",
-        description: "Soft delete a methodology by setting its status to DELETED",
+        description:
+          "Soft delete a methodology by setting its status to DELETED",
         params: DeleteMethodologyParamsSchema,
         response: {
           200: DeleteMethodologyResponseSchema,

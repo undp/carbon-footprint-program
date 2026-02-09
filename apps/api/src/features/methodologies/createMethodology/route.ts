@@ -1,5 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { createMethodologyHandler } from "./createMethodologyHandler.js";
+import { createMethodologyHandler } from "./handler.js";
 import {
   CreateMethodologyRequestSchema,
   CreateMethodologyResponseSchema,

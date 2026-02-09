@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { deleteMethodologyService } from "./deleteMethodologyService.js";
+import { deleteMethodologyService } from "./service.js";
 import type { DeleteMethodologyParams } from "@repo/types";
 
 export const deleteMethodologyHandler = async (

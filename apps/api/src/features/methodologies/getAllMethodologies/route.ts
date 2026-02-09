@@ -1,5 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { getAllMethodologiesHandler } from "./getAllMethodologiesHandler.js";
+import { getAllMethodologiesHandler } from "./handler.js";
 import { GetAllMethodologiesResponseSchema } from "@repo/types";
 
 export const getAllMethodologiesRoute = (fastify: FastifyZodInstance) => {
