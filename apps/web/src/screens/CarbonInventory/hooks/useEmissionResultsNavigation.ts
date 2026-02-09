@@ -13,7 +13,7 @@ export const useEmissionResultsNavigation = (inventoryId: string) => {
 
   const goToList = () => {
     void navigate({
-      to: Routes.CARBON_INVENTORY,
+      to: Routes.CARBON_INVENTORIES,
     });
   };
 
