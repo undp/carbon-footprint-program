@@ -7,6 +7,8 @@ export const Routes = {
   CARBON_INVENTORY_EMISSION_CAPTURE:
     "/app/carbon-inventory/$inventoryId/emission-capture",
   CARBON_INVENTORIES: "/app/carbon-inventories",
+  CARBON_INVENTORY_EMISSION_RESULTS:
+    "/app/carbon-inventory/$inventoryId/emission-results",
   HOME: "/app/home",
   MY_ORGANIZATION: "/app/my-organization",
   CARBON_INVENTORY: "/app/carbon-inventory",

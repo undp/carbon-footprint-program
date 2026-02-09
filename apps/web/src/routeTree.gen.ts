@@ -23,6 +23,7 @@ import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
 import { Route as AppUserFormRouteImport } from './routes/app/user/form'
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
+import { Route as AppCarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-results'
 import { Route as AppCarbonInventoryInventoryIdEmissionCaptureRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-capture'
 import { Route as AppCarbonInventoryInventoryIdBusinessProfilingRouteImport } from './routes/app/carbon-inventory/$inventoryId/business-profiling'
 
@@ -97,6 +98,12 @@ const AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute =
     path: '/$inventoryId/subcategory-preselection',
     getParentRoute: () => AppCarbonInventoryRoute,
   } as any)
+const AppCarbonInventoryInventoryIdEmissionResultsRoute =
+  AppCarbonInventoryInventoryIdEmissionResultsRouteImport.update({
+    id: '/$inventoryId/emission-results',
+    path: '/$inventoryId/emission-results',
+    getParentRoute: () => AppCarbonInventoryRoute,
+  } as any)
 const AppCarbonInventoryInventoryIdEmissionCaptureRoute =
   AppCarbonInventoryInventoryIdEmissionCaptureRouteImport.update({
     id: '/$inventoryId/emission-capture',
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   '/app/carbon-inventory/$inventoryId/emission-capture': typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
+  '/app/carbon-inventory/$inventoryId/emission-results': typeof AppCarbonInventoryInventoryIdEmissionResultsRoute
   '/app/carbon-inventory/$inventoryId/subcategory-preselection': typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
 }
 export interface FileRoutesByTo {
@@ -143,6 +151,7 @@ export interface FileRoutesByTo {
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   '/app/carbon-inventory/$inventoryId/emission-capture': typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
+  '/app/carbon-inventory/$inventoryId/emission-results': typeof AppCarbonInventoryInventoryIdEmissionResultsRoute
   '/app/carbon-inventory/$inventoryId/subcategory-preselection': typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
 }
 export interface FileRoutesById {
@@ -162,6 +171,7 @@ export interface FileRoutesById {
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   '/app/carbon-inventory/$inventoryId/emission-capture': typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
+  '/app/carbon-inventory/$inventoryId/emission-results': typeof AppCarbonInventoryInventoryIdEmissionResultsRoute
   '/app/carbon-inventory/$inventoryId/subcategory-preselection': typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
 }
 export interface FileRouteTypes {
@@ -182,6 +192,7 @@ export interface FileRouteTypes {
     | '/app/carbon-inventory/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
     | '/app/carbon-inventory/$inventoryId/emission-capture'
+    | '/app/carbon-inventory/$inventoryId/emission-results'
     | '/app/carbon-inventory/$inventoryId/subcategory-preselection'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/app/carbon-inventory'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
     | '/app/carbon-inventory/$inventoryId/emission-capture'
+    | '/app/carbon-inventory/$inventoryId/emission-results'
     | '/app/carbon-inventory/$inventoryId/subcategory-preselection'
   id:
     | '__root__'
@@ -217,6 +229,7 @@ export interface FileRouteTypes {
     | '/app/carbon-inventory/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
     | '/app/carbon-inventory/$inventoryId/emission-capture'
+    | '/app/carbon-inventory/$inventoryId/emission-results'
     | '/app/carbon-inventory/$inventoryId/subcategory-preselection'
   fileRoutesById: FileRoutesById
 }
@@ -335,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport
       parentRoute: typeof AppCarbonInventoryRoute
     }
+    '/app/carbon-inventory/$inventoryId/emission-results': {
+      id: '/app/carbon-inventory/$inventoryId/emission-results'
+      path: '/$inventoryId/emission-results'
+      fullPath: '/app/carbon-inventory/$inventoryId/emission-results'
+      preLoaderRoute: typeof AppCarbonInventoryInventoryIdEmissionResultsRouteImport
+      parentRoute: typeof AppCarbonInventoryRoute
+    }
     '/app/carbon-inventory/$inventoryId/emission-capture': {
       id: '/app/carbon-inventory/$inventoryId/emission-capture'
       path: '/$inventoryId/emission-capture'
@@ -356,6 +376,7 @@ interface AppCarbonInventoryRouteChildren {
   AppCarbonInventoryIndexRoute: typeof AppCarbonInventoryIndexRoute
   AppCarbonInventoryInventoryIdBusinessProfilingRoute: typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
   AppCarbonInventoryInventoryIdEmissionCaptureRoute: typeof AppCarbonInventoryInventoryIdEmissionCaptureRoute
+  AppCarbonInventoryInventoryIdEmissionResultsRoute: typeof AppCarbonInventoryInventoryIdEmissionResultsRoute
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute: typeof AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute
 }
 
@@ -365,6 +386,8 @@ const AppCarbonInventoryRouteChildren: AppCarbonInventoryRouteChildren = {
     AppCarbonInventoryInventoryIdBusinessProfilingRoute,
   AppCarbonInventoryInventoryIdEmissionCaptureRoute:
     AppCarbonInventoryInventoryIdEmissionCaptureRoute,
+  AppCarbonInventoryInventoryIdEmissionResultsRoute:
+    AppCarbonInventoryInventoryIdEmissionResultsRoute,
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute:
     AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute,
 }

@@ -32,6 +32,10 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
           queryKey: carbonInventoryKeys.detail(inventoryId),
           exact: true,
         }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.results(inventoryId),
+          exact: true,
+        }),
       ]);
     },
   });

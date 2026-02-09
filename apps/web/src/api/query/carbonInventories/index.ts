@@ -6,3 +6,4 @@ export * from "./useCarbonInventoriesAvailableYears";
 export * from "./methodologies";
 export * from "./subcategories";
 export * from "./lines";
+export * from "./useEmissionResults";

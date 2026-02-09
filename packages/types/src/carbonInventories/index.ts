@@ -22,3 +22,5 @@ export * from "./syncCarbonInventoryLines/schemas.js";
 export * from "./syncCarbonInventoryLines/types.js";
 export * from "./getAvailableYears/schemas.js";
 export * from "./getAvailableYears/types.js";
+export * from "./getCarbonInventoryResults/schemas.js";
+export * from "./getCarbonInventoryResults/types.js";
