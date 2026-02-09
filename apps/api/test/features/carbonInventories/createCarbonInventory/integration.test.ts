@@ -338,7 +338,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       // Temporarily change all active methodologies to DELETED
       const activeMethodologies = await prisma.methodologyVersion.findMany({
         where: {
-          status: MethodologyVersionStatus.ACTIVE,
+          status: MethodologyVersionStatus.PUBLISHED,
         },
       });
 
@@ -351,7 +351,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       // Update all active methodologies to DELETED
       await prisma.methodologyVersion.updateMany({
         where: {
-          status: MethodologyVersionStatus.ACTIVE,
+          status: MethodologyVersionStatus.PUBLISHED,
         },
         data: {
           status: MethodologyVersionStatus.DELETED,

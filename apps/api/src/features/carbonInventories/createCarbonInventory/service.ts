@@ -11,10 +11,10 @@ export const createCarbonInventoryService = async (
   prismaClient: PrismaClient,
   data: CreateCarbonInventoryRequest
 ): Promise<CreateCarbonInventoryResponse> => {
-  // Find the first methodology version with status MethodologyVersionStatus.ACTIVE
+  // Find the first methodology version with status MethodologyVersionStatus.PUBLISHED
   const availableMethodology = await prismaClient.methodologyVersion.findFirst({
     where: {
-      status: MethodologyVersionStatus.ACTIVE,
+      status: MethodologyVersionStatus.PUBLISHED,
     },
     orderBy: {
       id: "asc",
