@@ -37,7 +37,7 @@ export function StyledToggleButtonGroup<T extends string>({
             color: theme.palette.primary.main,
           },
         },
-        "& .Mui-selected": {
+        "& .MuiToggleButton-root.Mui-selected": {
           backgroundColor: theme.palette.primary.main,
           color: theme.palette.common.white,
           "&:hover": {
