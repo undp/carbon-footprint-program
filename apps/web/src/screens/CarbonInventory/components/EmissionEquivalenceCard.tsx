@@ -2,10 +2,11 @@ import { FC } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
+import { EmptyStateMessage } from "./EmptyStateMessage";
 
 interface EmissionEquivalenceCardProps {
-  value: string;
-  unit: string;
+  value: string | null;
+  unit: string | null;
 }
 
 export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
@@ -14,6 +15,8 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
 }) => {
   const theme = useTheme();
 
+  const exists = value !== null && unit !== null;
+
   const gradient = `linear-gradient(90deg, ${alpha(
     theme.palette.common.brightGreen,
     0.2
@@ -21,7 +24,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
 
   return (
     <Box
-      className="relative flex h-full w-full flex-col items-start overflow-hidden rounded-lg p-4"
+      className="relative flex h-full w-full flex-col items-start gap-4 overflow-hidden rounded-lg p-4"
       sx={{ background: gradient }}
     >
       <Typography
@@ -32,26 +35,38 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         Tu huella de carbono equivale
       </Typography>
 
-      <Box className="flex w-full flex-1 flex-col justify-center pb-3">
-        <Typography
-          variant="h2"
-          fontWeight="fontWeightBold"
-          sx={{ color: theme.palette.primary.main }}
-        >
-          {value}
-        </Typography>
-        <Typography
-          variant="body1"
-          fontWeight="fontWeightBold"
-          sx={{ color: theme.palette.primary.main }}
-        >
-          {unit}
-        </Typography>
-      </Box>
+      {exists && (
+        <Box className="flex w-full flex-1 flex-col justify-center pb-3">
+          <Typography
+            variant="h2"
+            fontWeight="fontWeightBold"
+            sx={{ color: theme.palette.primary.main }}
+          >
+            {value}
+          </Typography>
+          <Typography
+            variant="body1"
+            fontWeight="fontWeightBold"
+            sx={{ color: theme.palette.primary.main }}
+          >
+            {unit}
+          </Typography>
+        </Box>
+      )}
+      {!exists && (
+        <EmptyStateMessage
+          color="primary"
+          message={
+            "Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu empresa"
+          }
+        />
+      )}
 
-      <EmissionResultsScreenTrashIcon
-        sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
-      />
+      {exists && (
+        <EmissionResultsScreenTrashIcon
+          sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
+        />
+      )}
     </Box>
   );
 };
