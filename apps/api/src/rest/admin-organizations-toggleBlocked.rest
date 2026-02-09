@@ -1,0 +1,11 @@
+@baseUrl = http://localhost:8080
+@organizationId = 1
+
+### Block an organization (NOT_ACCREDITED -> BLOCKED)
+PATCH {{baseUrl}}/api/admin/organizations/{{organizationId}}/blocked HTTP/1.1
+
+### Unblock an organization (BLOCKED -> NOT_ACCREDITED or ACCREDITED)
+PATCH {{baseUrl}}/api/admin/organizations/{{organizationId}}/blocked HTTP/1.1
+
+### Toggle blocked - Non-existent organization (should return 404)
+PATCH {{baseUrl}}/api/admin/organizations/999999/blocked HTTP/1.1
