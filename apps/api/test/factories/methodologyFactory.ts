@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import { MethodologyVersionStatus, PrismaClient } from "@repo/database";
 
 /**
  * Gets the first methodology version from the database
@@ -49,6 +49,9 @@ export async function createEmptyMethodologyVersion(
   options?: {
     name?: string;
     description?: string;
+    regulation?: string;
+    version?: string;
+    status?: MethodologyVersionStatus;
   }
 ): Promise<{ id: bigint }> {
   const countryId = await getTestCountryId(prisma);
@@ -65,6 +68,9 @@ export async function createEmptyMethodologyVersion(
       description:
         options?.description ??
         "A methodology with no subcategories for testing purposes",
+      regulation: options?.regulation ?? "Test Regulation",
+      version: options?.version ?? "1.0",
+      status: options?.status ?? MethodologyVersionStatus.PUBLISHED,
     },
     select: { id: true },
   });

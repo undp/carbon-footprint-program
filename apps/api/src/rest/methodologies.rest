@@ -1,0 +1,73 @@
+@baseUrl = http://localhost:8080
+
+### Get All Methodologies
+GET {{baseUrl}}/api/methodologies HTTP/1.1
+
+
+### Create Methodology
+POST {{baseUrl}}/api/methodologies HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "GHG Protocol 2024",
+    "description": "Greenhouse Gas Protocol methodology for corporate accounting",
+    "regulation": "ISO 14064-1",
+    "version": "1.0"
+}
+
+
+### Update Methodology - Update Name
+PATCH {{baseUrl}}/api/methodologies/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "GHG Protocol 2024 Updated"
+}
+
+
+### Update Methodology - Update Description
+PATCH {{baseUrl}}/api/methodologies/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "description": "Updated description for methodology"
+}
+
+
+### Update Methodology - Publish
+PATCH {{baseUrl}}/api/methodologies/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "status": "PUBLISHED"
+}
+
+
+### Update Methodology - Unpublish
+PATCH {{baseUrl}}/api/methodologies/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "status": "UNPUBLISHED"
+}
+
+
+### Update Methodology - Update All Fields
+PATCH {{baseUrl}}/api/methodologies/1 HTTP/1.1
+Content-Type: application/json
+
+{
+    "name": "GHG Protocol 2025",
+    "description": "Fully updated methodology",
+    "regulation": "ISO 14064-1:2025",
+    "version": "2.0",
+    "status": "UNPUBLISHED"
+}
+
+
+### Delete Methodology
+DELETE {{baseUrl}}/api/methodologies/1 HTTP/1.1
+
+
+### Duplicate Methodology
+POST {{baseUrl}}/api/methodologies/1/duplicate HTTP/1.1
