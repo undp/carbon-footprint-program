@@ -1,103 +1,19 @@
 import { FC } from "react";
-import { Avatar, Box, Typography, alpha } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout } from "./layout";
 import { StepHeader } from "./components/StepHeader";
 import {
-  EmissionSummaryCard,
+  EmissionCategorySummary,
   EmissionEquivalenceCard,
   EmissionsPieChart,
   EmissionRankingCard,
   ReductionPlanCard,
 } from "./components";
-import {
-  DirectEmissionCategoryIcon,
-  IndirectEmissionCategoryIcon,
-  OthersCategoryIcon,
-} from "@/icons";
 import { Routes } from "@/interfaces";
 import { useEmissionResults } from "@/api/query";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
-import { ArrowRightAltRounded, BarChartOutlined } from "@mui/icons-material";
-import type { GetCarbonInventoryResultsResponse } from "@repo/types";
-
-type CategoryResult = GetCarbonInventoryResultsResponse["categories"][number];
-
-const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
-  1: DirectEmissionCategoryIcon,
-  2: IndirectEmissionCategoryIcon,
-  3: OthersCategoryIcon,
-};
-
-const formatEmissions = (value: number): string =>
-  `${value.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}  tCO₂e`;
-
-const formatPercentage = (value: number): string =>
-  `${(value * 100).toFixed(1).replace(".", ",")}%`;
-
-function TotalEmissionsCard({ totalEmissions }: { totalEmissions: number }) {
-  const theme = useTheme();
-  return (
-    <Box
-      className="flex h-full items-center justify-between rounded-lg p-3"
-      sx={{ backgroundColor: alpha(theme.palette.common.deepForest, 0.1) }}
-    >
-      <Box className="flex items-center gap-2">
-        <Avatar
-          sx={{
-            width: 32,
-            height: 32,
-            backgroundColor: alpha(theme.palette.common.deepForest, 0.1),
-          }}
-        >
-          <BarChartOutlined color="disabled" />
-        </Avatar>
-        <Typography
-          variant="body1"
-          fontWeight="fontWeightSemiBold"
-          sx={{ color: theme.palette.common.deepForest }}
-        >
-          Total emisiones
-        </Typography>
-      </Box>
-      <Typography
-        variant="body1"
-        fontWeight="fontWeightSemiBold"
-        sx={{ color: theme.palette.common.deepForest }}
-      >
-        {formatEmissions(totalEmissions)}
-      </Typography>
-    </Box>
-  );
-}
-
-function CategoryEmissionCard({ category }: { category: CategoryResult }) {
-  const theme = useTheme();
-  const catKey = Math.min(category.position, 3) as 1 | 2 | 3;
-  const Icon = CATEGORY_ICONS[catKey] ?? OthersCategoryIcon;
-
-  return (
-    <EmissionSummaryCard
-      icon={
-        <Icon
-          sx={{
-            fill: theme.palette.category[catKey].dark,
-            width: "100%",
-            height: "100%",
-          }}
-        />
-      }
-      title={`${category.name}:`}
-      subtitle={category.synonyms ?? `Categoría ${category.position}`}
-      value={formatEmissions(category.subtotal)}
-      percentage={formatPercentage(category.percentage)}
-      backgroundColor={theme.palette.category[catKey].light}
-      textColor={theme.palette.category[catKey].dark}
-      iconColor={theme.palette.category[catKey].main}
-    />
-  );
-}
+import { ArrowRightAltRounded } from "@mui/icons-material";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -156,22 +72,16 @@ export const EmissionResultsScreen: FC = () => {
             <Box className="flex min-h-0 flex-1 flex-row gap-4">
               {/* Emission category cards */}
               <Box className="flex min-h-0 flex-3 flex-col gap-3 overflow-y-auto">
-                <TotalEmissionsCard totalEmissions={totalEmissions} />
-                {categories.map((category) => (
-                  <CategoryEmissionCard key={category.id} category={category} />
-                ))}
+                <EmissionCategorySummary
+                  totalEmissions={totalEmissions}
+                  categories={categories}
+                />
               </Box>
               <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
                 <EmissionEquivalenceCard
-                  value={
-                    equivalence
-                      ? equivalence.rate.toFixed(2).replace(".", ",")
-                      : "—"
-                  }
+                  value={equivalence?.rate.toFixed(2).replace(".", ",") ?? null}
                   unit={
-                    equivalence
-                      ? `kg CO₂e/${equivalence.activityName}`
-                      : "kg CO₂e/unidad"
+                    equivalence ? `kg CO₂e/${equivalence.activityName}` : null
                   }
                 />
               </Box>
@@ -205,9 +115,8 @@ export const EmissionResultsScreen: FC = () => {
           {/* Right container: reduction plan */}
           <Box className="flex min-h-0 flex-1">
             <ReductionPlanCard
-              title="Plan de reducción sugerido"
-              mainGoal={reductionPlan?.summary ?? ""}
-              actions={reductionPlan?.items ?? []}
+              mainGoal={reductionPlan?.summary ?? null}
+              actions={reductionPlan?.items ?? null}
               // TODO: implement navigation to full reduction plan
               onViewFullPlan={() => {}}
             />
