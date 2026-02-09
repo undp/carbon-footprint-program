@@ -268,8 +268,9 @@ export const CarbonInventoriesScreen: FC = () => {
       <Box className="flex flex-1 flex-col gap-6">
         {/* Header */}
         <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
-          <Typography variant="body1" fontWeight={600}>
-            TODO: USAR NOMBRE ORGANIZACIONAL
+          <Typography variant="h5" fontWeight={600}>
+            {/* TODO: Replace with organization name */}
+            Huella Organizacional
           </Typography>
           <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
             <InputLabel id="year-select-label">Año</InputLabel>
