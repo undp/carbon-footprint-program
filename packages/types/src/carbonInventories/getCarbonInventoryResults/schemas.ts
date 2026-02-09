@@ -70,7 +70,9 @@ export const GetCarbonInventoryResultsResponseSchema = z
         summary: z.string(),
         items: z.array(z.string()),
       })
-      .strict(),
+      .strict()
+      .nullable()
+      .describe("Null if no reduction plan is available"),
     subcategoriesRanking: z
       .object({
         own: z
