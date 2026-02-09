@@ -1,0 +1,49 @@
+@baseUrl = http://localhost:8080
+
+### Get All Organizations - All statuses
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED&statuses=NOT_ACCREDITED&statuses=BLOCKED HTTP/1.1
+
+### Get All Organizations - Comma-separated statuses
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED HTTP/1.1
+
+### Get All Organizations - Only ACCREDITED
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED HTTP/1.1
+
+### Get All Organizations - Only NOT_ACCREDITED
+GET {{baseUrl}}/api/admin/organizations?statuses=NOT_ACCREDITED HTTP/1.1
+
+### Get All Organizations - Only BLOCKED
+GET {{baseUrl}}/api/admin/organizations?statuses=BLOCKED HTTP/1.1
+
+### Get All Organizations - Multiple statuses (repeated params)
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED&statuses=BLOCKED HTTP/1.1
+
+### Get All Organizations - With pagination (page 1, 5 per page)
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&limit=5&offset=0 HTTP/1.1
+
+### Get All Organizations - With pagination (page 2, 5 per page)
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&limit=5&offset=5 HTTP/1.1
+
+### Get All Organizations - With pagination (limit 1 to test hasNext/hasPrev)
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&limit=1&offset=1 HTTP/1.1
+
+### Get All Organizations - Sorted by emissions descending
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&sortBy=emissions&sortOrder=desc HTTP/1.1
+
+### Get All Organizations - Sorted by lastEdition descending
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&sortBy=lastEdition&sortOrder=desc HTTP/1.1
+
+### Get All Organizations - Sorted by status ascending (default order)
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&sortBy=status HTTP/1.1
+
+### Get All Organizations - Sorted by name descending with pagination
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&sortBy=name&sortOrder=desc&limit=5&offset=0 HTTP/1.1
+
+### Get All Organizations - Invalid sortBy (should return 400)
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED,NOT_ACCREDITED,BLOCKED&sortBy=invalidField HTTP/1.1
+
+### Get All Organizations - Invalid status (should return 400)
+GET {{baseUrl}}/api/admin/organizations?statuses=INVALID HTTP/1.1
+
+### Get All Organizations - Missing statuses (should return 400)
+GET {{baseUrl}}/api/admin/organizations HTTP/1.1
