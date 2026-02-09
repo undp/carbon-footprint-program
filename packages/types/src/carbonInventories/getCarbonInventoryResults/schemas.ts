@@ -13,7 +13,7 @@ const SubcategoryResultSchema = z
       .min(0)
       .max(1)
       .describe(
-        "The percentage as a 4-decimal float between 0 and 1, relative to category subtotal"
+        "The percentage as a 3-decimal float between 0 and 1, relative to category subtotal"
       ),
   })
   .strict();
@@ -30,7 +30,7 @@ const CategoryResultSchema = z
       .min(0)
       .max(1)
       .describe(
-        "The percentage as a 4-decimal float between 0 and 1, relative to total emissions"
+        "The percentage as a 3-decimal float between 0 and 1, relative to total emissions"
       ),
     subcategories: z
       .array(SubcategoryResultSchema)
@@ -49,7 +49,7 @@ const RankingItemSchema = z
       .min(0)
       .max(1)
       .describe(
-        "The percentage as a 4-decimal float between 0 and 1, relative to total emissions"
+        "The percentage as a 3-decimal float between 0 and 1, relative to total emissions"
       ),
     severity: RankingSeveritySchema.describe(
       "Severity level: HIGH for position 1, MEDIUM for positions 2-4, LOW for the rest"

@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryResultsResponse } from "@repo/types";
-import { distributePercentages, getRankingSeverity } from "./helpers.js";
+import { distributePercentages, getRankingSeverity, roundEmissions } from "./helpers.js";
 import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
@@ -127,12 +127,12 @@ export const getCarbonInventoryResultsService = async (
       name: category.name,
       synonyms: category.synonyms,
       position: category.position,
-      subtotal: category.subtotal,
+      subtotal: roundEmissions(category.subtotal),
       percentage: categoryPercentages[catIdx],
       subcategories: category.subcategories.map((sub, subIdx) => ({
         id: sub.id,
         name: sub.name,
-        subtotal: sub.subtotal,
+        subtotal: roundEmissions(sub.subtotal),
         percentage: subPercentages[subIdx],
       })),
     };
@@ -178,7 +178,7 @@ export const getCarbonInventoryResultsService = async (
     position: positions[idx],
     name: item.name,
     categoryId: item.categoryId,
-    subtotal: item.subtotal,
+    subtotal: roundEmissions(item.subtotal),
     percentage: rankingPercentages[idx],
     severity: getRankingSeverity(rankingPercentages[idx]),
   }));
@@ -212,7 +212,7 @@ export const getCarbonInventoryResultsService = async (
     const rate = totalEmissions / mainActivityQuantity;
 
     mainActivityEquivalence = {
-      rate: Math.round(rate * 100) / 100,
+      rate: roundEmissions(rate),
       activityName: mainActivity?.name ?? "actividad principal",
     };
   }
@@ -236,7 +236,7 @@ export const getCarbonInventoryResultsService = async (
       id: inventory.id.toString(),
       name: inventory.name,
     },
-    totalEmissions,
+    totalEmissions: roundEmissions(totalEmissions),
     categories,
     suggestedReductionPlan,
     subcategoriesRanking,
