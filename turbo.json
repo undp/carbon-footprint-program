@@ -16,7 +16,8 @@
     "JWKS_ISSUER",
     "JWKS_AUDIENCE",
     "DEV",
-    "IS_DEMO_APP"
+    "IS_DEMO_APP",
+    "APP_VERSION"
   ],
   "tasks": {
     "clean": {

@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Divider, Drawer, List, Toolbar } from "@mui/material";
+import { Divider, Drawer, List, Toolbar, Typography } from "@mui/material";
 import {
   HomeOutlined,
   Business,
@@ -19,6 +19,7 @@ import {
 } from "@/interfaces";
 import { UserMenu } from "./UserMenu";
 import { SIDEBAR_WIDTH } from "@/config/constants";
+import { APP_VERSION } from "@/config/environment";
 
 const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.HOME]: <HomeOutlined />,
@@ -85,6 +86,14 @@ export const Sidebar: FC = () => {
           />
         ))}
       </List>
+
+      <Typography
+        variant="caption"
+        color="text.disabled"
+        sx={{ mt: "auto", px: 1, textAlign: "center" }}
+      >
+        {APP_VERSION}
+      </Typography>
 
       <UserMenu />
     </Drawer>

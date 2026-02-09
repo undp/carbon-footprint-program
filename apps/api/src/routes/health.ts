@@ -1,4 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
+import { APP_VERSION } from "@/config/environment.js";
 
 /**
  * Health check endpoint for monitoring and load balancers
@@ -7,6 +8,7 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
   fastify.get("/health", async (_request, reply) => {
     const timestamp = new Date().toISOString();
     const uptime = process.uptime();
+    const version = APP_VERSION ?? "unknown";
 
     // Check if Prisma is connected by doing a simple query
     try {
@@ -15,6 +17,7 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
         fastify.log.error("Health check failed - Prisma not configured");
         return reply.status(503).send({
           status: "degraded",
+          version,
           timestamp,
           uptime,
           database: "not configured",
@@ -27,6 +30,7 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
 
       return reply.status(200).send({
         status: "ok",
+        version,
         timestamp,
         uptime,
         database: "connected",
@@ -40,6 +44,7 @@ export default function healthRoutes(fastify: FastifyZodInstance) {
 
       return reply.status(503).send({
         status: "degraded",
+        version,
         timestamp,
         uptime,
         database: "disconnected",

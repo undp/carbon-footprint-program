@@ -133,3 +133,5 @@ export const AUTH_PROVIDER: AuthProviderType = (() => {
 
 export const FORCED_USER_EMAIL_WHEN_NO_PROVIDER =
   process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
+
+export const APP_VERSION = process.env.APP_VERSION || "unknown";
