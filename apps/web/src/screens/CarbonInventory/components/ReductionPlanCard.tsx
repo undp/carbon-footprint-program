@@ -67,7 +67,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         <Button
           variant="text"
           onClick={onViewFullPlan}
-          endIcon={<AutoAwesome sx={{ color: "#63E4CF" }} />}
+          endIcon={<AutoAwesome sx={{ color: theme.palette.other.fluor }} />}
           className="gap-4 self-center"
           sx={{ textTransform: "none" }}
         >
