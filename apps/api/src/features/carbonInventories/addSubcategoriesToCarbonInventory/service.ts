@@ -3,23 +3,18 @@ import {
   type AddSubcategoriesToCarbonInventoryResponse,
   CarbonInventoryLineStatus,
 } from "@repo/types";
-
-export type AddSubcategoriesToCarbonInventoryResult =
-  | { success: true; data: AddSubcategoriesToCarbonInventoryResponse }
-  | {
-      success: false;
-      error:
-        | "CARBON_INVENTORY_NOT_FOUND"
-        | "METHODOLOGY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_IN_METHODOLOGY";
-    };
+import {
+  CarbonInventoryNotFoundError,
+  MethodologyNotFoundError,
+  SubcategoryNotFoundError,
+  SubcategoryNotInMethodologyError,
+} from "../errors.js";
 
 export const addSubcategoriesToCarbonInventoryService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
   subcategoryIds: bigint[]
-): Promise<AddSubcategoriesToCarbonInventoryResult> => {
+): Promise<AddSubcategoriesToCarbonInventoryResponse> => {
   // First, get the carbon inventory to find its methodologyVersionId
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: {
@@ -31,11 +26,11 @@ export const addSubcategoriesToCarbonInventoryService = async (
   });
 
   if (!carbonInventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
+    throw new CarbonInventoryNotFoundError(carbonInventoryId);
   }
 
   if (!carbonInventory.methodologyVersionId) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
+    throw new MethodologyNotFoundError(carbonInventoryId);
   }
 
   // Fetch all subcategories with category for validation
@@ -57,7 +52,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
   // Validate all subcategories exist
   if (subcategories.length !== subcategoryIds.length) {
     // Return error for missing subcategory
-    return { success: false, error: "SUBCATEGORY_NOT_FOUND" };
+    throw new SubcategoryNotFoundError();
   }
 
   // Validate all subcategories belong to the same methodology
@@ -66,7 +61,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
       subcategory.category.methodologyVersionId !==
       carbonInventory.methodologyVersionId
     ) {
-      return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
+      throw new SubcategoryNotInMethodologyError();
     }
   }
 
@@ -97,11 +92,8 @@ export const addSubcategoriesToCarbonInventoryService = async (
   // Early return if there's nothing to insert
   if (subcategoryIdsToCreate.length === 0) {
     return {
-      success: true,
-      data: {
-        added: 0,
-        skipped: subcategoryIds.length,
-      },
+      added: 0,
+      skipped: subcategoryIds.length,
     };
   }
 
@@ -118,10 +110,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
   });
 
   return {
-    success: true,
-    data: {
-      added: subcategoryIdsToCreate.length,
-      skipped: subcategoryIds.length - subcategoryIdsToCreate.length,
-    },
+    added: subcategoryIdsToCreate.length,
+    skipped: subcategoryIds.length - subcategoryIdsToCreate.length,
   };
 };

@@ -1,10 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { createUserHandler } from "./handler.js";
 import { CreateUserBodySchema, CreateUserResponseSchema } from "@repo/types";
-import {
-  StructuredErrorResponseSchema,
-  ValidationErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const createUserRoute = (fastify: FastifyZodInstance) => {
   fastify.post(
@@ -17,9 +14,9 @@ export const createUserRoute = (fastify: FastifyZodInstance) => {
         body: CreateUserBodySchema,
         response: {
           201: CreateUserResponseSchema,
-          400: ValidationErrorResponseSchema,
-          409: StructuredErrorResponseSchema,
-          422: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
+          422: ApiErrorResponseSchema,
         },
       },
     },

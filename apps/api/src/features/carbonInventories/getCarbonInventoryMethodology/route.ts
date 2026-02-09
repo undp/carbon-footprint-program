@@ -4,7 +4,7 @@ import {
   IdSchema,
   GetCarbonInventoryMethodologyResponseSchema,
 } from "@repo/types";
-import { NotFoundErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const ParamsSchema = z.object({
@@ -25,7 +25,7 @@ export const getCarbonInventoryMethodologyRoute = (
         params: ParamsSchema,
         response: {
           200: GetCarbonInventoryMethodologyResponseSchema,
-          404: NotFoundErrorResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },

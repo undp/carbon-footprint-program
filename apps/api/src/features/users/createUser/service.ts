@@ -7,6 +7,7 @@ import {
   InvalidCountryJobPositionIdError,
   getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
+import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 export const createUserService = async (
   prismaClient: PrismaClient,
@@ -42,7 +43,7 @@ export const createUserService = async (
           throw new EmailAlreadyInUseError();
         }
         // Fallback for other unique constraint violations
-        throw new Error("Unhandled unique constraint violation");
+        throw new DatabaseUniqueConstraintViolationError();
       }
       if (error.code === "P2003") {
         // Foreign key constraint violation

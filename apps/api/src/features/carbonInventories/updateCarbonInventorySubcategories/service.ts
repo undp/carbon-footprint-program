@@ -6,24 +6,25 @@ import {
 } from "@repo/types";
 import { groupBy } from "lodash-es";
 import { isCarbonInventoryLineEdited } from "../utils.js";
+import createError from "@fastify/error";
+import {
+  CarbonInventoryNotFoundError,
+  MethodologyNotFoundError,
+  SubcategoryNotFoundError,
+  SubcategoryNotInMethodologyError,
+} from "../errors.js";
 
-export type UpdateCarbonInventorySubcategoriesResult =
-  | { success: true; data: UpdateCarbonInventorySubcategoriesResponse }
-  | {
-      success: false;
-      error:
-        | "CARBON_INVENTORY_NOT_FOUND"
-        | "METHODOLOGY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_IN_METHODOLOGY"
-        | "SUBCATEGORY_HAS_NON_EMPTY_LINES";
-    };
+const SubcategoryHasNonEmptyLinesError = createError(
+  "SUBCATEGORY_HAS_NON_EMPTY_LINES",
+  "Cannot remove subcategory with non-empty lines. Please delete or empty the lines first.",
+  422
+);
 
 export const updateCarbonInventorySubcategoriesService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
   request: UpdateCarbonInventorySubcategoriesRequest
-): Promise<UpdateCarbonInventorySubcategoriesResult> => {
+): Promise<UpdateCarbonInventorySubcategoriesResponse> => {
   // First, get the carbon inventory to find its methodologyVersionId
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: {
@@ -35,13 +36,10 @@ export const updateCarbonInventorySubcategoriesService = async (
     },
   });
 
-  if (!carbonInventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
-  }
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-  if (!carbonInventory.methodologyVersionId) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
+  if (!carbonInventory.methodologyVersionId)
+    throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Extract subcategory IDs from request
   const subcategoryIds = request.map(({ id }) => BigInt(id));
@@ -63,18 +61,16 @@ export const updateCarbonInventorySubcategoriesService = async (
   });
 
   // Validate all subcategories exist
-  if (subcategories.length !== subcategoryIds.length) {
-    return { success: false, error: "SUBCATEGORY_NOT_FOUND" };
-  }
+  if (subcategories.length !== subcategoryIds.length)
+    throw new SubcategoryNotFoundError();
 
   // Validate all subcategories belong to the same methodology
   for (const subcategory of subcategories) {
     if (
       subcategory.category.methodologyVersionId !==
       carbonInventory.methodologyVersionId
-    ) {
-      return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
-    }
+    )
+      throw new SubcategoryNotInMethodologyError();
   }
 
   // Fetch existing ACTIVE lines for these subcategories
@@ -108,9 +104,8 @@ export const updateCarbonInventorySubcategoriesService = async (
       const lines = linesBySubcategoryId[item.id] ?? [];
       // Check if ANY line is non-empty
       for (const line of lines) {
-        if (isCarbonInventoryLineEdited(line)) {
-          return { success: false, error: "SUBCATEGORY_HAS_NON_EMPTY_LINES" };
-        }
+        if (isCarbonInventoryLineEdited(line))
+          throw new SubcategoryHasNonEmptyLinesError();
       }
     }
   }
@@ -170,11 +165,8 @@ export const updateCarbonInventorySubcategoriesService = async (
   });
 
   return {
-    success: true,
-    data: {
-      added: addedCount,
-      removed: removedCount,
-      skipped: skippedCount,
-    },
+    added: addedCount,
+    removed: removedCount,
+    skipped: skippedCount,
   };
 };

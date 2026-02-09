@@ -5,20 +5,17 @@ import {
   buildRateUnitsByMagnitudeMap,
   generateConvertedEmissionFactors,
 } from "./helper.js";
+import {
+  CarbonInventoryNotFoundError,
+  MethodologyNotFoundError,
+} from "../errors.js";
 
 type JSONType = z.infer<ReturnType<typeof z.json>>;
-
-export type GetCarbonInventoryMethodologyResult =
-  | { success: true; data: GetCarbonInventoryMethodologyResponse }
-  | {
-      success: false;
-      error: "CARBON_INVENTORY_NOT_FOUND" | "METHODOLOGY_NOT_FOUND";
-    };
 
 export const getCarbonInventoryMethodologyService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint
-): Promise<GetCarbonInventoryMethodologyResult> => {
+): Promise<GetCarbonInventoryMethodologyResponse> => {
   // First, get the carbon inventory to find its methodologyVersionId
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: {
@@ -29,13 +26,10 @@ export const getCarbonInventoryMethodologyService = async (
     },
   });
 
-  if (!carbonInventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
-  }
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-  if (!carbonInventory.methodologyVersionId) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
+  if (!carbonInventory.methodologyVersionId)
+    throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Then, get the methodology with all its related data
   /*
@@ -141,50 +135,43 @@ export const getCarbonInventoryMethodologyService = async (
     },
   });
 
-  if (!methodology) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
+  if (!methodology) throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Build the rate units by magnitude map for conversion
   const rateUnitsByMagnitude = await buildRateUnitsByMagnitudeMap(prismaClient);
 
   return {
-    success: true,
-    data: {
-      ...methodology,
-      categories: methodology.categories.map((category) => ({
-        ...category,
-        id: category.id.toString(),
-        subcategories: category.subcategories.map((subcategory) => ({
-          id: subcategory.id.toString(),
-          name: subcategory.name,
-          description: subcategory.description,
-          examples: subcategory.examples,
-          dimensions: subcategory.dimensions.map((dimension) => ({
-            ...dimension,
-            id: dimension.id.toString(),
-            values: dimension.values.map((value) => ({
-              ...value,
-              id: value.id.toString(),
-              parentValueId: value.parentValueId?.toString() ?? null,
-            })),
+    ...methodology,
+    categories: methodology.categories.map((category) => ({
+      ...category,
+      id: category.id.toString(),
+      subcategories: category.subcategories.map((subcategory) => ({
+        id: subcategory.id.toString(),
+        name: subcategory.name,
+        description: subcategory.description,
+        examples: subcategory.examples,
+        dimensions: subcategory.dimensions.map((dimension) => ({
+          ...dimension,
+          id: dimension.id.toString(),
+          values: dimension.values.map((value) => ({
+            ...value,
+            id: value.id.toString(),
+            parentValueId: value.parentValueId?.toString() ?? null,
           })),
-          emissionFactors: subcategory.emissionFactors.flatMap(
-            (emissionFactor) =>
-              generateConvertedEmissionFactors(
-                emissionFactor,
-                rateUnitsByMagnitude
-              ).map((factor) => ({
-                ...factor,
-                gasDetails: factor.gasDetails as unknown as JSONType,
-              }))
-          ),
-          allowedMeasurementUnitIds:
-            subcategory.subcategoryMeasurementUnits.map((smu) =>
-              smu.measurementUnitId.toString()
-            ),
         })),
+        emissionFactors: subcategory.emissionFactors.flatMap((emissionFactor) =>
+          generateConvertedEmissionFactors(
+            emissionFactor,
+            rateUnitsByMagnitude
+          ).map((factor) => ({
+            ...factor,
+            gasDetails: factor.gasDetails as unknown as JSONType,
+          }))
+        ),
+        allowedMeasurementUnitIds: subcategory.subcategoryMeasurementUnits.map(
+          (smu) => smu.measurementUnitId.toString()
+        ),
       })),
-    },
+    })),
   };
 };

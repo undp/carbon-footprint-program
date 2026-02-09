@@ -23,7 +23,7 @@ import {
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import { getTestOrganizationId } from "@test/factories/organizationFactory.js";
 
@@ -153,7 +153,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toBeTruthy();
     });
 

@@ -1,10 +1,17 @@
-import { createGetByIdHandler } from "@/handlerFactory/index.js";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import { getCarbonInventoryByIdService } from "./service.js";
-import type { GetCarbonInventoryByIdResponse } from "@repo/types";
 
-export const getCarbonInventoryByIdHandler =
-  createGetByIdHandler<GetCarbonInventoryByIdResponse>(
-    "carbonInventories",
-    getCarbonInventoryByIdService,
-    "Carbon inventory"
-  );
+export const getCarbonInventoryByIdHandler = async (
+  request: FastifyRequest<{ Params: { id: string } }>,
+  reply: FastifyReply
+) => {
+  const log = request.log.child({ module: "carbonInventories" });
+  const { id } = request.params;
+  log.info(`Getting Carbon inventory with ID: ${id}...`);
+
+  const prisma = request.server.prisma;
+  const data = await getCarbonInventoryByIdService(prisma, id);
+
+  log.info("Carbon inventory found successfully");
+  return reply.status(200).send(data);
+};

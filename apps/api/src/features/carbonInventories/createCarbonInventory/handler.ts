@@ -12,14 +12,6 @@ export const createCarbonInventoryHandler = async (
   const prisma = request.server.prisma;
   const result = await createCarbonInventoryService(prisma, request.body);
 
-  if (!result.success) {
-    log.warn(
-      { error: result.error },
-      "Failed to create carbon inventory: no active methodology"
-    );
-    return reply.status(422).send(result.error);
-  }
-
   log.info("Carbon inventory created successfully");
-  return reply.status(201).send(result.data);
+  return reply.status(201).send(result);
 };

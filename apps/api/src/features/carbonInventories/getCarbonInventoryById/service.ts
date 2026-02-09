@@ -5,11 +5,12 @@ import {
 } from "@repo/types";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 import { map, uniq } from "lodash-es";
+import { CarbonInventoryNotFoundError } from "../errors.js";
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
   id: string
-): Promise<GetCarbonInventoryByIdResponse | null> => {
+): Promise<GetCarbonInventoryByIdResponse> => {
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: {
       id: BigInt(id),
@@ -34,7 +35,7 @@ export const getCarbonInventoryByIdService = async (
     },
   });
 
-  if (!inventory) return null;
+  if (!inventory) throw new CarbonInventoryNotFoundError(id);
 
   const subcategories = await prismaClient.subcategory.findMany({
     where: {

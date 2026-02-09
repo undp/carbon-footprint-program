@@ -4,18 +4,15 @@ import {
   CarbonInventoryLineStatus,
 } from "@repo/types";
 import { isCarbonInventoryLineEdited } from "../utils.js";
-
-export type GetCarbonInventorySubcategoriesSummaryResult =
-  | { success: true; data: GetCarbonInventorySubcategoriesSummaryResponse }
-  | {
-      success: false;
-      error: "CARBON_INVENTORY_NOT_FOUND" | "METHODOLOGY_NOT_FOUND";
-    };
+import {
+  CarbonInventoryNotFoundError,
+  MethodologyNotFoundError,
+} from "../errors.js";
 
 export const getCarbonInventorySubcategoriesSummaryService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint
-): Promise<GetCarbonInventorySubcategoriesSummaryResult> => {
+): Promise<GetCarbonInventorySubcategoriesSummaryResponse> => {
   // First, get the carbon inventory to find its methodologyVersionId
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: {
@@ -26,13 +23,10 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
     },
   });
 
-  if (!carbonInventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
-  }
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-  if (!carbonInventory.methodologyVersionId) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
+  if (!carbonInventory.methodologyVersionId)
+    throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Get all subcategories for the methodology version
   const methodology = await prismaClient.methodologyVersion.findUnique({
@@ -52,9 +46,7 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
     },
   });
 
-  if (!methodology) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
-  }
+  if (!methodology) throw new MethodologyNotFoundError(carbonInventoryId);
 
   // Flatten subcategories from all categories
   const allSubcategoryIds = methodology.categories.flatMap((category) =>
@@ -105,8 +97,5 @@ export const getCarbonInventorySubcategoriesSummaryService = async (
       };
     });
 
-  return {
-    success: true,
-    data: response,
-  };
+  return response;
 };

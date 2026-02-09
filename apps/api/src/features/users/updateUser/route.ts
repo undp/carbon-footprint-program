@@ -5,11 +5,7 @@ import {
   UpdateUserBodySchema,
   UpdateUserResponseSchema,
 } from "@repo/types";
-import {
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-  ValidationErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const updateUserRoute = (fastify: FastifyZodInstance) => {
   fastify.patch(
@@ -23,9 +19,9 @@ export const updateUserRoute = (fastify: FastifyZodInstance) => {
         body: UpdateUserBodySchema,
         response: {
           200: UpdateUserResponseSchema,
-          400: ValidationErrorResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          422: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          422: ApiErrorResponseSchema,
         },
       },
     },

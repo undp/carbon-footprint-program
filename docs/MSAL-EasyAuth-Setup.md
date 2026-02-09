@@ -948,12 +948,9 @@ export class EasyAuthProvider implements AuthProvider {
     const oid = principal.claims.find((c) => c.typ === "oid")?.val;
 
     return {
-      success: true,
-      user: {
-        idpUserId: oid,
-        email,
-        idpName: "easy-auth",
-      },
+      idpUserId: oid,
+      email,
+      idpName: "easy-auth",
     };
   }
 }

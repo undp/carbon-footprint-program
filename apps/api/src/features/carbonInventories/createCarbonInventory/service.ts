@@ -5,18 +5,12 @@ import {
   MethodologyVersionStatus,
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
-
-export type CreateCarbonInventoryResult =
-  | { success: true; data: CreateCarbonInventoryResponse }
-  | {
-      success: false;
-      error: { code: "NO_ACTIVE_METHODOLOGY"; message: string };
-    };
+import { NoActiveMethodologyError } from "../errors.js";
 
 export const createCarbonInventoryService = async (
   prismaClient: PrismaClient,
   data: CreateCarbonInventoryRequest
-): Promise<CreateCarbonInventoryResult> => {
+): Promise<CreateCarbonInventoryResponse> => {
   // Find the first methodology version with status MethodologyVersionStatus.ACTIVE
   const availableMethodology = await prismaClient.methodologyVersion.findFirst({
     where: {
@@ -31,13 +25,7 @@ export const createCarbonInventoryService = async (
   });
 
   if (!availableMethodology) {
-    return {
-      success: false,
-      error: {
-        code: "NO_ACTIVE_METHODOLOGY",
-        message: "No active methodology version found",
-      },
-    };
+    throw new NoActiveMethodologyError();
   }
 
   const item = await prismaClient.carbonInventory.create({
@@ -48,8 +36,6 @@ export const createCarbonInventoryService = async (
       updatedById: null, // TODO: Add updated by id from logged in user
     },
   });
-  return {
-    success: true,
-    data: mapCarbonInventoryToResponse(item),
-  };
+
+  return mapCarbonInventoryToResponse(item);
 };

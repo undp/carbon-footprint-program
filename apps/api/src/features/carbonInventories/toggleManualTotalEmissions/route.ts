@@ -1,11 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { toggleManualTotalEmissionsHandler } from "./handler.js";
 import { IdSchema, ToggleManualTotalEmissionsRequestSchema } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const ToggleManualTotalEmissionsParamsSchema = z.object({
@@ -32,9 +28,9 @@ export const toggleManualTotalEmissionsRoute = (
         body: ToggleManualTotalEmissionsRequestSchema,
         response: {
           204: z.null().describe("Operation successful"),
-          400: ValidationErrorResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          422: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          422: ApiErrorResponseSchema,
         },
       },
     },

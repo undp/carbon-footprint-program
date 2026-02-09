@@ -5,14 +5,16 @@ import {
   EmailAlreadyInUseError,
   IdpUserIdAlreadyInUseError,
   InvalidCountryJobPositionIdError,
+  UserNotFoundError,
   getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
+import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 export const updateUserService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateUserBody
-): Promise<UpdateUserResponse | null> => {
+): Promise<UpdateUserResponse> => {
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.UserUncheckedUpdateInput = {};
 
@@ -55,8 +57,7 @@ export const updateUserService = async (
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
-        // Record not found
-        return null;
+        throw new UserNotFoundError(id);
       }
       if (error.code === "P2002") {
         // Unique constraint violation
@@ -69,7 +70,7 @@ export const updateUserService = async (
           throw new EmailAlreadyInUseError();
         }
         // Fallback for other unique constraint violations
-        throw new Error("Unhandled unique constraint violation");
+        throw new DatabaseUniqueConstraintViolationError();
       }
       if (error.code === "P2003") {
         // Foreign key constraint violation

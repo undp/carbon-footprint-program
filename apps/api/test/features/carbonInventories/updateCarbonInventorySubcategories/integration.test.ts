@@ -24,9 +24,7 @@ import type { FastifyInstance } from "fastify";
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
   VALIDATION_ERROR_CODE,
-  type NotFoundErrorResponse,
-  type StructuredErrorResponse,
-  type ValidationErrorResponse,
+  type ApiErrorResponse,
 } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
@@ -437,8 +435,8 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Carbon inventory not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
     it("should return 404 when carbon inventory has no methodology", async () => {
@@ -470,8 +468,10 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Methodology not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toMatch(
+        /Methodology not found for carbon inventory with ID .+/
+      );
     });
 
     it("should return 404 when one or more subcategories do not exist", async () => {
@@ -494,7 +494,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toBe("One or more subcategories not found");
     });
 
@@ -532,7 +532,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
       expect(body.message).toBe(
         "One or more subcategories do not belong to the carbon inventory's methodology"
@@ -575,7 +575,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_HAS_NON_EMPTY_LINES");
       expect(body.message).toBe(
         "Cannot remove subcategory with non-empty lines. Please delete or empty the lines first."
@@ -627,7 +627,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_HAS_NON_EMPTY_LINES");
     });
 
@@ -677,7 +677,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_HAS_NON_EMPTY_LINES");
 
       // Verify no lines were deleted (transaction rolled back)
@@ -738,7 +738,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_HAS_NON_EMPTY_LINES");
     });
   });
@@ -819,7 +819,7 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toContain("Duplicate subcategory IDs");
     });

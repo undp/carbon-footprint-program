@@ -5,11 +5,7 @@ import {
   SyncCarbonInventoryLinesRequestSchema,
   SyncCarbonInventoryLinesResponseSchema,
 } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
 const SyncCarbonInventoryLinesParamsSchema = z.object({
@@ -29,9 +25,9 @@ export const syncCarbonInventoryLinesRoute = (fastify: FastifyZodInstance) => {
         body: SyncCarbonInventoryLinesRequestSchema,
         response: {
           200: SyncCarbonInventoryLinesResponseSchema,
-          400: ValidationErrorResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          422: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          422: ApiErrorResponseSchema,
         },
       },
     },

@@ -1,36 +1,50 @@
 import type { Prisma, PrismaClient } from "@repo/database";
 import { CarbonInventoryLineStatus } from "@repo/types";
 import { cleanupDirectLines } from "./helper.js";
+import createError from "@fastify/error";
+import {
+  CarbonInventoryNotFoundError,
+  SubcategoryNotFoundError,
+  SubcategoryNotInMethodologyError,
+} from "../errors.js";
 
-export type ToggleManualTotalEmissionsResult =
-  | { success: true }
-  | {
-      success: false;
-      error:
-        | "CARBON_INVENTORY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_FOUND"
-        | "SUBCATEGORY_NOT_IN_METHODOLOGY"
-        | "NO_ACTIVE_LINES_TO_CONVERT"
-        | "MANUAL_MODE_ALREADY_ACTIVE"
-        | "MANUAL_MODE_NOT_ACTIVE"
-        | "NO_LINES_TO_RESTORE";
-    };
+const NoActiveLinesToConvertError = createError(
+  "NO_ACTIVE_LINES_TO_CONVERT",
+  "There are no active lines in this subcategory to convert to manual mode",
+  422
+);
+
+const ManualModeAlreadyActiveError = createError(
+  "MANUAL_MODE_ALREADY_ACTIVE",
+  "Manual mode is already active for this subcategory",
+  422
+);
+
+const ManualModeNotActiveError = createError(
+  "MANUAL_MODE_NOT_ACTIVE",
+  "Manual mode is not active for this subcategory",
+  422
+);
+
+const NoLinesToRestoreError = createError(
+  "NO_LINES_TO_RESTORE",
+  "There are no previous lines to restore for this subcategory",
+  422
+);
 
 export const toggleManualTotalEmissionsService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
   subcategoryId: bigint,
   activated: boolean
-): Promise<ToggleManualTotalEmissionsResult> => {
+): Promise<void> => {
   // 1. Validate carbon inventory exists
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: { id: carbonInventoryId },
     select: { id: true, methodologyVersionId: true },
   });
 
-  if (!carbonInventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
-  }
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   // 2. Validate subcategory exists and belongs to the inventory methodology
   const subcategory = await prismaClient.subcategory.findUnique({
@@ -42,16 +56,13 @@ export const toggleManualTotalEmissionsService = async (
     },
   });
 
-  if (!subcategory) {
-    return { success: false, error: "SUBCATEGORY_NOT_FOUND" };
-  }
+  if (!subcategory) throw new SubcategoryNotFoundError();
 
   if (
     subcategory.category.methodologyVersionId !==
     carbonInventory.methodologyVersionId
-  ) {
-    return { success: false, error: "SUBCATEGORY_NOT_IN_METHODOLOGY" };
-  }
+  )
+    throw new SubcategoryNotInMethodologyError();
 
   // 3. Fetch lines for the subcategory in this inventory
   const lines = await prismaClient.carbonInventoryLine.findMany({
@@ -88,13 +99,9 @@ export const toggleManualTotalEmissionsService = async (
 
   if (activated) {
     // Caso 1: activated: true (Activar modo manual)
-    if (activeLines.length === 0) {
-      return { success: false, error: "NO_ACTIVE_LINES_TO_CONVERT" };
-    }
+    if (activeLines.length === 0) throw new NoActiveLinesToConvertError();
 
-    if (directActiveLine) {
-      return { success: false, error: "MANUAL_MODE_ALREADY_ACTIVE" };
-    }
+    if (directActiveLine) throw new ManualModeAlreadyActiveError();
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates
@@ -135,14 +142,10 @@ export const toggleManualTotalEmissionsService = async (
     });
   } else {
     // Caso 2: activated: false
-    if (!directActiveLine) {
-      return { success: false, error: "MANUAL_MODE_NOT_ACTIVE" };
-    }
+    if (!directActiveLine) throw new ManualModeNotActiveError();
 
     // TODO: remove this error when no-lines subcategory is supported
-    if (nonDirectOutdatedLinesIds.length === 0) {
-      return { success: false, error: "NO_LINES_TO_RESTORE" };
-    }
+    if (nonDirectOutdatedLinesIds.length === 0) throw new NoLinesToRestoreError();
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates (though directActiveLine should be unique if logic is followed)
@@ -161,6 +164,4 @@ export const toggleManualTotalEmissionsService = async (
       });
     });
   }
-
-  return { success: true };
 };

@@ -77,50 +77,50 @@ export const convertEmissionFactorValue = (
   // Validate originalValue: parse and check if it's NaN or not finite
   const value = Number.parseFloat(originalValue);
   if (Number.isNaN(value)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid originalValue: "${originalValue}" cannot be parsed as a number (NaN)`
     );
   }
   if (!Number.isFinite(value)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid originalValue: "${originalValue}" is not a finite number`
     );
   }
 
   // Validate originalNumBaseFactor: must be finite
   if (!Number.isFinite(originalNumBaseFactor)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid originalNumBaseFactor: ${originalNumBaseFactor} is not a finite number`
     );
   }
 
   // Validate originalDenBaseFactor: must be non-zero and finite
   if (!Number.isFinite(originalDenBaseFactor)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid originalDenBaseFactor: ${originalDenBaseFactor} is not a finite number`
     );
   }
   if (originalDenBaseFactor === 0) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid originalDenBaseFactor: ${originalDenBaseFactor} cannot be zero (division by zero)`
     );
   }
 
   // Validate newNumBaseFactor: must be non-zero and finite
   if (!Number.isFinite(newNumBaseFactor)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid newNumBaseFactor: ${newNumBaseFactor} is not a finite number`
     );
   }
   if (newNumBaseFactor === 0) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid newNumBaseFactor: ${newNumBaseFactor} cannot be zero (division by zero)`
     );
   }
 
   // Validate newDenBaseFactor: must be finite
   if (!Number.isFinite(newDenBaseFactor)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Invalid newDenBaseFactor: ${newDenBaseFactor} is not a finite number`
     );
   }
@@ -132,7 +132,7 @@ export const convertEmissionFactorValue = (
 
   // Validate the result is finite before returning
   if (!Number.isFinite(convertedValue)) {
-    throw new Error(
+    throw new DataIntegrityError(
       `Conversion result is not finite: ${convertedValue} (computed from originalValue=${originalValue}, originalNumBaseFactor=${originalNumBaseFactor}, originalDenBaseFactor=${originalDenBaseFactor}, newNumBaseFactor=${newNumBaseFactor}, newDenBaseFactor=${newDenBaseFactor})`
     );
   }

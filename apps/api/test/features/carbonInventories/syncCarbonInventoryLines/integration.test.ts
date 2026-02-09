@@ -25,9 +25,7 @@ import type { FastifyInstance } from "fastify";
 import { Prisma, type PrismaClient } from "@repo/database";
 import {
   VALIDATION_ERROR_CODE,
-  type NotFoundErrorResponse,
-  type StructuredErrorResponse,
-  type ValidationErrorResponse,
+  type ApiErrorResponse,
 } from "@/commonSchemas/errors.js";
 import {
   getTestMethodologyVersionId,
@@ -828,8 +826,8 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Carbon inventory not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
     });
 
     it("should return 404 when subcategory does not exist for create", async () => {
@@ -866,8 +864,8 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Subcategory not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toBe("One or more subcategories not found");
     });
 
     it("should return 404 when line does not exist for update", async () => {
@@ -904,8 +902,9 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Line not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toContain("Line with ID");
+      expect(body.message).toContain("not found");
     });
 
     it("should return 404 when line does not exist for delete", async () => {
@@ -927,8 +926,9 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Line not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toContain("Line with ID");
+      expect(body.message).toContain("not found");
     });
 
     it("should return 400 when line belongs to a different carbon inventory", async () => {
@@ -982,9 +982,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         code: string;
         message: string;
       };
-      expect(body.message).toBe(
-        "Line does not belong to this carbon inventory"
-      );
+      expect(body.message).toContain("does not belong to carbon inventory");
     });
 
     it("should return 400 for invalid payload structure", async () => {
@@ -1042,7 +1040,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
     });
 
@@ -1102,10 +1100,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
       expect(body.message).toBe(
-        "Subcategory does not belong to the carbon inventory's methodology"
+        "One or more subcategories do not belong to the carbon inventory's methodology"
       );
     });
 
@@ -1142,8 +1140,9 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
-      expect(body.message).toBe("Line not found");
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toContain("Line with ID");
+      expect(body.message).toContain("not found");
     });
 
     it("should return 400 when duplicate line IDs are in update array", async () => {
@@ -1201,7 +1200,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
       expect(body.message).toContain("Duplicate");
     });
@@ -1247,7 +1246,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ValidationErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
     });
 

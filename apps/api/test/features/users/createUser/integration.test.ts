@@ -11,7 +11,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { CreateUserResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { StructuredErrorResponse } from "@/commonSchemas/errors.js";
+import { ApiErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("POST /api/users - Integration Tests", () => {
   let app: FastifyInstance;
@@ -373,7 +373,7 @@ describe("POST /api/users - Integration Tests", () => {
 
       // Should fail with 400 due to foreign key constraint
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as StructuredErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("INVALID_COUNTRY_JOB_POSITION_ID");
       expect(body.message).toBe(
         "Invalid countryJobPositionId: the provided reference does not exist"
