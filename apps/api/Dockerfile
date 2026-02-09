@@ -15,6 +15,7 @@ COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY apps/api/package.json ./apps/api/
 COPY packages/database/package.json ./packages/database/
 COPY packages/types/package.json ./packages/types/
+COPY packages/utils/package.json ./packages/utils/
 COPY packages/typescript-config/package.json ./packages/typescript-config/
 
 # Install dependencies for the entire workspace
@@ -34,11 +35,13 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=deps /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=deps /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=deps /app/packages/utils/node_modules ./packages/utils/node_modules
 COPY --from=deps /app/packages/typescript-config/node_modules ./packages/typescript-config/node_modules
 
 # Copy all necessary source files
 COPY packages/database ./packages/database
 COPY packages/types ./packages/types
+COPY packages/utils ./packages/utils
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
 
@@ -51,6 +54,10 @@ RUN pnpm build
 
 # Build types package
 WORKDIR /app/packages/types
+RUN pnpm build
+
+# Build utils package
+WORKDIR /app/packages/utils
 RUN pnpm build
 
 # Build the API application
@@ -81,6 +88,7 @@ COPY --chown=fastify:nodejs pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY --chown=fastify:nodejs apps/api/package.json ./apps/api/
 COPY --chown=fastify:nodejs packages/database/package.json ./packages/database/
 COPY --chown=fastify:nodejs packages/types/package.json ./packages/types/
+COPY --chown=fastify:nodejs packages/utils/package.json ./packages/utils/
 
 # Copy database package dist folder (includes compiled code, generated client, and compiled seeds)
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/dist ./packages/database/dist
@@ -94,11 +102,15 @@ COPY --from=builder --chown=fastify:nodejs /app/packages/database/prisma.config.
 # Copy types package dist folder
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./packages/types/dist
 
+# Copy utils package dist folder
+COPY --from=builder --chown=fastify:nodejs /app/packages/utils/dist ./packages/utils/dist
+
 # Copy node_modules from builder (includes all dependencies properly resolved)
 COPY --from=builder --chown=fastify:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=fastify:nodejs /app/apps/api/node_modules ./apps/api/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/database/node_modules ./packages/database/node_modules
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/node_modules ./packages/types/node_modules
+COPY --from=builder --chown=fastify:nodejs /app/packages/utils/node_modules ./packages/utils/node_modules
 # Ensure @repo/types is available inside api node_modules (ESM resolution)
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/package.json ./apps/api/node_modules/@repo/types/package.json
 COPY --from=builder --chown=fastify:nodejs /app/packages/types/dist ./apps/api/node_modules/@repo/types/dist
