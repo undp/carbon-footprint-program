@@ -31,7 +31,7 @@ const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
 };
 
 const formatEmissions = (value: number): string =>
-  `${value.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}  tCO₂e`;
+  `${value.toLocaleString("es", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}  tCO₂e`;
 
 const formatPercentage = (value: number): string =>
   `${(value * 100).toFixed(1).replace(".", ",")}%`;
