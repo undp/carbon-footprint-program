@@ -20,10 +20,10 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
 
   return (
     <Box
-      className="flex h-full w-full flex-col items-start justify-between gap-4 rounded-lg p-4"
+      className="flex h-full min-h-0 w-full flex-col items-start justify-between gap-4 overflow-hidden rounded-lg p-4"
       sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
     >
-      <Box className="flex flex-col gap-4">
+      <Box className="flex min-h-0 flex-col gap-4 overflow-y-auto">
         <Typography variant="body1" fontWeight="fontWeightMedium">
           {title}
         </Typography>
@@ -55,7 +55,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         variant="text"
         onClick={onViewFullPlan}
         endIcon={<AutoAwesome sx={{ color: "#63E4CF" }} />}
-        className="self-center gap-4"
+        className="gap-4 self-center"
         sx={{ textTransform: "none" }}
       >
         <Typography

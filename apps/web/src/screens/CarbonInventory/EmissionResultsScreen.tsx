@@ -148,30 +148,20 @@ export const EmissionResultsScreen: FC = () => {
           description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
         />
 
-        {/* Top container: Emission category cards + reduction plan */}
-        <Box className="flex flex-row gap-4">
+        {/* Page Content */}
+        <Box className="flex min-h-0 flex-1 flex-row gap-4">
+          {/* Left container: Emission category cards + equivalence + plot + rankings */}
+          <Box className="flex min-h-0 flex-3 flex-col gap-4">
+            {/* Top subcontainer: Emission category cards + equivalence */}
+            <Box className="flex min-h-0 flex-1 flex-row gap-4">
           {/* Emission category cards */}
-          <Box className="flex flex-1 flex-col gap-3">
+              <Box className="flex min-h-0 flex-3 flex-col gap-3 overflow-y-auto">
             <TotalEmissionsCard totalEmissions={totalEmissions} />
             {categories.map((category) => (
               <CategoryEmissionCard key={category.id} category={category} />
             ))}
           </Box>
-          {/* Right column: Reduction plan */}
-          <Box className="flex-1">
-            <ReductionPlanCard
-              title="Plan de reducción sugerido"
-              mainGoal={reductionPlan?.summary ?? ""}
-              actions={reductionPlan?.items ?? []}
-              // TODO: implement navigation to full reduction plan
-              onViewFullPlan={() => {}}
-            />
-          </Box>
-        </Box>
-
-        {/* Bottom container: Equivalence + Pie chart + Ranking */}
-        <Box className="flex min-h-0 flex-1 gap-3">
-          <Box className="flex min-h-0 flex-1">
+              <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
             <EmissionEquivalenceCard
               value={
                 equivalence
@@ -185,6 +175,9 @@ export const EmissionResultsScreen: FC = () => {
               }
             />
           </Box>
+            </Box>
+            {/* Bottom subcontainer: plot + rankings */}
+            <Box className="flex min-h-0 flex-1 flex-row gap-4">
           <Box className="flex min-h-0 flex-1">
             <EmissionsPieChart
               categories={categories.map((c) => ({
@@ -205,6 +198,18 @@ export const EmissionResultsScreen: FC = () => {
                 synonyms: c.synonyms,
                 position: c.position,
               }))}
+                />
+              </Box>
+            </Box>
+          </Box>
+          {/* Right container: reduction plan */}
+          <Box className="flex min-h-0 flex-1">
+            <ReductionPlanCard
+              title="Plan de reducción sugerido"
+              mainGoal={reductionPlan?.summary ?? ""}
+              actions={reductionPlan?.items ?? []}
+              // TODO: implement navigation to full reduction plan
+              onViewFullPlan={() => {}}
             />
           </Box>
         </Box>
