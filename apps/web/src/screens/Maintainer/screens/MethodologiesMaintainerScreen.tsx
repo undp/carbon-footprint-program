@@ -125,6 +125,26 @@ export const MethodologiesMaintainerScreen: FC = () => {
     enqueueSnackbar,
   ]);
 
+  const handleCancelEditRow = useCallback(() => {
+    if (!editingRowId) return;
+
+    const rows = form.getValues("methodologies");
+    const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
+
+    if (isNewRow(editingRowId)) {
+      // New unsaved row — remove it
+      if (rowIndex !== -1) fieldArray.remove(rowIndex);
+    } else {
+      // Existing row — restore original values from server data
+      const original = methodologies.find(({ id }) => id === editingRowId);
+      if (original && rowIndex !== -1) {
+        fieldArray.update(rowIndex, structuredClone(original));
+      }
+    }
+
+    setEditingRowId(null);
+  }, [editingRowId, form, isNewRow, fieldArray, methodologies]);
+
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
       if (editingRowId) await handleStopEditRow();
@@ -298,6 +318,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
     onToggle: handleToggle,
     onStartEditRow: handleStartEditRow,
     onStopEditRow: handleStopEditRow,
+    onCancelEditRow: handleCancelEditRow,
     onEdit: handleEdit,
     onDuplicate: handleDuplicate,
     onDelete: handleDelete,

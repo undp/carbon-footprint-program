@@ -20,6 +20,7 @@ interface UseMethodologyColumnsParams {
   onToggle: (row: FormMethodology, checked: boolean) => void;
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => void;
+  onCancelEditRow: () => void;
   onEdit: (row: FormMethodology) => void;
   onDuplicate: (row: FormMethodology) => void;
   onDelete: (row: FormMethodology) => void;
@@ -32,6 +33,7 @@ export const useMethodologyColumns = ({
   onToggle,
   onStartEditRow,
   onStopEditRow,
+  onCancelEditRow,
   onEdit,
   onDuplicate,
   onDelete,
@@ -177,6 +179,7 @@ export const useMethodologyColumns = ({
             isActiveRow={params.row.status === "PUBLISHED"}
             isEditing={isEditing(params.row.id)}
             onStopEditCells={onStopEditRow}
+            onCancelEdit={onCancelEditRow}
             onEdit={() => onEdit(params.row)}
             onView={() => onEdit(params.row)}
             onDuplicate={() => onDuplicate(params.row)}
@@ -193,6 +196,7 @@ export const useMethodologyColumns = ({
       editingRowId,
       onStartEditRow,
       onStopEditRow,
+      onCancelEditRow,
       onEdit,
       onDuplicate,
       onDelete,

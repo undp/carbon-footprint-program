@@ -16,12 +16,14 @@ import {
   ContentCopyOutlined,
   DeleteOutlined,
   SaveOutlined,
+  CloseOutlined,
 } from "@mui/icons-material";
 
 interface ActionButtonProps {
   isActiveRow: boolean;
   isEditing?: boolean;
   onStopEditCells?: () => void;
+  onCancelEdit?: () => void;
   onEdit?: () => void;
   onView?: () => void;
   onDuplicate?: () => void;
@@ -33,6 +35,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   isActiveRow,
   isEditing = false,
   onStopEditCells,
+  onCancelEdit,
   onEdit,
   onView,
   onDuplicate,
@@ -51,6 +54,13 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             </IconButton>
           </Tooltip>
         )}
+        {isEditing && onCancelEdit && (
+          <Tooltip title="Cancelar edición">
+            <IconButton size="small" onClick={onCancelEdit}>
+              <CloseOutlined fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
         {onEdit && !isActiveRow && !isEditing && (
           <Tooltip title="Editar alcances">
             <IconButton size="small" onClick={onEdit}>
@@ -65,14 +75,14 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             </IconButton>
           </Tooltip>
         )}
-        {onDuplicate && (
+        {!isEditing && onDuplicate && (
           <Tooltip title="Duplicar">
             <IconButton size="small" onClick={onDuplicate}>
               <ContentCopyOutlined fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
-        {onDelete && (
+        {!isEditing && onDelete && (
           <Tooltip title="Eliminar">
             <IconButton
               size="small"
