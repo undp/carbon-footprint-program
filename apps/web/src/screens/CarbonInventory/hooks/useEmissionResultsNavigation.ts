@@ -6,7 +6,7 @@ export const useEmissionResultsNavigation = (inventoryId: string) => {
 
   const goBack = () => {
     void navigate({
-      to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
+      to: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
       params: { inventoryId },
     });
   };

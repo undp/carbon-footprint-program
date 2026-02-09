@@ -14,7 +14,7 @@ export const useEmissionCaptureNavigation = (inventoryId: string) => {
 
   const goNext = useCallback(() => {
     void navigate({
-      to: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
+      to: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
       params: { inventoryId },
     });
   }, [navigate, inventoryId]);
