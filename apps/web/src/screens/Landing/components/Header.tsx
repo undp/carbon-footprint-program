@@ -39,7 +39,8 @@ export const Header: FC = () => {
           contrast
         />
         <Box className="flex flex-1 gap-12">
-          {pages.map((page) => (
+          {/* // TODO: make it available when the routes are implemented */}
+          {/* {pages.map((page) => (
             <Link
               className="text-base font-medium text-white no-underline"
               key={page.route}
@@ -47,7 +48,7 @@ export const Header: FC = () => {
             >
               {page.text}
             </Link>
-          ))}
+          ))} */}
         </Box>
         {user ? (
           <Button
