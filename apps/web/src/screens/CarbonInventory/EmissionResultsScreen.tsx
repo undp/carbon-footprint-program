@@ -158,7 +158,7 @@ export const EmissionResultsScreen: FC = () => {
             ))}
           </Box>
           {/* Right column: Reduction plan */}
-          <Box className="w-[480px] shrink-0">
+          <Box className="flex-1">
             <ReductionPlanCard
               title="Plan de reducción sugerido"
               mainGoal={reductionPlan?.summary ?? ""}
