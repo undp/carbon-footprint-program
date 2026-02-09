@@ -1,7 +1,8 @@
 import { FC, useState } from "react";
-import { Avatar, Box, Typography, Chip, Divider } from "@mui/material";
-import { alpha, useTheme } from "@mui/material/styles";
+import { Box, Typography, Divider } from "@mui/material";
 import { StyledToggleButtonGroup } from "@/components/StyledToggleButtonGroup";
+import { EmptyStateMessage } from "./EmptyStateMessage";
+import { RankingRow } from "./RankingRow";
 import type { RankingSeverity } from "@repo/types";
 
 interface RankingItem {
@@ -26,74 +27,6 @@ interface EmissionRankingCardProps {
   categories: CategoryInfo[];
 }
 
-const SEVERITY_COLORS: Record<RankingSeverity, { text: string; bg: string }> = {
-  HIGH: { text: "#C62828", bg: alpha("#D32F2F", 0.1) },
-  MEDIUM: { text: "#E65100", bg: alpha("#ED6C02", 0.1) },
-  LOW: { text: "#1B5E20", bg: alpha("#2E7D32", 0.1) },
-};
-
-function RankingRow({
-  item,
-  categoryName,
-  categoryPosition,
-}: {
-  item: RankingItem;
-  categoryName: string;
-  categoryPosition: number;
-}) {
-  const theme = useTheme();
-  const catKey = Math.min(categoryPosition, 3) as 1 | 2 | 3;
-  const colors = SEVERITY_COLORS[item.severity];
-
-  return (
-    <Box className="flex items-center justify-between pr-2">
-      <Box className="flex items-center gap-2">
-        <Avatar
-          sx={{
-            width: 40,
-            height: 40,
-            backgroundColor: alpha(theme.palette.text.primary, 0.03),
-            color: theme.palette.text.primary,
-            fontSize: "1rem",
-            fontWeight: "fontWeightSemiBold",
-          }}
-        >
-          {item.position}
-        </Avatar>
-        <Box className="flex flex-col items-start gap-1">
-          <Typography variant="body2">{item.name}</Typography>
-          <Chip
-            label={categoryName}
-            size="small"
-            sx={{
-              backgroundColor: theme.palette.category[catKey].light,
-              border: `1px solid ${theme.palette.category[catKey].light}`,
-              color: theme.palette.category[catKey].dark,
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              height: "26px",
-              borderRadius: "14px",
-              "& .MuiChip-label": { px: 2, py: 0.75 },
-            }}
-          />
-        </Box>
-      </Box>
-      <Box
-        className="flex size-8 shrink-0 items-center justify-center rounded"
-        sx={{ backgroundColor: colors.bg }}
-      >
-        <Typography
-          variant="caption"
-          fontWeight="fontWeightSemiBold"
-          sx={{ color: colors.text }}
-        >
-          {Math.round(item.percentage * 100)}%
-        </Typography>
-      </Box>
-    </Box>
-  );
-}
-
 export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   ownRankings,
   sectorRankings,
@@ -107,7 +40,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   const categoryMap = new Map(categories.map((c) => [c.id, c]));
 
   return (
-    <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-6 rounded-xl border bg-white p-4">
+    <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border bg-white p-4">
       <Box className="flex items-center justify-between px-2">
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
@@ -127,15 +60,13 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
 
       <Box className="flex flex-1 flex-col gap-3 overflow-y-auto">
         {rankings.length === 0 ? (
-          <Box className="flex h-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4">
-            <Typography
-              variant="body2"
-              color="text.secondary"
-              className="py-4 text-center"
-            >
-              No hay datos de ranking disponibles
-            </Typography>
-          </Box>
+          <EmptyStateMessage
+            message={
+              viewMode === "own"
+                ? "Luego de registrar actividades, sabrás cuáles son las que más emiten huella de carbono"
+                : "Después de perfilar tu empresa, podrás ver un ranking de emisiones de empresas de tu rubro"
+            }
+          />
         ) : (
           rankings.map((item, index) => (
             <Box
