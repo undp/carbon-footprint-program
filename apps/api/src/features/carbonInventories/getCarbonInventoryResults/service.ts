@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryResultsResponse } from "@repo/types";
 import { distributePercentages, getRankingSeverity } from "./helpers.js";
+import {
+  CarbonInventoryNotFoundError,
+  MethodologyNotFoundError,
+} from "../errors.js";
 
 type OrganizationData = {
   name?: string | null;
@@ -11,17 +15,10 @@ type OrganizationData = {
   mainActivityQuantity?: number | null;
 };
 
-export type GetCarbonInventoryResultsResult =
-  | { success: true; data: GetCarbonInventoryResultsResponse }
-  | {
-      success: false;
-      error: "CARBON_INVENTORY_NOT_FOUND" | "METHODOLOGY_NOT_FOUND";
-    };
-
 export const getCarbonInventoryResultsService = async (
   prismaClient: PrismaClient,
   id: string
-): Promise<GetCarbonInventoryResultsResult> => {
+): Promise<GetCarbonInventoryResultsResponse> => {
   // 1. Fetch the carbon inventory
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(id) },
@@ -34,11 +31,11 @@ export const getCarbonInventoryResultsService = async (
   });
 
   if (!inventory) {
-    return { success: false, error: "CARBON_INVENTORY_NOT_FOUND" };
+    throw new CarbonInventoryNotFoundError(id);
   }
 
   if (!inventory.methodologyVersionId) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
+    throw new MethodologyNotFoundError(id);
   }
 
   // 2. Fetch all categories and subcategories from the methodology
@@ -65,7 +62,7 @@ export const getCarbonInventoryResultsService = async (
   });
 
   if (!methodology) {
-    return { success: false, error: "METHODOLOGY_NOT_FOUND" };
+    throw new MethodologyNotFoundError(id);
   }
 
   // 3. Fetch subtotals from the database view
@@ -235,17 +232,14 @@ export const getCarbonInventoryResultsService = async (
   };
 
   return {
-    success: true,
-    data: {
-      carbonInventory: {
-        id: inventory.id.toString(),
-        name: inventory.name,
-      },
-      totalEmissions,
-      categories,
-      suggestedReductionPlan,
-      subcategoriesRanking,
-      mainActivityEquivalence,
+    carbonInventory: {
+      id: inventory.id.toString(),
+      name: inventory.name,
     },
+    totalEmissions,
+    categories,
+    suggestedReductionPlan,
+    subcategoriesRanking,
+    mainActivityEquivalence,
   };
 };
