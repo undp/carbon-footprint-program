@@ -1,31 +1,19 @@
 import { FC } from "react";
-import { useParams, useNavigate } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout } from "./layout";
 import { Routes } from "@/interfaces";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { UnderConstructionScreen } from "../UnderConstruction";
 import { Box } from "@mui/material";
 import { StepHeader } from "./components";
+import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
 
 export const EmissionSummaryScreen: FC = () => {
-  const navigate = useNavigate();
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
   });
 
-  const goBack = () => {
-    void navigate({
-      to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
-      params: { inventoryId },
-    });
-  };
-
-  const goNext = () => {
-    void navigate({
-      to: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
-      params: { inventoryId },
-    });
-  };
+  const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
 
   return (
     <CarbonInventoryLayout
