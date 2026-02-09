@@ -17,7 +17,7 @@ import {
 import type { GetCarbonInventoryResultsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import type { NotFoundErrorResponse } from "@/commonSchemas/errors.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import { getTestOrganizationId } from "@test/factories/organizationFactory.js";
 
@@ -71,8 +71,8 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       expect(body.categories.length).toBeGreaterThanOrEqual(3);
       expect(body.subcategoriesRanking.own.length).toBeGreaterThan(0);
       expect(body.subcategoriesRanking.sector.length).toBeGreaterThan(0);
-      expect(body.suggestedReductionPlan.summary).toBeTruthy();
-      expect(body.suggestedReductionPlan.items.length).toBeGreaterThan(0);
+      expect(body.suggestedReductionPlan?.summary).toBeTruthy();
+      expect(body.suggestedReductionPlan?.items.length).toBeGreaterThan(0);
     });
 
     it("should include all methodology categories even with zero emissions", async () => {
@@ -112,9 +112,7 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       expect(body.categories.length).toBe(methodology!.categories.length);
 
       // Categories without emissions should have subtotal 0
-      const zeroCategories = body.categories.filter(
-        (c) => c.position !== 1
-      );
+      const zeroCategories = body.categories.filter((c) => c.position !== 1);
       for (const cat of zeroCategories) {
         expect(cat.subtotal).toBe(0);
         expect(cat.percentage).toBe(0);
@@ -191,9 +189,6 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       ) as GetCarbonInventoryResultsResponse;
 
       // Category percentages should sum to 1
-      const categoriesWithEmissions = body.categories.filter(
-        (c) => c.subtotal > 0
-      );
       const totalPercentage = body.categories.reduce(
         (sum, c) => sum + c.percentage,
         0
@@ -217,9 +212,7 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
           methodologyVersionId,
         },
         {
-          emissionsByCategory: [
-            { categoryPosition: 1, emissions: 5000 },
-          ],
+          emissionsByCategory: [{ categoryPosition: 1, emissions: 5000 }],
         }
       );
 
@@ -284,13 +277,13 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
         );
       }
 
-      // Positions should be sequential starting from 1
+      // Ranks should be sequential starting from 1
       rankings.forEach((item, idx) => {
-        expect(item.position).toBe(idx + 1);
+        expect(item.rank).toBe(idx + 1);
       });
     });
 
-    it("should assign correct severity levels to ranking items", async () => {
+    it("should assign severity levels based on percentage thresholds", async () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
       const inventory = await createInventoryWithEmissions(
@@ -320,19 +313,15 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
 
       const rankings = body.subcategoriesRanking.own;
 
-      // First item should be HIGH
-      if (rankings.length >= 1) {
-        expect(rankings[0].severity).toBe("HIGH");
-      }
-
-      // Items 2-4 should be MEDIUM
-      for (let i = 1; i < Math.min(4, rankings.length); i++) {
-        expect(rankings[i].severity).toBe("MEDIUM");
-      }
-
-      // Items 5+ should be LOW
-      for (let i = 4; i < rankings.length; i++) {
-        expect(rankings[i].severity).toBe("LOW");
+      // Severity is percentage-based: >= 25% HIGH, >= 10% MEDIUM, < 10% LOW
+      for (const item of rankings) {
+        if (item.percentage >= 0.25) {
+          expect(item.severity).toBe("HIGH");
+        } else if (item.percentage >= 0.1) {
+          expect(item.severity).toBe("MEDIUM");
+        } else {
+          expect(item.severity).toBe("LOW");
+        }
       }
     });
 
@@ -407,10 +396,9 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
       // Get an existing main activity from the seed data
-      const mainActivity =
-        await prisma.organizationMainActivity.findFirst({
-          select: { id: true, name: true },
-        });
+      const mainActivity = await prisma.organizationMainActivity.findFirst({
+        select: { id: true, name: true },
+      });
 
       // Skip test if no main activity is seeded
       if (!mainActivity) {
@@ -429,9 +417,7 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
           },
         },
         {
-          emissionsByCategory: [
-            { categoryPosition: 1, emissions: 5000 },
-          ],
+          emissionsByCategory: [{ categoryPosition: 1, emissions: 5000 }],
         }
       );
 
@@ -462,7 +448,7 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toBeTruthy();
     });
 
@@ -478,7 +464,7 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as NotFoundErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.message).toBeTruthy();
     });
 
