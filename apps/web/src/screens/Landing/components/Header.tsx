@@ -7,6 +7,7 @@ import {
   LandingHeaderRoutesTranslations,
 } from "@/interfaces";
 import { Route as HomeRoute } from "@/routes/app/home";
+import { IS_DEMO } from "@/config/environment";
 import { useAuth } from "../../../contexts";
 
 const pages = Object.values(LandingHeaderRoutes).map((route) => ({
@@ -39,16 +40,16 @@ export const Header: FC = () => {
           contrast
         />
         <Box className="flex flex-1 gap-12">
-          {/* // TODO: make it available when the routes are implemented */}
-          {/* {pages.map((page) => (
-            <Link
-              className="text-base font-medium text-white no-underline"
-              key={page.route}
-              to={page.route}
-            >
-              {page.text}
-            </Link>
-          ))} */}
+          {!IS_DEMO &&
+            pages.map((page) => (
+              <Link
+                className="text-base font-medium text-white no-underline"
+                key={page.route}
+                to={page.route}
+              >
+                {page.text}
+              </Link>
+            ))}
         </Box>
         {user ? (
           <Button
