@@ -7,9 +7,11 @@ const SubcategoryResultSchema = z
   .object({
     id: IdSchema.describe("The subcategory ID"),
     name: z.string().describe("The subcategory name"),
-    subtotal: z.number().describe("The subtotal emissions in tCO2e"),
+    subtotal: z.number().nonnegative().describe("The subtotal emissions in tCO2e"),
     percentage: z
       .number()
+      .min(0)
+      .max(1)
       .describe(
         "The percentage as a 4-decimal float between 0 and 1, relative to category subtotal"
       ),
@@ -21,10 +23,12 @@ const CategoryResultSchema = z
     id: IdSchema.describe("The category ID"),
     name: z.string().describe("The category name"),
     synonyms: z.string().nullable().describe("Category synonyms"),
-    position: z.number().int().describe("The category position (1, 2, 3...)"),
-    subtotal: z.number().describe("The subtotal emissions in tCO2e"),
+    position: z.number().int().positive().describe("The category position (1, 2, 3...)"),
+    subtotal: z.number().nonnegative().describe("The subtotal emissions in tCO2e"),
     percentage: z
       .number()
+      .min(0)
+      .max(1)
       .describe(
         "The percentage as a 4-decimal float between 0 and 1, relative to total emissions"
       ),
@@ -36,12 +40,14 @@ const CategoryResultSchema = z
 
 const RankingItemSchema = z
   .object({
-    position: z.number().int().describe("The ranking position (1-based)"),
+    position: z.number().int().positive().describe("The ranking position (1-based)"),
     name: z.string().describe("The subcategory name"),
     categoryId: IdSchema.describe("The category ID"),
-    subtotal: z.number().describe("The subtotal emissions in tCO2e"),
+    subtotal: z.number().nonnegative().describe("The subtotal emissions in tCO2e"),
     percentage: z
       .number()
+      .min(0)
+      .max(1)
       .describe(
         "The percentage as a 4-decimal float between 0 and 1, relative to total emissions"
       ),
@@ -59,7 +65,7 @@ export const GetCarbonInventoryResultsResponseSchema = z
         name: z.string().nullable(),
       })
       .strict(),
-    totalEmissions: z.number().describe("Total emissions in tCO2e"),
+    totalEmissions: z.number().nonnegative().describe("Total emissions in tCO2e"),
     categories: z
       .array(CategoryResultSchema)
       .describe(
@@ -89,7 +95,7 @@ export const GetCarbonInventoryResultsResponseSchema = z
       .strict(),
     mainActivityEquivalence: z
       .object({
-        rate: z.number().describe("Emissions per main activity unit"),
+        rate: z.number().nonnegative().describe("Emissions per main activity unit"),
         activityName: z.string().describe("The name of the main activity"),
       })
       .strict()
