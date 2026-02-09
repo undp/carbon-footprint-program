@@ -46,7 +46,7 @@ export const EmissionSummaryScreen: FC = () => {
         {/* Header Section */}
         <Box className="flex items-center justify-between">
           <StepHeader
-            title="Paso 4: Resumen Inventario Organizacional 2024"
+            title="Paso 4: Resumen Inventario Organizacional"
             description="Verifica tus datos antes de calcular"
           />
         </Box>
