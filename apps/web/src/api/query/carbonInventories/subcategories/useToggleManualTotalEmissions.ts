@@ -20,9 +20,8 @@ export const useToggleManualTotalEmissions = (
           { json: { activated } }
         )
         .json(),
-    onSuccess: () => {
-      // Return the promise so that the mutation caller can await the invalidation
-      return queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.detail(inventoryId),
         exact: true,
       });

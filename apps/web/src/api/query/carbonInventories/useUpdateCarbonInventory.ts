@@ -21,15 +21,17 @@ export const useUpdateCarbonInventory = () => {
   >({
     mutationFn: ({ id, data }) =>
       apiClient.patch(`carbon-inventories/${id}`, { json: data }).json(),
-    onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.all,
-        exact: true,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.detail(variables.id),
-        exact: true,
-      });
+    onSuccess: async (_data, variables) => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.detail(variables.id),
+          exact: true,
+        }),
+      ]);
     },
   });
 };

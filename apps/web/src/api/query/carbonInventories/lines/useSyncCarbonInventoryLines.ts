@@ -22,16 +22,17 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
       apiClient
         .post(`carbon-inventories/${inventoryId}/lines/sync`, { json: data })
         .json(),
-    onSuccess: () => {
-      // Invalidate all related queries to ensure UI is in sync
-      void queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.all,
-        exact: true,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.detail(inventoryId),
-        exact: true,
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.detail(inventoryId),
+          exact: true,
+        }),
+      ]);
     },
   });
 };

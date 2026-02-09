@@ -16,15 +16,17 @@ export const useUpdateCarbonInventorySubcategories = (
           json: data,
         })
         .json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.detail(carbonInventoryId),
-        exact: true,
-      });
-      void queryClient.invalidateQueries({
-        queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
-        exact: true,
-      });
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.detail(carbonInventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
+          exact: true,
+        }),
+      ]);
     },
   });
 };

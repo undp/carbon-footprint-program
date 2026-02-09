@@ -16,9 +16,8 @@ export const useCreateCarbonInventory = () => {
   >({
     mutationFn: (data) =>
       apiClient.post("carbon-inventories", { json: data }).json(),
-    onSuccess: () => {
-      // Invalidate and refetch carbon inventories list
-      void queryClient.invalidateQueries({
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
         queryKey: carbonInventoryKeys.all,
         exact: true,
       });
