@@ -5,7 +5,7 @@ import type {
 } from "@repo/types";
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
-import { toNumberOrNull } from "@/utils/number.js";
+import { toNumberOrNull, kgToTon } from "@/utils/number.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
@@ -30,9 +30,8 @@ export const getAllCarbonInventoriesService = async (
 
   return data.map((inventory) => ({
     ...mapCarbonInventoryToResponse(inventory),
-    totalEmissions: sumBy(
-      inventory.subtotals,
-      ({ value }) => toNumberOrNull(value) ?? 0
+    totalEmissions: kgToTon(
+      sumBy(inventory.subtotals, ({ value }) => toNumberOrNull(value) ?? 0)
     ),
   }));
 };

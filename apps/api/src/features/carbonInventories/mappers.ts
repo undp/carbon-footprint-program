@@ -4,7 +4,7 @@ import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
 import { OrganizationDataSchema, UsageMode } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import { groupBy } from "lodash-es";
-import { toNumberOrNull } from "@/utils/number.js";
+import { toNumberOrNull, kgToTon } from "@/utils/number.js";
 
 // Prisma type for carbon inventory with lines, inputs, and factors
 // Note: subcategories are fetched separately to avoid duplication
@@ -77,8 +77,10 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
 
   const comment = activeInput?.comment ?? null;
 
-  const manualTotalEmissions =
+  const rawManualTotalEmissions =
     toNumberOrNull(activeInput?.directTotalEmissions) ?? null;
+  const manualTotalEmissions =
+    rawManualTotalEmissions !== null ? kgToTon(rawManualTotalEmissions) : null;
 
   return {
     id: String(line.id),

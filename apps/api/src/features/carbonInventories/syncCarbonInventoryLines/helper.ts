@@ -1,6 +1,7 @@
 import { InputType, type Prisma } from "@repo/database";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
+import { tonToKg } from "@/utils/number.js";
 
 export type ItemData = {
   dimensionValue1Id: string | null;
@@ -34,7 +35,7 @@ export async function createLineInput(
       measurementUnitId: mapBigIntField(item.measurementUnitId),
       directTotalEmissions:
         item.manualTotalEmissions !== null
-          ? mapDecimalField(item.manualTotalEmissions)
+          ? mapDecimalField(tonToKg(item.manualTotalEmissions))
           : null,
       manualFactor:
         item.appliedFactorValue !== null &&
@@ -99,7 +100,7 @@ export async function createLineResult(
   let totalEmissions: Prisma.Decimal | null = null;
 
   if (inputType === InputType.DIRECT && item.manualTotalEmissions !== null) {
-    totalEmissions = mapDecimalField(item.manualTotalEmissions);
+    totalEmissions = mapDecimalField(tonToKg(item.manualTotalEmissions));
   } else if (
     (inputType === InputType.SIMPLIFIED || inputType === InputType.EXPERT) &&
     item.quantity !== null &&

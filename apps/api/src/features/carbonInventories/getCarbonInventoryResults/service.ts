@@ -12,6 +12,7 @@ import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
 } from "../errors.js";
+import { kgToTon } from "@/utils/number.js";
 
 export const getCarbonInventoryResultsService = async (
   prismaClient: PrismaClient,
@@ -71,7 +72,7 @@ export const getCarbonInventoryResultsService = async (
   // Build a lookup map: subcategoryId -> value
   const subtotalMap = new Map<string, number>();
   for (const row of subtotals) {
-    subtotalMap.set(row.subcategoryId.toString(), Number(row.value));
+    subtotalMap.set(row.subcategoryId.toString(), kgToTon(Number(row.value)));
   }
 
   // 4. Build categories with subtotals, keeping only entities with emissions
