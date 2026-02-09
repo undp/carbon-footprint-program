@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type {
-  GetCarbonInventoryResultsResponseSchema,
+import {
+  type GetCarbonInventoryResultsResponseSchema,
   RankingSeveritySchema,
 } from "./schemas.js";
 
