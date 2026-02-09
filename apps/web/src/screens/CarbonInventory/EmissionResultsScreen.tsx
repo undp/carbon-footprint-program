@@ -31,7 +31,7 @@ const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
 };
 
 const formatEmissions = (value: number): string =>
-  `${value.toLocaleString("es-CL", { minimumFractionDigits: 3, maximumFractionDigits: 3 })}  tCO₂e`;
+  `${value.toLocaleString("es-CL", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}  tCO₂e`;
 
 const formatPercentage = (value: number): string =>
   `${(value * 100).toFixed(1).replace(".", ",")}%`;
@@ -154,50 +154,50 @@ export const EmissionResultsScreen: FC = () => {
           <Box className="flex min-h-0 flex-3 flex-col gap-4">
             {/* Top subcontainer: Emission category cards + equivalence */}
             <Box className="flex min-h-0 flex-1 flex-row gap-4">
-          {/* Emission category cards */}
+              {/* Emission category cards */}
               <Box className="flex min-h-0 flex-3 flex-col gap-3 overflow-y-auto">
-            <TotalEmissionsCard totalEmissions={totalEmissions} />
-            {categories.map((category) => (
-              <CategoryEmissionCard key={category.id} category={category} />
-            ))}
-          </Box>
+                <TotalEmissionsCard totalEmissions={totalEmissions} />
+                {categories.map((category) => (
+                  <CategoryEmissionCard key={category.id} category={category} />
+                ))}
+              </Box>
               <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
-            <EmissionEquivalenceCard
-              value={
-                equivalence
-                  ? equivalence.rate.toFixed(2).replace(".", ",")
-                  : "—"
-              }
-              unit={
-                equivalence
-                  ? `kg CO₂e/${equivalence.activityName}`
-                  : "kg CO₂e/unidad"
-              }
-            />
-          </Box>
+                <EmissionEquivalenceCard
+                  value={
+                    equivalence
+                      ? equivalence.rate.toFixed(2).replace(".", ",")
+                      : "—"
+                  }
+                  unit={
+                    equivalence
+                      ? `kg CO₂e/${equivalence.activityName}`
+                      : "kg CO₂e/unidad"
+                  }
+                />
+              </Box>
             </Box>
             {/* Bottom subcontainer: plot + rankings */}
             <Box className="flex min-h-0 flex-1 flex-row gap-4">
-          <Box className="flex min-h-0 flex-1">
-            <EmissionsPieChart
-              categories={categories.map((c) => ({
-                name: c.name,
-                subtotal: c.subtotal,
-                percentage: c.percentage,
-              }))}
-              totalEmissions={totalEmissions}
-            />
-          </Box>
-          <Box className="flex min-h-0 flex-1">
-            <EmissionRankingCard
-              ownRankings={ranking?.own ?? []}
-              sectorRankings={ranking?.sector ?? []}
-              categories={categories.map((c) => ({
-                id: c.id,
-                name: c.name,
-                synonyms: c.synonyms,
-                position: c.position,
-              }))}
+              <Box className="flex min-h-0 flex-1">
+                <EmissionsPieChart
+                  categories={categories.map((c) => ({
+                    name: c.name,
+                    subtotal: c.subtotal,
+                    percentage: c.percentage,
+                  }))}
+                  totalEmissions={totalEmissions}
+                />
+              </Box>
+              <Box className="flex min-h-0 flex-1">
+                <EmissionRankingCard
+                  ownRankings={ranking?.own ?? []}
+                  sectorRankings={ranking?.sector ?? []}
+                  categories={categories.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    synonyms: c.synonyms,
+                    position: c.position,
+                  }))}
                 />
               </Box>
             </Box>

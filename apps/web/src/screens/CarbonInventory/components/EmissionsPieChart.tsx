@@ -17,8 +17,8 @@ interface EmissionsPieChartProps {
 
 const formatNumber = (value: number): string =>
   value.toLocaleString("es-CL", {
-    minimumFractionDigits: 3,
-    maximumFractionDigits: 3,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
   });
 
 export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
