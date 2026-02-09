@@ -48,7 +48,10 @@ export const RankingRow: FC<RankingRowProps> = ({
         </Avatar>
         <Box className="flex flex-col items-start gap-1">
           <Typography variant="body2">{item.name}</Typography>
-          <CategoryChip label={categoryName} categoryPosition={categoryPosition} />
+          <CategoryChip
+            label={categoryName}
+            categoryPosition={categoryPosition}
+          />
         </Box>
       </Box>
       <Box

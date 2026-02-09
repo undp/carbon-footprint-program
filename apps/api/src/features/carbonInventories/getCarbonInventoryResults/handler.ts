@@ -20,9 +20,6 @@ export const getCarbonInventoryResultsHandler = async (
     carbonInventoryId
   );
 
-  log.info(
-    { carbonInventoryId },
-    "Emission results retrieved successfully"
-  );
+  log.info({ carbonInventoryId }, "Emission results retrieved successfully");
   return reply.status(200).send(data);
 };

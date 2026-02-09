@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryResultsResponse } from "@repo/types";
-import { distributePercentages, getRankingSeverity, roundEmissions } from "./helpers.js";
+import {
+  distributePercentages,
+  getRankingSeverity,
+  roundEmissions,
+} from "./helpers.js";
 import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
@@ -77,30 +81,29 @@ export const getCarbonInventoryResultsService = async (
   }
 
   // 4. Build categories with subtotals, keeping only entities with emissions
-  const categoryData = methodology.categories
-    .map((category) => {
-      const subcategories = category.subcategories
-        .map((sub) => ({
-          id: sub.id.toString(),
-          name: sub.name,
-          subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
-        }))
-        .filter((sub) => sub.subtotal > 0);
+  const categoryData = methodology.categories.map((category) => {
+    const subcategories = category.subcategories
+      .map((sub) => ({
+        id: sub.id.toString(),
+        name: sub.name,
+        subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
+      }))
+      .filter((sub) => sub.subtotal > 0);
 
-      const categorySubtotal = subcategories.reduce(
-        (sum, sub) => sum + sub.subtotal,
-        0
-      );
+    const categorySubtotal = subcategories.reduce(
+      (sum, sub) => sum + sub.subtotal,
+      0
+    );
 
-      return {
-        id: category.id.toString(),
-        name: category.name,
-        synonyms: category.synonyms,
-        position: category.position,
-        subtotal: categorySubtotal,
-        subcategories,
-      };
-    });
+    return {
+      id: category.id.toString(),
+      name: category.name,
+      synonyms: category.synonyms,
+      position: category.position,
+      subtotal: categorySubtotal,
+      subcategories,
+    };
+  });
 
   const totalEmissions = categoryData.reduce(
     (sum, cat) => sum + cat.subtotal,
