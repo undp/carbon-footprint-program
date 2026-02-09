@@ -21,10 +21,16 @@ export const useToggleManualTotalEmissions = (
         )
         .json(),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.detail(inventoryId),
-        exact: true,
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.detail(inventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.results(inventoryId),
+          exact: true,
+        }),
+      ]);
     },
   });
 };
