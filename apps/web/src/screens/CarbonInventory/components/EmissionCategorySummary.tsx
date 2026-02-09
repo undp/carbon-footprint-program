@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Avatar, Box, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { BarChartOutlined } from "@mui/icons-material";
+import type { GetCarbonInventoryResultsResponse } from "@repo/types";
 import {
   DirectEmissionCategoryIcon,
   IndirectEmissionCategoryIcon,
@@ -11,14 +12,7 @@ import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { formatEmissions, formatPercentage } from "../utils/formatting";
 
-interface CategoryData {
-  id: string;
-  name: string;
-  synonyms: string | null;
-  position: number;
-  subtotal: number;
-  percentage: number;
-}
+type CategoryData = GetCarbonInventoryResultsResponse["categories"][number];
 
 interface EmissionCategorySummaryProps {
   totalEmissions: number;
