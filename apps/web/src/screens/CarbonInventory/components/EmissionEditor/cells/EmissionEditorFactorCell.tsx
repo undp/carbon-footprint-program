@@ -5,6 +5,7 @@ import { NumericInput } from "@/components";
 import { RateMeasurementUnit, EmissionFactorDimension } from "@repo/types";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
+import { formatEmissionFactor } from "@/utils/formatting";
 
 interface EmissionEditorFactorCellProps {
   subcategoryId: string;
@@ -61,7 +62,8 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <Typography>
-      {value} {unit?.abbreviation ?? ""}
+      {value !== null ? formatEmissionFactor(value) : value}{" "}
+      {unit?.abbreviation ?? ""}
     </Typography>
   );
 

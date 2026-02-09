@@ -86,6 +86,9 @@ importers:
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@repo/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       fastify:
         specifier: ^5.6.2
         version: 5.6.2
@@ -198,6 +201,9 @@ importers:
       '@repo/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@repo/utils':
+        specifier: workspace:*
+        version: link:../../packages/utils
       '@tailwindcss/vite':
         specifier: ^4.1.17
         version: 4.1.17(vite@7.2.4(@types/node@24.10.4)(jiti@2.6.1)(lightningcss@1.30.2)(tsx@4.20.6)(yaml@2.8.1))
@@ -393,6 +399,24 @@ importers:
 
   packages/typescript-config:
     devDependencies:
+      typescript:
+        specifier: catalog:shared
+        version: 5.9.3
+
+  packages/utils:
+    devDependencies:
+      '@repo/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@repo/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: catalog:shared
+        version: 24.10.4
+      eslint:
+        specifier: catalog:shared
+        version: 9.39.1(jiti@2.6.1)
       typescript:
         specifier: catalog:shared
         version: 5.9.3

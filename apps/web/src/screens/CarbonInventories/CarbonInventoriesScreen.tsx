@@ -24,6 +24,7 @@ import {
   useCarbonInventories,
   useCarbonInventoriesAvailableYears,
 } from "@/api/query";
+import { formatEmissions } from "@/utils/formatting";
 import {
   GetAllCarbonInventoriesResponse,
   InventoryStatus,
@@ -167,6 +168,7 @@ export const CarbonInventoriesScreen: FC = () => {
           minWidth: 190,
           flex: 1,
           cellClassName: "content-center",
+          valueFormatter: (value: number) => formatEmissions(value),
         },
         {
           field: "status",
