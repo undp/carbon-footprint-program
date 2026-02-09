@@ -1,9 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Routes } from "@/interfaces/routes";
+import { UnderConstructionScreen } from "../screens/UnderConstruction";
 
 export const Route = createFileRoute(Routes.CAPINAUT)({
-  component: () => (
-    /* TODO: Replace with real Capinaut screen component */
-    <div>Hello &quot;/capinaut&quot;!</div>
-  ),
+  // TODO: Replace with real Capinaut screen component
+  component: UnderConstructionScreen,
 });
