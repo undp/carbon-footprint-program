@@ -4,6 +4,7 @@ import { StyledToggleButtonGroup } from "@/components/StyledToggleButtonGroup";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { RankingRow } from "./RankingRow";
 import type { RankingSeverity } from "@repo/types";
+import { IS_DEVELOPMENT } from "@/config/environment";
 
 interface RankingItem {
   rank: number;
@@ -68,21 +69,30 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
             }
           />
         ) : (
-          rankings.map((item, index) => (
-            <Box
-              key={`${item.rank}-${item.name}`}
-              className="flex flex-col gap-3"
-            >
-              <RankingRow
-                item={item}
-                categoryName={categoryMap.get(item.categoryId)?.name ?? ""}
-                categoryPosition={
-                  categoryMap.get(item.categoryId)?.position ?? 3
-                }
-              />
-              {index < rankings.length - 1 && <Divider sx={{ opacity: 0.2 }} />}
-            </Box>
-          ))
+          rankings.map((item, index) => {
+            const category = categoryMap.get(item.categoryId);
+            if (!category && IS_DEVELOPMENT) {
+              // eslint-disable-next-line no-console
+              console.warn(
+                `[EmissionRankingCard] Missing category for categoryId="${item.categoryId}"`
+              );
+            }
+            return (
+              <Box
+                key={`${item.rank}-${item.name}`}
+                className="flex flex-col gap-3"
+              >
+                <RankingRow
+                  item={item}
+                  categoryName={category?.name ?? "Desconocido"}
+                  categoryPosition={category?.position ?? 3}
+                />
+                {index < rankings.length - 1 && (
+                  <Divider sx={{ opacity: 0.2 }} />
+                )}
+              </Box>
+            );
+          })
         )}
       </Box>
     </Box>
