@@ -30,15 +30,13 @@ function distributePercentages(values: number[], total: number): number[] {
   }
 
   const rawPercentages = values.map((v) => v / total);
-  const truncated = rawPercentages.map(
-    (p) => Math.floor(p * 10000) / 10000
-  );
+  const truncated = rawPercentages.map((p) => Math.floor(p * 10000) / 10000);
   const remainders = rawPercentages.map(
     (p) => p * 10000 - Math.floor(p * 10000)
   );
 
   const currentSum = truncated.reduce((a, b) => a + b, 0);
-  let diff = Math.round((1 - currentSum) * 10000);
+  const diff = Math.round((1 - currentSum) * 10000);
 
   // Sort indices by remainder descending, and add 0.0001 to each until sum = 1
   const sorted = remainders
@@ -188,9 +186,7 @@ export const getCarbonInventoryResultsService = async (
   );
 
   // Sort descending by subtotal
-  const sorted = [...allSubcategories].sort(
-    (a, b) => b.subtotal - a.subtotal
-  );
+  const sorted = [...allSubcategories].sort((a, b) => b.subtotal - a.subtotal);
 
   // Calculate percentages for ranking (relative to total emissions)
   const rankingSubtotals = sorted.map((s) => s.subtotal);
@@ -227,11 +223,12 @@ export const getCarbonInventoryResultsService = async (
 
   if (mainActivityQuantity && mainActivityQuantity > 0 && mainActivityId) {
     // Look up the main activity name
-    const mainActivity =
-      await prismaClient.organizationMainActivity.findUnique({
+    const mainActivity = await prismaClient.organizationMainActivity.findUnique(
+      {
         where: { id: BigInt(mainActivityId) },
         select: { name: true },
-      });
+      }
+    );
 
     const rate = totalEmissions / mainActivityQuantity;
 
