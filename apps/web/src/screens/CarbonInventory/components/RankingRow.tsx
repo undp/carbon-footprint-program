@@ -1,7 +1,8 @@
 import { FC } from "react";
-import { Avatar, Box, Typography, Chip } from "@mui/material";
+import { Avatar, Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import type { RankingSeverity } from "@repo/types";
+import { CategoryChip } from "./CategoryChip";
 
 interface RankingRowItem {
   position: number;
@@ -28,7 +29,6 @@ export const RankingRow: FC<RankingRowProps> = ({
   categoryPosition,
 }) => {
   const theme = useTheme();
-  const catKey = Math.min(categoryPosition, 3) as 1 | 2 | 3;
   const colors = SEVERITY_COLORS[item.severity];
 
   return (
@@ -48,20 +48,7 @@ export const RankingRow: FC<RankingRowProps> = ({
         </Avatar>
         <Box className="flex flex-col items-start gap-1">
           <Typography variant="body2">{item.name}</Typography>
-          <Chip
-            label={categoryName}
-            size="small"
-            sx={{
-              backgroundColor: theme.palette.category[catKey].light,
-              border: `1px solid ${theme.palette.category[catKey].light}`,
-              color: theme.palette.category[catKey].dark,
-              fontSize: "0.75rem",
-              fontWeight: 500,
-              height: "26px",
-              borderRadius: "14px",
-              "& .MuiChip-label": { px: 2, py: 0.75 },
-            }}
-          />
+          <CategoryChip label={categoryName} categoryPosition={categoryPosition} />
         </Box>
       </Box>
       <Box
