@@ -123,7 +123,7 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
         (c) => c.position === 1
       );
       expect(categoryWithEmissions).toBeDefined();
-      expect(categoryWithEmissions!.subtotal).toBe(5000);
+      expect(categoryWithEmissions!.subtotal).toBe(5);
       expect(categoryWithEmissions!.percentage).toBe(1);
     });
 
@@ -432,8 +432,8 @@ describe("GET /api/carbon-inventories/:id/results - Integration Tests", () => {
       ) as GetCarbonInventoryResultsResponse;
 
       expect(body.mainActivityEquivalence).not.toBeNull();
-      // rate = totalEmissions / mainActivityQuantity = 5000 / 100 = 50
-      expect(body.mainActivityEquivalence!.rate).toBe(50);
+      // rate = totalEmissions / mainActivityQuantity = 5 / 100 = 0.05
+      expect(body.mainActivityEquivalence!.rate).toBe(0.05);
       expect(body.mainActivityEquivalence!.activityName).toBe(
         mainActivity.name
       );
