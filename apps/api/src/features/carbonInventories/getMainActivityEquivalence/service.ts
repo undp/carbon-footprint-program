@@ -20,7 +20,12 @@ export const getMainActivityEquivalenceService = async (
       : null;
   const mainActivityId = (orgData?.mainActivityId as string | null) ?? null;
 
-  if (!mainActivityQuantity || mainActivityQuantity <= 0 || !mainActivityId) {
+  if (
+    !mainActivityQuantity ||
+    mainActivityQuantity <= 0 ||
+    !mainActivityId ||
+    !/^\d+$/.test(mainActivityId)
+  ) {
     return null;
   }
 
