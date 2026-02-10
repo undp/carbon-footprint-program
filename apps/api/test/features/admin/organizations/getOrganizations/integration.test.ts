@@ -13,7 +13,7 @@ import {
   cleanupTestOrganizations,
 } from "@test/factories/admin/organizations/organizationFactory.js";
 import { createOrganizationData } from "@test/factories/admin/organizations/organizationDataFactory.js";
-import type { GetAdminOrganizationsResponse } from "@repo/types";
+import type { GetAllOrganizationsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
@@ -80,7 +80,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body).toHaveProperty("data");
       expect(body).toHaveProperty("total");
@@ -108,7 +108,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       for (const item of body.data) {
         expect(item.status).toBe("ACCREDITED");
@@ -133,7 +133,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       for (const item of body.data) {
         expect(["NOT_ACCREDITED", "ACCREDITED"]).toContain(item.status);
@@ -163,7 +163,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       const item = body.data.find((i) => i.name === "Trade Corp");
       expect(item).toBeDefined();
@@ -192,7 +192,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.data.length).toBeLessThanOrEqual(2);
       expect(body.limit).toBe(2);
@@ -216,7 +216,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
       const allBody = JSON.parse(
         allResponse.body
-      ) as GetAdminOrganizationsResponse;
+      ) as GetAllOrganizationsResponse;
 
       const offsetResponse = await app.inject({
         method: "GET",
@@ -225,7 +225,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       });
       const offsetBody = JSON.parse(
         offsetResponse.body
-      ) as GetAdminOrganizationsResponse;
+      ) as GetAllOrganizationsResponse;
 
       expect(offsetBody.offset).toBe(1);
       expect(offsetBody.data.length).toBe(allBody.data.length - 1);
@@ -248,7 +248,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED", limit: "2" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.totalPages).toBe(Math.ceil(body.total / 2));
     });
@@ -270,7 +270,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED", limit: "1", offset: "0" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.hasNext).toBe(true);
     });
@@ -289,7 +289,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED", limit: "10", offset: "1" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.hasPrev).toBe(true);
     });
@@ -305,7 +305,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED", limit: "10", offset: "9999" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.data).toHaveLength(0);
       expect(body.hasNext).toBe(false);
@@ -342,7 +342,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       const names = body.data
         .map((i) => i.name)
@@ -385,7 +385,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       const names = body.data
         .map((i) => i.name)
@@ -429,7 +429,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -469,7 +469,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -501,7 +501,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -533,7 +533,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -577,7 +577,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -620,7 +620,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -650,7 +650,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -680,7 +680,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         });
 
         expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
         const item = body.data.find((i) => i.id === org.id.toString());
         expect(item).toBeDefined();
@@ -708,7 +708,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.data.length).toBeGreaterThanOrEqual(1);
       const item = body.data[0];
@@ -739,7 +739,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         query: { statuses: "NOT_ACCREDITED" },
       });
 
-      const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       const item = body.data.find((i) => i.name === null);
       expect(item).toBeDefined();

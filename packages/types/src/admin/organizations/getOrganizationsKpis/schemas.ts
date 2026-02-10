@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const GetAdminOrganizationsKpisResponseSchema = z.object({
+export const GetOrganizationsKpisResponseSchema = z.object({
   total: z.number(),
   blockedTotal: z.number(),
   notAccreditedTotal: z.number(),

@@ -1,9 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetAdminOrganizationsKpisResponse } from "@repo/types";
+import type { GetOrganizationsKpisResponse } from "@repo/types";
 
-export const getAdminOrganizationsKpisService = async (
+export const GetOrganizationsKpisService = async (
   prismaClient: PrismaClient
-): Promise<GetAdminOrganizationsKpisResponse> => {
+): Promise<GetOrganizationsKpisResponse> => {
   const groupByResult = await prismaClient.adminOrganizationsView.groupBy({
     by: ["status"],
     _count: true,

@@ -1,9 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { getAdminOrganizationsKpisHandler } from "./handler.js";
-import { GetAdminOrganizationsKpisResponseSchema } from "@repo/types";
+import { GetOrganizationsKpisHandler } from "./handler.js";
+import { GetOrganizationsKpisResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const getAdminOrganizationsKpisRoute = (fastify: FastifyZodInstance) => {
+export const GetOrganizationsKpisRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
     "/kpis",
     {
@@ -13,11 +13,11 @@ export const getAdminOrganizationsKpisRoute = (fastify: FastifyZodInstance) => {
         description:
           "Retrieves organization KPIs: total, blocked, not accredited, and accredited counts.",
         response: {
-          200: GetAdminOrganizationsKpisResponseSchema,
+          200: GetOrganizationsKpisResponseSchema,
           400: ApiErrorResponseSchema,
         },
       },
     },
-    getAdminOrganizationsKpisHandler
+    GetOrganizationsKpisHandler
   );
 };

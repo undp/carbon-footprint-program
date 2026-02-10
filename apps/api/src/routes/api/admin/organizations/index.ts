@@ -1,8 +1,8 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { UserRole } from "@/plugins/app/authorizationPlugin.js";
-import { getAdminOrganizationsRoute } from "@/features/admin/organizations/getOrganizations/route.js";
+import { GetAllOrganizationsRoute } from "@/features/admin/organizations/getOrganizations/route.js";
 import { toggleOrganizationBlockedRoute } from "@/features/admin/organizations/toggleOrganizationBlocked/route.js";
-import { getAdminOrganizationsKpisRoute } from "@/features/admin/organizations/getOrganizationsKpis/route.js";
+import { GetOrganizationsKpisRoute } from "@/features/admin/organizations/getOrganizationsKpis/route.js";
 
 export default function adminOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
@@ -11,7 +11,7 @@ export default function adminOrganizationsRoutes(fastify: FastifyZodInstance) {
     fastify.requireRoles([UserRole.ADMIN, UserRole.SUPERADMIN])
   );
 
-  getAdminOrganizationsRoute(fastify);
-  getAdminOrganizationsKpisRoute(fastify);
+  GetAllOrganizationsRoute(fastify);
+  GetOrganizationsKpisRoute(fastify);
   toggleOrganizationBlockedRoute(fastify);
 }

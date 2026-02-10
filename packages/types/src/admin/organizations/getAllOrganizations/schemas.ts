@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OrganizationStatus } from "../../enums.js";
+import { OrganizationStatus } from "../../../enums.js";
 
 const OrganizationStatusEnum = z.enum(OrganizationStatus);
 
@@ -16,7 +16,7 @@ export const AdminOrganizationSortBy = [
 
 export const SortOrder = ["asc", "desc"] as const;
 
-export const GetAdminOrganizationsQuerySchema = z.object({
+export const GetAllOrganizationsQuerySchema = z.object({
   statuses: z
     .union([z.string(), z.array(z.string())])
     .transform((val) => {
@@ -43,7 +43,7 @@ export const AdminOrganizationItemSchema = z.object({
   awards: z.array(z.unknown()),
 });
 
-export const GetAdminOrganizationsResponseSchema = z.object({
+export const GetAllOrganizationsResponseSchema = z.object({
   data: z.array(AdminOrganizationItemSchema),
   total: z.number(),
   limit: z.number(),

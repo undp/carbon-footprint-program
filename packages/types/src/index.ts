@@ -4,7 +4,7 @@ export * from "./countrySectors/index.js";
 export * from "./jobPositions/index.js";
 export * from "./measurementUnits/index.js";
 export * from "./organizationMainActivities/index.js";
-export * from "./organizations/index.js";
+export * from "./admin/index.js";
 export * from "./users/index.js";
 export * from "./enums.js";
 export * from "./zod.js";

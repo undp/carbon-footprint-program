@@ -8,7 +8,7 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import type { GetAdminOrganizationsKpisResponse } from "@repo/types";
+import type { GetOrganizationsKpisResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
@@ -122,9 +122,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body).toHaveProperty("total");
       expect(body).toHaveProperty("blockedTotal");
@@ -150,9 +148,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.notAccreditedTotal).toBe(2);
       expect(body.accreditedTotal).toBe(3);
@@ -171,9 +167,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.total).toBe(
         body.blockedTotal + body.notAccreditedTotal + body.accreditedTotal
@@ -193,9 +187,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.notAccreditedTotal).toBe(2);
     });
@@ -211,9 +203,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.accreditedTotal).toBe(2);
     });
@@ -229,9 +219,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.blockedTotal).toBe(2);
     });
@@ -247,9 +235,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.notAccreditedTotal).toBe(1);
       expect(body.accreditedTotal).toBe(0);
@@ -263,9 +249,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.total).toBe(0);
       expect(body.blockedTotal).toBe(0);
@@ -282,9 +266,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAdminOrganizationsKpisResponse;
+      const body = JSON.parse(response.body) as GetOrganizationsKpisResponse;
 
       expect(body.accreditedTotal).toBe(1);
       expect(body.total).toBe(1);

@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { getAdminOrganizationsKpisService } from "./service.js";
+import { GetOrganizationsKpisService } from "./service.js";
 
-export const getAdminOrganizationsKpisHandler = async (
+export const GetOrganizationsKpisHandler = async (
   request: FastifyRequest,
   reply: FastifyReply
 ) => {
@@ -9,7 +9,7 @@ export const getAdminOrganizationsKpisHandler = async (
   log.info("Fetching admin organizations KPIs...");
 
   const prisma = request.server.prisma;
-  const result = await getAdminOrganizationsKpisService(prisma);
+  const result = await GetOrganizationsKpisService(prisma);
 
   log.info(
     { total: result.total },

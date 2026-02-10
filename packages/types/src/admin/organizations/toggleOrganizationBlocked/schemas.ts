@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { IdSchema } from "../../zod.js";
-import { OrganizationStatus } from "../../enums.js";
+import { IdSchema } from "../../../zod.js";
+import { OrganizationStatus } from "../../../enums.js";
 
 export const ToggleOrganizationBlockedParamsSchema = z
   .object({
