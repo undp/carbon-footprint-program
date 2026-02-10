@@ -22,8 +22,25 @@ SELECT
         0
     ) AS emissions
 FROM organization o
-LEFT JOIN organization_data od
-    ON od.organization_id = o.id AND od.status = 'COMPLETED'
+LEFT JOIN LATERAL (
+    SELECT *
+    FROM organization_data od_inner
+    WHERE od_inner.organization_id = o.id
+      AND (
+        -- For ACCREDITED: show the last COMPLETED
+        (o.status = 'ACCREDITED' AND od_inner.status = 'COMPLETED') OR
+        -- For NOT_ACCREDITED: show DRAFT or SUBMITTED
+        (o.status = 'NOT_ACCREDITED' AND od_inner.status IN ('DRAFT', 'SUBMITTED')) OR
+        -- For BLOCKED: show last COMPLETED if exists, otherwise last DRAFT/SUBMITTED
+        (o.status = 'BLOCKED' AND od_inner.status IN ('COMPLETED', 'DRAFT', 'SUBMITTED'))
+      )
+    ORDER BY
+      -- For BLOCKED: prioritize COMPLETED over DRAFT/SUBMITTED
+      CASE WHEN od_inner.status = 'COMPLETED' THEN 1 ELSE 2 END,
+      -- Get the latest by id (most recent)
+      od_inner.id DESC
+    LIMIT 1
+) od ON true
 LEFT JOIN country_sector cs
     ON cs.id = od.sector_id
 LEFT JOIN country_subsector csub
