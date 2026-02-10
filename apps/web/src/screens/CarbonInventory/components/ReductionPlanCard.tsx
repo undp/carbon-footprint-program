@@ -74,36 +74,37 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
             ))}
           </Box>
         )}
+
+        {!isLoading && existsPlan && (
+          <Button
+            variant="text"
+            onClick={onViewFullPlan}
+            endIcon={<AutoAwesome sx={{ color: theme.palette.other.fluor }} />}
+            className="gap-4 self-center"
+            sx={{ textTransform: "none" }}
+          >
+            <Typography
+              variant="body1"
+              fontWeight="fontWeightSemiBold"
+              className="underline"
+              sx={{
+                background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              Ver plan completo
+            </Typography>
+          </Button>
+        )}
       </Box>
+
       {!isLoading && !existsPlan && (
         <EmptyStateMessage
           message={
             "Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu empresa"
           }
         />
-      )}
-
-      {!isLoading && existsPlan && (
-        <Button
-          variant="text"
-          onClick={onViewFullPlan}
-          endIcon={<AutoAwesome sx={{ color: theme.palette.other.fluor }} />}
-          className="gap-4 self-center"
-          sx={{ textTransform: "none" }}
-        >
-          <Typography
-            variant="body1"
-            fontWeight="fontWeightSemiBold"
-            className="underline"
-            sx={{
-              background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Ver plan completo
-          </Typography>
-        </Button>
       )}
     </Box>
   );

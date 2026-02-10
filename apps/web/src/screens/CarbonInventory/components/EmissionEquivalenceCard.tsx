@@ -63,18 +63,18 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         </Box>
       )}
 
+      {!isLoading && exists && (
+        <EmissionResultsScreenTrashIcon
+          sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
+        />
+      )}
+
       {!isLoading && !exists && (
         <EmptyStateMessage
           color="primary"
           message={
             "Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu empresa"
           }
-        />
-      )}
-
-      {!isLoading && exists && (
-        <EmissionResultsScreenTrashIcon
-          sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
         />
       )}
     </Box>

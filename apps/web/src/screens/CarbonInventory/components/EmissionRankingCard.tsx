@@ -40,7 +40,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
       </Box>
 
       <Box className="flex flex-1 flex-col gap-3 overflow-y-auto">
-        {isLoading ? (
+        {isLoading &&
           [1, 2, 3].map((i) => (
             <Box key={i} className="flex flex-col gap-3">
               <Box className="flex items-center gap-2 px-1">
@@ -57,16 +57,10 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
               </Box>
               {i < 5 && <Divider sx={{ opacity: 0.2 }} />}
             </Box>
-          ))
-        ) : rankings.length === 0 ? (
-          <EmptyStateMessage
-            message={
-              viewMode === "own"
-                ? "Luego de registrar actividades, sabrás cuáles son las que más emiten huella de carbono"
-                : "Después de perfilar tu empresa, podrás ver un ranking de emisiones de empresas de tu rubro"
-            }
-          />
-        ) : (
+          ))}
+
+        {!isLoading &&
+          !!rankings.length &&
           rankings.map((item, index) => (
             <Box
               key={`${item.rank}-${item.name}`}
@@ -75,7 +69,16 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
               <RankingRow item={item} />
               {index < rankings.length - 1 && <Divider sx={{ opacity: 0.2 }} />}
             </Box>
-          ))
+          ))}
+
+        {!isLoading && !rankings.length && (
+          <EmptyStateMessage
+            message={
+              viewMode === "own"
+                ? "Luego de registrar actividades, sabrás cuáles son las que más emiten huella de carbono"
+                : "Después de perfilar tu empresa, podrás ver un ranking de emisiones de empresas de tu rubro"
+            }
+          />
         )}
       </Box>
     </Box>
