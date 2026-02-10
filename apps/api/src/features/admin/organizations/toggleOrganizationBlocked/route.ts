@@ -18,6 +18,7 @@ export const toggleOrganizationBlockedRoute = (fastify: FastifyZodInstance) => {
         params: ToggleOrganizationBlockedParamsSchema,
         response: {
           200: ToggleOrganizationBlockedResponseSchema,
+          400: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
