@@ -26,15 +26,15 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   const factorSource = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-  }) as string | null;
+  }) as string | null | undefined;
 
   const measurementUnitId = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.measurementUnitId`,
-  }) as string | null;
+  }) as string | null | undefined;
 
   const validation = useLineValidation(subcategoryId, lineId, dimensions);
 
@@ -62,7 +62,9 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <Typography>
-      {value !== null ? formatEmissionFactor(value) : value}{" "}
+      {value !== null && value !== undefined
+        ? formatEmissionFactor(value)
+        : value}{" "}
       {unit?.abbreviation ?? ""}
     </Typography>
   );
