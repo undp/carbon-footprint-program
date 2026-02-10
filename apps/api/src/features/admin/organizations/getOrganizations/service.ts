@@ -35,7 +35,7 @@ export const GetAllOrganizationsService = async (
       hasCarbonInventories: row.hasCarbonInventories,
       lastEdition: row.lastEdition.toISOString(),
       emissions: Number(row.emissions),
-      awards: [],
+      awards: [], // TODO: add awards when they are implemented
     })),
     total,
     limit,
