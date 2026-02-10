@@ -1,12 +1,12 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { GetAllOrganizationsHandler } from "./handler.js";
+import { getAllOrganizationsHandler } from "./handler.js";
 import {
   GetAllOrganizationsQuerySchema,
   GetAllOrganizationsResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const GetAllOrganizationsRoute = (fastify: FastifyZodInstance) => {
+export const getAllOrganizationsRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
     "/",
     {
@@ -22,6 +22,6 @@ export const GetAllOrganizationsRoute = (fastify: FastifyZodInstance) => {
         },
       },
     },
-    GetAllOrganizationsHandler
+    getAllOrganizationsHandler
   );
 };

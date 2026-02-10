@@ -2,7 +2,7 @@ import type { OrganizationStatus, PrismaClient } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
 import { roundEmissions } from "@/features/carbonInventories/resultsHelpers.js";
 
-export const GetAllOrganizationsService = async (
+export const getAllOrganizationsService = async (
   prismaClient: PrismaClient,
   statuses: string[],
   limit: number,

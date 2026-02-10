@@ -1,8 +1,8 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { GetAllOrganizationsService } from "./service.js";
+import { getAllOrganizationsService } from "./service.js";
 import type { GetAllOrganizationsQuery } from "@repo/types";
 
-export const GetAllOrganizationsHandler = async (
+export const getAllOrganizationsHandler = async (
   request: FastifyRequest<{ Querystring: GetAllOrganizationsQuery }>,
   reply: FastifyReply
 ) => {
@@ -11,7 +11,7 @@ export const GetAllOrganizationsHandler = async (
 
   const { statuses, limit, offset, sortBy, sortOrder } = request.query;
   const prisma = request.server.prisma;
-  const result = await GetAllOrganizationsService(
+  const result = await getAllOrganizationsService(
     prisma,
     statuses,
     limit,

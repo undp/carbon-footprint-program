@@ -1,9 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { GetOrganizationsKpisHandler } from "./handler.js";
+import { getOrganizationsKpisHandler } from "./handler.js";
 import { GetOrganizationsKpisResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
-export const GetOrganizationsKpisRoute = (fastify: FastifyZodInstance) => {
+export const getOrganizationsKpisRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
     "/kpis",
     {
@@ -18,6 +18,6 @@ export const GetOrganizationsKpisRoute = (fastify: FastifyZodInstance) => {
         },
       },
     },
-    GetOrganizationsKpisHandler
+    getOrganizationsKpisHandler
   );
 };
