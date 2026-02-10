@@ -106,7 +106,7 @@ export const EmissionResultsScreen: FC = () => {
         ],
       }}
     >
-      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-4">
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
         <StepHeader
           title="Paso 5: Resultados"
           description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
