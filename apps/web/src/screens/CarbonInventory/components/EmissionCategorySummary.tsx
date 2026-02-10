@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Avatar, Box, Typography, alpha } from "@mui/material";
+import { Avatar, Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { BarChartOutlined } from "@mui/icons-material";
 import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
@@ -17,6 +17,7 @@ type CategoryData = GetEmissionsSummaryCategoriesResponse["categories"][number];
 interface EmissionCategorySummaryProps {
   totalEmissions: number;
   categories: CategoryData[];
+  isLoading?: boolean;
 }
 
 const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
@@ -28,8 +29,29 @@ const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
 export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   totalEmissions,
   categories,
+  isLoading = false,
 }) => {
   const theme = useTheme();
+
+  if (isLoading) {
+    return (
+      <>
+        <Skeleton
+          variant="rounded"
+          height={48}
+          sx={{ borderRadius: 2, flexShrink: 0, flex: 1 }}
+        />
+        {[1, 2, 3].map((i) => (
+          <Skeleton
+            key={i}
+            variant="rounded"
+            height={64}
+            sx={{ borderRadius: 2, flexShrink: 0, flex: 1 }}
+          />
+        ))}
+      </>
+    );
+  }
 
   if (!categories.length) {
     return (

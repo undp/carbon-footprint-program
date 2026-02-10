@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Skeleton, Typography } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useTheme } from "@mui/material/styles";
 import { EmptyStateMessage } from "./EmptyStateMessage";
@@ -14,6 +14,7 @@ interface EmissionsPieChartProps {
   categories: CategoryData[];
   totalEmissions: number;
   showLegend?: boolean;
+  isLoading?: boolean;
 }
 
 const formatNumber = (value: number): string =>
@@ -26,6 +27,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   categories,
   totalEmissions,
   showLegend = false,
+  isLoading = false,
 }) => {
   const theme = useTheme();
 
@@ -48,7 +50,13 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         Tus emisiones más importantes en tCO₂e
       </Typography>
 
-      {!!categories.length && (
+      {isLoading && (
+        <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
+          <Skeleton variant="circular" width={160} height={160} />
+        </Box>
+      )}
+
+      {!isLoading && !!categories.length && (
         <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
           <Box className="relative">
             <PieChart
@@ -82,7 +90,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!categories.length && (
+      {!isLoading && !categories.length && (
         <EmptyStateMessage
           message={
             "Cuando registres tus actividades, verás aquí un resumen por alcance"
