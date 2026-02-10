@@ -1,5 +1,6 @@
 import type { OrganizationStatus, PrismaClient } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
+import { roundEmissions } from "@/features/carbonInventories/resultsHelpers.js";
 
 export const GetAllOrganizationsService = async (
   prismaClient: PrismaClient,
@@ -34,7 +35,7 @@ export const GetAllOrganizationsService = async (
       status: row.status,
       hasCarbonInventories: row.hasCarbonInventories,
       lastEdition: row.lastEdition.toISOString(),
-      emissions: Number(row.emissions),
+      emissions: roundEmissions(Number(row.emissions)),
       awards: [], // TODO: add awards when they are implemented
     })),
     total,
