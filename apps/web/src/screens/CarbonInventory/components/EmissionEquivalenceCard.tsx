@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography, alpha } from "@mui/material";
+import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { EmptyStateMessage } from "./EmptyStateMessage";
@@ -7,11 +7,13 @@ import { EmptyStateMessage } from "./EmptyStateMessage";
 interface EmissionEquivalenceCardProps {
   value: string | null;
   unit: string | null;
+  isLoading?: boolean;
 }
 
 export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
   value,
   unit,
+  isLoading = false,
 }) => {
   const theme = useTheme();
 
@@ -35,7 +37,14 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         Tu huella de carbono equivale
       </Typography>
 
-      {exists && (
+      {isLoading && (
+        <Box className="flex w-full flex-1 flex-col justify-center gap-1 pb-3">
+          <Skeleton variant="text" width="40%" height={56} />
+          <Skeleton variant="text" width="60%" height={24} />
+        </Box>
+      )}
+
+      {!isLoading && exists && (
         <Box className="flex w-full flex-1 flex-col justify-center pb-3">
           <Typography
             variant="h2"
@@ -53,18 +62,19 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
           </Typography>
         </Box>
       )}
-      {!exists && (
+
+      {!isLoading && exists && (
+        <EmissionResultsScreenTrashIcon
+          sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
+        />
+      )}
+
+      {!isLoading && !exists && (
         <EmptyStateMessage
           color="primary"
           message={
             "Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu empresa"
           }
-        />
-      )}
-
-      {exists && (
-        <EmissionResultsScreenTrashIcon
-          sx={{ fontSize: 80, position: "absolute", bottom: 8, right: 8 }}
         />
       )}
     </Box>

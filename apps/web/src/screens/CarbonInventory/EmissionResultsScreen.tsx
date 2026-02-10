@@ -61,13 +61,6 @@ export const EmissionResultsScreen: FC = () => {
     isError: isReductionPlanError,
   } = useSuggestedReductionPlan(inventoryId);
 
-  const isLoading =
-    isSummaryLoading ||
-    isOwnRankingLoading ||
-    isSectorRankingLoading ||
-    isEquivalenceLoading ||
-    isReductionPlanLoading;
-
   const isError =
     isSummaryError ||
     isOwnRankingError ||
@@ -112,7 +105,6 @@ export const EmissionResultsScreen: FC = () => {
           },
         ],
       }}
-      isLoading={isLoading}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-4">
         <StepHeader
@@ -131,6 +123,7 @@ export const EmissionResultsScreen: FC = () => {
                 <EmissionCategorySummary
                   totalEmissions={totalEmissions}
                   categories={categories}
+                  isLoading={isSummaryLoading}
                 />
               </Box>
               <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
@@ -139,6 +132,7 @@ export const EmissionResultsScreen: FC = () => {
                   unit={
                     equivalence ? `kg CO₂e/${equivalence.activityName}` : null
                   }
+                  isLoading={isEquivalenceLoading}
                 />
               </Box>
             </Box>
@@ -152,12 +146,14 @@ export const EmissionResultsScreen: FC = () => {
                     percentage: c.percentage,
                   }))}
                   totalEmissions={totalEmissions}
+                  isLoading={isSummaryLoading}
                 />
               </Box>
               <Box className="flex min-h-0 flex-1">
                 <EmissionRankingCard
                   ownRankings={ownRankings ?? []}
                   sectorRankings={sectorRankings ?? []}
+                  isLoading={isOwnRankingLoading || isSectorRankingLoading}
                 />
               </Box>
             </Box>
@@ -169,6 +165,7 @@ export const EmissionResultsScreen: FC = () => {
               actions={reductionPlan?.items ?? null}
               // TODO: implement navigation to full reduction plan
               onViewFullPlan={() => {}}
+              isLoading={isReductionPlanLoading}
             />
           </Box>
         </Box>

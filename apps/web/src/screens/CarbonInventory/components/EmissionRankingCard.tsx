@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Box, Typography, Divider } from "@mui/material";
+import { Box, Divider, Skeleton, Typography } from "@mui/material";
 import { StyledToggleButtonGroup } from "@/components/StyledToggleButtonGroup";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { RankingRow } from "./RankingRow";
@@ -8,11 +8,13 @@ import type { RankingItem } from "@repo/types";
 interface EmissionRankingCardProps {
   ownRankings: RankingItem[];
   sectorRankings: RankingItem[];
+  isLoading?: boolean;
 }
 
 export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   ownRankings,
   sectorRankings,
+  isLoading = false,
 }) => {
   const [viewMode, setViewMode] = useState<"own" | "sector">("own");
 
@@ -38,15 +40,27 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
       </Box>
 
       <Box className="flex flex-1 flex-col gap-3 overflow-y-auto">
-        {rankings.length === 0 ? (
-          <EmptyStateMessage
-            message={
-              viewMode === "own"
-                ? "Luego de registrar actividades, sabrás cuáles son las que más emiten huella de carbono"
-                : "Después de perfilar tu empresa, podrás ver un ranking de emisiones de empresas de tu rubro"
-            }
-          />
-        ) : (
+        {isLoading &&
+          [1, 2, 3].map((i) => (
+            <Box key={i} className="flex flex-col gap-3">
+              <Box className="flex items-center gap-2 px-1">
+                <Skeleton variant="circular" width={40} height={40} />
+                <Box className="flex flex-1 flex-col">
+                  <Skeleton
+                    variant="text"
+                    sx={{ flex: 1, mr: 5 }}
+                    height={24}
+                  />
+                  <Skeleton variant="text" width={150} height={36} />
+                </Box>
+                <Skeleton variant="text" width={40} height={36} />
+              </Box>
+              {i < 5 && <Divider sx={{ opacity: 0.2 }} />}
+            </Box>
+          ))}
+
+        {!isLoading &&
+          !!rankings.length &&
           rankings.map((item, index) => (
             <Box
               key={`${item.rank}-${item.name}`}
@@ -55,7 +69,16 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
               <RankingRow item={item} />
               {index < rankings.length - 1 && <Divider sx={{ opacity: 0.2 }} />}
             </Box>
-          ))
+          ))}
+
+        {!isLoading && !rankings.length && (
+          <EmptyStateMessage
+            message={
+              viewMode === "own"
+                ? "Luego de registrar actividades, sabrás cuáles son las que más emiten huella de carbono"
+                : "Después de perfilar tu empresa, podrás ver un ranking de emisiones de empresas de tu rubro"
+            }
+          />
         )}
       </Box>
     </Box>
