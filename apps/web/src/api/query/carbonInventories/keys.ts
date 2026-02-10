@@ -15,6 +15,7 @@ export const carbonInventoryKeys = {
     ["carbonInventories", id, "main-activity-equivalence"] as const,
   suggestedReductionPlan: (id: string) =>
     ["carbonInventories", id, "suggested-reduction-plan"] as const,
+  metadata: (id: string) => ["carbonInventories", id, "metadata"] as const,
   availableYears: ["carbonInventories", "availableYears"] as const,
 };
 
@@ -25,6 +26,7 @@ export const invalidateCarbonInventoryMetadata = (
   const keys: QueryKey[] = [
     carbonInventoryKeys.mainActivityEquivalence(inventoryId),
     carbonInventoryKeys.suggestedReductionPlan(inventoryId),
+    carbonInventoryKeys.metadata(inventoryId),
   ];
   return Promise.all(
     keys.map((queryKey) =>

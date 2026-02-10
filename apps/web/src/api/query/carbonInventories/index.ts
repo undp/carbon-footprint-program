@@ -11,3 +11,4 @@ export * from "./useSubcategoriesRanking";
 export * from "./useSectorRanking";
 export * from "./useMainActivityEquivalence";
 export * from "./useSuggestedReductionPlan";
+export * from "./useCarbonInventoryMetadata";
