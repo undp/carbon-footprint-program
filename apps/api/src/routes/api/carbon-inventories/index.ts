@@ -10,7 +10,11 @@ import { updateCarbonInventorySubcategoriesRoute } from "@/features/carbonInvent
 import { toggleManualTotalEmissionsRoute } from "@/features/carbonInventories/toggleManualTotalEmissions/route.js";
 import { syncCarbonInventoryLinesRoute } from "@/features/carbonInventories/syncCarbonInventoryLines/route.js";
 import { getAvailableYearsRoute } from "@/features/carbonInventories/getAvailableYears/route.js";
-import { getCarbonInventoryResultsRoute } from "@/features/carbonInventories/getCarbonInventoryResults/route.js";
+import { getEmissionsSummaryCategoriesRoute } from "@/features/carbonInventories/getEmissionsSummaryCategories/route.js";
+import { getMainActivityEquivalenceRoute } from "@/features/carbonInventories/getMainActivityEquivalence/route.js";
+import { getSubcategoriesRankingRoute } from "@/features/carbonInventories/getSubcategoriesRanking/route.js";
+import { getSectorRankingRoute } from "@/features/carbonInventories/getSectorRanking/route.js";
+import { getSuggestedReductionPlanRoute } from "@/features/carbonInventories/getSuggestedReductionPlan/route.js";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getAllCarbonInventoriesRoute(fastify);
@@ -24,5 +28,9 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   toggleManualTotalEmissionsRoute(fastify);
   syncCarbonInventoryLinesRoute(fastify);
   getAvailableYearsRoute(fastify);
-  getCarbonInventoryResultsRoute(fastify);
+  getEmissionsSummaryCategoriesRoute(fastify);
+  getMainActivityEquivalenceRoute(fastify);
+  getSubcategoriesRankingRoute(fastify);
+  getSectorRankingRoute(fastify);
+  getSuggestedReductionPlanRoute(fastify);
 }
