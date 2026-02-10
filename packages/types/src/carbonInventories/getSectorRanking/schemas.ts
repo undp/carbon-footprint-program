@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const RankingSeveritySchema = z.enum(["HIGH", "MEDIUM", "LOW"]);
 
-const RankingItemSchema = z
+export const RankingItemSchema = z
   .object({
     rank: z
       .number()
