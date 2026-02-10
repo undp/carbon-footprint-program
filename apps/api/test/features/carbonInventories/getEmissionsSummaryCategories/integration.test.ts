@@ -109,6 +109,11 @@ describe("GET /api/carbon-inventories/:id/emissions-summary/categories - Integra
       ) as GetEmissionsSummaryCategoriesResponse;
 
       expect(body.totalEmissions).toBe(0);
+      expect(Array.isArray(body.categories)).toBe(true);
+      for (const category of body.categories) {
+        expect(category.subtotal).toBe(0);
+        expect(category.percentage).toBe(0);
+      }
     });
   });
 
