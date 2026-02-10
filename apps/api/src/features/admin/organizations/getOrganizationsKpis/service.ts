@@ -9,14 +9,14 @@ export const getOrganizationsKpisService = async (
     _count: true,
   });
 
-  const blockedTotal =
-    groupByResult.find((entry) => entry.status === "BLOCKED")?._count ?? 0;
-  const notAccreditedTotal =
-    groupByResult.find((entry) => entry.status === "NOT_ACCREDITED")?._count ??
-    0;
-  const accreditedTotal =
-    groupByResult.find((entry) => entry.status === "ACCREDITED")?._count ?? 0;
-  const total = groupByResult.reduce((sum, entry) => sum + entry._count, 0);
+  const countsMap = new Map(
+    groupByResult.map((entry) => [entry.status, entry._count])
+  );
+
+  const blockedTotal = countsMap.get("BLOCKED") ?? 0;
+  const notAccreditedTotal = countsMap.get("NOT_ACCREDITED") ?? 0;
+  const accreditedTotal = countsMap.get("ACCREDITED") ?? 0;
+  const total = blockedTotal + notAccreditedTotal + accreditedTotal;
 
   return {
     total,
