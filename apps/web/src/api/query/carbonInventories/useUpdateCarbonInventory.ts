@@ -31,6 +31,14 @@ export const useUpdateCarbonInventory = () => {
           queryKey: carbonInventoryKeys.detail(variables.id),
           exact: true,
         }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.mainActivityEquivalence(variables.id),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.suggestedReductionPlan(variables.id),
+          exact: true,
+        }),
       ]);
     },
   });

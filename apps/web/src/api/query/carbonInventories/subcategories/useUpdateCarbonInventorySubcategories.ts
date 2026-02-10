@@ -26,6 +26,19 @@ export const useUpdateCarbonInventorySubcategories = (
           queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
           exact: true,
         }),
+        queryClient.invalidateQueries({
+          queryKey:
+            carbonInventoryKeys.emissionsSummaryCategories(carbonInventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.subcategoriesRanking(carbonInventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.sectorRanking(carbonInventoryId),
+          exact: true,
+        }),
       ]);
     },
   });

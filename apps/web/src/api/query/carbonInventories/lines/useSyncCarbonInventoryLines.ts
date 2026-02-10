@@ -33,7 +33,15 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
           exact: true,
         }),
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.results(inventoryId),
+          queryKey: carbonInventoryKeys.emissionsSummaryCategories(inventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.subcategoriesRanking(inventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.sectorRanking(inventoryId),
           exact: true,
         }),
       ]);
