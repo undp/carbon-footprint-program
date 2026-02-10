@@ -233,7 +233,7 @@ export const useEmissionEditorForm = ({
 
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
-        factor.originalEmissionFactorId,
+        factor.originalEmissionFactorId ?? factor.id,
         { shouldDirty: true }
       );
       setValue(
