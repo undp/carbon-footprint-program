@@ -11,8 +11,8 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import {
   createOrganization,
   cleanupTestOrganizations,
-} from "@test/factories/organizationFactory.js";
-import { createOrganizationData } from "@test/factories/organizationDataFactory.js";
+} from "@test/factories/admin/organizations/organizationFactory.js";
+import { createOrganizationData } from "@test/factories/admin/organizations/organizationDataFactory.js";
 import type { GetAdminOrganizationsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
