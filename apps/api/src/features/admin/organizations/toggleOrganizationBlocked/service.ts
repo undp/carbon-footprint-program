@@ -1,6 +1,6 @@
 import { type PrismaClient } from "@repo/database";
 import type { ToggleOrganizationBlockedResponse } from "@repo/types";
-import { OrganizationNotFoundError } from "../shared/errors.js";
+import { OrganizationNotFoundError } from "../errors.js";
 
 export const toggleOrganizationBlockedService = async (
   prismaClient: PrismaClient,
