@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { carbonInventoryKeys } from "../keys";
+import { invalidateCarbonInventoryEmissions } from "../keys";
 import { carbonInventorySubcategoryKeys } from "./keys";
 import { apiClient } from "@/api/http/client";
 import { UpdateCarbonInventorySubcategoriesRequest } from "@repo/types";
@@ -19,13 +19,10 @@ export const useUpdateCarbonInventorySubcategories = (
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.detail(carbonInventoryId),
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
           queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
           exact: true,
         }),
+        invalidateCarbonInventoryEmissions(queryClient, carbonInventoryId),
       ]);
     },
   });
