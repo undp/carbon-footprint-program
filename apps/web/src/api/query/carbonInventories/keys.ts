@@ -1,3 +1,5 @@
+import type { QueryClient, QueryKey } from "@tanstack/react-query";
+
 export const carbonInventoryKeys = {
   all: ["carbonInventories"] as const,
   detail: (id: string) => ["carbonInventories", id] as const,
@@ -14,4 +16,38 @@ export const carbonInventoryKeys = {
   suggestedReductionPlan: (id: string) =>
     ["carbonInventories", id, "suggested-reduction-plan"] as const,
   availableYears: ["carbonInventories", "availableYears"] as const,
+};
+
+export const invalidateCarbonInventoryMetadata = (
+  queryClient: QueryClient,
+  inventoryId: string
+) => {
+  const keys: QueryKey[] = [
+    carbonInventoryKeys.mainActivityEquivalence(inventoryId),
+    carbonInventoryKeys.suggestedReductionPlan(inventoryId),
+  ];
+  return Promise.all(
+    keys.map((queryKey) =>
+      queryClient.invalidateQueries({ queryKey, exact: true })
+    )
+  );
+};
+
+export const invalidateCarbonInventoryEmissions = (
+  queryClient: QueryClient,
+  inventoryId: string
+) => {
+  const keys: QueryKey[] = [
+    carbonInventoryKeys.detail(inventoryId),
+    carbonInventoryKeys.emissionsSummaryCategories(inventoryId),
+    carbonInventoryKeys.subcategoriesRanking(inventoryId),
+    carbonInventoryKeys.sectorRanking(inventoryId),
+    carbonInventoryKeys.all,
+  ];
+  return Promise.all([
+    invalidateCarbonInventoryMetadata(queryClient, inventoryId),
+    ...keys.map((queryKey) =>
+      queryClient.invalidateQueries({ queryKey, exact: true })
+    ),
+  ]);
 };
