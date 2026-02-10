@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import type { OrganizationStatus, PrismaClient } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
 
 export const GetAllOrganizationsService = async (
@@ -11,13 +11,13 @@ export const GetAllOrganizationsService = async (
 ): Promise<GetAllOrganizationsResponse> => {
   const [rows, countResult] = await Promise.all([
     prismaClient.adminOrganizationsView.findMany({
-      where: { status: { in: statuses as never[] } },
+      where: { status: { in: statuses as OrganizationStatus[] } },
       orderBy: { [sortBy]: sortOrder },
       take: limit,
       skip: offset,
     }),
     prismaClient.adminOrganizationsView.count({
-      where: { status: { in: statuses as never[] } },
+      where: { status: { in: statuses as OrganizationStatus[] } },
     }),
   ]);
 
