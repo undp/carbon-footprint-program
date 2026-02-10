@@ -17,6 +17,8 @@ export const carbonInventoryKeys = {
     ["carbonInventories", id, "suggested-reduction-plan"] as const,
   emissionsSummaryFull: (id: string) =>
     ["carbonInventories", id, "emissions-summary-full"] as const,
+  emissionFactors: (id: string) =>
+    ["carbonInventories", id, "emission-factors"] as const,
   metadata: (id: string) => ["carbonInventories", id, "metadata"] as const,
   availableYears: ["carbonInventories", "availableYears"] as const,
 };
@@ -44,6 +46,7 @@ export const invalidateCarbonInventoryEmissions = (
   const keys: QueryKey[] = [
     carbonInventoryKeys.detail(inventoryId),
     carbonInventoryKeys.emissionsSummaryFull(inventoryId),
+    carbonInventoryKeys.emissionFactors(inventoryId),
     carbonInventoryKeys.emissionsSummaryCategories(inventoryId),
     carbonInventoryKeys.subcategoriesRanking(inventoryId),
     carbonInventoryKeys.sectorRanking(inventoryId),

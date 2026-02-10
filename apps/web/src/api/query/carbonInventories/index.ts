@@ -12,4 +12,5 @@ export * from "./useSectorRanking";
 export * from "./useMainActivityEquivalence";
 export * from "./useSuggestedReductionPlan";
 export * from "./useEmissionsSummaryFull";
+export * from "./useEmissionFactors";
 export * from "./useCarbonInventoryMetadata";
