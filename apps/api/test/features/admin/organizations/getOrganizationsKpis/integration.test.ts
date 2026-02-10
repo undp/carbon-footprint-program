@@ -8,9 +8,14 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
 import type { GetOrganizationsKpisResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { cleanupTestOrganizationData } from "../../../../factories/organizationDataFactory.js";
 
 describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   let app: FastifyInstance;
@@ -33,88 +38,16 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    await prisma.submission.deleteMany({
-      where: {
-        subject: {
-          organizationData: {
-            organizationData: {
-              organization: {
-                countryId: testCountryId,
-                status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-              },
-            },
-          },
-        },
-      },
-    });
-    await prisma.submissionSubjectOrganizationData.deleteMany({
-      where: {
-        organizationData: {
-          organization: {
-            countryId: testCountryId,
-            status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-          },
-        },
-      },
-    });
-    await prisma.submissionSubject.deleteMany({
-      where: {
-        organizationData: {
-          organizationData: {
-            organization: {
-              countryId: testCountryId,
-              status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-            },
-          },
-        },
-      },
-    });
-    await prisma.organizationData.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.carbonInventory.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.userOrganizationMembership.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.organization.deleteMany({
-      where: {
-        countryId: testCountryId,
-        status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-      },
-    });
+    await cleanupTestOrganizationData(prisma);
+    await cleanupTestOrganization(prisma);
   });
-
-  async function createTestOrganization(
-    status: "NOT_ACCREDITED" | "ACCREDITED" | "BLOCKED" = "NOT_ACCREDITED"
-  ) {
-    return prisma.organization.create({
-      data: {
-        countryId: testCountryId,
-        status,
-      },
-    });
-  }
 
   describe("Successful retrieval", () => {
     it("should return response with all KPI fields", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -135,12 +68,30 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     });
 
     it("should return correct counts for each status", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("BLOCKED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -157,9 +108,18 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     });
 
     it("should return total equal to the sum of all status counts", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("BLOCKED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -177,9 +137,18 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
 
   describe("Status count accuracy", () => {
     it("should count only NOT_ACCREDITED organizations", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("ACCREDITED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -193,9 +162,18 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     });
 
     it("should count only ACCREDITED organizations", async () => {
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("BLOCKED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -209,9 +187,18 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     });
 
     it("should count only BLOCKED organizations", async () => {
-      await createTestOrganization("BLOCKED");
-      await createTestOrganization("BLOCKED");
-      await createTestOrganization("NOT_ACCREDITED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -227,7 +214,10 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
 
   describe("Edge cases", () => {
     it("should return zero for statuses with no organizations", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -258,7 +248,10 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     });
 
     it("should count organizations without organization_data", async () => {
-      await createTestOrganization("ACCREDITED");
+      await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",

@@ -8,6 +8,11 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import type { ToggleOrganizationBlockedResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -44,88 +49,15 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
 
   beforeEach(async () => {
     // Clean up test organizations and related data
-    await prisma.submission.deleteMany({
-      where: {
-        subject: {
-          organizationData: {
-            organizationData: {
-              organization: {
-                countryId: testCountryId,
-                status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-              },
-            },
-          },
-        },
-      },
-    });
-    await prisma.submissionSubjectOrganizationData.deleteMany({
-      where: {
-        organizationData: {
-          organization: {
-            countryId: testCountryId,
-            status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-          },
-        },
-      },
-    });
-    await prisma.submissionSubject.deleteMany({
-      where: {
-        organizationData: {
-          organizationData: {
-            organization: {
-              countryId: testCountryId,
-              status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-            },
-          },
-        },
-      },
-    });
-    await prisma.organizationData.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.carbonInventory.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.userOrganizationMembership.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.organization.deleteMany({
-      where: {
-        countryId: testCountryId,
-        status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-      },
-    });
+    await cleanupTestOrganization(prisma);
   });
-
-  async function createTestOrganization(
-    status: "NOT_ACCREDITED" | "ACCREDITED" | "BLOCKED" = "NOT_ACCREDITED"
-  ) {
-    return prisma.organization.create({
-      data: {
-        countryId: testCountryId,
-        status,
-      },
-    });
-  }
 
   describe("Blocking an organization", () => {
     it("should block a NOT_ACCREDITED organization", async () => {
-      const org = await createTestOrganization("NOT_ACCREDITED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "PATCH",
@@ -148,7 +80,10 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
     });
 
     it("should block an ACCREDITED organization", async () => {
-      const org = await createTestOrganization("ACCREDITED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "PATCH",
@@ -167,7 +102,10 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
 
   describe("Unblocking an organization", () => {
     it("should unblock to NOT_ACCREDITED when no approved submission exists", async () => {
-      const org = await createTestOrganization("BLOCKED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
 
       const response = await app.inject({
         method: "PATCH",
@@ -184,25 +122,19 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
     });
 
     it("should unblock to ACCREDITED when org has completed data with approved submission", async () => {
-      const org = await createTestOrganization("BLOCKED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "ACCREDITED",
+      });
 
       // Create completed organization data
-      const orgData = await prisma.organizationData.create({
-        data: {
-          organizationId: org.id,
-          status: "COMPLETED",
-          legalName: "Test Org",
-          taxId: "123456",
-          representativeFullName: "John Doe",
-          representativeTaxId: "654321",
-          representativeCountryJobPositionId: testJobPositionId,
-          representativePhone: "+1234567890",
-          representativeEmail: "rep@test.com",
-        },
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        status: "COMPLETED",
+        representativeCountryJobPositionId: testJobPositionId,
       });
 
       // Create submission subject and link to organization data
-      const subject = await prisma.submissionSubject.create({
+      await prisma.submissionSubject.create({
         data: {
           subjectType: "ORGANIZATION_DATA",
           organizationData: {
@@ -216,6 +148,11 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
             },
           },
         },
+      });
+
+      await app.inject({
+        method: "PATCH",
+        url: `/api/admin/organizations/${org.id}/blocked`,
       });
 
       const response = await app.inject({
@@ -239,37 +176,35 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
     });
 
     it("should unblock to NOT_ACCREDITED when org has completed data but no approved submission", async () => {
-      const org = await createTestOrganization("BLOCKED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
 
       // Create completed organization data
-      const orgData = await prisma.organizationData.create({
-        data: {
-          organizationId: org.id,
-          status: "COMPLETED",
-          legalName: "Test Org",
-          taxId: "123456",
-          representativeFullName: "John Doe",
-          representativeTaxId: "654321",
-          representativeCountryJobPositionId: testJobPositionId,
-          representativePhone: "+1234567890",
-          representativeEmail: "rep@test.com",
-        },
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        status: "COMPLETED",
+        representativeCountryJobPositionId: testJobPositionId,
       });
 
       // Create submission subject with REJECTED submission
-      await prisma.submissionSubject.create({
+      const subject = await prisma.submissionSubject.create({
         data: {
           subjectType: "ORGANIZATION_DATA",
-          organizationData: {
-            create: {
-              organizationDataId: orgData.id,
-            },
-          },
-          submissions: {
-            create: {
-              status: "REJECTED",
-            },
-          },
+        },
+      });
+
+      await prisma.submissionSubjectOrganizationData.create({
+        data: {
+          subjectId: subject.id,
+          organizationDataId: orgData.id,
+        },
+      });
+
+      await prisma.submission.create({
+        data: {
+          subjectId: subject.id,
+          status: "REJECTED",
         },
       });
 
@@ -288,21 +223,15 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
     });
 
     it("should unblock to NOT_ACCREDITED when org has only DRAFT data", async () => {
-      const org = await createTestOrganization("BLOCKED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "BLOCKED",
+      });
 
       // Create draft organization data (not completed)
-      await prisma.organizationData.create({
-        data: {
-          organizationId: org.id,
-          status: "DRAFT",
-          legalName: "Test Org Draft",
-          taxId: "123456",
-          representativeFullName: "John Doe",
-          representativeTaxId: "654321",
-          representativeCountryJobPositionId: testJobPositionId,
-          representativePhone: "+1234567890",
-          representativeEmail: "rep@test.com",
-        },
+      await createTestOrganizationData(prisma, org.id, {
+        status: "DRAFT",
+        representativeCountryJobPositionId: testJobPositionId,
       });
 
       const response = await app.inject({
@@ -321,7 +250,10 @@ describe("PATCH /api/admin/organizations/:id/blocked - Toggle Organization Block
 
   describe("Toggle idempotency", () => {
     it("should toggle block and unblock correctly", async () => {
-      const org = await createTestOrganization("NOT_ACCREDITED");
+      const org = await createTestOrganization(prisma, {
+        countryId: testCountryId,
+        status: "NOT_ACCREDITED",
+      });
 
       // First toggle: block
       const blockResponse = await app.inject({
