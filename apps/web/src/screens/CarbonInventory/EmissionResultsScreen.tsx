@@ -11,7 +11,13 @@ import {
   ReductionPlanCard,
 } from "./components";
 import { Routes } from "@/interfaces";
-import { useEmissionResults } from "@/api/query";
+import {
+  useEmissionsSummaryCategories,
+  useSubcategoriesRanking,
+  useSectorRanking,
+  useMainActivityEquivalence,
+  useSuggestedReductionPlan,
+} from "@/api/query";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 
@@ -22,19 +28,32 @@ export const EmissionResultsScreen: FC = () => {
 
   const { goBack, goToList } = useEmissionResultsNavigation(inventoryId);
 
-  const { data, isLoading } = useEmissionResults(inventoryId);
+  const { data: summaryData, isLoading: isSummaryLoading } =
+    useEmissionsSummaryCategories(inventoryId);
+  const { data: ownRankings, isLoading: isOwnRankingLoading } =
+    useSubcategoriesRanking(inventoryId);
+  const { data: sectorRankings, isLoading: isSectorRankingLoading } =
+    useSectorRanking(inventoryId);
+  const { data: equivalence, isLoading: isEquivalenceLoading } =
+    useMainActivityEquivalence(inventoryId);
+  const { data: reductionPlan, isLoading: isReductionPlanLoading } =
+    useSuggestedReductionPlan(inventoryId);
 
-  const totalEmissions = data?.totalEmissions ?? 0;
-  const categories = data?.categories ?? [];
-  const reductionPlan = data?.suggestedReductionPlan;
-  const ranking = data?.subcategoriesRanking;
-  const equivalence = data?.mainActivityEquivalence;
+  const isLoading =
+    isSummaryLoading ||
+    isOwnRankingLoading ||
+    isSectorRankingLoading ||
+    isEquivalenceLoading ||
+    isReductionPlanLoading;
+
+  const totalEmissions = summaryData?.totalEmissions ?? 0;
+  const categories = summaryData?.categories ?? [];
 
   return (
     <CarbonInventoryLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
-        subtitle: data?.carbonInventory.name ?? undefined,
+        subtitle: summaryData?.carbonInventory.name ?? undefined,
       }}
       footerProps={{
         buttons: [
@@ -100,14 +119,8 @@ export const EmissionResultsScreen: FC = () => {
               </Box>
               <Box className="flex min-h-0 flex-1">
                 <EmissionRankingCard
-                  ownRankings={ranking?.own ?? []}
-                  sectorRankings={ranking?.sector ?? []}
-                  categories={categories.map((c) => ({
-                    id: c.id,
-                    name: c.name,
-                    synonyms: c.synonyms,
-                    position: c.position,
-                  }))}
+                  ownRankings={ownRankings ?? []}
+                  sectorRankings={sectorRankings ?? []}
                 />
               </Box>
             </Box>

@@ -1,20 +1,11 @@
 import { FC } from "react";
 import { Avatar, Box, Typography } from "@mui/material";
 import { alpha, useTheme, type Theme } from "@mui/material/styles";
-import type { RankingSeverity } from "@repo/types";
+import type { RankingItem, RankingSeverity } from "@repo/types";
 import { CategoryChip } from "./CategoryChip";
 
-interface RankingRowItem {
-  rank: number;
-  name: string;
-  percentage: number;
-  severity: RankingSeverity;
-}
-
 interface RankingRowProps {
-  item: RankingRowItem;
-  categoryName: string;
-  categoryPosition: number;
+  item: RankingItem;
 }
 
 const getSeverityColors = (
@@ -40,11 +31,7 @@ const getSeverityColors = (
   }
 };
 
-export const RankingRow: FC<RankingRowProps> = ({
-  item,
-  categoryName,
-  categoryPosition,
-}) => {
+export const RankingRow: FC<RankingRowProps> = ({ item }) => {
   const theme = useTheme();
   const colors = getSeverityColors(item.severity, theme);
 
@@ -66,8 +53,8 @@ export const RankingRow: FC<RankingRowProps> = ({
         <Box className="flex flex-col items-start gap-1">
           <Typography variant="body2">{item.name}</Typography>
           <CategoryChip
-            label={categoryName}
-            categoryPosition={categoryPosition}
+            label={item.categoryName}
+            categoryPosition={item.categoryPosition}
           />
         </Box>
       </Box>
