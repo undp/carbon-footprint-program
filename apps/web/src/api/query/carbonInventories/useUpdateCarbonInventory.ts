@@ -3,7 +3,7 @@ import {
   UpdateCarbonInventoryRequest,
   UpdateCarbonInventoryResponse,
 } from "@repo/types";
-import { carbonInventoryKeys } from "./keys";
+import { carbonInventoryKeys, invalidateCarbonInventoryMetadata } from "./keys";
 import { apiClient } from "@/api/http";
 
 type UpdateCarbonInventoryVariables = {
@@ -31,6 +31,7 @@ export const useUpdateCarbonInventory = () => {
           queryKey: carbonInventoryKeys.detail(variables.id),
           exact: true,
         }),
+        invalidateCarbonInventoryMetadata(queryClient, variables.id),
       ]);
     },
   });

@@ -3,7 +3,7 @@ import {
   SyncCarbonInventoryLinesRequest,
   SyncCarbonInventoryLinesResponse,
 } from "@repo/types";
-import { carbonInventoryKeys } from "../keys";
+import { invalidateCarbonInventoryEmissions } from "../keys";
 import { apiClient } from "@/api/http";
 
 type SyncCarbonInventoryLinesVariables = {
@@ -22,21 +22,7 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
       apiClient
         .post(`carbon-inventories/${inventoryId}/lines/sync`, { json: data })
         .json(),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.all,
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.detail(inventoryId),
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.results(inventoryId),
-          exact: true,
-        }),
-      ]);
-    },
+    onSuccess: () =>
+      invalidateCarbonInventoryEmissions(queryClient, inventoryId),
   });
 };
