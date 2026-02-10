@@ -38,6 +38,14 @@ export const useToggleManualTotalEmissions = (
           queryKey: carbonInventoryKeys.sectorRanking(inventoryId),
           exact: true,
         }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.mainActivityEquivalence(inventoryId),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.suggestedReductionPlan(inventoryId),
+          exact: true,
+        }),
       ]);
     },
   });
