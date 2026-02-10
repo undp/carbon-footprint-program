@@ -8,6 +8,8 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { createOrganization } from "@test/factories/organizationFactory.js";
+import { createOrganizationData } from "@test/factories/organizationDataFactory.js";
 import type { GetAdminOrganizationsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -17,7 +19,6 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
   let testCountryId: bigint;
-  let testJobPositionId: bigint;
   let testSectorId: bigint;
   let testSectorName: string;
   let testSubsectorId: bigint;
@@ -33,11 +34,6 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     const country = await prisma.country.findFirst();
     if (!country) throw new Error("No country found in database for testing");
     testCountryId = country.id;
-
-    const jobPosition = await prisma.countryJobPosition.findFirst();
-    if (!jobPosition)
-      throw new Error("No job position found in database for testing");
-    testJobPositionId = jobPosition.id;
 
     const sector = await prisma.countrySector.findFirst();
     if (!sector) throw new Error("No sector found in database for testing");
@@ -64,15 +60,13 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
   });
 
   beforeEach(async () => {
+    // Clean up in correct order: children first, then parents
     await prisma.submission.deleteMany({
       where: {
         subject: {
           organizationData: {
             organizationData: {
-              organization: {
-                countryId: testCountryId,
-                status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-              },
+              legalName: { startsWith: "TEST_" },
             },
           },
         },
@@ -81,10 +75,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     await prisma.submissionSubjectOrganizationData.deleteMany({
       where: {
         organizationData: {
-          organization: {
-            countryId: testCountryId,
-            status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-          },
+          legalName: { startsWith: "TEST_" },
         },
       },
     });
@@ -92,20 +83,14 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       where: {
         organizationData: {
           organizationData: {
-            organization: {
-              countryId: testCountryId,
-              status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-            },
+            legalName: { startsWith: "TEST_" },
           },
         },
       },
     });
     await prisma.organizationData.deleteMany({
       where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
+        legalName: { startsWith: "TEST_" },
       },
     });
     await prisma.carbonInventory.deleteMany({
@@ -132,67 +117,11 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
   });
 
-  async function createTestOrganization(
-    status: "NOT_ACCREDITED" | "ACCREDITED" | "BLOCKED" = "NOT_ACCREDITED"
-  ) {
-    return prisma.organization.create({
-      data: {
-        countryId: testCountryId,
-        status,
-      },
-    });
-  }
-
-  async function createTestOrganizationWithData(
-    options: {
-      status?: "NOT_ACCREDITED" | "ACCREDITED" | "BLOCKED";
-      tradeName?: string;
-      legalName?: string;
-      sectorId?: bigint;
-      subsectorId?: bigint;
-      sizeId?: bigint;
-    } = {}
-  ) {
-    const {
-      status = "NOT_ACCREDITED",
-      tradeName,
-      legalName = "Test Org",
-      sectorId = testSectorId,
-      subsectorId = testSubsectorId,
-      sizeId = testSizeId,
-    } = options;
-
-    const org = await prisma.organization.create({
-      data: {
-        countryId: testCountryId,
-        status,
-      },
-    });
-
-    await prisma.organizationData.create({
-      data: {
-        organizationId: org.id,
-        status: "COMPLETED",
-        legalName,
-        tradeName,
-        taxId: `TAX-${org.id}`,
-        sectorId,
-        subsectorId,
-        countryOrganizationSizeId: sizeId,
-        representativeFullName: "John Doe",
-        representativeTaxId: `REP-${org.id}`,
-        representativeCountryJobPositionId: testJobPositionId,
-        representativePhone: "+1234567890",
-        representativeEmail: "rep@test.com",
-      },
-    });
-
-    return org;
-  }
-
   describe("Successful retrieval", () => {
     it("should return paginated response with correct structure", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -215,8 +144,12 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return organizations filtered by single status", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -233,9 +166,15 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return organizations filtered by multiple statuses", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("ACCREDITED");
-      await createTestOrganization("BLOCKED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "BLOCKED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -255,10 +194,16 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return organization items with populated view fields", async () => {
-      await createTestOrganizationWithData({
+      const org = await createOrganization(prisma, testCountryId, {
         status: "ACCREDITED",
+      });
+      await createOrganizationData(prisma, org.id, {
+        status: "COMPLETED",
         tradeName: "Trade Corp",
-        legalName: "Legal Corp",
+        legalName: "TEST_Legal_Corp",
+        sectorId: testSectorId,
+        subsectorId: testSubsectorId,
+        countryOrganizationSizeId: testSizeId,
       });
 
       const response = await app.inject({
@@ -280,9 +225,15 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
 
   describe("Pagination", () => {
     it("should respect limit parameter", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -298,9 +249,15 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should respect offset parameter", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const allResponse = await app.inject({
         method: "GET",
@@ -325,9 +282,15 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return correct totalPages calculation", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -341,9 +304,15 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return hasNext=true when more pages exist", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -357,8 +326,12 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return hasPrev=true when offset > 0", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -372,7 +345,9 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return empty data when offset exceeds total", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -389,13 +364,26 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
 
   describe("Sorting", () => {
     it("should sort by name ascending by default", async () => {
-      await createTestOrganizationWithData({
+      const org1 = await createOrganization(prisma, testCountryId, {
         status: "NOT_ACCREDITED",
-        tradeName: "Zeta Corp",
       });
-      await createTestOrganizationWithData({
+      await createOrganizationData(prisma, org1.id, {
+        status: "COMPLETED",
+        tradeName: "Zeta Corp",
+        sectorId: testSectorId,
+        subsectorId: testSubsectorId,
+        countryOrganizationSizeId: testSizeId,
+      });
+
+      const org2 = await createOrganization(prisma, testCountryId, {
         status: "NOT_ACCREDITED",
+      });
+      await createOrganizationData(prisma, org2.id, {
+        status: "COMPLETED",
         tradeName: "Alpha Corp",
+        sectorId: testSectorId,
+        subsectorId: testSubsectorId,
+        countryOrganizationSizeId: testSizeId,
       });
 
       const response = await app.inject({
@@ -415,13 +403,26 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should sort by name descending when sortOrder=desc", async () => {
-      await createTestOrganizationWithData({
+      const org1 = await createOrganization(prisma, testCountryId, {
         status: "NOT_ACCREDITED",
-        tradeName: "Zeta Corp",
       });
-      await createTestOrganizationWithData({
+      await createOrganizationData(prisma, org1.id, {
+        status: "COMPLETED",
+        tradeName: "Zeta Corp",
+        sectorId: testSectorId,
+        subsectorId: testSubsectorId,
+        countryOrganizationSizeId: testSizeId,
+      });
+
+      const org2 = await createOrganization(prisma, testCountryId, {
         status: "NOT_ACCREDITED",
+      });
+      await createOrganizationData(prisma, org2.id, {
+        status: "COMPLETED",
         tradeName: "Alpha Corp",
+        sectorId: testSectorId,
+        subsectorId: testSubsectorId,
+        countryOrganizationSizeId: testSizeId,
       });
 
       const response = await app.inject({
@@ -446,7 +447,15 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
 
   describe("Response schema", () => {
     it("should return items with all expected fields", async () => {
-      await createTestOrganizationWithData({ status: "NOT_ACCREDITED" });
+      const org = await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
+      await createOrganizationData(prisma, org.id, {
+        status: "COMPLETED",
+        sectorId: testSectorId,
+        subsectorId: testSubsectorId,
+        countryOrganizationSizeId: testSizeId,
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -475,7 +484,9 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     });
 
     it("should return nullable fields as null when org has no completed data", async () => {
-      await createTestOrganization("NOT_ACCREDITED");
+      await createOrganization(prisma, testCountryId, {
+        status: "NOT_ACCREDITED",
+      });
 
       const response = await app.inject({
         method: "GET",
