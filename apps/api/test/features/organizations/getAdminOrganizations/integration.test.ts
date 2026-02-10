@@ -8,7 +8,10 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import { createOrganization } from "@test/factories/organizationFactory.js";
+import {
+  createOrganization,
+  cleanupTestOrganizations,
+} from "@test/factories/organizationFactory.js";
 import { createOrganizationData } from "@test/factories/organizationDataFactory.js";
 import type { GetAdminOrganizationsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -60,61 +63,8 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    // Clean up in correct order: children first, then parents
-    await prisma.submission.deleteMany({
-      where: {
-        subject: {
-          organizationData: {
-            organizationData: {
-              legalName: { startsWith: "TEST_" },
-            },
-          },
-        },
-      },
-    });
-    await prisma.submissionSubjectOrganizationData.deleteMany({
-      where: {
-        organizationData: {
-          legalName: { startsWith: "TEST_" },
-        },
-      },
-    });
-    await prisma.submissionSubject.deleteMany({
-      where: {
-        organizationData: {
-          organizationData: {
-            legalName: { startsWith: "TEST_" },
-          },
-        },
-      },
-    });
-    await prisma.organizationData.deleteMany({
-      where: {
-        legalName: { startsWith: "TEST_" },
-      },
-    });
-    await prisma.carbonInventory.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.userOrganizationMembership.deleteMany({
-      where: {
-        organization: {
-          countryId: testCountryId,
-          status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-        },
-      },
-    });
-    await prisma.organization.deleteMany({
-      where: {
-        countryId: testCountryId,
-        status: { in: ["NOT_ACCREDITED", "ACCREDITED", "BLOCKED"] },
-      },
-    });
+    // Clean up test organizations and all their dependencies
+    await cleanupTestOrganizations(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -442,6 +392,301 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         .filter((n): n is string => n !== null);
       const sortedNames = [...names].sort((a, b) => b.localeCompare(a));
       expect(names).toEqual(sortedNames);
+    });
+  });
+
+  describe("Organization data selection logic", () => {
+    describe("ACCREDITED organizations", () => {
+      it("should ignore DRAFT data when COMPLETED data exists", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "ACCREDITED",
+        });
+
+        // Create older COMPLETED data (should be shown)
+        await createOrganizationData(prisma, org.id, {
+          status: "COMPLETED",
+          tradeName: "TEST_Completed_Corp",
+          legalName: "TEST_Completed_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        // Create newer DRAFT data (should be ignored)
+        await createOrganizationData(prisma, org.id, {
+          status: "DRAFT",
+          tradeName: "TEST_Draft_Corp",
+          legalName: "TEST_Draft_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "ACCREDITED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        // Should show COMPLETED, not DRAFT
+        expect(item!.name).toBe("TEST_Completed_Corp");
+      });
+
+      it("should ignore SUBMITTED data when COMPLETED data exists", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "ACCREDITED",
+        });
+
+        // Create older COMPLETED data (should be shown)
+        await createOrganizationData(prisma, org.id, {
+          status: "COMPLETED",
+          tradeName: "TEST_Completed_Corp",
+          legalName: "TEST_Completed_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        // Create newer SUBMITTED data (should be ignored)
+        await createOrganizationData(prisma, org.id, {
+          status: "SUBMITTED",
+          tradeName: "TEST_Submitted_Corp",
+          legalName: "TEST_Submitted_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "ACCREDITED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        // Should show COMPLETED, not SUBMITTED
+        expect(item!.name).toBe("TEST_Completed_Corp");
+      });
+    });
+
+    describe("NOT_ACCREDITED organizations", () => {
+      it("should return SUBMITTED data when available", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "NOT_ACCREDITED",
+        });
+
+        // Create SUBMITTED data
+        await createOrganizationData(prisma, org.id, {
+          status: "SUBMITTED",
+          tradeName: "TEST_Submitted_Corp",
+          legalName: "TEST_Submitted_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "NOT_ACCREDITED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        expect(item!.name).toBe("TEST_Submitted_Corp");
+        expect(item!.sector).toBe(testSectorName);
+        expect(item!.subsector).toBe(testSubsectorName);
+        expect(item!.size).toBe(testSizeName);
+      });
+
+      it("should return DRAFT data when available", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "NOT_ACCREDITED",
+        });
+
+        // Create DRAFT data
+        await createOrganizationData(prisma, org.id, {
+          status: "DRAFT",
+          tradeName: "TEST_Draft_Corp",
+          legalName: "TEST_Draft_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "NOT_ACCREDITED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        expect(item!.name).toBe("TEST_Draft_Corp");
+        expect(item!.sector).toBe(testSectorName);
+        expect(item!.subsector).toBe(testSubsectorName);
+        expect(item!.size).toBe(testSizeName);
+      });
+    });
+
+    describe("BLOCKED organizations", () => {
+      it("should prioritize COMPLETED over DRAFT data", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "BLOCKED",
+        });
+
+        // Create older COMPLETED data (should be shown)
+        await createOrganizationData(prisma, org.id, {
+          status: "COMPLETED",
+          tradeName: "TEST_Completed_Corp",
+          legalName: "TEST_Completed_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        // Create newer DRAFT data (should be ignored since COMPLETED exists)
+        await createOrganizationData(prisma, org.id, {
+          status: "DRAFT",
+          tradeName: "TEST_Draft_Corp",
+          legalName: "TEST_Draft_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "BLOCKED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        // Should show COMPLETED, not DRAFT
+        expect(item!.name).toBe("TEST_Completed_Corp");
+        expect(item!.sector).toBe(testSectorName);
+        expect(item!.subsector).toBe(testSubsectorName);
+        expect(item!.size).toBe(testSizeName);
+      });
+
+      it("should prioritize COMPLETED over SUBMITTED data", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "BLOCKED",
+        });
+
+        // Create older COMPLETED data (should be shown)
+        await createOrganizationData(prisma, org.id, {
+          status: "COMPLETED",
+          tradeName: "TEST_Completed_Corp",
+          legalName: "TEST_Completed_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        // Create newer SUBMITTED data (should be ignored since COMPLETED exists)
+        await createOrganizationData(prisma, org.id, {
+          status: "SUBMITTED",
+          tradeName: "TEST_Submitted_Corp",
+          legalName: "TEST_Submitted_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "BLOCKED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        // Should show COMPLETED, not SUBMITTED
+        expect(item!.name).toBe("TEST_Completed_Corp");
+      });
+
+      it("should show DRAFT data when no COMPLETED exists", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "BLOCKED",
+        });
+
+        // Create only DRAFT data (should be shown)
+        await createOrganizationData(prisma, org.id, {
+          status: "DRAFT",
+          tradeName: "TEST_Draft_Corp",
+          legalName: "TEST_Draft_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "BLOCKED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        // Should show DRAFT since no COMPLETED exists
+        expect(item!.name).toBe("TEST_Draft_Corp");
+      });
+
+      it("should show SUBMITTED data when no COMPLETED exists", async () => {
+        const org = await createOrganization(prisma, testCountryId, {
+          status: "BLOCKED",
+        });
+
+        // Create only SUBMITTED data (should be shown)
+        await createOrganizationData(prisma, org.id, {
+          status: "SUBMITTED",
+          tradeName: "TEST_Submitted_Corp",
+          legalName: "TEST_Submitted_Legal",
+          sectorId: testSectorId,
+          subsectorId: testSubsectorId,
+          countryOrganizationSizeId: testSizeId,
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+          query: { statuses: "BLOCKED" },
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAdminOrganizationsResponse;
+
+        const item = body.data.find((i) => i.id === org.id.toString());
+        expect(item).toBeDefined();
+        // Should show SUBMITTED since no COMPLETED exists
+        expect(item!.name).toBe("TEST_Submitted_Corp");
+      });
     });
   });
 
