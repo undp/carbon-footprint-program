@@ -62,8 +62,9 @@ describe("GET /api/carbon-inventories/:id/main-activity-equivalence - Integratio
       // Get a main activity from the database
       const mainActivity = await prisma.organizationMainActivity.findFirst();
       if (!mainActivity) {
-        // Skip if no main activity in seed data
-        return;
+        throw new Error(
+          "No organizationMainActivity found in seed data. Ensure seed data is loaded before running this test."
+        );
       }
 
       const inventory = await createInventoryWithEmissions(prisma, {
@@ -89,10 +90,9 @@ describe("GET /api/carbon-inventories/:id/main-activity-equivalence - Integratio
         response.body
       ) as GetMainActivityEquivalenceResponse;
 
-      if (body !== null) {
-        expect(body.rate).toBeGreaterThanOrEqual(0);
-        expect(typeof body.activityName).toBe("string");
-      }
+      expect(body).not.toBeNull();
+      expect(body!.rate).toBeGreaterThanOrEqual(0);
+      expect(typeof body!.activityName).toBe("string");
     });
   });
 

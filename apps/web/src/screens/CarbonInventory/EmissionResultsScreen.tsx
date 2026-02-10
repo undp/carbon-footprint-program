@@ -1,6 +1,7 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
 import { CarbonInventoryLayout } from "./layout";
 import { StepHeader } from "./components/StepHeader";
 import {
@@ -26,21 +27,57 @@ export const EmissionResultsScreen: FC = () => {
     from: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
   });
 
+  const { enqueueSnackbar } = useSnackbar();
+
   const { goBack, goToList } = useEmissionResultsNavigation(inventoryId);
 
-  const { data: summaryData, isLoading: isSummaryLoading } =
-    useEmissionsSummaryCategories(inventoryId);
-  const { data: ownRankings, isLoading: isOwnRankingLoading } =
-    useSubcategoriesRanking(inventoryId);
-  const { data: sectorRankings, isLoading: isSectorRankingLoading } =
-    useSectorRanking(inventoryId);
-  const { data: equivalence, isLoading: isEquivalenceLoading } =
-    useMainActivityEquivalence(inventoryId);
-  const { data: reductionPlan, isLoading: isReductionPlanLoading } =
-    useSuggestedReductionPlan(inventoryId);
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+  } = useEmissionsSummaryCategories(inventoryId);
+
+  const {
+    data: ownRankings,
+    isLoading: isOwnRankingLoading,
+    isError: isOwnRankingError,
+  } = useSubcategoriesRanking(inventoryId);
+
+  const {
+    data: sectorRankings,
+    isLoading: isSectorRankingLoading,
+    isError: isSectorRankingError,
+  } = useSectorRanking(inventoryId);
+
+  const {
+    data: equivalence,
+    isLoading: isEquivalenceLoading,
+    isError: isEquivalenceError,
+  } = useMainActivityEquivalence(inventoryId);
+
+  const {
+    data: reductionPlan,
+    isLoading: isReductionPlanLoading,
+    isError: isReductionPlanError,
+  } = useSuggestedReductionPlan(inventoryId);
+
+  const isError =
+    isSummaryError ||
+    isOwnRankingError ||
+    isSectorRankingError ||
+    isEquivalenceError ||
+    isReductionPlanError;
 
   const totalEmissions = summaryData?.totalEmissions ?? 0;
   const categories = summaryData?.categories ?? [];
+
+  useEffect(() => {
+    if (isError)
+      enqueueSnackbar("Ocurrió un error al cargar la información", {
+        variant: "error",
+        preventDuplicate: true,
+      });
+  }, [isError, enqueueSnackbar]);
 
   return (
     <CarbonInventoryLayout
