@@ -15,6 +15,7 @@ import { getMainActivityEquivalenceRoute } from "@/features/carbonInventories/ge
 import { getSubcategoriesRankingRoute } from "@/features/carbonInventories/getSubcategoriesRanking/route.js";
 import { getSectorRankingRoute } from "@/features/carbonInventories/getSectorRanking/route.js";
 import { getSuggestedReductionPlanRoute } from "@/features/carbonInventories/getSuggestedReductionPlan/route.js";
+import { getEmissionsSummaryFullRoute } from "@/features/carbonInventories/getEmissionsSummaryFull/route.js";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getAllCarbonInventoriesRoute(fastify);
@@ -33,4 +34,5 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getSubcategoriesRankingRoute(fastify);
   getSectorRankingRoute(fastify);
   getSuggestedReductionPlanRoute(fastify);
+  getEmissionsSummaryFullRoute(fastify);
 }

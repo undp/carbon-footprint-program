@@ -32,5 +32,7 @@ export * from "./getSectorRanking/schemas.js";
 export * from "./getSectorRanking/types.js";
 export * from "./getSuggestedReductionPlan/schemas.js";
 export * from "./getSuggestedReductionPlan/types.js";
+export * from "./getEmissionsSummaryFull/schemas.js";
+export * from "./getEmissionsSummaryFull/types.js";
 export * from "./getCarbonInventoryMetadata/schemas.js";
 export * from "./getCarbonInventoryMetadata/types.js";
