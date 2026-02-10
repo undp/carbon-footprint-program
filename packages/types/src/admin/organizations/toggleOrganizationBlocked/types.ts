@@ -1,8 +1,8 @@
 import { z } from "zod";
-import type {
+import {
   ToggleOrganizationBlockedParamsSchema,
   ToggleOrganizationBlockedResponseSchema,
-} from "./schemas.ts";
+} from "./schemas.js";
 
 export type ToggleOrganizationBlockedParams = z.infer<
   typeof ToggleOrganizationBlockedParamsSchema
