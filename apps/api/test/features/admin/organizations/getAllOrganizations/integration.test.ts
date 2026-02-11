@@ -372,6 +372,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       const names = body.data
         .map((i) => i.name)
         .filter((n): n is string => n !== null);
+      expect(names.length).toBeGreaterThan(0);
       // Null names sort first in asc, then named orgs in alphabetical order
       const sortedNames = [...names].sort((a, b) => a.localeCompare(b));
       expect(names).toEqual(sortedNames);
