@@ -4,11 +4,9 @@ import { useTheme } from "@mui/material/styles";
 import { formatEmissions } from "@/utils/formatting";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 
-type Equivalence = GetEmissionsSummaryFullResponse["equivalence"];
-
 interface TotalEmissionsBarProps {
   totalEmissions: number;
-  equivalence: Equivalence;
+  equivalence: GetEmissionsSummaryFullResponse["equivalence"];
   isLoading: boolean;
 }
 
