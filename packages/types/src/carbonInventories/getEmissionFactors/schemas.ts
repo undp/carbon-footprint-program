@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const EmissionFactorRowSchema = z
   .object({
+    id: z.string().describe("Unique identifier for the row"),
     categoryName: z.string().describe("The category name"),
     categorySynonyms: z
       .string()

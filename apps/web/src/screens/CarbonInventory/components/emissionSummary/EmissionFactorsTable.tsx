@@ -18,10 +18,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
   errorLoading = false,
 }) => {
   const columns = useEmissionFactorsColumns();
-  const rows = useMemo(
-    () => (data ?? []).map((row, index) => ({ ...row, id: index })),
-    [data]
-  );
+  const rows = useMemo(() => data ?? [], [data]);
 
   return (
     <Box className="flex flex-1 flex-col gap-3">

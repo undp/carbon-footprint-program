@@ -122,7 +122,13 @@ export const getEmissionFactorsService = async (
       "";
     const { factorSource, factorSourceDetail } = parseFactorSource(source);
 
+    // Use emission factor ID if available, otherwise use line ID for manual factors
+    const rowId = emissionFactor
+      ? String(emissionFactor.id)
+      : `manual-${line.id}`;
+
     result.push({
+      id: rowId,
       categoryName: line.subcategory.category.name,
       categorySynonyms: line.subcategory.category.synonyms,
       categoryPosition: line.subcategory.category.position,
