@@ -19,19 +19,21 @@ export const SubcategoryManualRow: FC<SubcategoryManualRowProps> = ({
   categoryColor,
 }) => {
   return (
-    <Box className="flex flex-col gap-1">
-      <Typography
-        variant="body2"
-        fontWeight="600"
-        sx={{ color: categoryColor.dark }}
-      >
-        {subcategory.name}
-      </Typography>
-      {subcategory.description && (
-        <Typography variant="caption" color="text.secondary">
-          {subcategory.description}
+    <Box className="flex w-full items-center justify-between">
+      <Box className="flex w-[80%] flex-col gap-1">
+        <Typography
+          variant="body2"
+          fontWeight="600"
+          sx={{ color: categoryColor.dark }}
+        >
+          {subcategory.name}
         </Typography>
-      )}
+        {subcategory.description && (
+          <Typography variant="caption" color="text.secondary">
+            {subcategory.description}
+          </Typography>
+        )}
+      </Box>
       <EmissionPercentageBadge
         emissions={subcategory.subtotal}
         percentage={subcategory.percentage}
