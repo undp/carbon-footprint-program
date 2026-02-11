@@ -8,7 +8,7 @@ export const useEmissionsDetailedSummary = (id: string) => {
   return useQuery<GetEmissionsDetailedSummaryResponse>({
     queryKey: carbonInventoryKeys.emissionsDetailedSummary(id),
     queryFn: () =>
-      apiClient.get(`carbon-inventories/${id}/emissions-summary/full`).json(),
+      apiClient.get(`carbon-inventories/${id}/emissions-summary`).json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
     enabled: !!id,

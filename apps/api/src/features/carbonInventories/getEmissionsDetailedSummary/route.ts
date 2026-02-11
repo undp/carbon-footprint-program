@@ -15,7 +15,7 @@ export const getEmissionsDetailedSummaryRoute = (
   fastify: FastifyZodInstance
 ) => {
   fastify.get(
-    "/:id/emissions-summary/full",
+    "/:id/emissions-summary",
     {
       schema: {
         tags: ["carbon-inventories"],
