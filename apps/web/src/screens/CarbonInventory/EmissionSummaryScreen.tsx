@@ -8,7 +8,7 @@ import { StepHeader } from "./components";
 import {
   InventoryAttributesCard,
   EmissionFactorsTable,
-} from "./components/emissionSummary";
+} from "./components/_EmissionSummary";
 import { Routes } from "@/interfaces";
 import {
   useEmissionsDetailedSummary,
@@ -17,7 +17,7 @@ import {
   useCarbonInventoryMetadata,
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
-import { EmissionSummary } from "./components/emissionSummary/EmissionSummary";
+import { EmissionSummary } from "./components/_EmissionSummary/EmissionSummary";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({

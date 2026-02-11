@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Typography, alpha } from "@mui/material";
-import { EmissionPercentageBadge } from "./emissionSummary/EmissionPercentageBadge";
+import { EmissionPercentageBadge } from "./_EmissionSummary/EmissionPercentageBadge";
 
 interface EmissionSummaryCardProps {
   icon: React.ReactNode;
