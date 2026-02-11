@@ -7,7 +7,9 @@ export async function getTestCountryJobPositionId(
     select: { id: true },
   });
   if (!jobPosition) {
-    throw new Error("No country job position found");
+    throw new Error(
+      "No country job position found. Please ensure the database is properly seeded."
+    );
   }
   return jobPosition.id;
 }
