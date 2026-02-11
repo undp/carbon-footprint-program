@@ -1,4 +1,5 @@
 import { InputType, type Prisma } from "@repo/database";
+import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
@@ -15,9 +16,6 @@ export type ItemData = {
   comment?: string | null;
   baseFactorId: string | null;
 };
-
-// TODO: refactor to fetch from database
-const CUSTOM_FACTOR_SOURCES = ["Factor Propio", "Otro"];
 
 /**
  * Creates a carbon inventory line input
