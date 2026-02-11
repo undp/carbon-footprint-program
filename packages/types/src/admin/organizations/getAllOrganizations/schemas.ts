@@ -14,7 +14,7 @@ export const AdminOrganizationSortBy = [
   "emissions",
 ] as const;
 
-export const SortOrder = ["asc", "desc"] as const;
+export const AdminOrganizationSortOrder = ["asc", "desc"] as const;
 
 export const GetAllOrganizationsQuerySchema = z.object({
   statuses: z
@@ -27,7 +27,7 @@ export const GetAllOrganizationsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).default(10),
   offset: z.coerce.number().int().min(0).default(0),
   sortBy: z.enum(AdminOrganizationSortBy).default("name"),
-  sortOrder: z.enum(SortOrder).default("asc"),
+  sortOrder: z.enum(AdminOrganizationSortOrder).default("asc"),
 });
 
 export const AdminOrganizationItemSchema = z.object({

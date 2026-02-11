@@ -1,24 +1,28 @@
 import type { OrganizationStatus, PrismaClient } from "@repo/database";
-import type { GetAllOrganizationsResponse } from "@repo/types";
+import type {
+  AdminOrganizationSortBy,
+  GetAllOrganizationsResponse,
+  AdminOrganizationSortOrder,
+} from "@repo/types";
 import { roundEmissions } from "@/features/carbonInventories/resultsHelpers.js";
 
 export const getAllOrganizationsService = async (
   prismaClient: PrismaClient,
-  statuses: string[],
+  statuses: OrganizationStatus[],
   limit: number,
   offset: number,
-  sortBy: string,
-  sortOrder: string
+  sortBy: (typeof AdminOrganizationSortBy)[number],
+  sortOrder: (typeof AdminOrganizationSortOrder)[number]
 ): Promise<GetAllOrganizationsResponse> => {
   const [rows, countResult] = await Promise.all([
     prismaClient.adminOrganizationsView.findMany({
-      where: { status: { in: statuses as OrganizationStatus[] } },
+      where: { status: { in: statuses } },
       orderBy: { [sortBy]: sortOrder },
       take: limit,
       skip: offset,
     }),
     prismaClient.adminOrganizationsView.count({
-      where: { status: { in: statuses as OrganizationStatus[] } },
+      where: { status: { in: statuses } },
     }),
   ]);
 
