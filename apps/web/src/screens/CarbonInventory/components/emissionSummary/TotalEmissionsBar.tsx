@@ -36,17 +36,11 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
     >
       <Box>
         <Typography
-          variant="body1"
+          variant="subtitle1"
           fontWeight="fontWeightSemiBold"
-          sx={{ color: theme.palette.common.deepForest }}
+          sx={{ color: theme.palette.common.deepForest, fontWeight: 600 }}
         >
           Total emisiones
-        </Typography>
-        <Typography
-          variant="caption"
-          sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
-        >
-          Alcances 1, 2 y 3
         </Typography>
       </Box>
       <Box className="text-right">
