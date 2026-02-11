@@ -28,11 +28,11 @@ export const SubcategoryManualRow: FC<SubcategoryManualRowProps> = ({
         >
           {subcategory.name}
         </Typography>
-        {subcategory.description && (
+        {/* {subcategory.description && (
           <Typography variant="caption" color="text.secondary">
             {subcategory.description}
           </Typography>
-        )}
+        )} */}
       </Box>
       <EmissionPercentageBadge
         emissions={subcategory.subtotal}
