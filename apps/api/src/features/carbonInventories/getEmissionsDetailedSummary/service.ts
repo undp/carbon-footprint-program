@@ -129,7 +129,8 @@ export const getEmissionsDetailedSummaryService = async (
                 lineId: line.id.toString(),
                 emissionSource,
                 measurementUnitName: input.measurementUnit?.name ?? null,
-                quantity: input.quantity ? input.quantity.toNumber() : null,
+                quantity:
+                  input.quantity != null ? input.quantity.toNumber() : null,
                 factorValue: input.factor
                   ? input.factor.appliedFactorValue.toNumber()
                   : null,
