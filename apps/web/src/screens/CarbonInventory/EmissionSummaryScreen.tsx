@@ -7,7 +7,7 @@ import { StepHeader } from "./components";
 import {
   InventoryAttributesCard,
   TotalEmissionsBar,
-  GHGBreakdownTable,
+  // GHGBreakdownTable,
   EmissionFactorsTable,
 } from "./components/emissionSummary";
 import { Routes } from "@/interfaces";
@@ -42,9 +42,9 @@ export const EmissionSummaryScreen: FC = () => {
   console.log({ equivalence, summaryData, factorsData, metadataData });
 
   const categories = summaryData?.categories ?? [];
-  const ghgCategory = categories.find(
-    (c) => c.position === 1 && c.ghgBreakdown
-  );
+  // const ghgCategory = categories.find(
+  //   (c) => c.position === 1 && c.ghgBreakdown
+  // );
 
   return (
     <CarbonInventoryLayout
@@ -99,10 +99,10 @@ export const EmissionSummaryScreen: FC = () => {
         <EmissionSummary categories={categories} isLoading={isSummaryLoading} />
 
         {/* GHG Breakdown table (only for category 1) */}
-        <GHGBreakdownTable
+        {/* <GHGBreakdownTable
           breakdown={ghgCategory?.ghgBreakdown ?? []}
           isLoading={isSummaryLoading}
-        />
+        /> */}
 
         {/* Emission factors table */}
         <EmissionFactorsTable data={factorsData} isLoading={isFactorsLoading} />
