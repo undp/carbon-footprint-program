@@ -87,8 +87,8 @@ export const GHGBreakdownTable: FC<GHGBreakdownTableProps> = ({
           </tr>
         </thead>
         <tbody>
-          {breakdown.map((row) => (
-            <tr key={row.subcategoryName}>
+          {breakdown.map((row, index) => (
+            <tr key={row.subcategoryName + index}>
               <td>{row.subcategoryName}</td>
               {GAS_COLUMNS.map((col) => (
                 <td key={col.key}>{formatValue(row[col.key])}</td>
