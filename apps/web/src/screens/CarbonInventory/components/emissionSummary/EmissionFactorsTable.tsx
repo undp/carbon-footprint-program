@@ -50,6 +50,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
         />
       )}
 
+      {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
       {!isLoading && !loadingError && !!data?.length && (
         <DataGrid
           rows={rows}

@@ -22,6 +22,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       width: "100%",
     }}
   >
+    {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
     <DataGrid
       sx={(theme) => ({
         borderRadius: "8px",

@@ -38,6 +38,7 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
       </Typography>
 
       <Box className="flex w-full items-center justify-between gap-2">
+        {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
         <DataGrid
           rows={rows}
           columns={columns}
