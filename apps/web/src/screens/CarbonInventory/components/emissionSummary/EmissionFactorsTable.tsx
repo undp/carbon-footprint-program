@@ -9,13 +9,13 @@ import { EmptyStateMessage } from "../EmptyStateMessage";
 interface EmissionFactorsTableProps {
   data: GetEmissionFactorsResponse | undefined;
   isLoading: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
   data,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const columns = useEmissionFactorsColumns();
   const rows = useMemo(() => data ?? [], [data]);
@@ -33,14 +33,14 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
         />
       )}
 
-      {!isLoading && errorLoading && (
+      {!isLoading && hasError && (
         <LoadingErrorStateMessage
           className="max-h-[120px]"
           message="Ocurrió un error al cargar los factores de emisión"
         />
       )}
 
-      {!isLoading && !errorLoading && !data?.length && (
+      {!isLoading && !hasError && !data?.length && (
         <EmptyStateMessage
           className="max-h-[120px]"
           message="Luego de registrar actividades, podrás ver un resumen de los factores de emisión utilizados"
@@ -48,7 +48,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
       )}
 
       {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
-      {!isLoading && !errorLoading && !!data?.length && (
+      {!isLoading && !hasError && !!data?.length && (
         <DataGrid
           rows={rows}
           columns={columns}

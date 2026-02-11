@@ -9,14 +9,14 @@ interface EmissionEquivalenceCardProps {
   value: string | null;
   unit: string | null;
   isLoading?: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
   value,
   unit,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const theme = useTheme();
 
@@ -47,11 +47,11 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         </Box>
       )}
 
-      {!isLoading && errorLoading && (
+      {!isLoading && hasError && (
         <LoadingErrorStateMessage message="Ocurrió un error al cargar el equivalente de tu huella de carbono" />
       )}
 
-      {!isLoading && !errorLoading && exists && (
+      {!isLoading && !hasError && exists && (
         <Box className="flex w-full flex-1 flex-col justify-center pb-3">
           <Typography
             variant="h2"
@@ -76,7 +76,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         />
       )}
 
-      {!isLoading && !exists && !errorLoading && (
+      {!isLoading && !exists && !hasError && (
         <EmptyStateMessage
           color="primary"
           message={

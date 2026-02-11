@@ -19,7 +19,7 @@ interface EmissionCategorySummaryProps {
   totalEmissions: number;
   categories: CategoryData[];
   isLoading?: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
@@ -32,7 +32,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   totalEmissions,
   categories,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const theme = useTheme();
 
@@ -56,7 +56,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
     );
   }
 
-  if (errorLoading) {
+  if (hasError) {
     return (
       <LoadingErrorStateMessage message="Ocurrió un error al cargar el desglose por categoría" />
     );

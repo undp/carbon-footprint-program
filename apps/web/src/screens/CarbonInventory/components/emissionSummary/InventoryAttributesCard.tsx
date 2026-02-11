@@ -9,13 +9,13 @@ import { formatQuantity } from "@/utils/formatting";
 interface InventoryAttributesCardProps {
   data: GetCarbonInventoryMetadataResponse | undefined;
   isLoading: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   data,
   isLoading,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const theme = useTheme();
 
@@ -29,7 +29,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
     );
   }
 
-  if (errorLoading) {
+  if (hasError) {
     return (
       <LoadingErrorStateMessage
         message="Ocurrió un error al cargar los atributos del inventario"

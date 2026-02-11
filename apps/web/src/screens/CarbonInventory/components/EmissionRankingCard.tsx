@@ -10,14 +10,14 @@ interface EmissionRankingCardProps {
   ownRankings: RankingItem[];
   sectorRankings: RankingItem[];
   isLoading?: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   ownRankings,
   sectorRankings,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const [viewMode, setViewMode] = useState<"own" | "sector">("own");
 
@@ -29,7 +29,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
         </Typography>
-        {!errorLoading && (
+        {!hasError && (
           <StyledToggleButtonGroup
             sx={{
               height: 20,
@@ -64,12 +64,12 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
             </Box>
           ))}
 
-        {!isLoading && errorLoading && (
+        {!isLoading && hasError && (
           <LoadingErrorStateMessage message="Ocurrió un error al cargar el ranking de emisiones" />
         )}
 
         {!isLoading &&
-          !errorLoading &&
+          !hasError &&
           !!rankings.length &&
           rankings.map((item, index) => (
             <Box
@@ -81,7 +81,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
             </Box>
           ))}
 
-        {!isLoading && !errorLoading && !rankings.length && (
+        {!isLoading && !hasError && !rankings.length && (
           <EmptyStateMessage
             message={
               viewMode === "own"

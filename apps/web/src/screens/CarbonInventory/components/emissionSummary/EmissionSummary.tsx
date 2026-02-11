@@ -11,7 +11,7 @@ interface EmissionSummaryProps {
   equivalence: GetEmissionsDetailedSummaryResponse["equivalence"] | null;
   categories: GetEmissionsDetailedSummaryResponse["categories"];
   isLoading?: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const EmissionSummary: FC<EmissionSummaryProps> = ({
@@ -19,7 +19,7 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
   equivalence,
   totalEmissions,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   if (isLoading) {
     return (
@@ -36,7 +36,7 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
     );
   }
 
-  if (errorLoading) {
+  if (hasError) {
     return (
       <LoadingErrorStateMessage
         className="max-h-[120px]"

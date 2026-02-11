@@ -10,7 +10,7 @@ interface ReductionPlanCardProps {
   actions: string[] | null;
   onViewFullPlan: () => void;
   isLoading?: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
@@ -18,7 +18,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
   actions,
   onViewFullPlan,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const theme = useTheme();
 
@@ -52,7 +52,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
           </>
         )}
 
-        {!isLoading && !errorLoading && mainGoal != null && mainGoal !== "" && (
+        {!isLoading && !hasError && mainGoal != null && mainGoal !== "" && (
           <Box
             className="flex w-full items-center justify-center rounded px-2 py-4"
             sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
@@ -64,7 +64,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         )}
 
         {!isLoading &&
-          !errorLoading &&
+          !hasError &&
           Array.isArray(actions) &&
           actions.length > 0 && (
             <Box component="ul" className="m-0 flex flex-col gap-2 p-0">
@@ -81,7 +81,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
             </Box>
           )}
 
-        {!isLoading && !errorLoading && existsPlan && (
+        {!isLoading && !hasError && existsPlan && (
           <Button
             variant="text"
             onClick={onViewFullPlan}
@@ -105,7 +105,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         )}
       </Box>
 
-      {!isLoading && errorLoading && (
+      {!isLoading && hasError && (
         <LoadingErrorStateMessage
           message={
             "Ocurrió un error al cargar el plan de reducción sugerido para tu empresa"
@@ -113,7 +113,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         />
       )}
 
-      {!isLoading && !errorLoading && !existsPlan && (
+      {!isLoading && !hasError && !existsPlan && (
         <EmptyStateMessage
           message={
             "Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu empresa"

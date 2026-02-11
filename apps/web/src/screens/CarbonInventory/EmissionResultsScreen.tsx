@@ -124,7 +124,7 @@ export const EmissionResultsScreen: FC = () => {
                   totalEmissions={totalEmissions}
                   categories={categories}
                   isLoading={isSummaryLoading}
-                  errorLoading={isSummaryError}
+                  hasError={isSummaryError}
                 />
               </Box>
               <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
@@ -134,7 +134,7 @@ export const EmissionResultsScreen: FC = () => {
                     equivalence ? `kg CO₂e/${equivalence.activityName}` : null
                   }
                   isLoading={isEquivalenceLoading}
-                  errorLoading={isEquivalenceError}
+                  hasError={isEquivalenceError}
                 />
               </Box>
             </Box>
@@ -149,7 +149,7 @@ export const EmissionResultsScreen: FC = () => {
                   }))}
                   totalEmissions={totalEmissions}
                   isLoading={isSummaryLoading}
-                  errorLoading={isSummaryError}
+                  hasError={isSummaryError}
                 />
               </Box>
               <Box className="flex min-h-0 flex-1">
@@ -157,7 +157,7 @@ export const EmissionResultsScreen: FC = () => {
                   ownRankings={ownRankings ?? []}
                   sectorRankings={sectorRankings ?? []}
                   isLoading={isOwnRankingLoading || isSectorRankingLoading}
-                  errorLoading={isOwnRankingError || isSectorRankingError}
+                  hasError={isOwnRankingError || isSectorRankingError}
                 />
               </Box>
             </Box>
@@ -170,7 +170,7 @@ export const EmissionResultsScreen: FC = () => {
               // TODO: implement navigation to full reduction plan
               onViewFullPlan={() => {}}
               isLoading={isReductionPlanLoading}
-              errorLoading={isReductionPlanError}
+              hasError={isReductionPlanError}
             />
           </Box>
         </Box>

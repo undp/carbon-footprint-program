@@ -100,7 +100,7 @@ export const EmissionSummaryScreen: FC = () => {
         <InventoryAttributesCard
           data={metadataData}
           isLoading={isMetadataLoading}
-          errorLoading={isMetadataError}
+          hasError={isMetadataError}
         />
 
         {/* Category sections */}
@@ -109,7 +109,7 @@ export const EmissionSummaryScreen: FC = () => {
           equivalence={equivalence ?? null}
           categories={categories}
           isLoading={isSummaryLoading}
-          errorLoading={isSummaryError}
+          hasError={isSummaryError}
         />
 
         {/* TODO: re-enable GHGBreakdownTable for category 1 once GHG breakdown data is available in the summary endpoint */}
@@ -118,7 +118,7 @@ export const EmissionSummaryScreen: FC = () => {
         <EmissionFactorsTable
           data={factorsData}
           isLoading={isFactorsLoading}
-          errorLoading={isFactorsError}
+          hasError={isFactorsError}
         />
       </Box>
     </CarbonInventoryLayout>

@@ -16,7 +16,7 @@ interface EmissionsPieChartProps {
   totalEmissions: number;
   showLegend?: boolean;
   isLoading?: boolean;
-  errorLoading?: boolean;
+  hasError?: boolean;
 }
 
 const formatNumber = (value: number): string =>
@@ -30,7 +30,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   totalEmissions,
   showLegend = false,
   isLoading = false,
-  errorLoading = false,
+  hasError = false,
 }) => {
   const theme = useTheme();
 
@@ -59,11 +59,11 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!isLoading && errorLoading && (
+      {!isLoading && hasError && (
         <LoadingErrorStateMessage message="Ocurrió un error al cargar el gráfico de emisiones" />
       )}
 
-      {!isLoading && !errorLoading && !!totalEmissions && (
+      {!isLoading && !hasError && !!totalEmissions && (
         <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
           <Box className="relative">
             <PieChart
@@ -97,7 +97,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!isLoading && !totalEmissions && !errorLoading && (
+      {!isLoading && !totalEmissions && !hasError && (
         <EmptyStateMessage
           message={
             "Cuando registres tus actividades, verás aquí un resumen por alcance"
