@@ -14,7 +14,7 @@ export const getEmissionFactorsService = async (
       subcategory: {
         select: {
           name: true,
-          category: { select: { name: true, position: true } },
+          category: { select: { name: true, synonyms: true, position: true } },
         },
       },
       inputs: {
@@ -94,6 +94,7 @@ export const getEmissionFactorsService = async (
 
     result.push({
       categoryName: line.subcategory.category.name,
+      categorySynonyms: line.subcategory.category.synonyms,
       categoryPosition: line.subcategory.category.position,
       subcategoryName: line.subcategory.name,
       activityParameter,

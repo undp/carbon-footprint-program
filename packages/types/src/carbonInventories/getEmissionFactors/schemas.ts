@@ -3,6 +3,12 @@ import { z } from "zod";
 const EmissionFactorRowSchema = z
   .object({
     categoryName: z.string().describe("The category name"),
+    categorySynonyms: z
+      .string()
+      .nullable()
+      .describe(
+        "A synonym for the category name, used for matching inventory items to emission factors"
+      ),
     categoryPosition: z
       .number()
       .int()
