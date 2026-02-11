@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Skeleton } from "@mui/material";
+import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { CarbonInventoryLayout } from "./layout";
@@ -7,7 +7,6 @@ import { StepHeader } from "./components";
 import {
   InventoryAttributesCard,
   TotalEmissionsBar,
-  CategorySummarySection,
   GHGBreakdownTable,
   EmissionFactorsTable,
 } from "./components/emissionSummary";
@@ -19,6 +18,7 @@ import {
   useCarbonInventoryMetadata,
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
+import { EmissionSummary } from "./components/emissionSummary/EmissionSummary";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -96,22 +96,7 @@ export const EmissionSummaryScreen: FC = () => {
         />
 
         {/* Category sections */}
-        {isSummaryLoading ? (
-          <>
-            {[1, 2, 3].map((i) => (
-              <Skeleton
-                key={i}
-                variant="rounded"
-                height={120}
-                sx={{ borderRadius: 2, flexShrink: 0 }}
-              />
-            ))}
-          </>
-        ) : (
-          categories.map((category) => (
-            <CategorySummarySection key={category.id} category={category} />
-          ))
-        )}
+        <EmissionSummary categories={categories} isLoading={isSummaryLoading} />
 
         {/* GHG Breakdown table (only for category 1) */}
         <GHGBreakdownTable
