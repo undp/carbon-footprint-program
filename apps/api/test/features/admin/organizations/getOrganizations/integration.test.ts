@@ -163,9 +163,6 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         countryOrganizationSizeId: testSizeId,
       });
 
-      // Ensure the view or cache is updated if necessary
-      // (Depending on how the API fetches data, we might need to wait or trigger something)
-
       const response = await app.inject({
         method: "GET",
         url: "/api/admin/organizations/",
