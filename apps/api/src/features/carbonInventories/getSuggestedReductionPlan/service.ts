@@ -10,6 +10,8 @@ export const getSuggestedReductionPlanService = async (
   // Validate the inventory exists
   await fetchInventory(prismaClient, id);
 
+  return null;
+
   return {
     summary:
       "Reducir las emisiones de proceso y combustión, en línea con la Ley Marco de Cambio Climático y los objetivos globales del sector.",
