@@ -10,7 +10,7 @@ export async function createTestOrganizationData(
   organizationId: bigint,
   overrides?: Partial<OrganizationData>
 ): Promise<OrganizationData> {
-  const uuid = randomUUID();
+  const genericName = `TEST_${randomUUID()}`;
 
   const representativeCountryJobPosition =
     await prisma.countryJobPosition.findFirst();
@@ -20,12 +20,12 @@ export async function createTestOrganizationData(
   return await prisma.organizationData.create({
     data: {
       organizationId,
-      legalName: `TEST_${uuid}`,
-      tradeName: `TEST_${uuid}`,
-      taxId: `TEST_${uuid}`,
+      legalName: genericName,
+      tradeName: genericName,
+      taxId: genericName,
       countryOrganizationSizeId: null,
-      representativeFullName: `TEST_${uuid}`,
-      representativeTaxId: `TEST_${uuid}`,
+      representativeFullName: genericName,
+      representativeTaxId: genericName,
       representativeCountryJobPositionId: representativeCountryJobPosition.id,
       representativePhone: `+1234567890`,
       representativeEmail: `test@test.com`,
