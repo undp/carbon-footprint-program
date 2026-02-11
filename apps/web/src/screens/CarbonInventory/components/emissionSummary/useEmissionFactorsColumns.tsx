@@ -14,13 +14,18 @@ export const useEmissionFactorsColumns =
           field: "categoryName",
           headerName: "Categoría / Alcance",
           minWidth: 180,
+          cellClassName: "content-center",
           flex: 1.2,
           renderCell: ({ row }) => (
             <Box className="flex flex-col items-start gap-1">
               <CategoryChip
                 label={row.categorySynonyms ?? ""}
                 categoryPosition={row.categoryPosition}
-                sx={{ fontSize: "10px", height: "26px" }}
+                sx={{
+                  fontSize: "8px",
+                  height: "16px",
+                  "& .MuiChip-label": { px: 1 },
+                }}
               />
               <Typography variant="body2" fontWeight="fontWeightSemiBold">
                 {row.categoryName}
@@ -32,6 +37,7 @@ export const useEmissionFactorsColumns =
           field: "subcategoryName",
           headerName: "Sub-categoría",
           minWidth: 150,
+          cellClassName: "content-center",
           flex: 1,
           renderCell: ({ row }) => (
             <Typography variant="body2" fontWeight="fontWeightSemiBold">
@@ -43,6 +49,7 @@ export const useEmissionFactorsColumns =
           field: "activityParameter",
           headerName: "Parámetros de actividad",
           minWidth: 150,
+          cellClassName: "content-center",
           flex: 1,
           renderCell: ({ row }) => (
             <Typography variant="body2" fontWeight="fontWeightSemiBold">
@@ -54,6 +61,7 @@ export const useEmissionFactorsColumns =
           field: "factorLabel",
           headerName: "Factor (Kg CO₂e/unidad)",
           minWidth: 180,
+          cellClassName: "content-center",
           flex: 1.2,
           renderCell: ({ row }) => (
             <Box className="flex flex-col gap-0.5">
@@ -77,6 +85,7 @@ export const useEmissionFactorsColumns =
           field: "factorSource",
           headerName: "Fuente",
           minWidth: 150,
+          cellClassName: "content-center",
           flex: 1,
           renderCell: ({ row }) => (
             <Box className="flex flex-col">
