@@ -6,7 +6,6 @@ import { CarbonInventoryLayout } from "./layout";
 import { StepHeader } from "./components";
 import {
   InventoryAttributesCard,
-  TotalEmissionsBar,
   // GHGBreakdownTable,
   EmissionFactorsTable,
 } from "./components/emissionSummary";
@@ -86,15 +85,13 @@ export const EmissionSummaryScreen: FC = () => {
           isLoading={isMetadataLoading}
         />
 
-        {/* Total emissions bar */}
-        <TotalEmissionsBar
+        {/* Category sections */}
+        <EmissionSummary
           totalEmissions={summaryData?.totalEmissions ?? 0}
           equivalence={equivalence ?? null}
+          categories={categories}
           isLoading={isSummaryLoading || isEquivalenceLoading}
         />
-
-        {/* Category sections */}
-        <EmissionSummary categories={categories} isLoading={isSummaryLoading} />
 
         {/* GHG Breakdown table (only for category 1) */}
         {/* <GHGBreakdownTable
