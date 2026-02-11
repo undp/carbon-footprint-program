@@ -3,11 +3,8 @@ import { Box, Typography } from "@mui/material";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 
-type SubcategoryData =
-  GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
-
 interface SubcategoryManualRowProps {
-  subcategory: SubcategoryData;
+  subcategory: GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
   categoryColor: {
     dark: string;
     light: string;
@@ -28,11 +25,6 @@ export const SubcategoryManualRow: FC<SubcategoryManualRowProps> = ({
         >
           {subcategory.name}
         </Typography>
-        {/* {subcategory.description && (
-          <Typography variant="caption" color="text.secondary">
-            {subcategory.description}
-          </Typography>
-        )} */}
       </Box>
       <EmissionPercentageBadge
         emissions={subcategory.subtotal}
