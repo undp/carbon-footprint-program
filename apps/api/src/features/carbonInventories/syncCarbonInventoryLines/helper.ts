@@ -16,6 +16,7 @@ export type ItemData = {
   baseFactorId: string | null;
 };
 
+// TODO: refactor to fetch from database
 const CUSTOM_FACTOR_SOURCES = ["Factor Propio", "Otro"];
 
 /**
