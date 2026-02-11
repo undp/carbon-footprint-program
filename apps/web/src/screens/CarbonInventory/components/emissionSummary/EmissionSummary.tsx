@@ -45,7 +45,7 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
   }
 
   return (
-    <Box className="flex flex-col gap-2">
+    <Box className="flex flex-col gap-4">
       {/* Total emissions bar */}
       <TotalEmissionsBar
         totalEmissions={totalEmissions}
