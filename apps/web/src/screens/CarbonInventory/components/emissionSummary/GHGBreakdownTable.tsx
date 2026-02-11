@@ -1,3 +1,10 @@
+/**
+ * TODO (WIP): This component is not being displayed yet.
+ * It needs to be refactored to:
+ *   i)  Use MUI DataGrid instead of the HTML <table>
+ *   ii) Read from the new data structure
+ */
+
 import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
