@@ -676,6 +676,7 @@ enum OrganizationDataStatus {
   DRAFT
   SUBMITTED
   COMPLETED
+  REJECTED
   OUTDATED
 
   @@map("organization_data_status")
