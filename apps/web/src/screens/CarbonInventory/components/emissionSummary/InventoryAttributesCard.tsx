@@ -81,7 +81,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
             <Typography variant="caption" color="text.secondary">
               Actividad principal
             </Typography>
-            <Typography variant="subtitle1" fontWeight="fontWeightSemiBold">
+            <Typography variant="subtitle1" fontWeight="fontWeightMedium">
               {data.organizationMainActivityName}
             </Typography>
             {data.organizationMainActivityQuantity != null && (

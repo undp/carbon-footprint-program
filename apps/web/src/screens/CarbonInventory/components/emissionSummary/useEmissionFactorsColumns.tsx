@@ -32,7 +32,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
                 "& .MuiChip-label": { px: 1 },
               }}
             />
-            <Typography variant="body2" fontWeight="fontWeightSemiBold">
+            <Typography variant="body2" fontWeight="fontWeightRegular">
               {row.categoryName}
             </Typography>
           </Box>
@@ -46,7 +46,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
         cellClassName,
         flex: 1,
         renderCell: ({ row }) => (
-          <Typography variant="body2" fontWeight="fontWeightSemiBold">
+          <Typography variant="body2" fontWeight="fontWeightRegular">
             {row.subcategoryName}
           </Typography>
         ),
@@ -59,7 +59,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
         cellClassName,
         flex: 1,
         renderCell: ({ row }) => (
-          <Typography variant="body2" fontWeight="fontWeightSemiBold">
+          <Typography variant="body2" fontWeight="fontWeightRegular">
             {row.activityParameter}
           </Typography>
         ),
@@ -73,7 +73,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
         flex: 1.2,
         renderCell: ({ row }) => (
           <Box className="flex flex-col gap-0.5">
-            <Typography variant="body2" fontWeight="fontWeightSemiBold">
+            <Typography variant="body2" fontWeight="fontWeightRegular">
               {row.factorLabel}
             </Typography>
             {row.gasBreakdownLines.map((line, idx) => (
@@ -98,7 +98,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
         flex: 1,
         renderCell: ({ row }) => (
           <Box className="flex flex-col">
-            <Typography variant="body2" fontWeight="fontWeightSemiBold">
+            <Typography variant="body2" fontWeight="fontWeightRegular">
               {row.factorSource}
             </Typography>
             {row.factorSourceDetail && (
