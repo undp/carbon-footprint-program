@@ -13,7 +13,7 @@ export const submitAccreditationRequestRoute = (
     "/:id/accredited",
     {
       schema: {
-        tags: ["app", "organizations"],
+        tags: ["app-organizations"],
         summary: "Submit organization data for accreditation",
         description:
           "Transitions organization data from DRAFT to SUBMITTED and creates a pending submission.",

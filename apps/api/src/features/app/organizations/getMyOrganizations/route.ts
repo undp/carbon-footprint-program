@@ -8,7 +8,7 @@ export const getMyOrganizationsRoute = (fastify: FastifyZodInstance) => {
     "/mine",
     {
       schema: {
-        tags: ["app", "organizations"],
+        tags: ["app-organizations"],
         summary: "Get my organizations",
         description:
           "Retrieves all organizations where the authenticated user has active membership.",

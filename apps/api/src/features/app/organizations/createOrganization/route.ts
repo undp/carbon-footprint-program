@@ -11,7 +11,7 @@ export const createOrganizationRoute = (fastify: FastifyZodInstance) => {
     "/",
     {
       schema: {
-        tags: ["app", "organizations"],
+        tags: ["app-organizations"],
         summary: "Create a new organization",
         description:
           "Creates a new organization with NOT_ACCREDITED status and associated DRAFT data.",
