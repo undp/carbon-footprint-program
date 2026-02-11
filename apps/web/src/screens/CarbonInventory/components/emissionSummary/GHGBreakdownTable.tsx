@@ -43,7 +43,7 @@ export const GHGBreakdownTable: FC<GHGBreakdownTableProps> = ({
 
   return (
     <Box className="flex flex-col gap-3">
-      <Typography variant="body1" fontWeight="fontWeightSemiBold">
+      <Typography variant="h5" fontWeight="600">
         Emisiones directas por GEI
       </Typography>
 

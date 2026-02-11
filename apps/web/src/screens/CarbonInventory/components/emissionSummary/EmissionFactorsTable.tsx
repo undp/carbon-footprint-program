@@ -24,7 +24,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
 
   return (
     <Box className="flex flex-col gap-3">
-      <Typography variant="body1" fontWeight="fontWeightSemiBold">
+      <Typography variant="h5" fontWeight="600">
         Factores utilizados
       </Typography>
 
