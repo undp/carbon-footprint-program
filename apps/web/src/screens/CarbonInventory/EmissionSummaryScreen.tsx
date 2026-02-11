@@ -130,7 +130,7 @@ export const EmissionSummaryScreen: FC = () => {
         <EmissionFactorsTable
           data={factorsData}
           isLoading={isFactorsLoading}
-          loadingError={isFactorsError}
+          errorLoading={isFactorsError}
         />
       </Box>
     </CarbonInventoryLayout>
