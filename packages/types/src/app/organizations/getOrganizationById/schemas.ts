@@ -5,6 +5,7 @@ import {
   CountrySubsectorSchema,
 } from "../../../countrySectors/getAllCountrySectors/schemas.js";
 import { JobPositionSchema } from "../../../jobPositions/getAllJobPositions/schemas.js";
+import { CountryOrganizationSizeSchema } from "../../../countryOrganizationSizes/getAllCountryOrganizationSizes/schemas.js";
 
 export const GetOrganizationByIdParamsSchema = z.object({
   id: IdSchema.describe("The organization ID"),
@@ -15,7 +16,10 @@ export const GetOrganizationByIdResponseSchema = z.object({
     legalName: z.string(),
     tradeName: z.string().nullable(),
     taxId: z.string(),
-    organizationType: z.string().nullable(),
+    organizationSize: CountryOrganizationSizeSchema.pick({
+      id: true,
+      name: true,
+    }).nullable(),
     sector: CountrySectorSchema.pick({ id: true, name: true }).nullable(),
     subSector: CountrySubsectorSchema.pick({ id: true, name: true }).nullable(),
     numberOfEmployees: z.number().nullable(),

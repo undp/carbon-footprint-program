@@ -21,7 +21,12 @@ export const mapOrganizationDataToResponse = (
     legalName: data.legalName,
     tradeName: data.tradeName,
     taxId: data.taxId,
-    organizationType: data.countryOrganizationSize?.name ?? null,
+    organizationSize: data.countryOrganizationSize
+      ? {
+          id: data.countryOrganizationSize.id.toString(),
+          name: data.countryOrganizationSize.name,
+        }
+      : null,
     sector: data.sector?.name
       ? {
           id: data.sector.id.toString(),
