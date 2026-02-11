@@ -2,7 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { fetchInventory } from "../helpers.js";
 import {
-  formatFactorValue,
+  formatEmissionFactor,
   buildGasBreakdownLines,
   parseFactorSource,
 } from "./helper.js";
@@ -120,7 +120,7 @@ export const getEmissionFactorsService = async (
     const factorValue = hasLineFactor
       ? factor.appliedFactorValue.toNumber()
       : input.manualFactor!.toNumber();
-    const factorLabel = `${formatFactorValue(factorValue)} ${rateUnit}`;
+    const factorLabel = `${formatEmissionFactor(factorValue)} ${rateUnit}`;
 
     // Parse gasDetails to build breakdown lines
     const gasBreakdownLines = emissionFactor

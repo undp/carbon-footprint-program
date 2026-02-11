@@ -1,17 +1,6 @@
-export function formatFactorValue(value: number): string {
-  // Format with reasonable precision, removing trailing zeros
-  if (value === 0) return "0";
-  if (Math.abs(value) >= 1) {
-    return value.toLocaleString("es-CL", {
-      maximumFractionDigits: 4,
-      useGrouping: true,
-    });
-  }
-  return value.toLocaleString("es-CL", {
-    maximumSignificantDigits: 4,
-    useGrouping: true,
-  });
-}
+import { formatEmissionFactor } from "@repo/utils";
+
+export { formatEmissionFactor };
 
 export function buildGasBreakdownLines(
   gasDetails: unknown,
@@ -46,7 +35,7 @@ export function buildGasBreakdownLines(
       const numVal = Number(val);
       if (Number.isFinite(numVal) && numVal !== 0) {
         lines.push(
-          `${formatFactorValue(numVal)} kg CO₂e of ${label}/${extractDenominator(rateUnit)}`
+          `${formatEmissionFactor(numVal)} kg CO₂e of ${label}/${extractDenominator(rateUnit)}`
         );
       }
     }
