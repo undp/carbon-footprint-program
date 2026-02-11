@@ -118,8 +118,8 @@ export const getEmissionFactorsService = async (
       : (input.manualFactorRateUnit?.abbreviation ?? "");
 
     const factorValue = hasLineFactor
-      ? Number(factor.appliedFactorValue)
-      : Number(input.manualFactor);
+      ? factor.appliedFactorValue.toNumber()
+      : input.manualFactor!.toNumber();
     const factorLabel = `${formatFactorValue(factorValue)} ${rateUnit}`;
 
     // Parse gasDetails to build breakdown lines
