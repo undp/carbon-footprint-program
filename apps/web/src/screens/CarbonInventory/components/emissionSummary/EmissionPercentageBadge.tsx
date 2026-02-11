@@ -28,17 +28,19 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
       >
         {formatEmissions(emissions)}
       </Typography>
-      <Box
-        className="rounded px-2 py-1"
-        sx={{ backgroundColor: categoryColor.light, minWidth: "60px" }}
-      >
-        <Typography
-          variant="body1"
-          fontWeight={fontWeight}
-          sx={{ color: categoryColor.dark }}
+      <Box className="flex min-w-[60px] justify-end">
+        <Box
+          className="rounded px-2 py-1"
+          sx={{ backgroundColor: categoryColor.light }}
         >
-          {formatPercentage(percentage)}
-        </Typography>
+          <Typography
+            variant="body1"
+            fontWeight={fontWeight}
+            sx={{ color: categoryColor.dark }}
+          >
+            {formatPercentage(percentage)}
+          </Typography>
+        </Box>
       </Box>
     </Box>
   );
