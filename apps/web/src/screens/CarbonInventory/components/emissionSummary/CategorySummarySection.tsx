@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Divider, Skeleton, Typography, alpha } from "@mui/material";
+import { Box, Divider, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
@@ -8,26 +8,14 @@ import { SubcategoryManualRow } from "./SubcategoryManualRow";
 
 interface CategorySummarySectionProps {
   category: GetEmissionsDetailedSummaryResponse["categories"][number];
-  isLoading?: boolean;
 }
 
 export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
   category,
-  isLoading = false,
 }) => {
   const theme = useTheme();
   const catKey = Math.min(category.position, 3) as 1 | 2 | 3;
   const categoryColor = theme.palette.category[catKey];
-
-  if (isLoading) {
-    return (
-      <Skeleton
-        variant="rounded"
-        height={120}
-        sx={{ borderRadius: 2, flexShrink: 0 }}
-      />
-    );
-  }
 
   return (
     <Box
