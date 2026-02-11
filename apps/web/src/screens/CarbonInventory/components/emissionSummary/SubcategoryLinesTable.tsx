@@ -1,7 +1,9 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { Box, Typography, alpha } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
+import { useSubcategoryLinesColumns } from "./useSubcategoryLinesColumns";
 
 type SubcategoryData =
   GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
@@ -19,6 +21,12 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
   subcategory,
   categoryColor,
 }) => {
+  const columns = useSubcategoryLinesColumns(categoryColor.dark);
+  const rows = useMemo(
+    () => subcategory.lines.map((line) => ({ ...line, id: line.lineId })),
+    [subcategory.lines]
+  );
+
   return (
     <Box className="flex flex-col gap-2">
       <Typography
@@ -29,69 +37,61 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
         {subcategory.name}
       </Typography>
 
-      <Box className="flex w-full items-center justify-between">
-        <Box
-          component="table"
+      <Box className="flex w-full items-center justify-between gap-2">
+        <DataGrid
+          rows={rows}
+          columns={columns}
+          columnHeaderHeight={24}
+          getRowHeight={() => "auto"}
+          hideFooter
+          disableColumnResize
+          disableColumnSorting
+          disableColumnMenu
+          disableColumnFilter
+          disableColumnSelector
+          disableRowSelectionOnClick
+          checkboxSelection={false}
+          localeText={{ noRowsLabel: "Sin líneas de emisión" }}
           sx={{
-            width: "80%",
-            borderCollapse: "collapse",
-            "& th, & td": {
-              px: 1,
-              py: 0.5,
-              textAlign: "left",
-              fontSize: "0.75rem",
-              lineHeight: 1.4,
-              borderBottom: `1px solid ${alpha(categoryColor.main, 0.2)}`,
-            },
-            "& th": {
+            flex: 1,
+            maxWidth: "75%",
+            borderRadius: "8px",
+            border: `1px solid ${alpha(categoryColor.main, 0.2)}`,
+            "& .MuiDataGrid-columnHeader": {
+              padding: "4px 8px",
               backgroundColor: categoryColor.light,
               color: categoryColor.dark,
               fontWeight: 600,
+              fontSize: "0.875rem",
             },
-            "& td": {
+            "& .MuiDataGrid-columnHeader:focus": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-columnHeader:focus-within": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-columnSeparator": {
+              display: "none",
+            },
+            "& .MuiDataGrid-cell": {
+              padding: "0px 8px",
+              height: "24px",
+              fontSize: "0.875rem",
               color: categoryColor.dark,
+              borderBottom: `1px solid ${alpha(categoryColor.main, 0.2)}`,
+            },
+            "& .MuiDataGrid-cell:focus": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-cell:focus-within": {
+              outline: "none",
+            },
+            "& .MuiDataGrid-row:hover": {
+              backgroundColor: "transparent",
             },
           }}
-        >
-          <thead>
-            <tr>
-              <th>Fuente de emisión</th>
-              <th>Unidad</th>
-              <th>Cantidad</th>
-              <th>Factor kgCO₂e/unidad</th>
-              <th>Fuente factor</th>
-              <th style={{ textAlign: "right" }}>Emisiones tCO₂e</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subcategory.lines.map((line) => (
-              <tr key={line.lineId}>
-                <td>{line.emissionSource}</td>
-                <td>{line.measurementUnitName ?? "-"}</td>
-                <td>
-                  {line.quantity != null
-                    ? line.quantity.toLocaleString("es-CL")
-                    : "-"}
-                </td>
-                <td>
-                  {line.factorValue != null
-                    ? line.factorValue.toLocaleString("es-CL", {
-                        maximumFractionDigits: 4,
-                      })
-                    : "-"}
-                </td>
-                <td>{line.factorSource ?? "-"}</td>
-                <td style={{ textAlign: "right" }}>
-                  {line.emissions.toLocaleString("es-CL", {
-                    maximumFractionDigits: 2,
-                  })}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Box>
+        />
 
-        {/* Subtotal row */}
         <EmissionPercentageBadge
           emissions={subcategory.subtotal}
           percentage={subcategory.percentage}
