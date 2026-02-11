@@ -6,27 +6,31 @@ export const getMyOrganizationsService = async (
 ): Promise<GetMyOrganizationsResponse> => {
   const organizations = await prismaClient.organization.findMany({
     include: {
-      data: {
-        where: {
-          status: {
-            in: [
-              OrganizationDataStatus.COMPLETED,
-              OrganizationDataStatus.DRAFT,
-              OrganizationDataStatus.SUBMITTED,
-            ],
-          },
-        },
-        orderBy: [{ status: "asc" }, { id: "desc" }],
-      },
+      data: true,
     },
   });
+
   // 3. Map to response format with computed label
-  return organizations.map((organization) => ({
-    id: organization.id.toString(),
-    name:
-      organization.data[0].tradeName ||
-      organization.data[0].legalName ||
-      organization.data[0].taxId ||
-      "N/A",
-  }));
+  return organizations.map((org) => {
+    const priorityMap: Record<OrganizationDataStatus, number> = {
+      [OrganizationDataStatus.COMPLETED]: 1,
+      [OrganizationDataStatus.SUBMITTED]: 2,
+      [OrganizationDataStatus.DRAFT]: 3,
+      [OrganizationDataStatus.REJECTED]: 4,
+      [OrganizationDataStatus.OUTDATED]: 5, // for type safety
+    };
+    const sortedData = org.data.sort(
+      (a, b) =>
+        priorityMap[a.status] - priorityMap[b.status] || Number(b.id - a.id)
+    );
+
+    return {
+      id: org.id.toString(),
+      name:
+        sortedData[0].tradeName ||
+        sortedData[0].legalName ||
+        sortedData[0].taxId ||
+        "N/A",
+    };
+  });
 };
