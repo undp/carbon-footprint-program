@@ -111,29 +111,33 @@ export const getEmissionsDetailedSummaryService = async (
       const hasLines = factorBasedLines.length > 0;
 
       const emissionLines = hasLines
-        ? factorBasedLines.map((line) => {
-            const input = line.inputs[0];
-            const emissionSource =
-              [input.selection1?.value, input.selection2?.value]
-                .filter(Boolean)
-                .join(" / ") || sub.name;
+        ? factorBasedLines
+            .map((line) => {
+              const input = line.inputs[0];
+              if (!input) return null;
 
-            const lineEmissions = input.result
-              ? kgToTon(Number(input.result.totalEmissions))
-              : 0;
+              const emissionSource =
+                [input.selection1?.value, input.selection2?.value]
+                  .filter(Boolean)
+                  .join(" / ") || sub.name;
 
-            return {
-              lineId: line.id.toString(),
-              emissionSource,
-              measurementUnitName: input.measurementUnit?.name ?? null,
-              quantity: input.quantity ? Number(input.quantity) : null,
-              factorValue: input.factor
-                ? Number(input.factor.appliedFactorValue)
-                : null,
-              factorSource: input.factor?.appliedFactorSource ?? null,
-              emissions: roundEmissions(lineEmissions),
-            };
-          })
+              const lineEmissions = input.result
+                ? kgToTon(Number(input.result.totalEmissions))
+                : 0;
+
+              return {
+                lineId: line.id.toString(),
+                emissionSource,
+                measurementUnitName: input.measurementUnit?.name ?? null,
+                quantity: input.quantity ? input.quantity.toNumber() : null,
+                factorValue: input.factor
+                  ? input.factor.appliedFactorValue.toNumber()
+                  : null,
+                factorSource: input.factor?.appliedFactorSource ?? null,
+                emissions: roundEmissions(lineEmissions),
+              };
+            })
+            .filter((item) => item !== null)
         : [];
 
       return {
