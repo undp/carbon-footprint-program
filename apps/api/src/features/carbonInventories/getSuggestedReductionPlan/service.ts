@@ -10,6 +10,7 @@ export const getSuggestedReductionPlanService = async (
   // Validate the inventory exists
   await fetchInventory(prismaClient, id);
 
+  // TODO: remove once real implementation is in place
   return null;
 
   return {
