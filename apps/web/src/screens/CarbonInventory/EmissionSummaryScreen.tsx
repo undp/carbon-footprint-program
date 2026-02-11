@@ -7,7 +7,6 @@ import { CarbonInventoryLayout } from "./layout";
 import { StepHeader } from "./components";
 import {
   InventoryAttributesCard,
-  // GHGBreakdownTable,
   EmissionFactorsTable,
 } from "./components/emissionSummary";
 import { Routes } from "@/interfaces";
@@ -64,10 +63,6 @@ export const EmissionSummaryScreen: FC = () => {
         preventDuplicate: true,
       });
   }, [isError, enqueueSnackbar]);
-  // const ghgCategory = categories.find(
-  //   (c) => c.position === 1 && c.ghgBreakdown
-  // );
-
   return (
     <CarbonInventoryLayout
       headerProps={{
@@ -120,11 +115,7 @@ export const EmissionSummaryScreen: FC = () => {
           errorLoading={isSummaryError || isEquivalenceError}
         />
 
-        {/* GHG Breakdown table (only for category 1) */}
-        {/* <GHGBreakdownTable
-          breakdown={ghgCategory?.ghgBreakdown ?? []}
-          isLoading={isSummaryLoading}
-        /> */}
+        {/* TODO: re-enable GHGBreakdownTable for category 1 once GHG breakdown data is available in the summary endpoint */}
 
         {/* Emission factors table */}
         <EmissionFactorsTable
