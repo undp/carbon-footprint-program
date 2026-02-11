@@ -2,11 +2,11 @@ import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { formatEmissions } from "@/utils/formatting";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 
 interface TotalEmissionsBarProps {
   totalEmissions: number;
-  equivalence: GetEmissionsSummaryFullResponse["equivalence"];
+  equivalence: GetEmissionsDetailedSummaryResponse["equivalence"];
   isLoading?: boolean;
 }
 

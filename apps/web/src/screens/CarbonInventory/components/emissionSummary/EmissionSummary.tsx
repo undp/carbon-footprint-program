@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Skeleton } from "@mui/material";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { CategorySummarySection } from "./CategorySummarySection";
 import { TotalEmissionsBar } from "./TotalEmissionsBar";
 import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
@@ -8,8 +8,8 @@ import { EmptyStateMessage } from "../EmptyStateMessage";
 
 interface EmissionSummaryProps {
   totalEmissions: number;
-  equivalence: GetEmissionsSummaryFullResponse["equivalence"] | null;
-  categories: GetEmissionsSummaryFullResponse["categories"];
+  equivalence: GetEmissionsDetailedSummaryResponse["equivalence"] | null;
+  categories: GetEmissionsDetailedSummaryResponse["categories"];
   isLoading?: boolean;
   errorLoading?: boolean;
 }

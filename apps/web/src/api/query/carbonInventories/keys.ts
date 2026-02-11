@@ -15,8 +15,8 @@ export const carbonInventoryKeys = {
     ["carbonInventories", id, "main-activity-equivalence"] as const,
   suggestedReductionPlan: (id: string) =>
     ["carbonInventories", id, "suggested-reduction-plan"] as const,
-  emissionsSummaryFull: (id: string) =>
-    ["carbonInventories", id, "emissions-summary-full"] as const,
+  emissionsDetailedSummary: (id: string) =>
+    ["carbonInventories", id, "emissions-detailed-summary"] as const,
   emissionFactors: (id: string) =>
     ["carbonInventories", id, "emission-factors"] as const,
   metadata: (id: string) => ["carbonInventories", id, "metadata"] as const,
@@ -45,7 +45,7 @@ export const invalidateCarbonInventoryEmissions = (
 ) => {
   const keys: QueryKey[] = [
     carbonInventoryKeys.detail(inventoryId),
-    carbonInventoryKeys.emissionsSummaryFull(inventoryId),
+    carbonInventoryKeys.emissionsDetailedSummary(inventoryId),
     carbonInventoryKeys.emissionFactors(inventoryId),
     carbonInventoryKeys.emissionsSummaryCategories(inventoryId),
     carbonInventoryKeys.subcategoriesRanking(inventoryId),

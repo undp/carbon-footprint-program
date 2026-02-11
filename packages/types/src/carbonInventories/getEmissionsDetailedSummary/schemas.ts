@@ -120,7 +120,7 @@ const EquivalenceSchema = z
   })
   .strict();
 
-export const GetEmissionsSummaryFullResponseSchema = z
+export const GetEmissionsDetailedSummaryResponseSchema = z
   .object({
     inventoryAttributes: InventoryAttributesSchema,
     totalEmissions: z

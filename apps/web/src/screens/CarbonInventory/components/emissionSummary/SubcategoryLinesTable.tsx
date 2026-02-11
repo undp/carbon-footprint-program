@@ -1,12 +1,12 @@
 import { FC, useMemo } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 import { useSubcategoryLinesColumns } from "./useSubcategoryLinesColumns";
 
 interface SubcategoryLinesTableProps {
-  subcategory: GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
+  subcategory: GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number];
   categoryColor: {
     main: string;
     dark: string;

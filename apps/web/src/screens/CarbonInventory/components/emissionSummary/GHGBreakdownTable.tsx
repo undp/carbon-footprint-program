@@ -7,10 +7,10 @@
 
 import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 
 type GHGBreakdown = NonNullable<
-  GetEmissionsSummaryFullResponse["categories"][number]["ghgBreakdown"]
+  GetEmissionsDetailedSummaryResponse["categories"][number]["ghgBreakdown"]
 >;
 
 interface GHGBreakdownTableProps {

@@ -11,7 +11,7 @@ import {
 } from "./components/emissionSummary";
 import { Routes } from "@/interfaces";
 import {
-  useEmissionsSummaryFull,
+  useEmissionsDetailedSummary,
   useEmissionFactors,
   useMainActivityEquivalence,
   useCarbonInventoryMetadata,
@@ -37,7 +37,7 @@ export const EmissionSummaryScreen: FC = () => {
     data: summaryData,
     isLoading: isSummaryLoading,
     isError: isSummaryError,
-  } = useEmissionsSummaryFull(inventoryId);
+  } = useEmissionsDetailedSummary(inventoryId);
 
   const {
     data: factorsData,

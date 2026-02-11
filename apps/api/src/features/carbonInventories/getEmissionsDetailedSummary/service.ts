@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type {
-  GetEmissionsSummaryFullResponse,
+  GetEmissionsDetailedSummaryResponse,
   OrganizationData,
 } from "@repo/types";
 import { distributePercentages, roundEmissions } from "../resultsHelpers.js";
@@ -12,10 +12,10 @@ import {
   buildGHGBreakdown,
 } from "./helper.js";
 
-export const getEmissionsSummaryFullService = async (
+export const getEmissionsDetailedSummaryService = async (
   prismaClient: PrismaClient,
   id: string
-): Promise<GetEmissionsSummaryFullResponse> => {
+): Promise<GetEmissionsDetailedSummaryResponse> => {
   const inventory = await fetchInventory(prismaClient, id);
   const { categoryData, totalEmissions } = await fetchCategoryData(
     prismaClient,

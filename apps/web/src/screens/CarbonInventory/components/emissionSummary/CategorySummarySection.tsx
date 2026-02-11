@@ -1,13 +1,13 @@
 import { FC } from "react";
 import { Box, Divider, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 import { SubcategoryLinesTable } from "./SubcategoryLinesTable";
 import { SubcategoryManualRow } from "./SubcategoryManualRow";
 
 interface CategorySummarySectionProps {
-  category: GetEmissionsSummaryFullResponse["categories"][number];
+  category: GetEmissionsDetailedSummaryResponse["categories"][number];
   isLoading?: boolean;
 }
 

@@ -1,10 +1,10 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 
 interface SubcategoryManualRowProps {
-  subcategory: GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
+  subcategory: GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number];
   categoryColor: {
     dark: string;
     light: string;

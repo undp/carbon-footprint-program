@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { GridColDef } from "@mui/x-data-grid";
-import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import {
   formatEmissionFactor,
   formatEmissions,
@@ -8,7 +8,7 @@ import {
 } from "@/utils/formatting";
 
 type LineRow =
-  GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number]["lines"][number];
+  GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number]["lines"][number];
 
 export const useSubcategoryLinesColumns = (): GridColDef<LineRow>[] => {
   const cellClassName = "content-center px-2! py-0! h-6! text-sm";

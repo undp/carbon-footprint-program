@@ -1,11 +1,11 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { getEmissionsSummaryFullService } from "./service.js";
+import { getEmissionsDetailedSummaryService } from "./service.js";
 
-export const getEmissionsSummaryFullHandler = async (
+export const getEmissionsDetailedSummaryHandler = async (
   request: FastifyRequest<{ Params: { id: string } }>,
   reply: FastifyReply
 ) => {
-  const log = request.log.child({ module: "emissionsSummaryFull" });
+  const log = request.log.child({ module: "emissionsDetailedSummary" });
   const carbonInventoryId = request.params.id;
 
   log.info(
@@ -14,7 +14,7 @@ export const getEmissionsSummaryFullHandler = async (
   );
 
   const prisma = request.server.prisma;
-  const data = await getEmissionsSummaryFullService(prisma, carbonInventoryId);
+  const data = await getEmissionsDetailedSummaryService(prisma, carbonInventoryId);
 
   log.info(
     { carbonInventoryId },
