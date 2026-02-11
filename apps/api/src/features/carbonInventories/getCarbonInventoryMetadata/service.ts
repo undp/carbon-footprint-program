@@ -1,9 +1,7 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  GetCarbonInventoryMetadataResponse,
-  OrganizationData,
-} from "@repo/types";
+import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../errors.js";
+import { safeParseCarbonInventoryOrganizationData } from "../utils.js";
 
 export const getCarbonInventoryMetadataService = async (
   prismaClient: PrismaClient,
@@ -23,13 +21,14 @@ export const getCarbonInventoryMetadataService = async (
     throw new CarbonInventoryNotFoundError(id);
   }
 
-  const orgData = inventory.organizationData as OrganizationData | null;
+  const orgData = safeParseCarbonInventoryOrganizationData(
+    id,
+    inventory.organizationData
+  );
 
-  const sectorId = orgData?.sectorId ? String(orgData.sectorId) : null;
-  const sizeId = orgData?.sizeId ? String(orgData.sizeId) : null;
-  const mainActivityId = orgData?.mainActivityId
-    ? String(orgData.mainActivityId)
-    : null;
+  const sectorId = orgData?.sectorId ?? null;
+  const sizeId = orgData?.sizeId ?? null;
+  const mainActivityId = orgData?.mainActivityId ?? null;
 
   const [sector, size, mainActivity, methodology] = await Promise.all([
     sectorId
@@ -62,14 +61,11 @@ export const getCarbonInventoryMetadataService = async (
     id: inventory.id.toString(),
     name: inventory.name,
     country: methodology?.country.name ?? null,
-    organizationName: typeof orgData?.name === "string" ? orgData.name : null,
+    organizationName: orgData?.name ?? null,
     organizationBranchesQuantity: null,
     organizationSectorName: sector?.name ?? null,
     organizationSizeName: size?.name ?? null,
     organizationMainActivityName: mainActivity?.name ?? null,
-    organizationMainActivityQuantity:
-      typeof orgData?.mainActivityQuantity === "number"
-        ? orgData.mainActivityQuantity
-        : null,
+    organizationMainActivityQuantity: orgData?.mainActivityQuantity ?? null,
   };
 };

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { OrganizationData } from "@repo/types";
+import type { CarbonInventory } from "@repo/types";
 import { roundEmissions } from "../utils.js";
 import type { CategoryData } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
@@ -7,13 +7,11 @@ import { kgToTon } from "@/utils/number.js";
 export async function resolveInventoryAttributes(
   prismaClient: PrismaClient,
   inventory: { id: bigint; name: string | null; methodologyVersionId: bigint },
-  orgData: OrganizationData | null
+  orgData: CarbonInventory["organizationData"]
 ) {
-  const sectorId = orgData?.sectorId ? String(orgData.sectorId) : null;
-  const sizeId = orgData?.sizeId ? String(orgData.sizeId) : null;
-  const mainActivityId = orgData?.mainActivityId
-    ? String(orgData.mainActivityId)
-    : null;
+  const sectorId = orgData?.sectorId ?? null;
+  const sizeId = orgData?.sizeId ?? null;
+  const mainActivityId = orgData?.mainActivityId ?? null;
 
   const [sector, size, mainActivity, methodology] = await Promise.all([
     sectorId
@@ -42,31 +40,23 @@ export async function resolveInventoryAttributes(
 
   return {
     name: inventory.name,
-    companyName: typeof orgData?.name === "string" ? orgData.name : null,
+    companyName: orgData?.name ?? null,
     countryName: methodology?.country.name ?? null,
     sectorName: sector?.name ?? null,
     sizeName: size?.name ?? null,
     branchCount: null,
     mainActivityName: mainActivity?.name ?? null,
-    mainActivityQuantity:
-      typeof orgData?.mainActivityQuantity === "number"
-        ? orgData.mainActivityQuantity
-        : null,
+    mainActivityQuantity: orgData?.mainActivityQuantity ?? null,
   };
 }
 
 export async function calculateEquivalence(
   prismaClient: PrismaClient,
-  orgData: OrganizationData | null,
+  orgData: CarbonInventory["organizationData"],
   totalEmissions: number
 ) {
-  const mainActivityQuantity =
-    typeof orgData?.mainActivityQuantity === "number"
-      ? orgData.mainActivityQuantity
-      : null;
-  const mainActivityId = orgData?.mainActivityId
-    ? String(orgData.mainActivityId)
-    : null;
+  const mainActivityQuantity = orgData?.mainActivityQuantity ?? null;
+  const mainActivityId = orgData?.mainActivityId ?? null;
 
   if (!mainActivityQuantity || mainActivityQuantity <= 0 || !mainActivityId) {
     return null;

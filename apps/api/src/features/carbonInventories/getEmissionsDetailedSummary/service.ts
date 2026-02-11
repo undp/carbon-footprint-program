@@ -1,9 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  GetEmissionsDetailedSummaryResponse,
-  OrganizationData,
-} from "@repo/types";
-import { distributePercentages, roundEmissions } from "../utils.js";
+import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
+import {
+  distributePercentages,
+  roundEmissions,
+  safeParseCarbonInventoryOrganizationData,
+} from "../utils.js";
 import { fetchInventory, fetchCategoryData } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
 import {
@@ -23,7 +24,10 @@ export const getEmissionsDetailedSummaryService = async (
   );
 
   // 1. Resolve inventory attributes
-  const orgData = inventory.organizationData as OrganizationData | null;
+  const orgData = safeParseCarbonInventoryOrganizationData(
+    id,
+    inventory.organizationData
+  );
   const inventoryAttributes = await resolveInventoryAttributes(
     prismaClient,
     inventory,

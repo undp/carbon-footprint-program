@@ -1,9 +1,14 @@
 import type { Prisma } from "@repo/database";
-import type { RankingSeverity } from "@repo/types";
+import {
+  OrganizationDataSchema,
+  type OrganizationData,
+  type RankingSeverity,
+} from "@repo/types";
 import {
   PERCENTAGE_PRECISION,
   EMISSIONS_PRECISION,
 } from "@/config/constants.js";
+import { DataIntegrityError } from "../../errors/DataIntegrityError.js";
 
 /**
  * Type for a line input (picked from Prisma CarbonInventoryLineInput)
@@ -101,4 +106,20 @@ export function getRankingSeverity(percentage: number): RankingSeverity {
   if (percentage >= 0.25) return "HIGH";
   if (percentage >= 0.1) return "MEDIUM";
   return "LOW";
+}
+
+// Validate organizationData with runtime type checking using Zod
+export function safeParseCarbonInventoryOrganizationData(
+  carbonInventoryId: string,
+  data: unknown
+): OrganizationData | null {
+  const organizationDataResult =
+    OrganizationDataSchema.nullable().safeParse(data);
+
+  if (!organizationDataResult.success)
+    throw new DataIntegrityError(
+      `Invalid organizationData structure for carbon inventory ${carbonInventoryId}: ${organizationDataResult.error.message}`
+    );
+
+  return organizationDataResult.data;
 }
