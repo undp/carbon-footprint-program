@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import type { GetEmissionFactorsResponse } from "@repo/types";
+import { CategoryChip } from "../CategoryChip";
 
 interface EmissionFactorsTableProps {
   data: GetEmissionFactorsResponse | undefined;
@@ -12,8 +12,6 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
   data,
   isLoading,
 }) => {
-  const theme = useTheme();
-
   if (isLoading) {
     return (
       <Skeleton
@@ -63,39 +61,42 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
         </thead>
         <tbody>
           {data?.map((row, idx) => {
-            const catKey = Math.min(row.categoryPosition, 3) as 1 | 2 | 3;
-            const categoryColor = theme.palette.category[catKey];
-
             return (
               <tr key={idx}>
                 <td>
-                  <Box
-                    className="inline-block rounded px-2 py-0.5"
-                    sx={{ backgroundColor: categoryColor.light }}
-                  >
-                    <Typography
-                      variant="caption"
-                      fontWeight="fontWeightSemiBold"
-                      sx={{ color: categoryColor.dark }}
-                    >
+                  <Box className="flex flex-col items-start gap-3 rounded px-2 py-0.5">
+                    <CategoryChip
+                      label={row.categorySynonyms ?? ""}
+                      categoryPosition={row.categoryPosition}
+                      sx={{
+                        fontSize: "10px",
+                        height: "26px",
+                      }}
+                    />
+                    <Typography variant="body2" fontWeight="fontWeightSemiBold">
                       {row.categoryName}
                     </Typography>
                   </Box>
                 </td>
-                <td>{row.subcategoryName}</td>
-                <td>{row.activityParameter}</td>
+                <td>
+                  <Typography variant="body2" fontWeight="fontWeightSemiBold">
+                    {row.subcategoryName}
+                  </Typography>
+                </td>
+                <td>
+                  <Typography variant="body2" fontWeight="fontWeightSemiBold">
+                    {row.activityParameter}
+                  </Typography>
+                </td>
                 <td>
                   <Box className="flex flex-col gap-0.5">
-                    <Typography
-                      variant="caption"
-                      fontWeight="fontWeightSemiBold"
-                    >
+                    <Typography variant="body2" fontWeight="fontWeightSemiBold">
                       {row.factorLabel}
                     </Typography>
                     {row.gasBreakdownLines.map((line, lineIdx) => (
                       <Typography
                         key={lineIdx}
-                        variant="caption"
+                        variant="body2"
                         color="text.secondary"
                         sx={{ fontSize: "0.65rem" }}
                       >
@@ -106,12 +107,10 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
                 </td>
                 <td>
                   <Box className="flex flex-col">
-                    <Typography variant="caption">
-                      {row.factorSource}
-                    </Typography>
+                    <Typography variant="body2">{row.factorSource}</Typography>
                     {row.factorSourceDetail && (
                       <Typography
-                        variant="caption"
+                        variant="body2"
                         color="text.secondary"
                         sx={{ fontStyle: "italic", fontSize: "0.65rem" }}
                       >
