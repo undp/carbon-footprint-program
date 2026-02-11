@@ -126,29 +126,34 @@ export const EmissionCaptureScreen: FC = () => {
                   disabled: isSubmittingAndGoingBack || isBusy,
                 },
               },
-              {
-                text: "Guardar",
-                align: "right",
-                buttonProps: {
-                  startIcon: <SaveRounded />,
-                  variant: "contained",
-                  onClick: handleSubmit(submitNoNavigate),
-                  loading: isSubmittingNoNavigating,
-                  disabled: isSubmittingNoNavigating || isBusy,
-                },
-              },
-              {
-                text: "Siguiente",
-                align: "right",
-                buttonProps: {
-                  endIcon: <ArrowRightAltRounded />,
-                  variant: "contained",
-                  type: "submit",
-                  form: "emission-capture-form",
-                  loading: isSubmittingAndNavigating,
-                  disabled: isSubmittingAndNavigating || isBusy,
-                },
-              },
+              ...(formState.isDirty
+                ? [
+                    {
+                      text: "Guardar",
+                      align: "right" as const,
+                      buttonProps: {
+                        startIcon: <SaveRounded />,
+                        variant: "contained" as const,
+                        onClick: handleSubmit(submitNoNavigate),
+                        loading: isSubmittingNoNavigating,
+                        disabled: isSubmittingNoNavigating || isBusy,
+                      },
+                    },
+                  ]
+                : [
+                    {
+                      text: "Siguiente",
+                      align: "right" as const,
+                      buttonProps: {
+                        endIcon: <ArrowRightAltRounded />,
+                        variant: "contained" as const,
+                        type: "submit" as const,
+                        form: "emission-capture-form",
+                        loading: isSubmittingAndNavigating,
+                        disabled: isSubmittingAndNavigating || isBusy,
+                      },
+                    },
+                  ]),
             ],
           }}
           isLoading={isLoading}
