@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Skeleton, Typography, alpha } from "@mui/material";
+import { Box, Skeleton, Typography, alpha, useTheme } from "@mui/material";
 import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
@@ -17,6 +17,8 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   isLoading,
   errorLoading = false,
 }) => {
+  const theme = useTheme();
+
   if (isLoading) {
     return (
       <Skeleton
@@ -48,7 +50,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   return (
     <Box
       className="flex gap-6 rounded-lg p-4"
-      sx={{ backgroundColor: alpha("#414046", 0.03) }}
+      sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
     >
       {/* Left column */}
       <Box className="flex flex-1 flex-col gap-1">
@@ -75,7 +77,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
       {data.organizationMainActivityName && (
         <Box
           className="space-between flex min-w-[300px] items-center justify-between px-4 py-2"
-          sx={{ backgroundColor: alpha("#414046", 0.06) }}
+          sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.06) }}
         >
           <Box className="flex flex-col">
             <Typography variant="caption" color="text.secondary">
