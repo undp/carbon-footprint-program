@@ -18,7 +18,7 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
   subcategory,
   categoryColor,
 }) => {
-  const columns = useSubcategoryLinesColumns(categoryColor.dark);
+  const columns = useSubcategoryLinesColumns();
   const rows = useMemo(
     () => subcategory.lines.map((line) => ({ ...line, id: line.lineId })),
     [subcategory.lines]
@@ -56,11 +56,8 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
             borderRadius: "8px",
             border: `1px solid ${alpha(categoryColor.main, 0.2)}`,
             "& .MuiDataGrid-columnHeader": {
-              padding: "4px 8px",
               backgroundColor: categoryColor.light,
               color: categoryColor.dark,
-              fontWeight: 600,
-              fontSize: "0.875rem",
             },
             "& .MuiDataGrid-columnHeader:focus": {
               outline: "none",
@@ -72,9 +69,6 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
               display: "none",
             },
             "& .MuiDataGrid-cell": {
-              padding: "0px 8px",
-              height: "24px",
-              fontSize: "0.875rem",
               color: categoryColor.dark,
               borderBottom: `1px solid ${alpha(categoryColor.main, 0.2)}`,
             },

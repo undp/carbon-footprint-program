@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Box, Skeleton, Typography, alpha } from "@mui/material";
+import { Box, Skeleton, Typography } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { useEmissionFactorsColumns } from "./useEmissionFactorsColumns";
@@ -68,13 +68,6 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
           sx={{
             borderRadius: "8px",
             border: "1px solid #d9d9d9",
-            "& .MuiDataGrid-columnHeader": {
-              padding: "16px",
-              backgroundColor: alpha("#414046", 0.03),
-              color: "#414046",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-            },
             "& .MuiDataGrid-columnHeader:focus": {
               outline: "none",
             },
@@ -83,11 +76,6 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
             },
             "& .MuiDataGrid-columnSeparator": {
               display: "none",
-            },
-            "& .MuiDataGrid-cell": {
-              padding: "16px",
-              fontSize: "0.75rem",
-              lineHeight: 1.4,
             },
             "& .MuiDataGrid-cell:focus": {
               outline: "none",

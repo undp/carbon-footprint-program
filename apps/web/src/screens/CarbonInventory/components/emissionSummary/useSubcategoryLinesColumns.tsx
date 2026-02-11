@@ -1,30 +1,37 @@
 import { useMemo } from "react";
-import { Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
-import { formatQuantity } from "@/utils/formatting";
+import {
+  formatEmissionFactor,
+  formatEmissions,
+  formatQuantity,
+} from "@/utils/formatting";
 
 type LineRow =
   GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number]["lines"][number];
 
-export const useSubcategoryLinesColumns = (
-  color: string
-): GridColDef<LineRow>[] => {
-  return useMemo(
+export const useSubcategoryLinesColumns = (): GridColDef<LineRow>[] => {
+  const cellClassName = "content-center px-2! py-0! h-6! text-sm";
+
+  const headerClassName = "px-2! py-1! font-semibold text-sm";
+
+  return useMemo<GridColDef<LineRow>[]>(
     () => [
       {
         field: "emissionSource",
         headerName: "Fuente de emisión",
         minWidth: 180,
         flex: 1.3,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
       },
       {
         field: "measurementUnitName",
         headerName: "Unidad",
         minWidth: 100,
         flex: 0.8,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         valueFormatter: (value: string | null) => value ?? "-",
       },
       {
@@ -34,7 +41,8 @@ export const useSubcategoryLinesColumns = (
         flex: 0.8,
         headerAlign: "right",
         align: "right",
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         valueFormatter: (value: number | null) =>
           value != null ? formatQuantity(value) : "-",
       },
@@ -45,11 +53,10 @@ export const useSubcategoryLinesColumns = (
         flex: 1,
         headerAlign: "right",
         align: "right",
-        cellClassName: "content-center ",
+        headerClassName,
+        cellClassName,
         valueFormatter: (value: number | null) =>
-          value != null
-            ? value.toLocaleString("es-CL", { maximumFractionDigits: 4 })
-            : "-",
+          value != null ? formatEmissionFactor(value) : "-",
       },
       {
         field: "factorSource",
@@ -58,7 +65,8 @@ export const useSubcategoryLinesColumns = (
         flex: 1.2,
         headerAlign: "center",
         align: "center",
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         valueFormatter: (value: string | null) => value ?? "-",
       },
       {
@@ -66,18 +74,14 @@ export const useSubcategoryLinesColumns = (
         headerName: "Emisiones tCO₂e",
         minWidth: 130,
         flex: 0.8,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         headerAlign: "right",
         align: "right",
-        renderCell: ({ row }) => (
-          <Typography variant="body2" sx={{ color, fontSize: "0.75rem" }}>
-            {row.emissions.toLocaleString("es-CL", {
-              maximumFractionDigits: 2,
-            })}
-          </Typography>
-        ),
+        valueFormatter: (value: number | null) =>
+          value != null ? formatEmissions(value, false) : "-",
       },
     ],
-    [color]
+    []
   );
 };

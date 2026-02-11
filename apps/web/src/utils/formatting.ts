@@ -1,10 +1,11 @@
-export const formatEmissions = (value: number): string =>
-  `${value.toLocaleString("es", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} tCO₂e`;
+export const formatEmissions = (value: number, withSuffix = true): string =>
+  `${value.toLocaleString("es", { minimumFractionDigits: 0, maximumFractionDigits: 2, useGrouping: true })}${withSuffix ? " tCO₂e" : ""}`;
 
 export const formatQuantity = (value: number): string =>
   value.toLocaleString("es", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 2,
+    useGrouping: true,
   });
 
 export const formatPercentage = (value: number): string =>
@@ -12,6 +13,7 @@ export const formatPercentage = (value: number): string =>
 
 export const formatEmissionFactor = (value: number): string =>
   value.toLocaleString("es", {
-    minimumFractionDigits: 2,
+    minimumFractionDigits: 0,
     maximumFractionDigits: 2,
+    useGrouping: true,
   });

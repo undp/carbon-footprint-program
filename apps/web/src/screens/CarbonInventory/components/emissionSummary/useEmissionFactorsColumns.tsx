@@ -7,13 +7,19 @@ import { CategoryChip } from "../CategoryChip";
 export const useEmissionFactorsColumns = (): GridColDef<
   GetEmissionFactorsResponse[number]
 >[] => {
-  return useMemo(
+  const cellClassName = "content-center p-4!";
+
+  const headerClassName =
+    "p-4! bg-foreground/[0.03] text-foreground font-semibold text-sm";
+
+  return useMemo<GridColDef<GetEmissionFactorsResponse[number]>[]>(
     () => [
       {
         field: "categoryName",
         headerName: "Categoría / Alcance",
         minWidth: 180,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         flex: 1.2,
         renderCell: ({ row }) => (
           <Box className="flex flex-col items-start gap-1">
@@ -36,7 +42,8 @@ export const useEmissionFactorsColumns = (): GridColDef<
         field: "subcategoryName",
         headerName: "Sub-categoría",
         minWidth: 150,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         flex: 1,
         renderCell: ({ row }) => (
           <Typography variant="body2" fontWeight="fontWeightSemiBold">
@@ -48,7 +55,8 @@ export const useEmissionFactorsColumns = (): GridColDef<
         field: "activityParameter",
         headerName: "Parámetros de actividad",
         minWidth: 150,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         flex: 1,
         renderCell: ({ row }) => (
           <Typography variant="body2" fontWeight="fontWeightSemiBold">
@@ -60,7 +68,8 @@ export const useEmissionFactorsColumns = (): GridColDef<
         field: "factorLabel",
         headerName: "Factor (Kg CO₂e/unidad)",
         minWidth: 180,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         flex: 1.2,
         renderCell: ({ row }) => (
           <Box className="flex flex-col gap-0.5">
@@ -84,11 +93,14 @@ export const useEmissionFactorsColumns = (): GridColDef<
         field: "factorSource",
         headerName: "Fuente",
         minWidth: 150,
-        cellClassName: "content-center",
+        headerClassName,
+        cellClassName,
         flex: 1,
         renderCell: ({ row }) => (
           <Box className="flex flex-col">
-            <Typography variant="body2">{row.factorSource}</Typography>
+            <Typography variant="body2" fontWeight="fontWeightSemiBold">
+              {row.factorSource}
+            </Typography>
             {row.factorSourceDetail && (
               <Typography
                 variant="body2"
