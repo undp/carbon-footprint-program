@@ -15,6 +15,7 @@ export async function createTestOrganizationData(
 
   const representativeCountryJobPositionId =
     await getTestCountryJobPositionId(prisma);
+
   return await prisma.organizationData.create({
     data: {
       organizationId,
