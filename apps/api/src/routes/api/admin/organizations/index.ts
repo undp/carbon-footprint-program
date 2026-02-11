@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { UserRole } from "@/plugins/app/authorizationPlugin.js";
-import { getAllOrganizationsRoute } from "@/features/admin/organizations/getOrganizations/route.js";
+import { getAllOrganizationsRoute } from "@/features/admin/organizations/getAllOrganizations/route.js";
 import { toggleOrganizationBlockedRoute } from "@/features/admin/organizations/toggleOrganizationBlocked/route.js";
 import { getOrganizationsKpisRoute } from "@/features/admin/organizations/getOrganizationsKpis/route.js";
 
