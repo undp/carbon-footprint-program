@@ -17,7 +17,7 @@ export const EmptyStateMessage: FC<EmptyStateMessageProps> = ({
 
   return (
     <Box
-      className={`flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg p-4 ${className}`}
+      className={`flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg p-4 ${className ?? ""}`}
       sx={{
         backgroundColor:
           color === "primary"
