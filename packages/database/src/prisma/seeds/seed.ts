@@ -6,7 +6,6 @@ import { seedSystemRoles } from "./scripts/seedSystemRoles.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
 import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";
 import { seedCountries } from "./scripts/seedCountries.js";
-import { seedOrganizations } from "./scripts/seedOrganizations.js";
 import { seedCountryJobPositions } from "./scripts/seedCountryJobPositions.js";
 import { seedCountryOrganizationSizes } from "./scripts/seedCountryOrganizationSizes.js";
 import { seedOrganizationMainActivities } from "./scripts/seedOrganizationMainActivities.js";
@@ -24,7 +23,6 @@ async function main() {
   await seedSystemRoles(prisma, SEEDS_DATASET); // needs seedAllRoles to be seeded first
   await seedMeasurementUnits(prisma, SEEDS_DATASET);
   await seedCountries(prisma, SEEDS_DATASET);
-  await seedOrganizations(prisma, SEEDS_DATASET); // needs the countries to be seeded first
   await seedCountryJobPositions(prisma, SEEDS_DATASET); // needs the countries to be seeded first
   await seedCountryOrganizationSizes(prisma, SEEDS_DATASET); // needs the countries to be seeded first
   await seedCountrySectorSubsectors(prisma, SEEDS_DATASET); // needs the countries to be seeded first

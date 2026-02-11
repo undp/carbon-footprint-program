@@ -13,7 +13,10 @@ import {
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { getTestOrganizationId } from "@test/factories/organizationFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
 import {
   type UpdateCarbonInventoryResponse,
   InventoryStatus,
@@ -42,6 +45,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
   beforeEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestOrganization(prisma);
   });
 
   describe("Successful updates", () => {
@@ -131,7 +135,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update organizationId", async () => {
-      const organizationId = await getTestOrganizationId(prisma);
+      const organization = await createTestOrganization(prisma);
+      const organizationId = organization.id;
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -243,7 +248,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should update multiple fields at once", async () => {
-      const organizationId = await getTestOrganizationId(prisma);
+      const organization = await createTestOrganization(prisma);
+      const organizationId = organization.id;
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -291,7 +297,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should set nullable fields to null", async () => {
-      const organizationId = await getTestOrganizationId(prisma);
+      const organization = await createTestOrganization(prisma);
+      const organizationId = organization.id;
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -319,7 +326,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should return complete data including all nullable fields when populated", async () => {
-      const organizationId = await getTestOrganizationId(prisma);
+      const organization = await createTestOrganization(prisma);
+      const organizationId = organization.id;
 
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",

@@ -1,17 +1,27 @@
-import type { PrismaClient } from "@repo/database";
+import { Organization, OrganizationStatus, PrismaClient } from "@repo/database";
+import { getTestCountryId } from "./methodologyFactory.js";
 
-export async function getTestOrganizationId(
-  prisma: PrismaClient
-): Promise<bigint> {
-  const organization = await prisma.organization.findFirst({
-    select: { id: true },
+export async function createTestOrganization(
+  prisma: PrismaClient,
+  overrides?: Partial<Organization>
+): Promise<Organization> {
+  const countryId = await getTestCountryId(prisma);
+
+  return await prisma.organization.create({
+    data: {
+      countryId,
+      status: OrganizationStatus.NOT_ACCREDITED,
+      ...overrides,
+    },
   });
+}
 
-  if (!organization) {
-    throw new Error(
-      "No organization found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return organization.id;
+export async function cleanupTestOrganization(
+  prisma: PrismaClient
+): Promise<void> {
+  await prisma.submission.deleteMany();
+  await prisma.submissionSubjectOrganizationData.deleteMany();
+  await prisma.submissionSubject.deleteMany();
+  await prisma.organizationData.deleteMany();
+  await prisma.organization.deleteMany();
 }
