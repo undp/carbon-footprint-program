@@ -15,7 +15,6 @@ import {
 import type { GetOrganizationsKpisResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
-import { cleanupTestOrganizationData } from "../../../../factories/organizationDataFactory.js";
 
 describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   let app: FastifyInstance;
@@ -38,7 +37,6 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   });
 
   beforeEach(async () => {
-    await cleanupTestOrganizationData(prisma);
     await cleanupTestOrganization(prisma);
   });
 
