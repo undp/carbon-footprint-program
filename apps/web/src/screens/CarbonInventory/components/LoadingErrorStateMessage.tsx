@@ -16,7 +16,7 @@ export const LoadingErrorStateMessage: FC<LoadingErrorStateMessageProps> = ({
 
   return (
     <Box
-      className={`flex h-full w-full flex-col items-center justify-center rounded-lg px-4 ${className}`}
+      className={`flex h-full w-full flex-col items-center justify-center rounded-lg px-4 ${className ?? ""}`}
       sx={{
         backgroundColor: alpha(theme.palette.text.primary, 0.03),
       }}
