@@ -16,6 +16,8 @@ export type ItemData = {
   baseFactorId: string | null;
 };
 
+const CUSTOM_FACTOR_SOURCES = ["Factor Propio", "Otro"];
+
 /**
  * Creates a carbon inventory line input
  */
@@ -39,14 +41,17 @@ export async function createLineInput(
           : null,
       manualFactor:
         item.appliedFactorValue !== null &&
-        item.factorSource === "Factor Propio"
+        CUSTOM_FACTOR_SOURCES.includes(item.factorSource ?? "")
           ? mapDecimalField(item.appliedFactorValue)
           : null,
-      manualFactorSource:
-        item.factorSource === "Factor Propio" ? item.factorSource : null,
+      manualFactorSource: CUSTOM_FACTOR_SOURCES.includes(
+        item.factorSource ?? ""
+      )
+        ? item.factorSource
+        : null,
       manualFactorRateUnitId:
         item.appliedFactorRateMeasurementUnitId !== null &&
-        item.factorSource === "Factor Propio"
+        CUSTOM_FACTOR_SOURCES.includes(item.factorSource ?? "")
           ? mapBigIntField(item.appliedFactorRateMeasurementUnitId)
           : null,
       comment: item.comment ?? null,
