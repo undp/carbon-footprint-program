@@ -5,7 +5,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getMyOrganizationsRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
-    "/mine",
+    "/my-organizations",
     {
       schema: {
         tags: ["app-organizations"],
