@@ -26,6 +26,10 @@ export async function createLineInput(
   item: ItemData,
   inputType: InputType
 ) {
+  const isCustomFactorSource = CUSTOM_FACTOR_SOURCES.includes(
+    item.factorSource ?? ""
+  );
+
   return await tx.carbonInventoryLineInput.create({
     data: {
       lineId,
@@ -39,18 +43,15 @@ export async function createLineInput(
           ? mapDecimalField(tonToKg(item.manualTotalEmissions))
           : null,
       manualFactor:
-        item.appliedFactorValue !== null &&
-        CUSTOM_FACTOR_SOURCES.includes(item.factorSource ?? "")
+        isCustomFactorSource && item.appliedFactorValue !== null
           ? mapDecimalField(item.appliedFactorValue)
           : null,
-      manualFactorSource: CUSTOM_FACTOR_SOURCES.includes(
-        item.factorSource ?? ""
-      )
-        ? item.factorSource
-        : null,
+      manualFactorSource:
+        isCustomFactorSource && item.appliedFactorValue !== null
+          ? item.factorSource
+          : null,
       manualFactorRateUnitId:
-        item.appliedFactorRateMeasurementUnitId !== null &&
-        CUSTOM_FACTOR_SOURCES.includes(item.factorSource ?? "")
+        isCustomFactorSource && item.appliedFactorRateMeasurementUnitId !== null
           ? mapBigIntField(item.appliedFactorRateMeasurementUnitId)
           : null,
       comment: item.comment ?? null,
