@@ -1,4 +1,4 @@
-import { Organization, PrismaClient } from "@repo/database";
+import { Organization, OrganizationStatus, PrismaClient } from "@repo/database";
 
 export async function createTestOrganization(
   prisma: PrismaClient,
@@ -6,10 +6,8 @@ export async function createTestOrganization(
 ): Promise<Organization> {
   return await prisma.organization.create({
     data: {
-      countryId: overrides?.countryId ?? 1,
-      status: overrides?.status ?? "NOT_ACCREDITED",
-      createdById: overrides?.createdById,
-      updatedById: overrides?.updatedById,
+      countryId: 1,
+      status: OrganizationStatus.NOT_ACCREDITED,
       ...overrides,
     },
   });
