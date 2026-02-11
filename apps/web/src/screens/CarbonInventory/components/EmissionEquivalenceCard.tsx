@@ -3,17 +3,20 @@ import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { EmptyStateMessage } from "./EmptyStateMessage";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 interface EmissionEquivalenceCardProps {
   value: string | null;
   unit: string | null;
   isLoading?: boolean;
+  errorLoading?: boolean;
 }
 
 export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
   value,
   unit,
   isLoading = false,
+  errorLoading = false,
 }) => {
   const theme = useTheme();
 
@@ -44,7 +47,11 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         </Box>
       )}
 
-      {!isLoading && exists && (
+      {!isLoading && errorLoading && (
+        <LoadingErrorStateMessage message="Ocurrió un error al cargar el equivalente de tu huella de carbono" />
+      )}
+
+      {!isLoading && !errorLoading && exists && (
         <Box className="flex w-full flex-1 flex-col justify-center pb-3">
           <Typography
             variant="h2"
@@ -69,7 +76,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         />
       )}
 
-      {!isLoading && !exists && (
+      {!isLoading && !exists && !errorLoading && (
         <EmptyStateMessage
           color="primary"
           message={

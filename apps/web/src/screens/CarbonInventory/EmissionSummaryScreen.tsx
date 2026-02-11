@@ -1,6 +1,7 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { CarbonInventoryLayout } from "./layout";
 import { StepHeader } from "./components";
@@ -24,21 +25,45 @@ export const EmissionSummaryScreen: FC = () => {
     from: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
   });
 
+  const { enqueueSnackbar } = useSnackbar();
   const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
 
-  const { data: equivalence, isLoading: isEquivalenceLoading } =
-    useMainActivityEquivalence(inventoryId);
+  const {
+    data: equivalence,
+    isLoading: isEquivalenceLoading,
+    isError: isEquivalenceError,
+  } = useMainActivityEquivalence(inventoryId);
 
-  const { data: summaryData, isLoading: isSummaryLoading } =
-    useEmissionsSummaryFull(inventoryId);
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+  } = useEmissionsSummaryFull(inventoryId);
 
-  const { data: factorsData, isLoading: isFactorsLoading } =
-    useEmissionFactors(inventoryId);
+  const {
+    data: factorsData,
+    isLoading: isFactorsLoading,
+    isError: isFactorsError,
+  } = useEmissionFactors(inventoryId);
 
-  const { data: metadataData, isLoading: isMetadataLoading } =
-    useCarbonInventoryMetadata(inventoryId);
+  const {
+    data: metadataData,
+    isLoading: isMetadataLoading,
+    isError: isMetadataError,
+  } = useCarbonInventoryMetadata(inventoryId);
+
+  const isError =
+    isSummaryError || isEquivalenceError || isFactorsError || isMetadataError;
 
   const categories = summaryData?.categories ?? [];
+
+  useEffect(() => {
+    if (isError)
+      enqueueSnackbar("Ocurrió un error al cargar la información", {
+        variant: "error",
+        preventDuplicate: true,
+      });
+  }, [isError, enqueueSnackbar]);
   // const ghgCategory = categories.find(
   //   (c) => c.position === 1 && c.ghgBreakdown
   // );

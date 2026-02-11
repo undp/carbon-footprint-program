@@ -4,17 +4,20 @@ import { StyledToggleButtonGroup } from "@/components/StyledToggleButtonGroup";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { RankingRow } from "./RankingRow";
 import type { RankingItem } from "@repo/types";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 interface EmissionRankingCardProps {
   ownRankings: RankingItem[];
   sectorRankings: RankingItem[];
   isLoading?: boolean;
+  errorLoading?: boolean;
 }
 
 export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   ownRankings,
   sectorRankings,
   isLoading = false,
+  errorLoading = false,
 }) => {
   const [viewMode, setViewMode] = useState<"own" | "sector">("own");
 
@@ -26,17 +29,19 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
         </Typography>
-        <StyledToggleButtonGroup
-          sx={{
-            height: 20,
-          }}
-          value={viewMode}
-          onChange={setViewMode}
-          options={[
-            { value: "own", label: "VER PROPIAS" },
-            { value: "sector", label: "VER RUBRO" },
-          ]}
-        />
+        {!errorLoading && (
+          <StyledToggleButtonGroup
+            sx={{
+              height: 20,
+            }}
+            value={viewMode}
+            onChange={setViewMode}
+            options={[
+              { value: "own", label: "VER PROPIAS" },
+              { value: "sector", label: "VER RUBRO" },
+            ]}
+          />
+        )}
       </Box>
 
       <Box className="flex flex-1 flex-col gap-3 overflow-y-auto">
@@ -59,7 +64,12 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
             </Box>
           ))}
 
+        {!isLoading && errorLoading && (
+          <LoadingErrorStateMessage message="Ocurrió un error al cargar el ranking de emisiones" />
+        )}
+
         {!isLoading &&
+          !errorLoading &&
           !!rankings.length &&
           rankings.map((item, index) => (
             <Box
@@ -71,7 +81,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
             </Box>
           ))}
 
-        {!isLoading && !rankings.length && (
+        {!isLoading && !errorLoading && !rankings.length && (
           <EmptyStateMessage
             message={
               viewMode === "own"

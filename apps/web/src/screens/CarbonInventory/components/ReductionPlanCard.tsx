@@ -3,12 +3,14 @@ import { Box, Button, Skeleton, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome } from "@mui/icons-material";
 import { EmptyStateMessage } from "./EmptyStateMessage";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 interface ReductionPlanCardProps {
   mainGoal: string | null;
   actions: string[] | null;
   onViewFullPlan: () => void;
   isLoading?: boolean;
+  errorLoading?: boolean;
 }
 
 export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
@@ -16,6 +18,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
   actions,
   onViewFullPlan,
   isLoading = false,
+  errorLoading = false,
 }) => {
   const theme = useTheme();
 
@@ -49,7 +52,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
           </>
         )}
 
-        {!isLoading && mainGoal != null && mainGoal !== "" && (
+        {!isLoading && !errorLoading && mainGoal != null && mainGoal !== "" && (
           <Box
             className="flex w-full items-center justify-center rounded px-2 py-4"
             sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
@@ -60,22 +63,25 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
           </Box>
         )}
 
-        {!isLoading && Array.isArray(actions) && actions.length > 0 && (
-          <Box component="ul" className="m-0 flex flex-col gap-2 p-0">
-            {actions.map((action, index) => (
-              <Box
-                component="li"
-                key={index}
-                className="ml-[21px] list-disc"
-                sx={{ "::marker": { color: theme.palette.text.primary } }}
-              >
-                <Typography variant="body2">{action}</Typography>
-              </Box>
-            ))}
-          </Box>
-        )}
+        {!isLoading &&
+          !errorLoading &&
+          Array.isArray(actions) &&
+          actions.length > 0 && (
+            <Box component="ul" className="m-0 flex flex-col gap-2 p-0">
+              {actions.map((action, index) => (
+                <Box
+                  component="li"
+                  key={index}
+                  className="ml-[21px] list-disc"
+                  sx={{ "::marker": { color: theme.palette.text.primary } }}
+                >
+                  <Typography variant="body2">{action}</Typography>
+                </Box>
+              ))}
+            </Box>
+          )}
 
-        {!isLoading && existsPlan && (
+        {!isLoading && !errorLoading && existsPlan && (
           <Button
             variant="text"
             onClick={onViewFullPlan}
@@ -99,7 +105,15 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         )}
       </Box>
 
-      {!isLoading && !existsPlan && (
+      {!isLoading && errorLoading && (
+        <LoadingErrorStateMessage
+          message={
+            "Ocurrió un error al cargar el plan de reducción sugerido para tu empresa"
+          }
+        />
+      )}
+
+      {!isLoading && !errorLoading && !existsPlan && (
         <EmptyStateMessage
           message={
             "Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu empresa"

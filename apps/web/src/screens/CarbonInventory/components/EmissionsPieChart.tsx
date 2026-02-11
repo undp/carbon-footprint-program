@@ -3,6 +3,7 @@ import { Box, Skeleton, Typography } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useTheme } from "@mui/material/styles";
 import { EmptyStateMessage } from "./EmptyStateMessage";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 interface CategoryData {
   name: string;
@@ -15,6 +16,7 @@ interface EmissionsPieChartProps {
   totalEmissions: number;
   showLegend?: boolean;
   isLoading?: boolean;
+  errorLoading?: boolean;
 }
 
 const formatNumber = (value: number): string =>
@@ -28,6 +30,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   totalEmissions,
   showLegend = false,
   isLoading = false,
+  errorLoading = false,
 }) => {
   const theme = useTheme();
 
@@ -56,7 +59,11 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!isLoading && !!totalEmissions && (
+      {!isLoading && errorLoading && (
+        <LoadingErrorStateMessage message="Ocurrió un error al cargar el gráfico de emisiones" />
+      )}
+
+      {!isLoading && !errorLoading && !!totalEmissions && (
         <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
           <Box className="relative">
             <PieChart
@@ -90,7 +97,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!isLoading && !totalEmissions && (
+      {!isLoading && !totalEmissions && !errorLoading && (
         <EmptyStateMessage
           message={
             "Cuando registres tus actividades, verás aquí un resumen por alcance"

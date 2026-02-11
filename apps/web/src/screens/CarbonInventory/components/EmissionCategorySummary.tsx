@@ -11,6 +11,7 @@ import {
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { EmissionPercentageBadge } from "./emissionSummary/EmissionPercentageBadge";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 type CategoryData = GetEmissionsSummaryCategoriesResponse["categories"][number];
 
@@ -18,6 +19,7 @@ interface EmissionCategorySummaryProps {
   totalEmissions: number;
   categories: CategoryData[];
   isLoading?: boolean;
+  errorLoading?: boolean;
 }
 
 const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
@@ -30,6 +32,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   totalEmissions,
   categories,
   isLoading = false,
+  errorLoading = false,
 }) => {
   const theme = useTheme();
 
@@ -50,6 +53,12 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
           />
         ))}
       </>
+    );
+  }
+
+  if (errorLoading) {
+    return (
+      <LoadingErrorStateMessage message="Ocurrió un error al cargar el desglose por categoría" />
     );
   }
 
