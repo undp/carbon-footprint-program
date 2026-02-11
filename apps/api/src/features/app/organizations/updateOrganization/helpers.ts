@@ -147,29 +147,21 @@ export async function createSubmissionWorkflow(
     throw new SubmissionAlreadyExistsError(organizationDataId.toString());
   }
 
-  let subjectId: bigint;
-
-  if (existingSubject) {
-    // Reuse existing SubmissionSubject from previous REJECTED
-    subjectId = existingSubject.subjectId;
-  } else {
-    // Create new SubmissionSubject
-    const newSubject = await tx.submissionSubject.create({
-      data: {
-        subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
-        createdById: null,
-        organizationData: {
-          create: { organizationDataId },
-        },
+  // Create new SubmissionSubject
+  const newSubject = await tx.submissionSubject.create({
+    data: {
+      subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
+      createdById: null,
+      organizationData: {
+        create: { organizationDataId },
       },
-    });
-    subjectId = newSubject.id;
-  }
+    },
+  });
 
   // Create Submission with PENDING status
   await tx.submission.create({
     data: {
-      subjectId,
+      subjectId: newSubject.id,
       status: SubmissionStatus.PENDING,
       createdById: null,
     },
