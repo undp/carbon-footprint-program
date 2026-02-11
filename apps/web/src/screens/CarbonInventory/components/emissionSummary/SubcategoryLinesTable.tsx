@@ -5,11 +5,8 @@ import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 import { useSubcategoryLinesColumns } from "./useSubcategoryLinesColumns";
 
-type SubcategoryData =
-  GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
-
 interface SubcategoryLinesTableProps {
-  subcategory: SubcategoryData;
+  subcategory: GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number];
   categoryColor: {
     main: string;
     dark: string;
