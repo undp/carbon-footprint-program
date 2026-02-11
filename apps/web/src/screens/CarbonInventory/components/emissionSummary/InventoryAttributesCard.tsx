@@ -92,7 +92,11 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
               </Typography>
             )}
           </Box>
-          <EmissionResultsScreenTrashIcon sx={{ fontSize: 40 }} />
+          <EmissionResultsScreenTrashIcon
+            aria-hidden="true"
+            focusable="false"
+            sx={{ fontSize: 40 }}
+          />
         </Box>
       )}
     </Box>
