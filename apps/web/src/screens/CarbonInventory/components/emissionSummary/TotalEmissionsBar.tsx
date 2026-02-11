@@ -49,7 +49,7 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
         >
           {formatEmissions(totalEmissions)}
         </Typography>
-        {!!equivalence?.rate && !!equivalence?.activityName && (
+        {equivalence?.rate != null && !!equivalence?.activityName && (
           <Typography
             variant="caption"
             sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
