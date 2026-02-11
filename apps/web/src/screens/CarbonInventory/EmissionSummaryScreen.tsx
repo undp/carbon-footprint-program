@@ -27,11 +27,8 @@ export const EmissionSummaryScreen: FC = () => {
   const { enqueueSnackbar } = useSnackbar();
   const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
 
-  const {
-    data: equivalence,
-    isLoading: isEquivalenceLoading,
-    isError: isEquivalenceError,
-  } = useMainActivityEquivalence(inventoryId);
+  const { data: equivalence, isError: isEquivalenceError } =
+    useMainActivityEquivalence(inventoryId);
 
   const {
     data: summaryData,
@@ -111,8 +108,8 @@ export const EmissionSummaryScreen: FC = () => {
           totalEmissions={summaryData?.totalEmissions ?? 0}
           equivalence={equivalence ?? null}
           categories={categories}
-          isLoading={isSummaryLoading || isEquivalenceLoading}
-          errorLoading={isSummaryError || isEquivalenceError}
+          isLoading={isSummaryLoading}
+          errorLoading={isSummaryError}
         />
 
         {/* TODO: re-enable GHGBreakdownTable for category 1 once GHG breakdown data is available in the summary endpoint */}
