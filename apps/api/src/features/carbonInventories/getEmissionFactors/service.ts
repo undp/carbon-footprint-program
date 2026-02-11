@@ -34,6 +34,7 @@ export const getEmissionFactorsService = async (
             include: {
               emissionFactor: {
                 select: {
+                  id: true,
                   source: true,
                   value: true,
                   gasDetails: true,
@@ -67,6 +68,7 @@ export const getEmissionFactorsService = async (
   });
 
   const result: GetEmissionFactorsResponse = [];
+  const seenEmissionFactorIds = new Set<bigint>();
 
   for (const line of lines) {
     const input = line.inputs[0];
@@ -74,6 +76,12 @@ export const getEmissionFactorsService = async (
 
     const factor = input.factor;
     const emissionFactor = factor?.emissionFactor;
+
+    // Skip duplicate emission factors
+    if (emissionFactor) {
+      if (seenEmissionFactorIds.has(emissionFactor.id)) continue;
+      seenEmissionFactorIds.add(emissionFactor.id);
+    }
 
     // Determine factor value: prefer lineFactor, fall back to manual input
     const hasLineFactor = factor != null;
