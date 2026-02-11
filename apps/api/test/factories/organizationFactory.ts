@@ -1,16 +1,15 @@
 import { Organization, OrganizationStatus, PrismaClient } from "@repo/database";
+import { getTestCountryId } from "./methodologyFactory.js";
 
 export async function createTestOrganization(
   prisma: PrismaClient,
   overrides?: Partial<Organization>
 ): Promise<Organization> {
-  const country = await prisma.country.findFirst();
-  if (!country) {
-    throw new Error("No country found");
-  }
+  const countryId = await getTestCountryId(prisma);
+
   return await prisma.organization.create({
     data: {
-      countryId: country.id,
+      countryId,
       status: OrganizationStatus.NOT_ACCREDITED,
       ...overrides,
     },
