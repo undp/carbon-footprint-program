@@ -68,7 +68,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
             display: "none",
           },
           "& .MuiDataGrid-cell": {
-            padding: "12px 8px",
+            padding: "16px",
             fontSize: "0.75rem",
             lineHeight: 1.4,
           },
