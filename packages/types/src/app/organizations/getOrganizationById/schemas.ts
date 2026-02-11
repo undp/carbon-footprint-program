@@ -21,7 +21,7 @@ export const GetOrganizationByIdResponseSchema = z.object({
       name: true,
     }).nullable(),
     sector: CountrySectorSchema.pick({ id: true, name: true }).nullable(),
-    subSector: CountrySubsectorSchema.pick({ id: true, name: true }).nullable(),
+    subsector: CountrySubsectorSchema.pick({ id: true, name: true }).nullable(),
     numberOfEmployees: z.number().nullable(),
     address: z.string().nullable(),
   }),

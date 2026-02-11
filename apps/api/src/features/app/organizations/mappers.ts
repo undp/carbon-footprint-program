@@ -33,7 +33,7 @@ export const mapOrganizationDataToResponse = (
           name: data.sector.name,
         }
       : null,
-    subSector: data.subsector?.name
+    subsector: data.subsector?.name
       ? {
           id: data.subsector.id.toString(),
           name: data.subsector.name,
