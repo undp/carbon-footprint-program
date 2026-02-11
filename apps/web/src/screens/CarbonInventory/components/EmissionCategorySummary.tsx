@@ -10,7 +10,7 @@ import {
 } from "@/icons";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
-import { EmissionPercentageBadge } from "./_EmissionSummary/EmissionPercentageBadge";
+import { EmissionPercentageBadge } from "./EmissionSummary/EmissionPercentageBadge";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 type CategoryData = GetEmissionsSummaryCategoriesResponse["categories"][number];
