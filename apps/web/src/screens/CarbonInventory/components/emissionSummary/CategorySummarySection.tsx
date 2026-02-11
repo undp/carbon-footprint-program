@@ -1,8 +1,8 @@
 import { FC } from "react";
-import { Box, Skeleton, Typography, alpha } from "@mui/material";
+import { Box, Divider, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
-import { formatEmissions, formatPercentage } from "@/utils/formatting";
+import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 import { SubcategoryLinesTable } from "./SubcategoryLinesTable";
 import { SubcategoryManualRow } from "./SubcategoryManualRow";
 
@@ -30,16 +30,16 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
   }
 
   return (
-    <Box className="flex flex-col gap-3">
+    <Box
+      className="flex flex-col gap-3 p-4"
+      sx={{ backgroundColor: alpha(categoryColor.main, 0.1) }}
+    >
       {/* Category header */}
-      <Box
-        className="flex items-center justify-between rounded-lg px-4 py-2"
-        sx={{ backgroundColor: alpha(categoryColor.main, 0.1) }}
-      >
+      <Box className="flex items-center justify-between rounded-lg">
         <Box>
           <Typography
             variant="body1"
-            fontWeight="fontWeightSemiBold"
+            fontWeight="600"
             sx={{ color: categoryColor.dark }}
           >
             {category.name}
@@ -51,41 +51,20 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
             {category.synonyms}
           </Typography>
         </Box>
-        <Box className="flex items-center gap-2">
-          <Typography
-            variant="body1"
-            fontWeight="fontWeightSemiBold"
-            sx={{ color: categoryColor.dark }}
-          >
-            {formatEmissions(category.subtotal)}
-          </Typography>
-          <Box
-            className="rounded px-2 py-0.5"
-            sx={{ backgroundColor: categoryColor.light }}
-          >
-            <Typography
-              variant="caption"
-              fontWeight="fontWeightSemiBold"
-              sx={{ color: categoryColor.dark }}
-            >
-              {formatPercentage(category.percentage)}
-            </Typography>
-          </Box>
-        </Box>
+        <EmissionPercentageBadge
+          emissions={category.subtotal}
+          percentage={category.percentage}
+          categoryColor={categoryColor}
+          highlighted
+        />
       </Box>
 
       {/* Subcategories */}
-      {category.subcategories.map((sub, idx) => (
-        <Box key={sub.id} className="flex flex-col gap-3 px-2">
-          {idx > 0 && (
-            <Box
-              sx={{
-                height: "1px",
-                backgroundColor: alpha(categoryColor.main, 0.2),
-              }}
-            />
-          )}
-          {sub.hasLines && sub.lines.length > 0 ? (
+      {category.subcategories.map((sub) => (
+        <Box key={sub.id} className="flex flex-col gap-3">
+          <Divider className="opacity-60" />
+
+          {sub.hasLines ? (
             <SubcategoryLinesTable
               subcategory={sub}
               categoryColor={categoryColor}

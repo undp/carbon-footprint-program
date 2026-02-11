@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Skeleton } from "@mui/material";
+import { Box, Skeleton } from "@mui/material";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 import { CategorySummarySection } from "./CategorySummarySection";
 
@@ -14,7 +14,7 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <>
+      <Box className="flex flex-col gap-2">
         {[1, 2, 3].map((i) => (
           <Skeleton
             key={i}
@@ -23,15 +23,15 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
             sx={{ borderRadius: 2, flexShrink: 0 }}
           />
         ))}
-      </>
+      </Box>
     );
   }
 
   return (
-    <>
+    <Box className="flex flex-col gap-2">
       {categories.map((category) => (
         <CategorySummarySection key={category.id} category={category} />
       ))}
-    </>
+    </Box>
   );
 };
