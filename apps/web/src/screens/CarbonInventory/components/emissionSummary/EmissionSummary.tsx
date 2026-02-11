@@ -60,7 +60,6 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
       <TotalEmissionsBar
         totalEmissions={totalEmissions}
         equivalence={equivalence}
-        isLoading={isLoading}
       />
       {categories.map((category) => (
         <CategorySummarySection key={category.id} category={category} />

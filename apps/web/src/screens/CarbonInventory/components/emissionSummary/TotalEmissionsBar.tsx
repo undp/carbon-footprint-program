@@ -7,13 +7,13 @@ import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 interface TotalEmissionsBarProps {
   totalEmissions: number;
   equivalence: GetEmissionsSummaryFullResponse["equivalence"];
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
   totalEmissions,
   equivalence,
-  isLoading,
+  isLoading = false,
 }) => {
   const theme = useTheme();
 
