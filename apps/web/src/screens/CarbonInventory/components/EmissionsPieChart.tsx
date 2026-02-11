@@ -56,7 +56,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!isLoading && !!categories.length && (
+      {!isLoading && !!totalEmissions && (
         <Box className="flex flex-1 flex-col items-center justify-center gap-3 pt-3">
           <Box className="relative">
             <PieChart
@@ -90,7 +90,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
         </Box>
       )}
 
-      {!isLoading && !categories.length && (
+      {!isLoading && !totalEmissions && (
         <EmptyStateMessage
           message={
             "Cuando registres tus actividades, verás aquí un resumen por alcance"

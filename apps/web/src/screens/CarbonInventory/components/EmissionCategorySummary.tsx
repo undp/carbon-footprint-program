@@ -53,7 +53,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
     );
   }
 
-  if (!categories.length) {
+  if (!totalEmissions) {
     return (
       <EmptyStateMessage message="Cuando registres tus actividades, verás aquí el total y desglose por categoría" />
     );
