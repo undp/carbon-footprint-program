@@ -23,7 +23,7 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
     return (
       <Skeleton
         variant="rounded"
-        height={56}
+        height={80}
         sx={{ borderRadius: 2, flexShrink: 0 }}
       />
     );

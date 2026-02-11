@@ -16,7 +16,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
     return (
       <Skeleton
         variant="rounded"
-        height={100}
+        height={124}
         sx={{ borderRadius: 2, flexShrink: 0 }}
       />
     );
