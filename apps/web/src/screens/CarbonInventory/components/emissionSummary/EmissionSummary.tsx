@@ -1,15 +1,17 @@
 import { FC } from "react";
-import { Box, Skeleton, Typography } from "@mui/material";
+import { Box, Skeleton } from "@mui/material";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
 import { CategorySummarySection } from "./CategorySummarySection";
 import { TotalEmissionsBar } from "./TotalEmissionsBar";
+import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
+import { EmptyStateMessage } from "../EmptyStateMessage";
 
 interface EmissionSummaryProps {
   totalEmissions: number;
   equivalence: GetEmissionsSummaryFullResponse["equivalence"] | null;
   categories: GetEmissionsSummaryFullResponse["categories"];
   isLoading?: boolean;
-  isEmpty?: boolean;
+  errorLoading?: boolean;
 }
 
 export const EmissionSummary: FC<EmissionSummaryProps> = ({
@@ -17,7 +19,7 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
   equivalence,
   totalEmissions,
   isLoading = false,
-  isEmpty = false,
+  errorLoading = false,
 }) => {
   if (isLoading) {
     return (
@@ -34,13 +36,21 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
     );
   }
 
-  if (categories.length === 0) {
+  if (errorLoading) {
     return (
-      <Box className="flex items-center justify-center rounded-lg border border-dashed border-gray-300 py-8">
-        <Typography variant="body2" color="text.secondary">
-          Sin datos de categorías disponibles
-        </Typography>
-      </Box>
+      <LoadingErrorStateMessage
+        className="max-h-[120px]"
+        message="Ocurrió un error al cargar las emisiones"
+      />
+    );
+  }
+
+  if (!totalEmissions) {
+    return (
+      <EmptyStateMessage
+        className="max-h-[120px]"
+        message="Cuando registres actividades, podrás ver el detalle de tus emisiones aquí"
+      />
     );
   }
 
@@ -51,7 +61,6 @@ export const EmissionSummary: FC<EmissionSummaryProps> = ({
         totalEmissions={totalEmissions}
         equivalence={equivalence}
         isLoading={isLoading}
-        isEmpty={isEmpty}
       />
       {categories.map((category) => (
         <CategorySummarySection key={category.id} category={category} />

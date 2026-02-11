@@ -2,15 +2,19 @@ import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
+import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
+import { EmptyStateMessage } from "../EmptyStateMessage";
 
 interface InventoryAttributesCardProps {
   data: GetCarbonInventoryMetadataResponse | undefined;
   isLoading: boolean;
+  errorLoading?: boolean;
 }
 
 export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   data,
   isLoading,
+  errorLoading = false,
 }) => {
   if (isLoading) {
     return (
@@ -22,7 +26,23 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
     );
   }
 
-  if (!data) return null;
+  if (errorLoading) {
+    return (
+      <LoadingErrorStateMessage
+        message="Ocurrió un error al cargar los atributos del inventario"
+        className="max-h-[120px]"
+      />
+    );
+  }
+
+  if (!data) {
+    return (
+      <EmptyStateMessage
+        message="No se encontraron los atributos del inventario"
+        className="max-h-[120px]"
+      />
+    );
+  }
 
   return (
     <Box
