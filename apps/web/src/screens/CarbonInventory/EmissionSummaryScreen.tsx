@@ -39,8 +39,6 @@ export const EmissionSummaryScreen: FC = () => {
   const { data: metadataData, isLoading: isMetadataLoading } =
     useCarbonInventoryMetadata(inventoryId);
 
-  console.log({ equivalence, summaryData, factorsData, metadataData });
-
   const categories = summaryData?.categories ?? [];
   // const ghgCategory = categories.find(
   //   (c) => c.position === 1 && c.ghgBreakdown
@@ -73,7 +71,7 @@ export const EmissionSummaryScreen: FC = () => {
         ],
       }}
     >
-      <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto rounded-lg bg-white p-6">
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-6">
         {/* Header */}
         <Box className="flex items-center justify-between">
           <StepHeader

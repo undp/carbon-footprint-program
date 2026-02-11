@@ -154,7 +154,7 @@ export const EmissionCaptureScreen: FC = () => {
           isLoading={isLoading}
         >
           <Box className="flex min-h-0 flex-1 flex-col">
-            <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-scroll rounded-lg bg-white p-6">
+            <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
               <StepHeader
                 title="Paso 3: Completa los datos de tus fuentes de emisión"
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"

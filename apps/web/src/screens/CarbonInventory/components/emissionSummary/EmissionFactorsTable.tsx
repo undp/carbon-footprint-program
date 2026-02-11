@@ -52,7 +52,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
           borderRadius: "8px",
           border: "1px solid #d9d9d9",
           "& .MuiDataGrid-columnHeader": {
-            padding: "10px 8px",
+            padding: "16px",
             backgroundColor: alpha("#414046", 0.03),
             color: "#414046",
             fontWeight: 600,

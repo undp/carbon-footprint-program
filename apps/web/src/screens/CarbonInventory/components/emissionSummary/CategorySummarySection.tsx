@@ -40,7 +40,7 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
           <Typography
             variant="body1"
             fontWeight="600"
-            sx={{ color: categoryColor.dark }}
+            sx={{ color: categoryColor.dark, lineHeight: 1 }}
           >
             {category.name}
           </Typography>

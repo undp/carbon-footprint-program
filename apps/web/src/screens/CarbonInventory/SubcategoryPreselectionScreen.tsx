@@ -97,7 +97,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           hasError={hasError}
           errorMessage={ERROR_MESSAGE}
         >
-          <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg bg-white p-6">
+          <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto rounded-lg bg-white p-6">
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
