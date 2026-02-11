@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionsSummaryFullResponse } from "@repo/types";
+import { formatQuantity } from "@/utils/formatting";
 
 type LineRow =
   GetEmissionsSummaryFullResponse["categories"][number]["subcategories"][number]["lines"][number];
@@ -35,7 +36,7 @@ export const useSubcategoryLinesColumns = (
         align: "right",
         cellClassName: "content-center",
         valueFormatter: (value: number | null) =>
-          value != null ? value.toLocaleString("es-CL") : "-",
+          value != null ? formatQuantity(value) : "-",
       },
       {
         field: "factorValue",
