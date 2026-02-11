@@ -266,6 +266,27 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
    * removes deleted lines completely (they no longer exist on server),
    * and resets the dirty state.
    */
+  /**
+   * Returns the set of line IDs that have been modified by the user.
+   * Reads from form.formState.dirtyFields at call time so it's always up-to-date.
+   */
+  const getDirtyLineIds = useCallback((): Set<string> => {
+    const dirtyLineIds = new Set<string>();
+    const currentDirtyFields = form.formState.dirtyFields;
+    const subcategories = currentDirtyFields?.subcategories;
+    if (subcategories) {
+      for (const subcatDirty of Object.values(subcategories)) {
+        const linesDirty = (subcatDirty as Record<string, unknown>)?.lines;
+        if (linesDirty && typeof linesDirty === "object") {
+          for (const lineId of Object.keys(linesDirty)) {
+            dirtyLineIds.add(lineId);
+          }
+        }
+      }
+    }
+    return dirtyLineIds;
+  }, [form]);
+
   const resetAfterSave = useCallback(() => {
     const currentValues = getValues();
     const cleanedFormData: EmissionCaptureFormValues = {
@@ -321,5 +342,6 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     addLine,
     removeLine,
     resetAfterSave,
+    getDirtyLineIds,
   };
 };

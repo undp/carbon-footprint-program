@@ -72,7 +72,8 @@ function mapLineToDeleteRequest(
  * Separates lines into create, update, and delete operations based on their state.
  */
 export function mapLinesToSyncRequest(
-  lines: EmissionCaptureFormLine[]
+  lines: EmissionCaptureFormLine[],
+  dirtyLineIds?: Set<string>
 ): SyncCarbonInventoryLinesRequest {
   const create: SyncCreateLineItem[] = [];
   const update: SyncUpdateLineItem[] = [];
@@ -96,9 +97,11 @@ export function mapLinesToSyncRequest(
       continue;
     }
 
-    // Existing lines that need to be updated
+    // Existing lines that need to be updated (only if actually modified)
     if (!line.isNew && !line.isDeleted) {
-      update.push(mapLineToUpdateRequest(line));
+      if (!dirtyLineIds || dirtyLineIds.has(line.id)) {
+        update.push(mapLineToUpdateRequest(line));
+      }
       continue;
     }
   }

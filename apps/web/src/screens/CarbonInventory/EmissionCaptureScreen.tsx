@@ -40,13 +40,14 @@ export const EmissionCaptureScreen: FC = () => {
 
   // Form setup
   const methods = useEmissionCaptureForm({ data });
-  const { handleSubmit, formState, resetAfterSave } = methods;
+  const { handleSubmit, formState, resetAfterSave, getDirtyLineIds } = methods;
 
   const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
     useEmissionCaptureSubmit({
       inventoryId,
       onSuccess: goNext,
       isDirty: formState.isDirty,
+      getDirtyLineIds,
       resetAfterSave,
       showNoChangesMessage: false,
     });
@@ -55,6 +56,7 @@ export const EmissionCaptureScreen: FC = () => {
     useEmissionCaptureSubmit({
       inventoryId,
       isDirty: formState.isDirty,
+      getDirtyLineIds,
       resetAfterSave,
     });
 
@@ -63,6 +65,7 @@ export const EmissionCaptureScreen: FC = () => {
       inventoryId,
       onSuccess: goBack,
       isDirty: formState.isDirty,
+      getDirtyLineIds,
       resetAfterSave,
       showNoChangesMessage: false,
     });
@@ -70,6 +73,7 @@ export const EmissionCaptureScreen: FC = () => {
   const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
     inventoryId,
     isDirty: formState.isDirty,
+    getDirtyLineIds,
     resetAfterSave,
     showNoChangesMessage: false,
     resultFeedbackWithSnackbar: true,
