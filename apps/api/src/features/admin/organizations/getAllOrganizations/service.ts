@@ -14,12 +14,14 @@ export const getAllOrganizationsService = async (
   sortBy: (typeof AdminOrganizationSortBy)[number],
   sortOrder: (typeof AdminOrganizationSortOrder)[number]
 ): Promise<GetAllOrganizationsResponse> => {
-  const safeLimit = limit > 0 ? limit : 1;
+  const defaultLimit = 10;
+  const rawLimit = limit ?? defaultLimit;
+  const normalizedLimit = rawLimit > 0 ? rawLimit : 1;
   const [rows, countResult] = await Promise.all([
     prismaClient.adminOrganizationsView.findMany({
       where: { status: { in: statuses } },
       orderBy: { [sortBy]: sortOrder },
-      take: safeLimit,
+      take: normalizedLimit,
       skip: offset,
     }),
     prismaClient.adminOrganizationsView.count({
@@ -28,7 +30,7 @@ export const getAllOrganizationsService = async (
   ]);
 
   const total = countResult;
-  const totalPages = Math.ceil(total / safeLimit);
+  const totalPages = Math.ceil(total / normalizedLimit);
 
   return {
     data: rows.map((row) => ({
@@ -44,10 +46,10 @@ export const getAllOrganizationsService = async (
       awards: [], // TODO: implement awards
     })),
     total,
-    limit: safeLimit,
+    limit: normalizedLimit,
     offset,
     totalPages,
-    hasNext: offset + safeLimit < total,
+    hasNext: offset + normalizedLimit < total,
     hasPrev: offset > 0,
   };
 };
