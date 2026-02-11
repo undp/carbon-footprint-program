@@ -1,6 +1,7 @@
 import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
+import { EmissionResultsScreenTrashIcon } from "@/icons";
 
 interface InventoryAttributesCardProps {
   data: GetCarbonInventoryMetadataResponse | undefined;
@@ -52,20 +53,23 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
       {/* Right column - main activity */}
       {data.organizationMainActivityName && (
         <Box
-          className="flex flex-1 flex-col justify-center rounded-lg p-3"
-          sx={{ backgroundColor: alpha("#414046", 0.03) }}
+          className="space-between flex min-w-[300px] items-center justify-between px-4 py-2"
+          sx={{ backgroundColor: alpha("#414046", 0.06) }}
         >
-          <Typography variant="caption" color="text.secondary">
-            Actividad principal
-          </Typography>
-          <Typography variant="body2" fontWeight="fontWeightSemiBold">
-            {data.organizationMainActivityName}
-          </Typography>
-          {data.organizationMainActivityQuantity != null && (
-            <Typography variant="body2" color="text.secondary">
-              {data.organizationMainActivityQuantity.toLocaleString("es-CL")}
+          <Box className="flex flex-col">
+            <Typography variant="caption" color="text.secondary">
+              Actividad principal
             </Typography>
-          )}
+            <Typography variant="subtitle1" fontWeight="fontWeightSemiBold">
+              {data.organizationMainActivityName}
+            </Typography>
+            {data.organizationMainActivityQuantity != null && (
+              <Typography variant="caption" color="text.secondary">
+                {data.organizationMainActivityQuantity.toLocaleString("es-CL")}
+              </Typography>
+            )}
+          </Box>
+          <EmissionResultsScreenTrashIcon sx={{ fontSize: 40 }} />
         </Box>
       )}
     </Box>
@@ -77,10 +81,10 @@ const AttributeRow: FC<{ label: string; value: string | null }> = ({
   value,
 }) => (
   <Box className="flex gap-2">
-    <Typography variant="caption" color="text.secondary" className="min-w-24">
+    <Typography variant="subtitle1" className="min-w-36">
       {label}:
     </Typography>
-    <Typography variant="caption" fontWeight="fontWeightMedium">
+    <Typography variant="subtitle1" fontWeight="fontWeightMedium">
       {value ?? "-"}
     </Typography>
   </Box>
