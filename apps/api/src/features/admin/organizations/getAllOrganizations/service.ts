@@ -4,7 +4,7 @@ import type {
   GetAllOrganizationsResponse,
   AdminOrganizationSortOrder,
 } from "@repo/types";
-import { roundEmissions } from "@/features/carbonInventories/resultsHelpers.js";
+import { roundEmissions } from "@/features/carbonInventories/utils.js";
 
 export const getAllOrganizationsService = async (
   prismaClient: PrismaClient,
