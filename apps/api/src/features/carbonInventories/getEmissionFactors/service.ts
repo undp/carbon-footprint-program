@@ -20,6 +20,9 @@ export const getEmissionFactorsService = async (
         select: {
           name: true,
           category: { select: { name: true, synonyms: true, position: true } },
+          dimensions: {
+            select: { position: true, isRequired: true },
+          },
         },
       },
       inputs: {
@@ -93,8 +96,18 @@ export const getEmissionFactorsService = async (
     const hasManualFactor = input.manualFactor != null;
     if (!hasLineFactor && !hasManualFactor) continue;
 
+    const dim1Required = line.subcategory.dimensions.some(
+      (d) => d.position === 1 && d.isRequired
+    );
+    const dim2Required = line.subcategory.dimensions.some(
+      (d) => d.position === 2 && d.isRequired
+    );
+
     const activityParameter =
-      [input.selection1?.value, input.selection2?.value]
+      [
+        dim1Required ? input.selection1?.value : undefined,
+        dim2Required ? input.selection2?.value : undefined,
+      ]
         .filter(Boolean)
         .join(" / ") || line.subcategory.name;
 
