@@ -20,9 +20,16 @@ export const getEmissionFactorsService = async (
       inputs: {
         where: { isActive: true },
         take: 1,
-        include: {
+        select: {
           selection1: { select: { value: true } },
           selection2: { select: { value: true } },
+          manualFactor: true,
+          manualFactorSource: true,
+          manualFactorRateUnit: {
+            select: {
+              abbreviation: true,
+            },
+          },
           factor: {
             include: {
               emissionFactor: {
@@ -63,33 +70,43 @@ export const getEmissionFactorsService = async (
 
   for (const line of lines) {
     const input = line.inputs[0];
-    if (!input?.factor) continue;
+    if (!input) continue;
 
     const factor = input.factor;
-    const emissionFactor = factor.emissionFactor;
-    if (!emissionFactor) continue;
+    const emissionFactor = factor?.emissionFactor;
+
+    // Determine factor value: prefer lineFactor, fall back to manual input
+    const hasLineFactor = factor != null;
+    const hasManualFactor = input.manualFactor != null;
+    if (!hasLineFactor && !hasManualFactor) continue;
 
     const activityParameter =
       [input.selection1?.value, input.selection2?.value]
         .filter(Boolean)
         .join(" / ") || line.subcategory.name;
 
-    const rateUnit =
-      factor.appliedFactorRateUnit?.abbreviation ??
-      emissionFactor.rateMeasurementUnit?.abbreviation ??
-      "";
+    const rateUnit = hasLineFactor
+      ? (factor.appliedFactorRateUnit?.abbreviation ??
+        emissionFactor?.rateMeasurementUnit?.abbreviation ??
+        "")
+      : (input.manualFactorRateUnit?.abbreviation ?? "");
 
-    const factorValue = Number(factor.appliedFactorValue);
+    const factorValue = hasLineFactor
+      ? Number(factor.appliedFactorValue)
+      : Number(input.manualFactor);
     const factorLabel = `${formatFactorValue(factorValue)} ${rateUnit}`;
 
     // Parse gasDetails to build breakdown lines
-    const gasBreakdownLines = buildGasBreakdownLines(
-      emissionFactor.gasDetails,
-      rateUnit
-    );
+    const gasBreakdownLines = emissionFactor
+      ? buildGasBreakdownLines(emissionFactor.gasDetails, rateUnit)
+      : [];
 
-    // Build source detail from the original emission factor source
-    const source = emissionFactor.source ?? "";
+    // Build source detail from the emission factor source or manual factor source
+    const source =
+      emissionFactor?.source ??
+      factor?.appliedFactorSource ??
+      input.manualFactorSource ??
+      "";
     const { factorSource, factorSourceDetail } = parseFactorSource(source);
 
     result.push({
