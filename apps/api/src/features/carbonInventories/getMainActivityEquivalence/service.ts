@@ -3,8 +3,8 @@ import type {
   GetMainActivityEquivalenceResponse,
   OrganizationData,
 } from "@repo/types";
-import { roundEmissions } from "../resultsHelpers.js";
-import { fetchInventory, fetchCategoryData } from "../resultsShared.js";
+import { roundEmissions } from "../utils.js";
+import { fetchInventory, fetchCategoryData } from "../helpers.js";
 
 export const getMainActivityEquivalenceService = async (
   prismaClient: PrismaClient,

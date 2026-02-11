@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { OrganizationData } from "@repo/types";
-import { roundEmissions } from "../resultsHelpers.js";
-import type { CategoryData } from "../resultsShared.js";
+import { roundEmissions } from "../utils.js";
+import type { CategoryData } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
 
 export async function resolveInventoryAttributes(

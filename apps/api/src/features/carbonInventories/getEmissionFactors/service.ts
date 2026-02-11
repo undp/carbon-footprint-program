@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetEmissionFactorsResponse } from "@repo/types";
-import { fetchInventory } from "../resultsShared.js";
+import { fetchInventory } from "../helpers.js";
 import {
   formatFactorValue,
   buildGasBreakdownLines,

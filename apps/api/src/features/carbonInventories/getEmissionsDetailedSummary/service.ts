@@ -3,8 +3,8 @@ import type {
   GetEmissionsDetailedSummaryResponse,
   OrganizationData,
 } from "@repo/types";
-import { distributePercentages, roundEmissions } from "../resultsHelpers.js";
-import { fetchInventory, fetchCategoryData } from "../resultsShared.js";
+import { distributePercentages, roundEmissions } from "../utils.js";
+import { fetchInventory, fetchCategoryData } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
 import {
   resolveInventoryAttributes,

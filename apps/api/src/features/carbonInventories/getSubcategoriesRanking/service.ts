@@ -4,8 +4,8 @@ import {
   distributePercentages,
   getRankingSeverity,
   roundEmissions,
-} from "../resultsHelpers.js";
-import { fetchInventoryWithCategoryData } from "../resultsShared.js";
+} from "../utils.js";
+import { fetchInventoryWithCategoryData } from "../helpers.js";
 
 export const getSubcategoriesRankingService = async (
   prismaClient: PrismaClient,

@@ -14,7 +14,10 @@ export const getEmissionsDetailedSummaryHandler = async (
   );
 
   const prisma = request.server.prisma;
-  const data = await getEmissionsDetailedSummaryService(prisma, carbonInventoryId);
+  const data = await getEmissionsDetailedSummaryService(
+    prisma,
+    carbonInventoryId
+  );
 
   log.info(
     { carbonInventoryId },

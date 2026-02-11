@@ -1,6 +1,9 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getEmissionsDetailedSummaryHandler } from "./handler.js";
-import { IdSchema, GetEmissionsDetailedSummaryResponseSchema } from "@repo/types";
+import {
+  IdSchema,
+  GetEmissionsDetailedSummaryResponseSchema,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 
@@ -8,7 +11,9 @@ const ParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const getEmissionsDetailedSummaryRoute = (fastify: FastifyZodInstance) => {
+export const getEmissionsDetailedSummaryRoute = (
+  fastify: FastifyZodInstance
+) => {
   fastify.get(
     "/:id/emissions-summary/full",
     {
