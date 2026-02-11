@@ -22,7 +22,10 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { getTestOrganizationId } from "@test/factories/organizationFactory.js";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -41,6 +44,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
   beforeEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestOrganization(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -159,7 +163,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
       // Get a seeded organization to satisfy foreign key constraint
-      const organizationId = await getTestOrganizationId(prisma);
+      const organization = await createTestOrganization(prisma);
+      const organizationId = organization.id;
 
       const testInventory = await createInventoryFromPattern(prisma, () => ({
         organizationId,
