@@ -1,12 +1,13 @@
 import { FC } from "react";
 import { Box, Typography, alpha } from "@mui/material";
+import { EmissionPercentageBadge } from "./emissionSummary/EmissionPercentageBadge";
 
 interface EmissionSummaryCardProps {
   icon: React.ReactNode;
   title: string;
   subtitle: string;
-  value: string;
-  percentage?: string;
+  value: number;
+  percentage: number;
   backgroundColor: string;
   textColor: string;
   iconColor: string;
@@ -51,27 +52,11 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
           </Box>
         </Box>
         <Box className="flex items-center gap-4">
-          <Typography
-            variant="body1"
-            fontWeight="fontWeightSemiBold"
-            sx={{ color: textColor }}
-          >
-            {value}
-          </Typography>
-          {percentage && (
-            <Box
-              className="flex h-8 items-center justify-center rounded px-1"
-              sx={{ backgroundColor }}
-            >
-              <Typography
-                variant="h6"
-                fontWeight="fontWeightSemiBold"
-                sx={{ color: textColor }}
-              >
-                {percentage}
-              </Typography>
-            </Box>
-          )}
+          <EmissionPercentageBadge
+            emissions={value}
+            percentage={percentage}
+            categoryColor={{ dark: textColor, light: backgroundColor }}
+          />
         </Box>
       </Box>
     </Box>

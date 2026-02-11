@@ -10,7 +10,7 @@ import {
 } from "@/icons";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
-import { formatEmissions, formatPercentage } from "@/utils/formatting";
+import { EmissionPercentageBadge } from "./emissionSummary/EmissionPercentageBadge";
 
 type CategoryData = GetEmissionsSummaryCategoriesResponse["categories"][number];
 
@@ -83,13 +83,12 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
             Total emisiones
           </Typography>
         </Box>
-        <Typography
-          variant="body1"
-          fontWeight="fontWeightSemiBold"
-          sx={{ color: theme.palette.common.deepForest }}
-        >
-          {formatEmissions(totalEmissions)}
-        </Typography>
+        <EmissionPercentageBadge
+          emissions={totalEmissions}
+          categoryColor={{
+            dark: theme.palette.common.deepForest,
+          }}
+        />
       </Box>
 
       {categories.map((category) => {
@@ -110,8 +109,8 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
             }
             title={`${category.name}:`}
             subtitle={category.synonyms ?? `Categoría ${category.position}`}
-            value={formatEmissions(category.subtotal)}
-            percentage={formatPercentage(category.percentage)}
+            value={category.subtotal}
+            percentage={category.percentage}
             backgroundColor={theme.palette.category[catKey].light}
             textColor={theme.palette.category[catKey].dark}
             iconColor={theme.palette.category[catKey].main}
