@@ -5,7 +5,7 @@ import { WarningOutlined } from "@mui/icons-material";
 
 interface LoadingErrorStateMessageProps {
   className?: string;
-  message: string;
+  message?: string;
 }
 
 export const LoadingErrorStateMessage: FC<LoadingErrorStateMessageProps> = ({
