@@ -10,16 +10,23 @@ export async function createTestOrganizationData(
   organizationId: bigint,
   overrides?: Partial<OrganizationData>
 ): Promise<OrganizationData> {
+  const uuid = randomUUID();
+
+  const representativeCountryJobPosition =
+    await prisma.countryJobPosition.findFirst();
+  if (!representativeCountryJobPosition) {
+    throw new Error("No country job position found");
+  }
   return await prisma.organizationData.create({
     data: {
       organizationId,
-      legalName: `TEST_${randomUUID()}`,
-      tradeName: `TEST_${randomUUID()}`,
-      taxId: `TEST_${randomUUID()}`,
+      legalName: `TEST_${uuid}`,
+      tradeName: `TEST_${uuid}`,
+      taxId: `TEST_${uuid}`,
       countryOrganizationSizeId: null,
-      representativeFullName: `TEST_${randomUUID()}`,
-      representativeTaxId: `TEST_${randomUUID()}`,
-      representativeCountryJobPositionId: 1,
+      representativeFullName: `TEST_${uuid}`,
+      representativeTaxId: `TEST_${uuid}`,
+      representativeCountryJobPositionId: representativeCountryJobPosition.id,
       representativePhone: `+1234567890`,
       representativeEmail: `test@test.com`,
       status: OrganizationDataStatus.COMPLETED,
