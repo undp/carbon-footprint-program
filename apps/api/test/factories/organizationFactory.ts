@@ -4,9 +4,13 @@ export async function createTestOrganization(
   prisma: PrismaClient,
   overrides?: Partial<Organization>
 ): Promise<Organization> {
+  const country = await prisma.country.findFirst();
+  if (!country) {
+    throw new Error("No country found");
+  }
   return await prisma.organization.create({
     data: {
-      countryId: 1,
+      countryId: country.id,
       status: OrganizationStatus.NOT_ACCREDITED,
       ...overrides,
     },
