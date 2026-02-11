@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { makeAllFieldsNullable, IdSchema } from "../zod.js";
+import { IdSchema } from "../zod.js";
 
 // Enums
 export const InventoryStatusSchema = z.enum([
@@ -67,16 +67,19 @@ export const CarbonInventorySubcategorySchema = z
   .strict();
 
 // Entities
-export const OrganizationDataSchema = makeAllFieldsNullable(
-  z.object({
-    name: z.string().describe("The name of the organization"),
-    sectorId: IdSchema.describe("The ID of the sector"),
-    subsectorId: IdSchema.describe("The ID of the subsector"),
-    sizeId: IdSchema.describe("The ID of the organization size"),
-    mainActivityId: IdSchema.describe("The ID of the main activity"),
-    mainActivityQuantity: z.int().describe("The quantity of the main activity"),
+export const OrganizationDataSchema = z
+  .object({
+    name: z.string().nullable().describe("The name of the organization"),
+    sectorId: IdSchema.nullable().describe("The ID of the sector"),
+    subsectorId: IdSchema.nullable().describe("The ID of the subsector"),
+    sizeId: IdSchema.nullable().describe("The ID of the organization size"),
+    mainActivityId: IdSchema.nullable().describe("The ID of the main activity"),
+    mainActivityQuantity: z
+      .int()
+      .nullable()
+      .describe("The quantity of the main activity"),
   })
-).strict();
+  .strict();
 
 export const CarbonInventorySchema = z
   .object({

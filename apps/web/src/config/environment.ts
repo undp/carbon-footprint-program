@@ -20,4 +20,4 @@ export const AZURE_AUTHORITY = VITE_AZURE_AUTH_AUTHORITY!;
 export const FRONT_BASE_URL = VITE_FRONT_BASE_URL!;
 export const AZURE_API_CLIENT_ID = VITE_AZURE_API_CLIENT_ID!;
 
-export const APP_VERSION = VITE_APP_VERSION || "dev";
+export const APP_VERSION = (VITE_APP_VERSION as string) || "dev";

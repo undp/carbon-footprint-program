@@ -40,13 +40,14 @@ export const EmissionCaptureScreen: FC = () => {
 
   // Form setup
   const methods = useEmissionCaptureForm({ data });
-  const { handleSubmit, formState, resetAfterSave } = methods;
+  const { handleSubmit, formState, resetAfterSave, getDirtyLineIds } = methods;
 
   const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
     useEmissionCaptureSubmit({
       inventoryId,
       onSuccess: goNext,
       isDirty: formState.isDirty,
+      getDirtyLineIds,
       resetAfterSave,
       showNoChangesMessage: false,
     });
@@ -55,6 +56,7 @@ export const EmissionCaptureScreen: FC = () => {
     useEmissionCaptureSubmit({
       inventoryId,
       isDirty: formState.isDirty,
+      getDirtyLineIds,
       resetAfterSave,
     });
 
@@ -63,6 +65,7 @@ export const EmissionCaptureScreen: FC = () => {
       inventoryId,
       onSuccess: goBack,
       isDirty: formState.isDirty,
+      getDirtyLineIds,
       resetAfterSave,
       showNoChangesMessage: false,
     });
@@ -70,6 +73,7 @@ export const EmissionCaptureScreen: FC = () => {
   const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
     inventoryId,
     isDirty: formState.isDirty,
+    getDirtyLineIds,
     resetAfterSave,
     showNoChangesMessage: false,
     resultFeedbackWithSnackbar: true,
@@ -122,35 +126,40 @@ export const EmissionCaptureScreen: FC = () => {
                   disabled: isSubmittingAndGoingBack || isBusy,
                 },
               },
-              {
-                text: "Guardar",
-                align: "right",
-                buttonProps: {
-                  startIcon: <SaveRounded />,
-                  variant: "contained",
-                  onClick: handleSubmit(submitNoNavigate),
-                  loading: isSubmittingNoNavigating,
-                  disabled: isSubmittingNoNavigating || isBusy,
-                },
-              },
-              {
-                text: "Siguiente",
-                align: "right",
-                buttonProps: {
-                  endIcon: <ArrowRightAltRounded />,
-                  variant: "contained",
-                  type: "submit",
-                  form: "emission-capture-form",
-                  loading: isSubmittingAndNavigating,
-                  disabled: isSubmittingAndNavigating || isBusy,
-                },
-              },
+              ...(formState.isDirty
+                ? [
+                    {
+                      text: "Guardar",
+                      align: "right" as const,
+                      buttonProps: {
+                        startIcon: <SaveRounded />,
+                        variant: "contained" as const,
+                        onClick: handleSubmit(submitNoNavigate),
+                        loading: isSubmittingNoNavigating,
+                        disabled: isSubmittingNoNavigating || isBusy,
+                      },
+                    },
+                  ]
+                : [
+                    {
+                      text: "Siguiente",
+                      align: "right" as const,
+                      buttonProps: {
+                        endIcon: <ArrowRightAltRounded />,
+                        variant: "contained" as const,
+                        type: "submit" as const,
+                        form: "emission-capture-form",
+                        loading: isSubmittingAndNavigating,
+                        disabled: isSubmittingAndNavigating || isBusy,
+                      },
+                    },
+                  ]),
             ],
           }}
           isLoading={isLoading}
         >
           <Box className="flex min-h-0 flex-1 flex-col">
-            <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-scroll rounded-lg bg-white p-6">
+            <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
               <StepHeader
                 title="Paso 3: Completa los datos de tus fuentes de emisión"
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"

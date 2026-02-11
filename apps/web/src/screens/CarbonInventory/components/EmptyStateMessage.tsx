@@ -3,11 +3,13 @@ import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 
 interface EmptyStateMessageProps {
+  className?: string;
   color?: "primary" | "default";
   message: string;
 }
 
 export const EmptyStateMessage: FC<EmptyStateMessageProps> = ({
+  className,
   color = "default",
   message,
 }) => {
@@ -15,7 +17,7 @@ export const EmptyStateMessage: FC<EmptyStateMessageProps> = ({
 
   return (
     <Box
-      className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg p-4"
+      className={`flex h-full w-full flex-col items-center justify-center gap-2 rounded-lg p-4 ${className ?? ""}`}
       sx={{
         backgroundColor:
           color === "primary"

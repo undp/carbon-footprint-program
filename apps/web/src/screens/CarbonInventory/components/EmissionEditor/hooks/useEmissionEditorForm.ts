@@ -183,7 +183,26 @@ export const useEmissionEditorForm = ({
       );
 
       if (CUSTOM_FACTOR_SOURCES.includes(newFactorSource)) {
-        resetFactorValueFields(subcategoryId, lineId);
+        // Reset factor value and base factor, but keep the compatible rate unit
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+          null,
+          { shouldDirty: true }
+        );
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
+          null,
+          { shouldDirty: true }
+        );
+        const compatibleRateUnitId = getCompatibleRateUnitId(
+          line.measurementUnitId,
+          rateMeasurementUnits
+        );
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
+          compatibleRateUnitId,
+          { shouldDirty: true }
+        );
         return;
       }
 
@@ -233,7 +252,7 @@ export const useEmissionEditorForm = ({
 
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
-        factor.originalEmissionFactorId,
+        factor.originalEmissionFactorId ?? factor.id,
         { shouldDirty: true }
       );
       setValue(
@@ -247,14 +266,7 @@ export const useEmissionEditorForm = ({
         { shouldDirty: true }
       );
     },
-    [
-      emissionFactors,
-      rateMeasurementUnits,
-      setValue,
-      subcategoryId,
-      getValues,
-      resetFactorValueFields,
-    ]
+    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
   );
 
   const determineAutoLoadFactorSource = useCallback(

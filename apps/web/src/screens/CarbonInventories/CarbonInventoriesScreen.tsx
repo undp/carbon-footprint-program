@@ -303,7 +303,7 @@ export const CarbonInventoriesScreen: FC = () => {
             onNewInventory={() => setNewInventoryDialogOpen(true)}
           />
 
-          {/* DataGrid */}
+          {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
           <DataGrid
             autoHeight
             columnHeaderHeight={40}

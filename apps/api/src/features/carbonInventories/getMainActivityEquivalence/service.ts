@@ -1,10 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  GetMainActivityEquivalenceResponse,
-  OrganizationData,
-} from "@repo/types";
-import { roundEmissions } from "../resultsHelpers.js";
-import { fetchInventory, fetchCategoryData } from "../resultsShared.js";
+import type { GetMainActivityEquivalenceResponse } from "@repo/types";
+import {
+  roundEmissions,
+  safeParseCarbonInventoryOrganizationData,
+} from "../utils.js";
+import { fetchInventory, fetchCategoryData } from "../helpers.js";
 
 export const getMainActivityEquivalenceService = async (
   prismaClient: PrismaClient,
@@ -13,12 +13,12 @@ export const getMainActivityEquivalenceService = async (
   const inventory = await fetchInventory(prismaClient, id);
   const { totalEmissions } = await fetchCategoryData(prismaClient, inventory);
 
-  const orgData = inventory.organizationData as OrganizationData | null;
-  const mainActivityQuantity =
-    typeof orgData?.mainActivityQuantity === "number"
-      ? orgData.mainActivityQuantity
-      : null;
-  const mainActivityId = (orgData?.mainActivityId as string | null) ?? null;
+  const orgData = safeParseCarbonInventoryOrganizationData(
+    id,
+    inventory.organizationData
+  );
+  const mainActivityQuantity = orgData?.mainActivityQuantity ?? null;
+  const mainActivityId = orgData?.mainActivityId ?? null;
 
   if (
     !mainActivityQuantity ||

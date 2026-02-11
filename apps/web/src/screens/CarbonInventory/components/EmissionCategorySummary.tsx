@@ -10,7 +10,8 @@ import {
 } from "@/icons";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
-import { formatEmissions, formatPercentage } from "@/utils/formatting";
+import { EmissionPercentageBadge } from "./EmissionSummary/EmissionPercentageBadge";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
 type CategoryData = GetEmissionsSummaryCategoriesResponse["categories"][number];
 
@@ -18,6 +19,7 @@ interface EmissionCategorySummaryProps {
   totalEmissions: number;
   categories: CategoryData[];
   isLoading?: boolean;
+  hasError?: boolean;
 }
 
 const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
@@ -30,6 +32,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   totalEmissions,
   categories,
   isLoading = false,
+  hasError = false,
 }) => {
   const theme = useTheme();
 
@@ -53,7 +56,13 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
     );
   }
 
-  if (!categories.length) {
+  if (hasError) {
+    return (
+      <LoadingErrorStateMessage message="Ocurrió un error al cargar el desglose por categoría" />
+    );
+  }
+
+  if (!totalEmissions) {
     return (
       <EmptyStateMessage message="Cuando registres tus actividades, verás aquí el total y desglose por categoría" />
     );
@@ -83,13 +92,12 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
             Total emisiones
           </Typography>
         </Box>
-        <Typography
-          variant="body1"
-          fontWeight="fontWeightSemiBold"
-          sx={{ color: theme.palette.common.deepForest }}
-        >
-          {formatEmissions(totalEmissions)}
-        </Typography>
+        <EmissionPercentageBadge
+          emissions={totalEmissions}
+          categoryColor={{
+            dark: theme.palette.common.deepForest,
+          }}
+        />
       </Box>
 
       {categories.map((category) => {
@@ -110,8 +118,8 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
             }
             title={`${category.name}:`}
             subtitle={category.synonyms ?? `Categoría ${category.position}`}
-            value={formatEmissions(category.subtotal)}
-            percentage={formatPercentage(category.percentage)}
+            value={category.subtotal}
+            percentage={category.percentage}
             backgroundColor={theme.palette.category[catKey].light}
             textColor={theme.palette.category[catKey].dark}
             iconColor={theme.palette.category[catKey].main}

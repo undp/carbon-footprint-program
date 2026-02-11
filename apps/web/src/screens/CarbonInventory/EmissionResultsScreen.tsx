@@ -106,7 +106,7 @@ export const EmissionResultsScreen: FC = () => {
         ],
       }}
     >
-      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-4">
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
         <StepHeader
           title="Paso 5: Resultados"
           description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
@@ -124,6 +124,7 @@ export const EmissionResultsScreen: FC = () => {
                   totalEmissions={totalEmissions}
                   categories={categories}
                   isLoading={isSummaryLoading}
+                  hasError={isSummaryError}
                 />
               </Box>
               <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
@@ -133,6 +134,7 @@ export const EmissionResultsScreen: FC = () => {
                     equivalence ? `kg CO₂e/${equivalence.activityName}` : null
                   }
                   isLoading={isEquivalenceLoading}
+                  hasError={isEquivalenceError}
                 />
               </Box>
             </Box>
@@ -147,6 +149,7 @@ export const EmissionResultsScreen: FC = () => {
                   }))}
                   totalEmissions={totalEmissions}
                   isLoading={isSummaryLoading}
+                  hasError={isSummaryError}
                 />
               </Box>
               <Box className="flex min-h-0 flex-1">
@@ -154,6 +157,7 @@ export const EmissionResultsScreen: FC = () => {
                   ownRankings={ownRankings ?? []}
                   sectorRankings={sectorRankings ?? []}
                   isLoading={isOwnRankingLoading || isSectorRankingLoading}
+                  hasError={isOwnRankingError || isSectorRankingError}
                 />
               </Box>
             </Box>
@@ -166,6 +170,7 @@ export const EmissionResultsScreen: FC = () => {
               // TODO: implement navigation to full reduction plan
               onViewFullPlan={() => {}}
               isLoading={isReductionPlanLoading}
+              hasError={isReductionPlanError}
             />
           </Box>
         </Box>

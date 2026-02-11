@@ -1,0 +1,34 @@
+import type { FastifyZodInstance } from "@/types/fastify.js";
+import { getEmissionsDetailedSummaryHandler } from "./handler.js";
+import {
+  IdSchema,
+  GetEmissionsDetailedSummaryResponseSchema,
+} from "@repo/types";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { z } from "zod";
+
+const ParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
+
+export const getEmissionsDetailedSummaryRoute = (
+  fastify: FastifyZodInstance
+) => {
+  fastify.get(
+    "/:id/emissions-summary",
+    {
+      schema: {
+        tags: ["carbon-inventories"],
+        summary: "Get full emissions summary for inventory review",
+        description:
+          "Retrieves comprehensive emissions summary including inventory attributes, category/subcategory breakdown with emission lines, GHG gas breakdown, and equivalence data.",
+        params: ParamsSchema,
+        response: {
+          200: GetEmissionsDetailedSummaryResponseSchema,
+          404: ApiErrorResponseSchema,
+        },
+      },
+    },
+    getEmissionsDetailedSummaryHandler
+  );
+};

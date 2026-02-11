@@ -11,6 +11,7 @@ interface Params {
   inventoryId: string;
   onSuccess?: () => void;
   isDirty?: boolean;
+  getDirtyLineIds?: () => Set<string>;
   resetAfterSave?: () => void;
   throwOnError?: boolean;
   resultFeedbackWithSnackbar?: boolean;
@@ -26,6 +27,7 @@ export const useEmissionCaptureSubmit = ({
   inventoryId,
   onSuccess,
   isDirty,
+  getDirtyLineIds,
   resetAfterSave,
   resultFeedbackWithSnackbar = true,
   throwOnError = false,
@@ -79,8 +81,9 @@ export const useEmissionCaptureSubmit = ({
           return;
         }
 
-        // Transform to sync API request format
-        const syncRequest = mapLinesToSyncRequest(flatLines);
+        // Transform to sync API request format (only dirty lines are sent as updates)
+        const dirtyLineIds = getDirtyLineIds?.();
+        const syncRequest = mapLinesToSyncRequest(flatLines, dirtyLineIds);
 
         await mutateAsync({
           data: syncRequest,
@@ -108,6 +111,7 @@ export const useEmissionCaptureSubmit = ({
     [
       inventoryId,
       isDirty,
+      getDirtyLineIds,
       enqueueSnackbar,
       mutateAsync,
       onSuccess,

@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetSuggestedReductionPlanResponse } from "@repo/types";
-import { fetchInventory } from "../resultsShared.js";
+import { fetchInventory } from "../helpers.js";
 
 // TODO: implement real reduction plan logic (could be AI-generated in the future)
 export const getSuggestedReductionPlanService = async (
@@ -9,6 +9,9 @@ export const getSuggestedReductionPlanService = async (
 ): Promise<GetSuggestedReductionPlanResponse> => {
   // Validate the inventory exists
   await fetchInventory(prismaClient, id);
+
+  // TODO: remove once real implementation is in place
+  return null;
 
   return {
     summary:

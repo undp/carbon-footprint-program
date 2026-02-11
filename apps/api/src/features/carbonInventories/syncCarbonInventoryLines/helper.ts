@@ -1,4 +1,5 @@
 import { InputType, type Prisma } from "@repo/database";
+import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
@@ -25,6 +26,10 @@ export async function createLineInput(
   item: ItemData,
   inputType: InputType
 ) {
+  const isCustomFactorSource = CUSTOM_FACTOR_SOURCES.includes(
+    item.factorSource ?? ""
+  );
+
   return await tx.carbonInventoryLineInput.create({
     data: {
       lineId,
@@ -38,15 +43,15 @@ export async function createLineInput(
           ? mapDecimalField(tonToKg(item.manualTotalEmissions))
           : null,
       manualFactor:
-        item.appliedFactorValue !== null &&
-        item.factorSource === "Factor Propio"
+        isCustomFactorSource && item.appliedFactorValue !== null
           ? mapDecimalField(item.appliedFactorValue)
           : null,
       manualFactorSource:
-        item.factorSource === "Factor Propio" ? item.factorSource : null,
+        isCustomFactorSource && item.appliedFactorValue !== null
+          ? item.factorSource
+          : null,
       manualFactorRateUnitId:
-        item.appliedFactorRateMeasurementUnitId !== null &&
-        item.factorSource === "Factor Propio"
+        isCustomFactorSource && item.appliedFactorRateMeasurementUnitId !== null
           ? mapBigIntField(item.appliedFactorRateMeasurementUnitId)
           : null,
       comment: item.comment ?? null,

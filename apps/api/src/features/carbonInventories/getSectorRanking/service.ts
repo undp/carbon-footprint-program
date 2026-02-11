@@ -4,8 +4,8 @@ import {
   distributePercentages,
   getRankingSeverity,
   roundEmissions,
-} from "../resultsHelpers.js";
-import { fetchInventoryWithCategoryData } from "../resultsShared.js";
+} from "../utils.js";
+import { fetchInventoryWithCategoryData } from "../helpers.js";
 
 // TODO: This is a stub that duplicates the own-organization ranking.
 // Replace with real sector-level ranking data once the sector comparison API is available.

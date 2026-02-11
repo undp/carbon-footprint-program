@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
-import { distributePercentages, roundEmissions } from "../resultsHelpers.js";
-import { fetchInventoryWithCategoryData } from "../resultsShared.js";
+import { distributePercentages, roundEmissions } from "../utils.js";
+import { fetchInventoryWithCategoryData } from "../helpers.js";
 
 export const getEmissionsSummaryCategoriesService = async (
   prismaClient: PrismaClient,
