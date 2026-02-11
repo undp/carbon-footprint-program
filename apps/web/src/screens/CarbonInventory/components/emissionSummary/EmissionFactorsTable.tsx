@@ -1,7 +1,8 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
+import { DataGrid } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
-import { CategoryChip } from "../CategoryChip";
+import { useEmissionFactorsColumns } from "./useEmissionFactorsColumns";
 
 interface EmissionFactorsTableProps {
   data: GetEmissionFactorsResponse | undefined;
@@ -12,6 +13,12 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
   data,
   isLoading,
 }) => {
+  const columns = useEmissionFactorsColumns();
+  const rows = useMemo(
+    () => (data ?? []).map((row, index) => ({ ...row, id: index })),
+    [data]
+  );
+
   if (isLoading) {
     return (
       <Skeleton
@@ -28,102 +35,54 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
         Factores utilizados
       </Typography>
 
-      <Box
-        component="table"
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        getRowHeight={() => "auto"}
+        hideFooter
+        disableColumnResize
+        disableColumnSorting
+        disableColumnMenu
+        disableColumnFilter
+        disableColumnSelector
+        disableRowSelectionOnClick
+        checkboxSelection={false}
+        localeText={{ noRowsLabel: "Sin factores" }}
         sx={{
-          width: "100%",
-          borderCollapse: "collapse",
+          borderRadius: "8px",
           border: "1px solid #d9d9d9",
-          "& th, & td": {
-            px: 1.5,
-            py: 1.5,
-            textAlign: "left",
-            fontSize: "0.75rem",
-            lineHeight: 1.4,
-            borderBottom: "1px solid #d9d9d9",
-            verticalAlign: "top",
-          },
-          "& th": {
+          "& .MuiDataGrid-columnHeader": {
+            padding: "10px 8px",
             backgroundColor: alpha("#414046", 0.03),
             color: "#414046",
             fontWeight: 600,
+            fontSize: "0.875rem",
+          },
+          "& .MuiDataGrid-columnHeader:focus": {
+            outline: "none",
+          },
+          "& .MuiDataGrid-columnHeader:focus-within": {
+            outline: "none",
+          },
+          "& .MuiDataGrid-columnSeparator": {
+            display: "none",
+          },
+          "& .MuiDataGrid-cell": {
+            padding: "12px 8px",
+            fontSize: "0.75rem",
+            lineHeight: 1.4,
+          },
+          "& .MuiDataGrid-cell:focus": {
+            outline: "none",
+          },
+          "& .MuiDataGrid-cell:focus-within": {
+            outline: "none",
+          },
+          "& .MuiDataGrid-row:hover": {
+            backgroundColor: "transparent",
           },
         }}
-      >
-        <thead>
-          <tr>
-            <th>Categoría / Alcance</th>
-            <th>Sub-categoría</th>
-            <th>Parámetros de actividad</th>
-            <th>Factor (Kg CO₂e/unidad)</th>
-            <th>Fuente</th>
-          </tr>
-        </thead>
-        <tbody>
-          {data?.map((row, idx) => {
-            return (
-              <tr key={idx}>
-                <td>
-                  <Box className="flex flex-col items-start gap-3 rounded px-2 py-0.5">
-                    <CategoryChip
-                      label={row.categorySynonyms ?? ""}
-                      categoryPosition={row.categoryPosition}
-                      sx={{
-                        fontSize: "10px",
-                        height: "26px",
-                      }}
-                    />
-                    <Typography variant="body2" fontWeight="fontWeightSemiBold">
-                      {row.categoryName}
-                    </Typography>
-                  </Box>
-                </td>
-                <td>
-                  <Typography variant="body2" fontWeight="fontWeightSemiBold">
-                    {row.subcategoryName}
-                  </Typography>
-                </td>
-                <td>
-                  <Typography variant="body2" fontWeight="fontWeightSemiBold">
-                    {row.activityParameter}
-                  </Typography>
-                </td>
-                <td>
-                  <Box className="flex flex-col gap-0.5">
-                    <Typography variant="body2" fontWeight="fontWeightSemiBold">
-                      {row.factorLabel}
-                    </Typography>
-                    {row.gasBreakdownLines.map((line, lineIdx) => (
-                      <Typography
-                        key={lineIdx}
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ fontSize: "0.65rem" }}
-                      >
-                        {line}
-                      </Typography>
-                    ))}
-                  </Box>
-                </td>
-                <td>
-                  <Box className="flex flex-col">
-                    <Typography variant="body2">{row.factorSource}</Typography>
-                    {row.factorSourceDetail && (
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ fontStyle: "italic", fontSize: "0.65rem" }}
-                      >
-                        {row.factorSourceDetail}
-                      </Typography>
-                    )}
-                  </Box>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </Box>
+      />
     </Box>
   );
 };
