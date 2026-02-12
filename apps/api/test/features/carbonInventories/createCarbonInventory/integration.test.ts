@@ -20,6 +20,7 @@ import {
   type ApiErrorResponse,
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
+import { getTestLoggedUser } from "../../../factories/userFactory.js";
 
 describe("POST /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -144,6 +145,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         },
       });
 
+      const { id } = await getTestLoggedUser(prisma);
+
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
       expect(body.name).toBeNull();
@@ -152,8 +155,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.organizationData).toBeNull();
       expect(body.methodologyVersionId).toBe(methodologyVersionIdString);
       expect(body.preselectedNodesId).toBeNull();
-      expect(body.createdById).toBeNull();
-      expect(body.updatedById).toBeNull();
+      expect(body.createdById).toBe(id.toString());
+      expect(body.updatedById).toBe(id.toString());
     });
   });
 
