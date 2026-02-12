@@ -84,37 +84,37 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
         return;
       }
-    } else {
-      // Existing row - update if dirty
-      const dirtyFields = form.formState.dirtyFields;
-      const isRowDirty = dirtyFields.methodologies?.[rowIndex];
+      return;
+    }
+    // Existing row - update if dirty
+    const dirtyFields = form.formState.dirtyFields;
+    const isRowDirty = dirtyFields.methodologies?.[rowIndex];
 
-      try {
-        if (row && isRowDirty) {
-          await updateMutation.mutateAsync({
-            id: row.id,
-            data: {
-              name: row.name,
-              description: row.description,
-              regulation: row.regulation,
-              version: row.version,
-            },
-          });
-          void enqueueSnackbar({
-            message: "Cambios guardados satisfactoriamente",
-            variant: "success",
-            autoHideDuration: 2000,
-          });
-        }
-      } catch {
+    try {
+      if (row && isRowDirty) {
+        await updateMutation.mutateAsync({
+          id: row.id,
+          data: {
+            name: row.name,
+            description: row.description,
+            regulation: row.regulation,
+            version: row.version,
+          },
+        });
         void enqueueSnackbar({
-          message: "Error al guardar cambios",
-          variant: "error",
+          message: "Cambios guardados satisfactoriamente",
+          variant: "success",
           autoHideDuration: 2000,
         });
       }
-      setEditingRowId(null);
+    } catch {
+      void enqueueSnackbar({
+        message: "Error al guardar cambios",
+        variant: "error",
+        autoHideDuration: 2000,
+      });
     }
+    setEditingRowId(null);
   }, [
     editingRowId,
     form,
