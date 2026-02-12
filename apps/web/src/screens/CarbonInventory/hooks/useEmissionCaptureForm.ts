@@ -214,20 +214,16 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
   const addLine = useCallback(
     (subcategoryId: SubcategoryId) => {
       const newLine = createNewLine(subcategoryId);
-      const currentLines = getValues(`subcategories.${subcategoryId}.lines`);
 
       setValue(
-        `subcategories.${subcategoryId}.lines`,
-        {
-          ...currentLines,
-          [newLine.lineId]: newLine,
-        },
+        `subcategories.${subcategoryId}.lines.${newLine.lineId}`,
+        newLine,
         { shouldDirty: true }
       );
 
       return newLine;
     },
-    [getValues, setValue]
+    [setValue]
   );
 
   /**
@@ -242,20 +238,12 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
       if (!lineToRemove) return;
 
-      if (lineToRemove.isNew) {
-        // For new lines, remove them completely from the form state
-        const { [lineId]: _, ...remainingLines } = currentLines;
-        setValue(`subcategories.${subcategoryId}.lines`, remainingLines, {
-          shouldDirty: true,
-        });
-      } else {
-        // For existing server lines, mark them as deleted
-        setValue(
-          `subcategories.${subcategoryId}.lines.${lineId}.isDeleted`,
-          true,
-          { shouldDirty: true }
-        );
-      }
+      // Mark the line as deleted
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.isDeleted`,
+        true,
+        { shouldDirty: true }
+      );
     },
     [getValues, setValue]
   );
