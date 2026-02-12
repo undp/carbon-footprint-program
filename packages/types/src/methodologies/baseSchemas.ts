@@ -1,14 +1,10 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 
-export { MethodologyVersionStatus } from "@repo/database/enums";
+import { MethodologyVersionStatus } from "@repo/database";
 
 // Enums
-export const MethodologyVersionStatusSchema = z.enum([
-  "PUBLISHED",
-  "UNPUBLISHED",
-  "DELETED",
-]);
+export const MethodologyVersionStatusSchema = z.enum(MethodologyVersionStatus);
 
 // Country schema for responses
 export const MethodologyCountrySchema = z
@@ -43,7 +39,7 @@ export const MethodologySchema = z
   .strict();
 
 // Extended schema with related data (for GET responses)
-export const MethodologyWithRelationsSchema = MethodologySchema.extend({
+export const MethodologyWithCountsSchema = MethodologySchema.extend({
   country: MethodologyCountrySchema.optional().describe(
     "The country this methodology belongs to"
   ),
