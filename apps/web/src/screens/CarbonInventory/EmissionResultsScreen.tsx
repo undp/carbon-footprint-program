@@ -2,7 +2,7 @@ import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, type FooterButton } from "./layout";
 import { StepHeader } from "./components/StepHeader";
 import {
   EmissionCategorySummary,
@@ -83,6 +83,27 @@ export const EmissionResultsScreen: FC = () => {
       });
   }, [isError, enqueueSnackbar]);
 
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
+
+  const nextButton: FooterButton = user
+    ? {
+        text: "Guardar Borrador",
+        align: "right",
+        buttonProps: { variant: "contained", onClick: goToList },
+      }
+    : {
+        text: "Volver a empezar",
+        align: "right",
+        buttonProps: { variant: "contained", onClick: goToLanding },
+      };
+
   return (
     <CarbonInventoryLayout
       headerProps={{
@@ -90,37 +111,7 @@ export const EmissionResultsScreen: FC = () => {
         subtitle: summaryData?.carbonInventory.name ?? undefined,
       }}
       footerProps={{
-        buttons: [
-          {
-            text: "Volver",
-            align: "right" as const,
-            buttonProps: {
-              startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-              onClick: goBack,
-            },
-          },
-          ...(user
-            ? [
-                {
-                  text: "Guardar Borrador",
-                  align: "right" as const,
-                  buttonProps: {
-                    variant: "contained" as const,
-                    onClick: goToList,
-                  },
-                },
-              ]
-            : [
-                {
-                  text: "Volver a empezar",
-                  align: "right" as const,
-                  buttonProps: {
-                    variant: "contained" as const,
-                    onClick: goToLanding,
-                  },
-                },
-              ]),
-        ],
+        buttons: [backButton, nextButton],
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">

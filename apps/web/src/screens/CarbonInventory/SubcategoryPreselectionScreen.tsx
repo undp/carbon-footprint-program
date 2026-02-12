@@ -2,7 +2,7 @@ import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
@@ -56,6 +56,29 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
 
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      disabled: isSubmitting,
+      onClick: goBack,
+    },
+  };
+
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      type: "submit",
+      form: "subcategory-preselection-form",
+      loading: isSubmitting,
+      disabled: isFormDisabled,
+    },
+  };
+
   return (
     <FormProvider {...methods}>
       <form
@@ -69,29 +92,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
             subtitle: data?.name ?? undefined,
           }}
           footerProps={{
-            buttons: [
-              {
-                text: "Volver",
-                align: "right",
-                buttonProps: {
-                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                  disabled: isSubmitting,
-                  onClick: goBack,
-                },
-              },
-              {
-                text: "Siguiente",
-                align: "right",
-                buttonProps: {
-                  endIcon: <ArrowRightAltRounded />,
-                  variant: "contained",
-                  type: "submit",
-                  form: "subcategory-preselection-form",
-                  loading: isSubmitting,
-                  disabled: isFormDisabled,
-                },
-              },
-            ],
+            buttons: [backButton, nextButton],
           }}
           isLoading={isLoading}
           hasError={hasError}
