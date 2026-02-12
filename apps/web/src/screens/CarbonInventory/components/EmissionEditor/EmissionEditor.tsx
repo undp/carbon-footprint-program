@@ -99,6 +99,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         manualModeLineHasComment={!!manualModeLine?.comment}
         onManualModeLineDelete={handleManualModeLineDelete}
         onManualModeLineComment={handleManualModeLineComment}
+        hasEmissionFactors={subcategory.emissionFactors.length > 0}
       />
 
       <Collapse in={!isTotalManualEmissionsModeActive} collapsedSize={0}>
