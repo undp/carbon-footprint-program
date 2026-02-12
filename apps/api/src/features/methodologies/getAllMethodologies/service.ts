@@ -1,6 +1,8 @@
-import type { PrismaClient } from "@repo/database";
-import type { GetAllMethodologiesResponse } from "@repo/types";
-import { MethodologyVersionStatus } from "@repo/types";
+import { InventoryStatus, type PrismaClient } from "@repo/database";
+import {
+  type GetAllMethodologiesResponse,
+  MethodologyVersionStatus,
+} from "@repo/types";
 import { mapMethodologyWithRelationsToResponse } from "../mappers.js";
 
 export const getAllMethodologiesService = async (
@@ -17,7 +19,17 @@ export const getAllMethodologiesService = async (
       _count: {
         select: {
           categories: true,
-          carbonInventories: true,
+          carbonInventories: {
+            where: {
+              status: {
+                in: [
+                  InventoryStatus.DRAFT,
+                  InventoryStatus.SUBMITTED,
+                  InventoryStatus.VERIFIED,
+                ],
+              },
+            },
+          },
         },
       },
     },

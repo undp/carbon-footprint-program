@@ -52,5 +52,7 @@ export const MethodologyWithCountsSchema = MethodologySchema.extend({
     .number()
     .int()
     .optional()
-    .describe("Number of carbon inventories using this methodology"),
+    .describe(
+      "Number of carbon inventories in DRAFT, SUBMITTED, or VERIFIED status using this methodology"
+    ),
 });
