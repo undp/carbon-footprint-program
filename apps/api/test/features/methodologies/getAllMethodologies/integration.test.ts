@@ -44,9 +44,7 @@ describe("GET /api/methodologies - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllMethodologiesResponse;
+      const body = JSON.parse(response.body) as GetAllMethodologiesResponse;
 
       expect(Array.isArray(body)).toBe(true);
       expect(body.length).toBeGreaterThan(0);
@@ -74,9 +72,7 @@ describe("GET /api/methodologies - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllMethodologiesResponse;
+      const body = JSON.parse(response.body) as GetAllMethodologiesResponse;
 
       const deletedMethodology = body.find((m) =>
         m.name.includes("Test - Deleted Methodology")
@@ -90,9 +86,6 @@ describe("GET /api/methodologies - Integration Tests", () => {
         status: MethodologyVersionStatus.UNPUBLISHED,
       });
 
-      // Small delay to ensure different timestamps
-      await new Promise((resolve) => setTimeout(resolve, 50));
-
       await createEmptyMethodologyVersion(prisma, {
         name: "Test - Newer Methodology",
         status: MethodologyVersionStatus.UNPUBLISHED,
@@ -104,9 +97,7 @@ describe("GET /api/methodologies - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllMethodologiesResponse;
+      const body = JSON.parse(response.body) as GetAllMethodologiesResponse;
 
       // Find the two test methodologies
       const newerIndex = body.findIndex((m) =>
@@ -131,14 +122,12 @@ describe("GET /api/methodologies - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as GetAllMethodologiesResponse;
+      const body = JSON.parse(response.body) as GetAllMethodologiesResponse;
 
       const statuses = new Set(body.map((m) => m.status));
-      expect(
-        statuses.has("PUBLISHED") || statuses.has("UNPUBLISHED")
-      ).toBe(true);
+      expect(statuses.has("PUBLISHED") || statuses.has("UNPUBLISHED")).toBe(
+        true
+      );
       expect(statuses.has("DELETED")).toBe(false);
     });
   });
