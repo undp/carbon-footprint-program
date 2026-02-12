@@ -13,11 +13,11 @@ import {
 
 export const duplicateMethodologyService = async (
   prismaClient: PrismaClient,
-  methodologyId: string
+  id: string
 ): Promise<DuplicateMethodologyResponse> => {
   // Find the original methodology
   const original = await prismaClient.methodologyVersion.findUnique({
-    where: { id: BigInt(methodologyId) },
+    where: { id: BigInt(id) },
   });
 
   if (!original) {
