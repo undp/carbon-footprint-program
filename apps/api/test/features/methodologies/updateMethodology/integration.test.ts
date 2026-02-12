@@ -138,11 +138,12 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
       });
 
       // Publish the first one
-      await app.inject({
+      const firstPublishResponse = await app.inject({
         method: "PATCH",
         url: `/api/methodologies/${methodology1.id}`,
         payload: { status: "PUBLISHED" },
       });
+      expect(firstPublishResponse.statusCode).toBe(200);
 
       // Publish the second one
       const response = await app.inject({
@@ -157,9 +158,7 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
       const dbMethodology1 = await prisma.methodologyVersion.findUnique({
         where: { id: methodology1.id },
       });
-      expect(dbMethodology1!.status).toBe(
-        MethodologyVersionStatus.UNPUBLISHED
-      );
+      expect(dbMethodology1!.status).toBe(MethodologyVersionStatus.UNPUBLISHED);
 
       // Verify the second methodology is published
       const dbMethodology2 = await prisma.methodologyVersion.findUnique({
