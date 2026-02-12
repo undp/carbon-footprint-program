@@ -165,6 +165,17 @@ erDiagram
 		string name  "UNIQUE"  
 	}
 
+	organization_main_activity {
+		BIGINT id PK ""
+		string name ""
+		BIGINT country_sector_id FK ""
+		BIGINT country_subsector_id FK ""
+		timestamptz created_at ""
+		timestamptz updated_at ""
+		BIGINT created_by FK ""
+		BIGINT updated_by FK ""
+	}
+
 	country_job_position {
 		BIGINT id PK ""  
 		BIGINT country_id FK ""
@@ -334,7 +345,7 @@ erDiagram
 	organization {
 		BIGINT id PK
 		BIGINT country_id FK
-		enum status "NOT_ACCREDITED | ACCREDITED | BLOCKED" 
+		enum status "ACTIVE | BLOCKED" 
 		timestamptz created_at
 		timestamptz updated_at
 		BIGINT created_by FK "NULLABLE, user(id)"
@@ -344,17 +355,18 @@ erDiagram
 	organization_data {
 		BIGINT id PK
 		BIGINT organization_id FK
-		enum status "DRAFT | SUBMITTED | COMPLETED | OUTDATED"
+		enum status "ACTIVE | OUTDATED"
 
 		%% organization data
 		string legal_name
 		string trade_name
 		string tax_id
 		BIGINT country_organization_size_id FK
+		BIGINT main_activity_id FK
 		BIGINT sector_id FK
 		BIGINT subsector_id FK
 		string address
-		int workers_count
+		int employees_count
 
 		%% representative data
 		string representative_full_name
@@ -683,9 +695,11 @@ country
 country_sector
 	country_sector ||--o{ country_subsector : "has"
 	country_sector ||--o{ sector_profiling : "could appear at"
+	country_sector ||--o{ organization_main_activity : "has many"
 
 country_subsector
 	country_subsector ||--o{ subsector_profiling : "could appear at"
+	country_subsector ||--o{ organization_main_activity : "has many"
 
 organization
 	organization ||--o{ carbon_inventory : "has"
@@ -700,6 +714,7 @@ organization_data
 	organization_data }o--|| country_subsector : "has"
 	organization_data ||--|| country_job_position : "has"
 	organization_data ||--o{ submission_subject_organization_data : "submitted via"
+	organization_data }o--|| organization_main_activity : "has"
 
 
 organization_branch

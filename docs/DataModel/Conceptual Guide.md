@@ -99,12 +99,15 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 
 - Organizations represent the legal entities participating in the platform.
 - They follow a versioned data model via `organization_data`.
+- **ACTIVE/OUTDATED Pattern**: The system uses an explicit status on `organization_data` to manage versions, while the review outcome is derived from the linked `submission`.
 - **Lifecycle Flow**:
-  1. **Creation**: Create a new `organization` with status **NOT_ACCREDITED**, and create a new row in `organization_data` with status **DRAFT** associated with this new `organization`.
-  2. **Submission**: User sends an accreditation request (`organization_data` status changes from **DRAFT** to **SUBMITTED**) and `organization` status remains **NOT_ACCREDITED**.
-  3. **Review**: Upon admin approval, `organization` status is changed to **ACCREDITED** and `organization_data` status changes from **SUBMITTED** to **COMPLETED**. If rejected, `organization` status remains **NOT_ACCREDITED** and `organization_data` status changes from **SUBMITTED** to **DRAFT**.
-  4. **Updates**: Editing an accredited organization creates a new `organization_data` row with status **DRAFT** associated to the same `organization`, leaving the **COMPLETED** row intact.
-  5. **Re-accreditation**: User sends an accreditation request again (`organization_data` status changes from **DRAFT** to **SUBMITTED**) and `organization` status remains **ACCREDITED** (maintaining its previous accreditation status). When the new submission is approved, the previous COMPLETED row in `organization_data` moves to **OUTDATED**, and the current **SUBMITTED** row status changes to **COMPLETED** ( `organization` status remains **ACCREDITED**). If the new submission is rejected, the current **SUBMITTED** row status changes to **DRAFT** and `organization` status remains **ACCREDITED**.
+  1. **Creation**: A new `organization` is created with status **ACTIVE**. A corresponding `organization_data` record is created with status **ACTIVE** and no linked submission (this represents the **Draft** state).
+  2. **Submission**: When the user submits for accreditation, a `submission` is created (status **PENDING**) linked to the **ACTIVE** `organization_data`. (State: **Under Review**).
+  3. **Review (Approval)**: Upon admin approval, the `submission` status changes to **APPROVED**. The `organization_data` remains **ACTIVE**. The organization is now considered "accredited" because it has an **ACTIVE** data record with an **APPROVED** submission.
+  4. **Review (Rejection)**: If rejected, the `submission` status changes to **REJECTED**, and the `organization_data` is immediately marked as **OUTDATED**. To resubmit, a new **ACTIVE** `organization_data` must be created.
+  5. **Updates**: Editing an accredited organization creates a new **ACTIVE** `organization_data` row (Draft). The previous **ACTIVE** (Approved) row remains **ACTIVE** and official until the new version is approved.
+  6. **Re-accreditation**: When the new version is submitted, it becomes **Under Review** (PENDING submission) while the old one remains the official **ACTIVE** (Approved) version. Upon approval of the new version, the old one is marked **OUTDATED**, and the new one becomes the current official **ACTIVE** version.
+  7. **Blocking**: An organization can be **BLOCKED** independently of its accreditation status. This is an administrative action that does not affect the `organization_data` status.
 
 ### 7.2 Users
 
