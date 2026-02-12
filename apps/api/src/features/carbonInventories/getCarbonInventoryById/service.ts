@@ -13,7 +13,7 @@ export const getCarbonInventoryByIdService = async (
   id: string,
   user?: User | null
 ): Promise<GetCarbonInventoryByIdResponse> => {
-  const inventory = await prismaClient.carbonInventory.findUnique({
+  const inventory = await prismaClient.carbonInventory.findFirst({
     where: {
       id: BigInt(id),
       createdById: user ? BigInt(user.id) : null,
