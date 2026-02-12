@@ -114,9 +114,6 @@ CREATE TABLE "subcategory_measurement_unit" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "methodology_version_country_id_name_active_unique" ON "methodology_version" ("country_id", "name") WHERE "status" <> 'DELETED';
-
--- CreateIndex
 CREATE UNIQUE INDEX "category_methodology_version_id_name_key" ON "category"("methodology_version_id", "name");
 
 -- CreateIndex
