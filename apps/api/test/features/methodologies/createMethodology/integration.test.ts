@@ -133,6 +133,21 @@ describe("POST /api/methodologies - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it("should return 400 when name is empty string", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/methodologies",
+        payload: {
+          name: "",
+          description: "Name is empty",
+          regulation: "Regulation",
+          version: "1.0",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it("should return 400 when description is missing", async () => {
       const response = await app.inject({
         method: "POST",
@@ -161,6 +176,21 @@ describe("POST /api/methodologies - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
+    it("should return 400 when regulation is empty string", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/methodologies",
+        payload: {
+          name: "Name",
+          description: "Description",
+          regulation: "",
+          version: "1.0",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it("should return 400 when version is missing", async () => {
       const response = await app.inject({
         method: "POST",
@@ -169,6 +199,21 @@ describe("POST /api/methodologies - Integration Tests", () => {
           name: "Test - No Version",
           description: "Description",
           regulation: "Regulation",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when version is empty string", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/methodologies",
+        payload: {
+          name: "Name",
+          description: "Description",
+          regulation: "Regulation",
+          version: "",
         },
       });
 
