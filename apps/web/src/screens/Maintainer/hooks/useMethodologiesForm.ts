@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import type { Methodology } from "@repo/types";
+import { type Methodology, MethodologySchema } from "@repo/types";
 
 export type FormMethodology = Omit<
   Methodology,
@@ -15,13 +15,13 @@ export interface MethodologiesFormValues {
 
 const methodologiesFormSchema = z.object({
   methodologies: z.array(
-    z.object({
-      id: z.string().min(1, "ID inválido"),
-      name: z.string().min(1, "Campo obligatorio"),
-      description: z.string().min(1, "Campo obligatorio"),
-      regulation: z.string().min(1, "Campo obligatorio"),
-      version: z.string().min(1, "Campo obligatorio"),
-      status: z.enum(["PUBLISHED", "UNPUBLISHED", "DELETED"]),
+    MethodologySchema.pick({
+      id: true,
+      name: true,
+      description: true,
+      regulation: true,
+      version: true,
+      status: true,
     })
   ),
 });
