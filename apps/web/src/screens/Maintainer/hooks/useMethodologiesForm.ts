@@ -4,9 +4,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { type Methodology, MethodologySchema } from "@repo/types";
 
-export type FormMethodology = Omit<
+export type FormMethodology = Pick<
   Methodology,
-  "createdAt" | "updatedAt" | "countryId" | "createdById" | "updatedById"
+  "id" | "name" | "description" | "regulation" | "version" | "status"
 >;
 
 export interface MethodologiesFormValues {
@@ -22,6 +22,8 @@ const methodologiesFormSchema = z.object({
       regulation: true,
       version: true,
       status: true,
+    }).extend({
+      id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
     })
   ),
 });

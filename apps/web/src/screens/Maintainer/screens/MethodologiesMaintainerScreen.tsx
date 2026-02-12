@@ -20,6 +20,8 @@ import {
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import { type Methodology, MethodologyVersionStatus } from "@repo/types";
 import { StylizedDataGrid } from "@components";
+import { IS_DEVELOPMENT } from "@/config/environment";
+import { DevTool } from "@hookform/devtools";
 
 export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
@@ -315,40 +317,38 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   return (
     <FormProvider {...form}>
-      <MaintainerPageHeader
-        title="Metodologías"
-        onAddRow={handleAddRow}
-        addLabel="Agregar fila"
-      />
-      <Box className="rounded-sm bg-white p-3">
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Siempre debe
-          existir una única metodología activa.
-        </Typography>
-        <Box className="flex w-full">
-          <StylizedDataGrid
-            sx={(theme) => ({
-              "& .MuiDataGrid-columnHeader": {
-                backgroundColor: theme.palette.grey[200],
-              },
-              "& .MuiDataGrid-cell": {
-                display: "flex",
-                alignItems: "center",
-                py: 1,
-              },
-              "& .MuiDataGrid-cell .MuiTextField-root": {
-                alignSelf: "center",
-              },
-            })}
-            columns={columns}
-            rows={currentRows}
-            rowHeight={60}
-            getRowId={(row: Methodology) => row.id}
-            loading={isLoading}
-          />
+      <form id="methodologies-form" noValidate>
+        <MaintainerPageHeader
+          title="Metodologías"
+          onAddRow={handleAddRow}
+          addLabel="Agregar fila"
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Gestiona las metodologías de cálculo. Haz clic en Editar para
+            modificar alcances, subcategorías y factores de emisión. Siempre
+            debe existir una única metodología activa.
+          </Typography>
+          <Box className="flex w-full">
+            <StylizedDataGrid
+              sx={(theme) => ({
+                "& .MuiDataGrid-columnHeader": {
+                  backgroundColor: theme.palette.grey[200],
+                },
+                "& .MuiDataGrid-cell .MuiTextField-root": {
+                  alignSelf: "center",
+                },
+              })}
+              columns={columns}
+              rows={currentRows}
+              rowHeight={60}
+              getRowId={(row: Methodology) => row.id}
+              loading={isLoading}
+            />
+          </Box>
         </Box>
-      </Box>
+      </form>
+      {IS_DEVELOPMENT && <DevTool control={form.control} />}
     </FormProvider>
   );
 };
