@@ -1,5 +1,5 @@
 import { FC, useCallback, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useBlocker } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
@@ -22,6 +22,7 @@ import { type Methodology, MethodologyVersionStatus } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { DevTool } from "@hookform/devtools";
+import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 
 export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
@@ -300,6 +301,12 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
   );
 
+  // --- Block navigation while editing ---
+  const { proceed, reset, status } = useBlocker({
+    shouldBlockFn: () => editingRowId !== null,
+    withResolver: true,
+  });
+
   // --- Column definitions via hook ---
 
   const columns = useMethodologyColumns({
@@ -321,6 +328,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         <MaintainerPageHeader
           title="Metodologías"
           onAddRow={handleAddRow}
+          addDisabled={editingRowId !== null}
           addLabel="Agregar fila"
         />
         <Box className="rounded-sm bg-white p-3">
@@ -349,6 +357,11 @@ export const MethodologiesMaintainerScreen: FC = () => {
         </Box>
       </form>
       {IS_DEVELOPMENT && <DevTool control={form.control} />}
+      <UnsavedChangesDialog
+        open={status === "blocked"}
+        onCancel={() => reset?.()}
+        onConfirm={() => proceed?.()}
+      />
     </FormProvider>
   );
 };

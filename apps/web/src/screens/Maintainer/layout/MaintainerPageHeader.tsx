@@ -7,6 +7,7 @@ interface Props {
   title: string;
   onAddRow?: () => void;
   addLabel?: string;
+  addDisabled?: boolean;
   extra?: ReactNode;
 }
 
@@ -14,6 +15,7 @@ export const MaintainerPageHeader: FC<Props> = ({
   title,
   onAddRow,
   addLabel = "Agregar",
+  addDisabled,
   extra,
 }) => (
   <Paper
@@ -38,6 +40,7 @@ export const MaintainerPageHeader: FC<Props> = ({
           variant="contained"
           startIcon={<AddOutlined />}
           onClick={onAddRow}
+          disabled={addDisabled}
           size="small"
         >
           {addLabel}
