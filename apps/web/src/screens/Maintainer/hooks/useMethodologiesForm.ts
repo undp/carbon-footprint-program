@@ -59,10 +59,10 @@ export const useMethodologiesForm = (serverData: Methodology[]) => {
         const updatedRow = { ...structuredClone(currentRow), [field]: value };
         fieldArray.update(rowIndex, updatedRow);
         // Manually mark as dirty since fieldArray.update() doesn't track dirty state well
-        form.setValue(`methodologies.${rowIndex}.${field}` as const, value, {
+        form.setValue(`methodologies.${rowIndex}.${field}`, value, {
           shouldDirty: true,
         });
-        void form.trigger(`methodologies.${rowIndex}.${field}` as const);
+        void form.trigger(`methodologies.${rowIndex}.${field}`);
       }
     },
     [form, fieldArray]
