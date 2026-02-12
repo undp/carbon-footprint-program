@@ -339,7 +339,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
     it("should sort by name ascending by default", async () => {
       const org1 = await createTestOrganization(prisma, {
         countryId: testCountryId,
-        status: "NOT_ACCREDITED",
+        status: "ACCREDITED",
       });
       await createTestOrganizationData(prisma, org1.id, {
         status: "COMPLETED",
@@ -351,7 +351,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
 
       const org2 = await createTestOrganization(prisma, {
         countryId: testCountryId,
-        status: "NOT_ACCREDITED",
+        status: "ACCREDITED",
       });
       await createTestOrganizationData(prisma, org2.id, {
         status: "COMPLETED",
@@ -364,24 +364,23 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/admin/organizations/",
-        query: { statuses: "NOT_ACCREDITED" },
+        query: { statuses: "ACCREDITED" },
       });
 
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
-      const names = body.data
-        .map((i) => i.name)
-        .filter((n): n is string => n !== null);
+      const names = body.data.map((i) => i.name);
 
       // Null names sort first in asc, then named orgs in alphabetical order
-      const sortedNames = [...names].sort((a, b) => a.localeCompare(b));
+      const sortedNames = [...names].sort((a, b) => a!.localeCompare(b!));
       expect(names).toEqual(sortedNames);
+      expect(names.length).toBe(2);
     });
 
     it("should sort by name descending when sortOrder=desc", async () => {
       const org1 = await createTestOrganization(prisma, {
         countryId: testCountryId,
-        status: "NOT_ACCREDITED",
+        status: "ACCREDITED",
       });
       await createTestOrganizationData(prisma, org1.id, {
         status: "COMPLETED",
@@ -393,7 +392,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
 
       const org2 = await createTestOrganization(prisma, {
         countryId: testCountryId,
-        status: "NOT_ACCREDITED",
+        status: "ACCREDITED",
       });
       await createTestOrganizationData(prisma, org2.id, {
         status: "COMPLETED",
@@ -407,7 +406,7 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
         method: "GET",
         url: "/api/admin/organizations/",
         query: {
-          statuses: "NOT_ACCREDITED",
+          statuses: "ACCREDITED",
           sortBy: "name",
           sortOrder: "desc",
         },
@@ -415,11 +414,10 @@ describe("GET /api/admin/organizations - Integration Tests", () => {
 
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
-      const names = body.data
-        .map((i) => i.name)
-        .filter((n): n is string => n !== null);
-      const sortedNames = [...names].sort((a, b) => b.localeCompare(a));
+      const names = body.data.map((i) => i.name);
+      const sortedNames = [...names].sort((a, b) => b!.localeCompare(a!));
       expect(names).toEqual(sortedNames);
+      expect(names.length).toBe(2);
     });
   });
 
