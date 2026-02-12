@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import {
   Collapse,
   IconButton,
@@ -45,11 +45,14 @@ export const Group: FC<SidebarGroupProps> = ({
   const backgroundColor = alpha(theme.palette.secondary.main, 0.2);
   const selectedTextColor = theme.palette.primary.main;
 
-  const handleToggleGroup = (event: React.MouseEvent) => {
-    event.stopPropagation();
-    event.preventDefault();
-    if (!isChildActive && !isActive) setIsOpen(!isOpen);
-  };
+  const handleToggleGroup = useCallback(
+    (event: React.MouseEvent) => {
+      event.stopPropagation();
+      event.preventDefault();
+      if (!isChildActive && !isActive) setIsOpen(!isOpen);
+    },
+    [isChildActive, isActive, isOpen]
+  );
 
   return (
     <>
