@@ -18,8 +18,8 @@ import {
   useMethodologiesForm,
 } from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
-import type { Methodology } from "@repo/types";
-import { StylizedDataGrid } from "../../../components";
+import { type Methodology, MethodologyVersionStatus } from "@repo/types";
+import { StylizedDataGrid } from "@components";
 
 export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
@@ -171,15 +171,17 @@ export const MethodologiesMaintainerScreen: FC = () => {
       const previousRows = structuredClone(rows);
 
       // Optimistically update: set selected row to PUBLISHED, others to UNPUBLISHED
-      const newStatus = checked ? "PUBLISHED" : "UNPUBLISHED";
+      const newStatus = checked
+        ? MethodologyVersionStatus.PUBLISHED
+        : MethodologyVersionStatus.UNPUBLISHED;
       const updatedRows = rows.map((r) => ({
         ...r,
         status: checked
           ? r.id === row.id
-            ? "PUBLISHED"
-            : "UNPUBLISHED"
+            ? MethodologyVersionStatus.PUBLISHED
+            : MethodologyVersionStatus.UNPUBLISHED
           : r.id === row.id
-            ? "UNPUBLISHED"
+            ? MethodologyVersionStatus.UNPUBLISHED
             : r.status,
       })) as FormMethodology[];
       fieldArray.replace(updatedRows);
@@ -226,7 +228,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         name: row.name,
         regulation: row.regulation,
       });
-      void navigate({ to: Routes.ADMIN_ITEMS });
+      void navigate({ to: Routes.ADMIN_CATEGORIES });
     },
     [isNewRow, enqueueSnackbar, startEditing, navigate]
   );
@@ -267,7 +269,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
       description: "",
       regulation: "GHG Protocol",
       version: "1.0",
-      status: "UNPUBLISHED",
+      status: MethodologyVersionStatus.UNPUBLISHED,
     };
     fieldArray.append(newRow);
     setEditingRowId(tempId);
