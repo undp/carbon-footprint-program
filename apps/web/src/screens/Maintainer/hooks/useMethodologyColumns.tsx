@@ -48,7 +48,7 @@ export const useMethodologyColumns = ({
     [editingRowId]
   );
 
-  const baseCellClass = "content-center";
+  const cellClassName = "content-center";
 
   return useMemo(
     () => [
@@ -57,7 +57,7 @@ export const useMethodologyColumns = ({
         headerName: "Nombre",
         flex: 0.5,
         maxWidth: 250,
-        cellClassName: baseCellClass,
+        cellClassName,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -82,7 +82,7 @@ export const useMethodologyColumns = ({
         headerName: "Descripción",
         flex: 1,
         minWidth: 200,
-        cellClassName: baseCellClass,
+        cellClassName,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -108,7 +108,7 @@ export const useMethodologyColumns = ({
         field: "regulation",
         headerName: "Normativa",
         width: 200,
-        cellClassName: baseCellClass,
+        cellClassName,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -130,7 +130,7 @@ export const useMethodologyColumns = ({
         field: "version",
         headerName: "Versión",
         width: 100,
-        cellClassName: baseCellClass,
+        cellClassName,
         renderCell: (params: GridRenderCellParams<Methodology>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -154,7 +154,7 @@ export const useMethodologyColumns = ({
         field: "active",
         headerName: "Estado",
         width: 90,
-        cellClassName: baseCellClass,
+        cellClassName,
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<Methodology>) => (
@@ -173,7 +173,7 @@ export const useMethodologyColumns = ({
         filterable: false,
         headerAlign: "center",
         align: "right",
-        cellClassName: baseCellClass,
+        cellClassName,
         renderCell: (params: GridRenderCellParams<Methodology>) => (
           <ActionButtons
             isActiveRow={params.row.status === "PUBLISHED"}
