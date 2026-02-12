@@ -20,10 +20,22 @@ export const MethodologySchema = z
   .object({
     id: IdSchema.describe("The ID of the methodology"),
     countryId: IdSchema.describe("The ID of the country"),
-    name: z.string().describe("The name of the methodology"),
-    description: z.string().describe("The description of the methodology"),
-    regulation: z.string().describe("The regulation/standard reference"),
-    version: z.string().describe("The version identifier"),
+    name: z
+      .string()
+      .min(1, "Campo obligatorio")
+      .describe("The name of the methodology"),
+    description: z
+      .string()
+      .min(1, "Campo obligatorio")
+      .describe("The description of the methodology"),
+    regulation: z
+      .string()
+      .min(1, "Campo obligatorio")
+      .describe("The regulation/standard reference"),
+    version: z
+      .string()
+      .min(1, "Campo obligatorio")
+      .describe("The version identifier"),
     status: MethodologyVersionStatusSchema.describe(
       "The status of the methodology"
     ),
