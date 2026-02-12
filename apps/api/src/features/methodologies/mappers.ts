@@ -1,18 +1,19 @@
 import type { Prisma } from "@repo/database";
-import type {
-  MethodologyVersion as PrismaMethodologyVersion,
-  Country,
-} from "@repo/database";
+import type { MethodologyVersion as PrismaMethodologyVersion } from "@repo/database";
 import type { Methodology, MethodologyWithRelations } from "@repo/types";
 
 // Prisma type for methodology with country and counts
-type MethodologyWithCountryAndCounts = PrismaMethodologyVersion & {
-  country: Country;
-  _count: {
-    categories: number;
-    carbonInventories: number;
+type MethodologyWithCountryAndCounts = Prisma.MethodologyVersionGetPayload<{
+  include: {
+    country: true;
+    _count: {
+      select: {
+        categories: true;
+        carbonInventories: true;
+      };
+    };
   };
-};
+}>;
 
 /**
  * Maps a Prisma MethodologyVersion to the API response format.
