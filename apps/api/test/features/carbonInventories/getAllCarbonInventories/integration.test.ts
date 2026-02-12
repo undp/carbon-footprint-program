@@ -25,7 +25,7 @@ import {
   createTestOrganization,
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
-import { getTestLoggedUser } from "../../../factories/userFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("GET /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;

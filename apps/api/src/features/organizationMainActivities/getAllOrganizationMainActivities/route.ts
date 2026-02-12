@@ -4,7 +4,7 @@ import {
   GetAllOrganizationMainActivitiesQuerySchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { StandardRouteSignature } from "../../../routes/api/index.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getAllOrganizationMainActivitiesRoute: StandardRouteSignature = (
   fastify,

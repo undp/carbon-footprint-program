@@ -20,7 +20,7 @@ import {
   type ApiErrorResponse,
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
-import { getTestLoggedUser } from "../../../factories/userFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("POST /api/carbon-inventories - Integration Tests", () => {
   let app: FastifyInstance;
