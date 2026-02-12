@@ -16,7 +16,7 @@ export const getAllCarbonInventoriesService = async (
   // Build where clause for year filtering
   const whereClause: {
     year?: number;
-    createdById?: bigint | null;
+    createdById?: bigint;
   } = {};
 
   whereClause.year = query?.year ? parseInt(query.year, 10) : undefined;
