@@ -29,7 +29,9 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
         </Typography>
-        {!hasError && (
+        {/* TODO: display when sector ranking is fully implemented */}
+        {/* eslint-disable-next-line no-constant-binary-expression */}
+        {!hasError && false && (
           <StyledToggleButtonGroup
             sx={{
               height: 20,
