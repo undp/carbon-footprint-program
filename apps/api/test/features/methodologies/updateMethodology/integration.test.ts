@@ -236,7 +236,7 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
         code: string;
         message: string;
       };
-      expect(body.code).toBe("METHODOLOGY_NAME_ALREADY_EXISTS");
+      expect(body.code).toBe("METHODOLOGY_NAME_VERSION_ALREADY_EXISTS");
     });
   });
 });

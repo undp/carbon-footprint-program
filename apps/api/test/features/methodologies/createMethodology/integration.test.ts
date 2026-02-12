@@ -232,7 +232,7 @@ describe("POST /api/methodologies - Integration Tests", () => {
   });
 
   describe("Duplicate handling", () => {
-    it("should return 409 when name already exists for the same country", async () => {
+    it("should return 409 when name and version already exists for the same country", async () => {
       // Create the first methodology
       await app.inject({
         method: "POST",
@@ -245,7 +245,7 @@ describe("POST /api/methodologies - Integration Tests", () => {
         },
       });
 
-      // Try to create another with the same name
+      // Try to create another with the same name and version
       const response = await app.inject({
         method: "POST",
         url: "/api/methodologies",
@@ -253,7 +253,7 @@ describe("POST /api/methodologies - Integration Tests", () => {
           name: "Test - Duplicate Name",
           description: "Second",
           regulation: "Regulation",
-          version: "2.0",
+          version: "1.0",
         },
       });
 
@@ -262,7 +262,7 @@ describe("POST /api/methodologies - Integration Tests", () => {
         code: string;
         message: string;
       };
-      expect(body.code).toBe("METHODOLOGY_NAME_ALREADY_EXISTS");
+      expect(body.code).toBe("METHODOLOGY_NAME_VERSION_ALREADY_EXISTS");
     });
   });
 });
