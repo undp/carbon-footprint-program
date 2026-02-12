@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type {
+import {
   UpdateMethodologyParamsSchema,
   UpdateMethodologyRequestSchema,
   UpdateMethodologyResponseSchema,

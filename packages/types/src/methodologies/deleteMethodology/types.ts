@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type {
+import {
   DeleteMethodologyParamsSchema,
   DeleteMethodologyResponseSchema,
 } from "./schemas.js";
