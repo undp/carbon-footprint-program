@@ -25,7 +25,7 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
 }) => {
   return (
     <Box
-      className="flex h-full w-full flex-col items-start justify-center gap-2 rounded-lg p-3"
+      className="flex w-full flex-1 flex-col items-start justify-center gap-2 rounded-lg px-3 py-2"
       sx={{ backgroundColor }}
     >
       <Box className="flex w-full items-center justify-between">
@@ -42,11 +42,14 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
             <Typography
               variant="body1"
               fontWeight="fontWeightSemiBold"
-              sx={{ color: textColor }}
+              sx={{ color: textColor, lineHeight: 1.2 }}
             >
               {title}
             </Typography>
-            <Typography variant="caption" sx={{ color: textColor }}>
+            <Typography
+              variant="caption"
+              sx={{ color: textColor, lineHeight: 1.2 }}
+            >
               {subtitle}
             </Typography>
           </Box>

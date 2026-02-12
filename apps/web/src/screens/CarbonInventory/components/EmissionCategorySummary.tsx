@@ -71,7 +71,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   return (
     <>
       <Box
-        className="flex shrink-0 items-center justify-between rounded-lg p-3"
+        className="flex flex-1 shrink-0 items-center justify-between rounded-lg px-3 py-2"
         sx={{ backgroundColor: alpha(theme.palette.common.deepForest, 0.1) }}
       >
         <Box className="flex items-center gap-2">
