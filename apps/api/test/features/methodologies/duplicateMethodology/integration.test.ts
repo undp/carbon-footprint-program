@@ -140,9 +140,14 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
 
   describe("Error handling", () => {
     it("should return 404 when methodology does not exist", async () => {
+      const maxId =
+        (await prisma.methodologyVersion.aggregate({ _max: { id: true } }))
+          ._max.id ?? 0n;
+      const nonExistentId = maxId + 1n;
+
       const response = await app.inject({
         method: "POST",
-        url: "/api/methodologies/999999/duplicate",
+        url: `/api/methodologies/${nonExistentId}/duplicate`,
       });
 
       expect(response.statusCode).toBe(404);
