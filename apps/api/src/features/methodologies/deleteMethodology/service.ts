@@ -1,4 +1,4 @@
-import { CarbonInventoryLineStatus, type PrismaClient } from "@repo/database";
+import { InventoryStatus, type PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/types";
 import {
   MethodologyHasActiveInventoriesError,
@@ -20,7 +20,7 @@ export const deleteMethodologyService = async (
         select: {
           carbonInventories: {
             where: {
-              status: { not: CarbonInventoryLineStatus.DELETED },
+              status: { not: InventoryStatus.DELETED },
             },
           },
         },
