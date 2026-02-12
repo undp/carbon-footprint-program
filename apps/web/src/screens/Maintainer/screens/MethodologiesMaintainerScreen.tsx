@@ -280,21 +280,28 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const handleDelete = useCallback(
     async (row: FormMethodology) => {
-      const rows = form.getValues("methodologies");
-      const index = rows.findIndex((r) => r.id === row.id);
-      if (index !== -1) {
-        fieldArray.remove(index);
-        // Clear editing state if deleting the row being edited
-        if (editingRowId === row.id) {
-          setEditingRowId(null);
+      try {
+        const rows = form.getValues("methodologies");
+        const index = rows.findIndex((r) => r.id === row.id);
+        if (index !== -1) {
+          // Clear editing state if deleting the row being edited
+          if (editingRowId === row.id) {
+            setEditingRowId(null);
+          }
+          // Only call API if it's not a new unsaved row
+          if (!isNewRow(row.id)) {
+            await deleteMutation.mutateAsync(row.id);
+          }
+          fieldArray.remove(index);
+          void enqueueSnackbar({
+            message: "Metodología eliminada",
+            variant: "success",
+          });
         }
-        // Only call API if it's not a new unsaved row
-        if (!isNewRow(row.id)) {
-          await deleteMutation.mutateAsync(row.id);
-        }
+      } catch {
         void enqueueSnackbar({
-          message: "Metodología eliminada",
-          variant: "success",
+          message: "Error al eliminar metodología",
+          variant: "error",
         });
       }
     },
