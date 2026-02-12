@@ -50,7 +50,7 @@ export const useMethodologyColumns = ({
 
   const cellClassName = "content-center";
 
-  return useMemo(
+  return useMemo<GridColDef<Methodology>[]>(
     () => [
       {
         field: "name",
