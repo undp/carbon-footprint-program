@@ -55,7 +55,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
       void enqueueSnackbar({
         message: "Corrige los errores antes de guardar",
         variant: "error",
-        autoHideDuration: 2000,
       });
       return;
     }
@@ -74,13 +73,11 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Metodología creada exitosamente",
           variant: "success",
-          autoHideDuration: 2000,
         });
       } catch {
         void enqueueSnackbar({
           message: "Error al crear metodología",
           variant: "error",
-          autoHideDuration: 2000,
         });
         return;
       }
@@ -104,14 +101,12 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Cambios guardados satisfactoriamente",
           variant: "success",
-          autoHideDuration: 2000,
         });
       }
     } catch {
       void enqueueSnackbar({
         message: "Error al guardar cambios",
         variant: "error",
-        autoHideDuration: 2000,
       });
     }
     setEditingRowId(null);
@@ -160,7 +155,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Siempre debe haber una metodología activa",
           variant: "warning",
-          autoHideDuration: 2000,
         });
         return;
       }
@@ -169,7 +163,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Guarda la metodología antes de cambiar su estado",
           variant: "warning",
-          autoHideDuration: 2000,
         });
         return;
       }
@@ -203,7 +196,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
                 ? "Metodología activada"
                 : "Metodología desactivada",
               variant: "success",
-              autoHideDuration: 2000,
             });
           },
           onError: () => {
@@ -212,7 +204,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
             void enqueueSnackbar({
               message: "Error al cambiar el estado de la metodología",
               variant: "error",
-              autoHideDuration: 2000,
             });
           },
         }
@@ -227,7 +218,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Guarda la metodología antes de editarla",
           variant: "warning",
-          autoHideDuration: 2000,
         });
         return;
       }
@@ -247,7 +237,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Guarda la metodología antes de duplicarla",
           variant: "warning",
-          autoHideDuration: 2000,
         });
         return;
       }
@@ -259,13 +248,11 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Metodología duplicada exitosamente",
           variant: "success",
-          autoHideDuration: 2000,
         });
       } catch {
         void enqueueSnackbar({
           message: "Error al duplicar metodología",
           variant: "error",
-          autoHideDuration: 2000,
         });
       }
     },
@@ -303,7 +290,6 @@ export const MethodologiesMaintainerScreen: FC = () => {
         void enqueueSnackbar({
           message: "Metodología eliminada",
           variant: "success",
-          autoHideDuration: 2000,
         });
       }
     },

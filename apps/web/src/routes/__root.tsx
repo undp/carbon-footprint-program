@@ -19,7 +19,7 @@ function RootComponent() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <SnackbarProvider preventDuplicate>
+      <SnackbarProvider preventDuplicate autoHideDuration={2000}>
         <MsalProvider instance={msalInstance}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
