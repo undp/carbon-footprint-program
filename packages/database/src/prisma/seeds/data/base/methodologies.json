@@ -3,6 +3,8 @@
     "countryIsoCode": "CL",
     "name": "Metodología inicial",
     "description": "Metodología inicial para Chile",
+    "regulation": "GHG Protocol",
+    "version": "2004",
     "categories": [
       {
         "name": "Emisiones directas",

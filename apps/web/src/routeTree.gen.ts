@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TransparencyRouteImport } from './routes/transparency'
 import { Route as CapinautRouteImport } from './routes/capinaut'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction-projects'
@@ -20,6 +21,14 @@ import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoryRouteImport } from './routes/app/carbon-inventory'
 import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-inventories'
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
+import { Route as AdminUnitsRouteImport } from './routes/admin/units'
+import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
+import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
+import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
+import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
+import { Route as AdminItemsRouteImport } from './routes/admin/items'
+import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
+import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
 import { Route as AppUserFormRouteImport } from './routes/app/user/form'
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -36,6 +45,11 @@ const TransparencyRoute = TransparencyRouteImport.update({
 const CapinautRoute = CapinautRouteImport.update({
   id: '/capinaut',
   path: '/capinaut',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -83,6 +97,46 @@ const AppAwardsRoute = AppAwardsRouteImport.update({
   path: '/app/awards',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUnitsRoute = AdminUnitsRouteImport.update({
+  id: '/units',
+  path: '/units',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
+  id: '/subcategories',
+  path: '/subcategories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminParametersRoute = AdminParametersRouteImport.update({
+  id: '/parameters',
+  path: '/parameters',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
+  id: '/methodologies',
+  path: '/methodologies',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMainActivitiesRoute = AdminMainActivitiesRouteImport.update({
+  id: '/main-activities',
+  path: '/main-activities',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminItemsRoute = AdminItemsRouteImport.update({
+  id: '/items',
+  path: '/items',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEmissionFactorsRoute = AdminEmissionFactorsRouteImport.update({
+  id: '/emission-factors',
+  path: '/emission-factors',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AppCarbonInventoryIndexRoute = AppCarbonInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -127,8 +181,17 @@ const AppCarbonInventoryInventoryIdBusinessProfilingRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/items': typeof AdminItemsRoute
+  '/admin/main-activities': typeof AdminMainActivitiesRoute
+  '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/parameters': typeof AdminParametersRoute
+  '/admin/subcategories': typeof AdminSubcategoriesRoute
+  '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryRouteWithChildren
@@ -147,8 +210,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/items': typeof AdminItemsRoute
+  '/admin/main-activities': typeof AdminMainActivitiesRoute
+  '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/parameters': typeof AdminParametersRoute
+  '/admin/subcategories': typeof AdminSubcategoriesRoute
+  '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
@@ -167,8 +239,17 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
+  '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/emission-factors': typeof AdminEmissionFactorsRoute
+  '/admin/items': typeof AdminItemsRoute
+  '/admin/main-activities': typeof AdminMainActivitiesRoute
+  '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/parameters': typeof AdminParametersRoute
+  '/admin/subcategories': typeof AdminSubcategoriesRoute
+  '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryRouteWithChildren
@@ -189,8 +270,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/capinaut'
     | '/transparency'
+    | '/admin/categories'
+    | '/admin/emission-factors'
+    | '/admin/items'
+    | '/admin/main-activities'
+    | '/admin/methodologies'
+    | '/admin/parameters'
+    | '/admin/subcategories'
+    | '/admin/units'
     | '/app/awards'
     | '/app/carbon-inventories'
     | '/app/carbon-inventory'
@@ -209,8 +299,17 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/admin'
     | '/capinaut'
     | '/transparency'
+    | '/admin/categories'
+    | '/admin/emission-factors'
+    | '/admin/items'
+    | '/admin/main-activities'
+    | '/admin/methodologies'
+    | '/admin/parameters'
+    | '/admin/subcategories'
+    | '/admin/units'
     | '/app/awards'
     | '/app/carbon-inventories'
     | '/app/home'
@@ -228,8 +327,17 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/capinaut'
     | '/transparency'
+    | '/admin/categories'
+    | '/admin/emission-factors'
+    | '/admin/items'
+    | '/admin/main-activities'
+    | '/admin/methodologies'
+    | '/admin/parameters'
+    | '/admin/subcategories'
+    | '/admin/units'
     | '/app/awards'
     | '/app/carbon-inventories'
     | '/app/carbon-inventory'
@@ -249,6 +357,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CapinautRoute: typeof CapinautRoute
   TransparencyRoute: typeof TransparencyRoute
   AppAwardsRoute: typeof AppAwardsRoute
@@ -275,6 +384,13 @@ declare module '@tanstack/react-router' {
       path: '/capinaut'
       fullPath: '/capinaut'
       preLoaderRoute: typeof CapinautRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -340,6 +456,62 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppAwardsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/units': {
+      id: '/admin/units'
+      path: '/units'
+      fullPath: '/admin/units'
+      preLoaderRoute: typeof AdminUnitsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/subcategories': {
+      id: '/admin/subcategories'
+      path: '/subcategories'
+      fullPath: '/admin/subcategories'
+      preLoaderRoute: typeof AdminSubcategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/parameters': {
+      id: '/admin/parameters'
+      path: '/parameters'
+      fullPath: '/admin/parameters'
+      preLoaderRoute: typeof AdminParametersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/methodologies': {
+      id: '/admin/methodologies'
+      path: '/methodologies'
+      fullPath: '/admin/methodologies'
+      preLoaderRoute: typeof AdminMethodologiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/main-activities': {
+      id: '/admin/main-activities'
+      path: '/main-activities'
+      fullPath: '/admin/main-activities'
+      preLoaderRoute: typeof AdminMainActivitiesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/items': {
+      id: '/admin/items'
+      path: '/items'
+      fullPath: '/admin/items'
+      preLoaderRoute: typeof AdminItemsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/emission-factors': {
+      id: '/admin/emission-factors'
+      path: '/emission-factors'
+      fullPath: '/admin/emission-factors'
+      preLoaderRoute: typeof AdminEmissionFactorsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/carbon-inventory/': {
       id: '/app/carbon-inventory/'
       path: '/'
@@ -392,6 +564,30 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
+  AdminItemsRoute: typeof AdminItemsRoute
+  AdminMainActivitiesRoute: typeof AdminMainActivitiesRoute
+  AdminMethodologiesRoute: typeof AdminMethodologiesRoute
+  AdminParametersRoute: typeof AdminParametersRoute
+  AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
+  AdminUnitsRoute: typeof AdminUnitsRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,
+  AdminItemsRoute: AdminItemsRoute,
+  AdminMainActivitiesRoute: AdminMainActivitiesRoute,
+  AdminMethodologiesRoute: AdminMethodologiesRoute,
+  AdminParametersRoute: AdminParametersRoute,
+  AdminSubcategoriesRoute: AdminSubcategoriesRoute,
+  AdminUnitsRoute: AdminUnitsRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 interface AppCarbonInventoryRouteChildren {
   AppCarbonInventoryIndexRoute: typeof AppCarbonInventoryIndexRoute
   AppCarbonInventoryInventoryIdBusinessProfilingRoute: typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -421,6 +617,7 @@ const AppCarbonInventoryRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   CapinautRoute: CapinautRoute,
   TransparencyRoute: TransparencyRoute,
   AppAwardsRoute: AppAwardsRoute,

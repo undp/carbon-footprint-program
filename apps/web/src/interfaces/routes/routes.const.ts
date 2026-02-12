@@ -22,6 +22,15 @@ export const Routes = {
   TRANSPARENCY: "/transparency",
   CAPINAUT: "/capinaut",
   SIGN_IN: "/sign-in",
+  ADMIN: "/admin",
+  ADMIN_METHODOLOGIES: "/admin/methodologies",
+  ADMIN_CATEGORIES: "/admin/categories",
+  ADMIN_ITEMS: "/admin/items",
+  ADMIN_SUBCATEGORIES: "/admin/subcategories",
+  ADMIN_EMISSION_FACTORS: "/admin/emission-factors",
+  ADMIN_UNITS: "/admin/units",
+  ADMIN_PARAMETERS: "/admin/parameters",
+  ADMIN_MAIN_ACTIVITIES: "/admin/main-activities",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];

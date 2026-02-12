@@ -1,0 +1,1 @@
+export { MethodologiesMaintainerScreen } from "./MethodologiesMaintainerScreen";

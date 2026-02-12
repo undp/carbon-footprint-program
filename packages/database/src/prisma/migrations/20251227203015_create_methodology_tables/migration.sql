@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "methodology_version_status" AS ENUM ('ACTIVE', 'DELETED');
+CREATE TYPE "methodology_version_status" AS ENUM ('PUBLISHED', 'UNPUBLISHED', 'DELETED');
 
 -- CreateEnum
 CREATE TYPE "emission_factor_status" AS ENUM ('ACTIVE', 'DELETED');
@@ -9,8 +9,10 @@ CREATE TABLE "methodology_version" (
     "id" BIGSERIAL NOT NULL,
     "country_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
-    "description" TEXT,
-    "status" "methodology_version_status" NOT NULL DEFAULT 'ACTIVE',
+    "description" TEXT NOT NULL,
+    "status" "methodology_version_status" NOT NULL,
+    "regulation" TEXT NOT NULL,
+    "version" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
@@ -110,9 +112,6 @@ CREATE TABLE "subcategory_measurement_unit" (
 
     CONSTRAINT "subcategory_measurement_unit_pkey" PRIMARY KEY ("id")
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "methodology_version_country_id_name_key" ON "methodology_version"("country_id", "name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "category_methodology_version_id_name_key" ON "category"("methodology_version_id", "name");

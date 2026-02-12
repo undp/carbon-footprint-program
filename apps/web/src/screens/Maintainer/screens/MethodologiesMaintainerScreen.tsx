@@ -1,0 +1,375 @@
+import { FC, useCallback, useState } from "react";
+import { useNavigate, useBlocker } from "@tanstack/react-router";
+import { Box, Typography } from "@mui/material";
+import { useSnackbar } from "notistack";
+import { FormProvider } from "react-hook-form";
+import {
+  useMethodologies,
+  useUpdateMethodology,
+  useAddMethodology,
+  useDeleteMethodology,
+  useDuplicateMethodology,
+} from "@/api/query/maintainer";
+import { Routes } from "@/interfaces/routes";
+import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
+import { useMaintainerStore } from "../hooks/useMaintainerStore";
+import {
+  FormMethodology,
+  useMethodologiesForm,
+} from "../hooks/useMethodologiesForm";
+import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
+import { type Methodology, MethodologyVersionStatus } from "@repo/types";
+import { StylizedDataGrid } from "@components";
+import { IS_DEVELOPMENT } from "@/config/environment";
+import { DevTool } from "@hookform/devtools";
+import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+
+export const MethodologiesMaintainerScreen: FC = () => {
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+
+  // --- Data fetching ---
+  const { data: methodologies = [], isLoading } = useMethodologies();
+  const addMutation = useAddMethodology();
+  const updateMutation = useUpdateMethodology();
+  const deleteMutation = useDeleteMethodology();
+  const duplicateMutation = useDuplicateMethodology();
+
+  // --- Form setup ---
+  const { form, fieldArray, handleCellChange } =
+    useMethodologiesForm(methodologies);
+  const startEditing = useMaintainerStore((s) => s.startEditing);
+  const currentRows = form.watch("methodologies");
+
+  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+
+  const handleStopEditRow = useCallback(async () => {
+    if (!editingRowId) return;
+
+    const rows = form.getValues("methodologies");
+    const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
+    const row = rows[rowIndex];
+
+    // Validate the row before allowing exit
+    const isValid = await form.trigger(`methodologies.${rowIndex}`);
+    if (!isValid) {
+      void enqueueSnackbar({
+        message: "Corrige los errores antes de guardar",
+        variant: "error",
+      });
+      return;
+    }
+
+    if (row && isNewRow(row.id)) {
+      // New row - create in database
+      try {
+        const result = await addMutation.mutateAsync({
+          name: row.name,
+          description: row.description,
+          regulation: row.regulation,
+          version: row.version,
+        });
+        // Replace temp row with the real one from the server
+        fieldArray.update(rowIndex, result);
+        void enqueueSnackbar({
+          message: "Metodología creada exitosamente",
+          variant: "success",
+        });
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al crear metodología",
+          variant: "error",
+        });
+        return;
+      }
+      return;
+    }
+    // Existing row - update if dirty
+    const dirtyFields = form.formState.dirtyFields;
+    const isRowDirty = dirtyFields.methodologies?.[rowIndex];
+
+    try {
+      if (row && isRowDirty) {
+        await updateMutation.mutateAsync({
+          id: row.id,
+          data: {
+            name: row.name,
+            description: row.description,
+            regulation: row.regulation,
+            version: row.version,
+          },
+        });
+        void enqueueSnackbar({
+          message: "Cambios guardados satisfactoriamente",
+          variant: "success",
+        });
+      }
+    } catch {
+      void enqueueSnackbar({
+        message: "Error al guardar cambios",
+        variant: "error",
+      });
+    }
+    setEditingRowId(null);
+  }, [
+    editingRowId,
+    form,
+    isNewRow,
+    addMutation,
+    fieldArray,
+    updateMutation,
+    enqueueSnackbar,
+  ]);
+
+  const handleCancelEditRow = useCallback(() => {
+    if (!editingRowId) return;
+
+    const rows = form.getValues("methodologies");
+    const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
+
+    if (isNewRow(editingRowId)) {
+      // New unsaved row — remove it
+      if (rowIndex !== -1) fieldArray.remove(rowIndex);
+    } else {
+      // Existing row — restore original values from server data
+      const original = methodologies.find(({ id }) => id === editingRowId);
+      if (original && rowIndex !== -1) {
+        fieldArray.update(rowIndex, structuredClone(original));
+      }
+    }
+
+    setEditingRowId(null);
+  }, [editingRowId, form, isNewRow, fieldArray, methodologies]);
+
+  const handleStartEditRow = useCallback(
+    async (rowId: string) => {
+      if (editingRowId) await handleStopEditRow();
+      setEditingRowId(rowId);
+    },
+    [editingRowId, handleStopEditRow]
+  );
+
+  const handleToggle = useCallback(
+    (row: FormMethodology, checked: boolean) => {
+      // Don't allow unchecking the active methodology
+      if (!checked) {
+        void enqueueSnackbar({
+          message: "Siempre debe haber una metodología activa",
+          variant: "warning",
+        });
+        return;
+      }
+      // Don't allow toggling for unsaved rows
+      if (isNewRow(row.id)) {
+        void enqueueSnackbar({
+          message: "Guarda la metodología antes de cambiar su estado",
+          variant: "warning",
+        });
+        return;
+      }
+
+      const rows = form.getValues("methodologies");
+      const previousRows = structuredClone(rows);
+
+      // Optimistically update: set selected row to PUBLISHED, others to UNPUBLISHED
+      const newStatus = checked
+        ? MethodologyVersionStatus.PUBLISHED
+        : MethodologyVersionStatus.UNPUBLISHED;
+      const updatedRows = rows.map((r) => ({
+        ...r,
+        status: checked
+          ? r.id === row.id
+            ? MethodologyVersionStatus.PUBLISHED
+            : MethodologyVersionStatus.UNPUBLISHED
+          : r.id === row.id
+            ? MethodologyVersionStatus.UNPUBLISHED
+            : r.status,
+      })) as FormMethodology[];
+      fieldArray.replace(updatedRows);
+
+      updateMutation.mutate(
+        {
+          id: row.id,
+          data: { status: newStatus },
+        },
+        {
+          onSuccess: () => {
+            void enqueueSnackbar({
+              message: checked
+                ? "Metodología activada"
+                : "Metodología desactivada",
+              variant: "success",
+            });
+          },
+          onError: () => {
+            // Revert optimistic update on error
+            fieldArray.replace(previousRows);
+            void enqueueSnackbar({
+              message: "Error al cambiar el estado de la metodología",
+              variant: "error",
+            });
+          },
+        }
+      );
+    },
+    [form, fieldArray, isNewRow, updateMutation, enqueueSnackbar]
+  );
+
+  const handleEdit = useCallback(
+    (row: FormMethodology) => {
+      if (isNewRow(row.id)) {
+        void enqueueSnackbar({
+          message: "Guarda la metodología antes de editarla",
+          variant: "warning",
+        });
+        return;
+      }
+      startEditing({
+        id: row.id,
+        name: row.name,
+        regulation: row.regulation,
+      });
+      void navigate({ to: Routes.ADMIN_CATEGORIES });
+    },
+    [isNewRow, enqueueSnackbar, startEditing, navigate]
+  );
+
+  const handleDuplicate = useCallback(
+    async (row: FormMethodology) => {
+      if (isNewRow(row.id)) {
+        void enqueueSnackbar({
+          message: "Guarda la metodología antes de duplicarla",
+          variant: "warning",
+        });
+        return;
+      }
+      const rows = form.getValues("methodologies");
+      const index = rows.findIndex((r) => r.id === row.id);
+      try {
+        const result = await duplicateMutation.mutateAsync(row.id);
+        fieldArray.insert(index + 1, result);
+        void enqueueSnackbar({
+          message: "Metodología duplicada exitosamente",
+          variant: "success",
+        });
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al duplicar metodología",
+          variant: "error",
+        });
+      }
+    },
+    [isNewRow, enqueueSnackbar, form, fieldArray, duplicateMutation]
+  );
+
+  const handleAddRow = useCallback(() => {
+    const tempId = `temp_${Date.now()}`;
+    const newRow: FormMethodology = {
+      id: tempId,
+      name: "",
+      description: "",
+      regulation: "",
+      version: "",
+      status: MethodologyVersionStatus.UNPUBLISHED,
+    };
+    fieldArray.append(newRow);
+    setEditingRowId(tempId);
+  }, [fieldArray]);
+
+  const handleDelete = useCallback(
+    async (row: FormMethodology) => {
+      try {
+        const rows = form.getValues("methodologies");
+        const index = rows.findIndex((r) => r.id === row.id);
+        if (index !== -1) {
+          // Clear editing state if deleting the row being edited
+          if (editingRowId === row.id) {
+            setEditingRowId(null);
+          }
+          // Only call API if it's not a new unsaved row
+          if (!isNewRow(row.id)) {
+            await deleteMutation.mutateAsync(row.id);
+          }
+          fieldArray.remove(index);
+          void enqueueSnackbar({
+            message: "Metodología eliminada",
+            variant: "success",
+          });
+        }
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al eliminar metodología",
+          variant: "error",
+        });
+      }
+    },
+    [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
+  );
+
+  // --- Block navigation while editing ---
+  // TODO: replicate on inventory steps. May be create a reusable hook
+  const { proceed, reset, status } = useBlocker({
+    shouldBlockFn: () => editingRowId !== null,
+    withResolver: true,
+  });
+
+  // --- Column definitions via hook ---
+
+  const columns = useMethodologyColumns({
+    editingRowId,
+    onCellChange: handleCellChange,
+    onToggle: handleToggle,
+    onStartEditRow: handleStartEditRow,
+    onStopEditRow: handleStopEditRow,
+    onCancelEditRow: handleCancelEditRow,
+    onEdit: handleEdit,
+    onDuplicate: handleDuplicate,
+    onDelete: handleDelete,
+    rows: currentRows,
+  });
+
+  return (
+    <FormProvider {...form}>
+      <form id="methodologies-form" noValidate>
+        <MaintainerPageHeader
+          title="Metodologías"
+          onAddRow={handleAddRow}
+          addDisabled={editingRowId !== null}
+          addLabel="Agregar fila"
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Gestiona las metodologías de cálculo. Haz clic en Editar para
+            modificar alcances, subcategorías y factores de emisión. Siempre
+            debe existir una única metodología activa.
+          </Typography>
+          <Box className="flex w-full">
+            <StylizedDataGrid
+              sx={(theme) => ({
+                "& .MuiDataGrid-columnHeader": {
+                  backgroundColor: theme.palette.grey[200],
+                },
+                "& .MuiDataGrid-cell .MuiTextField-root": {
+                  alignSelf: "center",
+                },
+              })}
+              columns={columns}
+              rows={currentRows}
+              rowHeight={60}
+              getRowId={(row: Methodology) => row.id}
+              loading={isLoading}
+            />
+          </Box>
+        </Box>
+      </form>
+      {IS_DEVELOPMENT && <DevTool control={form.control} />}
+      <UnsavedChangesDialog
+        open={status === "blocked"}
+        onCancel={() => reset?.()}
+        onConfirm={() => proceed?.()}
+      />
+    </FormProvider>
+  );
+};

@@ -311,7 +311,8 @@ enum Magnitude {
 }
 
 enum MethodologyVersionStatus {
-  ACTIVE
+  PUBLISHED
+  UNPUBLISHED
   DELETED
 
   @@map("methodology_version_status")
@@ -321,8 +322,10 @@ model MethodologyVersion {
   id                BigInt                   @id @default(autoincrement())
   countryId         BigInt                   @map("country_id")
   name              String
-  description       String?
-  status            MethodologyVersionStatus @default(ACTIVE)
+  description       String
+  regulation        String
+  version           String
+  status            MethodologyVersionStatus
   createdAt         DateTime                 @default(now()) @map("created_at")
   updatedAt         DateTime                 @default(now()) @updatedAt @map("updated_at")
   createdById       BigInt?                  @map("created_by_id")
@@ -333,10 +336,11 @@ model MethodologyVersion {
   categories        Category[]
   carbonInventories CarbonInventory[]
 
+  // Partial unique index exists in SQL migrations:
+  // ("country_id", "name") WHERE status <> 'DELETED'
   // TODO: Enforce via trigger at most 1 active per country
   // TODO: Enforce somehow country's active_methodology_version_id must point to ACTIVE
 
-  @@unique([countryId, name])
   @@map("methodology_version")
 }
 
