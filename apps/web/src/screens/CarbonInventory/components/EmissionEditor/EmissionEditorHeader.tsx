@@ -30,6 +30,7 @@ interface EmissionEditorHeaderProps
   manualModeLineHasComment?: boolean;
   onManualModeLineDelete?: () => void;
   onManualModeLineComment?: () => void;
+  hasEmissionFactors?: boolean;
 }
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
@@ -46,6 +47,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   manualModeLineHasComment = false,
   onManualModeLineDelete,
   onManualModeLineComment,
+  hasEmissionFactors,
 }) => {
   const onChangeTotalEmission = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -78,10 +80,8 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           <Typography variant="caption" fontWeight="regular">
             {description}
           </Typography>
-          {/* Warning message temporally hidden */}
-          {/* TODO: remove warning block - implement proper emission factor availability check */}
-          {/* eslint-disable-next-line no-constant-binary-expression */}
-          {false && (
+
+          {!hasEmissionFactors && (
             <Box className="items-bottom flex gap-1">
               <WarningRounded
                 sx={(theme) => ({
