@@ -61,10 +61,13 @@ export const useEmissionEditorColumns = ({
       return measurementUnits || [];
 
     // Track which units have associated emission factors to show only those when in non-expert mode, but show all allowed units in expert mode
+    const rateMeasurementUnitById = new Map(
+      rateMeasurementUnits?.map((mu) => [mu.id, mu]) || []
+    );
     const unitIdsWithEmissionFactors = new Set<string>();
     subcategory.emissionFactors.forEach((ef) => {
-      const rateMeasurementUnit = rateMeasurementUnits?.find(
-        (mu) => mu.id === ef.rateMeasurementUnitId
+      const rateMeasurementUnit = rateMeasurementUnitById.get(
+        ef.rateMeasurementUnitId
       );
       if (rateMeasurementUnit)
         unitIdsWithEmissionFactors.add(rateMeasurementUnit.denominatorUnit.id);
