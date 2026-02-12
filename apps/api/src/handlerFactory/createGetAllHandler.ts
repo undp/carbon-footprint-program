@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { EmptyResourceError } from "../errors/EmptyResourceError.js";
-import { User } from "@repo/types";
+import type { User } from "@repo/types";
 
 /**
  * Creates a generic GET all handler
