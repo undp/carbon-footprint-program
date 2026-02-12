@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 
-import { MethodologyVersionStatus } from "@repo/database";
+import { MethodologyVersionStatus } from "@repo/database/enums";
 
 // Enums
 export const MethodologyVersionStatusSchema = z.enum(MethodologyVersionStatus);
