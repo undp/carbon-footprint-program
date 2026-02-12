@@ -267,8 +267,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
       id: tempId,
       name: "",
       description: "",
-      regulation: "GHG Protocol",
-      version: "1.0",
+      regulation: "",
+      version: "",
       status: MethodologyVersionStatus.UNPUBLISHED,
     };
     fieldArray.append(newRow);
