@@ -4,10 +4,7 @@ import {
   DeleteMethodologyParamsSchema,
   DeleteMethodologyResponseSchema,
 } from "@repo/types";
-import {
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const deleteMethodologyRoute = (fastify: FastifyZodInstance) => {
   fastify.delete(
@@ -21,8 +18,8 @@ export const deleteMethodologyRoute = (fastify: FastifyZodInstance) => {
         params: DeleteMethodologyParamsSchema,
         response: {
           200: DeleteMethodologyResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          409: StructuredErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
         },
       },
     },

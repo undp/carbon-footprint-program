@@ -5,11 +5,7 @@ import {
   UpdateMethodologyRequestSchema,
   UpdateMethodologyResponseSchema,
 } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const updateMethodologyRoute = (fastify: FastifyZodInstance) => {
   fastify.patch(
@@ -23,9 +19,9 @@ export const updateMethodologyRoute = (fastify: FastifyZodInstance) => {
         body: UpdateMethodologyRequestSchema,
         response: {
           200: UpdateMethodologyResponseSchema,
-          400: ValidationErrorResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          409: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
         },
       },
     },

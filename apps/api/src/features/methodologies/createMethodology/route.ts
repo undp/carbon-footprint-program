@@ -4,10 +4,7 @@ import {
   CreateMethodologyRequestSchema,
   CreateMethodologyResponseSchema,
 } from "@repo/types";
-import {
-  ValidationErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const createMethodologyRoute = (fastify: FastifyZodInstance) => {
   fastify.post(
@@ -20,8 +17,8 @@ export const createMethodologyRoute = (fastify: FastifyZodInstance) => {
         body: CreateMethodologyRequestSchema,
         response: {
           201: CreateMethodologyResponseSchema,
-          400: ValidationErrorResponseSchema,
-          409: StructuredErrorResponseSchema,
+          400: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
         },
       },
     },

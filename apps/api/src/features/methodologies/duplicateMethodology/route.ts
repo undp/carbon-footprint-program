@@ -4,10 +4,7 @@ import {
   DuplicateMethodologyParamsSchema,
   DuplicateMethodologyResponseSchema,
 } from "@repo/types";
-import {
-  NotFoundErrorResponseSchema,
-  StructuredErrorResponseSchema,
-} from "@/commonSchemas/errors.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const duplicateMethodologyRoute = (fastify: FastifyZodInstance) => {
   fastify.post(
@@ -20,8 +17,8 @@ export const duplicateMethodologyRoute = (fastify: FastifyZodInstance) => {
         params: DuplicateMethodologyParamsSchema,
         response: {
           201: DuplicateMethodologyResponseSchema,
-          404: NotFoundErrorResponseSchema,
-          409: StructuredErrorResponseSchema,
+          404: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
         },
       },
     },

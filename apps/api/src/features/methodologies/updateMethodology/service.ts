@@ -15,14 +15,14 @@ export const updateMethodologyService = async (
   prismaClient: PrismaClient,
   id: string,
   data: UpdateMethodologyRequest
-): Promise<UpdateMethodologyResponse | null> => {
+): Promise<UpdateMethodologyResponse> => {
   const targetMethodology = await prismaClient.methodologyVersion.findUnique({
     where: { id: BigInt(id) },
     select: { countryId: true, status: true },
   });
 
   if (!targetMethodology) {
-    return null;
+    throw new MethodologyIsDeletedError();
   }
 
   if (targetMethodology.status === MethodologyVersionStatus.DELETED) {
@@ -97,7 +97,7 @@ export const updateMethodologyService = async (
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2025") {
         // Record not found
-        return null;
+        throw new MethodologyIsDeletedError();
       }
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
