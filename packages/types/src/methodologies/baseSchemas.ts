@@ -22,19 +22,19 @@ export const MethodologySchema = z
     countryId: IdSchema.describe("The ID of the country"),
     name: z
       .string()
-      .min(1, "Campo obligatorio")
+      .min(1, "Required field")
       .describe("The name of the methodology"),
     description: z
       .string()
-      .min(1, "Campo obligatorio")
+      .min(1, "Required field")
       .describe("The description of the methodology"),
     regulation: z
       .string()
-      .min(1, "Campo obligatorio")
+      .min(1, "Required field")
       .describe("The regulation/standard reference"),
     version: z
       .string()
-      .min(1, "Campo obligatorio")
+      .min(1, "Required field")
       .describe("The version identifier"),
     status: MethodologyVersionStatusSchema.describe(
       "The status of the methodology"
