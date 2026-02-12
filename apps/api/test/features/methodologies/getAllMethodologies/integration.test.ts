@@ -112,6 +112,10 @@ describe("GET /api/methodologies - Integration Tests", () => {
 
     it("should include both PUBLISHED and UNPUBLISHED methodologies", async () => {
       await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Published Methodology",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      await createEmptyMethodologyVersion(prisma, {
         name: "Test - Unpublished Methodology",
         status: MethodologyVersionStatus.UNPUBLISHED,
       });
@@ -125,10 +129,9 @@ describe("GET /api/methodologies - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetAllMethodologiesResponse;
 
       const statuses = new Set(body.map((m) => m.status));
-      expect(statuses.has("PUBLISHED") || statuses.has("UNPUBLISHED")).toBe(
-        true
-      );
-      expect(statuses.has("DELETED")).toBe(false);
+      expect(statuses.has(MethodologyVersionStatus.PUBLISHED)).toBe(true);
+      expect(statuses.has(MethodologyVersionStatus.UNPUBLISHED)).toBe(true);
+      expect(statuses.has(MethodologyVersionStatus.DELETED)).toBe(false);
     });
   });
 });
