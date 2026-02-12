@@ -11,7 +11,6 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import {
   carbonInventoryPatterns,
   createInventoryFromPattern,
-  getTestUsers,
   cleanupCarbonInventoryTestData,
   createCarbonInventoryLine,
   getSubcategoryIds,
@@ -29,6 +28,7 @@ import {
   cleanupTestOrganization,
   createTestOrganization,
 } from "@test/factories/organizationFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -72,12 +72,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should return complete data including all nullable fields when populated", async () => {
-      // Get pre-seeded test users to satisfy foreign key constraints
-      const [creatorUser, updaterUser] = await getTestUsers(prisma, [
-        "creator@test.com",
-        "updater@test.com",
-      ]);
-
+      const { id: userId } = await getTestLoggedUser(prisma);
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
       // Get a seeded organization to satisfy foreign key constraint
@@ -90,8 +85,8 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
           BigInt(456),
           BigInt(methodologyVersionId),
           BigInt(111),
-          creatorUser.id,
-          updaterUser.id
+          userId,
+          userId
         )
       );
 
@@ -120,8 +115,8 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.methodologyVersionId).toBe(methodologyVersionId.toString());
       expect(body.preselectedNodesId).toBe("111");
       expect(body.isEditable).toBe(false);
-      expect(body.createdById).toBe(creatorUser.id.toString());
-      expect(body.updatedById).toBe(updaterUser.id.toString());
+      expect(body.createdById).toBe(userId.toString());
+      expect(body.updatedById).toBe(userId.toString());
       expect(body.createdAt).toBeTruthy();
       expect(body.updatedAt).toBeTruthy();
     });
@@ -131,6 +126,8 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
         prisma,
         carbonInventoryPatterns.simplifiedDraft
       );
+
+      const { id: userId } = await getTestLoggedUser(prisma);
 
       const response = await app.inject({
         method: "GET",
@@ -145,8 +142,8 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationData).toBeNull();
       expect(body.methodologyVersionId).toBeNull();
       expect(body.preselectedNodesId).toBeNull();
-      expect(body.createdById).toBeNull();
-      expect(body.updatedById).toBeNull();
+      expect(body.createdById).toBe(userId.toString());
+      expect(body.updatedById).toBe(userId.toString());
     });
   });
 

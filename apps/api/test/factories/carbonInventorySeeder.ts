@@ -1,6 +1,7 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import { CarbonInventoryLineStatus } from "@repo/types";
 import { mapBigIntField } from "@/utils/bigint.js";
+import { getTestLoggedUser } from "./userFactory.js";
 
 /**
  * Gets a pre-seeded test user by email
@@ -22,16 +23,6 @@ export async function getTestUser(
   }
 
   return user;
-}
-
-/**
- * Gets multiple pre-seeded test users at once
- */
-export async function getTestUsers(
-  prisma: PrismaClient,
-  emails: string[]
-): Promise<Array<{ id: bigint; email: string | null }>> {
-  return Promise.all(emails.map((email) => getTestUser(prisma, email)));
 }
 
 /**
@@ -190,8 +181,16 @@ export const carbonInventoryPatterns = {
  */
 export async function createCarbonInventory(
   prisma: PrismaClient,
-  data: Prisma.CarbonInventoryUncheckedCreateInput
+  rawData: Prisma.CarbonInventoryUncheckedCreateInput
 ) {
+  const { id } = await getTestLoggedUser(prisma);
+
+  const data = {
+    ...rawData,
+    createdById: rawData.createdById ?? id,
+    updatedById: rawData.updatedById ?? id,
+  };
+
   return prisma.carbonInventory.create({ data });
 }
 
@@ -203,7 +202,14 @@ export async function createCarbonInventories(
   prisma: PrismaClient,
   dataArray: Prisma.CarbonInventoryUncheckedCreateInput[]
 ) {
-  await prisma.carbonInventory.createMany({ data: dataArray });
+  const { id } = await getTestLoggedUser(prisma);
+
+  const dataWithUserIds = dataArray.map((rawData) => ({
+    ...rawData,
+    createdById: rawData.createdById ?? id,
+    updatedById: rawData.updatedById ?? id,
+  }));
+  await prisma.carbonInventory.createMany({ data: dataWithUserIds });
 }
 
 /**

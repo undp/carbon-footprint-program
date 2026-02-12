@@ -1,4 +1,3 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { syncCarbonInventoryLinesHandler } from "./handler.js";
 import {
   IdSchema,
@@ -7,12 +6,16 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const SyncCarbonInventoryLinesParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const syncCarbonInventoryLinesRoute = (fastify: FastifyZodInstance) => {
+export const syncCarbonInventoryLinesRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/:id/lines/sync",
     {
@@ -29,6 +32,9 @@ export const syncCarbonInventoryLinesRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     syncCarbonInventoryLinesHandler

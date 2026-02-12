@@ -1,13 +1,14 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllOrganizationMainActivitiesHandler } from "./handler.js";
 import {
   GetAllOrganizationMainActivitiesResponseSchema,
   GetAllOrganizationMainActivitiesQuerySchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getAllOrganizationMainActivitiesRoute = (
-  fastify: FastifyZodInstance
+export const getAllOrganizationMainActivitiesRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.get(
     "/",
@@ -28,6 +29,9 @@ export const getAllOrganizationMainActivitiesRoute = (
           400: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getAllOrganizationMainActivitiesHandler

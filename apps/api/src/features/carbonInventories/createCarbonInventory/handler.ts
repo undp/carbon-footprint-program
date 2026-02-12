@@ -10,7 +10,9 @@ export const createCarbonInventoryHandler = async (
   log.info("Creating carbon inventory...");
 
   const prisma = request.server.prisma;
-  const result = await createCarbonInventoryService(prisma, request.body);
+  const user = request.currentUser;
+
+  const result = await createCarbonInventoryService(prisma, request.body, user);
 
   log.info("Carbon inventory created successfully");
   return reply.status(201).send(result);

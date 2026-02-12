@@ -1,4 +1,3 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getCarbonInventoryMetadataHandler } from "./handler.js";
 import {
   IdSchema,
@@ -6,13 +5,15 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const ParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const getCarbonInventoryMetadataRoute = (
-  fastify: FastifyZodInstance
+export const getCarbonInventoryMetadataRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.get(
     "/:id/metadata",
@@ -27,6 +28,9 @@ export const getCarbonInventoryMetadataRoute = (
           200: GetCarbonInventoryMetadataResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getCarbonInventoryMetadataHandler

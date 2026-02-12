@@ -1,12 +1,16 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllCarbonInventoriesHandler } from "./handler.js";
 import {
   GetAllCarbonInventoriesQuerySchema,
   GetAllCarbonInventoriesResponseSchema,
 } from "@repo/types";
+import type { GetAllCarbonInventoriesQuery } from "@repo/types";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getAllCarbonInventoriesRoute = (fastify: FastifyZodInstance) => {
-  fastify.get(
+export const getAllCarbonInventoriesRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
+  fastify.get<{ Querystring: GetAllCarbonInventoriesQuery }>(
     "/",
     {
       schema: {
@@ -18,6 +22,9 @@ export const getAllCarbonInventoriesRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetAllCarbonInventoriesResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getAllCarbonInventoriesHandler

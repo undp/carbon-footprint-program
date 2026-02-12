@@ -2,6 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type {
   GetAllCarbonInventoriesResponse,
   GetAllCarbonInventoriesQuery,
+  User,
 } from "@repo/types";
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
@@ -9,14 +10,17 @@ import { toNumberOrNull, kgToTon } from "@/utils/number.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
-  query?: GetAllCarbonInventoriesQuery
+  query?: GetAllCarbonInventoriesQuery,
+  user?: User | null
 ): Promise<GetAllCarbonInventoriesResponse> => {
   // Build where clause for year filtering
   const whereClause: {
     year?: number;
+    createdById?: bigint;
   } = {};
 
   whereClause.year = query?.year ? parseInt(query.year, 10) : undefined;
+  whereClause.createdById = user ? BigInt(user.id) : undefined;
 
   const data = await prismaClient.carbonInventory.findMany({
     where: whereClause,

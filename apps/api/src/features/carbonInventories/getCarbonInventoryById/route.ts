@@ -3,12 +3,16 @@ import { getCarbonInventoryByIdHandler } from "./handler.js";
 import { IdSchema, GetCarbonInventoryByIdResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const ParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const getCarbonInventoryByIdRoute = (fastify: FastifyZodInstance) => {
+export const getCarbonInventoryByIdRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/:id",
     {
@@ -21,6 +25,9 @@ export const getCarbonInventoryByIdRoute = (fastify: FastifyZodInstance) => {
           200: GetCarbonInventoryByIdResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getCarbonInventoryByIdHandler

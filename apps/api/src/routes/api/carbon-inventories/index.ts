@@ -20,23 +20,24 @@ import { getEmissionFactorsRoute } from "@/features/carbonInventories/getEmissio
 import { getCarbonInventoryMetadataRoute } from "@/features/carbonInventories/getCarbonInventoryMetadata/route.js";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
+  fastify.addHook("onRequest", fastify.requireAuth);
   getAllCarbonInventoriesRoute(fastify);
-  getCarbonInventoryByIdRoute(fastify);
-  createCarbonInventoryRoute(fastify);
-  updateCarbonInventoryRoute(fastify);
-  getCarbonInventoryMethodologyRoute(fastify);
-  getCarbonInventorySubcategoriesSummaryRoute(fastify);
-  addSubcategoriesToCarbonInventoryRoute(fastify);
-  updateCarbonInventorySubcategoriesRoute(fastify);
-  toggleManualTotalEmissionsRoute(fastify);
-  syncCarbonInventoryLinesRoute(fastify);
-  getAvailableYearsRoute(fastify);
-  getEmissionsSummaryCategoriesRoute(fastify);
-  getMainActivityEquivalenceRoute(fastify);
-  getSubcategoriesRankingRoute(fastify);
-  getSectorRankingRoute(fastify);
-  getSuggestedReductionPlanRoute(fastify);
-  getEmissionsDetailedSummaryRoute(fastify);
-  getEmissionFactorsRoute(fastify);
-  getCarbonInventoryMetadataRoute(fastify);
+  getCarbonInventoryByIdRoute(fastify, { public: true });
+  createCarbonInventoryRoute(fastify, { public: true });
+  updateCarbonInventoryRoute(fastify, { public: true });
+  getCarbonInventoryMethodologyRoute(fastify, { public: true });
+  getCarbonInventorySubcategoriesSummaryRoute(fastify, { public: true });
+  addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
+  updateCarbonInventorySubcategoriesRoute(fastify, { public: true });
+  toggleManualTotalEmissionsRoute(fastify, { public: true });
+  syncCarbonInventoryLinesRoute(fastify, { public: true });
+  getAvailableYearsRoute(fastify, { public: true });
+  getEmissionsSummaryCategoriesRoute(fastify, { public: true });
+  getMainActivityEquivalenceRoute(fastify, { public: true });
+  getSubcategoriesRankingRoute(fastify, { public: true });
+  getSectorRankingRoute(fastify, { public: true });
+  getSuggestedReductionPlanRoute(fastify, { public: true });
+  getEmissionsDetailedSummaryRoute(fastify, { public: true });
+  getEmissionFactorsRoute(fastify, { public: true });
+  getCarbonInventoryMetadataRoute(fastify, { public: true });
 }
