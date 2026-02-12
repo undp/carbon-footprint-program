@@ -1,12 +1,15 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { createCarbonInventoryHandler } from "./handler.js";
 import {
   CreateCarbonInventoryRequestSchema,
   CreateCarbonInventoryResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const createCarbonInventoryRoute = (fastify: FastifyZodInstance) => {
+export const createCarbonInventoryRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/",
     {
@@ -20,6 +23,9 @@ export const createCarbonInventoryRoute = (fastify: FastifyZodInstance) => {
           400: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     createCarbonInventoryHandler

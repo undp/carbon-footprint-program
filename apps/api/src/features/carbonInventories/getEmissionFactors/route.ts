@@ -1,14 +1,17 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getEmissionFactorsHandler } from "./handler.js";
 import { IdSchema, GetEmissionFactorsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const ParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const getEmissionFactorsRoute = (fastify: FastifyZodInstance) => {
+export const getEmissionFactorsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/:id/emission-factors",
     {
@@ -22,6 +25,9 @@ export const getEmissionFactorsRoute = (fastify: FastifyZodInstance) => {
           200: GetEmissionFactorsResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getEmissionFactorsHandler

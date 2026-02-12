@@ -1,14 +1,17 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getSectorRankingHandler } from "./handler.js";
 import { IdSchema, GetSectorRankingResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const ParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const getSectorRankingRoute = (fastify: FastifyZodInstance) => {
+export const getSectorRankingRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/:id/sector-ranking",
     {
@@ -22,6 +25,9 @@ export const getSectorRankingRoute = (fastify: FastifyZodInstance) => {
           200: GetSectorRankingResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getSectorRankingHandler

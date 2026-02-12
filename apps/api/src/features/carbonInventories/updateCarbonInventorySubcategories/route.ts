@@ -1,4 +1,3 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { updateCarbonInventorySubcategoriesHandler } from "./handler.js";
 import {
   IdSchema,
@@ -7,13 +6,15 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const UpdateCarbonInventorySubcategoriesParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const updateCarbonInventorySubcategoriesRoute = (
-  fastify: FastifyZodInstance
+export const updateCarbonInventorySubcategoriesRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.patch(
     "/:id/subcategories",
@@ -31,6 +32,9 @@ export const updateCarbonInventorySubcategoriesRoute = (
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     updateCarbonInventorySubcategoriesHandler

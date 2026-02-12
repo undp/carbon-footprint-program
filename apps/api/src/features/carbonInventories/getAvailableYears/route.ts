@@ -1,9 +1,11 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
-
 import { CarbonInventoryAvailableYearsSchema } from "@repo/types";
 import { getAvailableYearsHandler } from "./handler.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getAvailableYearsRoute = (fastify: FastifyZodInstance) => {
+export const getAvailableYearsRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/available-years",
     {
@@ -15,6 +17,9 @@ export const getAvailableYearsRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: CarbonInventoryAvailableYearsSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getAvailableYearsHandler

@@ -1,8 +1,8 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { toggleManualTotalEmissionsHandler } from "./handler.js";
 import { IdSchema, ToggleManualTotalEmissionsRequestSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
 const ToggleManualTotalEmissionsParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
@@ -13,8 +13,9 @@ export type ToggleManualTotalEmissionsParams = z.infer<
   typeof ToggleManualTotalEmissionsParamsSchema
 >;
 
-export const toggleManualTotalEmissionsRoute = (
-  fastify: FastifyZodInstance
+export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.post(
     "/:id/subcategories/:subcategoryId/manual-total-emissions",
@@ -32,6 +33,9 @@ export const toggleManualTotalEmissionsRoute = (
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     toggleManualTotalEmissionsHandler
