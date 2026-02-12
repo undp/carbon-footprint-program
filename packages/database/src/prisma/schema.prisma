@@ -111,18 +111,19 @@ model CountrySubsector {
 }
 
 model OrganizationMainActivity {
-  id                 BigInt            @id @default(autoincrement())
+  id                 BigInt             @id @default(autoincrement())
   name               String
-  countrySectorId    BigInt?           @map("country_sector_id")
-  countrySubsectorId BigInt?           @map("country_subsector_id")
-  createdAt          DateTime          @default(now()) @map("created_at")
-  updatedAt          DateTime          @default(now()) @updatedAt @map("updated_at")
-  createdById        BigInt?           @map("created_by_id")
-  updatedById        BigInt?           @map("updated_by_id")
-  countrySector      CountrySector?    @relation(fields: [countrySectorId], references: [id])
-  countrySubsector   CountrySubsector? @relation(fields: [countrySubsectorId], references: [id])
-  creator            User?             @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
-  updater            User?             @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  countrySectorId    BigInt?            @map("country_sector_id")
+  countrySubsectorId BigInt?            @map("country_subsector_id")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime           @default(now()) @updatedAt @map("updated_at")
+  createdById        BigInt?            @map("created_by_id")
+  updatedById        BigInt?            @map("updated_by_id")
+  countrySector      CountrySector?     @relation(fields: [countrySectorId], references: [id])
+  countrySubsector   CountrySubsector?  @relation(fields: [countrySubsectorId], references: [id])
+  creator            User?              @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
+  updater            User?              @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  organizationData   OrganizationData[]
 
   @@unique([name, countrySectorId, countrySubsectorId], map: "organization_main_activity_name_country_sector_id_country_s_key")
   @@map("organization_main_activity")
@@ -646,8 +647,7 @@ view CarbonInventorySubtotalsView {
 }
 
 enum OrganizationStatus {
-  NOT_ACCREDITED
-  ACCREDITED
+  ACTIVE
   BLOCKED
 
   @@map("organization_status")
@@ -656,7 +656,7 @@ enum OrganizationStatus {
 model Organization {
   id          BigInt             @id @default(autoincrement())
   countryId   BigInt             @map("country_id")
-  status      OrganizationStatus @default(NOT_ACCREDITED)
+  status      OrganizationStatus @default(ACTIVE)
   createdAt   DateTime           @default(now()) @map("created_at")
   updatedAt   DateTime           @default(now()) @updatedAt @map("updated_at")
   createdById BigInt?            @map("created_by_id")
@@ -673,10 +673,8 @@ model Organization {
 }
 
 enum OrganizationDataStatus {
-  DRAFT
-  SUBMITTED
-  COMPLETED
   OUTDATED
+  ACTIVE
 
   @@map("organization_data_status")
 }
@@ -684,12 +682,13 @@ enum OrganizationDataStatus {
 model OrganizationData {
   id                                 BigInt                             @id @default(autoincrement())
   organizationId                     BigInt                             @map("organization_id")
-  status                             OrganizationDataStatus             @default(DRAFT)
+  status                             OrganizationDataStatus             @default(ACTIVE)
   legalName                          String                             @map("legal_name")
   tradeName                          String?                            @map("trade_name")
   taxId                              String                             @map("tax_id")
   countryOrganizationSizeId          BigInt?                            @map("country_organization_size_id")
   sectorId                           BigInt?                            @map("sector_id")
+  mainActivityId                     BigInt?                            @map("main_activity_id")
   subsectorId                        BigInt?                            @map("subsector_id")
   address                            String?
   workersCount                       Int?                               @map("workers_count")
@@ -710,6 +709,7 @@ model OrganizationData {
   creator                            User?                              @relation("organization_data_created_by", fields: [createdById], references: [id])
   updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
   submission                         SubmissionSubjectOrganizationData?
+  mainActivity                       OrganizationMainActivity?          @relation(fields: [mainActivityId], references: [id])
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'

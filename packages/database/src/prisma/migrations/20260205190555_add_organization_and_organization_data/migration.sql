@@ -1,14 +1,14 @@
 -- CreateEnum
-CREATE TYPE "organization_status" AS ENUM ('NOT_ACCREDITED', 'ACCREDITED', 'BLOCKED');
+CREATE TYPE "organization_status" AS ENUM ('ACTIVE', 'BLOCKED');
 
 -- CreateEnum
-CREATE TYPE "organization_data_status" AS ENUM ('DRAFT', 'SUBMITTED', 'COMPLETED', 'OUTDATED');
+CREATE TYPE "organization_data_status" AS ENUM ('ACTIVE', 'OUTDATED');
 
 -- CreateTable
 CREATE TABLE "organization" (
     "id" BIGSERIAL NOT NULL,
     "country_id" BIGINT NOT NULL,
-    "status" "organization_status" NOT NULL DEFAULT 'NOT_ACCREDITED',
+    "status" "organization_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "created_by_id" BIGINT,
@@ -21,12 +21,13 @@ CREATE TABLE "organization" (
 CREATE TABLE "organization_data" (
     "id" BIGSERIAL NOT NULL,
     "organization_id" BIGINT NOT NULL,
-    "status" "organization_data_status" NOT NULL DEFAULT 'DRAFT',
+    "status" "organization_data_status" NOT NULL DEFAULT 'ACTIVE',
     "legal_name" TEXT NOT NULL,
     "trade_name" TEXT,
     "tax_id" TEXT NOT NULL,
     "country_organization_size_id" BIGINT,
     "sector_id" BIGINT,
+    "main_activity_id" BIGINT,
     "subsector_id" BIGINT,
     "address" TEXT,
     "workers_count" INTEGER,
@@ -76,8 +77,6 @@ ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_created_by_id_
 -- AddForeignKey
 ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Only one organization data can be COMPLETED for an organization
-CREATE UNIQUE INDEX "organization_data_only_one_completed" ON "organization_data"("organization_id") WHERE "status" = 'COMPLETED';
+-- AddForeignKey
+ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_main_activity_id_fkey" FOREIGN KEY ("main_activity_id") REFERENCES "organization_main_activity"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Only one organization data can be DRAFT or SUBMITTED for an organization
-CREATE UNIQUE INDEX "organization_data_only_one_draft_or_submitted" ON "organization_data"("organization_id") WHERE "status" IN ('DRAFT', 'SUBMITTED');
