@@ -30,7 +30,7 @@ CREATE TABLE "organization_data" (
     "main_activity_id" BIGINT,
     "subsector_id" BIGINT,
     "address" TEXT,
-    "workers_count" INTEGER,
+    "employees_count" INTEGER,
     "representative_full_name" TEXT NOT NULL,
     "representative_tax_id" TEXT NOT NULL,
     "representative_country_job_position_id" BIGINT NOT NULL,

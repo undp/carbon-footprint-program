@@ -691,7 +691,7 @@ model OrganizationData {
   mainActivityId                     BigInt?                            @map("main_activity_id")
   subsectorId                        BigInt?                            @map("subsector_id")
   address                            String?
-  workersCount                       Int?                               @map("workers_count")
+  employeesCount                     Int?                               @map("employees_count")
   representativeFullName             String                             @map("representative_full_name")
   representativeTaxId                String                             @map("representative_tax_id")
   representativeCountryJobPositionId BigInt                             @map("representative_country_job_position_id")
