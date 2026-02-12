@@ -30,14 +30,19 @@ Think of the system as **event-sourced–like**, even though it is relational:
 ### 2.1 Organizations & Data
 
 - An `organization` can have multiple `organization_data` rows (history).
-- Exactly **one COMPLETED** row per organization is allowed at any time.
-- Exactly **one DRAFT or SUBMITTED** row per organization is allowed (they cannot coexist).
-- Multiple **OUTDATED** rows are allowed (previous COMPLETED versions).
+- **ACTIVE/OUTDATED Status**: The `status` column in `organization_data` only uses `ACTIVE` or `OUTDATED`.
+- **Accreditation is Derived**: An organization is "accredited" if it has an `ACTIVE` `organization_data` with an `APPROVED` submission.
+- **Invariants**:
+  - At most **one ACTIVE Draft** (no submission) per organization.
+  - At most **one ACTIVE Under Review** (PENDING submission) per organization.
+  - At most **one ACTIVE Approved** (APPROVED submission) per organization.
+- When a new version is approved, all other `ACTIVE` records for that organization must be marked `OUTDATED` in the same transaction.
+- When a submission is rejected, the `organization_data` is marked `OUTDATED` immediately to allow for a clean new draft.
 
 Violation symptom:
 
-- Ambiguous "current" accredited data for an organization.
-- Multiple pending accreditation requests for the same organization.
+- Multiple `ACTIVE` records of the same substate (e.g., two approved versions).
+- Inability to determine the single source of truth for current organization data.
 
 ### 2.2 Inventory & Methodology
 
@@ -199,6 +204,32 @@ Never sum results without:
 
 - ACTIVE lines
 - ACTIVE inputs
+
+---
+
+### 3.5 Organization Data Patterns
+
+#### Get Current Approved Data
+
+```sql
+SELECT od.*
+FROM organization_data od
+JOIN submission_subject_organization_data ssod ON ssod.organization_data_id = od.id
+JOIN submission s ON s.subject_id = ssod.subject_id
+WHERE od.organization_id = :org_id
+  AND od.status = 'ACTIVE'
+  AND s.status = 'APPROVED';
+```
+
+#### Get Active Draft
+
+```sql
+SELECT *
+FROM organization_data
+WHERE organization_id = :org_id
+  AND status = 'ACTIVE'
+  AND id NOT IN (SELECT organization_data_id FROM submission_subject_organization_data);
+```
 
 ---
 
