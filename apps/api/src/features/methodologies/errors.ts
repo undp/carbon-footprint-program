@@ -1,9 +1,9 @@
 import createError from "@fastify/error";
 import { Prisma } from "@repo/database";
 
-export const MethodologyNameAlreadyExistsError = createError(
-  "METHODOLOGY_NAME_ALREADY_EXISTS",
-  "A methodology with this name already exists for this country",
+export const MethodologyNameVersionAlreadyExistsError = createError(
+  "METHODOLOGY_NAME_VERSION_ALREADY_EXISTS",
+  "A methodology with this name and version already exists for this country",
   409
 );
 

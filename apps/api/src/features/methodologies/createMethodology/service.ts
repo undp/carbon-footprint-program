@@ -9,7 +9,7 @@ import type {
 } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
-  MethodologyNameAlreadyExistsError,
+  MethodologyNameVersionAlreadyExistsError,
   NoCountryFoundError,
   getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
@@ -47,9 +47,10 @@ export const createMethodologyService = async (
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (
           duplicatedFields.includes("name") ||
-          duplicatedFields.includes("country_id")
+          duplicatedFields.includes("country_id") ||
+          duplicatedFields.includes("version")
         ) {
-          throw new MethodologyNameAlreadyExistsError();
+          throw new MethodologyNameVersionAlreadyExistsError();
         }
       }
     }
