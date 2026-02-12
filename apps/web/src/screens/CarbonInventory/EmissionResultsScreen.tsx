@@ -2,7 +2,7 @@ import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, type FooterButton } from "./layout";
 import { StepHeader } from "./components/StepHeader";
 import {
   EmissionCategorySummary,
@@ -21,15 +21,19 @@ import {
 } from "@/api/query";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useAuth } from "../../contexts";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
   });
 
+  const { user } = useAuth();
+
   const { enqueueSnackbar } = useSnackbar();
 
-  const { goBack, goToList } = useEmissionResultsNavigation(inventoryId);
+  const { goBack, goToList, goToLanding } =
+    useEmissionResultsNavigation(inventoryId);
 
   const {
     data: summaryData,
@@ -79,6 +83,27 @@ export const EmissionResultsScreen: FC = () => {
       });
   }, [isError, enqueueSnackbar]);
 
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
+
+  const nextButton: FooterButton = user
+    ? {
+        text: "Guardar Borrador",
+        align: "right",
+        buttonProps: { variant: "contained", onClick: goToList },
+      }
+    : {
+        text: "Volver a empezar",
+        align: "right",
+        buttonProps: { variant: "contained", onClick: goToLanding },
+      };
+
   return (
     <CarbonInventoryLayout
       headerProps={{
@@ -86,24 +111,7 @@ export const EmissionResultsScreen: FC = () => {
         subtitle: summaryData?.carbonInventory.name ?? undefined,
       }}
       footerProps={{
-        buttons: [
-          {
-            text: "Volver",
-            align: "right",
-            buttonProps: {
-              startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-              onClick: goBack,
-            },
-          },
-          {
-            text: "Guardar Borrador",
-            align: "right",
-            buttonProps: {
-              variant: "contained",
-              onClick: goToList,
-            },
-          },
-        ],
+        buttons: [backButton, nextButton],
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">

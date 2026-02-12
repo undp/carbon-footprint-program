@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { StepHeader } from "./components";
 import {
   InventoryAttributesCard,
@@ -60,31 +60,33 @@ export const EmissionSummaryScreen: FC = () => {
         preventDuplicate: true,
       });
   }, [isError, enqueueSnackbar]);
+
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
+
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      onClick: goNext,
+    },
+  };
+
   return (
     <CarbonInventoryLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
       }}
       footerProps={{
-        buttons: [
-          {
-            text: "Volver",
-            align: "right",
-            buttonProps: {
-              startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-              onClick: goBack,
-            },
-          },
-          {
-            text: "Siguiente",
-            align: "right",
-            buttonProps: {
-              endIcon: <ArrowRightAltRounded />,
-              variant: "contained",
-              onClick: goNext,
-            },
-          },
-        ],
+        buttons: [backButton, nextButton],
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-6">

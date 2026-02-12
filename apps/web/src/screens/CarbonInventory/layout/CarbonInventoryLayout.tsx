@@ -62,12 +62,14 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   );
 };
 
+export interface FooterButton {
+  align: "left" | "right";
+  text: string;
+  buttonProps: Partial<ButtonProps>;
+}
+
 interface CarbonInventoryFooterProps {
-  buttons?: {
-    align: "left" | "right";
-    text: string;
-    buttonProps: Partial<ButtonProps>;
-  }[];
+  buttons?: FooterButton[];
 }
 
 export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({

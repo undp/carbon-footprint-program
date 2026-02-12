@@ -3,7 +3,7 @@ import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import capinautPointing from "@assets/capinaut-pointing.png";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import { DevTool } from "@hookform/devtools";
 import {
@@ -112,6 +112,27 @@ export const BusinessProfilingScreen: FC = () => {
     return null;
   }
 
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      type: "submit",
+      form: "business-profiling-form",
+      loading: isSubmitting || isInventoryLoading,
+      disabled: isFormDisabled,
+    },
+  };
+
   return (
     <>
       <form
@@ -124,28 +145,7 @@ export const BusinessProfilingScreen: FC = () => {
             title: "Simulador de Inventario Organizacional",
           }}
           footerProps={{
-            buttons: [
-              {
-                text: "Volver",
-                align: "right",
-                buttonProps: {
-                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                  onClick: goBack,
-                },
-              },
-              {
-                text: "Siguiente",
-                align: "right",
-                buttonProps: {
-                  endIcon: <ArrowRightAltRounded />,
-                  variant: "contained",
-                  type: "submit",
-                  form: "business-profiling-form",
-                  loading: isSubmitting || isInventoryLoading,
-                  disabled: isFormDisabled,
-                },
-              },
-            ],
+            buttons: [backButton, nextButton],
           }}
           isLoading={isInventoryLoading}
           hasError={hasInventoryError}

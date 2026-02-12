@@ -2,7 +2,7 @@ import { FC, useMemo, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { CategoryCard } from "./components/CategoryCard";
@@ -102,6 +102,42 @@ export const EmissionCaptureScreen: FC = () => {
     name: "subcategories",
   });
 
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: handleSubmit(submitAndGoBack),
+      loading: isSubmittingAndGoingBack,
+      disabled: isSubmittingAndGoingBack || isBusy,
+    },
+  };
+
+  const nextButton: FooterButton = formState.isDirty
+    ? {
+        text: "Guardar",
+        align: "right",
+        buttonProps: {
+          startIcon: <SaveRounded />,
+          variant: "contained",
+          onClick: handleSubmit(submitNoNavigate),
+          loading: isSubmittingNoNavigating,
+          disabled: isSubmittingNoNavigating || isBusy,
+        },
+      }
+    : {
+        text: "Siguiente",
+        align: "right",
+        buttonProps: {
+          endIcon: <ArrowRightAltRounded />,
+          variant: "contained",
+          type: "submit",
+          form: "emission-capture-form",
+          loading: isSubmittingAndNavigating,
+          disabled: isSubmittingAndNavigating || isBusy,
+        },
+      };
+
   return (
     <FormProvider {...methods}>
       <form
@@ -115,46 +151,7 @@ export const EmissionCaptureScreen: FC = () => {
             subtitle: data?.name ?? undefined,
           }}
           footerProps={{
-            buttons: [
-              {
-                text: "Volver",
-                align: "right",
-                buttonProps: {
-                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                  onClick: handleSubmit(submitAndGoBack),
-                  loading: isSubmittingAndGoingBack,
-                  disabled: isSubmittingAndGoingBack || isBusy,
-                },
-              },
-              ...(formState.isDirty
-                ? [
-                    {
-                      text: "Guardar",
-                      align: "right" as const,
-                      buttonProps: {
-                        startIcon: <SaveRounded />,
-                        variant: "contained" as const,
-                        onClick: handleSubmit(submitNoNavigate),
-                        loading: isSubmittingNoNavigating,
-                        disabled: isSubmittingNoNavigating || isBusy,
-                      },
-                    },
-                  ]
-                : [
-                    {
-                      text: "Siguiente",
-                      align: "right" as const,
-                      buttonProps: {
-                        endIcon: <ArrowRightAltRounded />,
-                        variant: "contained" as const,
-                        type: "submit" as const,
-                        form: "emission-capture-form",
-                        loading: isSubmittingAndNavigating,
-                        disabled: isSubmittingAndNavigating || isBusy,
-                      },
-                    },
-                  ]),
-            ],
+            buttons: [backButton, nextButton],
           }}
           isLoading={isLoading}
         >
