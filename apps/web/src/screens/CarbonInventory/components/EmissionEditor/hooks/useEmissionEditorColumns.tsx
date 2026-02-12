@@ -56,18 +56,23 @@ export const useEmissionEditorColumns = ({
   inventoryUsageMode,
   isManualModeLoading = false,
 }: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
-  const unitIdsWithEmissionFactors = useMemo<Set<string>>(() => {
-    const ids = new Set<string>();
-    subcategory.emissionFactors.forEach((ef) => {
-      const rateMeasurementUnit = rateMeasurementUnits?.find(
-        (mu) => mu.id === ef.rateMeasurementUnitId
-      );
-      if (rateMeasurementUnit) ids.add(rateMeasurementUnit.denominatorUnit.id);
-    });
-    return ids;
-  }, [subcategory.emissionFactors, rateMeasurementUnits]);
-
   const displayedUnits = useMemo(() => {
+    if (subcategory.allowedMeasurementUnitIds.length === 0)
+      return measurementUnits || [];
+
+    // Track which units have associated emission factors to show only those when in non-expert mode, but show all allowed units in expert mode
+    const rateMeasurementUnitById = new Map(
+      rateMeasurementUnits?.map((mu) => [mu.id, mu]) || []
+    );
+    const unitIdsWithEmissionFactors = new Set<string>();
+    subcategory.emissionFactors.forEach((ef) => {
+      const rateMeasurementUnit = rateMeasurementUnitById.get(
+        ef.rateMeasurementUnitId
+      );
+      if (rateMeasurementUnit)
+        unitIdsWithEmissionFactors.add(rateMeasurementUnit.denominatorUnit.id);
+    });
+
     const allowedUnits =
       measurementUnits?.filter((mu) =>
         subcategory.allowedMeasurementUnitIds.includes(mu.id)
@@ -82,8 +87,9 @@ export const useEmissionEditorColumns = ({
   }, [
     inventoryUsageMode,
     measurementUnits,
-    unitIdsWithEmissionFactors,
+    rateMeasurementUnits,
     subcategory.allowedMeasurementUnitIds,
+    subcategory.emissionFactors,
   ]);
 
   return useMemo(() => {
