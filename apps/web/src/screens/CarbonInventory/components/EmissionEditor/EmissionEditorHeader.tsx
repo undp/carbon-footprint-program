@@ -109,21 +109,26 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
 
         {/* Case 2: Manual mode active and not loading (Input) */}
         {!isManualModeLoading && isTotalManualEmissionsModeActive && (
-          <NumericInput
-            label="Emisiones"
-            value={totalEmission ?? 0}
-            onChange={onChangeTotalEmission}
-            sx={{
-              minHeight: 40,
-              height: 40,
-            }}
-          />
+          <>
+            <NumericInput
+              label="Emisiones"
+              value={totalEmission ?? 0}
+              onChange={onChangeTotalEmission}
+              sx={{
+                minHeight: 40,
+                height: 40,
+              }}
+            />
+            <Typography variant="subtitle1" fontWeight="bold">
+              (tCO₂e)
+            </Typography>
+          </>
         )}
 
         {/* Case 3: Loading and deactivating manual mode (Shows 0) */}
         {isManualModeLoading && !isTotalManualEmissionsModeActive && (
           <Typography variant="subtitle1" fontWeight="bold">
-            0
+            0 (tCO₂e)
           </Typography>
         )}
 
@@ -133,10 +138,6 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             {formatEmissions(kgToTon(totalEmission))}
           </Typography>
         )}
-
-        <Typography variant="subtitle1" fontWeight="bold">
-          (tCO₂e)
-        </Typography>
       </Box>
       <Box
         className={`align-end flex-row-reverse items-center gap-2 ${
