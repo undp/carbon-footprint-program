@@ -9,6 +9,7 @@ import {
   MethodologyNameAlreadyExistsError,
   getDuplicatedFieldsFromP2002Error,
   MethodologyIsDeletedError,
+  MethodologyNotFoundError,
 } from "../errors.js";
 
 export const updateMethodologyService = async (
@@ -22,7 +23,7 @@ export const updateMethodologyService = async (
   });
 
   if (!targetMethodology) {
-    throw new MethodologyIsDeletedError();
+    throw new MethodologyNotFoundError();
   }
 
   if (targetMethodology.status === MethodologyVersionStatus.DELETED) {
@@ -95,10 +96,6 @@ export const updateMethodologyService = async (
     return mapMethodologyToResponse(methodology);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        // Record not found
-        throw new MethodologyIsDeletedError();
-      }
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         if (
