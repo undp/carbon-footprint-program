@@ -17,8 +17,15 @@ export const useEmissionResultsNavigation = (inventoryId: string) => {
     });
   };
 
+  const goToLanding = () => {
+    void navigate({
+      to: Routes.LANDING,
+    });
+  };
+
   return {
     goBack,
     goToList,
+    goToLanding,
   };
 };

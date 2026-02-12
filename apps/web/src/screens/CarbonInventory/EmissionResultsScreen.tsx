@@ -21,15 +21,19 @@ import {
 } from "@/api/query";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useAuth } from "../../contexts";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
   });
 
+  const { user } = useAuth();
+
   const { enqueueSnackbar } = useSnackbar();
 
-  const { goBack, goToList } = useEmissionResultsNavigation(inventoryId);
+  const { goBack, goToList, goToLanding } =
+    useEmissionResultsNavigation(inventoryId);
 
   const {
     data: summaryData,
@@ -89,20 +93,33 @@ export const EmissionResultsScreen: FC = () => {
         buttons: [
           {
             text: "Volver",
-            align: "right",
+            align: "right" as const,
             buttonProps: {
               startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
               onClick: goBack,
             },
           },
-          {
-            text: "Guardar Borrador",
-            align: "right",
-            buttonProps: {
-              variant: "contained",
-              onClick: goToList,
-            },
-          },
+          ...(user
+            ? [
+                {
+                  text: "Guardar Borrador",
+                  align: "right" as const,
+                  buttonProps: {
+                    variant: "contained" as const,
+                    onClick: goToList,
+                  },
+                },
+              ]
+            : [
+                {
+                  text: "Volver a empezar",
+                  align: "right" as const,
+                  buttonProps: {
+                    variant: "contained" as const,
+                    onClick: goToLanding,
+                  },
+                },
+              ]),
         ],
       }}
     >
