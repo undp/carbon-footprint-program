@@ -1,17 +1,15 @@
-import { type PrismaClient } from "@repo/database";
+import { CarbonInventoryLineStatus, type PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/types";
-
-type DeleteResult =
-  | { success: true }
-  | {
-      success: false;
-      error: "NOT_FOUND" | "HAS_ACTIVE_INVENTORIES" | "IS_PUBLISHED";
-    };
+import {
+  MethodologyHasActiveInventoriesError,
+  MethodologyIsPublishedError,
+  MethodologyNotFoundError,
+} from "../errors.js";
 
 export const deleteMethodologyService = async (
   prismaClient: PrismaClient,
   id: string
-): Promise<DeleteResult> => {
+): Promise<void> => {
   const methodologyId = BigInt(id);
 
   // Check if methodology exists and is active
@@ -22,7 +20,7 @@ export const deleteMethodologyService = async (
         select: {
           carbonInventories: {
             where: {
-              status: { not: "DELETED" },
+              status: { not: CarbonInventoryLineStatus.DELETED },
             },
           },
         },
@@ -31,16 +29,16 @@ export const deleteMethodologyService = async (
   });
 
   if (!methodology || methodology.status === MethodologyVersionStatus.DELETED) {
-    return { success: false, error: "NOT_FOUND" };
+    throw new MethodologyNotFoundError();
   }
 
   if (methodology.status === MethodologyVersionStatus.PUBLISHED) {
-    return { success: false, error: "IS_PUBLISHED" };
+    throw new MethodologyIsPublishedError();
   }
 
   // Check if methodology has active carbon inventories
   if (methodology._count.carbonInventories > 0) {
-    return { success: false, error: "HAS_ACTIVE_INVENTORIES" };
+    throw new MethodologyHasActiveInventoriesError();
   }
 
   // Soft delete by setting status to DELETED
@@ -51,6 +49,4 @@ export const deleteMethodologyService = async (
       updatedById: null, // TODO: Add from authenticated user
     },
   });
-
-  return { success: true };
 };

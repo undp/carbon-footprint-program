@@ -19,6 +19,12 @@ export const MethodologyNotFoundError = createError(
   404
 );
 
+export const MethodologyIsPublishedError = createError(
+  "METHODOLOGY_IS_PUBLISHED",
+  "Methodology is published",
+  409
+);
+
 export const MethodologyHasActiveInventoriesError = createError(
   "METHODOLOGY_HAS_ACTIVE_INVENTORIES",
   "Cannot delete methodology: it has active carbon inventories",
