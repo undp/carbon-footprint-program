@@ -6,11 +6,12 @@ export const getCarbonInventoryByIdHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "carbonInventories" });
+  const user = request.currentUser;
   const { id } = request.params;
   log.info(`Getting Carbon inventory with ID: ${id}...`);
 
   const prisma = request.server.prisma;
-  const data = await getCarbonInventoryByIdService(prisma, id);
+  const data = await getCarbonInventoryByIdService(prisma, id, user);
 
   log.info("Carbon inventory found successfully");
   return reply.status(200).send(data);
