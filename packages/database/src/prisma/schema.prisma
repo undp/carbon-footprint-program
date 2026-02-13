@@ -348,8 +348,10 @@ model Category {
   id                   BigInt             @id @default(autoincrement())
   methodologyVersionId BigInt             @map("methodology_version_id")
   name                 String
-  synonyms             String?
-  description          String?
+  icon                 String
+  color                String
+  synonyms             String
+  description          String
   examples             String?
   // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int

@@ -1062,6 +1062,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
           methodologyVersionId: emptyMethodology.id,
           name: "Test Category",
           position: 1,
+          synonyms: "Test Synonyms",
+          description: "Test Description",
+          icon: "Test Icon",
+          color: "#000000",
           updatedAt: null,
         },
       });

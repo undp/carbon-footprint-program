@@ -14,14 +14,16 @@ export const FullMethodologyDataSchema = z.array(
   z.object({
     countryIsoCode: z.string().min(1),
     name: z.string().min(1),
-    description: z.string(),
+    description: z.string().min(1),
     regulation: z.string().min(1),
     version: z.string().min(1),
     categories: z.array(
       z.object({
         name: z.string().min(1),
-        synonyms: z.string().nullable().optional(),
-        description: z.string().nullable().optional(),
+        synonyms: z.string().min(1),
+        description: z.string().min(1),
+        icon: z.string().min(1),
+        color: z.string().min(1),
         examples: z.string().nullable().optional(),
         position: z.int(),
         subcategories: z.array(

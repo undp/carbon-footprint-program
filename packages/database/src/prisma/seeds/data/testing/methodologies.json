@@ -11,6 +11,8 @@
         "synonyms": "CATEGORIA 1 / ALCANCE 1",
         "description": "Generadas dentro de tu empresa",
         "position": 1,
+        "icon": "FACTORY",
+        "color": "#ffb74d4d",
         "examples": null,
         "subcategories": [
           {
@@ -1704,6 +1706,8 @@
         "name": "Emisiones indirectas por energías importadas",
         "synonyms": "CATEGORIA 2 / ALCANCE 2",
         "description": "Generadas por la electricidad consumida",
+        "icon": "ELECTRIC_BOLT",
+        "color": "#64b5f64d",
         "position": 2,
         "examples": null,
         "subcategories": [
@@ -1746,6 +1750,8 @@
         "synonyms": "CATEGORIAS 3, 4, 5, y 6 / ALCANCE 3",
         "description": "Generadas fuera de tu empresa",
         "position": 3,
+        "icon": "SHIPPING_TRUCK",
+        "color": "#82c7844d",
         "examples": null,
         "subcategories": [
           {
