@@ -318,6 +318,13 @@ enum MethodologyVersionStatus {
   @@map("methodology_version_status")
 }
 
+enum CategoryStatus {
+  ACTIVE
+  DELETED
+
+  @@map("category_status")
+}
+
 model MethodologyVersion {
   id                BigInt                   @id @default(autoincrement())
   countryId         BigInt                   @map("country_id")
@@ -355,6 +362,7 @@ model Category {
   examples             String?
   // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int
+  status               CategoryStatus     @default(ACTIVE)
   createdAt            DateTime           @default(now()) @map("created_at")
   updatedAt            DateTime?          @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
@@ -364,8 +372,10 @@ model Category {
   updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id])
   subcategories        Subcategory[]
 
-  @@unique([methodologyVersionId, name])
-  @@unique([methodologyVersionId, position])
+  // Partial unique indexes exist in SQL migrations:
+  // ("methodology_version_id", "name") WHERE status <> 'DELETED'
+  // ("methodology_version_id", "position") WHERE status <> 'DELETED'
+
   @@map("category")
 }
 
