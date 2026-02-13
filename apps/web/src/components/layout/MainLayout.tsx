@@ -33,7 +33,7 @@ const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
 const SIDEBAR_ITEMS: SidebarDef[] = Object.values(SidebarRoutes).map(
   (path) => ({
     text: SidebarRoutesTranslations[path],
-    path: path as string,
+    path: path,
     icon: SidebarIcons[path],
   })
 );

@@ -1,4 +1,3 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getCarbonInventoryByIdHandler } from "./handler.js";
 import { IdSchema, GetCarbonInventoryByIdResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";

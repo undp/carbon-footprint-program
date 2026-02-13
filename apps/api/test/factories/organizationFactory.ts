@@ -10,7 +10,7 @@ export async function createTestOrganization(
   return await prisma.organization.create({
     data: {
       countryId,
-      status: OrganizationStatus.NOT_ACCREDITED,
+      status: OrganizationStatus.ACTIVE,
       ...overrides,
     },
   });

@@ -28,7 +28,7 @@ export async function createTestOrganizationData(
       representativeCountryJobPositionId,
       representativePhone: `+1234567890`,
       representativeEmail: `test@test.com`,
-      status: OrganizationDataStatus.COMPLETED,
+      status: OrganizationDataStatus.ACTIVE,
       ...overrides,
     },
   });
