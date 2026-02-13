@@ -3,7 +3,7 @@ import type {
   EmissionFactorSchema,
   EmissionFactorDimensionSchema,
   DimensionValueSchema,
-  CategorySchema,
+  InventoryCategorySchema,
   SubcategorySchema,
   GetCarbonInventoryMethodologyResponseSchema,
 } from "./schemas.js";
@@ -16,7 +16,7 @@ export type EmissionFactorDimension = z.infer<
 
 export type DimensionValue = z.infer<typeof DimensionValueSchema>;
 
-export type Category = z.infer<typeof CategorySchema>;
+export type InventoryCategory = z.infer<typeof InventoryCategorySchema>;
 
 export type Subcategory = z.infer<typeof SubcategorySchema>;
 

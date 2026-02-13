@@ -82,7 +82,7 @@ export const SubcategorySchema = z.object({
     .describe("The IDs of the allowed measurement units for this subcategory"),
 });
 
-export const CategorySchema = z.object({
+export const InventoryCategorySchema = z.object({
   id: IdSchema.describe("The ID of the category"),
   name: z.string().describe("The name of the category"),
   synonyms: z.string().nullable().describe("Synonyms for the category"),
@@ -104,6 +104,6 @@ export const GetCarbonInventoryMethodologyResponseSchema = z.object({
     .nullable()
     .describe("The description of the methodology"),
   categories: z
-    .array(CategorySchema)
+    .array(InventoryCategorySchema)
     .describe("The categories in this methodology"),
 });
