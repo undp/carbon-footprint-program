@@ -11,29 +11,27 @@ const ParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
-  fastify.get(
-    "/:id/subcategories/summary",
-    {
-      schema: {
-        tags: ["carbon-inventories"],
-        summary: "Get subcategories summary for carbon inventory",
-        description:
-          "Retrieves the summary status of all subcategories for a given carbon inventory, indicating which subcategories have active lines and which lines have been edited.",
-        params: ParamsSchema,
-        response: {
-          200: GetCarbonInventorySubcategoriesSummaryResponseSchema,
-          404: ApiErrorResponseSchema,
-          500: ApiErrorResponseSchema,
+export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature =
+  (fastify, options) => {
+    fastify.get(
+      "/:id/subcategories/summary",
+      {
+        schema: {
+          tags: ["carbon-inventories"],
+          summary: "Get subcategories summary for carbon inventory",
+          description:
+            "Retrieves the summary status of all subcategories for a given carbon inventory, indicating which subcategories have active lines and which lines have been edited.",
+          params: ParamsSchema,
+          response: {
+            200: GetCarbonInventorySubcategoriesSummaryResponseSchema,
+            404: ApiErrorResponseSchema,
+            500: ApiErrorResponseSchema,
+          },
+        },
+        config: {
+          public: options?.public ?? false,
         },
       },
-      config: {
-        public: options?.public ?? false,
-      },
-    },
-    getCarbonInventorySubcategoriesSummaryHandler
-  );
-};
+      getCarbonInventorySubcategoriesSummaryHandler
+    );
+  };

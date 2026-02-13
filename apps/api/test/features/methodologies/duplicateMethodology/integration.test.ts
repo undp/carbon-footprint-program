@@ -51,9 +51,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body = JSON.parse(
-        response.body
-      ) as DuplicateMethodologyResponse;
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
 
       expect(body.id).toBeTruthy();
       expect(body.id).not.toBe(original.id.toString());
@@ -76,9 +74,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body = JSON.parse(
-        response.body
-      ) as DuplicateMethodologyResponse;
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
 
       expect(body.description).toBe("Should be copied");
       expect(body.regulation).toBe("Should be copied too");
@@ -98,9 +94,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body = JSON.parse(
-        response.body
-      ) as DuplicateMethodologyResponse;
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
 
       const dbRecord = await prisma.methodologyVersion.findUnique({
         where: { id: BigInt(body.id) },
@@ -141,8 +135,8 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
   describe("Error handling", () => {
     it("should return 404 when methodology does not exist", async () => {
       const maxId =
-        (await prisma.methodologyVersion.aggregate({ _max: { id: true } }))
-          ._max.id ?? 0n;
+        (await prisma.methodologyVersion.aggregate({ _max: { id: true } }))._max
+          .id ?? 0n;
       const nonExistentId = maxId + 1n;
 
       const response = await app.inject({
