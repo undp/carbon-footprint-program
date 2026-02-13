@@ -1,5 +1,9 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
-import { MethodologyVersionStatus, type User } from "@repo/types";
+import {
+  CategoryStatus,
+  MethodologyVersionStatus,
+  type User,
+} from "@repo/types";
 import {
   MethodologyHasActiveInventoriesError,
   MethodologyIsPublishedError,
@@ -42,12 +46,27 @@ export const deleteMethodologyService = async (
     throw new MethodologyHasActiveInventoriesError();
   }
 
-  // Soft delete by setting status to DELETED
-  await prismaClient.methodologyVersion.update({
-    where: { id: methodologyId },
-    data: {
-      status: MethodologyVersionStatus.DELETED,
-      updatedById: user ? BigInt(user.id) : null,
-    },
+  // Use transaction to soft-delete methodology AND cascade to categories
+  await prismaClient.$transaction(async (tx) => {
+    // Soft delete all active categories for this methodology
+    await tx.category.updateMany({
+      where: {
+        methodologyVersionId: methodologyId,
+        status: { not: CategoryStatus.DELETED },
+      },
+      data: {
+        status: CategoryStatus.DELETED,
+        updatedById: user ? BigInt(user.id) : null,
+      },
+    });
+
+    // Soft delete the methodology itself
+    await tx.methodologyVersion.update({
+      where: { id: methodologyId },
+      data: {
+        status: MethodologyVersionStatus.DELETED,
+        updatedById: user ? BigInt(user.id) : null,
+      },
+    });
   });
 };
