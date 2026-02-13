@@ -3,7 +3,11 @@ import {
   MethodologyVersionStatus,
   Prisma,
 } from "@repo/database";
-import type { DuplicateMethodologyResponse, User } from "@repo/types";
+import {
+  type DuplicateMethodologyResponse,
+  type User,
+  CategoryStatus,
+} from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNotFoundError,
@@ -43,17 +47,50 @@ export const duplicateMethodologyService = async (
     const userId = user ? BigInt(user.id) : null;
 
     // Create a new methodology based on the original
-    const duplicated = await prismaClient.methodologyVersion.create({
-      data: {
-        countryId: original.countryId,
-        name: duplicatedName,
-        description: original.description,
-        regulation: original.regulation,
-        version: original.version,
-        status: MethodologyVersionStatus.UNPUBLISHED,
-        createdById: userId,
-        updatedAt: null,
-      },
+
+    // Use transaction to duplicate methodology AND its active categories
+    const duplicated = await prismaClient.$transaction(async (tx) => {
+      // Create a new methodology based on the original
+      const newMethodology = await tx.methodologyVersion.create({
+        data: {
+          countryId: original.countryId,
+          name: duplicatedName,
+          description: original.description,
+          regulation: original.regulation,
+          version: original.version,
+          status: MethodologyVersionStatus.UNPUBLISHED,
+          createdById: userId,
+          updatedAt: null,
+        },
+      });
+
+      // Duplicate all active categories from the original methodology
+      const activeCategories = await tx.category.findMany({
+        where: {
+          methodologyVersionId: original.id,
+          status: CategoryStatus.ACTIVE,
+        },
+      });
+
+      if (activeCategories.length > 0) {
+        await tx.category.createMany({
+          data: activeCategories.map((cat) => ({
+            methodologyVersionId: newMethodology.id,
+            name: cat.name,
+            icon: cat.icon,
+            color: cat.color,
+            synonyms: cat.synonyms,
+            description: cat.description,
+            examples: cat.examples,
+            position: cat.position,
+            status: cat.status,
+            createdById: userId,
+            updatedAt: null,
+          })),
+        });
+      }
+
+      return newMethodology;
     });
 
     return mapMethodologyToResponse(duplicated);
