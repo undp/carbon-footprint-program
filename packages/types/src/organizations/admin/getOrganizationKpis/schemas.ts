@@ -2,7 +2,7 @@ import { z } from "zod";
 import { OrganizationStatus } from "../../../enums.js";
 
 // Individual KPI count schema
-export const OrganizationKpiCountSchema = z.object({
+const OrganizationKpiCountSchema = z.object({
   status: z
     .enum(OrganizationStatus)
     .describe("Organization status (ACTIVE or BLOCKED)"),

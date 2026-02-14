@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Form field schema
-export const OrganizationFormFieldSchema = z.object({
+const OrganizationFormFieldSchema = z.object({
   fieldName: z.string().describe("Field name"),
   required: z.boolean().describe("Whether the field is required"),
 });

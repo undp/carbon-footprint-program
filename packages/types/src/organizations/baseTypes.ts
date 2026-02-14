@@ -3,7 +3,7 @@ import type {
   EntityReferenceSchema,
   OrganizationDisplayStatusSchema,
   OrganizationListItemSchema,
-} from "./schemas.js";
+} from "./baseSchemas.js";
 
 export type EntityReference = z.infer<typeof EntityReferenceSchema>;
 

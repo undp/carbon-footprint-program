@@ -8,8 +8,5 @@ export * from "./methodologies/index.js";
 export * from "./categories/index.js";
 export * from "./users/index.js";
 export * from "./organizations/index.js";
-export * from "./admin/index.js";
-export * from "./app/index.js";
-export * from "./forms/index.js";
 export * from "./enums.js";
 export * from "./zod.js";

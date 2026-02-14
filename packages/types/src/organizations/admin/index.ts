@@ -1,5 +1,3 @@
-export * from "./schemas.js";
-export * from "./types.js";
 export * from "./getAllOrganizations/schemas.js";
 export * from "./getAllOrganizations/types.js";
 export * from "./blockOrganization/schemas.js";

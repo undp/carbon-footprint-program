@@ -1,5 +1,3 @@
-export * from "./schemas.js";
-export * from "./types.js";
 export * from "./getOrganizationById/schemas.js";
 export * from "./getOrganizationById/types.js";
 export * from "./createOrganization/schemas.js";
