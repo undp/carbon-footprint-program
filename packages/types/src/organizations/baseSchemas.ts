@@ -23,3 +23,6 @@ export const OrganizationListItemSchema = z.object({
   id: IdSchema.describe("The organization ID"),
   name: z.string().describe("The organization name"),
 });
+
+export const OrganizationDisplayStatusValues =
+  OrganizationDisplayStatusSchema.enum;
