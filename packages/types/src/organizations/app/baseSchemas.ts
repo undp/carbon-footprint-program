@@ -11,9 +11,12 @@ export const OrganizationMutationDataSchema = z.object({
   ),
   sectorId: IdSchema.describe("ID of the organization sector"),
   subsectorId: IdSchema.describe("ID of the organization subsector"),
-  employeeCount: z.number().int().describe("Number of employees"),
+  employeesCount: z.number().int().describe("Number of employees"),
   address: z.string().min(1).describe("Physical address"),
-  representativeName: z.string().min(1).describe("Full name of representative"),
+  representativeFullName: z
+    .string()
+    .min(1)
+    .describe("Full name of representative"),
   representativeTaxId: z.string().min(1).describe("Tax ID of representative"),
   representativePositionId: IdSchema.describe(
     "ID of representative's job position"
