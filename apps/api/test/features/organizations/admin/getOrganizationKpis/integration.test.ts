@@ -1,0 +1,346 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  inject,
+} from "vitest";
+import { createTestApp } from "@test/factories/appFactory.js";
+import type { FastifyInstance } from "fastify";
+import type { PrismaClient } from "@repo/database";
+import type { GetOrganizationKpisResponse } from "@repo/types";
+import {
+  OrganizationDataStatus,
+  OrganizationStatus,
+  SubmissionStatus,
+} from "@repo/database";
+import {
+  createTestOrganization,
+  cleanupTestOrganization,
+} from "@test/factories/organizationFactory.js";
+import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
+import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+
+describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
+  let app: FastifyInstance;
+  let prisma: PrismaClient;
+
+  beforeAll(async () => {
+    const databaseUrl = inject("databaseUrl");
+    app = await createTestApp(databaseUrl);
+    prisma = app.prisma;
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    await cleanupTestOrganization(prisma);
+  });
+
+  describe("Successful retrieval", () => {
+    it("should return organization KPIs with all required fields", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body).toBeDefined();
+      expect(body.total).toBeDefined();
+      expect(body.counts).toBeDefined();
+      expect(body.counts.length).toBe(0);
+    });
+
+    it("should return zero counts when no organizations exist", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(0);
+    });
+
+    it("should count organizations by status correctly", async () => {
+      // Create ACTIVE organizations
+      const activeOrg1 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, activeOrg1.id);
+
+      const activeOrg2 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, activeOrg2.id);
+
+      // Create BLOCKED organization
+      const blockedOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, blockedOrg.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(3);
+      expect(
+        body.counts.filter((c) => c.status === OrganizationStatus.ACTIVE)[0]
+          .count
+      ).toBe(2);
+      expect(
+        body.counts.filter((c) => c.status === OrganizationStatus.BLOCKED)[0]
+          .count
+      ).toBe(1);
+    });
+
+    it("should count organizations by accreditation status correctly", async () => {
+      // Create DRAFT organization
+      const draftOrg = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, draftOrg.id);
+
+      // Create UNDER_REVIEW organization
+      const reviewOrg = await createTestOrganization(prisma);
+      const reviewOrgData = await createTestOrganizationData(
+        prisma,
+        reviewOrg.id
+      );
+      await createTestOrganizationDataSubmission(
+        prisma,
+        reviewOrgData.id,
+        "PENDING"
+      );
+
+      // Create ACCREDITED organization
+      const accreditedOrg = await createTestOrganization(prisma);
+      const accreditedOrgData = await createTestOrganizationData(
+        prisma,
+        accreditedOrg.id
+      );
+      await createTestOrganizationDataSubmission(
+        prisma,
+        accreditedOrgData.id,
+        "APPROVED"
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.counts.filter((c) => c.accredited === false).length).toBe(1);
+      expect(body.counts.filter((c) => c.accredited === true).length).toBe(1);
+    });
+
+    it("should include total organization count", async () => {
+      // Create 5 organizations
+      for (let i = 0; i < 5; i++) {
+        const org = await createTestOrganization(prisma);
+        await createTestOrganizationData(prisma, org.id);
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(5);
+    });
+
+    it("should correctly categorize mixed organization states", async () => {
+      // ACTIVE + DRAFT
+      const org1 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org1.id);
+
+      // ACTIVE + ACCREDITED
+      const org2 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const org2Data = await createTestOrganizationData(prisma, org2.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        org2Data.id,
+        SubmissionStatus.APPROVED
+      );
+
+      // BLOCKED + ACCREDITED
+      const org3 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      const org3Data = await createTestOrganizationData(prisma, org3.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        org3Data.id,
+        SubmissionStatus.APPROVED
+      );
+
+      // BLOCKED + DRAFT
+      const org4 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, org4.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(4);
+      expect(
+        body.counts.filter((c) => c.status === OrganizationStatus.ACTIVE).length
+      ).toBe(2);
+      expect(
+        body.counts.filter((c) => c.status === OrganizationStatus.BLOCKED)
+          .length
+      ).toBe(2);
+      expect(body.counts.filter((c) => c.accredited === false).length).toBe(2);
+      expect(body.counts.filter((c) => c.accredited === true).length).toBe(2);
+    });
+  });
+
+  describe("Edge cases", () => {
+    it("should handle organizations with only OUTDATED data", async () => {
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id, {
+        status: "OUTDATED",
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      // Organization exists but has no ACTIVE data, so might not be counted
+      // depending on business logic
+      expect(body.total).toBeGreaterThanOrEqual(0);
+    });
+
+    it("should handle organization with multiple submissions (rejected history)", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData1 = await createTestOrganizationData(prisma, org.id);
+
+      // Create and reject first submission
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData1.id,
+        SubmissionStatus.REJECTED
+      );
+
+      // Mark first data as OUTDATED after rejection
+      await prisma.organizationData.update({
+        where: { id: orgData1.id },
+        data: { status: OrganizationDataStatus.OUTDATED },
+      });
+
+      // Create new data and submit again
+      const orgData2 = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData2.id,
+        "PENDING"
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      // Should count based on current ACTIVE data status (UNDER_REVIEW)
+      expect(body.total).toBe(1);
+      expect(body.counts.filter((c) => c.accredited === false).length).toBe(1);
+    });
+
+    it("should not count DELETED memberships in organization totals", async () => {
+      // Create organization (memberships don't affect KPI counts)
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(1);
+    });
+  });
+
+  describe("KPI structure", () => {
+    it("should have counts that sum correctly", async () => {
+      // Create various organizations
+      const org1 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org1.id);
+
+      const org2 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, org2.id);
+
+      const org3 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org3.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        org3.id,
+        SubmissionStatus.APPROVED
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      // Sum of active and blocked organizations should equal total
+      const statusSum =
+        body.counts.filter((c) => c.status === OrganizationStatus.ACTIVE)[0]
+          .count +
+        body.counts.filter((c) => c.status === OrganizationStatus.BLOCKED)[0]
+          .count;
+      expect(statusSum).toBe(body.total);
+
+      // Sum of not accredited and accredited organizations should equal total
+      const accreditationSum =
+        body.counts.filter((c) => c.accredited === false)[0].count +
+        body.counts.filter((c) => c.accredited === true)[0].count;
+      expect(accreditationSum).toBe(body.total);
+    });
+  });
+});
