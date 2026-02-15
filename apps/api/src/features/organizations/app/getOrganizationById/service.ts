@@ -1,0 +1,67 @@
+import type { PrismaClient } from "@repo/database";
+import type {
+  GetOrganizationByIdResponse,
+  OrganizationDisplayStatus,
+} from "@repo/types";
+import { OrganizationNotFoundError } from "../../errors.js";
+
+export const getOrganizationByIdService = async (
+  prismaClient: PrismaClient,
+  organizationId: string
+): Promise<GetOrganizationByIdResponse> => {
+  const org = await prismaClient.organizationSummaryView.findUnique({
+    where: {
+      organizationId: BigInt(organizationId),
+    },
+  });
+
+  if (!org) {
+    throw new OrganizationNotFoundError(organizationId);
+  }
+
+  // Map to response format
+  return {
+    id: org.organizationId.toString(),
+    name: org.name,
+    taxId: org.taxId,
+    legalName: org.legalName,
+    tradeName: org.tradeName,
+    status: org.displayStatus as OrganizationDisplayStatus,
+    sector: org.sectorId
+      ? {
+          id: org.sectorId.toString(),
+          name: org.sectorName!,
+        }
+      : null,
+    subsector: org.subsectorId
+      ? {
+          id: org.subsectorId.toString(),
+          name: org.subsectorName!,
+        }
+      : null,
+    countryOrganizationSize: org.countryOrganizationSizeId
+      ? {
+          id: org.countryOrganizationSizeId.toString(),
+          name: org.sizeName!,
+        }
+      : null,
+    mainActivity: org.mainActivityId
+      ? {
+          id: org.mainActivityId.toString(),
+          name: org.mainActivityName!,
+        }
+      : null,
+    address: org.address,
+    employeeCount: org.employeesCount,
+    representative: {
+      fullName: org.representativeFullName,
+      taxId: org.representativeTaxId,
+      position: {
+        id: org.representativeCountryJobPositionId.toString(),
+        name: org.representativePositionName,
+      },
+      email: org.representativeEmail,
+      phone: org.representativePhone,
+    },
+  };
+};
