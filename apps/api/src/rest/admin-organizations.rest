@@ -1,0 +1,52 @@
+@baseUrl = http://localhost:8080
+
+### Get Organization KPIs
+GET {{baseUrl}}/api/admin/organizations/kpis HTTP/1.1
+
+
+### Get All Organizations - Default
+GET {{baseUrl}}/api/admin/organizations HTTP/1.1
+
+
+### Get All Organizations - With Pagination
+GET {{baseUrl}}/api/admin/organizations?limit=10&offset=0 HTTP/1.1
+
+
+### Get All Organizations - Sort by Name Ascending
+GET {{baseUrl}}/api/admin/organizations?sortBy=name&sortOrder=asc HTTP/1.1
+
+
+### Get All Organizations - Sort by Name Descending
+GET {{baseUrl}}/api/admin/organizations?sortBy=name&sortOrder=desc HTTP/1.1
+
+
+### Get All Organizations - Sort by Total Emissions Descending
+GET {{baseUrl}}/api/admin/organizations?sortBy=totalEmissions&sortOrder=desc HTTP/1.1
+
+
+### Get All Organizations - Sort by Last Edition
+GET {{baseUrl}}/api/admin/organizations?sortBy=lastEdition&sortOrder=desc HTTP/1.1
+
+
+### Get All Organizations - Filter by Status (BLOCKED)
+GET {{baseUrl}}/api/admin/organizations?statuses=BLOCKED HTTP/1.1
+
+
+### Get All Organizations - Filter by Multiple Statuses
+GET {{baseUrl}}/api/admin/organizations?statuses=BLOCKED,NOT_ACCREDITED HTTP/1.1
+
+
+### Get All Organizations - Filter by ACCREDITED Status
+GET {{baseUrl}}/api/admin/organizations?statuses=ACCREDITED HTTP/1.1
+
+
+### Get All Organizations - Complex Query
+GET {{baseUrl}}/api/admin/organizations?limit=20&offset=0&sortBy=totalEmissions&sortOrder=desc&statuses=ACCREDITED HTTP/1.1
+
+
+### Block Organization
+POST {{baseUrl}}/api/admin/organizations/1/block HTTP/1.1
+
+
+### Unblock Organization
+POST {{baseUrl}}/api/admin/organizations/1/unblock HTTP/1.1
