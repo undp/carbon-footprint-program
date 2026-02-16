@@ -9,6 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
+import { restoreMethodologies } from "@test/factories/methodologyCleaner.js";
 import {
   createCarbonInventory,
   carbonInventoryPatterns,
@@ -29,67 +30,13 @@ describe("DELETE /api/methodologies/:id - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await restoreMethodologies(prisma);
     await prisma.$disconnect();
     await app.close();
   });
 
   beforeEach(async () => {
-    // Clean up carbon inventories linked to test methodologies
-    const testMethodologies = await prisma.methodologyVersion.findMany({
-      where: { name: { startsWith: "Test - " } },
-      select: { id: true },
-    });
-
-    if (testMethodologies.length > 0) {
-      const testMethodologyIds = testMethodologies.map((m) => m.id);
-
-      // Delete carbon inventory dependencies first
-      await prisma.carbonInventoryLineResult.deleteMany({
-        where: {
-          lineInput: {
-            line: {
-              carbonInventory: {
-                methodologyVersionId: { in: testMethodologyIds },
-              },
-            },
-          },
-        },
-      });
-      await prisma.carbonInventoryLineFactor.deleteMany({
-        where: {
-          lineInput: {
-            line: {
-              carbonInventory: {
-                methodologyVersionId: { in: testMethodologyIds },
-              },
-            },
-          },
-        },
-      });
-      await prisma.carbonInventoryLineInput.deleteMany({
-        where: {
-          line: {
-            carbonInventory: {
-              methodologyVersionId: { in: testMethodologyIds },
-            },
-          },
-        },
-      });
-      await prisma.carbonInventoryLine.deleteMany({
-        where: {
-          carbonInventory: {
-            methodologyVersionId: { in: testMethodologyIds },
-          },
-        },
-      });
-      await prisma.carbonInventory.deleteMany({
-        where: { methodologyVersionId: { in: testMethodologyIds } },
-      });
-
-      await prisma.methodologyVersion.deleteMany({
-        where: { name: { startsWith: "Test - " } },
-      });
-    }
+    await restoreMethodologies(prisma);
   });
 
   describe("Successful deletion", () => {

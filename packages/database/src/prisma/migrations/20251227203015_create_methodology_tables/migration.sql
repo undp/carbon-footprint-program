@@ -147,7 +147,7 @@ ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_created_by
 ALTER TABLE "methodology_version" ADD CONSTRAINT "methodology_version_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "category" ADD CONSTRAINT "category_methodology_version_id_fkey" FOREIGN KEY ("methodology_version_id") REFERENCES "methodology_version"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "category" ADD CONSTRAINT "category_methodology_version_id_fkey" FOREIGN KEY ("methodology_version_id") REFERENCES "methodology_version"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "category" ADD CONSTRAINT "category_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -156,7 +156,7 @@ ALTER TABLE "category" ADD CONSTRAINT "category_created_by_id_fkey" FOREIGN KEY 
 ALTER TABLE "category" ADD CONSTRAINT "category_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "subcategory" ADD CONSTRAINT "subcategory_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "subcategory" ADD CONSTRAINT "subcategory_category_id_fkey" FOREIGN KEY ("category_id") REFERENCES "category"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "subcategory" ADD CONSTRAINT "subcategory_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -165,7 +165,7 @@ ALTER TABLE "subcategory" ADD CONSTRAINT "subcategory_created_by_id_fkey" FOREIG
 ALTER TABLE "subcategory" ADD CONSTRAINT "subcategory_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "emission_factor_dimension" ADD CONSTRAINT "emission_factor_dimension_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "emission_factor_dimension" ADD CONSTRAINT "emission_factor_dimension_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "emission_factor_dimension" ADD CONSTRAINT "emission_factor_dimension_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -186,7 +186,7 @@ ALTER TABLE "emission_factor_dimension_value" ADD CONSTRAINT "emission_factor_di
 ALTER TABLE "emission_factor_dimension_value" ADD CONSTRAINT "emission_factor_dimension_value_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_dimension_value_1_id_fkey" FOREIGN KEY ("dimension_value_1_id") REFERENCES "emission_factor_dimension_value"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -204,10 +204,10 @@ ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_created_by_id_fkey
 ALTER TABLE "emission_factor" ADD CONSTRAINT "emission_factor_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_methodology_version_id_fkey" FOREIGN KEY ("methodology_version_id") REFERENCES "methodology_version"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_methodology_version_id_fkey" FOREIGN KEY ("methodology_version_id") REFERENCES "methodology_version"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "subcategory_measurement_unit" ADD CONSTRAINT "subcategory_measurement_unit_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "subcategory_measurement_unit" ADD CONSTRAINT "subcategory_measurement_unit_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "subcategory_measurement_unit" ADD CONSTRAINT "subcategory_measurement_unit_measurement_unit_id_fkey" FOREIGN KEY ("measurement_unit_id") REFERENCES "measurement_unit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
