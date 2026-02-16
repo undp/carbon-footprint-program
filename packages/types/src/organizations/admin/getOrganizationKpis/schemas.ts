@@ -9,7 +9,7 @@ const BaseCountSchema = z.object({
     .describe("Number of organizations matching criteria"),
 });
 
-const OrganizationKpiCountSchema = z.union([
+const OrganizationKpiCountSchema = z.discriminatedUnion("key", [
   // ACTIVE combinations
   BaseCountSchema.extend({
     status: z.literal(OrganizationStatus.ACTIVE),

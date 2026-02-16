@@ -7,7 +7,7 @@ const BaseFormFieldSchema = z.object({
   required: z.boolean().describe("Whether the field is required"),
 });
 
-const OrganizationFormFieldSchema = z.union([
+const OrganizationFormFieldSchema = z.discriminatedUnion("key", [
   BaseFormFieldSchema.extend({ key: z.literal("legalName") }),
   BaseFormFieldSchema.extend({ key: z.literal("tradeName") }),
   BaseFormFieldSchema.extend({ key: z.literal("taxId") }),
