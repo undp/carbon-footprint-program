@@ -1,23 +1,8 @@
 import { z } from "zod";
 import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
-import { IdSchema } from "../../../zod.js";
 
-// Pagination metadata
-const PaginationMetadataSchema = z.object({
-  total: z.number().int().describe("Total number of matching records"),
-  limit: z.number().int().describe("Number of records per page"),
-  offset: z.number().int().describe("Starting offset for the current page"),
-  totalPages: z
-    .number()
-    .int()
-    .describe("Total number of pages (ceil(total / limit))"),
-  hasNext: z
-    .boolean()
-    .describe("Whether there is a next page (offset + limit < total)"),
-  hasPrev: z
-    .boolean()
-    .describe("Whether there is a previous page (offset > 0)"),
-});
+import { IdSchema } from "../../../zod.js";
+import { PaginationMetadataSchema } from "../../../common/index.js";
 
 // Organization list item for admin (with all fields)
 const AdminOrganizationListItemSchema = z.object({
