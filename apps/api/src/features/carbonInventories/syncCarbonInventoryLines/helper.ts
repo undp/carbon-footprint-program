@@ -3,7 +3,6 @@ import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
-import { User } from "@repo/types";
 
 export type ItemData = {
   dimensionValue1Id: string | null;

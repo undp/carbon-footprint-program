@@ -10,8 +10,15 @@ export const updateUserHandler = async (
   log.info({ userId: request.params.id }, "Updating user...");
 
   const prisma = request.server.prisma;
-  const user = await updateUserService(prisma, request.params.id, request.body);
+  const user = request.currentUser ?? null;
+
+  const updatedUser = await updateUserService(
+    prisma,
+    request.params.id,
+    request.body,
+    user
+  );
 
   log.info({ userId: request.params.id }, "User updated successfully");
-  return reply.status(200).send(user);
+  return reply.status(200).send(updatedUser);
 };

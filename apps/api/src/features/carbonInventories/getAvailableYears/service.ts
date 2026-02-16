@@ -4,8 +4,8 @@ import { chain } from "lodash-es";
 
 export const getAvailableYearsService = async (
   prismaClient: PrismaClient,
-  _query?: Record<string, unknown>,
-  user?: User | null
+  _query: Record<string, unknown> | null,
+  user: User | null
 ): Promise<CarbonInventoryAvailableYearsResponse> => {
   const whereClause: Prisma.CarbonInventoryWhereInput = {
     NOT: { status: InventoryStatus.DELETED },
