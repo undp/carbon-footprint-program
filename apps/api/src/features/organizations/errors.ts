@@ -29,3 +29,9 @@ export const OrganizationUnderReviewError = createError(
   "Unable to edit organization during review. Please wait for the submission to be approved or rejected.",
   409
 );
+
+export const OrganizationDataNotFoundError = createError(
+  "ORGANIZATION_DATA_NOT_FOUND",
+  "Organization data with ID %s not found",
+  404
+);
