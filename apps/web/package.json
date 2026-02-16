@@ -9,16 +9,12 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "build-deps": "pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
-    "pretest": "pnpm build-deps",
+    "build-deps": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
     "test": "echo 'Not implemented yet'",
     "predev": "pnpm build-deps",
     "dev": "vite",
-    "prebuild": "pnpm build-deps",
     "build": "tsc -b && vite build",
-    "prelint": "pnpm build-deps",
     "lint": "eslint .",
-    "pretype-check": "pnpm build-deps",
     "type-check": "tsc --noEmit",
     "start": "vite preview",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo"

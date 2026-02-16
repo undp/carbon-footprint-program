@@ -47,16 +47,19 @@
     },
     "test": {
       "cache": false,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
     "lint": {
       "cache": false,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
     "type-check": {
       "cache": false,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
       "outputs": []
     }
