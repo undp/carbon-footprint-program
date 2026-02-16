@@ -1,5 +1,5 @@
 import { type PrismaClient, Prisma } from "@repo/database";
-import type { UpdateUserBody, UpdateUserResponse } from "@repo/types";
+import type { UpdateUserBody, UpdateUserResponse, User } from "@repo/types";
 import { mapUserToResponse } from "../mappers.js";
 import {
   EmailAlreadyInUseError,
@@ -13,7 +13,8 @@ import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 export const updateUserService = async (
   prismaClient: PrismaClient,
   id: string,
-  data: UpdateUserBody
+  data: UpdateUserBody,
+  user: User | null
 ): Promise<UpdateUserResponse> => {
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.UserUncheckedUpdateInput = {};
@@ -45,8 +46,10 @@ export const updateUserService = async (
     updateData.idpName = data.idpName ?? null;
   }
 
-  // TODO: Add updated by id from logged in user
-  updateData.updatedById = null;
+  // Only set updatedById if there are actual fields to update
+  if (Object.keys(updateData).length > 0) {
+    updateData.updatedById = user ? BigInt(user.id) : null;
+  }
 
   try {
     const updatedUser = await prismaClient.user.update({

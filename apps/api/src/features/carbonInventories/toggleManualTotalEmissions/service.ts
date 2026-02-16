@@ -1,5 +1,5 @@
 import type { Prisma, PrismaClient } from "@repo/database";
-import { CarbonInventoryLineStatus } from "@repo/types";
+import { CarbonInventoryLineStatus, User } from "@repo/types";
 import { cleanupDirectLines } from "./helper.js";
 import createError from "@fastify/error";
 import {
@@ -36,7 +36,8 @@ export const toggleManualTotalEmissionsService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
   subcategoryId: bigint,
-  activated: boolean
+  activated: boolean,
+  user: User | null
 ): Promise<void> => {
   // 1. Validate carbon inventory exists
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
@@ -98,6 +99,8 @@ export const toggleManualTotalEmissionsService = async (
     .filter((l) => l.inputs[0]?.inputType !== "DIRECT")
     .map((l) => l.id);
 
+  const userId = user ? BigInt(user.id) : null;
+
   if (activated) {
     // Caso 1: activated: true (Activar modo manual)
     if (activeLines.length === 0) throw new NoActiveLinesToConvertError();
@@ -106,13 +109,16 @@ export const toggleManualTotalEmissionsService = async (
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates
-      const directLine = await cleanupDirectLines(tx, lines);
+      const directLine = await cleanupDirectLines(tx, lines, userId);
 
       // 2. Mark all non-DIRECT ACTIVE lines as OUTDATED
       if (nonDirectActiveLinesIds.length > 0) {
         await tx.carbonInventoryLine.updateMany({
           where: { id: { in: nonDirectActiveLinesIds } },
-          data: { status: CarbonInventoryLineStatus.OUTDATED },
+          data: {
+            status: CarbonInventoryLineStatus.OUTDATED,
+            updatedById: userId,
+          },
         });
       }
 
@@ -120,7 +126,10 @@ export const toggleManualTotalEmissionsService = async (
       if (directLine) {
         await tx.carbonInventoryLine.update({
           where: { id: directLine.id },
-          data: { status: CarbonInventoryLineStatus.ACTIVE },
+          data: {
+            status: CarbonInventoryLineStatus.ACTIVE,
+            updatedById: userId,
+          },
         });
       } else {
         // Create new DIRECT line
@@ -129,6 +138,8 @@ export const toggleManualTotalEmissionsService = async (
             carbonInventoryId,
             subcategoryId,
             status: CarbonInventoryLineStatus.ACTIVE,
+            createdById: userId,
+            updatedById: userId,
           },
         });
         await tx.carbonInventoryLineInput.create({
@@ -137,6 +148,8 @@ export const toggleManualTotalEmissionsService = async (
             inputType: "DIRECT",
             isActive: true,
             directTotalEmissions: null,
+            createdById: userId,
+            updatedById: userId,
           },
         });
       }
@@ -151,18 +164,21 @@ export const toggleManualTotalEmissionsService = async (
 
     await prismaClient.$transaction(async (tx: Prisma.TransactionClient) => {
       // 1. Cleanup duplicates (though directActiveLine should be unique if logic is followed)
-      await cleanupDirectLines(tx, lines);
+      await cleanupDirectLines(tx, lines, userId);
 
       // 2. Mark DIRECT line as OUTDATED
       await tx.carbonInventoryLine.update({
         where: { id: directActiveLine.id },
-        data: { status: CarbonInventoryLineStatus.OUTDATED },
+        data: {
+          status: CarbonInventoryLineStatus.OUTDATED,
+          updatedById: userId,
+        },
       });
 
       // 3. Mark all non-DIRECT OUTDATED lines as ACTIVE
       await tx.carbonInventoryLine.updateMany({
         where: { id: { in: nonDirectOutdatedLinesIds } },
-        data: { status: CarbonInventoryLineStatus.ACTIVE },
+        data: { status: CarbonInventoryLineStatus.ACTIVE, updatedById: userId },
       });
     });
   }

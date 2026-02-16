@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import type { User } from "@repo/types";
 
 interface WithId {
   id: string;
@@ -13,7 +14,8 @@ export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
   serviceFn: (
     prisma: PrismaClient,
     id: string,
-    data: TBody
+    data: TBody,
+    user: User | null
   ) => Promise<TResponse>,
   resourceName: string
 ) => {
@@ -29,7 +31,9 @@ export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
     log.info(`Updating ${resourceName} ${id}...`);
 
     const prisma = request.server.prisma;
-    const data = await serviceFn(prisma, id, body);
+    const user = request.currentUser ?? (null as User | null);
+
+    const data = await serviceFn(prisma, id, body, user);
 
     log.info(`${resourceName} ${id} updated successfully`);
 

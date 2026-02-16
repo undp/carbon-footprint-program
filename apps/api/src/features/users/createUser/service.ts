@@ -1,5 +1,5 @@
 import { type PrismaClient, Prisma } from "@repo/database";
-import type { CreateUserBody, CreateUserResponse } from "@repo/types";
+import type { CreateUserBody, CreateUserResponse, User } from "@repo/types";
 import { mapUserToResponse } from "../mappers.js";
 import {
   EmailAlreadyInUseError,
@@ -11,10 +11,13 @@ import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 export const createUserService = async (
   prismaClient: PrismaClient,
-  data: CreateUserBody
+  data: CreateUserBody,
+  user: User | null
 ): Promise<CreateUserResponse> => {
   try {
-    const user = await prismaClient.user.create({
+    const userId = user ? BigInt(user.id) : null;
+
+    const newUser = await prismaClient.user.create({
       data: {
         email: data.email,
         countryJobPositionId: data.countryJobPositionId
@@ -24,12 +27,12 @@ export const createUserService = async (
         lastName: data.lastName,
         idpUserId: data.idpUserId ?? null,
         idpName: data.idpName ?? null,
-        createdById: null,
-        updatedById: null,
+        createdById: userId,
+        updatedById: userId,
       },
     });
 
-    return mapUserToResponse(user);
+    return mapUserToResponse(newUser);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {

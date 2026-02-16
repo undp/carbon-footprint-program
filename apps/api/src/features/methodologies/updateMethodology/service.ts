@@ -3,7 +3,7 @@ import type {
   UpdateMethodologyRequest,
   UpdateMethodologyResponse,
 } from "@repo/types";
-import { MethodologyVersionStatus } from "@repo/types";
+import { MethodologyVersionStatus, type User } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNameVersionAlreadyExistsError,
@@ -15,7 +15,8 @@ import {
 export const updateMethodologyService = async (
   prismaClient: PrismaClient,
   id: string,
-  data: UpdateMethodologyRequest
+  data: UpdateMethodologyRequest,
+  user: User | null
 ): Promise<UpdateMethodologyResponse> => {
   const targetMethodology = await prismaClient.methodologyVersion.findUnique({
     where: { id: BigInt(id) },
@@ -54,9 +55,8 @@ export const updateMethodologyService = async (
   }
 
   // Only set updatedById if there are actual fields to update
-  // TODO: Replace null with actual logged-in user ID when auth is implemented
   if (Object.keys(updateData).length > 0) {
-    updateData.updatedById = null;
+    updateData.updatedById = user ? BigInt(user.id) : null;
   }
 
   try {

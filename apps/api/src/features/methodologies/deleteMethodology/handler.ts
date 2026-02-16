@@ -10,8 +10,9 @@ export const deleteMethodologyHandler = async (
   log.info({ methodologyId: request.params.id }, "Deleting methodology...");
 
   const prisma = request.server.prisma;
+  const user = request.currentUser ?? null;
 
-  await deleteMethodologyService(prisma, request.params.id);
+  await deleteMethodologyService(prisma, request.params.id, user);
 
   log.info(
     { methodologyId: request.params.id },

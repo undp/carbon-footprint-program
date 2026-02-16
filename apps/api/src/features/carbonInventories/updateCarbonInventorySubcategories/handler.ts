@@ -22,11 +22,13 @@ export const updateCarbonInventorySubcategoriesHandler = async (
   );
 
   const prisma = request.server.prisma;
+  const user = request.currentUser ?? null;
 
   const result = await updateCarbonInventorySubcategoriesService(
     prisma,
     carbonInventoryId,
-    request.body
+    request.body,
+    user
   );
 
   log.info(

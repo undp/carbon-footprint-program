@@ -10,13 +10,13 @@ import type { User } from "@repo/types";
 export const createGetAllHandler =
   <
     TResponse extends Array<unknown>,
-    TQuery extends Record<string, unknown> = Record<string, never>,
+    TQuery extends Record<string, unknown> | null = null,
   >(
     moduleName: string,
     serviceFn: (
       prisma: PrismaClient,
-      query?: TQuery,
-      user?: User | null
+      query: TQuery | null,
+      user: User | null
     ) => Promise<TResponse>,
     resourceName: string,
     treatEmptyAsNotFound: boolean = true
@@ -29,8 +29,8 @@ export const createGetAllHandler =
     log.info(`Getting all ${resourceName}...`);
 
     const prisma = request.server.prisma;
-    const user = request.currentUser;
-    const query = request.query as TQuery | undefined;
+    const user = request.currentUser ?? null;
+    const query = (request.query ?? null) as TQuery | null;
 
     // Call service with query params (if any)
     const data = await serviceFn(prisma, query, user);

@@ -3,6 +3,7 @@ import {
   type SyncCarbonInventoryLinesRequest,
   type SyncCarbonInventoryLinesResponse,
   CarbonInventoryLineStatus,
+  User,
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
@@ -21,7 +22,8 @@ import {
 export const syncCarbonInventoryLinesService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
-  request: SyncCarbonInventoryLinesRequest
+  request: SyncCarbonInventoryLinesRequest,
+  user: User | null
 ): Promise<SyncCarbonInventoryLinesResponse> => {
   // Validate carbon inventory exists
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
@@ -96,6 +98,8 @@ export const syncCarbonInventoryLinesService = async (
   const updatedLineIds: bigint[] = [];
   const deletedLineIds: string[] = [];
 
+  const userId = user ? BigInt(user.id) : null;
+
   await prismaClient.$transaction(async (tx) => {
     // 1. CREATE operations
     for (const createItem of request.create) {
@@ -104,8 +108,8 @@ export const syncCarbonInventoryLinesService = async (
           carbonInventoryId,
           subcategoryId: BigInt(createItem.subcategoryId),
           status: CarbonInventoryLineStatus.ACTIVE,
-          createdById: null,
-          updatedById: null,
+          createdById: userId,
+          updatedById: userId,
         },
       });
 
@@ -117,10 +121,11 @@ export const syncCarbonInventoryLinesService = async (
         tx,
         line.id,
         createItem,
-        inputType
+        inputType,
+        userId
       );
-      await createLineFactor(tx, newInput.id, createItem);
-      await createLineResult(tx, newInput.id, createItem, inputType);
+      await createLineFactor(tx, newInput.id, createItem, userId);
+      await createLineResult(tx, newInput.id, createItem, inputType, userId);
     }
 
     // 2. UPDATE operations
@@ -131,20 +136,29 @@ export const syncCarbonInventoryLinesService = async (
       // Mark old active input as inactive
       await tx.carbonInventoryLineInput.updateMany({
         where: { lineId, isActive: true },
-        data: { isActive: false, updatedById: null },
+        data: { isActive: false, updatedById: userId },
       });
 
       const inputType = updateItem.inputType;
-      const newInput = await createLineInput(tx, lineId, updateItem, inputType);
-      await createLineFactor(tx, newInput.id, updateItem);
-      await createLineResult(tx, newInput.id, updateItem, inputType);
+      const newInput = await createLineInput(
+        tx,
+        lineId,
+        updateItem,
+        inputType,
+        userId
+      );
+      await createLineFactor(tx, newInput.id, updateItem, userId);
+      await createLineResult(tx, newInput.id, updateItem, inputType, userId);
     }
 
     // 3. DELETE operations (soft delete)
     for (const deleteItem of request.delete) {
       await tx.carbonInventoryLine.update({
         where: { id: BigInt(deleteItem.id) },
-        data: { status: CarbonInventoryLineStatus.DELETED, updatedById: null },
+        data: {
+          status: CarbonInventoryLineStatus.DELETED,
+          updatedById: userId,
+        },
       });
       deletedLineIds.push(deleteItem.id);
     }

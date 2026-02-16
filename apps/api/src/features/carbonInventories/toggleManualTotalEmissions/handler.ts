@@ -21,12 +21,14 @@ export const toggleManualTotalEmissionsHandler = async (
   );
 
   const prisma = request.server.prisma;
+  const user = request.currentUser ?? null;
 
   await toggleManualTotalEmissionsService(
     prisma,
     carbonInventoryId,
     subcategoryId,
-    activated
+    activated,
+    user
   );
 
   log.info(

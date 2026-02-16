@@ -2,6 +2,7 @@ import { type PrismaClient, Prisma } from "@repo/database";
 import type {
   UpdateCarbonInventoryRequest,
   UpdateCarbonInventoryResponse,
+  User,
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { mapBigIntField } from "@/utils/bigint.js";
@@ -10,7 +11,8 @@ import { CarbonInventoryNotFoundError } from "../errors.js";
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,
   id: string,
-  data: UpdateCarbonInventoryRequest
+  data: UpdateCarbonInventoryRequest,
+  user: User | null
 ): Promise<UpdateCarbonInventoryResponse> => {
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.CarbonInventoryUncheckedUpdateInput = {};
@@ -60,9 +62,8 @@ export const updateCarbonInventoryService = async (
   }
 
   // Only set updatedById if there are actual fields to update
-  // TODO: Replace null with actual logged-in user ID when auth is implemented
   if (Object.keys(updateData).length > 0) {
-    updateData.updatedById = null;
+    updateData.updatedById = user ? BigInt(user.id) : null;
   }
 
   try {
