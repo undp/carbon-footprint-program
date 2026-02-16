@@ -1,4 +1,1 @@
-export {
-  CompanyAccreditationDialog,
-  type CompanyAccreditationFormData,
-} from "./CompanyAccreditationDialog";
+export { OrganizationFormDialog } from "./OrganizationFormDialog";
