@@ -25,6 +25,6 @@ export async function cleanupTestOrganization(
   await prisma.submissionSubjectOrganizationData.deleteMany();
   await prisma.submissionSubject.deleteMany();
   await prisma.organizationData.deleteMany();
-  await prisma.userOrganizationMembership.deleteMany();
+  await prisma.userOrganizationMembership.deleteMany(); // Cleanup memberships
   await prisma.organization.deleteMany();
 }
