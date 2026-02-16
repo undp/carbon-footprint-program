@@ -28,7 +28,7 @@ const OrganizationFormFieldSchema = z.discriminatedUnion("key", [
 export const GetOrganizationFormFieldsResponseSchema = z.object({
   fields: z
     .array(OrganizationFormFieldSchema)
-    .length(14)
+    .length(OrganizationMutationDataSchema.keyof().options.length)
     .describe("Array of form field definitions")
     .refine(
       (fields) => {
