@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type {
+import {
   GetOrganizationByIdParamsSchema,
   GetOrganizationByIdResponseSchema,
 } from "./schemas.js";
