@@ -15,3 +15,5 @@ export const PaginationMetadataSchema = z.object({
     .boolean()
     .describe("Whether there is a previous page (offset > 0)"),
 });
+
+export const PaginationSortOrderSchema = z.enum(["asc", "desc"]);

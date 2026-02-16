@@ -2,7 +2,10 @@ import { z } from "zod";
 import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
 
 import { IdSchema } from "../../../zod.js";
-import { PaginationMetadataSchema } from "../../../common/index.js";
+import {
+  PaginationMetadataSchema,
+  PaginationSortOrderSchema,
+} from "../../../common/index.js";
 
 // Organization list item for admin (with all fields)
 const AdminOrganizationListItemSchema = z.object({
@@ -42,7 +45,6 @@ const GetAllOrganizationsSortBySchema = z.enum([
 ]);
 
 // Sort order
-const GetAllOrganizationsSortOrderSchema = z.enum(["asc", "desc"]);
 
 // Query parameters
 export const GetAllOrganizationsQuerySchema = z.object({
@@ -60,7 +62,7 @@ export const GetAllOrganizationsQuerySchema = z.object({
     .describe("Starting offset for pagination"),
   sortBy:
     GetAllOrganizationsSortBySchema.optional().describe("Field to sort by"),
-  sortOrder: GetAllOrganizationsSortOrderSchema.optional()
+  sortOrder: PaginationSortOrderSchema.optional()
     .default("asc")
     .describe("Sort order (ascending or descending)"),
   statuses: z
