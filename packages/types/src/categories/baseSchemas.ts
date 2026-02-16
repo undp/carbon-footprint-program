@@ -25,10 +25,7 @@ export const CategorySchema = z
       .min(1, "Required field")
       .describe("The description of the category"),
     examples: z.string().nullable().describe("Optional examples text"),
-    position: z
-      .number()
-      .int()
-      .describe("The display position of the category"),
+    position: z.number().int().describe("The display position of the category"),
     status: CategoryStatusSchema.describe("The status of the category"),
     createdAt: z.iso.datetime().describe("The creation timestamp"),
     updatedAt: z.iso.datetime().describe("The last update timestamp"),
