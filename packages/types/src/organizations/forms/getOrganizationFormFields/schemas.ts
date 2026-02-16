@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { OrganizationMutationDataSchema } from "../../baseSchemas.js";
 
 // Form field schema
 const OrganizationFormFieldSchema = z.object({
-  fieldName: z.string().describe("Field name"),
+  fieldKey: OrganizationMutationDataSchema.keyof().describe("Field key"),
   required: z.boolean().describe("Whether the field is required"),
 });
 
