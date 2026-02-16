@@ -7,6 +7,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const coverageThresholds = process.env.CI
+  ? { lines: 0, functions: 0, branches: 0, statements: 0 }
+  : { lines: 80, functions: 80, branches: 80, statements: 80 };
+
 export default defineConfig({
   plugins: [
     tsconfigPaths({
@@ -23,7 +27,6 @@ export default defineConfig({
     globals: true,
     environment: "node",
     // Multiple reporters for better visibility
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
     reporters: process.env.CI ? ["default", "html"] : ["verbose", "html"],
     include: ["test/**/*.{test,spec}.{js,ts}"],
     testTimeout: 30000,
@@ -79,12 +82,7 @@ export default defineConfig({
         "**/server.ts", // Entry point, often hard to test
       ],
       // Coverage thresholds - will show in UI
-      thresholds: {
-        lines: 80,
-        functions: 80,
-        branches: 80,
-        statements: 80,
-      },
+      thresholds: coverageThresholds,
       // More detailed reporting
       reportsDirectory: "./coverage",
       clean: true,

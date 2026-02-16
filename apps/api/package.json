@@ -11,7 +11,7 @@
   },
   "scripts": {
     "pretest": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
-    "test": "vitest",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
     "predev": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
     "dev": "concurrently -n types,db,api -c cyan,magenta,green \"pnpm --filter @repo/types run dev\" \"pnpm --filter @repo/database run dev\" \"pnpm --filter api run dev:api-only\"",
