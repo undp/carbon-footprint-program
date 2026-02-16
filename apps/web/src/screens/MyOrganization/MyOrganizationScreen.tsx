@@ -149,6 +149,7 @@ export const MyOrganizationScreen: FC = () => {
                 representativePositionId:
                   organization?.representative.position.id,
                 representativePhone: organization?.representative.phone,
+                representativeEmail: organization?.representative.email,
               }}
             />
           </>

@@ -16,6 +16,7 @@ export interface CreateOrganizationBody {
   representativeTaxId: string;
   representativePositionId: string;
   representativePhone: string;
+  representativeEmail: string;
   mainActivityId: string;
 }
 
