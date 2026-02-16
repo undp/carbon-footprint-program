@@ -27,7 +27,7 @@ export const CompanyProfileSection: FC<CompanyProfileSectionProps> = ({
       }}
     >
       <InfoCard title={profile.name}>
-        <InfoRow label="RUT / RUC" value={profile.rut} />
+        <InfoRow label="RUT / RUC" value={profile.taxId} />
         <InfoRow label="Razón social" value={profile.legalName} />
         <InfoRow label="Rubro / Sector económico" value={profile.sector.name} />
         <InfoRow label="Sub-rubro" value={profile.subsector.name} />

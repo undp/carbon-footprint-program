@@ -13,7 +13,7 @@ export interface CreateOrganizationBody {
   employeeCount: string;
   address: string;
   representativeName: string;
-  representativeId: string;
+  representativeTaxId: string;
   representativePositionId: string;
   representativePhone: string;
   mainActivityId: string;

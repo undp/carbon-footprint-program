@@ -136,7 +136,7 @@ export const MyOrganizationScreen: FC = () => {
               initialData={{
                 legalName: organization?.legalName,
                 tradeName: organization?.tradeName,
-                taxId: organization?.rut,
+                taxId: organization?.taxId,
                 address: organization?.address,
                 sectorId: organization?.sector.id,
                 subsectorId: organization?.subsector.id,
@@ -145,7 +145,7 @@ export const MyOrganizationScreen: FC = () => {
                 mainActivityId: organization?.mainActivity.id,
                 employeeCount: organization?.employeeCount.toString(),
                 representativeName: organization?.representative.name,
-                representativeId: organization?.representative.taxId,
+                representativeTaxId: organization?.representative.taxId,
                 representativePositionId:
                   organization?.representative.position.id,
                 representativePhone: organization?.representative.phone,

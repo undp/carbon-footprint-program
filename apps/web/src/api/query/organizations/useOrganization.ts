@@ -6,7 +6,7 @@ const MOCK_ORGANIZATION_PROFILE = [
   {
     id: "org-123",
     name: "Cementera del Valle",
-    rut: "76.458.320-1",
+    taxId: "76.458.320-1",
     legalName: "Cementera del Valle S.A.",
     tradeName: "Cementera del Valle",
     sector: {
@@ -41,7 +41,7 @@ const MOCK_ORGANIZATION_PROFILE = [
   {
     id: "org-456",
     name: "Empresa Ejemplo S.A.",
-    rut: "76.123.456-7",
+    taxId: "76.123.456-7",
     legalName: "Empresa Ejemplo S.A.",
     tradeName: "Empresa Ejemplo",
     sector: {
@@ -92,7 +92,7 @@ export interface GetOrganizationResponse {
   id: string;
   name: string;
   tradeName: string;
-  rut: string;
+  taxId: string;
   legalName: string;
   sector: {
     id: string;
