@@ -27,6 +27,7 @@
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
+    "rimraf": "catalog:shared",
     "typescript": "catalog:shared"
   }
 }
