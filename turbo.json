@@ -62,6 +62,12 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
       "outputs": []
+    },
+    "@repo/database#lint": {
+      "cache": false,
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "*.ts"],
+      "outputs": []
     }
   }
 }
