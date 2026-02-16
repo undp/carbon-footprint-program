@@ -68,7 +68,7 @@ export async function setupTestDatabase(): Promise<{
 
   const baseUrl = container.getConnectionUri();
   const url = new URL(baseUrl);
-  url.searchParams.set("connection_limit", "1");
+  // url.searchParams.set("connection_limit", "1");
   const databaseUrl = url.toString();
 
   return { databaseUrl, container };
