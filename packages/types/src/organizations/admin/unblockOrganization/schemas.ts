@@ -7,4 +7,6 @@ export const UnblockOrganizationParamsSchema = z.object({
 });
 
 // Response schema (empty object for success)
-export const UnblockOrganizationResponseSchema = z.object({});
+export const UnblockOrganizationResponseSchema = z.object({
+  organizationId: IdSchema.describe("The unblocked organization ID"),
+});
