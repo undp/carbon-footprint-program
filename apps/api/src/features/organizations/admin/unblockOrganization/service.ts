@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { UnblockOrganizationResponse } from "@repo/types";
 import { OrganizationNotFoundError } from "../../errors.js";
+import { OrganizationStatus } from "@repo/database";
 
 /**
  * Unblock an organization by setting its status to ACTIVE.
@@ -23,7 +24,7 @@ export const unblockOrganizationService = async (
       id: BigInt(organizationId),
     },
     data: {
-      status: "ACTIVE",
+      status: OrganizationStatus.ACTIVE,
     },
   });
 

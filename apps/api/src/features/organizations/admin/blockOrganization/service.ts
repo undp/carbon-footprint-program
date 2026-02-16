@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { BlockOrganizationResponse } from "@repo/types";
 import { OrganizationNotFoundError } from "../../errors.js";
+import { OrganizationStatus } from "@repo/database";
 
 /**
  * Block an organization by setting its status to BLOCKED.
@@ -23,7 +24,7 @@ export const blockOrganizationService = async (
       id: BigInt(organizationId),
     },
     data: {
-      status: "BLOCKED",
+      status: OrganizationStatus.BLOCKED,
     },
   });
 
