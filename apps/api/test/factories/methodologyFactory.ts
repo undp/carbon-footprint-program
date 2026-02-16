@@ -57,7 +57,7 @@ export async function createEmptyMethodologyVersion(
   const countryId = await getTestCountryId(prisma);
 
   // Generate a unique name to avoid unique constraint violations on (country_id, name)
-  const baseName = options?.name ?? "Empty Methodology for Testing";
+  const baseName = options?.name ?? "Test - Empty Methodology for Testing";
   const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const uniqueName = `${baseName} ${randomSuffix}`;
 

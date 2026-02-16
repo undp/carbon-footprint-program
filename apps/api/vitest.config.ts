@@ -34,6 +34,7 @@ export default defineConfig({
     teardownTimeout: 10000,
     pool: "threads",
     maxWorkers: 1,
+    fileParallelism: false,
     globalSetup: ["./test/setup/globalSetup.ts"],
     // Better logging for UI
     logHeapUsage: true,

@@ -8,6 +8,7 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
+import { restoreMethodologies } from "@test/factories/methodologyCleaner.js";
 import type { CreateMethodologyResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -24,14 +25,13 @@ describe("POST /api/methodologies - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await restoreMethodologies(prisma);
     await prisma.$disconnect();
     await app.close();
   });
 
   beforeEach(async () => {
-    await prisma.methodologyVersion.deleteMany({
-      where: { name: { startsWith: "Test - " } },
-    });
+    await restoreMethodologies(prisma);
   });
 
   describe("Successful creation", () => {
