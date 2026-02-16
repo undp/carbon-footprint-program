@@ -80,7 +80,12 @@ export const GetAllOrganizationsQuerySchema = z.object({
     .describe("Sort order (ascending or descending)"),
   statuses: z
     .string()
-    .transform((val) => val.split(","))
+    .transform((val) =>
+      val
+        .split(",")
+        .map((status) => status.trim())
+        .filter(Boolean)
+    )
     .pipe(z.array(OrganizationDisplayStatusSchema))
     .optional()
     .describe(
