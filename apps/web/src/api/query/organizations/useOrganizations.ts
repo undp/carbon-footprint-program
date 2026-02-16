@@ -1,5 +1,4 @@
 import { organizationKeys } from "./keys";
-
 import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
 import { useQuery } from "@tanstack/react-query";
 
@@ -23,7 +22,7 @@ export interface GetAllOrganizationsResponse {
 export const useOrganizations = () =>
   useQuery<GetAllOrganizationsResponse[]>({
     queryKey: organizationKeys.all,
-    // queryFn: () => apiClient.get(`organizations`).json(),
+    // queryFn: () => apiClient.get(`organizations/me`).json(),
     queryFn: () => Promise.resolve(MOCK_ORGANIZATIONS),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
