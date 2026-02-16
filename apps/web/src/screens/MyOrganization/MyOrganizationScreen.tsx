@@ -1,52 +1,23 @@
 import { FC, useState, useCallback } from "react";
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Box } from "@mui/material";
+import { useQueryClient } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout";
 import {
   CompanyProfileSection,
-  BranchesSection,
+  CompanyProfileSectionSkeleton,
+  OrganizationHeader,
   UsersTableSection,
-  CompanyAccreditationDialog,
-  type CompanyAccreditationFormData,
+  UsersTableSectionSkeleton,
+  OrganizationFormDialog,
 } from "./components";
+import {
+  useOrganization,
+  organizationKeys,
+} from "../../api/query/organizations";
+import { NewOrganizationSection } from "./components/NewOrganizationSection";
+import { CreateOrganizationBody } from "../../api/query/organizations/useCreateOrganization";
 
 // Mock data matching Figma design
-const MOCK_COMPANY_PROFILE = {
-  name: "Cementera del Valle",
-  rut: "76.458.320-1",
-  legalName: "Cementera del Valle S.A.",
-  sector: "Industria manufacturera – Producción de cemento y clinker",
-  subSector: "Fabricación de cemento, cal y yeso (CIIU 2394)",
-  size: "Empresa grande",
-  mainActivity: "Producción y despacho de clinker y cemento",
-  address: "Camino Industrial 2450, Tiltil, Región Metropolitana, Chile",
-  region: "Metropolitana de Santiago",
-  employeeCount: 620,
-};
-
-const MOCK_BRANCHES = [
-  {
-    id: "1",
-    name: "Planta Tiltil",
-    region: "Metropolitana de Santiago",
-    type: "Planta principal",
-  },
-];
-
-const MOCK_REPRESENTATIVE = {
-  name: "Maria Fernanda Rivas Soto",
-  rut: "13.984.562-3",
-  position: "Gerenta de Sustentabilidad y Cumplimiento Ambiental",
-  email: "mfrivas@cementeradelvalle.cl",
-  phone: "+56 9 8354 8700",
-};
-
 const MOCK_USERS = [
   {
     id: "1",
@@ -69,28 +40,54 @@ const MOCK_USERS = [
 ];
 
 export const MyOrganizationScreen: FC = () => {
-  const [selectedBranch, setSelectedBranch] = useState(MOCK_BRANCHES[0].id);
-  const [accreditationDialogOpen, setAccreditationDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
-  const handleEditProfile = useCallback(() => {
-    setAccreditationDialogOpen(true);
+  // undefined = orgs loading, null = no orgs, string = selected org ID
+  const [activeOrganizationId, setActiveOrganizationId] = useState<
+    string | null
+  >();
+
+  const { data: organization } = useOrganization(activeOrganizationId ?? "");
+
+  const [formDialogMode, setFormDialogMode] = useState<
+    "create" | "edit" | "accreditation"
+  >("accreditation");
+
+  const [formDialogOpen, setFormDialogOpen] = useState(false);
+
+  const handleOrganizationChange = useCallback(
+    (organizationId: string | null) => {
+      setActiveOrganizationId(organizationId);
+    },
+    []
+  );
+
+  const onEditOrganizationProfile = useCallback(() => {
+    setFormDialogOpen(true);
+    setFormDialogMode("edit");
   }, []);
 
+  const handleOrganizationCreation = useCallback(
+    (data: CreateOrganizationBody) => {
+      setFormDialogOpen(false);
+      // eslint-disable-next-line no-console
+      console.log("Organization creation data submitted:", data);
+      void queryClient.invalidateQueries({
+        queryKey: organizationKeys.all,
+      });
+    },
+    [queryClient]
+  );
+
   const handleAccreditationSubmit = useCallback(
-    (data: CompanyAccreditationFormData) => {
+    (data: CreateOrganizationBody) => {
       // TODO: Implement API call to save data
-      setAccreditationDialogOpen(false);
+      setFormDialogOpen(false);
       // eslint-disable-next-line no-console
       console.log("Form submitted:", data);
     },
     []
   );
-
-  // TODO: Implement add branch modal
-  const handleAddBranch = useCallback(() => undefined, []);
-
-  // TODO: Implement edit branch modal
-  const handleEditBranch = useCallback((_id: string) => undefined, []);
 
   // TODO: Implement add user modal
   const handleAddUser = useCallback(() => undefined, []);
@@ -101,73 +98,67 @@ export const MyOrganizationScreen: FC = () => {
   // TODO: Implement delete user confirmation
   const handleDeleteUser = useCallback((_id: string) => undefined, []);
 
+  // No organizations exist
+  if (activeOrganizationId === null) {
+    return (
+      <MainLayout>
+        <NewOrganizationSection
+          handleOrganizationCreation={handleOrganizationCreation}
+        />
+      </MainLayout>
+    );
+  }
+
   return (
     <MainLayout>
       <Box className="flex flex-1 flex-col gap-6 p-6">
-        {/* Header with company name and branch selector */}
-        <Box className="flex items-center justify-between rounded-lg bg-white p-4">
-          <Typography variant="h5" fontWeight={700}>
-            {MOCK_COMPANY_PROFILE.name}
-          </Typography>
-          {/* TODO: Implement branch selector */}
-          {/* <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
-            <InputLabel id="branch-select-label">Sede/sucursal</InputLabel>
-            <Select
-              labelId="branch-select-label"
-              id="branch-select"
-              value={selectedBranch}
-              label="Sede/sucursal"
-              onChange={(e) => setSelectedBranch(e.target.value)}
-            >
-              {MOCK_BRANCHES.map((branch) => (
-                <MenuItem key={branch.id} value={branch.id}>
-                  {branch.name}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl> */}
-        </Box>
+        <OrganizationHeader onOrganizationChange={handleOrganizationChange} />
 
-        {/* Company Profile Section */}
-        <CompanyProfileSection
-          profile={MOCK_COMPANY_PROFILE}
-          representative={MOCK_REPRESENTATIVE}
-          onEdit={handleEditProfile}
-        />
+        {organization ? (
+          <>
+            <CompanyProfileSection
+              profile={organization}
+              representative={organization.representative}
+              onEdit={onEditOrganizationProfile}
+            />
 
-        {/* Branches Section */}
-        {/* <BranchesSection
-          branches={MOCK_BRANCHES}
-          onAdd={handleAddBranch}
-          onEdit={handleEditBranch}
-        /> */}
-
-        {/* Users Table Section */}
-        <UsersTableSection
-          users={MOCK_USERS}
-          onAdd={handleAddUser}
-          onEdit={handleEditUser}
-          onDelete={handleDeleteUser}
-        />
+            <UsersTableSection
+              users={MOCK_USERS}
+              onAdd={handleAddUser}
+              onEdit={handleEditUser}
+              onDelete={handleDeleteUser}
+            />
+            <OrganizationFormDialog
+              open={formDialogOpen}
+              onClose={() => setFormDialogOpen(false)}
+              onSubmit={handleAccreditationSubmit}
+              mode={formDialogMode}
+              initialData={{
+                legalName: organization?.legalName,
+                tradeName: organization?.tradeName,
+                taxId: organization?.rut,
+                address: organization?.address,
+                sectorId: organization?.sector.id,
+                subsectorId: organization?.subsector.id,
+                countryOrganizationSizeId:
+                  organization?.countryOrganizationSize.id,
+                mainActivityId: organization?.mainActivity.id,
+                employeeCount: organization?.employeeCount.toString(),
+                representativeName: organization?.representative.name,
+                representativeId: organization?.representative.taxId,
+                representativePositionId:
+                  organization?.representative.position.id,
+                representativePhone: organization?.representative.phone,
+              }}
+            />
+          </>
+        ) : (
+          <>
+            <CompanyProfileSectionSkeleton />
+            <UsersTableSectionSkeleton />
+          </>
+        )}
       </Box>
-
-      {/* Company Accreditation Dialog */}
-      <CompanyAccreditationDialog
-        open={accreditationDialogOpen}
-        onClose={() => setAccreditationDialogOpen(false)}
-        onSubmit={handleAccreditationSubmit}
-        mode="edit"
-        initialData={{
-          legalName: MOCK_COMPANY_PROFILE.legalName,
-          commercialName: MOCK_COMPANY_PROFILE.name,
-          taxId: MOCK_COMPANY_PROFILE.rut,
-          address: MOCK_COMPANY_PROFILE.address,
-          representativeName: MOCK_REPRESENTATIVE.name,
-          representativeId: MOCK_REPRESENTATIVE.rut,
-          representativePosition: MOCK_REPRESENTATIVE.position,
-          representativePhone: MOCK_REPRESENTATIVE.phone,
-        }}
-      />
     </MainLayout>
   );
 };
