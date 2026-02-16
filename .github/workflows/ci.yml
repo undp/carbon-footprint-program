@@ -3,13 +3,21 @@ name: CI
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
 jobs:
+  check-draft:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    steps:
+      - run: echo "Not a draft, proceeding"
+
   lint:
+    needs: check-draft
     name: Lint
     runs-on: ubuntu-latest
     steps:
@@ -23,6 +31,7 @@ jobs:
       - run: pnpm lint
 
   type-check:
+    needs: check-draft
     name: Type Check
     runs-on: ubuntu-latest
     steps:
@@ -36,6 +45,7 @@ jobs:
       - run: pnpm type-check
 
   format:
+    needs: check-draft
     name: Format Check
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +59,7 @@ jobs:
       - run: pnpm format:check
 
   test:
+    needs: check-draft
     name: Test
     runs-on: ubuntu-latest
     steps:
@@ -68,6 +79,7 @@ jobs:
           retention-days: 7
 
   build:
+    needs: check-draft
     name: Build
     runs-on: ubuntu-latest
     env:
