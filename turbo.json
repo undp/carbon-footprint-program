@@ -29,6 +29,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
