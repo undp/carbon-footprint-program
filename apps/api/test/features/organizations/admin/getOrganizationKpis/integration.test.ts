@@ -313,10 +313,10 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       const org3 = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
-      await createTestOrganizationData(prisma, org3.id);
+      const org3Data = await createTestOrganizationData(prisma, org3.id);
       await createTestOrganizationDataSubmission(
         prisma,
-        org3.id,
+        org3Data.id,
         SubmissionStatus.APPROVED
       );
 
@@ -329,18 +329,22 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
 
       // Sum of active and blocked organizations should equal total
-      const statusSum =
-        body.counts.filter((c) => c.status === OrganizationStatus.ACTIVE)[0]
-          .count +
-        body.counts.filter((c) => c.status === OrganizationStatus.BLOCKED)[0]
-          .count;
+      const statusSum = body.counts.reduce((acc, curr) => acc + curr.count, 0);
       expect(statusSum).toBe(body.total);
 
-      // Sum of not accredited and accredited organizations should equal total
-      const accreditationSum =
-        body.counts.filter((c) => c.accredited === false)[0].count +
-        body.counts.filter((c) => c.accredited === true)[0].count;
-      expect(accreditationSum).toBe(body.total);
+      // Sum of accredited organizations should equal 1
+      const accreditationSum = body.counts.reduce(
+        (acc, curr) => acc + (curr.accredited ? curr.count : 0),
+        0
+      );
+      expect(accreditationSum).toBe(1);
+
+      // Sum of not_accredited organizations should equal 2
+      const notAccreditedSum = body.counts.reduce(
+        (acc, curr) => acc + (!curr.accredited ? curr.count : 0),
+        0
+      );
+      expect(notAccreditedSum).toBe(2);
     });
   });
 });
