@@ -20,7 +20,7 @@ const AdminOrganizationListItemSchema = z.object({
   ),
   hasCarbonInventories: z
     .boolean()
-    .describe("Whether the organization has any carbon inventories"),
+    .describe("Whether the organization has any calculated carbon inventories"),
   lastEdition: z.iso.datetime().describe("organization.updated_at"),
   totalEmissions: z
     .number()
