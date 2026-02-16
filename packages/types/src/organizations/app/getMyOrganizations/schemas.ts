@@ -6,7 +6,6 @@ const OrganizationListItemSchema = z.object({
   name: z.string().describe("The organization name"),
 });
 
-// Response schema
 export const GetMyOrganizationsResponseSchema = z.array(
   OrganizationListItemSchema
 );
