@@ -6,7 +6,7 @@ export const BlockOrganizationParamsSchema = z.object({
   id: IdSchema.describe("The organization ID to block"),
 });
 
-// Response schema (empty object for success)
+// Response schema
 export const BlockOrganizationResponseSchema = z.object({
   organizationId: IdSchema.describe("The blocked organization ID"),
 });
