@@ -25,7 +25,7 @@ const AdminOrganizationListItemSchema = z.object({
   totalEmissions: z
     .number()
     .describe(
-      "SUM of all emissions from carbon_inventory_subtotals_view (COALESCE to 0)"
+      "SUM of all emissions from calculated carbon inventories (COALESCE to 0)"
     ),
 });
 
