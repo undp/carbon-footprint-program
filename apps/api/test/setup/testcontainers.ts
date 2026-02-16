@@ -63,7 +63,7 @@ export async function setupTestDatabase(): Promise<{
     .withDatabase(TEST_DATABASE_CONFIG.database)
     .withUsername(TEST_DATABASE_CONFIG.username)
     .withPassword(TEST_DATABASE_CONFIG.password)
-    .withStartupTimeout(120000) // 2 minutes
+    .withStartupTimeout(180000) // 3 minutes – accounts for first-run image pull in CI
     .start();
 
   const baseUrl = container.getConnectionUri();
