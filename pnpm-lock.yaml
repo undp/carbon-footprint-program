@@ -15,6 +15,9 @@ catalogs:
     pino:
       specifier: ^10.1.0
       version: 10.1.0
+    rimraf:
+      specifier: ^6.0.1
+      version: 6.1.2
     tsx:
       specifier: ^4.20.6
       version: 4.20.6
@@ -393,6 +396,9 @@ importers:
       eslint:
         specifier: catalog:shared
         version: 9.39.1(jiti@2.6.1)
+      rimraf:
+        specifier: catalog:shared
+        version: 6.1.2
       typescript:
         specifier: catalog:shared
         version: 5.9.3
