@@ -30,7 +30,7 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: CreateOrganizationBody) => void;
   mode?: DialogMode;
-  initialData?: Partial<CreateOrganizationBody>;
+  initialData?: CreateOrganizationBody;
   isSubmitting?: boolean;
 }
 
@@ -61,9 +61,10 @@ export const OrganizationFormDialog: FC<Props> = ({
         employeeCount: initialData?.employeeCount ?? "",
         address: initialData?.address ?? "",
         representativeName: initialData?.representativeName ?? "",
-        representativeId: initialData?.representativeId ?? "",
+        representativeTaxId: initialData?.representativeTaxId ?? "",
         representativePositionId: initialData?.representativePositionId ?? "",
         representativePhone: initialData?.representativePhone ?? "",
+        representativeEmail: initialData?.representativeEmail ?? "",
       },
     });
 
@@ -283,6 +284,16 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="representativePhone"
                   control={control}
                   label="Teléfono"
+                />
+              </Box>
+
+              {/* Row 3: Email  */}
+              <Box className="flex gap-6">
+                <FormTextField
+                  name="representativeEmail"
+                  control={control}
+                  label="Correo"
+                  className="max-w-1/2"
                 />
               </Box>
             </Box>
