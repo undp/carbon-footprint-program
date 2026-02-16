@@ -10,10 +10,15 @@
     }
   },
   "scripts": {
+    "build-deps": "pnpm --filter @repo/database run build",
     "dev": "tsc -p tsconfig.build.json --watch",
+    "prebuild": "pnpm build-deps",
     "build": "tsc -p tsconfig.build.json",
+    "prelint": "pnpm build-deps",
     "lint": "eslint .",
-    "type-check": "tsc --noEmit --project tsconfig.build.json"
+    "pretype-check": "pnpm build-deps",
+    "type-check": "tsc --noEmit --project tsconfig.build.json",
+    "clean": "rimraf dist"
   },
   "dependencies": {
     "@repo/database": "workspace:*",

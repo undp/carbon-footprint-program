@@ -51,10 +51,12 @@
       "outputs": []
     },
     "lint": {
+      "cache": false,
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
     "type-check": {
+      "cache": false,
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
       "outputs": []
     }
