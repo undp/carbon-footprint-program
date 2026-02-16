@@ -17,7 +17,8 @@
     "JWKS_AUDIENCE",
     "DEV",
     "IS_DEMO_APP",
-    "APP_VERSION"
+    "APP_VERSION",
+    "CI"
   ],
   "tasks": {
     "clean": {
@@ -28,6 +29,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
@@ -46,15 +48,26 @@
     },
     "test": {
       "cache": false,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*tests/**"],
       "outputs": []
     },
     "lint": {
+      "cache": false,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
     "type-check": {
+      "cache": false,
+      "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "tsconfig.json"],
+      "outputs": []
+    },
+    "@repo/database#lint": {
+      "cache": false,
+      "dependsOn": ["build"],
+      "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     }
   }
