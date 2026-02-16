@@ -265,7 +265,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   required
                 />
                 <FormTextField
-                  name="representativeId"
+                  name="representativeTaxId"
                   control={control}
                   label="ID representante"
                   required
