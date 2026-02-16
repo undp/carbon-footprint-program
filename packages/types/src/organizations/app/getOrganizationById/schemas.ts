@@ -6,7 +6,7 @@ import {
 } from "../../baseSchemas.js";
 
 // Representative details
-const RepresentativeDetailsSchema = z.object({
+const Representative = z.object({
   fullName: z.string().describe("Full name of the representative"),
   taxId: z.string().describe("Tax ID of the representative"),
   position: EntityReferenceSchema.describe(
@@ -38,7 +38,7 @@ const OrganizationDetailsSchema = z.object({
   ),
   address: z.string().nullable().describe("Physical address"),
   employeeCount: z.number().int().nullable().describe("Number of employees"),
-  representative: RepresentativeDetailsSchema.describe(
+  representative: Representative.describe(
     "Organization representative details"
   ),
 });
