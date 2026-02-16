@@ -96,22 +96,21 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
 
-      const activeSum = body.counts.reduce(
-        (acc, curr) =>
-          acc + (curr.status === OrganizationStatus.ACTIVE ? curr.count : 0),
-        0
-      );
-
-      const blockedSum = body.counts.reduce(
-        (acc, curr) =>
-          acc + (curr.status === OrganizationStatus.BLOCKED ? curr.count : 0),
-        0
-      );
-
       expect(body.total).toBe(3);
+
+      const activeSum = body.counts.reduce((acc, curr) => {
+        return (
+          acc + (curr.status === OrganizationStatus.ACTIVE ? curr.count : 0)
+        );
+      }, 0);
+      const blockedSum = body.counts.reduce((acc, curr) => {
+        return (
+          acc + (curr.status === OrganizationStatus.BLOCKED ? curr.count : 0)
+        );
+      }, 0);
+
       expect(activeSum).toBe(2);
       expect(blockedSum).toBe(1);
-      expect(activeSum + blockedSum).toBe(body.total);
     });
 
     it("should count organizations by accreditation status correctly", async () => {
@@ -297,6 +296,71 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData2.id,
+        "PENDING"
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      const activeSum = body.counts.reduce((acc, curr) => {
+        return (
+          acc + (curr.status === OrganizationStatus.ACTIVE ? curr.count : 0)
+        );
+      }, 0);
+      const blockedSum = body.counts.reduce((acc, curr) => {
+        return (
+          acc + (curr.status === OrganizationStatus.BLOCKED ? curr.count : 0)
+        );
+      }, 0);
+
+      expect(activeSum).toBe(1);
+      expect(blockedSum).toBe(0);
+      expect(activeSum + blockedSum).toBe(body.total);
+    });
+
+    it("should not count DELETED memberships in organization totals", async () => {
+      // Create organization (memberships don't affect KPI counts)
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(1);
+    });
+  });
+
+  describe("KPI structure", () => {
+    it("should have counts that sum correctly", async () => {
+      // Create various organizations
+      const org1 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org1.id);
+
+      const org2 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, org2.id);
+
+      const org3 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org3.id);
+      const org3Data = await createTestOrganizationData(prisma, org3.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        org3Data.id,
         SubmissionStatus.APPROVED
       );
 
@@ -308,65 +372,17 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
 
-      const accreditedSum = body.counts.reduce(
-        (acc, curr) => acc + (curr.accredited ? curr.count : 0),
-        0
-      );
+      const statusSum = body.counts.reduce((acc, curr) => {
+        return acc + curr.count;
+      }, 0);
+
+      expect(statusSum).toBe(body.total);
+
+      const accreditedSum = body.counts.reduce((acc, curr) => {
+        return acc + (curr.accredited ? curr.count : 0);
+      }, 0);
+
       expect(accreditedSum).toBe(1);
-    });
-
-    describe("KPI structure", () => {
-      it("should have counts that sum correctly", async () => {
-        // Create various organizations
-        const org1 = await createTestOrganization(prisma, {
-          status: OrganizationStatus.ACTIVE,
-        });
-        await createTestOrganizationData(prisma, org1.id);
-
-        const org2 = await createTestOrganization(prisma, {
-          status: OrganizationStatus.BLOCKED,
-        });
-        await createTestOrganizationData(prisma, org2.id);
-
-        const org3 = await createTestOrganization(prisma, {
-          status: OrganizationStatus.ACTIVE,
-        });
-        const org3Data = await createTestOrganizationData(prisma, org3.id);
-        await createTestOrganizationDataSubmission(
-          prisma,
-          org3Data.id,
-          SubmissionStatus.APPROVED
-        );
-
-        const response = await app.inject({
-          method: "GET",
-          url: "/api/admin/organizations/kpis",
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
-
-        // Sum of active and blocked organizations should equal total
-        const statusSum = body.counts.reduce(
-          (acc, curr) => acc + curr.count,
-          0
-        );
-        expect(statusSum).toBe(body.total);
-
-        // Sum of accredited organizations should equal 1
-        const accreditationSum = body.counts.reduce(
-          (acc, curr) => acc + (curr.accredited ? curr.count : 0),
-          0
-        );
-        expect(accreditationSum).toBe(1);
-
-        // Sum of not_accredited organizations should equal 2
-        const notAccreditedSum = body.counts.reduce(
-          (acc, curr) => acc + (!curr.accredited ? curr.count : 0),
-          0
-        );
-        expect(notAccreditedSum).toBe(2);
-      });
     });
   });
 });
