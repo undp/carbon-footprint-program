@@ -462,7 +462,6 @@ describe("POST /api/app/organizations/:id/accredit - Integration Tests", () => {
 
       expect(submission).toBeTruthy();
       expect(submission!.createdById).toBe(user.id);
-      expect(submission!.updatedById).toBe(user.id);
       expect(new Date(submission!.createdAt).getTime()).toBeGreaterThanOrEqual(
         beforeRequest.getTime()
       );

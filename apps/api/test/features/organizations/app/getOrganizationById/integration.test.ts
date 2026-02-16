@@ -359,46 +359,47 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(body.representative.position.name).toBeTruthy();
     });
 
-  describe("Entity references", () => {
-    it("should include entity reference format for related entities", async () => {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.ACTIVE,
+    describe("Entity references", () => {
+      it("should include entity reference format for related entities", async () => {
+        const org = await createTestOrganization(prisma, {
+          status: OrganizationStatus.ACTIVE,
+        });
+        await createTestOrganizationData(prisma, org.id);
+
+        const response = await app.inject({
+          method: "GET",
+          url: `/api/app/organizations/${org.id.toString()}`,
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetOrganizationByIdResponse;
+
+        // Representative position is always present
+        expect(body.representative.position).toBeDefined();
+        expect(body.representative.position.id).toBeTruthy();
+        expect(body.representative.position.name).toBeTruthy();
+
+        // Optional references should be null or have both id and name
+        if (body.sector !== null) {
+          expect(body.sector.id).toBeTruthy();
+          expect(body.sector.name).toBeTruthy();
+        }
+
+        if (body.subsector !== null) {
+          expect(body.subsector.id).toBeTruthy();
+          expect(body.subsector.name).toBeTruthy();
+        }
+
+        if (body.countryOrganizationSize !== null) {
+          expect(body.countryOrganizationSize.id).toBeTruthy();
+          expect(body.countryOrganizationSize.name).toBeTruthy();
+        }
+
+        if (body.mainActivity !== null) {
+          expect(body.mainActivity.id).toBeTruthy();
+          expect(body.mainActivity.name).toBeTruthy();
+        }
       });
-      await createTestOrganizationData(prisma, org.id);
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/app/organizations/${org.id.toString()}`,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetOrganizationByIdResponse;
-
-      // Representative position is always present
-      expect(body.representative.position).toBeDefined();
-      expect(body.representative.position.id).toBeTruthy();
-      expect(body.representative.position.name).toBeTruthy();
-
-      // Optional references should be null or have both id and name
-      if (body.sector !== null) {
-        expect(body.sector.id).toBeTruthy();
-        expect(body.sector.name).toBeTruthy();
-      }
-
-      if (body.subsector !== null) {
-        expect(body.subsector.id).toBeTruthy();
-        expect(body.subsector.name).toBeTruthy();
-      }
-
-      if (body.countryOrganizationSize !== null) {
-        expect(body.countryOrganizationSize.id).toBeTruthy();
-        expect(body.countryOrganizationSize.name).toBeTruthy();
-      }
-
-      if (body.mainActivity !== null) {
-        expect(body.mainActivity.id).toBeTruthy();
-        expect(body.mainActivity.name).toBeTruthy();
-      }
     });
   });
 });

@@ -41,7 +41,7 @@ import {
 import type { OrganizationMutationData } from "@repo/types";
 
 export const getPendingOrganizationData = (
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
 ) => {
   return prisma.organizationData.findFirst({
@@ -62,7 +62,7 @@ export const getPendingOrganizationData = (
 };
 
 export const getDraftOrganizationData = (
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
 ) => {
   return prisma.organizationData.findFirst({
@@ -75,7 +75,7 @@ export const getDraftOrganizationData = (
 };
 
 export const getApprovedOrganizationData = (
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
 ) => {
   return prisma.organizationData.findFirst({
@@ -96,7 +96,7 @@ export const getApprovedOrganizationData = (
 };
 
 export const getRejectedOrganizationData = (
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
 ) => {
   return prisma.organizationData.findFirst({

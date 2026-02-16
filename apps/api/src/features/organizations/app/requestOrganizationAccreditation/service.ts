@@ -12,6 +12,10 @@ import {
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
 } from "../../errors.js";
+import {
+  createOrganizationDataSubmission,
+  getPendingOrganizationData,
+} from "../../helpers.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -53,46 +57,19 @@ export const requestOrganizationAccreditationService = async (
       throw new OrganizationDataNotFoundError(organizationId);
     }
 
-    // Check if submission already exists for this org data
-    const hasSubmission = await tx.submission.findFirst({
-      where: {
-        subject: {
-          organizationData: { organizationDataId: activeData.id },
-        },
-      },
-      select: { id: true },
-    });
-
-    if (hasSubmission) {
+    const existingSubmission = await getPendingOrganizationData(
+      tx,
+      organizationId
+    );
+    if (existingSubmission) {
       throw new SubmissionAlreadyExistsError(organizationId);
     }
 
-    // Create submission chain (Subject → Link → Submission)
-    // 1. Create submission subject
-    const subject = await tx.submissionSubject.create({
-      data: {
-        subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
-        createdById: BigInt(userId),
-      },
-    });
-
-    // 2. Link subject to organization data
-    await tx.submissionSubjectOrganizationData.create({
-      data: {
-        subjectId: subject.id,
-        organizationDataId: activeData.id,
-      },
-    });
-
-    // 3. Create submission
-    await tx.submission.create({
-      data: {
-        subjectId: subject.id,
-        status: SubmissionStatus.PENDING,
-        createdById: BigInt(userId),
-        updatedById: BigInt(userId),
-      },
-    });
+    await createOrganizationDataSubmission(
+      tx,
+      activeData.id.toString(),
+      userId
+    );
 
     return {};
   });
