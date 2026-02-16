@@ -10,12 +10,20 @@ const OrganizationKpiCountSchema = z.object({
   withInventories: z
     .boolean()
     .describe("Whether the organization has carbon inventories"),
-  count: z.number().int().describe("Number of organizations matching criteria"),
+  count: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("Number of organizations matching criteria"),
 });
 
 // Response schema
 export const GetOrganizationKpisResponseSchema = z.object({
-  total: z.number().int().describe("Total number of organizations"),
+  total: z
+    .number()
+    .int()
+    .nonnegative()
+    .describe("Total number of organizations"),
   counts: z
     .array(OrganizationKpiCountSchema)
     .describe(
