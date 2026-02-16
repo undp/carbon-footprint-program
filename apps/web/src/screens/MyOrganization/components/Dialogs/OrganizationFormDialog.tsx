@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback, useMemo } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -13,34 +13,24 @@ import {
 } from "@mui/material";
 import { Close, InfoOutlined } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
-import { FormTextField, FormSelectField } from "@/components";
+import {
+  FormTextField,
+  FormSelectField,
+  FormAutocompleteField,
+} from "@/components";
 import { useOrganizationData } from "@/hooks";
-
-export type CompanyAccreditationFormData = {
-  // Organization data
-  legalName: string;
-  commercialName: string;
-  taxId: string;
-  organizationType: string;
-  economicSector: string;
-  subSector: string;
-  employeeCount: string;
-  address: string;
-  // Representative data
-  representativeName: string;
-  representativeId: string;
-  representativePosition: string;
-  representativePhone: string;
-};
+import { DevTool } from "@hookform/devtools";
+import { IS_DEVELOPMENT } from "../../../../config/environment";
+import { CreateOrganizationBody } from "../../../../api/query/organizations/useCreateOrganization";
 
 type DialogMode = "create" | "edit" | "accreditation";
 
-interface CompanyAccreditationDialogProps {
+interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: CompanyAccreditationFormData) => void;
+  onSubmit: (data: CreateOrganizationBody) => void;
   mode?: DialogMode;
-  initialData?: Partial<CompanyAccreditationFormData>;
+  initialData?: Partial<CreateOrganizationBody>;
   isSubmitting?: boolean;
 }
 
@@ -50,9 +40,7 @@ const DIALOG_TITLES: Record<DialogMode, string> = {
   accreditation: "Acreditación de la empresa",
 };
 
-export const CompanyAccreditationDialog: FC<
-  CompanyAccreditationDialogProps
-> = ({
+export const OrganizationFormDialog: FC<Props> = ({
   open,
   onClose,
   onSubmit,
@@ -61,25 +49,26 @@ export const CompanyAccreditationDialog: FC<
   isSubmitting = false,
 }) => {
   const { control, handleSubmit, reset, watch } =
-    useForm<CompanyAccreditationFormData>({
+    useForm<CreateOrganizationBody>({
       defaultValues: {
         legalName: initialData?.legalName ?? "",
-        commercialName: initialData?.commercialName ?? "",
+        tradeName: initialData?.tradeName ?? "",
         taxId: initialData?.taxId ?? "",
-        organizationType: initialData?.organizationType ?? "",
-        economicSector: initialData?.economicSector ?? "",
-        subSector: initialData?.subSector ?? "",
+        countryOrganizationSizeId: initialData?.countryOrganizationSizeId ?? "",
+        sectorId: initialData?.sectorId ?? "",
+        subsectorId: initialData?.subsectorId ?? "",
+        mainActivityId: initialData?.mainActivityId ?? "",
         employeeCount: initialData?.employeeCount ?? "",
         address: initialData?.address ?? "",
         representativeName: initialData?.representativeName ?? "",
         representativeId: initialData?.representativeId ?? "",
-        representativePosition: initialData?.representativePosition ?? "",
+        representativePositionId: initialData?.representativePositionId ?? "",
         representativePhone: initialData?.representativePhone ?? "",
       },
     });
 
   // Watch the selected sector to filter subsectors
-  const selectedSectorId = watch("economicSector");
+  const selectedSectorId = watch("sectorId");
 
   // Fetch organization data from API
   const {
@@ -88,18 +77,36 @@ export const CompanyAccreditationDialog: FC<
     companySizeOptions,
     sectorsLoading,
     organizationSizesLoading,
+    activityOptions,
+    activitiesLoading,
   } = useOrganizationData({
     selectedSectorId,
   });
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     reset();
     onClose();
-  };
+  }, [reset, onClose]);
 
-  const handleFormSubmit = (data: CompanyAccreditationFormData) => {
-    onSubmit(data);
-  };
+  const handleFormSubmit = useCallback(
+    (data: CreateOrganizationBody) => {
+      onSubmit(data);
+    },
+    [onSubmit]
+  );
+
+  const buttonActionLabel = useMemo(() => {
+    switch (mode) {
+      case "create":
+        return "Crear";
+      case "edit":
+        return "Guardar cambios";
+      case "accreditation":
+        return "Enviar";
+      default:
+        return "Guardar";
+    }
+  }, [mode]);
 
   return (
     <Dialog
@@ -161,7 +168,7 @@ export const CompanyAccreditationDialog: FC<
                   required
                 />
                 <FormTextField
-                  name="commercialName"
+                  name="tradeName"
                   control={control}
                   label="Nombre comercial"
                 />
@@ -176,7 +183,7 @@ export const CompanyAccreditationDialog: FC<
                   required
                 />
                 <FormSelectField
-                  name="organizationType"
+                  name="countryOrganizationSizeId"
                   control={control}
                   label="Tipo / Tamaño organización"
                   options={companySizeOptions}
@@ -187,14 +194,14 @@ export const CompanyAccreditationDialog: FC<
               {/* Row 3: Economic Sector + Sub-sector */}
               <Box className="flex gap-6">
                 <FormSelectField
-                  name="economicSector"
+                  name="sectorId"
                   control={control}
                   label="Rubro / Sector económico"
                   options={sectorOptions}
                   disabled={sectorsLoading}
                 />
                 <FormSelectField
-                  name="subSector"
+                  name="subsectorId"
                   control={control}
                   label="Sub-rubro"
                   options={subsectorSelectOptions}
@@ -208,17 +215,27 @@ export const CompanyAccreditationDialog: FC<
 
               {/* Row 4: Employee Count + Address */}
               <Box className="flex gap-6">
-                <FormSelectField
+                <FormTextField
                   name="employeeCount"
                   control={control}
                   label="Cantidad de trabajadores"
-                  options={companySizeOptions}
                   disabled={organizationSizesLoading}
                 />
                 <FormTextField
                   name="address"
                   control={control}
                   label="Dirección / Región"
+                />
+              </Box>
+              <Box className="flex gap-6">
+                <FormAutocompleteField
+                  name="mainActivityId"
+                  control={control}
+                  label={"Actividad principal del negocio"}
+                  labelId="activity-label"
+                  options={activityOptions}
+                  loading={activitiesLoading}
+                  disabled={activitiesLoading || activityOptions.length === 0}
                 />
               </Box>
             </Box>
@@ -258,7 +275,7 @@ export const CompanyAccreditationDialog: FC<
               {/* Row 2: Position + Phone */}
               <Box className="flex gap-6">
                 <FormTextField
-                  name="representativePosition"
+                  name="representativePositionId"
                   control={control}
                   label="Cargo"
                 />
@@ -287,10 +304,11 @@ export const CompanyAccreditationDialog: FC<
             color="primary"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Enviando..." : "ENVIAR"}
+            {buttonActionLabel}
           </Button>
         </DialogActions>
       </form>
+      {IS_DEVELOPMENT && <DevTool control={control} />}
     </Dialog>
   );
 };
