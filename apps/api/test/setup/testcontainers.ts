@@ -68,6 +68,7 @@ export async function setupTestDatabase(): Promise<{
 
   const baseUrl = container.getConnectionUri();
   const url = new URL(baseUrl);
+  // Note: connection_limit is not set; Vitest runs files sequentially (fileParallelism: false).
   // url.searchParams.set("connection_limit", "1");
   const databaseUrl = url.toString();
 
