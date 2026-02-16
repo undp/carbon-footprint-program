@@ -8,6 +8,7 @@ import {
 } from "@repo/database";
 import {
   OrganizationAccessDeniedError,
+  OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
 } from "../../errors.js";
@@ -17,6 +18,15 @@ export const requestOrganizationAccreditationService = async (
   organizationId: string,
   userId: string
 ): Promise<RequestOrganizationAccreditationResponse> => {
+  const organization = await prismaClient.organization.findUnique({
+    where: {
+      id: BigInt(organizationId),
+    },
+  });
+
+  if (!organization) {
+    throw new OrganizationNotFoundError(organizationId);
+  }
   // Verify user has ACTIVE membership
   const membership = await prismaClient.userOrganizationMembership.findFirst({
     where: {
@@ -40,7 +50,7 @@ export const requestOrganizationAccreditationService = async (
     });
 
     if (!activeData) {
-      throw new OrganizationNotFoundError(organizationId);
+      throw new OrganizationDataNotFoundError(organizationId);
     }
 
     // Check if submission already exists for this org data
