@@ -64,11 +64,13 @@ export const GetAllOrganizationsQuerySchema = z.object({
   limit: z
     .string()
     .regex(/^\d+$/, "Limit must be a valid number")
+    .transform((val) => Number(val))
     .optional()
     .describe("Number of records per page"),
   offset: z
     .string()
     .regex(/^\d+$/, "Offset must be a valid number")
+    .transform((val) => Number(val))
     .optional()
     .describe("Starting offset for pagination"),
   sortBy:
