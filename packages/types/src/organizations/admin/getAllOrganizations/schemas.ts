@@ -3,8 +3,8 @@ import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
 
 import { IdSchema } from "../../../zod.js";
 import {
-  PaginationMetadataSchema,
-  PaginationSortOrderSchema,
+  BasePaginatedResponseSchema,
+  BasePaginationQuerySchema,
 } from "../../../common/index.js";
 
 // Organization list item for admin (with all fields)
@@ -47,24 +47,9 @@ const GetAllOrganizationsSortBySchema = z.enum([
 // Sort order
 
 // Query parameters
-export const GetAllOrganizationsQuerySchema = z.object({
-  limit: z
-    .string()
-    .regex(/^\d+$/, "Limit must be a valid number")
-    .transform((val) => Number(val))
-    .optional()
-    .describe("Number of records per page"),
-  offset: z
-    .string()
-    .regex(/^\d+$/, "Offset must be a valid number")
-    .transform((val) => Number(val))
-    .optional()
-    .describe("Starting offset for pagination"),
+export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
   sortBy:
     GetAllOrganizationsSortBySchema.optional().describe("Field to sort by"),
-  sortOrder: PaginationSortOrderSchema.optional()
-    .default("asc")
-    .describe("Sort order (ascending or descending)"),
   statuses: z
     .string()
     .transform((val) =>
@@ -82,7 +67,7 @@ export const GetAllOrganizationsQuerySchema = z.object({
 
 // Response schema
 export const GetAllOrganizationsResponseSchema =
-  PaginationMetadataSchema.extend({
+  BasePaginatedResponseSchema.extend({
     data: z
       .array(AdminOrganizationListItemSchema)
       .describe("Array of organizations"),

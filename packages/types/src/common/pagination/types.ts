@@ -1,8 +1,9 @@
 import { z } from "zod";
 import {
-  PaginationMetadataSchema,
-  PaginationSortOrderSchema,
+  BasePaginatedResponseSchema,
+  BasePaginationQuerySchema,
 } from "./schemas.js";
 
-export type PaginationMetadata = z.infer<typeof PaginationMetadataSchema>;
-export type PaginationSortOrder = z.infer<typeof PaginationSortOrderSchema>;
+export type BasePaginatedResponse = z.infer<typeof BasePaginatedResponseSchema>;
+
+export type BasePaginationQuery = z.infer<typeof BasePaginationQuerySchema>;

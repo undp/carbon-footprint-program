@@ -9,7 +9,7 @@ const OrganizationKpiCountSchema = z.object({
   accredited: z.boolean().describe("Whether the organization is accredited"),
   withInventories: z
     .boolean()
-    .describe("Whether the organization has carbon inventories"),
+    .describe("Whether the organization has calculated carbon inventories"),
   count: z
     .number()
     .int()
@@ -27,6 +27,6 @@ export const GetOrganizationKpisResponseSchema = z.object({
   counts: z
     .array(OrganizationKpiCountSchema)
     .describe(
-      "Breakdown of organizations by status, accreditation, and inventories"
+      "Breakdown of organizations by status, accreditation, and calculated carbon inventories"
     ),
 });
