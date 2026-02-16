@@ -5,9 +5,14 @@ export const restoreMethodologies = async (prisma: PrismaClient) => {
     where: { name: { startsWith: "Test - " } },
   });
   const initialMethodology = await prisma.methodologyVersion.findFirst();
+  if (!initialMethodology) {
+    throw new Error(
+      "restoreMethodologies: no MethodologyVersion found after cleanup — expected at least one seeded record"
+    );
+  }
   await prisma.methodologyVersion.update({
     where: {
-      id: initialMethodology!.id,
+      id: initialMethodology.id,
     },
     data: {
       status: MethodologyVersionStatus.PUBLISHED,
