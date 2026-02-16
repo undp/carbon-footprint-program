@@ -261,6 +261,7 @@ model User {
   memberships                          UserOrganizationMembership[]   @relation("user_memberships")
   membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
   membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
+  filesUploaded                        File[]                         @relation("file_uploaded_by")
 
   @@map("user")
 }
@@ -533,6 +534,7 @@ model CarbonInventory {
   subtotals            CarbonInventorySubtotalsView[]
   organization         Organization?                     @relation(fields: [organizationId], references: [id])
   submission           SubmissionSubjectCarbonInventory?
+  files                CarbonInventoryFile[]
 
   @@map("carbon_inventory")
 }
@@ -684,6 +686,7 @@ model Organization {
   data              OrganizationData[]
   carbonInventories CarbonInventory[]
   memberships       UserOrganizationMembership[]
+  files             OrganizationFile[]
 
   @@map("organization")
 }
@@ -731,6 +734,59 @@ model OrganizationData {
   // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'
   // - UNIQUE INDEX on organization_id WHERE status IN ('DRAFT', 'SUBMITTED')
   @@map("organization_data")
+}
+
+enum FileOwnerType {
+  ORGANIZATION
+  CARBON_INVENTORY
+
+  @@map("file_owner_type")
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+
+  @@map("file_status")
+}
+
+model File {
+  id           BigInt        @id @default(autoincrement())
+  ownerType    FileOwnerType @map("owner_type")
+  originalName String        @map("original_name")
+  mimeType     String        @map("mime_type")
+  sizeBytes    Int           @map("size_bytes")
+  blobPath     String        @map("blob_path")
+  status       FileStatus    @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @default(now()) @updatedAt @map("updated_at")
+  uploadedById BigInt        @map("uploaded_by_id")
+
+  uploadedBy          User                 @relation("file_uploaded_by", fields: [uploadedById], references: [id])
+  organizationFile    OrganizationFile?
+  carbonInventoryFile CarbonInventoryFile?
+
+  @@map("file")
+}
+
+model OrganizationFile {
+  fileId         BigInt       @id @map("file_id")
+  organizationId BigInt       @map("organization_id")
+
+  file         File         @relation(fields: [fileId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("organization_file")
+}
+
+model CarbonInventoryFile {
+  fileId            BigInt          @id @map("file_id")
+  carbonInventoryId BigInt          @map("carbon_inventory_id")
+
+  file            File            @relation(fields: [fileId], references: [id])
+  carbonInventory CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
+
+  @@map("carbon_inventory_file")
 }
 
 enum SubmissionSubjectType {
