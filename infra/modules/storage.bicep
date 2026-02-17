@@ -33,6 +33,22 @@ resource storage 'Microsoft.Storage/storageAccounts@2025-06-01' = {
   }
   tags: tags
 }
+
+// Blob service (required parent for containers)
+resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-06-01' = {
+  parent: storage
+  name: 'default'
+}
+
+// Container for uploaded files (organization docs, carbon inventory certifications, etc.)
+resource filesContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2025-06-01' = {
+  parent: blobService
+  name: 'files'
+  properties: {
+    publicAccess: 'None'
+  }
+}
+
 output name string = storage.name
 output id string = storage.id
 output blobUri string = storage.properties.primaryEndpoints.blob
