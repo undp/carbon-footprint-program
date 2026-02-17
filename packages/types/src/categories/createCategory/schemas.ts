@@ -10,7 +10,7 @@ export const CreateCategoryRequestSchema = z
     ),
     name: z.string().min(1).max(255).describe("The name of the category"),
     icon: z.string().min(1).max(255).describe("The icon identifier"),
-    color: z.string().min(1).max(50).describe("The color code"),
+    color: z.string().min(1).max(50).describe("The color code in HEX format"),
     synonyms: z.string().describe("Comma-separated synonyms"),
     description: z.string().min(1).describe("The description of the category"),
     examples: z
