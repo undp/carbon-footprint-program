@@ -31,3 +31,9 @@
 
 
 ## 5.- Desgloce de los factores de emisión
+
+## 6.- Tips generales
+### Ej: En chile en el AC de afuera sale que tipo de gas utiliza
+
+## 7.- Links: 
+[Emol](https://www.emol.com/)

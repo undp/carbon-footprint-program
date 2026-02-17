@@ -4,7 +4,6 @@ import remarkMath from 'remark-math'
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 
-
 import "/src/styles/editor.css";
 
 
@@ -13,13 +12,15 @@ import {
   headingsPlugin,
   listsPlugin,
   quotePlugin,
+  linkPlugin,
   thematicBreakPlugin,
   markdownShortcutPlugin,
   toolbarPlugin,
   BoldItalicUnderlineToggles,
   BlockTypeSelect,
   ListsToggle,
-  UndoRedo
+  UndoRedo,
+  CreateLink 
 } from '@mdxeditor/editor'
 
 export default function Editor() {
@@ -27,7 +28,7 @@ export default function Editor() {
   const [editorKey, setEditorKey] = useState(0)
 
   function loadMarkdown() {
-    fetch('/example_file.md')
+    fetch('/subcategories/general_structure.md')
       .then(res => res.text())
       .then(text => {
         setContent(text)
@@ -61,6 +62,9 @@ export default function Editor() {
                 quotePlugin(),
                 thematicBreakPlugin(),
                 markdownShortcutPlugin(),
+                linkPlugin({
+                  openLinkDialogOnCreate: true
+                }),
                 toolbarPlugin({
                   toolbarContents: () => (
                     <>
@@ -68,6 +72,7 @@ export default function Editor() {
                       <BlockTypeSelect />
                       <BoldItalicUnderlineToggles />
                       <ListsToggle />
+                      <CreateLink />
                     </>
                   )
                 })
