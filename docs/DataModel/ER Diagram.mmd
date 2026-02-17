@@ -191,30 +191,34 @@ erDiagram
 		BIGINT country_id FK ""
 		string name  ""
 		string description  ""
-		enum status "ACTIVE | DELETED"
+		string regulation ""
+		string version ""
+		enum status "PUBLISHED | UNPUBLISHED | DELETED"
 		timestamptz created_at  ""
-		timestamptz updated_at  ""
-		BIGINT created_by FK ""
-		BIGINT updated_by FK ""
+		timestamptz updated_at  "NULLABLE"
+		BIGINT created_by_id FK "NULLABLE"
+		BIGINT updated_by_id FK "NULLABLE"
 		%% Enforce via trigger at most 1 active per country
 	}
 
 	category {
 		BIGINT id PK ""
 		BIGINT methodology_version_id FK ""
-		string name  ""
+		string name ""
+		string icon ""
 		%% just for displaying
-		string synonyms "NULLABLE"
+		string synonyms ""
 		%% just for displaying
-		string description "NULLABLE"
+		string description ""
 		%% just for displaying
-		string examples "NULLABLE"
+		string examples ""
 		%% Position must be > 0 (enforced by DB CHECK constraint)
 		int position ""
+		status "ACTIVE | DELETED"
 		timestamptz created_at  ""
-		timestamptz updated_at  ""
-		BIGINT created_by FK "NULLABLE"
-		BIGINT updated_by FK "NULLABLE"
+		timestamptz updated_at  "NULLABLE"
+		BIGINT created_by_id FK "NULLABLE"
+		BIGINT updated_by_id FK "NULLABLE"
 		%% UNIQUE(methodology_version_id, name)
 		%% UNIQUE(methodology_version_id, position)
 	}
