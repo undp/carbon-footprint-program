@@ -1,13 +1,13 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
   CategoryStatus,
+  User,
   type UpdateCategoryRequest,
   type UpdateCategoryResponse,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
 import {
   CategoryNotFoundError,
-  CategoryIsDeletedError,
   CategoryNameAlreadyExistsError,
   CategoryPositionAlreadyExistsError,
   getDuplicatedFieldsFromP2002Error,
@@ -16,19 +16,19 @@ import {
 export const updateCategoryService = async (
   prismaClient: PrismaClient,
   id: string,
-  data: UpdateCategoryRequest
+  data: UpdateCategoryRequest,
+  user: User | null
 ): Promise<UpdateCategoryResponse> => {
-  const targetCategory = await prismaClient.category.findUnique({
-    where: { id: BigInt(id) },
+  const targetCategory = await prismaClient.category.findFirst({
+    where: {
+      id: BigInt(id),
+      status: { not: CategoryStatus.DELETED },
+    },
     select: { status: true },
   });
 
   if (!targetCategory) {
     throw new CategoryNotFoundError();
-  }
-
-  if (targetCategory.status === CategoryStatus.DELETED) {
-    throw new CategoryIsDeletedError();
   }
 
   // Build update data dynamically based on provided fields
@@ -43,7 +43,7 @@ export const updateCategoryService = async (
   if (data.position !== undefined) updateData.position = data.position;
 
   if (Object.keys(updateData).length > 0) {
-    updateData.updatedById = null; // TODO: Add from authenticated user
+    updateData.updatedById = user ? BigInt(user.id) : null;
   }
 
   try {

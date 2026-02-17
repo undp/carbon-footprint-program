@@ -175,7 +175,7 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
         code: string;
         message: string;
       };
-      expect(body.code).toBe("CATEGORY_IS_DELETED");
+      expect(body.code).toBe("CATEGORY_NOT_FOUND");
     });
 
     it("should return 409 when updating to a duplicate name", async () => {
