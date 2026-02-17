@@ -57,7 +57,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UnblockOrganizationResponse;
-      expect(body).toEqual({});
+      expect(body).toEqual({ organizationId: org.id.toString() });
 
       // Verify in database
       const updatedOrg = await prisma.organization.findUnique({
@@ -80,7 +80,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UnblockOrganizationResponse;
-      expect(body).toEqual({});
+      expect(body).toEqual({ organizationId: org.id.toString() });
     });
 
     it("should unblock organization without affecting organization data", async () => {
@@ -152,7 +152,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UnblockOrganizationResponse;
-      expect(body).toEqual({});
+      expect(body).toEqual({ organizationId: org.id.toString() });
     });
 
     it("should unblock organization under review", async () => {
@@ -175,7 +175,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UnblockOrganizationResponse;
-      expect(body).toEqual({});
+      expect(body).toEqual({ organizationId: org.id.toString() });
 
       // Verify submission remains pending
       const submission = await prisma.submission.findFirst({
@@ -210,7 +210,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UnblockOrganizationResponse;
-      expect(body).toEqual({});
+      expect(body).toEqual({ organizationId: org.id.toString() });
     });
   });
 

@@ -28,5 +28,7 @@ export const blockOrganizationService = async (
     },
   });
 
-  return {};
+  return {
+    organizationId: organizationId,
+  };
 };

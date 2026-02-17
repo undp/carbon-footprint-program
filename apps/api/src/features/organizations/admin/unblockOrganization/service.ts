@@ -28,5 +28,7 @@ export const unblockOrganizationService = async (
     },
   });
 
-  return {};
+  return {
+    organizationId: organizationId,
+  };
 };
