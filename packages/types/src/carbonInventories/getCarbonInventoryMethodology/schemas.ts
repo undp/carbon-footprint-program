@@ -86,6 +86,8 @@ export const SubcategorySchema = z.object({
 export const InventoryCategorySchema = CategorySchema.pick({
   id: true,
   name: true,
+  icon: true,
+  color: true,
   synonyms: true,
   description: true,
   examples: true,
