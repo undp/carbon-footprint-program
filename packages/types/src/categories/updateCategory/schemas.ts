@@ -9,7 +9,7 @@ export const UpdateCategoryParamsSchema = z
   })
   .strict();
 
-// Request Schema — all fields optional for partial updates
+// Request Schema — all fields optional for partial updates, but at least one must be provided
 export const UpdateCategoryRequestSchema = z
   .object({
     name: z.string().min(1).max(255).describe("The name of the category"),
@@ -25,7 +25,10 @@ export const UpdateCategoryRequestSchema = z
       .describe("The display position (must be > 0)"),
   })
   .partial()
-  .strict();
+  .strict()
+  .refine((value) => Object.keys(value).length > 0, {
+    message: "At least one field must be provided",
+  });
 
 // Response Schema
 export const UpdateCategoryResponseSchema = CategorySchema;

@@ -205,6 +205,21 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
       expect(body.code).toBe("CATEGORY_NAME_ALREADY_EXISTS");
     });
 
+    it("should return 400 when no fields are provided", async () => {
+      const category = await createTestCategory(prisma, methodologyVersionId, {
+        name: "Test - Empty Update",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/categories/${category.id}`,
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
     it("should return 409 when updating to a duplicate position", async () => {
       await createTestCategory(prisma, methodologyVersionId, {
         name: "Test - Position One",
@@ -225,6 +240,11 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("CATEGORY_POSITION_ALREADY_EXISTS");
     });
   });
 });
