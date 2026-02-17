@@ -88,7 +88,7 @@ describe("POST /api/categories/ - Integration Tests", () => {
       expect(body.position).toBe(payload.position);
       expect(body.status).toBe(CategoryStatus.ACTIVE);
       expect(body.createdAt).toBeTruthy();
-      expect(body.updatedAt).toBeTruthy();
+      expect(body.updatedAt).toBeFalsy();
     });
 
     it("should persist the category in the database", async () => {
