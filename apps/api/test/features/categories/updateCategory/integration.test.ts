@@ -28,31 +28,21 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await prisma.methodologyVersion.deleteMany({
+      where: { name: { startsWith: "Test - " } },
+    });
     await prisma.$disconnect();
     await app.close();
   });
 
   beforeEach(async () => {
-    const testMethodologies = await prisma.methodologyVersion.findMany({
-      where: { name: { startsWith: "Test - " } },
-      select: { id: true },
-    });
-
-    if (testMethodologies.length > 0) {
-      const testMethodologyIds = testMethodologies.map((m) => m.id);
-
-      await prisma.category.deleteMany({
-        where: { methodologyVersionId: { in: testMethodologyIds } },
-      });
-    }
-
     await prisma.methodologyVersion.deleteMany({
       where: { name: { startsWith: "Test - " } },
     });
 
     const methodology = await createEmptyMethodologyVersion(prisma, {
       name: "Test - Update Category Methodology",
-      status: MethodologyVersionStatus.PUBLISHED,
+      status: MethodologyVersionStatus.UNPUBLISHED,
     });
     methodologyVersionId = methodology.id;
   });
@@ -194,14 +184,10 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
         position: 1,
       });
 
-      const category2 = await createTestCategory(
-        prisma,
-        methodologyVersionId,
-        {
-          name: "Test - To Be Renamed",
-          position: 2,
-        }
-      );
+      const category2 = await createTestCategory(prisma, methodologyVersionId, {
+        name: "Test - To Be Renamed",
+        position: 2,
+      });
 
       const response = await app.inject({
         method: "PATCH",
@@ -225,14 +211,10 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
         position: 1,
       });
 
-      const category2 = await createTestCategory(
-        prisma,
-        methodologyVersionId,
-        {
-          name: "Test - Position Two",
-          position: 2,
-        }
-      );
+      const category2 = await createTestCategory(prisma, methodologyVersionId, {
+        name: "Test - Position Two",
+        position: 2,
+      });
 
       const response = await app.inject({
         method: "PATCH",

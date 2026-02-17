@@ -27,16 +27,14 @@ describe("POST /api/categories/ - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await prisma.methodologyVersion.deleteMany({
+      where: { name: { startsWith: "Test - " } },
+    });
     await prisma.$disconnect();
     await app.close();
   });
 
   beforeEach(async () => {
-    // Delete categories first (foreign key dependency), then methodologies
-    await prisma.category.deleteMany({
-      where: { name: { startsWith: "Test - " } },
-    });
-
     await prisma.methodologyVersion.deleteMany({
       where: { name: { startsWith: "Test - " } },
     });
@@ -46,7 +44,10 @@ describe("POST /api/categories/ - Integration Tests", () => {
    * Helper to build a valid category payload for a given methodology version ID.
    * Uses a random suffix to avoid unique constraint collisions between tests.
    */
-  function buildCategoryPayload(methodologyVersionId: string, overrides?: Record<string, unknown>) {
+  function buildCategoryPayload(
+    methodologyVersionId: string,
+    overrides?: Record<string, unknown>
+  ) {
     const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
     return {

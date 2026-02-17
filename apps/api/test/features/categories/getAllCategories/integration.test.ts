@@ -28,26 +28,14 @@ describe("GET /api/categories/?methodologyVersionId=X - Integration Tests", () =
   });
 
   afterAll(async () => {
+    await prisma.methodologyVersion.deleteMany({
+      where: { name: { startsWith: "Test - " } },
+    });
     await prisma.$disconnect();
     await app.close();
   });
 
   beforeEach(async () => {
-    // Clean up categories for test methodologies first
-    const testMethodologies = await prisma.methodologyVersion.findMany({
-      where: { name: { startsWith: "Test - " } },
-      select: { id: true },
-    });
-
-    if (testMethodologies.length > 0) {
-      const testMethodologyIds = testMethodologies.map((m) => m.id);
-
-      await prisma.category.deleteMany({
-        where: { methodologyVersionId: { in: testMethodologyIds } },
-      });
-    }
-
-    // Then delete the test methodologies themselves
     await prisma.methodologyVersion.deleteMany({
       where: { name: { startsWith: "Test - " } },
     });
