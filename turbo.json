@@ -19,7 +19,9 @@
     "DEV",
     "IS_DEMO_APP",
     "APP_VERSION",
-    "CI"
+    "CI",
+    "AZURE_STORAGE_ACCOUNT_NAME",
+    "AZURE_STORAGE_CONTAINER_NAME"
   ],
   "tasks": {
     "clean": {
