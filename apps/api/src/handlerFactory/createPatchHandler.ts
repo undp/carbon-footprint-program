@@ -31,7 +31,7 @@ export const createPatchHandler = <TParams extends WithId, TBody, TResponse>(
     log.info(`Updating ${resourceName} ${id}...`);
 
     const prisma = request.server.prisma;
-    const user = request.currentUser ?? (null as User | null);
+    const user = request.currentUser ?? null;
 
     const data = await serviceFn(prisma, id, body, user);
 
