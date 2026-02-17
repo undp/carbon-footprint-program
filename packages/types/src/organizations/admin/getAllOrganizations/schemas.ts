@@ -14,12 +14,14 @@ const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
   sizeName: z.string().nullable().describe("CountryOrganizationSize.name"),
   hasCarbonInventories: z
     .boolean()
-    .describe("Whether the organization has any calculated carbon inventories"),
+    .describe(
+      "Whether the organization has carbon inventories calculated or in a further stage"
+    ),
   lastEdition: z.iso.datetime().describe("organization.updated_at"),
   totalEmissions: z
     .number()
     .describe(
-      "SUM of all emissions from calculated carbon inventories (COALESCE to 0)"
+      "SUM of all emissions from organization's carbon inventories that are calculated or in a further stage (COALESCE to 0)"
     ),
 });
 
