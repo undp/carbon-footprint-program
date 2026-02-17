@@ -18,7 +18,7 @@ export function mapCategoryToResponse(category: PrismaCategory): Category {
     position: category.position,
     status: category.status,
     createdAt: category.createdAt.toISOString(),
-    updatedAt: category.updatedAt.toISOString(),
+    updatedAt: category.updatedAt?.toISOString() ?? null,
     createdById: category.createdById?.toString() ?? null,
     updatedById: category.updatedById?.toString() ?? null,
   };

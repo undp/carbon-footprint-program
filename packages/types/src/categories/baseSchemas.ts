@@ -28,7 +28,10 @@ export const CategorySchema = z
     position: z.number().int().describe("The display position of the category"),
     status: CategoryStatusSchema.describe("The status of the category"),
     createdAt: z.iso.datetime().describe("The creation timestamp"),
-    updatedAt: z.iso.datetime().describe("The last update timestamp"),
+    updatedAt: z.iso
+      .datetime()
+      .nullable()
+      .describe("The last update timestamp"),
     createdById: IdSchema.nullable().describe(
       "The ID of the user who created this"
     ),
