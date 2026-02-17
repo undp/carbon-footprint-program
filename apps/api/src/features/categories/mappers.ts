@@ -14,7 +14,7 @@ export function mapCategoryToResponse(category: PrismaCategory): Category {
     color: category.color,
     synonyms: category.synonyms,
     description: category.description,
-    examples: category.examples ?? null,
+    examples: category.examples,
     position: category.position,
     status: category.status,
     createdAt: category.createdAt.toISOString(),
