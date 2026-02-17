@@ -6,5 +6,5 @@ export * from "./updateOrganization/schemas.js";
 export * from "./updateOrganization/types.js";
 export * from "./requestOrganizationAccreditation/schemas.js";
 export * from "./requestOrganizationAccreditation/types.js";
-export * from "./getMyOrganizations/schemas.js";
-export * from "./getMyOrganizations/types.js";
+export * from "./getMyOrganizationsSelectorOptions/schemas.js";
+export * from "./getMyOrganizationsSelectorOptions/types.js";

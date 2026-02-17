@@ -1,26 +1,17 @@
 import { z } from "zod";
-import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
+import { CommonOrganizationFieldsSchema } from "../../baseSchemas.js";
 
-import { IdSchema } from "../../../zod.js";
 import {
   BasePaginatedResponseSchema,
   BasePaginationQuerySchema,
 } from "../../../common/index.js";
+import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
 
 // Organization list item for admin (with all fields)
-const AdminOrganizationListItemSchema = z.object({
-  id: IdSchema.describe("The organization ID"),
-  name: z
-    .string()
-    .describe(
-      "Display name: COALESCE(trade_name, legal_name, tax_id) from OrganizationData"
-    ),
+const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
   sectorName: z.string().nullable().describe("CountrySector.name"),
   subsectorName: z.string().nullable().describe("CountrySubsector.name"),
   sizeName: z.string().nullable().describe("CountryOrganizationSize.name"),
-  status: OrganizationDisplayStatusSchema.describe(
-    "ACCREDITED | NOT_ACCREDITED | BLOCKED"
-  ),
   hasCarbonInventories: z
     .boolean()
     .describe("Whether the organization has any calculated carbon inventories"),

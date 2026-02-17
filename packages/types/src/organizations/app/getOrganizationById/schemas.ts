@@ -2,7 +2,7 @@ import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
 import {
   EntityReferenceSchema,
-  OrganizationDisplayStatusSchema,
+  CommonOrganizationFieldsSchema,
 } from "../../baseSchemas.js";
 
 // Representative details
@@ -17,15 +17,11 @@ const Representative = z.object({
 });
 
 // Full organization details (for GET endpoints)
-const OrganizationDetailsSchema = z.object({
-  id: IdSchema.describe("The organization ID"),
-  name: z.string().describe("Display name of the organization"),
+const OrganizationDetailsSchema = CommonOrganizationFieldsSchema.extend({
   taxId: z.string().describe("Tax ID of the organization"),
   legalName: z.string().describe("Legal name of the organization"),
   tradeName: z.string().nullable().describe("Trade name of the organization"),
-  status: OrganizationDisplayStatusSchema.describe(
-    "Organization status: ACCREDITED | NOT_ACCREDITED | BLOCKED"
-  ),
+  isEditable: z.boolean().describe("Whether the organization is editable"),
   sector: EntityReferenceSchema.nullable().describe("Organization sector"),
   subsector: EntityReferenceSchema.nullable().describe(
     "Organization subsector"
