@@ -18,7 +18,7 @@ CREATE TABLE "carbon_inventory" (
     "preselected_nodes_id" BIGINT,
     "is_editable" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 

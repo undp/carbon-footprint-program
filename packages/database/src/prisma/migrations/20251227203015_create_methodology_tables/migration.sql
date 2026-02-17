@@ -14,7 +14,7 @@ CREATE TABLE "methodology_version" (
     "regulation" TEXT NOT NULL,
     "version" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
@@ -31,7 +31,7 @@ CREATE TABLE "category" (
     "examples" TEXT,
     "position" INTEGER NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
@@ -46,7 +46,7 @@ CREATE TABLE "subcategory" (
     "description" TEXT,
     "examples" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
@@ -62,7 +62,7 @@ CREATE TABLE "emission_factor_dimension" (
     "position" INTEGER NOT NULL,
     "is_required" BOOLEAN NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
@@ -77,7 +77,7 @@ CREATE TABLE "emission_factor_dimension_value" (
     "value" TEXT NOT NULL,
     "is_active" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
@@ -96,7 +96,7 @@ CREATE TABLE "emission_factor" (
     "value" DECIMAL(28,10) NOT NULL,
     "status" "emission_factor_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
 
