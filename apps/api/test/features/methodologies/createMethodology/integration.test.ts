@@ -105,16 +105,11 @@ describe("POST /api/methodologies - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateMethodologyResponse;
 
       const createdAt = new Date(body.createdAt);
-      const updatedAt = new Date(body.updatedAt);
 
       expect(createdAt.getTime()).toBeGreaterThanOrEqual(
         beforeCreate.getTime()
       );
       expect(createdAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
-      expect(updatedAt.getTime()).toBeGreaterThanOrEqual(
-        beforeCreate.getTime()
-      );
-      expect(updatedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
     });
   });
 

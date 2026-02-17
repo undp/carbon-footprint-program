@@ -318,9 +318,6 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         },
       });
 
-      // Use the user's existing updatedAt timestamp (same as createdAt on creation)
-      const beforeUpdate = createdUser.updatedAt;
-
       const response = await app.inject({
         method: "PATCH",
         url: `/api/users/${createdUser.id}`,
@@ -332,8 +329,10 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateUserResponse;
 
-      const updatedAt = new Date(body.updatedAt);
-      expect(updatedAt.getTime()).toBeGreaterThan(beforeUpdate.getTime());
+      expect(body.updatedAt).toBeDefined();
+      expect(new Date(body.updatedAt!).getTime()).toBeGreaterThan(
+        new Date(body.createdAt).getTime()
+      );
     });
   });
 

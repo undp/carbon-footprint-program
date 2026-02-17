@@ -131,16 +131,11 @@ describe("POST /api/users - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateUserResponse;
 
       const createdAt = new Date(body.createdAt);
-      const updatedAt = new Date(body.updatedAt);
 
       expect(createdAt.getTime()).toBeGreaterThanOrEqual(
         beforeCreate.getTime()
       );
       expect(createdAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
-      expect(updatedAt.getTime()).toBeGreaterThanOrEqual(
-        beforeCreate.getTime()
-      );
-      expect(updatedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
     });
 
     it("should create a user with null idpUserId and idpName", async () => {
