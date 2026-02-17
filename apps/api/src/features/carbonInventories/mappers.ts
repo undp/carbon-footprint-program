@@ -124,7 +124,7 @@ function mapBaseCarbonInventory(
     preselectedNodesId: item.preselectedNodesId?.toString() ?? null,
     isEditable: item.isEditable,
     createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
+    updatedAt: item.updatedAt?.toISOString() ?? null,
     createdById: item.createdById?.toString() ?? null,
     updatedById: item.updatedById?.toString() ?? null,
   };

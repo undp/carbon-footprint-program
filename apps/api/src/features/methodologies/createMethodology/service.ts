@@ -6,6 +6,7 @@ import {
 import type {
   CreateMethodologyRequest,
   CreateMethodologyResponse,
+  User,
 } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
@@ -16,7 +17,8 @@ import {
 
 export const createMethodologyService = async (
   prismaClient: PrismaClient,
-  data: CreateMethodologyRequest
+  data: CreateMethodologyRequest,
+  user: User | null
 ): Promise<CreateMethodologyResponse> => {
   // Get the first country from the database
   const country = await prismaClient.country.findFirst({
@@ -28,6 +30,8 @@ export const createMethodologyService = async (
   }
 
   try {
+    const userId = user ? BigInt(user.id) : null;
+
     const methodology = await prismaClient.methodologyVersion.create({
       data: {
         countryId: country.id,
@@ -36,8 +40,8 @@ export const createMethodologyService = async (
         regulation: data.regulation,
         version: data.version,
         status: MethodologyVersionStatus.UNPUBLISHED,
-        createdById: null, // TODO: Add from authenticated user
-        updatedById: null,
+        createdById: userId,
+        updatedAt: null,
       },
     });
     return mapMethodologyToResponse(methodology);

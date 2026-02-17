@@ -40,7 +40,10 @@ export const MethodologySchema = z
       "The status of the methodology"
     ),
     createdAt: z.iso.datetime().describe("The creation timestamp"),
-    updatedAt: z.iso.datetime().describe("The last update timestamp"),
+    updatedAt: z.iso
+      .datetime()
+      .nullable()
+      .describe("The last update timestamp"),
     createdById: IdSchema.nullable().describe(
       "The ID of the user who created this"
     ),

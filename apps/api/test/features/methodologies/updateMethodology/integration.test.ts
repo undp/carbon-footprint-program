@@ -211,6 +211,7 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
           regulation: "Regulation",
           version: "1.0",
           status: MethodologyVersionStatus.UNPUBLISHED,
+          updatedAt: null,
         },
       });
 
@@ -222,6 +223,7 @@ describe("PATCH /api/methodologies/:id - Integration Tests", () => {
           regulation: "Regulation",
           version: "1.0",
           status: MethodologyVersionStatus.UNPUBLISHED,
+          updatedAt: null,
         },
       });
 

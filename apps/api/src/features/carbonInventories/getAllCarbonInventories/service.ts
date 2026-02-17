@@ -10,8 +10,8 @@ import { toNumberOrNull, kgToTon } from "@/utils/number.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
-  query?: GetAllCarbonInventoriesQuery,
-  user?: User | null
+  query: GetAllCarbonInventoriesQuery | null,
+  user: User | null
 ): Promise<GetAllCarbonInventoriesResponse> => {
   // Build where clause for year filtering
   const whereClause: {

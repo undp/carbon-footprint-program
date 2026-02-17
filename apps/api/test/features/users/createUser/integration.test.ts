@@ -73,8 +73,8 @@ describe("POST /api/users - Integration Tests", () => {
       expect(body.countryJobPositionId).toBe(testJobPositionId);
       expect(body.idpUserId).toBe("idp-user-123");
       expect(body.idpName).toBe("azure-ad");
-      expect(body.createdAt).toBeTruthy();
-      expect(body.updatedAt).toBeTruthy();
+      expect(body.createdAt).toBeDefined();
+      expect(body.updatedAt).toBeNull();
 
       // Verify in database
       const dbUser = await prisma.user.findUnique({
@@ -131,16 +131,11 @@ describe("POST /api/users - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateUserResponse;
 
       const createdAt = new Date(body.createdAt);
-      const updatedAt = new Date(body.updatedAt);
 
       expect(createdAt.getTime()).toBeGreaterThanOrEqual(
         beforeCreate.getTime()
       );
       expect(createdAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
-      expect(updatedAt.getTime()).toBeGreaterThanOrEqual(
-        beforeCreate.getTime()
-      );
-      expect(updatedAt.getTime()).toBeLessThanOrEqual(afterCreate.getTime());
     });
 
     it("should create a user with null idpUserId and idpName", async () => {
@@ -291,6 +286,7 @@ describe("POST /api/users - Integration Tests", () => {
           countryJobPositionId: BigInt(testJobPositionId),
           firstName: "Original",
           lastName: "User",
+          updatedAt: null,
         },
       });
 
@@ -328,6 +324,7 @@ describe("POST /api/users - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-duplicate",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 

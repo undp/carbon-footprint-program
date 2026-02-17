@@ -56,6 +56,7 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-123",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -79,6 +80,7 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           lastName: "FromDB",
           idpUserId: "idp-user-456",
           idpName: "okta",
+          updatedAt: null,
         },
       });
 
@@ -111,6 +113,7 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           lastName: "One",
           idpUserId: "idp-user-789",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 
@@ -122,6 +125,7 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           lastName: "Two",
           idpUserId: "idp-user-101",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -168,6 +172,7 @@ describe("DELETE /api/users/:id - Integration Tests", () => {
           lastName: "Twice",
           idpUserId: "idp-user-202",
           idpName: "okta",
+          updatedAt: null,
         },
       });
 

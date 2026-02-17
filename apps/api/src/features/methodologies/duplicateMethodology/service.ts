@@ -3,7 +3,7 @@ import {
   MethodologyVersionStatus,
   Prisma,
 } from "@repo/database";
-import type { DuplicateMethodologyResponse } from "@repo/types";
+import type { DuplicateMethodologyResponse, User } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNotFoundError,
@@ -13,7 +13,8 @@ import {
 
 export const duplicateMethodologyService = async (
   prismaClient: PrismaClient,
-  id: string
+  id: string,
+  user: User | null
 ): Promise<DuplicateMethodologyResponse> => {
   // Find the original methodology
   const original = await prismaClient.methodologyVersion.findUnique({
@@ -39,6 +40,8 @@ export const duplicateMethodologyService = async (
   }
 
   try {
+    const userId = user ? BigInt(user.id) : null;
+
     // Create a new methodology based on the original
     const duplicated = await prismaClient.methodologyVersion.create({
       data: {
@@ -48,8 +51,8 @@ export const duplicateMethodologyService = async (
         regulation: original.regulation,
         version: original.version,
         status: MethodologyVersionStatus.UNPUBLISHED,
-        createdById: null, // TODO: Add from authenticated user
-        updatedById: null,
+        createdById: userId,
+        updatedAt: null,
       },
     });
 

@@ -113,8 +113,7 @@ export const carbonInventoryPatterns = {
     organizationBranchId: bigint,
     methodologyVersionId: bigint,
     preselectedNodesId: bigint,
-    createdById: bigint,
-    updatedById: bigint
+    createdById: bigint
   ): Prisma.CarbonInventoryUncheckedCreateInput => ({
     organizationId: organizationId,
     organizationBranchId: organizationBranchId,
@@ -133,7 +132,6 @@ export const carbonInventoryPatterns = {
     preselectedNodesId: preselectedNodesId,
     isEditable: false,
     createdById: createdById,
-    updatedById: updatedById,
   }),
 
   /**
@@ -188,7 +186,7 @@ export async function createCarbonInventory(
   const data = {
     ...rawData,
     createdById: rawData.createdById ?? id,
-    updatedById: rawData.updatedById ?? id,
+    updatedAt: null,
   };
 
   return prisma.carbonInventory.create({ data });
@@ -207,7 +205,6 @@ export async function createCarbonInventories(
   const dataWithUserIds = dataArray.map((rawData) => ({
     ...rawData,
     createdById: rawData.createdById ?? id,
-    updatedById: rawData.updatedById ?? id,
   }));
   await prisma.carbonInventory.createMany({ data: dataWithUserIds });
 }
@@ -248,6 +245,7 @@ export async function seedCarbonInventory(
         mapBigIntField(data.preselectedNodesId?.toString()) ?? null,
       createdById: data.createdById ?? null,
       updatedById: data.updatedById ?? null,
+      updatedAt: null,
     },
   });
 }
@@ -317,6 +315,7 @@ export async function createCarbonInventoryLine(
       carbonInventoryId,
       subcategoryId,
       status: options?.status ?? CarbonInventoryLineStatus.ACTIVE,
+      updatedAt: null,
     },
   });
 }
@@ -349,6 +348,7 @@ export async function createCarbonInventoryLineInput(
       manualFactor: options?.manualFactor ?? null,
       comment: options?.comment ?? null,
       isActive: options?.isActive ?? true,
+      updatedAt: null,
     },
   });
 }
@@ -369,6 +369,7 @@ export async function createCarbonInventoryLineResult(
           ? new Prisma.Decimal(totalEmissions)
           : totalEmissions,
       resultDetails: {},
+      updatedAt: null,
     },
   });
 }
@@ -386,7 +387,10 @@ export async function createInventoryWithEmissions(
 ) {
   // Create the inventory
   const inventory = await prisma.carbonInventory.create({
-    data: inventoryData,
+    data: {
+      ...inventoryData,
+      updatedAt: null,
+    },
   });
 
   // Get methodology version

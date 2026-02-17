@@ -89,7 +89,11 @@ describe("GET /api/carbon-inventories/:id/sector-ranking - Integration Tests", (
 
     it("should return empty array for inventory with no emissions", async () => {
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", methodologyVersionId },
+        data: {
+          usageMode: "SIMPLIFIED",
+          methodologyVersionId,
+          updatedAt: null,
+        },
       });
 
       const response = await app.inject({

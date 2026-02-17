@@ -16,7 +16,8 @@ export type LineWithInputs = Prisma.CarbonInventoryLineGetPayload<{
  */
 export const cleanupDirectLines = async (
   tx: Prisma.TransactionClient,
-  lines: LineWithInputs[]
+  lines: LineWithInputs[],
+  userId: bigint | null
 ): Promise<LineWithInputs> => {
   const allDirectLines = lines.filter(
     (l) => l.inputs[0]?.inputType === "DIRECT"
@@ -31,7 +32,10 @@ export const cleanupDirectLines = async (
     if (toDelete.length > 0) {
       await tx.carbonInventoryLine.updateMany({
         where: { id: { in: toDelete.map((l) => l.id) } },
-        data: { status: CarbonInventoryLineStatus.DELETED },
+        data: {
+          status: CarbonInventoryLineStatus.DELETED,
+          updatedById: userId,
+        },
       });
     }
     return mostRecent;

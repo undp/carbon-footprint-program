@@ -30,7 +30,7 @@ export function mapMethodologyToResponse(
     version: methodology.version,
     status: methodology.status,
     createdAt: methodology.createdAt.toISOString(),
-    updatedAt: methodology.updatedAt.toISOString(),
+    updatedAt: methodology.updatedAt?.toISOString() ?? null,
     createdById: methodology.createdById?.toString() ?? null,
     updatedById: methodology.updatedById?.toString() ?? null,
   };

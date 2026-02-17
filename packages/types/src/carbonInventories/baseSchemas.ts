@@ -113,7 +113,10 @@ export const CarbonInventorySchema = z
       .describe("The ID of the preselected nodes"),
     isEditable: z.boolean().describe("Whether the inventory is editable"),
     createdAt: z.iso.datetime().describe("The creation timestamp"),
-    updatedAt: z.iso.datetime().describe("The last update timestamp"),
+    updatedAt: z.iso
+      .datetime()
+      .nullable()
+      .describe("The last update timestamp"),
     createdById: z
       .string()
       .regex(/^\d+$/)

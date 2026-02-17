@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import {
   type AddSubcategoriesToCarbonInventoryResponse,
+  type User,
   CarbonInventoryLineStatus,
 } from "@repo/types";
 import {
@@ -13,7 +14,8 @@ import {
 export const addSubcategoriesToCarbonInventoryService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
-  subcategoryIds: bigint[]
+  subcategoryIds: bigint[],
+  user: User | null
 ): Promise<AddSubcategoriesToCarbonInventoryResponse> => {
   // First, get the carbon inventory to find its methodologyVersionId
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
@@ -97,12 +99,13 @@ export const addSubcategoriesToCarbonInventoryService = async (
     };
   }
 
+  const userId = user ? BigInt(user.id) : null;
+
   // Create empty ACTIVE lines for the remaining subcategoryIds
   const recordsToCreate = subcategoryIdsToCreate.map((subcategoryId) => ({
     carbonInventoryId,
     subcategoryId,
-    createdById: null, // TODO: Add created by id from logged in user
-    updatedById: null, // TODO: Add updated by id from logged in user
+    createdById: userId,
   }));
 
   await prismaClient.carbonInventoryLine.createMany({

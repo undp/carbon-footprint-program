@@ -28,11 +28,13 @@ export const syncCarbonInventoryLinesHandler = async (
   );
 
   const prisma = request.server.prisma;
+  const user = request.currentUser ?? null;
 
   const result = await syncCarbonInventoryLinesService(
     prisma,
     carbonInventoryId,
-    syncRequest
+    syncRequest,
+    user
   );
 
   log.info(

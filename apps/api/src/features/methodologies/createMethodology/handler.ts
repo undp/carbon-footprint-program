@@ -10,7 +10,13 @@ export const createMethodologyHandler = async (
   log.info("Creating methodology...");
 
   const prisma = request.server.prisma;
-  const methodology = await createMethodologyService(prisma, request.body);
+  const user = request.currentUser ?? null;
+
+  const methodology = await createMethodologyService(
+    prisma,
+    request.body,
+    user
+  );
 
   log.info(
     { methodologyId: methodology.id },

@@ -12,7 +12,7 @@ export function mapUserToResponse(user: PrismaUser): UserAtResponse {
     firstName: user.firstName,
     lastName: user.lastName,
     createdAt: user.createdAt.toISOString(),
-    updatedAt: user.updatedAt.toISOString(),
+    updatedAt: user.updatedAt?.toISOString() ?? null,
     createdById: user.createdById?.toString() ?? null,
     updatedById: user.updatedById?.toString() ?? null,
     termsAccepted: user.termsAccepted ?? null,

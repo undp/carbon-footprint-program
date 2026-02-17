@@ -24,7 +24,8 @@ export async function createLineInput(
   tx: Prisma.TransactionClient,
   lineId: bigint,
   item: ItemData,
-  inputType: InputType
+  inputType: InputType,
+  userId: bigint | null
 ) {
   const isCustomFactorSource = CUSTOM_FACTOR_SOURCES.includes(
     item.factorSource ?? ""
@@ -56,8 +57,8 @@ export async function createLineInput(
           : null,
       comment: item.comment ?? null,
       isActive: true,
-      createdById: null,
-      updatedById: null,
+      createdById: userId,
+      updatedAt: null,
     },
   });
 }
@@ -68,7 +69,8 @@ export async function createLineInput(
 export async function createLineFactor(
   tx: Prisma.TransactionClient,
   lineInputId: bigint,
-  item: ItemData
+  item: ItemData,
+  userId: bigint | null
 ) {
   // Guard: only create factor if both required fields are present
   if (
@@ -87,8 +89,8 @@ export async function createLineFactor(
         item.appliedFactorRateMeasurementUnitId
       ),
       appliedFactorSource: item.factorSource,
-      createdById: null,
-      updatedById: null,
+      createdById: userId,
+      updatedAt: null,
     },
   });
 }
@@ -100,7 +102,8 @@ export async function createLineResult(
   tx: Prisma.TransactionClient,
   lineInputId: bigint,
   item: ItemData,
-  inputType: InputType
+  inputType: InputType,
+  userId: bigint | null
 ) {
   let totalEmissions: Prisma.Decimal | null = null;
 
@@ -121,8 +124,8 @@ export async function createLineResult(
       data: {
         lineInputId,
         totalEmissions,
-        createdById: null,
-        updatedById: null,
+        createdById: userId,
+        updatedAt: null,
       },
     });
   }

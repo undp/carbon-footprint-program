@@ -210,9 +210,9 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(inventory.preselectedNodesId).toBe("111");
       expect(inventory.isEditable).toBe(true);
       expect(inventory.createdById).toBe(userId.toString());
-      expect(inventory.updatedById).toBe(userId.toString());
+      expect(inventory.updatedById).toBeNull();
       expect(inventory.createdAt).toBeTruthy();
-      expect(inventory.updatedAt).toBeTruthy();
+      expect(inventory.updatedAt).toBeNull();
     });
 
     it("should correctly handle null values", async () => {
@@ -240,7 +240,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(inventory.methodologyVersionId).toBeNull();
       expect(inventory.preselectedNodesId).toBeNull();
       expect(inventory.createdById).toBe(userId.toString());
-      expect(inventory.updatedById).toBe(userId.toString());
+      expect(inventory.updatedById).toBeNull();
     });
   });
 

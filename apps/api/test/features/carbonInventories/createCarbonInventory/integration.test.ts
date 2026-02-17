@@ -59,8 +59,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.usageMode).toBe("SIMPLIFIED");
       expect(body.status).toBe("DRAFT"); // Default value
       expect(body.isEditable).toBe(true); // Default value
-      expect(body.createdAt).toBeTruthy();
-      expect(body.updatedAt).toBeTruthy();
+      expect(body.createdAt).toBeDefined();
+      expect(body.updatedAt).toBeNull();
 
       // Verify it was actually created in the database
       const dbInventory = await prisma.carbonInventory.findUnique({
@@ -156,7 +156,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.methodologyVersionId).toBe(methodologyVersionIdString);
       expect(body.preselectedNodesId).toBeNull();
       expect(body.createdById).toBe(id.toString());
-      expect(body.updatedById).toBe(id.toString());
+      expect(body.updatedById).toBeNull();
     });
   });
 
@@ -323,16 +323,11 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
 
       const createdAt = new Date(body.createdAt);
-      const updatedAt = new Date(body.updatedAt);
 
       expect(createdAt.getTime()).toBeGreaterThanOrEqual(
         beforeCreation.getTime()
       );
       expect(createdAt.getTime()).toBeLessThanOrEqual(afterCreation.getTime());
-      expect(updatedAt.getTime()).toBeGreaterThanOrEqual(
-        beforeCreation.getTime()
-      );
-      expect(updatedAt.getTime()).toBeLessThanOrEqual(afterCreation.getTime());
     });
   });
 

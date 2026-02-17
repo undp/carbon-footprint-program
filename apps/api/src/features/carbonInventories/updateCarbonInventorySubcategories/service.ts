@@ -3,6 +3,7 @@ import {
   type UpdateCarbonInventorySubcategoriesRequest,
   type UpdateCarbonInventorySubcategoriesResponse,
   CarbonInventoryLineStatus,
+  type User,
 } from "@repo/types";
 import { groupBy } from "lodash-es";
 import { isCarbonInventoryLineEdited } from "../utils.js";
@@ -23,7 +24,8 @@ const SubcategoryHasNonEmptyLinesError = createError(
 export const updateCarbonInventorySubcategoriesService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint,
-  request: UpdateCarbonInventorySubcategoriesRequest
+  request: UpdateCarbonInventorySubcategoriesRequest,
+  user: User | null
 ): Promise<UpdateCarbonInventorySubcategoriesResponse> => {
   // First, get the carbon inventory to find its methodologyVersionId
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
@@ -116,6 +118,8 @@ export const updateCarbonInventorySubcategoriesService = async (
   let removedCount = 0;
   let skippedCount = 0;
 
+  const userId = user ? BigInt(user.id) : null;
+
   // Process each subcategory update in a transaction
   await prismaClient.$transaction(async (tx) => {
     for (const item of request) {
@@ -134,8 +138,8 @@ export const updateCarbonInventorySubcategoriesService = async (
               carbonInventoryId,
               subcategoryId,
               status: CarbonInventoryLineStatus.ACTIVE,
-              createdById: null, // TODO: Add created by id from logged in user
-              updatedById: null, // TODO: Add updated by id from logged in user
+              createdById: userId,
+              updatedAt: null,
             },
           });
           addedCount++;
@@ -156,7 +160,7 @@ export const updateCarbonInventorySubcategoriesService = async (
             },
             data: {
               status: CarbonInventoryLineStatus.DELETED,
-              updatedById: null, // TODO: Add updated by id from logged in user
+              updatedById: userId,
             },
           });
           removedCount++; // Count subcategories removed, not lines

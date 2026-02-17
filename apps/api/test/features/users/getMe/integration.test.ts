@@ -65,6 +65,7 @@ describe("GET /api/users/me - Integration Tests", () => {
           lastName: "User",
           idpUserId: "test-idp-auth-123",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 
@@ -89,6 +90,7 @@ describe("GET /api/users/me - Integration Tests", () => {
           lastName: "User",
           idpUserId: "test-idp-full-456",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 

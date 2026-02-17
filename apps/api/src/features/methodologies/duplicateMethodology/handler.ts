@@ -10,9 +10,12 @@ export const duplicateMethodologyHandler = async (
   log.info({ methodologyId: request.params.id }, "Duplicating methodology...");
 
   const prisma = request.server.prisma;
+  const user = request.currentUser ?? null;
+
   const methodology = await duplicateMethodologyService(
     prisma,
-    request.params.id
+    request.params.id,
+    user
   );
 
   log.info(

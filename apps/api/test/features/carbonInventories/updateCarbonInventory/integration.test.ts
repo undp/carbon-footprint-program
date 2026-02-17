@@ -666,8 +666,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         usageMode: "SIMPLIFIED",
       });
 
-      const originalUpdatedAt = inventory.updatedAt;
-
       // Wait a bit to ensure timestamp difference
       await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -682,8 +680,11 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
 
-      const updatedAt = new Date(body.updatedAt);
-      expect(updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+      expect(body.updatedAt).toBeTruthy();
+      const updatedAt = new Date(body.updatedAt!);
+      expect(updatedAt.getTime()).toBeGreaterThan(
+        new Date(body.createdAt).getTime()
+      );
 
       // createdAt should remain the same
       const dbInventory = await prisma.carbonInventory.findUnique({

@@ -1,5 +1,5 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
-import { MethodologyVersionStatus } from "@repo/types";
+import { MethodologyVersionStatus, type User } from "@repo/types";
 import {
   MethodologyHasActiveInventoriesError,
   MethodologyIsPublishedError,
@@ -8,7 +8,8 @@ import {
 
 export const deleteMethodologyService = async (
   prismaClient: PrismaClient,
-  id: string
+  id: string,
+  user: User | null
 ): Promise<void> => {
   const methodologyId = BigInt(id);
 
@@ -46,7 +47,7 @@ export const deleteMethodologyService = async (
     where: { id: methodologyId },
     data: {
       status: MethodologyVersionStatus.DELETED,
-      updatedById: null, // TODO: Add from authenticated user
+      updatedById: user ? BigInt(user.id) : null,
     },
   });
 };
