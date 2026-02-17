@@ -83,7 +83,11 @@ export const SubcategorySchema = z.object({
     .describe("The IDs of the allowed measurement units for this subcategory"),
 });
 
-const InventoryCategorySchema = CategorySchema.pick({
+export const InventoryCategorySchema = CategorySchema.pick({
+  id: true,
+  name: true,
+  synonyms: true,
+  description: true,
   examples: true,
   position: true,
 }).extend({

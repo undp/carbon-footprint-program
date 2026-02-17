@@ -19,8 +19,7 @@ function createPrismaExecOptions(databaseUrl: string) {
     cwd: getDatabasePackagePath(),
     stdio: "inherit" as const,
     env: {
-      // eslint-disable-next-line turbo/no-undeclared-env-vars
-      PATH: process.env.PATH,
+      ...process.env,
       DATABASE_URL: databaseUrl,
       SEEDS_DATASET: "testing",
     },

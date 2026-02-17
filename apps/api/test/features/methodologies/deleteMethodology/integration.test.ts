@@ -14,7 +14,9 @@ import {
   createCarbonInventory,
   carbonInventoryPatterns,
 } from "@test/factories/carbonInventorySeeder.js";
+import { createTestCategory } from "@test/factories/categoryFactory.js";
 import type { DeleteMethodologyResponse } from "@repo/types";
+import { CategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -92,6 +94,37 @@ describe("DELETE /api/methodologies/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
+    });
+
+    it("should cascade soft-delete active categories when methodology is deleted", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Cascade Delete Categories",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category1 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Category To Cascade 1",
+        position: 1,
+      });
+      const category2 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Category To Cascade 2",
+        position: 2,
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/methodologies/${methodology.id}`,
+      });
+
+      const dbCategory1 = await prisma.category.findUnique({
+        where: { id: category1.id },
+      });
+      const dbCategory2 = await prisma.category.findUnique({
+        where: { id: category2.id },
+      });
+
+      expect(dbCategory1!.status).toBe(CategoryStatus.DELETED);
+      expect(dbCategory2!.status).toBe(CategoryStatus.DELETED);
     });
   });
 
