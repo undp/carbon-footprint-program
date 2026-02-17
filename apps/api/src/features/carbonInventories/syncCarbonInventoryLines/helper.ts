@@ -58,7 +58,6 @@ export async function createLineInput(
       comment: item.comment ?? null,
       isActive: true,
       createdById: userId,
-      updatedById: userId,
     },
   });
 }
@@ -90,7 +89,6 @@ export async function createLineFactor(
       ),
       appliedFactorSource: item.factorSource,
       createdById: userId,
-      updatedById: userId,
     },
   });
 }
@@ -125,7 +123,6 @@ export async function createLineResult(
         lineInputId,
         totalEmissions,
         createdById: userId,
-        updatedById: userId,
       },
     });
   }

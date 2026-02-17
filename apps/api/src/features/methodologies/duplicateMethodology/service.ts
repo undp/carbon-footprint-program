@@ -52,7 +52,6 @@ export const duplicateMethodologyService = async (
         version: original.version,
         status: MethodologyVersionStatus.UNPUBLISHED,
         createdById: userId,
-        updatedById: userId,
       },
     });
 

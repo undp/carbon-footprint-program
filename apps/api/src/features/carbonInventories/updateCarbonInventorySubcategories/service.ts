@@ -139,7 +139,6 @@ export const updateCarbonInventorySubcategoriesService = async (
               subcategoryId,
               status: CarbonInventoryLineStatus.ACTIVE,
               createdById: userId,
-              updatedById: userId,
             },
           });
           addedCount++;

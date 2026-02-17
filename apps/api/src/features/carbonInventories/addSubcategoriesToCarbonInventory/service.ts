@@ -106,7 +106,6 @@ export const addSubcategoriesToCarbonInventoryService = async (
     carbonInventoryId,
     subcategoryId,
     createdById: userId,
-    updatedById: userId,
   }));
 
   await prismaClient.carbonInventoryLine.createMany({

@@ -109,7 +109,6 @@ export const syncCarbonInventoryLinesService = async (
           subcategoryId: BigInt(createItem.subcategoryId),
           status: CarbonInventoryLineStatus.ACTIVE,
           createdById: userId,
-          updatedById: userId,
         },
       });
 

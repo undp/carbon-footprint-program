@@ -41,7 +41,6 @@ export const createMethodologyService = async (
         version: data.version,
         status: MethodologyVersionStatus.UNPUBLISHED,
         createdById: userId,
-        updatedById: userId,
       },
     });
     return mapMethodologyToResponse(methodology);

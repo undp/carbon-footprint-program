@@ -37,7 +37,6 @@ export const createCarbonInventoryService = async (
       usageMode: data.usageMode,
       methodologyVersionId: availableMethodology.id,
       createdById: userId ? BigInt(userId) : null,
-      updatedById: userId ? BigInt(userId) : null,
     },
   });
 

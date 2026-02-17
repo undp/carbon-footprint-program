@@ -139,7 +139,6 @@ export const toggleManualTotalEmissionsService = async (
             subcategoryId,
             status: CarbonInventoryLineStatus.ACTIVE,
             createdById: userId,
-            updatedById: userId,
           },
         });
         await tx.carbonInventoryLineInput.create({
@@ -149,7 +148,6 @@ export const toggleManualTotalEmissionsService = async (
             isActive: true,
             directTotalEmissions: null,
             createdById: userId,
-            updatedById: userId,
           },
         });
       }
