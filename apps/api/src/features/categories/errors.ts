@@ -7,12 +7,6 @@ export const CategoryNotFoundError = createError(
   404
 );
 
-export const CategoryIsDeletedError = createError(
-  "CATEGORY_IS_DELETED",
-  "Category is deleted",
-  404
-);
-
 export const CategoryNameAlreadyExistsError = createError(
   "CATEGORY_NAME_ALREADY_EXISTS",
   "A category with this name already exists for this methodology version",

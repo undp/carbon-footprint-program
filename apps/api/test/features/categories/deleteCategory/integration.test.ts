@@ -116,7 +116,7 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
         code: string;
         message: string;
       };
-      expect(body.code).toBe("CATEGORY_IS_DELETED");
+      expect(body.code).toBe("CATEGORY_NOT_FOUND");
     });
   });
 });
