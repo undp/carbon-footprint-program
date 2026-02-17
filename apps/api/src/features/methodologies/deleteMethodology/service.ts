@@ -48,6 +48,7 @@ export const deleteMethodologyService = async (
 
   // Use transaction to soft-delete methodology AND cascade to categories
   await prismaClient.$transaction(async (tx) => {
+    const updatedById = user ? BigInt(user.id) : null;
     // Soft delete all active categories for this methodology
     await tx.category.updateMany({
       where: {
@@ -56,7 +57,7 @@ export const deleteMethodologyService = async (
       },
       data: {
         status: CategoryStatus.DELETED,
-        updatedById: user ? BigInt(user.id) : null,
+        updatedById,
       },
     });
 
@@ -65,7 +66,7 @@ export const deleteMethodologyService = async (
       where: { id: methodologyId },
       data: {
         status: MethodologyVersionStatus.DELETED,
-        updatedById: user ? BigInt(user.id) : null,
+        updatedById,
       },
     });
   });
