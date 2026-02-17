@@ -95,7 +95,11 @@ describe("GET /api/carbon-inventories/:id/emissions-summary/categories - Integra
 
     it("should return zero totalEmissions for inventory with no emissions data", async () => {
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", methodologyVersionId },
+        data: {
+          usageMode: "SIMPLIFIED",
+          methodologyVersionId,
+          updatedAt: null,
+        },
       });
 
       const response = await app.inject({
@@ -131,7 +135,11 @@ describe("GET /api/carbon-inventories/:id/emissions-summary/categories - Integra
 
     it("should return 404 when inventory has no methodology", async () => {
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", methodologyVersionId: null },
+        data: {
+          usageMode: "SIMPLIFIED",
+          methodologyVersionId: null,
+          updatedAt: null,
+        },
       });
 
       const response = await app.inject({

@@ -48,6 +48,7 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
             idpUserId: authUser.idpUserId,
             email: authUser.email,
             idpName: authUser.idpName,
+            updatedAt: null,
           },
         });
 

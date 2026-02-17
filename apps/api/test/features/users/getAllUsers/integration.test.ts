@@ -68,6 +68,7 @@ describe("GET /api/users - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-123",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -88,8 +89,8 @@ describe("GET /api/users - Integration Tests", () => {
       expect(testUser!.countryJobPositionId).toBe(testJobPositionId.toString());
       expect(testUser!.idpUserId).toBe("idp-user-123");
       expect(testUser!.idpName).toBe("azure-ad");
-      expect(testUser!.createdAt).toBeTruthy();
-      expect(testUser!.updatedAt).toBeTruthy();
+      expect(testUser!.createdAt).toBeDefined();
+      expect(testUser!.updatedAt).toBeNull();
     });
   });
 
@@ -107,6 +108,7 @@ describe("GET /api/users - Integration Tests", () => {
           firstName: "First",
           lastName: "User",
           createdAt: olderDate,
+          updatedAt: null,
         },
       });
 
@@ -117,6 +119,7 @@ describe("GET /api/users - Integration Tests", () => {
           firstName: "Second",
           lastName: "User",
           createdAt: newerDate,
+          updatedAt: null,
         },
       });
 
@@ -148,6 +151,7 @@ describe("GET /api/users - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "Schema",
           lastName: "Test",
+          updatedAt: null,
         },
       });
 
@@ -186,6 +190,7 @@ describe("GET /api/users - Integration Tests", () => {
           lastName: null,
           idpUserId: null,
           idpName: null,
+          updatedAt: null,
         },
       });
 

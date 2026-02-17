@@ -11,6 +11,7 @@ export async function createTestOrganization(
     data: {
       countryId,
       status: OrganizationStatus.ACTIVE,
+      updatedAt: null,
       ...overrides,
     },
   });

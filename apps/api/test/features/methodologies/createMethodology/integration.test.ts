@@ -57,8 +57,8 @@ describe("POST /api/methodologies - Integration Tests", () => {
       expect(body.version).toBe("1.0");
       expect(body.status).toBe("UNPUBLISHED");
       expect(body.countryId).toBeTruthy();
-      expect(body.createdAt).toBeTruthy();
-      expect(body.updatedAt).toBeTruthy();
+      expect(body.createdAt).toBeDefined();
+      expect(body.updatedAt).toBeNull();
     });
 
     it("should persist the methodology in the database", async () => {

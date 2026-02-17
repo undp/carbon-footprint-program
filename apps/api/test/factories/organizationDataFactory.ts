@@ -29,6 +29,7 @@ export async function createTestOrganizationData(
       representativePhone: `+1234567890`,
       representativeEmail: `test@test.com`,
       status: OrganizationDataStatus.ACTIVE,
+      updatedAt: null,
       ...overrides,
     },
   });

@@ -60,6 +60,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-123",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -88,6 +89,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Name",
           idpUserId: "idp-user-456",
           idpName: "okta",
+          updatedAt: null,
         },
       });
 
@@ -116,6 +118,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Name",
           idpUserId: "idp-user-789",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 
@@ -143,6 +146,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Update",
           idpUserId: "idp-user-101",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -169,6 +173,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "original-idp-user",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -196,6 +201,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Name",
           idpUserId: "idp-user-123",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -223,6 +229,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Idp",
           idpUserId: "original-idp-user",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -251,6 +258,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Idp",
           idpUserId: "idp-user-123",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -279,6 +287,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "original-idp-user",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -315,6 +324,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Test",
           idpUserId: "idp-user-202",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 
@@ -370,6 +380,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-303",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -393,6 +404,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-404",
           idpName: "okta",
+          updatedAt: null,
         },
       });
 
@@ -417,6 +429,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-606",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -429,6 +442,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-707",
           idpName: "okta",
+          updatedAt: null,
         },
       });
 
@@ -472,6 +486,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-unique",
           idpName: "okta",
+          updatedAt: null,
         },
       });
 
@@ -502,6 +517,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-808",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 
@@ -538,6 +554,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
           lastName: "Change",
           idpUserId: "idp-user-505",
           idpName: "auth0",
+          updatedAt: null,
         },
       });
 

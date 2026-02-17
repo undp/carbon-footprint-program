@@ -317,6 +317,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
             gasDetails: {},
             value: new Prisma.Decimal("2.31"),
             status: EmissionFactorStatus.ACTIVE,
+            updatedAt: null,
           },
         });
       }
@@ -1061,6 +1062,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
           methodologyVersionId: emptyMethodology.id,
           name: "Test Category",
           position: 1,
+          updatedAt: null,
         },
       });
 
@@ -1069,6 +1071,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         data: {
           categoryId: category.id,
           name: "Test Subcategory",
+          updatedAt: null,
         },
       });
 

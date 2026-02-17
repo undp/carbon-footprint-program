@@ -28,6 +28,7 @@ export const createUserService = async (
         idpUserId: data.idpUserId ?? null,
         idpName: data.idpName ?? null,
         createdById: userId,
+        updatedAt: null,
       },
     });
 

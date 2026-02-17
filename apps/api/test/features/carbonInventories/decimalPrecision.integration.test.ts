@@ -73,6 +73,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           gasDetails: {},
           value: valueWithExtraDecimals,
           status: EmissionFactorStatus.ACTIVE,
+          updatedAt: null,
         },
       });
 
@@ -119,6 +120,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
             gasDetails: {},
             value: invalidValue,
             status: EmissionFactorStatus.ACTIVE,
+            updatedAt: null,
           },
         })
       ).rejects.toThrow();
@@ -156,6 +158,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           gasDetails: {},
           value: validValue,
           status: EmissionFactorStatus.ACTIVE,
+          updatedAt: null,
         },
       });
 
@@ -449,6 +452,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           lineInputId: input.id,
           appliedFactorValue: valueWithExtraDecimals,
           appliedFactorRateUnitId: rateMeasurementUnit.id,
+          updatedAt: null,
         },
       });
 
@@ -488,6 +492,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
             lineInputId: input.id,
             appliedFactorValue: invalidValue,
             appliedFactorRateUnitId: rateMeasurementUnit.id,
+            updatedAt: null,
           },
         })
       ).rejects.toThrow();
@@ -523,6 +528,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           lineInputId: input.id,
           appliedFactorValue: validValue,
           appliedFactorRateUnitId: rateMeasurementUnit.id,
+          updatedAt: null,
         },
       });
 
@@ -558,6 +564,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         data: {
           lineInputId: input.id,
           totalEmissions: valueWithExtraDecimals,
+          updatedAt: null,
         },
       });
 
@@ -591,6 +598,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           data: {
             lineInputId: input.id,
             totalEmissions: invalidValue,
+            updatedAt: null,
           },
         })
       ).rejects.toThrow();
@@ -620,6 +628,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         data: {
           lineInputId: input.id,
           totalEmissions: validValue,
+          updatedAt: null,
         },
       });
 

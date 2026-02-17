@@ -39,7 +39,11 @@ describe("GET /api/carbon-inventories/:id/suggested-reduction-plan - Integration
   describe("Successful retrieval", () => {
     it("should return a suggested reduction plan for a valid inventory", async () => {
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", methodologyVersionId },
+        data: {
+          usageMode: "SIMPLIFIED",
+          methodologyVersionId,
+          updatedAt: null,
+        },
       });
 
       const response = await app.inject({
@@ -75,7 +79,11 @@ describe("GET /api/carbon-inventories/:id/suggested-reduction-plan - Integration
 
     it("should return 404 when inventory has no methodology", async () => {
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", methodologyVersionId: null },
+        data: {
+          usageMode: "SIMPLIFIED",
+          methodologyVersionId: null,
+          updatedAt: null,
+        },
       });
 
       const response = await app.inject({

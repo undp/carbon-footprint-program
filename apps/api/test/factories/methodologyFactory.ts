@@ -71,6 +71,7 @@ export async function createEmptyMethodologyVersion(
       regulation: options?.regulation ?? "Test Regulation",
       version: options?.version ?? "1.0",
       status: options?.status ?? MethodologyVersionStatus.PUBLISHED,
+      updatedAt: null,
     },
     select: { id: true },
   });

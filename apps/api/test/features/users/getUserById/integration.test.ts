@@ -56,6 +56,7 @@ describe("GET /api/users/:id - Integration Tests", () => {
           lastName: "User",
           idpUserId: "idp-user-123",
           idpName: "azure-ad",
+          updatedAt: null,
         },
       });
 
@@ -84,6 +85,7 @@ describe("GET /api/users/:id - Integration Tests", () => {
           countryJobPositionId: testJobPositionId,
           firstName: "All",
           lastName: "Fields",
+          updatedAt: null,
         },
       });
 
@@ -119,6 +121,7 @@ describe("GET /api/users/:id - Integration Tests", () => {
           lastName: null,
           idpUserId: null,
           idpName: null,
+          updatedAt: null,
         },
       });
 
