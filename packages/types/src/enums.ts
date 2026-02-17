@@ -7,4 +7,6 @@ export {
   CarbonInventoryLineStatus,
   MethodologyVersionStatus,
   CategoryStatus,
+  FileType,
+  FileStatus,
 } from "@repo/database/enums";
