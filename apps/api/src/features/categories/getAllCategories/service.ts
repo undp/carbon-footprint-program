@@ -3,12 +3,14 @@ import {
   CategoryStatus,
   type GetAllCategoriesResponse,
   type GetAllCategoriesQuery,
+  User,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
 
-export const getAllActiveCategoriesService = async (
+export const getAllCategoriesService = async (
   prismaClient: PrismaClient,
-  query?: GetAllCategoriesQuery
+  query: GetAllCategoriesQuery | null,
+  _user: User | null
 ): Promise<GetAllCategoriesResponse> => {
   const methodologyFilter = query?.methodologyVersionId
     ? { methodologyVersionId: BigInt(query.methodologyVersionId) }

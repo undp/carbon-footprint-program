@@ -1,5 +1,5 @@
 import { createGetAllHandler } from "@/handlerFactory/index.js";
-import { getAllActiveCategoriesService } from "./service.js";
+import { getAllCategoriesService } from "./service.js";
 import type {
   GetAllCategoriesResponse,
   GetAllCategoriesQuery,
@@ -10,7 +10,7 @@ export const getAllCategoriesHandler = createGetAllHandler<
   GetAllCategoriesQuery
 >(
   "categories",
-  getAllActiveCategoriesService,
+  getAllCategoriesService,
   "Categories",
   false // Don't treat empty array as not found
 );
