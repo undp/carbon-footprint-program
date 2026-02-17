@@ -19,7 +19,10 @@ export const UserSchema = z.object({
   firstName: z.string().nullable().describe("The first name of the user"),
   lastName: z.string().nullable().describe("The last name of the user"),
   createdAt: z.iso.datetime().describe("The creation date of the user"),
-  updatedAt: z.iso.datetime().describe("The update date of the user"),
+  updatedAt: z.iso
+    .datetime()
+    .nullable()
+    .describe("The update date of the user"),
   createdById: IdSchema.nullable().describe(
     "The ID of the user who created this user"
   ),
