@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import { CategoryStatus } from "@repo/types";
-import { CategoryNotFoundError } from "../errors.js";
+import { CategoryIsDeletedError, CategoryNotFoundError } from "../errors.js";
 
 export const deleteCategoryService = async (
   prismaClient: PrismaClient,
@@ -13,8 +13,11 @@ export const deleteCategoryService = async (
     select: { status: true },
   });
 
-  if (!category || category.status === CategoryStatus.DELETED) {
+  if (!category) {
     throw new CategoryNotFoundError();
+  }
+  if (category.status === CategoryStatus.DELETED) {
+    throw new CategoryIsDeletedError();
   }
 
   await prismaClient.category.update({
