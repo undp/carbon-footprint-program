@@ -278,6 +278,11 @@ describe("POST /api/categories/ - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("CATEGORY_POSITION_ALREADY_EXISTS");
     });
   });
 });
