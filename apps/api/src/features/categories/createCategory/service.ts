@@ -2,6 +2,7 @@ import { type PrismaClient, Prisma } from "@repo/database";
 import {
   CategoryStatus,
   MethodologyVersionStatus,
+  User,
   type CreateCategoryRequest,
   type CreateCategoryResponse,
 } from "@repo/types";
@@ -15,18 +16,19 @@ import {
 
 export const createCategoryService = async (
   prismaClient: PrismaClient,
-  data: CreateCategoryRequest
+  data: CreateCategoryRequest,
+  user: User | null
 ): Promise<CreateCategoryResponse> => {
   // Validate methodology version exists and is not deleted
   const methodologyVersion = await prismaClient.methodologyVersion.findUnique({
-    where: { id: BigInt(data.methodologyVersionId) },
+    where: {
+      id: BigInt(data.methodologyVersionId),
+      status: { not: MethodologyVersionStatus.DELETED },
+    },
     select: { id: true, status: true },
   });
 
-  if (
-    !methodologyVersion ||
-    methodologyVersion.status === MethodologyVersionStatus.DELETED
-  ) {
+  if (!methodologyVersion) {
     throw new MethodologyVersionNotFoundForCategoryError();
   }
 
@@ -42,8 +44,8 @@ export const createCategoryService = async (
         examples: data.examples ?? null,
         position: data.position,
         status: CategoryStatus.ACTIVE,
-        createdById: null, // TODO: Add from authenticated user
-        updatedById: null,
+        createdById: user ? BigInt(user.id) : null,
+        updatedAt: null,
       },
     });
     return mapCategoryToResponse(category);
