@@ -85,7 +85,6 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
           BigInt(456),
           BigInt(methodologyVersionId),
           BigInt(111),
-          userId,
           userId
         )
       );
@@ -116,7 +115,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.preselectedNodesId).toBe("111");
       expect(body.isEditable).toBe(false);
       expect(body.createdById).toBe(userId.toString());
-      expect(body.updatedById).toBe(userId.toString());
+      expect(body.updatedById).toBeNull();
       expect(body.createdAt).toBeTruthy();
       expect(body.updatedAt).toBeTruthy();
     });
@@ -143,7 +142,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.methodologyVersionId).toBeNull();
       expect(body.preselectedNodesId).toBeNull();
       expect(body.createdById).toBe(userId.toString());
-      expect(body.updatedById).toBe(userId.toString());
+      expect(body.updatedById).toBeNull();
     });
   });
 

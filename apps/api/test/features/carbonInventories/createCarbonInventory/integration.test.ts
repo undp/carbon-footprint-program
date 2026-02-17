@@ -156,7 +156,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.methodologyVersionId).toBe(methodologyVersionIdString);
       expect(body.preselectedNodesId).toBeNull();
       expect(body.createdById).toBe(id.toString());
-      expect(body.updatedById).toBe(id.toString());
+      expect(body.updatedById).toBeNull();
     });
   });
 

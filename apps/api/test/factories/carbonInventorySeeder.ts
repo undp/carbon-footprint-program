@@ -113,8 +113,7 @@ export const carbonInventoryPatterns = {
     organizationBranchId: bigint,
     methodologyVersionId: bigint,
     preselectedNodesId: bigint,
-    createdById: bigint,
-    updatedById: bigint
+    createdById: bigint
   ): Prisma.CarbonInventoryUncheckedCreateInput => ({
     organizationId: organizationId,
     organizationBranchId: organizationBranchId,
@@ -133,7 +132,6 @@ export const carbonInventoryPatterns = {
     preselectedNodesId: preselectedNodesId,
     isEditable: false,
     createdById: createdById,
-    updatedById: updatedById,
   }),
 
   /**
@@ -188,7 +186,6 @@ export async function createCarbonInventory(
   const data = {
     ...rawData,
     createdById: rawData.createdById ?? id,
-    updatedById: rawData.updatedById ?? id,
   };
 
   return prisma.carbonInventory.create({ data });
@@ -207,7 +204,6 @@ export async function createCarbonInventories(
   const dataWithUserIds = dataArray.map((rawData) => ({
     ...rawData,
     createdById: rawData.createdById ?? id,
-    updatedById: rawData.updatedById ?? id,
   }));
   await prisma.carbonInventory.createMany({ data: dataWithUserIds });
 }
