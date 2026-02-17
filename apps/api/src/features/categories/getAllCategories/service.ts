@@ -6,15 +6,17 @@ import {
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
 
-export const getAllCategoriesService = async (
+export const getAllActiveCategoriesService = async (
   prismaClient: PrismaClient,
   query?: GetAllCategoriesQuery
 ): Promise<GetAllCategoriesResponse> => {
-  const methodologyVersionId = BigInt(query!.methodologyVersionId);
+  const methodologyFilter = query?.methodologyVersionId
+    ? { methodologyVersionId: BigInt(query.methodologyVersionId) }
+    : {};
 
   const categories = await prismaClient.category.findMany({
     where: {
-      methodologyVersionId,
+      ...methodologyFilter,
       status: { not: CategoryStatus.DELETED },
     },
     orderBy: {
