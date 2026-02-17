@@ -107,7 +107,6 @@ describe("GET /api/users - Integration Tests", () => {
           firstName: "First",
           lastName: "User",
           createdAt: olderDate,
-          updatedAt: olderDate,
         },
       });
 
@@ -118,7 +117,6 @@ describe("GET /api/users - Integration Tests", () => {
           firstName: "Second",
           lastName: "User",
           createdAt: newerDate,
-          updatedAt: newerDate,
         },
       });
 
