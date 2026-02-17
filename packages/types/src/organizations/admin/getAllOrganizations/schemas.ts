@@ -26,7 +26,7 @@ const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
 });
 
 // Sort fields (based on AdminOrganizationListItemSchema fields)
-const GetAllOrganizationsSortBySchema = z.enum([
+const GetAllOrganizationsSortKeysSchema = z.enum([
   "name",
   "sectorName",
   "subsectorName",
@@ -42,7 +42,7 @@ const GetAllOrganizationsSortBySchema = z.enum([
 // Query parameters
 export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
   sortBy:
-    GetAllOrganizationsSortBySchema.optional().describe("Field to sort by"),
+    GetAllOrganizationsSortKeysSchema.optional().describe("Field to sort by"),
   statuses: z
     .string()
     .transform((val) =>
