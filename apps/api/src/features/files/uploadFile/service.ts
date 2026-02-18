@@ -31,34 +31,50 @@ export const uploadFileService = async (
   const sanitizedName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const blobPath = `${fileType}/${ownerId}/${fileUuid}-${sanitizedName}`;
 
-  // Upload to blob storage
+  const blockBlobClient = blobStorage.getBlockBlobClient(blobPath);
+
   try {
-    const blockBlobClient = blobStorage.getBlockBlobClient(blobPath);
-    await blockBlobClient.uploadData(buffer, {
-      blobHTTPHeaders: { blobContentType: mimeType },
+    // Upload to blob storage
+    try {
+      await blockBlobClient.uploadData(buffer, {
+        blobHTTPHeaders: { blobContentType: mimeType },
+      });
+    } catch (error) {
+      throw new FileUploadFailedError((error as Error).message);
+    }
+
+    // Create file record + link table in a transaction
+    const file = await prisma.$transaction(async (tx) => {
+      const createdFile = await tx.file.create({
+        data: {
+          uuid: fileUuid,
+          fileType,
+          originalName,
+          mimeType,
+          sizeBytes: buffer.length,
+          blobPath,
+          createdById: BigInt(userId),
+        },
+      });
+
+      await createFileLink(tx, fileType, createdFile.id, ownerIdBigInt);
+
+      return createdFile;
     });
+
+    return mapFileToResponse(file);
   } catch (error) {
-    throw new FileUploadFailedError((error as Error).message);
+    // Attempt to clean up the uploaded blob to avoid orphaned storage objects.
+    // Log but do not swallow the cleanup error so the original error is preserved.
+    try {
+      await blockBlobClient.deleteIfExists();
+    } catch (cleanupError) {
+      // eslint-disable-next-line no-console
+      console.error(
+        "Failed to delete orphaned blob after upload error:",
+        cleanupError
+      );
+    }
+    throw error;
   }
-
-  // Create file record + link table in a transaction
-  const file = await prisma.$transaction(async (tx) => {
-    const createdFile = await tx.file.create({
-      data: {
-        uuid: fileUuid,
-        fileType,
-        originalName,
-        mimeType,
-        sizeBytes: buffer.length,
-        blobPath,
-        createdById: BigInt(userId),
-      },
-    });
-
-    await createFileLink(tx, fileType, createdFile.id, ownerIdBigInt);
-
-    return createdFile;
-  });
-
-  return mapFileToResponse(file);
 };
