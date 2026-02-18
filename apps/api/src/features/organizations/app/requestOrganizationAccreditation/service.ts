@@ -41,11 +41,12 @@ export const requestOrganizationAccreditationService = async (
   }
 
   return await prismaClient.$transaction(async (tx) => {
-    // Find ACTIVE organization data
+    // Find ACTIVE organization data that is a Draft (no submission linked)
     const activeData = await tx.organizationData.findFirst({
       where: {
         organizationId: BigInt(organizationId),
         status: OrganizationDataStatus.ACTIVE,
+        submission: null,
       },
     });
 
@@ -53,7 +54,7 @@ export const requestOrganizationAccreditationService = async (
       throw new OrganizationDataNotFoundError(organizationId);
     }
 
-    // Check if submission already exists for this org data
+    // Check if submission already exists for this org data (safety guard)
     const hasSubmission = await tx.submission.findFirst({
       where: {
         subject: {
@@ -66,6 +67,22 @@ export const requestOrganizationAccreditationService = async (
     if (hasSubmission) {
       throw new SubmissionAlreadyExistsError(organizationId);
     }
+
+    // Mark any rejected ACTIVE data as OUTDATED (atomically with the submission)
+    await tx.organizationData.updateMany({
+      where: {
+        organizationId: BigInt(organizationId),
+        status: OrganizationDataStatus.ACTIVE,
+        submission: {
+          subject: {
+            submissions: {
+              some: { status: SubmissionStatus.REJECTED },
+            },
+          },
+        },
+      },
+      data: { status: OrganizationDataStatus.OUTDATED },
+    });
 
     // Create submission chain (Subject → Link → Submission)
     // 1. Create submission subject

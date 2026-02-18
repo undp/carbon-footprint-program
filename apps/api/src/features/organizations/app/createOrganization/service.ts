@@ -16,7 +16,7 @@ export const createOrganizationService = async (
     // 1. Create organization
     const organization = await tx.organization.create({
       data: {
-        countryId: BigInt(1), // TODO: Get from user or use default
+        countryId: BigInt(1), // TODO: derive countryId from the authenticated user's country
         status: OrganizationStatus.ACTIVE,
         createdById: BigInt(userId),
         updatedById: BigInt(userId),
@@ -26,7 +26,7 @@ export const createOrganizationService = async (
     // 2. Create organization data
     await createOrganizationData(tx, organization.id.toString(), userId, body);
 
-    // 3. Find ADMIN role
+    // 3. Find ACCREDITED_MEMBER role to assign to the organization creator
     const adminRole = await tx.organizationRole.findFirst({
       where: { role: { name: "ACCREDITED_MEMBER" } },
     });

@@ -14,5 +14,5 @@ export default function organizationsRoutes(fastify: FastifyZodInstance) {
   getOrganizationByIdRoute(fastify, { public: false }); // GET /:id
   createOrganizationRoute(fastify, { public: false }); // POST /
   updateOrganizationRoute(fastify, { public: false }); // PATCH /:id
-  requestOrganizationAccreditationRoute(fastify, { public: false }); // POST /:id/request-accreditation
+  requestOrganizationAccreditationRoute(fastify, { public: false }); // POST /:id/accredit
 }

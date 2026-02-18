@@ -14,12 +14,13 @@ export const getOrganizationByIdRoute: StandardRouteSignature = (
     "/:id",
     {
       schema: {
-        tags: ["admin-organizations"],
+        tags: ["app-organizations"],
         summary: "Get organization by ID",
         description: "Get organization details by ID (admin access)",
         params: GetOrganizationByIdParamsSchema,
         response: {
           200: GetOrganizationByIdResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

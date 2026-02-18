@@ -14,6 +14,7 @@ import {
   getDraftOrganizationData,
   getApprovedOrganizationData,
   getPendingOrganizationData,
+  getRejectedOrganizationData,
   createOrganizationData,
   createOrganizationDataSubmission,
 } from "../../helpers.js";
@@ -91,6 +92,14 @@ export const updateOrganizationService = async (
       newOrganizationData.id.toString(),
       userId
     );
+  }
+
+  const rejectedOrganizationData = await getRejectedOrganizationData(
+    prismaClient,
+    organizationId
+  );
+  if (rejectedOrganizationData) {
+    await createOrganizationData(prismaClient, organizationId, userId, body);
   }
 
   return {

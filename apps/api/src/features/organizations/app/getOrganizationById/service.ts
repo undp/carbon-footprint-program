@@ -4,11 +4,15 @@ import {
   type GetOrganizationByIdResponse,
   type OrganizationDisplayStatus,
 } from "@repo/types";
-import { OrganizationNotFoundError } from "../../errors.js";
-import { SubmissionStatus } from "@repo/database";
+import {
+  OrganizationNotFoundError,
+  OrganizationAccessDeniedError,
+} from "../../errors.js";
+import { SubmissionStatus, MembershipStatus } from "@repo/database";
 
 export const getOrganizationByIdService = async (
   prismaClient: PrismaClient,
+  userId: string,
   organizationId: string
 ): Promise<GetOrganizationByIdResponse> => {
   const org = await prismaClient.organizationSummaryView.findUnique({
@@ -19,6 +23,18 @@ export const getOrganizationByIdService = async (
 
   if (!org) {
     throw new OrganizationNotFoundError(organizationId);
+  }
+
+  const membership = await prismaClient.userOrganizationMembership.findFirst({
+    where: {
+      userId: BigInt(userId),
+      organizationId: BigInt(organizationId),
+      status: MembershipStatus.ACTIVE,
+    },
+  });
+
+  if (!membership) {
+    throw new OrganizationAccessDeniedError(organizationId);
   }
 
   // Map to response format
