@@ -755,7 +755,7 @@ enum FileStatus {
 
 model File {
   id           BigInt     @id @default(autoincrement())
-  uuid         String     @unique
+  uuid         String     @unique @db.Uuid
   fileType     FileType   @map("file_type")
   originalName String     @map("original_name")
   mimeType     String     @map("mime_type")

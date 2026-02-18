@@ -7,7 +7,7 @@ CREATE TYPE "file_status" AS ENUM ('ACTIVE', 'DELETED');
 -- CreateTable
 CREATE TABLE "file" (
     "id" BIGSERIAL NOT NULL,
-    "uuid" TEXT NOT NULL,
+    "uuid" UUID NOT NULL,
     "file_type" "file_type" NOT NULL,
     "original_name" TEXT NOT NULL,
     "mime_type" TEXT NOT NULL,
