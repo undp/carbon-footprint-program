@@ -13,9 +13,21 @@ export const getOrganizationKpisService = async (
     },
   });
 
-  // Group and count in-memory
+  // Initialize all valid combinations with count 0
   const countMap = new Map<string, number>();
+  const statuses: Array<"ACTIVE" | "BLOCKED"> = ["ACTIVE", "BLOCKED"];
+  const booleanValues = [true, false];
 
+  for (const status of statuses) {
+    for (const accredited of booleanValues) {
+      for (const withInventories of booleanValues) {
+        const key = `${status}-${accredited}-${withInventories}`;
+        countMap.set(key, 0);
+      }
+    }
+  }
+
+  // Count actual organizations
   for (const org of organizations) {
     const key = `${org.organizationStatus}-${org.isAccredited}-${org.hasCarbonInventories}`;
     countMap.set(key, (countMap.get(key) || 0) + 1);
@@ -31,6 +43,8 @@ export const getOrganizationKpisService = async (
       count,
     };
   });
+
+  console.log(counts);
 
   return {
     total: organizations.length,
