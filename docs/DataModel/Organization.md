@@ -21,6 +21,7 @@ The organization exists but has never been submitted for review.
 - **`lastSubmissionStatus`**: `null`
 - **`hasUnsubmittedChanges`**: `true`
 - **`isEditable`**: `true` (The user is completing the initial profile).
+- **`Displayed Data`**: Display the just created organization data.
 
 ### 2. Pending Approval (Under Review)
 
@@ -30,6 +31,7 @@ The user submitted the information and is waiting for the administrator's respon
 - **`lastSubmissionStatus`**: `PENDING`
 - **`hasUnsubmittedChanges`**: `false`
 - **`isEditable`**: `false` (Locked while under review to prevent inconsistent changes).
+- **`Displayed Data`**: Display the organization data that is under review.
 
 ### 3. Approved (Accredited)
 
@@ -39,6 +41,7 @@ The administrator approved the submission. The organization is officially accred
 - **`lastSubmissionStatus`**: `APPROVED`
 - **`hasUnsubmittedChanges`**: `false`
 - **`isEditable`**: `true` (Editing creates a new draft/version).
+- **`Displayed Data`**: Display the organization data that is accredited.
 
 ### ~~4. Approved + Pending Changes (Approved + Draft)~~
 
@@ -51,6 +54,7 @@ An accredited organization that has been edited but the changes have not been su
 - **`lastSubmissionStatus`**: `APPROVED` (Refers to the current official version).
 - **`hasUnsubmittedChanges`**: `true` (A new `OrganizationData` exists without submission).
 - **`isEditable`**: `true`.
+- **`Displayed Data`**: Display the draft organization data.
 
 ### 5. Approved + New Submission (Approved + Pending Re-accreditation)
 
@@ -60,6 +64,7 @@ Changes to an already accredited organization were submitted for a new review.
 - **`lastSubmissionStatus`**: `PENDING` (The new version is under review).
 - **`hasUnsubmittedChanges`**: `false`.
 - **`isEditable`**: `false` (The new version is locked until the admin decides).
+- **`Displayed Data`**: Display the organization data that is under review.
 
 ### 6. Rejected (Initial)
 
@@ -67,8 +72,9 @@ The administrator rejected the initial submission. The rejected data becomes `OU
 
 - **`status`**: `NOT_ACCREDITED`
 - **`lastSubmissionStatus`**: `REJECTED`
-- **`hasUnsubmittedChanges`**: `true` (The system usually creates a new draft based on the rejected one for correction).
+- **`hasUnsubmittedChanges`**: `false` (The rejected data is not editable anymore).
 - **`isEditable`**: `true`.
+- **`Displayed Data`**: Display the rejected organization data.
 
 ### 7. Approved + Re-accreditation Rejected
 
@@ -78,6 +84,7 @@ The administrator rejected the changes submitted for an organization that was al
 - **`lastSubmissionStatus`**: `REJECTED` (Refers to the last attempted submission).
 - **`hasUnsubmittedChanges`**: `true` (A new draft is generated based on the rejection to allow corrections).
 - **`isEditable`**: `true`.
+- **`Displayed Data`**: Display the approved organization data.
 
 ### 8. Re-accreditation Approved
 
@@ -87,6 +94,7 @@ The administrator approves a new version of the data. The previous version (whic
 - **`lastSubmissionStatus`**: `APPROVED`
 - **`hasUnsubmittedChanges`**: `false`
 - **`isEditable`**: `true`.
+- **`Displayed Data`**: Display the organization data that is accredited.
 
 ### 9. Blocked
 
@@ -96,6 +104,7 @@ Manual administrative action independent of accreditation.
 - **`lastSubmissionStatus`**: (Depends on previous state, e.g., `APPROVED`).
 - **`hasUnsubmittedChanges`**: (Depends on whether there were drafts).
 - **`isEditable`**: `false` (A blocked organization cannot operate or be edited until unblocked).
+- **`Displayed Data`**: Display the organization data based on priority display order (PENDING > DRAFT > APPROVED > REJECTED).
 
 ---
 
