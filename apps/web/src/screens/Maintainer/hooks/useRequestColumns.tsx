@@ -6,7 +6,10 @@ import {
   CheckOutlined,
   CloseOutlined,
 } from "@mui/icons-material";
-import { RequestStatus } from "../components/RequestStatusChip";
+import {
+  RequestStatus,
+  RequestStatusChip,
+} from "../components/RequestStatusChip";
 
 export interface RequestRow {
   id: string;
@@ -18,36 +21,47 @@ export interface RequestRow {
 }
 
 export const useRequestColumns = (): GridColDef<RequestRow>[] => {
+  const cellClassName = "content-center";
   return useMemo<GridColDef<RequestRow>[]>(
     () => [
       {
         field: "empresa",
         headerName: "Empresa",
+        cellClassName,
         flex: 1,
       },
       {
         field: "tipo",
         headerName: "Tipo",
+        cellClassName,
         flex: 1,
       },
       {
         field: "periodo",
         headerName: "Periodo",
+        cellClassName,
         flex: 0.8,
       },
       {
         field: "estado",
         headerName: "Estado",
+        cellClassName,
         flex: 1,
+        renderCell: (params) => {
+          const estado = params.row.estado;
+          return <RequestStatusChip status={estado} />;
+        },
       },
       {
         field: "fechaEnvio",
         headerName: "Fecha Envío",
+        cellClassName,
         flex: 0.8,
       },
       {
         field: "actions",
         headerName: "Acciones",
+        cellClassName,
         flex: 0.5,
         sortable: false,
         filterable: false,
@@ -55,8 +69,7 @@ export const useRequestColumns = (): GridColDef<RequestRow>[] => {
           const estado = params.row.estado;
 
           // TODO: use real enum
-          const showApproveReject =
-            estado === "En Revisión" || estado === "Pendiente";
+          const showApproveReject = estado === RequestStatus.PENDING;
 
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
