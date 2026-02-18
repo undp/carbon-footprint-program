@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
+import { CategorySchema } from "../../categories/index.js";
 
 export const DimensionValueSchema = z.object({
   id: IdSchema.describe("The ID of the dimension value"),
@@ -82,16 +83,16 @@ export const SubcategorySchema = z.object({
     .describe("The IDs of the allowed measurement units for this subcategory"),
 });
 
-export const CategorySchema = z.object({
-  id: IdSchema.describe("The ID of the category"),
-  name: z.string().describe("The name of the category"),
-  synonyms: z.string().nullable().describe("Synonyms for the category"),
-  description: z
-    .string()
-    .nullable()
-    .describe("The description of the category"),
-  examples: z.string().nullable().describe("Examples for the category"),
-  position: z.number().int().describe("The position/order of the category"),
+export const InventoryCategorySchema = CategorySchema.pick({
+  id: true,
+  name: true,
+  icon: true,
+  color: true,
+  synonyms: true,
+  description: true,
+  examples: true,
+  position: true,
+}).extend({
   subcategories: z
     .array(SubcategorySchema)
     .describe("The subcategories in this category"),
@@ -104,6 +105,6 @@ export const GetCarbonInventoryMethodologyResponseSchema = z.object({
     .nullable()
     .describe("The description of the methodology"),
   categories: z
-    .array(CategorySchema)
+    .array(InventoryCategorySchema)
     .describe("The categories in this methodology"),
 });

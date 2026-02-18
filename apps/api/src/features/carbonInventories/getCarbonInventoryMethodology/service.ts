@@ -53,6 +53,8 @@ export const getCarbonInventoryMethodologyService = async (
           name: true,
           synonyms: true,
           description: true,
+          icon: true,
+          color: true,
           examples: true,
           position: true,
           subcategories: {

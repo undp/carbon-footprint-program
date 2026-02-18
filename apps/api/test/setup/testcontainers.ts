@@ -21,6 +21,8 @@ function createPrismaExecOptions(databaseUrl: string) {
     env: {
       // eslint-disable-next-line turbo/no-undeclared-env-vars
       PATH: process.env.PATH,
+      // eslint-disable-next-line turbo/no-undeclared-env-vars
+      HOME: process.env.HOME,
       DATABASE_URL: databaseUrl,
       SEEDS_DATASET: "testing",
     },

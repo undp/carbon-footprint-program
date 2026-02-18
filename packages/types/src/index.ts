@@ -5,6 +5,7 @@ export * from "./jobPositions/index.js";
 export * from "./measurementUnits/index.js";
 export * from "./organizationMainActivities/index.js";
 export * from "./methodologies/index.js";
+export * from "./categories/index.js";
 export * from "./users/index.js";
 export * from "./enums.js";
 export * from "./zod.js";

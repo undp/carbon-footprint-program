@@ -20,6 +20,8 @@ export async function seedCategories(
       methodologyVersionName: methodology.name,
       name: category.name,
       synonyms: category.synonyms,
+      icon: category.icon,
+      color: category.color,
       description: category.description,
       examples: category.examples,
       position: category.position,
@@ -59,8 +61,10 @@ export async function seedCategories(
     return {
       methodologyVersionId: methodologyVersion.id,
       name: category.name,
-      synonyms: category.synonyms || null,
-      description: category.description || null,
+      synonyms: category.synonyms,
+      description: category.description,
+      icon: category.icon,
+      color: category.color,
       examples: category.examples || null,
       position: category.position,
     };
