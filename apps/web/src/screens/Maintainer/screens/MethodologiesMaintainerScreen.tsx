@@ -332,19 +332,19 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   return (
     <FormProvider {...form}>
-      <form id="methodologies-form" noValidate>
-        <MaintainerPageHeader
-          title="Metodologías"
-          onAddRow={handleAddRow}
-          addDisabled={editingRowId !== null}
-          addLabel="Agregar fila"
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Gestiona las metodologías de cálculo. Haz clic en Editar para
-            modificar alcances, subcategorías y factores de emisión. Siempre
-            debe existir una única metodología activa.
-          </Typography>
+      <MaintainerPageHeader
+        title="Metodologías"
+        onAddRow={handleAddRow}
+        addDisabled={editingRowId !== null}
+        addLabel="Agregar fila"
+      />
+      <Box className="rounded-sm bg-white p-3">
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Gestiona las metodologías de cálculo. Haz clic en Editar para
+          modificar alcances, subcategorías y factores de emisión. Siempre debe
+          existir una única metodología activa.
+        </Typography>
+        <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
             <StylizedDataGrid
               sx={(theme) => ({
@@ -362,8 +362,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
               loading={isLoading}
             />
           </Box>
-        </Box>
-      </form>
+        </form>
+      </Box>
       {IS_DEVELOPMENT && <DevTool control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
