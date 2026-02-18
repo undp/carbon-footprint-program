@@ -222,8 +222,13 @@ export const RequestsScreen: FC = () => {
         <StylizedDataGrid
           sx={(theme) => ({
             backgroundColor: "white",
+            border: "none",
+            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
+            "& .MuiDataGrid-main": {
+              padding: "16px !important",
+            },
             "& .MuiDataGrid-columnHeader": {
-              backgroundColor: theme.palette.grey[100],
+              backgroundColor: theme.palette.background.default,
             },
             "& .MuiDataGrid-cell": {
               minHeight: "65px",
