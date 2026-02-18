@@ -11,6 +11,7 @@ import {
   AccountTreeOutlined,
   Co2Outlined,
   SquareFootOutlined,
+  TaskOutlined,
 } from "@mui/icons-material";
 import { Routes } from "@/interfaces/routes";
 import { Sidebar } from "@/components/layout/Sidebar";
@@ -70,6 +71,11 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     children: [
       { text: "Alias", icon: <TuneOutlined />, path: "#", disabled: true },
     ],
+  },
+  {
+    text: "Solicitudes",
+    icon: <TaskOutlined />,
+    path: Routes.ADMIN_REQUESTS,
   },
   {
     text: "Historial de cambios",
