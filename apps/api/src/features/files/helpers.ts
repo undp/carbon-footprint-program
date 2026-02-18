@@ -38,6 +38,8 @@ export async function validateFileTypeExists(
     });
     if (!submission)
       throw new FileTypeNotFoundError("Submission", ownerId.toString());
+  } else {
+    throw new Error(`Unknown file type: ${String(fileType)}`);
   }
 }
 
@@ -63,6 +65,8 @@ export async function createFileLink(
     await tx.submissionFile.create({
       data: { fileId, submissionId: ownerId },
     });
+  } else {
+    throw new Error(`Unknown file type: ${String(fileType)}`);
   }
 }
 
@@ -89,11 +93,13 @@ export async function findFileIdsByType(
       select: { fileId: true },
     });
     return links.map((l) => l.fileId);
-  } else {
+  } else if (fileType === FileType.SUBMISSION_ATTACHMENT) {
     const links = await prisma.submissionFile.findMany({
       where: { submissionId: ownerId },
       select: { fileId: true },
     });
     return links.map((l) => l.fileId);
+  } else {
+    throw new Error(`Unknown file type: ${String(fileType)}`);
   }
 }
