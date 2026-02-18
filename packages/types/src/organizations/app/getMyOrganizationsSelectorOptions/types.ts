@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { MyOrganizationsSelectorOptionsSchema } from "./schemas.js";
+import { MyOrganizationsSelectorOptionsResponseSchema } from "./schemas.js";
 
-export type MyOrganizationsSelectorOptions = z.infer<
-  typeof MyOrganizationsSelectorOptionsSchema
+export type MyOrganizationsSelectorOptionsResponse = z.infer<
+  typeof MyOrganizationsSelectorOptionsResponseSchema
 >;
