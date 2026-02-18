@@ -206,12 +206,20 @@ module keyVault 'modules/keyVault.bicep' = {
 }
 
 // --------- Storage Account ---------
+// Compute the allowed origin for blob storage CORS (same origin used for App Service CORS)
+var allowedOrigin = enableFrontDoor
+  ? (frontDoorCustomDomain != ''
+    ? 'https://${frontDoorCustomDomain}'
+    : 'https://${frontDoor!.outputs.endpointHostname}')
+  : 'https://${staticWebApp.outputs.defaultHostname}'
+
 module storage 'modules/storage.bicep' = {
   name: 'storageDeployment'
   params: {
     skuName: storageSkuName
     location: location
     networkAclDefaultAction: storageNetworkAclDefaultAction
+    allowedOrigin: allowedOrigin
     tags: tags
   }
 }
@@ -282,11 +290,7 @@ module appService 'modules/appService.bicep' = {
     databaseHost: postgres.outputs.hostOut
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
-    allowedOrigin: enableFrontDoor
-      ? (frontDoorCustomDomain != ''
-        ? 'https://${frontDoorCustomDomain}'
-        : 'https://${frontDoor!.outputs.endpointHostname}')
-      : 'https://${staticWebApp.outputs.defaultHostname}'
+    allowedOrigin: allowedOrigin
     useAcrManagedIdentity: true
     storageAccountName: storage.outputs.name
     enableAzureAuth: enableAzureAuth
@@ -329,6 +333,32 @@ module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = 
 // Role assignment to allow Dev Group members to read/write blobs (for local development)
 module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
   name: 'devGroupStorageBlobContributor'
+  scope: resourceGroup()
+  params: {
+    storageAccountName: storage.outputs.name
+    principalId: devGroupObjectId
+    principalType: 'Group'
+  }
+}
+
+// Role assignment to allow App Service to generate User Delegation SAS tokens
+module appServiceStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = {
+  name: 'appServiceStorageBlobDelegator'
+  scope: resourceGroup()
+  #disable-next-line no-unnecessary-dependson
+  dependsOn: [
+    appService
+    storage
+  ]
+  params: {
+    storageAccountName: storage.outputs.name
+    principalId: appService.outputs.principalId
+  }
+}
+
+// Role assignment to allow Dev Group members to generate User Delegation SAS tokens (for local development)
+module devGroupStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
+  name: 'devGroupStorageBlobDelegator'
   scope: resourceGroup()
   params: {
     storageAccountName: storage.outputs.name
