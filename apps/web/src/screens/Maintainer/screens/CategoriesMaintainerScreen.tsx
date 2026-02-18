@@ -1,6 +1,6 @@
-import { FC, useCallback, useMemo, useState } from "react";
+import { FC, ReactNode, useCallback, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, MenuItem, Paper, Select, Typography } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
@@ -25,6 +25,7 @@ import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@components/FormDebugPanel";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
+import { InfoBanner } from "../components/InfoBanner";
 
 /**
  * Outer wrapper that handles data fetching and defers form mount until data is
@@ -36,6 +37,10 @@ export const CategoriesMaintainerScreen: FC = () => {
   const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
   const { data: methodologies = [] } = useMethodologies();
 
+  const [selectedMethodologyId, setSelectedMethodologyId] = useState<
+    string | undefined
+  >(undefined);
+
   const activeMethodology = useMemo(
     () =>
       methodologies.find(
@@ -44,17 +49,38 @@ export const CategoriesMaintainerScreen: FC = () => {
     [methodologies]
   );
 
-  const targetMethodology = editingMethodology ?? activeMethodology;
-  const methodologyVersionId = targetMethodology?.id;
+  const effectiveMethodologyId =
+    editingMethodology?.id ?? selectedMethodologyId ?? activeMethodology?.id;
 
-  const targetMethodologyStatus = useMemo(
-    () => methodologies.find((m) => m.id === targetMethodology?.id)?.status,
-    [methodologies, targetMethodology?.id]
+  const targetMethodology = methodologies.find(
+    (m) => m.id === effectiveMethodologyId
   );
+  const methodologyVersionId = targetMethodology?.id;
 
   const isViewOnly =
     !editingMethodology ||
-    targetMethodologyStatus === MethodologyVersionStatus.PUBLISHED;
+    targetMethodology?.status === MethodologyVersionStatus.PUBLISHED;
+
+  const methodologySelector = (
+    <Box className="flex items-center gap-1">
+      <Typography variant="body2" color="text.secondary" noWrap>
+        Metodología:
+      </Typography>
+      <Select
+        size="small"
+        value={effectiveMethodologyId ?? ""}
+        disabled={!!editingMethodology}
+        onChange={(e) => setSelectedMethodologyId(e.target.value)}
+        sx={{ minWidth: 220 }}
+      >
+        {methodologies.map((m) => (
+          <MenuItem key={m.id} value={m.id}>
+            {m.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </Box>
+  );
 
   const { data: categories, isLoading } = useCategories(methodologyVersionId);
 
@@ -69,6 +95,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           title="Categorías / Alcances"
           addLabel="Agregar fila"
           addDisabled
+          extra={methodologySelector}
         />
         <Box className="rounded-sm bg-white p-3">
           <Typography variant="body2" color="text.secondary">
@@ -81,11 +108,13 @@ export const CategoriesMaintainerScreen: FC = () => {
 
   return (
     <CategoriesForm
+      key={methodologyVersionId}
       targetMethodology={targetMethodology}
       methodologyVersionId={methodologyVersionId!}
       isViewOnly={isViewOnly}
       initialCategories={categories.map(toFormCategory)}
       serverCategories={categories}
+      methodologySelector={methodologySelector}
     />
   );
 };
@@ -98,6 +127,7 @@ interface CategoriesFormProps {
   isViewOnly: boolean;
   initialCategories: FormCategory[];
   serverCategories: Category[];
+  methodologySelector: ReactNode;
 }
 
 const CategoriesForm: FC<CategoriesFormProps> = ({
@@ -106,6 +136,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   isViewOnly,
   initialCategories,
   serverCategories,
+  methodologySelector,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
 
@@ -359,33 +390,15 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
         onAddRow={isViewOnly ? undefined : handleAddRow}
         addDisabled={editingRowId !== null}
         addLabel="Agregar fila"
+        extra={methodologySelector}
       />
       <Box className="rounded-sm bg-white p-3">
         {!isViewOnly && (
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: 1.5,
-              px: 2.5,
-              py: 1.5,
-              mb: 1.5,
-              borderRadius: 2,
-              border: "1px solid",
-              borderColor: "success.main",
-              backgroundColor: "rgba(0, 110, 77, 0.04)",
-            }}
-          >
-            <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
-            <Box>
-              <Typography variant="body2" fontWeight={600}>
-                Editando metodología: {targetMethodology.name}
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                Los cambios se aplicarán al guardar la metodología completa
-              </Typography>
-            </Box>
-          </Box>
+          <InfoBanner
+            variant="success"
+            title={`Editando metodología: ${targetMethodology.name}`}
+            subtitle="Los cambios se aplicarán automáticamente"
+          />
         )}
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           {isViewOnly
