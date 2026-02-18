@@ -6,3 +6,9 @@ export {
   useDeleteMethodology,
   useDuplicateMethodology,
 } from "./useMethodologies";
+export {
+  useCategories,
+  useAddCategory,
+  useUpdateCategory,
+  useDeleteCategory,
+} from "./useCategories";
