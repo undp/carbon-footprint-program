@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import type { Prisma, PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
   type GetAllCategoriesResponse,
@@ -12,9 +12,10 @@ export const getAllCategoriesService = async (
   query: GetAllCategoriesQuery | null,
   _user: User | null
 ): Promise<GetAllCategoriesResponse> => {
-  const methodologyFilter = query?.methodologyVersionId
-    ? { methodologyVersionId: BigInt(query.methodologyVersionId) }
-    : {};
+  const methodologyFilter: Prisma.CategoryWhereInput =
+    query?.methodologyVersionId
+      ? { methodologyVersionId: BigInt(query.methodologyVersionId) }
+      : {};
 
   const categories = await prismaClient.category.findMany({
     where: {
