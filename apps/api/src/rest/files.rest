@@ -1,0 +1,76 @@
+@baseUrl = http://localhost:8080
+
+### Upload File - Organization Data Attachment
+POST {{baseUrl}}/api/files/ORGANIZATION_DATA_ATTACHMENT/1 HTTP/1.1
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="document.pdf"
+Content-Type: application/pdf
+
+< ./test-files/document.pdf
+------FormBoundary--
+
+
+### Upload File - Carbon Inventory Attachment
+POST {{baseUrl}}/api/files/CARBON_INVENTORY_ATTACHMENT/1 HTTP/1.1
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="certification.pdf"
+Content-Type: application/pdf
+
+< ./test-files/certification.pdf
+------FormBoundary--
+
+
+### Upload File - Carbon Inventory Line Input Attachment
+POST {{baseUrl}}/api/files/CARBON_INVENTORY_LINE_INPUT_ATTACHMENT/1 HTTP/1.1
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="evidence.pdf"
+Content-Type: application/pdf
+
+< ./test-files/evidence.pdf
+------FormBoundary--
+
+
+### Upload File - Submission Attachment
+POST {{baseUrl}}/api/files/SUBMISSION_ATTACHMENT/1 HTTP/1.1
+Content-Type: multipart/form-data; boundary=----FormBoundary
+
+------FormBoundary
+Content-Disposition: form-data; name="file"; filename="submission-doc.pdf"
+Content-Type: application/pdf
+
+< ./test-files/submission-doc.pdf
+------FormBoundary--
+
+
+### Get Files - Organization Data (all active)
+GET {{baseUrl}}/api/files/ORGANIZATION_DATA_ATTACHMENT/1 HTTP/1.1
+
+
+### Get Files - Organization Data (filter by status)
+GET {{baseUrl}}/api/files/ORGANIZATION_DATA_ATTACHMENT/1?status=ACTIVE HTTP/1.1
+
+
+### Get Files - Carbon Inventory
+GET {{baseUrl}}/api/files/CARBON_INVENTORY_ATTACHMENT/1 HTTP/1.1
+
+
+### Get Files - Carbon Inventory Line Input
+GET {{baseUrl}}/api/files/CARBON_INVENTORY_LINE_INPUT_ATTACHMENT/1 HTTP/1.1
+
+
+### Get Files - Submission
+GET {{baseUrl}}/api/files/SUBMISSION_ATTACHMENT/1 HTTP/1.1
+
+
+### Download File (replace with actual UUID from upload response)
+GET {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000/download HTTP/1.1
+
+
+### Delete File (replace with actual UUID from upload response)
+DELETE {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000 HTTP/1.1
