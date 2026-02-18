@@ -4,6 +4,7 @@ import type {
   OrganizationDisplayStatus,
 } from "@repo/types";
 import { OrganizationNotFoundError } from "../../errors.js";
+import { SubmissionStatus } from "@repo/database";
 
 export const getOrganizationByIdService = async (
   prismaClient: PrismaClient,
@@ -27,6 +28,9 @@ export const getOrganizationByIdService = async (
     legalName: org.legalName,
     tradeName: org.tradeName,
     status: org.displayStatus as OrganizationDisplayStatus,
+    lastSubmissionStatus: org.lastSubmissionStatus as SubmissionStatus,
+    hasUnsubmittedChanges: org.hasUnsubmittedChanges,
+    isEditable: true, // TODO: add check for isEditable
     sector: org.sectorId
       ? {
           id: org.sectorId.toString(),
