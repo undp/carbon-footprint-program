@@ -68,7 +68,7 @@ Changes to an already accredited organization were submitted for a new review.
 
 ### 6. Rejected (Initial)
 
-The administrator rejected the initial submission. The rejected data becomes `OUTDATED`.
+The administrator rejected the initial submission. The rejected data stays `ACTIVE` (visible but not editable) until a new submission replaces it.
 
 - **`status`**: `NOT_ACCREDITED`
 - **`lastSubmissionStatus`**: `REJECTED`
@@ -78,7 +78,7 @@ The administrator rejected the initial submission. The rejected data becomes `OU
 
 ### 7. Approved + Re-accreditation Rejected
 
-The administrator rejected the changes submitted for an organization that was already accredited. The rejected version becomes `OUTDATED`, but the previous approved version remains the official one.
+The administrator rejected the changes submitted for an organization that was already accredited. The rejected version stays `ACTIVE` (visible but not editable) until a new submission replaces it. The previous approved version remains the official one.
 
 - **`status`**: `ACCREDITED` (Still accredited by the previous approved version).
 - **`lastSubmissionStatus`**: `REJECTED` (Refers to the last attempted submission).
@@ -118,7 +118,7 @@ Manual administrative action independent of accreditation.
 | **Re-accreditation**    | `ACCREDITED`     | `PENDING`              | `false`                 | `false`      |
 | **Re-accred. Approved** | `ACCREDITED`     | `APPROVED`             | `false`                 | `true`       |
 | **Re-accred. Rejected** | `ACCREDITED`     | `REJECTED`             | `true`                  | `true`       |
-| **Rejected (Initial)**  | `NOT_ACCREDITED` | `REJECTED`             | `true`                  | `true`       |
+| **Rejected (Initial)**  | `NOT_ACCREDITED` | `REJECTED`             | `false`                 | `true`       |
 | **Blocked**             | `BLOCKED`        | Any                    | Any                     | `false`      |
 
 ---
