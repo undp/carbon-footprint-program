@@ -10,7 +10,7 @@ export const FileTypeSchema = z.enum([
 export const FileStatusSchema = z.enum(["ACTIVE", "DELETED"]);
 
 export const FileSchema = z.object({
-  uuid: z.string().uuid().describe("The UUID of the file"),
+  uuid: z.uuid().describe("The UUID of the file"),
   fileType: FileTypeSchema.describe("The type of file"),
   originalName: z.string().describe("The original file name"),
   mimeType: z.string().describe("The MIME type of the file"),
