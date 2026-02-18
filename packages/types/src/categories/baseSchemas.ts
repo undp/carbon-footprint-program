@@ -17,9 +17,18 @@ export const CategorySchema = z
       .string()
       .min(1, "Required field")
       .describe("The name of the category"),
-    icon: z.string().describe("The icon identifier for the category"),
-    color: z.string().describe("The color code for the category"),
-    synonyms: z.string().describe("Comma-separated synonyms"),
+    icon: z
+      .string()
+      .min(1, "Required field")
+      .describe("The icon identifier for the category"),
+    color: z
+      .string()
+      .min(1, "Required field")
+      .describe("The color code for the category"),
+    synonyms: z
+      .string()
+      .min(1, "Required field")
+      .describe("Alternative names for the category"),
     description: z
       .string()
       .min(1, "Required field")
