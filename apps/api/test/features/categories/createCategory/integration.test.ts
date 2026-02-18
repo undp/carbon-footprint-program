@@ -57,6 +57,7 @@ describe("POST /api/categories/ - Integration Tests", () => {
       color: "#FF0000",
       synonyms: "synonym1, synonym2",
       description: "Test category description",
+      examples: null,
       position: 1,
       ...overrides,
     };
@@ -119,27 +120,6 @@ describe("POST /api/categories/ - Integration Tests", () => {
       expect(dbRecord!.description).toBe(payload.description);
       expect(dbRecord!.position).toBe(payload.position);
       expect(dbRecord!.status).toBe(CategoryStatus.ACTIVE);
-    });
-
-    it("should handle optional examples field as null", async () => {
-      const methodology = await createEmptyMethodologyVersion(prisma, {
-        name: "Test - Null Examples",
-      });
-
-      const payload = buildCategoryPayload(methodology.id.toString());
-      // Do not include examples in the payload
-      delete (payload as Record<string, unknown>).examples;
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/categories/",
-        payload,
-      });
-
-      expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCategoryResponse;
-
-      expect(body.examples).toBeNull();
     });
   });
 

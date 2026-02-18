@@ -13,11 +13,7 @@ export const CreateCategoryRequestSchema = z
     color: z.string().min(1).max(50).describe("The color code in HEX format"),
     synonyms: z.string().describe("Comma-separated synonyms"),
     description: z.string().min(1).describe("The description of the category"),
-    examples: z
-      .string()
-      .nullable()
-      .optional()
-      .describe("Optional examples text"),
+    examples: z.string().nullable().describe("Example text"),
     position: z
       .number()
       .int()
