@@ -1,11 +1,6 @@
 import { z } from "zod";
 
-export const FileTypeSchema = z.enum([
-  "ORGANIZATION_DATA_ATTACHMENT",
-  "CARBON_INVENTORY_ATTACHMENT",
-  "CARBON_INVENTORY_LINE_INPUT_ATTACHMENT",
-  "SUBMISSION_ATTACHMENT",
-]);
+export const FileTypeSchema = z.enum(["SUBMISSION_ATTACHMENT"]);
 
 export const FileStatusSchema = z.enum(["ACTIVE", "DELETED"]);
 
