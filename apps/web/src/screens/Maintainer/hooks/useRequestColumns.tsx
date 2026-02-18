@@ -6,13 +6,14 @@ import {
   CheckOutlined,
   CloseOutlined,
 } from "@mui/icons-material";
+import { RequestStatus } from "../components/RequestStatusChip";
 
 export interface RequestRow {
   id: string;
   empresa: string;
   tipo: string;
   periodo: string;
-  estado: string;
+  estado: RequestStatus;
   fechaEnvio: string;
 }
 

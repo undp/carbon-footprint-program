@@ -9,6 +9,7 @@ import {
   CheckCircleOutlined,
   CancelOutlined,
 } from "@mui/icons-material";
+import { RequestStatus } from "../components/RequestStatusChip";
 
 const MOCK_REQUESTS: RequestRow[] = [
   {
@@ -16,7 +17,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Empresa Demo S.A.",
     tipo: "Diploma Medición",
     periodo: "2024",
-    estado: "Pendiente",
+    estado: RequestStatus.PENDING,
     fechaEnvio: "5 dic 2024",
   },
   {
@@ -24,7 +25,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Tech Solutions Ltd.",
     tipo: "Diploma Medición",
     periodo: "2024",
-    estado: "Rechazada",
+    estado: RequestStatus.REJECTED,
     fechaEnvio: "10 dic 2024",
   },
   {
@@ -32,7 +33,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Retail Global Corp.",
     tipo: "Sello Neutralización",
     periodo: "2024",
-    estado: "Rechazada",
+    estado: RequestStatus.REJECTED,
     fechaEnvio: "28 nov 2024",
   },
   {
@@ -40,7 +41,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Empresa Demo S.A.",
     tipo: "Sello Reducción",
     periodo: "2023",
-    estado: "Aprobada",
+    estado: RequestStatus.APPROVED,
     fechaEnvio: "10 dic 2023",
   },
   {
@@ -48,7 +49,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Logística Express",
     tipo: "Sello Reducción",
     periodo: "2024",
-    estado: "Rechazada",
+    estado: RequestStatus.REJECTED,
     fechaEnvio: "15 oct 2024",
   },
   {
@@ -56,7 +57,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Alimentos del Sur",
     tipo: "Diploma Medición",
     periodo: "2024",
-    estado: "Pendiente",
+    estado: RequestStatus.PENDING,
     fechaEnvio: "12 dic 2024",
   },
   {
@@ -64,7 +65,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Retail Global Corp.",
     tipo: "Sello Verificación",
     periodo: "2024",
-    estado: "Borrador",
+    estado: RequestStatus.DRAFT,
     fechaEnvio: "-",
   },
   {
@@ -72,7 +73,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Tech Solutions Ltd.",
     tipo: "Acreditación",
     periodo: "2024",
-    estado: "Pendiente",
+    estado: RequestStatus.PENDING,
     fechaEnvio: "15 dic 2024",
   },
   {
@@ -80,7 +81,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Logística Express",
     tipo: "Acreditación",
     periodo: "2024",
-    estado: "Pendiente",
+    estado: RequestStatus.PENDING,
     fechaEnvio: "14 dic 2024",
   },
   {
@@ -88,7 +89,7 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Empresa Demo S.A.",
     tipo: "Solicitud de Acceso",
     periodo: "-",
-    estado: "Pendiente",
+    estado: RequestStatus.PENDING,
     fechaEnvio: "16 dic 2024",
   },
   {
@@ -96,31 +97,35 @@ const MOCK_REQUESTS: RequestRow[] = [
     empresa: "Alimentos del Sur",
     tipo: "Diploma Medición",
     periodo: "2024",
-    estado: "Aprobada",
+    estado: RequestStatus.APPROVED,
     fechaEnvio: "18 dic 2024",
   },
 ];
 
 const KPI_CARDS = [
   {
+    status: null,
     label: "Total",
-    icon: <TaskOutlined sx={{ fontColor: "#6C3483" }} />,
+    icon: <TaskOutlined />,
     value: 11,
     color: "#459F90",
   },
   {
+    status: RequestStatus.PENDING,
     label: "Pendientes",
     icon: <AccessTimeOutlined />,
     value: 3,
     color: "#E65100",
   },
   {
+    status: RequestStatus.APPROVED,
     label: "Aprobadas",
     icon: <CheckCircleOutlined />,
     value: 1,
     color: "#004D35",
   },
   {
+    status: RequestStatus.REJECTED,
     label: "Rechazadas",
     icon: <CancelOutlined />,
     value: 1,
