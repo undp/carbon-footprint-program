@@ -17,8 +17,7 @@ import type { AuthProvider, AuthResult } from "../AuthProvider.js";
  * This provider is used when authentication is disabled (AUTH_PROVIDER is 'none').
  * It allows bypassing authentication for local development or testing.
  *
- * If FORCED_USER_EMAIL_WHEN_NO_PROVIDER is set, it returns a fake user with that email.
- * Otherwise, authentication fails.
+ * It always makes the authentication fail.
  *
  * Note: This does NOT implement Azure Easy Auth. For Easy Auth, use the appropriate provider.
  */
