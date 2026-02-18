@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getMyOrganizationsHandler } from "./handler.js";
-import { GetMyOrganizationsResponseSchema } from "@repo/types";
+import { MyOrganizationsSelectorOptionsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getMyOrganizationsRoute = (fastify: FastifyZodInstance) => {
@@ -13,7 +13,7 @@ export const getMyOrganizationsRoute = (fastify: FastifyZodInstance) => {
         description:
           "Get all organizations where the user has an active membership",
         response: {
-          200: GetMyOrganizationsResponseSchema,
+          200: MyOrganizationsSelectorOptionsResponseSchema,
           401: ApiErrorResponseSchema,
         },
       },

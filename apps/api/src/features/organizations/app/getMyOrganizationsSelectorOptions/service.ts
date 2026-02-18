@@ -1,11 +1,11 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetMyOrganizationsResponse } from "@repo/types";
+import type { MyOrganizationsSelectorOptionsResponse } from "@repo/types";
 import { MembershipStatus } from "@repo/database";
 
 export const getMyOrganizationsService = async (
   prismaClient: PrismaClient,
   userId: string
-): Promise<GetMyOrganizationsResponse> => {
+): Promise<MyOrganizationsSelectorOptionsResponse> => {
   const organizations = await prismaClient.organizationSummaryView.findMany({
     where: {
       organization: {

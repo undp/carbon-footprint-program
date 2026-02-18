@@ -1,5 +1,5 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { getMyOrganizationsRoute } from "@/features/organizations/app/getMyOrganizations/route.js";
+import { getMyOrganizationsRoute } from "@/features/organizations/app/getMyOrganizationsSelectorOptions/route.js";
 import { getOrganizationByIdRoute } from "@/features/organizations/app/getOrganizationById/route.js";
 import { createOrganizationRoute } from "@/features/organizations/app/createOrganization/route.js";
 import { updateOrganizationRoute } from "@/features/organizations/app/updateOrganization/route.js";

@@ -3,7 +3,7 @@ import type {
   UpdateOrganizationBody,
   UpdateOrganizationResponse,
 } from "@repo/types";
-import { MembershipStatus, OrganizationDataStatus } from "@repo/database";
+import { MembershipStatus } from "@repo/database";
 import {
   OrganizationAccessDeniedError,
   OrganizationNotFoundError,
@@ -93,5 +93,7 @@ export const updateOrganizationService = async (
     );
   }
 
-  return {};
+  return {
+    organizationId: organization.id.toString(),
+  };
 };
