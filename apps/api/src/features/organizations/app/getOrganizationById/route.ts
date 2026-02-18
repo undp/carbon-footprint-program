@@ -1,12 +1,15 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getOrganizationByIdHandler } from "./handler.js";
 import {
   GetOrganizationByIdParamsSchema,
   GetOrganizationByIdResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getOrganizationByIdRoute = (fastify: FastifyZodInstance) => {
+export const getOrganizationByIdRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/:id",
     {
@@ -19,6 +22,9 @@ export const getOrganizationByIdRoute = (fastify: FastifyZodInstance) => {
           200: GetOrganizationByIdResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getOrganizationByIdHandler

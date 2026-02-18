@@ -10,9 +10,9 @@ export default function organizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
 
   // Register routes
-  getMyOrganizationsRoute(fastify); // GET /me
-  getOrganizationByIdRoute(fastify); // GET /:id
-  createOrganizationRoute(fastify); // POST /
-  updateOrganizationRoute(fastify); // PATCH /:id
-  requestOrganizationAccreditationRoute(fastify); // POST /:id/request-accreditation
+  getMyOrganizationsRoute(fastify, { public: false }); // GET /me
+  getOrganizationByIdRoute(fastify, { public: false }); // GET /:id
+  createOrganizationRoute(fastify, { public: false }); // POST /
+  updateOrganizationRoute(fastify, { public: false }); // PATCH /:id
+  requestOrganizationAccreditationRoute(fastify, { public: false }); // POST /:id/request-accreditation
 }

@@ -1,12 +1,15 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { createOrganizationHandler } from "./handler.js";
 import {
   CreateOrganizationBodySchema,
   CreateOrganizationResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const createOrganizationRoute = (fastify: FastifyZodInstance) => {
+export const createOrganizationRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/",
     {
@@ -20,6 +23,9 @@ export const createOrganizationRoute = (fastify: FastifyZodInstance) => {
           400: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     createOrganizationHandler

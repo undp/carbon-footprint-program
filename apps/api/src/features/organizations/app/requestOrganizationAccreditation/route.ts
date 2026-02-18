@@ -1,13 +1,14 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { requestOrganizationAccreditationHandler } from "./handler.js";
 import {
   RequestOrganizationAccreditationParamsSchema,
   RequestOrganizationAccreditationResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const requestOrganizationAccreditationRoute = (
-  fastify: FastifyZodInstance
+export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
+  fastify,
+  options
 ) => {
   fastify.post(
     "/:id/accredit",
@@ -24,6 +25,9 @@ export const requestOrganizationAccreditationRoute = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     requestOrganizationAccreditationHandler

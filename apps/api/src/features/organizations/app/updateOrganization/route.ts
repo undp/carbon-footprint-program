@@ -1,4 +1,3 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { updateOrganizationHandler } from "./handler.js";
 import {
   UpdateOrganizationParamsSchema,
@@ -6,8 +5,12 @@ import {
   UpdateOrganizationResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const updateOrganizationRoute = (fastify: FastifyZodInstance) => {
+export const updateOrganizationRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.patch(
     "/:id",
     {
@@ -22,6 +25,9 @@ export const updateOrganizationRoute = (fastify: FastifyZodInstance) => {
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     updateOrganizationHandler
