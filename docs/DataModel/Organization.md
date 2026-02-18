@@ -82,7 +82,7 @@ The administrator rejected the changes submitted for an organization that was al
 
 - **`status`**: `ACCREDITED` (Still accredited by the previous approved version).
 - **`lastSubmissionStatus`**: `REJECTED` (Refers to the last attempted submission).
-- **`hasUnsubmittedChanges`**: `true` (A new draft is generated based on the rejection to allow corrections).
+- **`hasUnsubmittedChanges`**: `false` (A new draft is generated just when the user submits a new version, and this new version is submitted inmediately for now).
 - **`isEditable`**: `true`.
 - **`Displayed Data`**: Display the approved organization data.
 
