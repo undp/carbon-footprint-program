@@ -26,7 +26,7 @@ latest_submission AS (
   ORDER BY od.organization_id, s.id DESC
 ),
 
--- 3. Unsubmitted changes: ACTIVE org_data with no PENDING or APPROVED submission
+-- 3. Unsubmitted changes: ACTIVE org_data with no submission at all (true drafts only)
 unsubmitted_changes AS (
   SELECT DISTINCT od.organization_id
   FROM organization_data od
@@ -34,14 +34,11 @@ unsubmitted_changes AS (
     AND NOT EXISTS (
       SELECT 1
       FROM submission_subject_organization_data ssod
-      JOIN submission s
-        ON s.subject_id = ssod.subject_id
-        AND s.status IN ('PENDING', 'APPROVED')
       WHERE ssod.organization_data_id = od.id
     )
 ),
 
--- 4. Reference row: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3), then newest
+-- 4. Reference row: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3) > REJECTED(4), then newest
 reference_organization_data AS (
   SELECT
     od.*,
@@ -49,18 +46,21 @@ reference_organization_data AS (
       PARTITION BY od.organization_id
       ORDER BY
         CASE
-          WHEN s.status = 'PENDING'  THEN 1
-          WHEN s.status IS NULL      THEN 2
-          WHEN s.status = 'APPROVED' THEN 3
+          WHEN s_active.status = 'PENDING'                    THEN 1
+          WHEN s_active.status IS NULL AND s_any.id IS NULL   THEN 2  -- true draft (no submission)
+          WHEN s_active.status = 'APPROVED'                   THEN 3
+          ELSE                                                     4  -- REJECTED
         END,
         od.id DESC
     ) AS rn
   FROM organization_data od
   LEFT JOIN submission_subject_organization_data ssod
     ON ssod.organization_data_id = od.id
-  LEFT JOIN submission s
-    ON s.subject_id = ssod.subject_id
-    AND s.status IN ('PENDING', 'APPROVED')
+  LEFT JOIN submission s_active
+    ON s_active.subject_id = ssod.subject_id
+    AND s_active.status IN ('PENDING', 'APPROVED')
+  LEFT JOIN submission s_any
+    ON s_any.subject_id = ssod.subject_id
   WHERE od.status = 'ACTIVE'
 ),
 
