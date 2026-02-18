@@ -117,7 +117,7 @@ Manual administrative action independent of accreditation.
 | **Accredited**          | `ACCREDITED`     | `APPROVED`             | `false`                 | `true`       |
 | **Re-accreditation**    | `ACCREDITED`     | `PENDING`              | `false`                 | `false`      |
 | **Re-accred. Approved** | `ACCREDITED`     | `APPROVED`             | `false`                 | `true`       |
-| **Re-accred. Rejected** | `ACCREDITED`     | `REJECTED`             | `true`                  | `true`       |
+| **Re-accred. Rejected** | `ACCREDITED`     | `REJECTED`             | `false`                 | `true`       |
 | **Rejected (Initial)**  | `NOT_ACCREDITED` | `REJECTED`             | `false`                 | `true`       |
 | **Blocked**             | `BLOCKED`        | Any                    | Any                     | `false`      |
 
