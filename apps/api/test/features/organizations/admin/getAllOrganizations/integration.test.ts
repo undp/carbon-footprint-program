@@ -422,6 +422,157 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
     });
   });
 
+  describe("Submission status and unsubmitted changes", () => {
+    it("should return lastSubmissionStatus=null and hasUnsubmittedChanges=true for a new draft org", async () => {
+      const org = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, org.id, {
+        legalName: "Draft Org",
+        tradeName: "Draft Org",
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+      expect(orgResponse).toBeDefined();
+      expect(orgResponse!.lastSubmissionStatus).toBeNull();
+      expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
+      expect(orgResponse!.status).toBe("NOT_ACCREDITED");
+    });
+
+    it("should return lastSubmissionStatus=PENDING and hasUnsubmittedChanges=false for an org under review", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Review Org",
+        tradeName: "Review Org",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.PENDING
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+      expect(orgResponse).toBeDefined();
+      expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
+      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+      expect(orgResponse!.status).toBe("NOT_ACCREDITED");
+    });
+
+    it("should return lastSubmissionStatus=APPROVED and hasUnsubmittedChanges=false for an accredited org", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Accredited Org",
+        tradeName: "Accredited Org",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+      expect(orgResponse).toBeDefined();
+      expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
+      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+      expect(orgResponse!.status).toBe("ACCREDITED");
+    });
+
+    it("should return lastSubmissionStatus=REJECTED and hasUnsubmittedChanges=true for a rejected org", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Rejected Org",
+        tradeName: "Rejected Org",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.REJECTED
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+      expect(orgResponse).toBeDefined();
+      expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
+      expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
+      expect(orgResponse!.status).toBe("NOT_ACCREDITED");
+    });
+
+    it("should show ACCREDITED status and PENDING lastSubmissionStatus for re-accreditation", async () => {
+      const org = await createTestOrganization(prisma);
+
+      // First org_data: APPROVED (accreditation)
+      const approvedOrgData = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Approved Data",
+        tradeName: "Approved Data",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        approvedOrgData.id,
+        SubmissionStatus.APPROVED
+      );
+
+      // Second org_data: PENDING re-accreditation with updated name
+      const pendingOrgData = await createTestOrganizationData(prisma, org.id, {
+        legalName: "Updated Data",
+        tradeName: "Updated Data",
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        pendingOrgData.id,
+        SubmissionStatus.PENDING
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+      expect(orgResponse).toBeDefined();
+      expect(orgResponse!.name).toBe("Updated Data");
+      // Should be ACCREDITED because there's an APPROVED submission on ACTIVE org_data
+      expect(orgResponse!.status).toBe("ACCREDITED");
+      // Latest submission is PENDING
+      expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
+      // The displayed name should come from the PENDING row (higher priority)
+      expect(orgResponse!.name).toBe("Updated Data");
+      // PENDING submission covers the new data, so no unsubmitted changes
+      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+    });
+  });
+
   describe("Validation errors", () => {
     it("should return 400 for invalid page parameter", async () => {
       const response = await app.inject({

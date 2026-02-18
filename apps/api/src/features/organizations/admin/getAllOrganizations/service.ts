@@ -4,6 +4,7 @@ import type {
   GetAllOrganizationsQuery,
   OrganizationDisplayStatus,
 } from "@repo/types";
+import { SubmissionStatus } from "@repo/database";
 import { kgToTon } from "@/utils/number.js";
 
 export const getAllOrganizationsService = async (
@@ -39,6 +40,8 @@ export const getAllOrganizationsService = async (
       subsectorName: true,
       sizeName: true,
       displayStatus: true,
+      lastSubmissionStatus: true,
+      hasUnsubmittedChanges: true,
       hasCarbonInventories: true,
       lastEdition: true,
       totalEmissions: true,
@@ -61,8 +64,11 @@ export const getAllOrganizationsService = async (
     subsectorName: org.subsectorName,
     sizeName: org.sizeName,
     status: org.displayStatus as OrganizationDisplayStatus,
+    lastSubmissionStatus:
+      (org.lastSubmissionStatus as SubmissionStatus) ?? null,
+    hasUnsubmittedChanges: Boolean(org.hasUnsubmittedChanges),
     hasCarbonInventories: org.hasCarbonInventories,
-    lastEdition: org.lastEdition.toISOString(),
+    lastEdition: org.lastEdition ? org.lastEdition.toISOString() : null,
     totalEmissions: kgToTon(Number(org.totalEmissions)),
   }));
 
