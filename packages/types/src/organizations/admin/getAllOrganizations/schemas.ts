@@ -17,7 +17,7 @@ const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
     .describe(
       "Whether the organization has carbon inventories calculated or in a further stage"
     ),
-  lastEdition: z.iso.datetime().describe("organization.updated_at"),
+  lastEdition: z.iso.datetime().nullable().describe("organization.updated_at"),
   totalEmissions: z
     .number()
     .describe(
