@@ -23,6 +23,10 @@ export const downloadFileService = async (
   const blobClient = blobStorage.getBlobClient(file.blobPath);
   const downloadResponse = await blobClient.download();
 
+  if (!downloadResponse.readableStreamBody) {
+    throw new Error("readableStreamBody is not available in this runtime");
+  }
+
   return {
     stream: downloadResponse.readableStreamBody as unknown as Readable,
     mimeType: file.mimeType,
