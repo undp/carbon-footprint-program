@@ -767,7 +767,7 @@ model File {
   createdById  BigInt     @map("created_by_id")
 
   createdBy                User                      @relation("file_created_by", fields: [createdById], references: [id])
-  submissionFile           SubmissionFile?
+  submissionFiles          SubmissionFile[]
   carbonInventoryFiles     CarbonInventoryFile[]
   carbonInventoryLineFiles CarbonInventoryLineFile[]
   organizationDataFiles    OrganizationDataFile[]
