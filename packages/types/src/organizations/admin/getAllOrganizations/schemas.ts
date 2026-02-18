@@ -37,25 +37,29 @@ const GetAllOrganizationsSortKeysSchema = z.enum([
   "totalEmissions",
 ]);
 
-// Sort order
+const StatusesQueryParamSchema = z
+  .union([
+    z.string(), // ?statuses=BLOCKED,NOT_ACCREDITED
+    z.array(z.string()), // ?statuses=BLOCKED&statuses=NOT_ACCREDITED
+  ])
+  .transform((value) => {
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
+    }
+    return value;
+  })
+  .pipe(z.array(OrganizationDisplayStatusSchema));
 
 // Query parameters
 export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
   sortBy:
     GetAllOrganizationsSortKeysSchema.optional().describe("Field to sort by"),
-  statuses: z
-    .string()
-    .transform((val) =>
-      val
-        .split(",")
-        .map((status) => status.trim())
-        .filter(Boolean)
-    )
-    .pipe(z.array(OrganizationDisplayStatusSchema))
-    .optional()
-    .describe(
-      "Filter by organization statuses (comma-separated, e.g., 'BLOCKED,NOT_ACCREDITED')"
-    ),
+  statuses: StatusesQueryParamSchema.optional().describe(
+    "Filter by organization statuses (comma-separated, e.g., 'BLOCKED,NOT_ACCREDITED') or array of statuses (e.g., ['BLOCKED', 'NOT_ACCREDITED'])"
+  ),
 });
 
 // Response schema
