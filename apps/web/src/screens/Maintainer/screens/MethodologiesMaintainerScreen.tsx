@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
 import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
@@ -41,7 +41,12 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } =
     useMethodologiesForm(methodologies);
   const startEditing = useMaintainerStore((s) => s.startEditing);
+  const stopEditing = useMaintainerStore((s) => s.stopEditing);
   const currentRows = form.watch("methodologies");
+
+  useEffect(() => {
+    stopEditing();
+  }, [stopEditing]);
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
