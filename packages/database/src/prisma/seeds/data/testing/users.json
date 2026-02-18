@@ -1,6 +1,6 @@
 [
   {
-    "idpUserId": "me@test.com",
+    "idpUserId": "test-user-idp-id",
     "email": "me@test.com",
     "countryJobPositionName": "Otro",
     "countryIsoCode": "CL",

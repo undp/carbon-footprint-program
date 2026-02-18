@@ -4,28 +4,6 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import { getTestLoggedUser } from "./userFactory.js";
 
 /**
- * Gets a pre-seeded test user by email
- */
-export async function getTestUser(
-  prisma: PrismaClient,
-  email: string
-): Promise<{ id: bigint; email: string | null }> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true },
-  });
-
-  if (!user) {
-    throw new Error(
-      `Test user with email '${email}' not found in database. ` +
-        "Please ensure the database is properly seeded with test users before running tests."
-    );
-  }
-
-  return user;
-}
-
-/**
  * Common carbon inventory data patterns for testing
  */
 export const carbonInventoryPatterns = {
