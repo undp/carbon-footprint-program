@@ -20,8 +20,8 @@ import {
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import { type Methodology, MethodologyVersionStatus } from "@repo/types";
 import { StylizedDataGrid } from "@components";
+import { FormDebugPanel } from "@/components/FormDebugPanel";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import { DevTool } from "@hookform/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 
 export const MethodologiesMaintainerScreen: FC = () => {
@@ -73,6 +73,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
         // Replace temp row with the real one from the server
         fieldArray.update(rowIndex, result);
+        // Reset form defaults so the new row is no longer considered dirty
+        form.reset({ methodologies: form.getValues("methodologies") });
         void enqueueSnackbar({
           message: "Metodología creada exitosamente",
           variant: "success",
@@ -84,6 +86,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
         return;
       }
+      setEditingRowId(null);
       return;
     }
     // Existing row - update if dirty
@@ -101,6 +104,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
             version: row.version,
           },
         });
+        form.reset({ methodologies: form.getValues("methodologies") });
         void enqueueSnackbar({
           message: "Cambios guardados satisfactoriamente",
           variant: "success",
@@ -140,6 +144,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
       }
     }
 
+    form.reset({ methodologies: form.getValues("methodologies") });
     setEditingRowId(null);
   }, [editingRowId, form, isNewRow, fieldArray, methodologies]);
 
@@ -250,6 +255,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
       try {
         const result = await duplicateMutation.mutateAsync(row.id);
         fieldArray.insert(index + 1, result);
+        form.reset({ methodologies: form.getValues("methodologies") });
         void enqueueSnackbar({
           message: "Metodología duplicada exitosamente",
           variant: "success",
@@ -293,6 +299,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
             await deleteMutation.mutateAsync(row.id);
           }
           fieldArray.remove(index);
+          form.reset({ methodologies: form.getValues("methodologies") });
           void enqueueSnackbar({
             message: "Metodología eliminada",
             variant: "success",
@@ -364,7 +371,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
           </Box>
         </form>
       </Box>
-      {IS_DEVELOPMENT && <DevTool control={form.control} />}
+      {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
         onCancel={() => reset?.()}
