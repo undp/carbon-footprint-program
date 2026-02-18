@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
-import {} from "@repo/types";
 import { type DeleteFileResponse, FileStatus } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
 import { mapFileToResponse } from "../mappers.js";
