@@ -4,6 +4,8 @@ export const FileTypeSchema = z.enum(["SUBMISSION_ATTACHMENT"]);
 
 export const FileStatusSchema = z.enum(["ACTIVE", "DELETED"]);
 
+export const SubmissionFileTypeSchema = z.enum(["ATTACHMENT", "RECOGNITION"]);
+
 export const FileSchema = z.object({
   uuid: z.uuid().describe("The UUID of the file"),
   fileType: FileTypeSchema.describe("The type of file"),
