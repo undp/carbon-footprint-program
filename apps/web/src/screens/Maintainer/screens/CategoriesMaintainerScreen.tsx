@@ -155,6 +155,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
           position: row.position,
         });
         fieldArray.update(rowIndex, toFormCategory(result));
+        form.reset({ categories: form.getValues("categories") });
         void enqueueSnackbar({
           message: "Categoría creada exitosamente",
           variant: "success",
@@ -187,6 +188,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
             position: row.position,
           },
         });
+        form.reset({ categories: form.getValues("categories") });
         void enqueueSnackbar({
           message: "Cambios guardados satisfactoriamente",
           variant: "success",
@@ -225,6 +227,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
       }
     }
 
+    form.reset({ categories: form.getValues("categories") });
     setEditingRowId(null);
   }, [editingRowId, form, isNewRow, fieldArray, serverCategories]);
 
@@ -267,6 +270,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
             await deleteMutation.mutateAsync(row.id);
           }
           fieldArray.remove(index);
+          form.reset({ categories: form.getValues("categories") });
           void enqueueSnackbar({
             message: "Categoría eliminada",
             variant: "success",
@@ -300,6 +304,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
             id: row.id,
             data: { examples: value || null },
           });
+          form.reset({ categories: form.getValues("categories") });
           void enqueueSnackbar({
             message: "Explicación guardada",
             variant: "success",
