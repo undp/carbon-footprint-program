@@ -10,11 +10,12 @@ import {
   RequestStatus,
   RequestStatusChip,
 } from "../components/RequestStatusChip";
+import { RequestType, RequestTypeChip } from "../components/RequestTypeChip";
 
 export interface RequestRow {
   id: string;
   empresa: string;
-  tipo: string;
+  tipo: RequestType;
   periodo: string;
   estado: RequestStatus;
   fechaEnvio: string;
@@ -35,6 +36,10 @@ export const useRequestColumns = (): GridColDef<RequestRow>[] => {
         headerName: "Tipo",
         cellClassName,
         flex: 1,
+        renderCell: (params) => {
+          const type = params.row.tipo;
+          return <RequestTypeChip type={type} />;
+        },
       },
       {
         field: "periodo",

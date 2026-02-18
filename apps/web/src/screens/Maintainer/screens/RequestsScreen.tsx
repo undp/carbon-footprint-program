@@ -10,12 +10,13 @@ import {
   CancelOutlined,
 } from "@mui/icons-material";
 import { RequestStatus } from "../components/RequestStatusChip";
+import { RequestType } from "../components/RequestTypeChip";
 
 const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "1",
     empresa: "Empresa Demo S.A.",
-    tipo: "Diploma Medición",
+    tipo: RequestType.CALCULATION_DIPLOMA,
     periodo: "2024",
     estado: RequestStatus.PENDING,
     fechaEnvio: "5 dic 2024",
@@ -23,7 +24,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "2",
     empresa: "Tech Solutions Ltd.",
-    tipo: "Diploma Medición",
+    tipo: RequestType.CALCULATION_DIPLOMA,
     periodo: "2024",
     estado: RequestStatus.REJECTED,
     fechaEnvio: "10 dic 2024",
@@ -31,7 +32,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "3",
     empresa: "Retail Global Corp.",
-    tipo: "Sello Neutralización",
+    tipo: RequestType.NEUTRALIZATION_SEAL,
     periodo: "2024",
     estado: RequestStatus.REJECTED,
     fechaEnvio: "28 nov 2024",
@@ -39,7 +40,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "4",
     empresa: "Empresa Demo S.A.",
-    tipo: "Sello Reducción",
+    tipo: RequestType.REDUCTION_SEAL,
     periodo: "2023",
     estado: RequestStatus.APPROVED,
     fechaEnvio: "10 dic 2023",
@@ -47,7 +48,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "5",
     empresa: "Logística Express",
-    tipo: "Sello Reducción",
+    tipo: RequestType.REDUCTION_SEAL,
     periodo: "2024",
     estado: RequestStatus.REJECTED,
     fechaEnvio: "15 oct 2024",
@@ -55,7 +56,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "6",
     empresa: "Alimentos del Sur",
-    tipo: "Diploma Medición",
+    tipo: RequestType.CALCULATION_DIPLOMA,
     periodo: "2024",
     estado: RequestStatus.PENDING,
     fechaEnvio: "12 dic 2024",
@@ -63,7 +64,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "7",
     empresa: "Retail Global Corp.",
-    tipo: "Sello Verificación",
+    tipo: RequestType.VERIFICATION_SEAL,
     periodo: "2024",
     estado: RequestStatus.DRAFT,
     fechaEnvio: "-",
@@ -71,7 +72,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "8",
     empresa: "Tech Solutions Ltd.",
-    tipo: "Acreditación",
+    tipo: RequestType.ORG_ACREDITATION,
     periodo: "2024",
     estado: RequestStatus.PENDING,
     fechaEnvio: "15 dic 2024",
@@ -79,7 +80,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "9",
     empresa: "Logística Express",
-    tipo: "Acreditación",
+    tipo: RequestType.ORG_ACREDITATION,
     periodo: "2024",
     estado: RequestStatus.PENDING,
     fechaEnvio: "14 dic 2024",
@@ -87,7 +88,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "10",
     empresa: "Empresa Demo S.A.",
-    tipo: "Solicitud de Acceso",
+    tipo: RequestType.ORG_ACREDITATION,
     periodo: "-",
     estado: RequestStatus.PENDING,
     fechaEnvio: "16 dic 2024",
@@ -95,7 +96,7 @@ const MOCK_REQUESTS: RequestRow[] = [
   {
     id: "11",
     empresa: "Alimentos del Sur",
-    tipo: "Diploma Medición",
+    tipo: RequestType.CALCULATION_DIPLOMA,
     periodo: "2024",
     estado: RequestStatus.APPROVED,
     fechaEnvio: "18 dic 2024",
