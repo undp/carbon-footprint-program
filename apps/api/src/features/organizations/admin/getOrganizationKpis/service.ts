@@ -44,8 +44,6 @@ export const getOrganizationKpisService = async (
     };
   });
 
-  console.log(counts);
-
   return {
     total: organizations.length,
     counts,
