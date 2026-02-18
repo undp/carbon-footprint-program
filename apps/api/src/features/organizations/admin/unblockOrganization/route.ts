@@ -1,12 +1,15 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { unblockOrganizationHandler } from "./handler.js";
 import {
   UnblockOrganizationParamsSchema,
   UnblockOrganizationResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const unblockOrganizationRoute = (fastify: FastifyZodInstance) => {
+export const unblockOrganizationRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/:id/unblock",
     {
@@ -19,6 +22,9 @@ export const unblockOrganizationRoute = (fastify: FastifyZodInstance) => {
           200: UnblockOrganizationResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     unblockOrganizationHandler

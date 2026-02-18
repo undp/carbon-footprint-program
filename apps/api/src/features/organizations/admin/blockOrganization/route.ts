@@ -1,12 +1,15 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { blockOrganizationHandler } from "./handler.js";
 import {
   BlockOrganizationParamsSchema,
   BlockOrganizationResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const blockOrganizationRoute = (fastify: FastifyZodInstance) => {
+export const blockOrganizationRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.post(
     "/:id/block",
     {
@@ -19,6 +22,9 @@ export const blockOrganizationRoute = (fastify: FastifyZodInstance) => {
           200: BlockOrganizationResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     blockOrganizationHandler

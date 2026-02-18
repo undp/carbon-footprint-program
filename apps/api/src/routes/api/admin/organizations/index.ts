@@ -6,8 +6,8 @@ import { unblockOrganizationRoute } from "@/features/organizations/admin/unblock
 
 export default function adminOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
-  getOrganizationKpisRoute(fastify);
-  getAllOrganizationsRoute(fastify);
-  blockOrganizationRoute(fastify);
-  unblockOrganizationRoute(fastify);
+  getOrganizationKpisRoute(fastify, { public: false });
+  getAllOrganizationsRoute(fastify, { public: false });
+  blockOrganizationRoute(fastify, { public: false });
+  unblockOrganizationRoute(fastify, { public: false });
 }

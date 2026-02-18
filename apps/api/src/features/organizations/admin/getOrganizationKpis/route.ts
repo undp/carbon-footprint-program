@@ -1,8 +1,11 @@
-import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getOrganizationKpisHandler } from "./handler.js";
 import { GetOrganizationKpisResponseSchema } from "@repo/types";
+import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const getOrganizationKpisRoute = (fastify: FastifyZodInstance) => {
+export const getOrganizationKpisRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
   fastify.get(
     "/kpis",
     {
@@ -14,6 +17,9 @@ export const getOrganizationKpisRoute = (fastify: FastifyZodInstance) => {
         response: {
           200: GetOrganizationKpisResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     getOrganizationKpisHandler
