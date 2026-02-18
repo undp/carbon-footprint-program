@@ -10,6 +10,7 @@ import {
   useAddCategory,
   useUpdateCategory,
   useDeleteCategory,
+  useSwapCategoryPositions,
 } from "@/api/query/maintainer";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
@@ -149,6 +150,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   const addMutation = useAddCategory(methodologyVersionId);
   const updateMutation = useUpdateCategory(methodologyVersionId);
   const deleteMutation = useDeleteCategory(methodologyVersionId);
+  const swapMutation = useSwapCategoryPositions(methodologyVersionId);
 
   // Form is initialised with real data via defaultValues — no form.reset()
   const { form, fieldArray, handleCellChange } =
@@ -317,6 +319,75 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
   );
 
+  const handleMoveUp = useCallback(
+    async (row: FormCategory) => {
+      const rows = form.getValues("categories");
+      const sorted = [...rows].sort((a, b) => a.position - b.position);
+      const sortedIdx = sorted.findIndex((r) => r.id === row.id);
+      if (sortedIdx <= 0 || row.id.startsWith("temp_")) return;
+
+      const above = sorted[sortedIdx - 1];
+      if (above.id.startsWith("temp_")) return;
+
+      try {
+        await swapMutation.mutateAsync({
+          categoryIdA: row.id,
+          categoryIdB: above.id,
+        });
+        const updatedRows = rows.map((r) => {
+          if (r.id === row.id) return { ...r, position: above.position };
+          if (r.id === above.id) return { ...r, position: row.position };
+          return r;
+        });
+        updatedRows.sort((a, b) => a.position - b.position);
+        form.reset({ categories: updatedRows });
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al mover categoría",
+          variant: "error",
+        });
+      }
+    },
+    [form, swapMutation, enqueueSnackbar]
+  );
+
+  const handleMoveDown = useCallback(
+    async (row: FormCategory) => {
+      const rows = form.getValues("categories");
+      const sorted = [...rows].sort((a, b) => a.position - b.position);
+      const sortedIdx = sorted.findIndex((r) => r.id === row.id);
+      if (
+        sortedIdx === -1 ||
+        sortedIdx >= sorted.length - 1 ||
+        row.id.startsWith("temp_")
+      )
+        return;
+
+      const below = sorted[sortedIdx + 1];
+      if (below.id.startsWith("temp_")) return;
+
+      try {
+        await swapMutation.mutateAsync({
+          categoryIdA: row.id,
+          categoryIdB: below.id,
+        });
+        const updatedRows = rows.map((r) => {
+          if (r.id === row.id) return { ...r, position: below.position };
+          if (r.id === below.id) return { ...r, position: row.position };
+          return r;
+        });
+        updatedRows.sort((a, b) => a.position - b.position);
+        form.reset({ categories: updatedRows });
+      } catch {
+        void enqueueSnackbar({
+          message: "Error al mover categoría",
+          variant: "error",
+        });
+      }
+    },
+    [form, swapMutation, enqueueSnackbar]
+  );
+
   const handleOpenExplanation = useCallback((rowIndex: number) => {
     setExplanationModal({ open: true, rowIndex });
   }, []);
@@ -374,6 +445,8 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
     onOpenExplanation: handleOpenExplanation,
+    onMoveUp: handleMoveUp,
+    onMoveDown: handleMoveDown,
     rows: currentRows,
   });
 

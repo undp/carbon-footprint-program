@@ -17,6 +17,8 @@ import {
   DeleteOutlined,
   SaveOutlined,
   CloseOutlined,
+  KeyboardArrowUpOutlined,
+  KeyboardArrowDownOutlined,
 } from "@mui/icons-material";
 
 interface ActionButtonProps {
@@ -28,6 +30,10 @@ interface ActionButtonProps {
   onView?: () => void;
   onDuplicate?: () => void;
   onDelete?: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  moveUpDisabled?: boolean;
+  moveDownDisabled?: boolean;
   deleteConfirmMessage?: string;
 }
 
@@ -40,6 +46,10 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onView,
   onDuplicate,
   onDelete,
+  onMoveUp,
+  onMoveDown,
+  moveUpDisabled = false,
+  moveDownDisabled = false,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
 }) => {
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -73,6 +83,32 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             <IconButton size="small" onClick={onView}>
               <VisibilityOutlined fontSize="small" />
             </IconButton>
+          </Tooltip>
+        )}
+        {!isEditing && onMoveUp && (
+          <Tooltip title="Mover arriba">
+            <span>
+              <IconButton
+                size="small"
+                onClick={onMoveUp}
+                disabled={moveUpDisabled}
+              >
+                <KeyboardArrowUpOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
+        {!isEditing && onMoveDown && (
+          <Tooltip title="Mover abajo">
+            <span>
+              <IconButton
+                size="small"
+                onClick={onMoveDown}
+                disabled={moveDownDisabled}
+              >
+                <KeyboardArrowDownOutlined fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         )}
         {!isEditing && onDuplicate && (

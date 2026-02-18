@@ -11,4 +11,5 @@ export {
   useAddCategory,
   useUpdateCategory,
   useDeleteCategory,
+  useSwapCategoryPositions,
 } from "./useCategories";

@@ -21,6 +21,8 @@ interface UseCategoryColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: FormCategory) => void;
   onOpenExplanation: (rowIndex: number) => void;
+  onMoveUp: (row: FormCategory) => void;
+  onMoveDown: (row: FormCategory) => void;
   rows: FormCategory[];
 }
 
@@ -33,6 +35,8 @@ export const useCategoryColumns = ({
   onCancelEditRow,
   onDelete,
   onOpenExplanation,
+  onMoveUp,
+  onMoveDown,
   rows,
 }: UseCategoryColumnsParams): GridColDef<Category>[] => {
   const getRowIndex = useCallback(
@@ -44,10 +48,25 @@ export const useCategoryColumns = ({
     [editingRowId]
   );
 
+  const sortedRows = useMemo(
+    () => [...rows].sort((a, b) => a.position - b.position),
+    [rows]
+  );
+
   const cellClassName = "content-center";
 
   return useMemo<GridColDef<Category>[]>(
     () => [
+      {
+        field: "position",
+        headerName: "Pos.",
+        width: 60,
+        sortable: false,
+        filterable: false,
+        headerAlign: "center",
+        align: "center",
+        cellClassName,
+      },
       {
         field: "icon",
         headerName: "Icono",
@@ -195,21 +214,35 @@ export const useCategoryColumns = ({
             {
               field: "actions",
               headerName: "Acciones",
-              width: 120,
+              width: 160,
               sortable: false,
               filterable: false,
               headerAlign: "center" as const,
               align: "center" as const,
               cellClassName,
-              renderCell: (params: GridRenderCellParams<Category>) => (
-                <ActionButtons
-                  isActiveRow={false}
-                  isEditing={isEditing(params.row.id)}
-                  onStopEditCells={onStopEditRow}
-                  onCancelEdit={onCancelEditRow}
-                  onDelete={() => onDelete(params.row)}
-                />
-              ),
+              renderCell: (params: GridRenderCellParams<Category>) => {
+                const sortedIdx = sortedRows.findIndex(
+                  (r) => r.id === params.row.id
+                );
+                const isTemp = params.row.id.startsWith("temp_");
+                const isFirst = sortedIdx === 0;
+                const isLast = sortedIdx === sortedRows.length - 1;
+                const anyEditing = editingRowId !== null;
+
+                return (
+                  <ActionButtons
+                    isActiveRow={false}
+                    isEditing={isEditing(params.row.id)}
+                    onStopEditCells={onStopEditRow}
+                    onCancelEdit={onCancelEditRow}
+                    onMoveUp={() => onMoveUp(params.row)}
+                    onMoveDown={() => onMoveDown(params.row)}
+                    moveUpDisabled={anyEditing || isFirst || isTemp}
+                    moveDownDisabled={anyEditing || isLast || isTemp}
+                    onDelete={() => onDelete(params.row)}
+                  />
+                );
+              },
             },
           ]
         : []),
@@ -224,6 +257,10 @@ export const useCategoryColumns = ({
       onCancelEditRow,
       onDelete,
       onOpenExplanation,
+      onMoveUp,
+      onMoveDown,
+      sortedRows,
+      editingRowId,
     ]
   );
 };

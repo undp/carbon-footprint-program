@@ -9,6 +9,8 @@ import type {
   UpdateCategoryRequest,
   UpdateCategoryResponse,
   DeleteCategoryResponse,
+  SwapCategoryPositionsRequest,
+  SwapCategoryPositionsResponse,
 } from "@repo/types";
 
 export const useCategories = (methodologyVersionId: string | undefined) =>
@@ -75,6 +77,27 @@ export const useDeleteCategory = (
   const queryClient = useQueryClient();
   return useMutation<DeleteCategoryResponse, Error, string>({
     mutationFn: (id) => apiClient.delete(`categories/${id}`).json(),
+    onSuccess: () => {
+      if (methodologyVersionId) {
+        void queryClient.invalidateQueries({
+          queryKey: maintainerKeys.categories.all(methodologyVersionId),
+        });
+      }
+    },
+  });
+};
+
+export const useSwapCategoryPositions = (
+  methodologyVersionId: string | undefined
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SwapCategoryPositionsResponse,
+    Error,
+    SwapCategoryPositionsRequest
+  >({
+    mutationFn: (data) =>
+      apiClient.post("categories/swap-positions", { json: data }).json(),
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
