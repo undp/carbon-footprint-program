@@ -214,7 +214,7 @@ erDiagram
 		string examples ""
 		%% Position must be > 0 (enforced by DB CHECK constraint)
 		int position ""
-		status "ACTIVE | DELETED"
+		enum status "ACTIVE | DELETED"
 		timestamptz created_at  ""
 		timestamptz updated_at  "NULLABLE"
 		BIGINT created_by_id FK "NULLABLE"
