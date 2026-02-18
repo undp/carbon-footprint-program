@@ -673,7 +673,7 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
   });
 
   describe("Filtering", () => {
-    it("should filter organizations by multiple statuses", async () => {
+    it("should filter organizations by multiple statuses [array]", async () => {
       // 1. Accredited
       const accreditedOrg = await createTestOrganization(prisma);
       const accreditedData = await createTestOrganizationData(
@@ -701,7 +701,42 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         url: "/api/admin/organizations/?statuses=ACCREDITED&statuses=BLOCKED",
       });
 
-      console.log(response.body);
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+
+      expect(body.data.length).toBeGreaterThanOrEqual(2);
+      const statuses = body.data.map((o) => o.status);
+      expect(statuses).toContain("ACCREDITED");
+      expect(statuses).toContain("BLOCKED");
+      expect(statuses).not.toContain("NOT_ACCREDITED");
+    });
+    it("should filter organizations by multiple statuses [comma separated]", async () => {
+      // 1. Accredited
+      const accreditedOrg = await createTestOrganization(prisma);
+      const accreditedData = await createTestOrganizationData(
+        prisma,
+        accreditedOrg.id
+      );
+      await createTestOrganizationDataSubmission(
+        prisma,
+        accreditedData.id,
+        SubmissionStatus.APPROVED
+      );
+
+      // 2. Blocked
+      const blockedOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, blockedOrg.id);
+
+      // 3. Not Accredited (Draft)
+      const draftOrg = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, draftOrg.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/?statuses=ACCREDITED,BLOCKED",
+      });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
@@ -716,6 +751,23 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/admin/organizations/?offset=invalid",
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+    it("should return 400 for invalid statuses parameter [comma separated]", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/?statuses=invalid,NOT_ACCREDITED",
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for invalid statuses parameter [array]", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/?statuses=invalid&statuses=NOT_ACCREDITED",
       });
 
       expect(response.statusCode).toBe(400);
