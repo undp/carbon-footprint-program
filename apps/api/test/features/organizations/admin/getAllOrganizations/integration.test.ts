@@ -577,7 +577,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       // 1. Approved version (Accredited)
       const approvedData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Approved Data",
+        legalName: "Approved Name",
+        tradeName: "Approved Name",
       });
       await createTestOrganizationDataSubmission(
         prisma,
@@ -585,9 +586,10 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         SubmissionStatus.APPROVED
       );
 
-      // 2. Rejected version (Re-accreditation attempt)
+      // 2. Rejected version (Re-accreditation attempt, stays ACTIVE)
       const rejectedData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Rejected Re-accreditation",
+        legalName: "Rejected Name",
+        tradeName: "Rejected Name",
       });
       await createTestOrganizationDataSubmission(
         prisma,
@@ -608,6 +610,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse!.status).toBe("ACCREDITED");
       expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
       expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+      // APPROVED has display priority (3) over REJECTED (4): official data is shown
+      expect(orgResponse!.name).toBe("Approved Name");
     });
 
     it("should return status=BLOCKED even if accredited", async () => {

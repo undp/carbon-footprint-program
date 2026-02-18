@@ -22,6 +22,7 @@ import {
 } from "@test/factories/organizationFactory.js";
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
 
 describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   let app: FastifyInstance;
@@ -39,6 +40,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   });
 
   beforeEach(async () => {
+    // Carbon inventories must be deleted before organizations (no cascade)
+    await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
   });
 
@@ -383,6 +386,125 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       }, 0);
 
       expect(accreditedSum).toBe(1);
+    });
+  });
+
+  describe("Lifecycle state KPI counts", () => {
+    it("should count a rejected org as ACTIVE and not accredited", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.REJECTED
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(1);
+
+      // Rejected org_data stays ACTIVE; no APPROVED submission → not accredited
+      const bucket = body.counts.find(
+        (c) =>
+          c.status === OrganizationStatus.ACTIVE &&
+          c.accredited === false &&
+          c.withInventories === false
+      );
+      expect(bucket?.count).toBe(1);
+    });
+
+    it("should count an org in re-accreditation (APPROVED + PENDING) once as accredited", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+
+      // 1. Approved org_data (accreditation)
+      const approvedData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        approvedData.id,
+        SubmissionStatus.APPROVED
+      );
+
+      // 2. Pending re-accreditation (new org_data under review)
+      const pendingData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        pendingData.id,
+        SubmissionStatus.PENDING
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      // Org has both APPROVED and PENDING active data → counted once, as accredited
+      expect(body.total).toBe(1);
+      const accreditedSum = body.counts.reduce(
+        (acc, curr) => acc + (curr.accredited ? curr.count : 0),
+        0
+      );
+      expect(accreditedSum).toBe(1);
+    });
+
+    it("should count org with carbon inventory in withInventories=true bucket", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED
+      );
+
+      // Any carbon inventory linked to the org makes hasCarbonInventories=true
+      await prisma.carbonInventory.create({
+        data: {
+          organizationId: org.id,
+          usageMode: "SIMPLIFIED",
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/organizations/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetOrganizationKpisResponse;
+
+      expect(body.total).toBe(1);
+
+      const bucket = body.counts.find(
+        (c) =>
+          c.status === OrganizationStatus.ACTIVE &&
+          c.accredited === true &&
+          c.withInventories === true
+      );
+      expect(bucket?.count).toBe(1);
+
+      // withInventories=false bucket for same status/accreditation should be 0
+      const emptyBucket = body.counts.find(
+        (c) =>
+          c.status === OrganizationStatus.ACTIVE &&
+          c.accredited === true &&
+          c.withInventories === false
+      );
+      expect(emptyBucket?.count).toBe(0);
     });
   });
 });
