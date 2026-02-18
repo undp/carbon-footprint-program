@@ -55,9 +55,6 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as DeleteCategoryResponse;
-      expect(body.message).toBe("Category deleted successfully");
-      expect(body.id).toBe(category.id.toString());
     });
 
     it("should set status to DELETED in the database", async () => {

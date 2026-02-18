@@ -34,9 +34,6 @@ export const createDeleteHandler = <TParams extends WithId>(
 
     log.info(`${resourceName} ${id} deleted successfully`);
 
-    return reply.status(200).send({
-      message: `${resourceName} deleted successfully`,
-      id,
-    });
+    return reply.status(200).send();
   };
 };
