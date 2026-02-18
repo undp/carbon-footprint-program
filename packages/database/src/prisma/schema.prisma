@@ -782,6 +782,7 @@ model OrganizationDataFile {
   file             File             @relation(fields: [fileId], references: [id])
   organizationData OrganizationData @relation(fields: [organizationDataId], references: [id])
 
+  @@index([organizationDataId])
   @@map("organization_data_file")
 }
 
@@ -792,6 +793,7 @@ model CarbonInventoryFile {
   file            File            @relation(fields: [fileId], references: [id])
   carbonInventory CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
 
+  @@index([carbonInventoryId])
   @@map("carbon_inventory_file")
 }
 
@@ -802,6 +804,7 @@ model CarbonInventoryLineFile {
   file                File                @relation(fields: [fileId], references: [id])
   carbonInventoryLine CarbonInventoryLine @relation(fields: [carbonInventoryLineId], references: [id])
 
+  @@index([carbonInventoryLineId])
   @@map("carbon_inventory_line_file")
 }
 
@@ -812,6 +815,7 @@ model SubmissionFile {
   file       File       @relation(fields: [fileId], references: [id])
   submission Submission @relation(fields: [submissionId], references: [id])
 
+  @@index([submissionId])
   @@map("submission_file")
 }
 

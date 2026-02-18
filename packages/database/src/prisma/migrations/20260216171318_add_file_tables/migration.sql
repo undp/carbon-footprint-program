@@ -56,6 +56,12 @@ CREATE TABLE "submission_file" (
     CONSTRAINT "submission_file_pkey" PRIMARY KEY ("file_id")
 );
 
+-- CreateIndex (parent FK indexes for join tables)
+CREATE INDEX "organization_data_file_organization_data_id_idx" ON "organization_data_file"("organization_data_id");
+CREATE INDEX "carbon_inventory_file_carbon_inventory_id_idx" ON "carbon_inventory_file"("carbon_inventory_id");
+CREATE INDEX "carbon_inventory_line_file_carbon_inventory_line_id_idx" ON "carbon_inventory_line_file"("carbon_inventory_line_id");
+CREATE INDEX "submission_file_submission_id_idx" ON "submission_file"("submission_id");
+
 -- AddForeignKey
 ALTER TABLE "file" ADD CONSTRAINT "file_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
