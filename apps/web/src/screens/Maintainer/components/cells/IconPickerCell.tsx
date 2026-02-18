@@ -34,26 +34,26 @@ import {
 
 /** Map of icon names to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
-  factory: FactoryOutlined,
-  bolt: BoltOutlined,
-  truck: LocalShippingOutlined,
-  flame: WhatshotOutlined,
-  car: DirectionsCarOutlined,
-  snowflake: AcUnitOutlined,
-  water: WaterDropOutlined,
-  recycle: RecyclingOutlined,
-  agriculture: AgricultureOutlined,
-  building: BusinessOutlined,
-  flight: FlightOutlined,
-  train: TrainOutlined,
-  electric: ElectricBoltOutlined,
-  solar: SolarPowerOutlined,
-  forest: ForestOutlined,
-  waste: DeleteOutlineOutlined,
-  construction: ConstructionOutlined,
-  science: ScienceOutlined,
-  fuel: LocalGasStationOutlined,
-  globe: PublicOutlined,
+  FACTORY: FactoryOutlined,
+  BOLT: BoltOutlined,
+  TRUCK: LocalShippingOutlined,
+  FLAME: WhatshotOutlined,
+  CAR: DirectionsCarOutlined,
+  SNOWFLAKE: AcUnitOutlined,
+  WATER: WaterDropOutlined,
+  RECYCLE: RecyclingOutlined,
+  AGRICULTURE: AgricultureOutlined,
+  BUILDING: BusinessOutlined,
+  FLIGHT: FlightOutlined,
+  TRAIN: TrainOutlined,
+  ELECTRIC: ElectricBoltOutlined,
+  SOLAR: SolarPowerOutlined,
+  FOREST: ForestOutlined,
+  WASTE: DeleteOutlineOutlined,
+  CONSTRUCTION: ConstructionOutlined,
+  SCIENCE: ScienceOutlined,
+  FUEL: LocalGasStationOutlined,
+  GLOBE: PublicOutlined,
 };
 
 const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
@@ -139,7 +139,11 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
         transformOrigin={{ vertical: "top", horizontal: "left" }}
       >
         <Box sx={{ p: 1.5, width: 260 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mb: 0.5, display: "block" }}
+          >
             Ícono
           </Typography>
           <Box
@@ -171,7 +175,11 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
 
           <Divider sx={{ my: 1 }} />
 
-          <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: "block" }}>
+          <Typography
+            variant="caption"
+            color="text.secondary"
+            sx={{ mb: 0.5, display: "block" }}
+          >
             Color de fondo
           </Typography>
           <Box
@@ -201,7 +209,9 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
                   }}
                 >
                   {c === color && (
-                    <CheckOutlined sx={{ fontSize: 14, color: "primary.main" }} />
+                    <CheckOutlined
+                      sx={{ fontSize: 14, color: "primary.main" }}
+                    />
                   )}
                 </IconButton>
               </Tooltip>
