@@ -1,16 +1,57 @@
 -- CreateView: organization_summary_view
 CREATE OR REPLACE VIEW "organization_summary_view" AS
-WITH ranked_organization_data AS (
+
+-- 1. Accreditation: does any ACTIVE org_data have an APPROVED submission?
+WITH accreditation AS (
+  SELECT DISTINCT od.organization_id
+  FROM organization_data od
+  JOIN submission_subject_organization_data ssod
+    ON ssod.organization_data_id = od.id
+  JOIN submission s
+    ON s.subject_id = ssod.subject_id
+    AND s.status = 'APPROVED'
+  WHERE od.status = 'ACTIVE'
+),
+
+-- 2. Latest submission: most recent submission (any status) per organization
+latest_submission AS (
+  SELECT DISTINCT ON (od.organization_id)
+    od.organization_id,
+    s.status AS submission_status
+  FROM organization_data od
+  JOIN submission_subject_organization_data ssod
+    ON ssod.organization_data_id = od.id
+  JOIN submission s
+    ON s.subject_id = ssod.subject_id
+  ORDER BY od.organization_id, s.id DESC
+),
+
+-- 3. Unsubmitted changes: ACTIVE org_data with no PENDING or APPROVED submission
+unsubmitted_changes AS (
+  SELECT DISTINCT od.organization_id
+  FROM organization_data od
+  WHERE od.status = 'ACTIVE'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM submission_subject_organization_data ssod
+      JOIN submission s
+        ON s.subject_id = ssod.subject_id
+        AND s.status IN ('PENDING', 'APPROVED')
+      WHERE ssod.organization_data_id = od.id
+    )
+),
+
+-- 4. Reference row: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3), then newest
+reference_organization_data AS (
   SELECT
     od.*,
-    s.status AS submission_status,
     ROW_NUMBER() OVER (
       PARTITION BY od.organization_id
       ORDER BY
         CASE
-          WHEN s.status = 'APPROVED' THEN 1
-          WHEN s.status = 'PENDING' THEN 2
-          WHEN s.status IS NULL THEN 3
+          WHEN s.status = 'PENDING'  THEN 1
+          WHEN s.status IS NULL      THEN 2
+          WHEN s.status = 'APPROVED' THEN 3
         END,
         od.id DESC
     ) AS rn
@@ -22,6 +63,8 @@ WITH ranked_organization_data AS (
     AND s.status IN ('PENDING', 'APPROVED')
   WHERE od.status = 'ACTIVE'
 ),
+
+-- 5. Carbon inventory stats (unchanged)
 organization_carbon_stats AS (
   SELECT
     ci.organization_id,
@@ -33,6 +76,7 @@ organization_carbon_stats AS (
   WHERE ci.organization_id IS NOT NULL
   GROUP BY ci.organization_id
 )
+
 SELECT
   o.id                                                     AS organization_id,
   o.country_id,
@@ -60,18 +104,21 @@ SELECT
   rod.created_at                                           AS organization_data_created_at,
   rod.updated_at                                           AS organization_data_updated_at,
 
-  -- Submission state
-  rod.submission_status::TEXT                               AS submission_status,
+  -- Last submission status (includes REJECTED, from any org_data)
+  ls.submission_status::TEXT                                AS last_submission_status,
 
-  -- Derived display status
+  -- Has unsubmitted changes flag
+  (uc.organization_id IS NOT NULL)                         AS has_unsubmitted_changes,
+
+  -- Display status (derived from accreditation CTE, not reference row)
   CASE
     WHEN o.status = 'BLOCKED' THEN 'BLOCKED'
-    WHEN rod.submission_status = 'APPROVED' THEN 'ACCREDITED'
+    WHEN acc.organization_id IS NOT NULL THEN 'ACCREDITED'
     ELSE 'NOT_ACCREDITED'
   END                                                      AS display_status,
 
-  -- Accreditation flag (independent of BLOCKED status, for KPIs)
-  COALESCE(rod.submission_status = 'APPROVED', FALSE)      AS is_accredited,
+  -- Accreditation flag (from accreditation CTE, independent of BLOCKED)
+  (acc.organization_id IS NOT NULL)                        AS is_accredited,
 
   -- Pre-joined lookup names
   cos.name                                                 AS size_name,
@@ -88,8 +135,14 @@ SELECT
   GREATEST(o.updated_at, rod.updated_at)                   AS last_edition
 
 FROM organization o
-LEFT JOIN ranked_organization_data rod
+LEFT JOIN reference_organization_data rod
   ON rod.organization_id = o.id AND rod.rn = 1
+LEFT JOIN accreditation acc
+  ON acc.organization_id = o.id
+LEFT JOIN latest_submission ls
+  ON ls.organization_id = o.id
+LEFT JOIN unsubmitted_changes uc
+  ON uc.organization_id = o.id
 LEFT JOIN country_organization_size cos
   ON cos.id = rod.country_organization_size_id
 LEFT JOIN country_sector cs
@@ -101,4 +154,5 @@ LEFT JOIN organization_main_activity oma
 LEFT JOIN country_job_position cjp
   ON cjp.id = rod.representative_country_job_position_id
 LEFT JOIN organization_carbon_stats ocs
-  ON ocs.organization_id = o.id;
+  ON ocs.organization_id = o.id
+WHERE rod.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
