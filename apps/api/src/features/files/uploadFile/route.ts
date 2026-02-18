@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   IdSchema,
   FileTypeSchema,
+  UploadFileQuerySchema,
   UploadFileResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
@@ -16,7 +17,10 @@ const ParamsSchema = z.object({
 });
 
 export const uploadFileRoute: StandardRouteSignature = (fastify, options) => {
-  fastify.post<{ Params: z.infer<typeof ParamsSchema> }>(
+  fastify.post<{
+    Params: z.infer<typeof ParamsSchema>;
+    Querystring: z.infer<typeof UploadFileQuerySchema>;
+  }>(
     "/:fileType/:ownerId",
     {
       schema: {
@@ -24,6 +28,7 @@ export const uploadFileRoute: StandardRouteSignature = (fastify, options) => {
         summary: "Upload a file",
         consumes: ["multipart/form-data"],
         params: ParamsSchema,
+        querystring: UploadFileQuerySchema,
         response: {
           201: UploadFileResponseSchema,
           400: ApiErrorResponseSchema,

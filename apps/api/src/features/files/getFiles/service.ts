@@ -14,7 +14,12 @@ export const getFilesService = async (
 
   await validateFileTypeExists(prisma, fileType, ownerIdBigInt);
 
-  const fileIds = await findFileIdsByType(prisma, fileType, ownerIdBigInt);
+  const fileIds = await findFileIdsByType(
+    prisma,
+    fileType,
+    ownerIdBigInt,
+    query?.submissionFileType
+  );
   if (fileIds.length === 0) return [];
 
   const files = await prisma.file.findMany({

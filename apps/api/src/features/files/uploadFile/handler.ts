@@ -1,11 +1,12 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { FileType } from "@repo/types";
+import type { FileType, UploadFileQuery } from "@repo/types";
 import { StorageNotConfiguredError } from "../errors.js";
 import { uploadFileService } from "./service.js";
 
 export const uploadFileHandler = async (
   request: FastifyRequest<{
     Params: { fileType: FileType; ownerId: string };
+    Querystring: UploadFileQuery;
   }>,
   reply: FastifyReply
 ) => {
@@ -44,6 +45,7 @@ export const uploadFileHandler = async (
     mimeType: file.mimetype,
     buffer,
     userId: request.currentUser.id,
+    submissionFileType: request.query.submissionFileType,
   });
 
   log.info({ uuid: result.uuid, fileType, ownerId }, "File uploaded successfully");

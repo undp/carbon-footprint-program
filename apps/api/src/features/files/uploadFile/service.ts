@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient, SubmissionFileType } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import type { FileType, UploadFileResponse } from "@repo/types";
 import { FileUploadFailedError } from "../errors.js";
@@ -13,6 +13,7 @@ interface UploadFileInput {
   mimeType: string;
   buffer: Buffer;
   userId: string;
+  submissionFileType?: SubmissionFileType;
 }
 
 export const uploadFileService = async (
@@ -20,7 +21,7 @@ export const uploadFileService = async (
   blobStorage: ContainerClient,
   input: UploadFileInput
 ): Promise<UploadFileResponse> => {
-  const { fileType, ownerId, originalName, mimeType, buffer, userId } = input;
+  const { fileType, ownerId, originalName, mimeType, buffer, userId, submissionFileType } = input;
   const ownerIdBigInt = BigInt(ownerId);
 
   await validateFileTypeExists(prisma, fileType, ownerIdBigInt);
@@ -57,7 +58,7 @@ export const uploadFileService = async (
         },
       });
 
-      await createFileLink(tx, fileType, createdFile.id, ownerIdBigInt);
+      await createFileLink(tx, fileType, createdFile.id, ownerIdBigInt, submissionFileType);
 
       return createdFile;
     });
