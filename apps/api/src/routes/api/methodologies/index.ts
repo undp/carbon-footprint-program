@@ -6,7 +6,7 @@ import { deleteMethodologyRoute } from "@/features/methodologies/deleteMethodolo
 import { duplicateMethodologyRoute } from "@/features/methodologies/duplicateMethodology/route.js";
 
 export default function methodologiesRoutes(fastify: FastifyZodInstance) {
-  // fastify.addHook("onRequest", fastify.requireAuth);
+  fastify.addHook("onRequest", fastify.requireAuth);
   getAllMethodologiesRoute(fastify);
   createMethodologyRoute(fastify);
   updateMethodologyRoute(fastify);

@@ -5,7 +5,7 @@ import { updateCategoryRoute } from "@/features/categories/updateCategory/route.
 import { deleteCategoryRoute } from "@/features/categories/deleteCategory/route.js";
 
 export default function categoriesRoutes(fastify: FastifyZodInstance) {
-  // fastify.addHook("onRequest", fastify.requireAuth);
+  fastify.addHook("onRequest", fastify.requireAuth);
   getAllCategoriesRoute(fastify);
   createCategoryRoute(fastify);
   updateCategoryRoute(fastify);
