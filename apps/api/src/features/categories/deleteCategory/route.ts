@@ -13,8 +13,7 @@ export const deleteCategoryRoute = (fastify: FastifyZodInstance) => {
       schema: {
         tags: ["categories"],
         summary: "Delete a category",
-        description:
-          "Soft delete a category by setting its status to DELETED",
+        description: "Soft delete a category by setting its status to DELETED",
         params: DeleteCategoryParamsSchema,
         response: {
           200: DeleteCategoryResponseSchema,
