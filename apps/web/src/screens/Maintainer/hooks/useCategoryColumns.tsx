@@ -63,6 +63,8 @@ export const useCategoryColumns = ({
               iconName={params.row.icon}
               color={params.row.color}
               isEditing={editing}
+              rowIndex={rowIndex}
+              formArrayName="categories"
               onChangeIcon={(iconName) =>
                 onCellChange(rowIndex, "icon", iconName)
               }

@@ -277,8 +277,8 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     const newRow: FormCategory = {
       id: tempId,
       name: "",
-      icon: "factory",
-      color: "#F5E6D3",
+      icon: "",
+      color: "",
       synonyms: "",
       description: "",
       examples: null,
@@ -400,10 +400,10 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
             subtitle="Los cambios se aplicarán automáticamente"
           />
         )}
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
           {isViewOnly
             ? "Vista de solo lectura de las categorías y alcances de esta metodología."
-            : "Gestiona las categorías y alcances de esta metodología. Haz clic en una celda para editarla."}
+            : "Gestiona las categorías y alcances de esta metodología. Haz clic en una fila para editarla."}
         </Typography>
         <form id="categories-form" noValidate>
           <Box className="flex w-full">

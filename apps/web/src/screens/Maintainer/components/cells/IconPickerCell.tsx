@@ -31,6 +31,11 @@ import {
   LocalGasStationOutlined,
   PublicOutlined,
 } from "@mui/icons-material";
+import {
+  useFormContext,
+  useFormState,
+  type FieldError,
+} from "react-hook-form";
 
 /** Map of icon names to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
@@ -74,10 +79,24 @@ export const CATEGORY_COLORS = [
   "#F0D5E8", // rose
 ];
 
+function getNestedError(
+  obj: Record<string, unknown>,
+  ...keys: (string | number)[]
+): FieldError | undefined {
+  let current: unknown = obj;
+  for (const key of keys) {
+    if (current == null || typeof current !== "object") return undefined;
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current as FieldError | undefined;
+}
+
 interface IconPickerCellProps {
   iconName: string;
   color: string;
   isEditing: boolean;
+  rowIndex: number;
+  formArrayName: string;
   onChangeIcon: (iconName: string) => void;
   onChangeColor: (color: string) => void;
   onClick?: () => void;
@@ -87,17 +106,42 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
   iconName,
   color,
   isEditing,
+  rowIndex,
+  formArrayName,
   onChangeIcon,
   onChangeColor,
   onClick,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
-  const IconComponent = CATEGORY_ICON_MAP[iconName] ?? FactoryOutlined;
+
+  const { control } = useFormContext();
+  const { errors } = useFormState({ control });
+  const iconError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    formArrayName,
+    rowIndex,
+    "icon"
+  );
+  const colorError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    formArrayName,
+    rowIndex,
+    "color"
+  );
+  const hasError = isEditing && (!!iconError || !!colorError);
+
+  const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
+
+  const tooltipTitle = isEditing
+    ? hasError
+      ? "Selecciona un ícono y color"
+      : "Cambiar ícono y color"
+    : (iconName ?? "");
 
   return (
     <>
-      <Tooltip title={isEditing ? "Cambiar ícono y color" : iconName} arrow>
+      <Tooltip title={tooltipTitle} arrow>
         <IconButton
           size="small"
           disableRipple
@@ -110,24 +154,39 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
               setAnchorEl(e.currentTarget);
             }
           }}
-          sx={{
-            backgroundColor: color || "#F5E6D3",
-            width: 40,
-            height: 40,
-            cursor: isInteractive ? "pointer" : "default",
-            "&:hover": {
-              backgroundColor: color || "#F5E6D3",
-              opacity: isInteractive ? 0.8 : 1,
-            },
-            "&.Mui-disabled": {
-              backgroundColor: color || "#F5E6D3",
-            },
-          }}
+          sx={
+            IconComponent
+              ? {
+                  backgroundColor: color || "transparent",
+                  width: 40,
+                  height: 40,
+                  cursor: isInteractive ? "pointer" : "default",
+                  "&:hover": {
+                    backgroundColor: color || "transparent",
+                    opacity: isInteractive ? 0.8 : 1,
+                  },
+                  "&.Mui-disabled": {
+                    backgroundColor: color || "transparent",
+                  },
+                }
+              : {
+                  width: 40,
+                  height: 40,
+                  cursor: isInteractive ? "pointer" : "default",
+                  border: "2px dashed",
+                  borderColor: hasError ? "error.main" : "grey.400",
+                  backgroundColor: "transparent",
+                  "&:hover": { opacity: isInteractive ? 0.7 : 1 },
+                  "&.Mui-disabled": { borderColor: "grey.300" },
+                }
+          }
         >
-          <IconComponent
-            fontSize="small"
-            sx={{ color: "rgba(0, 0, 0, 0.7)" }}
-          />
+          {IconComponent && (
+            <IconComponent
+              fontSize="small"
+              sx={{ color: "rgba(0, 0, 0, 0.7)" }}
+            />
+          )}
         </IconButton>
       </Tooltip>
 
@@ -141,10 +200,10 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
         <Box sx={{ p: 1.5, width: 260 }}>
           <Typography
             variant="caption"
-            color="text.secondary"
+            color={iconError ? "error" : "text.secondary"}
             sx={{ mb: 0.5, display: "block" }}
           >
-            Ícono
+            Ícono{iconError ? ` — ${iconError.message}` : ""}
           </Typography>
           <Box
             sx={{
@@ -152,6 +211,10 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
               gridTemplateColumns: "repeat(5, 1fr)",
               gap: 0.5,
               mb: 1,
+              p: 0.5,
+              borderRadius: 1,
+              border: iconError ? "1px solid" : "none",
+              borderColor: "error.main",
             }}
           >
             {ICON_ENTRIES.map(([name, Icon]) => (
@@ -177,16 +240,20 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
 
           <Typography
             variant="caption"
-            color="text.secondary"
+            color={colorError ? "error" : "text.secondary"}
             sx={{ mb: 0.5, display: "block" }}
           >
-            Color de fondo
+            Color de fondo{colorError ? ` — ${colorError.message}` : ""}
           </Typography>
           <Box
             sx={{
               display: "grid",
               gridTemplateColumns: "repeat(6, 1fr)",
               gap: 0.5,
+              p: 0.5,
+              borderRadius: 1,
+              border: colorError ? "1px solid" : "none",
+              borderColor: "error.main",
             }}
           >
             {CATEGORY_COLORS.map((c) => (
