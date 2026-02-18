@@ -1,14 +1,30 @@
-import { FC, useState, useEffect } from "react";
-import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { TextField, Typography, Tooltip, SxProps, Theme } from "@mui/material";
-import type {
-  FormMethodology,
-  MethodologiesFormValues,
-} from "../../hooks/useMethodologiesForm";
+import { FC, useState } from "react";
+import {
+  useWatch,
+  useFormState,
+  useFormContext,
+  type FieldError,
+} from "react-hook-form";
+import { TextField, Typography, Tooltip, type SxProps, type Theme } from "@mui/material";
+
+/** Traverse a nested object by path segments, returning the value at that path. */
+function getNestedError(
+  obj: Record<string, unknown>,
+  ...keys: (string | number)[]
+): FieldError | undefined {
+  let current: unknown = obj;
+  for (const key of keys) {
+    if (current == null || typeof current !== "object") return undefined;
+    current = (current as Record<string | number, unknown>)[key];
+  }
+  return current as FieldError | undefined;
+}
 
 interface EditableTextCellProps {
+  /** Name of the form array (e.g. "methodologies", "categories") */
+  formArrayName?: string;
   rowIndex: number;
-  fieldName: keyof FormMethodology;
+  fieldName: string;
   isEditing: boolean;
   onChange: (value: string) => void;
   onClick?: () => void;
@@ -19,6 +35,7 @@ interface EditableTextCellProps {
 }
 
 export const EditableTextCell: FC<EditableTextCellProps> = ({
+  formArrayName = "methodologies",
   rowIndex,
   fieldName,
   isEditing,
@@ -28,22 +45,18 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   maxRows = 1,
   truncateLines = 1,
 }) => {
-  const { control } = useFormContext<MethodologiesFormValues>();
-  const formValue = useWatch<MethodologiesFormValues>({
-    name: `methodologies.${rowIndex}.${fieldName}`,
-  }) as string;
-  const { errors } = useFormState({
-    control,
-    name: `methodologies.${rowIndex}.${fieldName}`,
-  });
-  const fieldError = errors.methodologies?.[rowIndex]?.[fieldName];
+  const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
+  const { control } = useFormContext();
+  const formValue = useWatch({ name: formPath }) as string;
+  const { errors } = useFormState({ control, name: formPath });
+  const fieldError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    formArrayName,
+    rowIndex,
+    fieldName
+  );
 
   const [localValue, setLocalValue] = useState(formValue);
-
-  // Sync local state when form value changes externally
-  useEffect(() => {
-    setLocalValue(formValue);
-  }, [formValue]);
 
   if (!isEditing) {
     const truncateSx: SxProps<Theme> =
