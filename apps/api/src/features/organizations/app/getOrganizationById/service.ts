@@ -1,7 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  GetOrganizationByIdResponse,
-  OrganizationDisplayStatus,
+import {
+  OrganizationDisplayStatusValues,
+  type GetOrganizationByIdResponse,
+  type OrganizationDisplayStatus,
 } from "@repo/types";
 import { OrganizationNotFoundError } from "../../errors.js";
 import { SubmissionStatus } from "@repo/database";
@@ -30,7 +31,9 @@ export const getOrganizationByIdService = async (
     status: org.displayStatus as OrganizationDisplayStatus,
     lastSubmissionStatus: org.lastSubmissionStatus as SubmissionStatus,
     hasUnsubmittedChanges: org.hasUnsubmittedChanges,
-    isEditable: true, // TODO: add check for isEditable
+    isEditable:
+      org.displayStatus !== OrganizationDisplayStatusValues.BLOCKED &&
+      org.lastSubmissionStatus !== SubmissionStatus.REJECTED,
     sector: org.sectorId
       ? {
           id: org.sectorId.toString(),
