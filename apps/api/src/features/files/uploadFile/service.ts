@@ -12,7 +12,7 @@ interface UploadFileInput {
   originalName: string;
   mimeType: string;
   buffer: Buffer;
-  userId: string | null;
+  userId: string;
 }
 
 export const uploadFileService = async (
@@ -51,7 +51,7 @@ export const uploadFileService = async (
         mimeType,
         sizeBytes: buffer.length,
         blobPath,
-        createdById: userId ? BigInt(userId) : BigInt(0),
+        createdById: BigInt(userId),
       },
     });
 

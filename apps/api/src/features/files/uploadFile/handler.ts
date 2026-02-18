@@ -29,7 +29,13 @@ export const uploadFileHandler = async (
 
   const buffer = await file.toBuffer();
   const prisma = request.server.prisma;
-  const user = request.currentUser;
+
+  if (!request.currentUser?.id) {
+    return reply.status(401).send({
+      code: "UNAUTHORIZED",
+      message: "Authentication is required to upload files",
+    });
+  }
 
   const result = await uploadFileService(prisma, blobStorage, {
     fileType,
@@ -37,7 +43,7 @@ export const uploadFileHandler = async (
     originalName: file.filename,
     mimeType: file.mimetype,
     buffer,
-    userId: user?.id ?? null,
+    userId: request.currentUser.id,
   });
 
   log.info({ uuid: result.uuid, fileType, ownerId }, "File uploaded successfully");
