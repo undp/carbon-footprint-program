@@ -225,6 +225,10 @@ export const RequestsScreen: FC = () => {
             "& .MuiDataGrid-columnHeader": {
               backgroundColor: theme.palette.grey[100],
             },
+            "& .MuiDataGrid-cell": {
+              minHeight: "65px",
+              padding: "10px",
+            },
           })}
           columns={columns}
           rows={MOCK_REQUESTS}
