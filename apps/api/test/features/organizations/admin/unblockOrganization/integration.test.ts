@@ -115,15 +115,13 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       });
       const orgData = await createTestOrganizationData(prisma, org.id);
 
-      // Create approved submission
-      const { submission: createdSubmission } =
-        await createTestOrganizationDataSubmission(
-          prisma,
-          orgData.id,
-          SubmissionStatus.APPROVED,
-          testUser.id,
-          testUser.id
-        );
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
 
       const response = await app.inject({
         method: "POST",
@@ -333,8 +331,10 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       const updatedOrg = await prisma.organization.findUnique({
         where: { id: org.id },
       });
+      expect(updatedOrg).toBeDefined();
+      expect(updatedOrg!.updatedAt).toBeDefined();
 
-      const updatedAt = new Date(updatedOrg!.updatedAt);
+      const updatedAt = new Date(updatedOrg!.updatedAt!);
       expect(updatedAt.getTime()).toBeGreaterThanOrEqual(
         beforeUnblock.getTime()
       );

@@ -1,4 +1,4 @@
-import type { Prisma, SubmissionStatus } from "@repo/database";
+import type { Prisma } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
 import { kgToTon } from "@/utils/number.js";
 
