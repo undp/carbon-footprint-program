@@ -67,7 +67,7 @@ describe("POST /api/admin/organizations/:id/block - Integration Tests", () => {
       expect(updatedOrg!.status).toBe(OrganizationStatus.BLOCKED);
     });
 
-    it("should return blocked status when blocking already blocked organization", async () => {
+    it("should return error when blocking already blocked organization", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.BLOCKED,
       });
@@ -78,9 +78,7 @@ describe("POST /api/admin/organizations/:id/block - Integration Tests", () => {
         url: `/api/admin/organizations/${org.id.toString()}/block`,
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as BlockOrganizationResponse;
-      expect(body).toEqual({ organizationId: org.id.toString() });
+      expect(response.statusCode).toBe(409);
     });
 
     it("should block organization without affecting organization data", async () => {
@@ -344,7 +342,7 @@ describe("POST /api/admin/organizations/:id/block - Integration Tests", () => {
       expect(afterOrg!.status).toBe(OrganizationStatus.BLOCKED);
     });
 
-    it("should be idempotent (BLOCKED to BLOCKED)", async () => {
+    it("should be idempotent (BLOCKED to BLOCKED) but throw error", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.BLOCKED,
       });
@@ -355,7 +353,7 @@ describe("POST /api/admin/organizations/:id/block - Integration Tests", () => {
         url: `/api/admin/organizations/${org.id.toString()}/block`,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(409);
 
       const afterOrg = await prisma.organization.findUnique({
         where: { id: org.id },

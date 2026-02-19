@@ -67,7 +67,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       expect(updatedOrg!.status).toBe(OrganizationStatus.ACTIVE);
     });
 
-    it("should return active status when unblocking already active organization", async () => {
+    it("should return error when unblocking already active organization", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
@@ -78,9 +78,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
         url: `/api/admin/organizations/${org.id.toString()}/unblock`,
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UnblockOrganizationResponse;
-      expect(body).toEqual({ organizationId: org.id.toString() });
+      expect(response.statusCode).toBe(409);
     });
 
     it("should unblock organization without affecting organization data", async () => {
@@ -346,7 +344,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       expect(afterOrg!.status).toBe(OrganizationStatus.ACTIVE);
     });
 
-    it("should be idempotent (ACTIVE to ACTIVE)", async () => {
+    it("should be idempotent (ACTIVE to ACTIVE) but throw error", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
@@ -357,7 +355,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
         url: `/api/admin/organizations/${org.id.toString()}/unblock`,
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(409);
 
       const afterOrg = await prisma.organization.findUnique({
         where: { id: org.id },
