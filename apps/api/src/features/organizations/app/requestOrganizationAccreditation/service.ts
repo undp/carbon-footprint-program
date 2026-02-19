@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type { RequestOrganizationAccreditationResponse } from "@repo/types";
+import type {
+  RequestOrganizationAccreditationResponse,
+  User,
+} from "@repo/types";
 import {
   MembershipStatus,
   OrganizationDataStatus,
@@ -16,8 +19,9 @@ import {
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
-  userId: string
+  user: User | null
 ): Promise<RequestOrganizationAccreditationResponse> => {
+  const userId = user!.id;
   const organization = await prismaClient.organization.findUnique({
     where: {
       id: BigInt(organizationId),
