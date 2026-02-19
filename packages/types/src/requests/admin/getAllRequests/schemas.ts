@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
-import { SubmissionStatus, SubmissionSubjectType } from "@repo/database";
+import { SubmissionStatus, SubmissionSubjectType } from "@repo/database/enums";
 
 export const AdminRequestSchema = z.object({
   id: IdSchema.describe("The ID of the request"),
