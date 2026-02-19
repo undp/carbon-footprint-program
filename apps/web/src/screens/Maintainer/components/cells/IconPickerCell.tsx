@@ -7,6 +7,8 @@ import {
   Typography,
   Divider,
   type SvgIconProps,
+  useTheme,
+  alpha,
 } from "@mui/material";
 import { CheckOutlined } from "@mui/icons-material";
 import {
@@ -31,11 +33,7 @@ import {
   LocalGasStationOutlined,
   PublicOutlined,
 } from "@mui/icons-material";
-import {
-  useFormContext,
-  useFormState,
-  type FieldError,
-} from "react-hook-form";
+import { useFormContext, useFormState, type FieldError } from "react-hook-form";
 
 /** Map of icon names to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
@@ -113,6 +111,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
   onClick,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const theme = useTheme();
 
   const { control } = useFormContext();
   const { errors } = useFormState({ control });
@@ -133,63 +132,54 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
   const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
 
-  const tooltipTitle = isEditing
-    ? hasError
-      ? "Selecciona un ícono y color"
-      : "Cambiar ícono y color"
-    : (iconName ?? "");
-
   return (
     <>
-      <Tooltip title={tooltipTitle} arrow>
-        <IconButton
-          size="small"
-          disableRipple
-          disabled={!isInteractive}
-          onClick={(e) => {
-            if (isEditing) {
-              setAnchorEl(e.currentTarget);
-            } else if (onClick) {
-              onClick();
-              setAnchorEl(e.currentTarget);
-            }
-          }}
-          sx={
-            IconComponent
-              ? {
-                  backgroundColor: color || "transparent",
-                  width: 40,
-                  height: 40,
-                  cursor: isInteractive ? "pointer" : "default",
-                  "&:hover": {
-                    backgroundColor: color || "transparent",
-                    opacity: isInteractive ? 0.8 : 1,
-                  },
-                  "&.Mui-disabled": {
-                    backgroundColor: color || "transparent",
-                  },
-                }
-              : {
-                  width: 40,
-                  height: 40,
-                  cursor: isInteractive ? "pointer" : "default",
-                  border: "2px dashed",
-                  borderColor: hasError ? "error.main" : "grey.400",
-                  backgroundColor: "transparent",
-                  "&:hover": { opacity: isInteractive ? 0.7 : 1 },
-                  "&.Mui-disabled": { borderColor: "grey.300" },
-                }
+      <IconButton
+        size="small"
+        disableRipple
+        disabled={!isInteractive}
+        onClick={(e) => {
+          if (isEditing) {
+            setAnchorEl(e.currentTarget);
+          } else if (onClick) {
+            onClick();
+            setAnchorEl(e.currentTarget);
           }
-        >
-          {IconComponent && (
-            <IconComponent
-              fontSize="small"
-              sx={{ color: "rgba(0, 0, 0, 0.7)" }}
-            />
-          )}
-        </IconButton>
-      </Tooltip>
-
+        }}
+        sx={
+          IconComponent
+            ? {
+                backgroundColor: color || "transparent",
+                width: 40,
+                height: 40,
+                cursor: isInteractive ? "pointer" : "default",
+                "&:hover": {
+                  backgroundColor: color || "transparent",
+                  opacity: isInteractive ? 0.8 : 1,
+                },
+                "&.Mui-disabled": {
+                  backgroundColor: color || "transparent",
+                },
+              }
+            : {
+                width: 40,
+                height: 40,
+                cursor: isInteractive ? "pointer" : "default",
+                border: "2px dashed",
+                borderColor: hasError ? "error.main" : "grey.400",
+                backgroundColor: "transparent",
+                "&:hover": { opacity: isInteractive ? 0.7 : 1 },
+                "&.Mui-disabled": { borderColor: "grey.300" },
+              }
+        }
+      >
+        {IconComponent && (
+          <IconComponent
+            fontSize="small"
+            sx={{ color: "rgba(0, 0, 0, 0.7)" }}
+          />
+        )}
+      </IconButton>
       <Popover
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
@@ -218,21 +208,22 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
             }}
           >
             {ICON_ENTRIES.map(([name, Icon]) => (
-              <Tooltip key={name} title={name} arrow>
-                <IconButton
-                  size="small"
-                  disableRipple
-                  onClick={() => onChangeIcon(name)}
-                  sx={{
-                    borderRadius: 1,
-                    backgroundColor:
-                      name === iconName ? "primary.light" : "transparent",
-                    "&:hover": { backgroundColor: "grey.200" },
-                  }}
-                >
-                  <Icon fontSize="small" />
-                </IconButton>
-              </Tooltip>
+              <IconButton
+                key={name}
+                size="small"
+                disableRipple
+                onClick={() => onChangeIcon(name)}
+                sx={{
+                  borderRadius: 1,
+                  backgroundColor:
+                    name === iconName
+                      ? alpha(theme.palette.primary.main, 0.3)
+                      : "transparent",
+                  "&:hover": { backgroundColor: "grey.200" },
+                }}
+              >
+                <Icon fontSize="small" />
+              </IconButton>
             ))}
           </Box>
 
@@ -257,31 +248,28 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
             }}
           >
             {CATEGORY_COLORS.map((c) => (
-              <Tooltip key={c} title={c} arrow>
-                <IconButton
-                  size="small"
-                  disableRipple
-                  onClick={() => onChangeColor(c)}
-                  sx={{
+              <IconButton
+                size="small"
+                key={c}
+                disableRipple
+                onClick={() => onChangeColor(c)}
+                sx={{
+                  backgroundColor: c,
+                  width: 32,
+                  height: 32,
+                  border: c === color ? "2px solid" : "1px solid",
+                  borderColor: c === color ? "primary.main" : "grey.300",
+                  borderRadius: "50%",
+                  "&:hover": {
                     backgroundColor: c,
-                    width: 32,
-                    height: 32,
-                    border: c === color ? "2px solid" : "1px solid",
-                    borderColor: c === color ? "primary.main" : "grey.300",
-                    borderRadius: "50%",
-                    "&:hover": {
-                      backgroundColor: c,
-                      opacity: 0.8,
-                    },
-                  }}
-                >
-                  {c === color && (
-                    <CheckOutlined
-                      sx={{ fontSize: 14, color: "primary.main" }}
-                    />
-                  )}
-                </IconButton>
-              </Tooltip>
+                    opacity: 0.8,
+                  },
+                }}
+              >
+                {c === color && (
+                  <CheckOutlined sx={{ fontSize: 14, color: "primary.main" }} />
+                )}
+              </IconButton>
             ))}
           </Box>
         </Box>
