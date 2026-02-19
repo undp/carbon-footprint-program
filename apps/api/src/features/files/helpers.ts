@@ -31,6 +31,20 @@ export async function createFileLink(
   });
 }
 
+/**
+ * Builds a deterministic blob path for a file.
+ * Must be consistent between request-upload (SAS generation) and confirm-upload (DB record creation).
+ */
+export function buildBlobPath(
+  fileType: FileType,
+  ownerId: string,
+  fileUuid: string,
+  originalName: string
+): string {
+  const sanitizedName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  return `${fileType}/${ownerId}/${fileUuid}-${sanitizedName}`;
+}
+
 export async function findFileIdsByType(
   prisma: PrismaClient,
   _fileType: FileType,
