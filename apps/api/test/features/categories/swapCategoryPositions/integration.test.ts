@@ -169,8 +169,12 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
       });
 
       const body = JSON.parse(response.body) as SwapCategoryPositionsResponse;
-      expect(body.categories[0].status).toBe(CategoryStatus.ACTIVE);
-      expect(body.categories[1].status).toBe(CategoryStatus.ACTIVE);
+      const foundCatA = body.categories.find((c) => c.id === catA.id.toString());
+      const foundCatB = body.categories.find((c) => c.id === catB.id.toString());
+      expect(foundCatA).toBeDefined();
+      expect(foundCatA!.status).toBe(CategoryStatus.ACTIVE);
+      expect(foundCatB).toBeDefined();
+      expect(foundCatB!.status).toBe(CategoryStatus.ACTIVE);
     });
   });
 
