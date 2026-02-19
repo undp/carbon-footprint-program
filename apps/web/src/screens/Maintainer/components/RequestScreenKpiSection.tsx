@@ -1,9 +1,40 @@
 import { FC } from "react";
-import { alpha, Box, Card, Stack, Typography } from "@mui/material";
+import { alpha, Box, Card, Skeleton, Stack, Typography } from "@mui/material";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
 
+const KpiCardSkeleton: FC = () => (
+  <Card
+    sx={{
+      minHeight: "130px",
+      flex: 1,
+      p: 2,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between",
+      borderRadius: "12px",
+      boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
+    }}
+  >
+    <Box className="flex w-full justify-between">
+      <Skeleton variant="text" width={80} height={20} />
+      <Skeleton variant="rounded" width={40} height={40} />
+    </Box>
+    <Skeleton variant="text" width={60} height={40} sx={{ mt: 1 }} />
+  </Card>
+);
+
 export const RequestScreenKpiSection: FC = () => {
-  const { data: kpis } = useAdminRequestsKpis();
+  const { data: kpis, isLoading } = useAdminRequestsKpis();
+
+  if (isLoading) {
+    return (
+      <Stack direction="row" spacing={2}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <KpiCardSkeleton key={i} />
+        ))}
+      </Stack>
+    );
+  }
 
   return (
     <Stack direction="row" spacing={2}>
