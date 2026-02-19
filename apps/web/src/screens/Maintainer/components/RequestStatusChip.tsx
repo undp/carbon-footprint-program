@@ -1,12 +1,6 @@
 import { FC } from "react";
 import { alpha, Box } from "@mui/material";
-
-export enum RequestStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-  DRAFT = "DRAFT",
-}
+import { RequestStatus } from "@/api/query/requests/useAdminRequests";
 
 interface RequestStatusChipProps {
   status: RequestStatus;

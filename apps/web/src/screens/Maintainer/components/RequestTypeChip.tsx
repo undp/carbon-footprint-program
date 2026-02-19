@@ -1,13 +1,6 @@
 import { FC } from "react";
 import { alpha, Box } from "@mui/material";
-
-export enum RequestType {
-  ORG_ACREDITATION = "ORG_ACREDITATION",
-  CALCULATION_DIPLOMA = "CALCULATION_DIPLOMA",
-  VERIFICATION_SEAL = "VERIFICATION_SEAL",
-  REDUCTION_SEAL = "REDUCTION_SEAL",
-  NEUTRALIZATION_SEAL = "NEUTRALIZATION_SEAL",
-}
+import { RequestType } from "@/api/query/requests/useAdminRequests";
 
 interface RequestTypeChipProps {
   type: RequestType;

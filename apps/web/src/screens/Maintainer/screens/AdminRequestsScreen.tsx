@@ -3,138 +3,22 @@ import { alpha, Box, Button, Card, Stack, Typography } from "@mui/material";
 import { FilterListOutlined, FileDownloadOutlined } from "@mui/icons-material";
 import { StylizedDataGrid } from "@components";
 import { useRequestColumns, type RequestRow } from "../hooks/useRequestColumns";
-import {
-  TaskOutlined,
-  AccessTimeOutlined,
-  CheckCircleOutlined,
-  CancelOutlined,
-} from "@mui/icons-material";
-import { RequestStatus } from "../components/RequestStatusChip";
-import { RequestType } from "../components/RequestTypeChip";
+import { useAdminRequestsKpis } from "../../../api/query/requests/useAdminRequestsKpis";
+import { useAdminRequests } from "../../../api/query/requests/useAdminRequests";
 
-const MOCK_REQUESTS: RequestRow[] = [
-  {
-    id: "1",
-    empresa: "Empresa Demo S.A.",
-    tipo: RequestType.CALCULATION_DIPLOMA,
-    periodo: "2024",
-    estado: RequestStatus.PENDING,
-    fechaEnvio: "5 dic 2024",
-  },
-  {
-    id: "2",
-    empresa: "Tech Solutions Ltd.",
-    tipo: RequestType.CALCULATION_DIPLOMA,
-    periodo: "2024",
-    estado: RequestStatus.REJECTED,
-    fechaEnvio: "10 dic 2024",
-  },
-  {
-    id: "3",
-    empresa: "Retail Global Corp.",
-    tipo: RequestType.NEUTRALIZATION_SEAL,
-    periodo: "2024",
-    estado: RequestStatus.REJECTED,
-    fechaEnvio: "28 nov 2024",
-  },
-  {
-    id: "4",
-    empresa: "Empresa Demo S.A.",
-    tipo: RequestType.REDUCTION_SEAL,
-    periodo: "2023",
-    estado: RequestStatus.APPROVED,
-    fechaEnvio: "10 dic 2023",
-  },
-  {
-    id: "5",
-    empresa: "Logística Express",
-    tipo: RequestType.REDUCTION_SEAL,
-    periodo: "2024",
-    estado: RequestStatus.REJECTED,
-    fechaEnvio: "15 oct 2024",
-  },
-  {
-    id: "6",
-    empresa: "Alimentos del Sur",
-    tipo: RequestType.CALCULATION_DIPLOMA,
-    periodo: "2024",
-    estado: RequestStatus.PENDING,
-    fechaEnvio: "12 dic 2024",
-  },
-  {
-    id: "7",
-    empresa: "Retail Global Corp.",
-    tipo: RequestType.VERIFICATION_SEAL,
-    periodo: "2024",
-    estado: RequestStatus.DRAFT,
-    fechaEnvio: "-",
-  },
-  {
-    id: "8",
-    empresa: "Tech Solutions Ltd.",
-    tipo: RequestType.ORG_ACREDITATION,
-    periodo: "2024",
-    estado: RequestStatus.PENDING,
-    fechaEnvio: "15 dic 2024",
-  },
-  {
-    id: "9",
-    empresa: "Logística Express",
-    tipo: RequestType.ORG_ACREDITATION,
-    periodo: "2024",
-    estado: RequestStatus.PENDING,
-    fechaEnvio: "14 dic 2024",
-  },
-  {
-    id: "10",
-    empresa: "Empresa Demo S.A.",
-    tipo: RequestType.ORG_ACREDITATION,
-    periodo: "-",
-    estado: RequestStatus.PENDING,
-    fechaEnvio: "16 dic 2024",
-  },
-  {
-    id: "11",
-    empresa: "Alimentos del Sur",
-    tipo: RequestType.CALCULATION_DIPLOMA,
-    periodo: "2024",
-    estado: RequestStatus.APPROVED,
-    fechaEnvio: "18 dic 2024",
-  },
-];
+export const AdminRequestsScreen: FC = () => {
+  const {
+    data: kpis,
+    isLoading: isLoadingKpis,
+    // refetch: refetchKpis,
+  } = useAdminRequestsKpis();
 
-const KPI_CARDS = [
-  {
-    status: null,
-    label: "Total",
-    icon: <TaskOutlined />,
-    value: 11,
-    color: "#459F90",
-  },
-  {
-    status: RequestStatus.PENDING,
-    label: "Pendientes",
-    icon: <AccessTimeOutlined />,
-    value: 3,
-    color: "#E65100",
-  },
-  {
-    status: RequestStatus.APPROVED,
-    label: "Aprobadas",
-    icon: <CheckCircleOutlined />,
-    value: 1,
-    color: "#004D35",
-  },
-  {
-    status: RequestStatus.REJECTED,
-    label: "Rechazadas",
-    icon: <CancelOutlined />,
-    value: 1,
-    color: "#C62828",
-  },
-];
+  const {
+    data: requests = [],
+    isLoading: isLoadingRequests,
+    // refetch: refetchRequests,
+  } = useAdminRequests();
 
-export const RequestsScreen: FC = () => {
   const columns = useRequestColumns();
 
   return (
@@ -182,7 +66,7 @@ export const RequestsScreen: FC = () => {
 
       {/* KPI Cards */}
       <Stack direction="row" spacing={2}>
-        {KPI_CARDS.map((kpi) => (
+        {kpis?.map((kpi) => (
           <Card
             key={kpi.label}
             sx={{
@@ -207,9 +91,7 @@ export const RequestsScreen: FC = () => {
                   backgroundColor: alpha(kpi.color, 0.1),
                   color: kpi.color,
                 }}
-              >
-                {kpi.icon}
-              </Box>
+              ></Box>
             </Box>
             <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
               {kpi.value}
@@ -237,7 +119,7 @@ export const RequestsScreen: FC = () => {
             },
           })}
           columns={columns}
-          rows={MOCK_REQUESTS}
+          rows={requests}
           rowHeight={52}
           getRowId={(row: RequestRow) => row.id}
         />

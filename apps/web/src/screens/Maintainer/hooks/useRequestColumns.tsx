@@ -6,11 +6,12 @@ import {
   CheckOutlined,
   CloseOutlined,
 } from "@mui/icons-material";
+import { RequestStatusChip } from "../components/RequestStatusChip";
+import { RequestTypeChip } from "../components/RequestTypeChip";
 import {
   RequestStatus,
-  RequestStatusChip,
-} from "../components/RequestStatusChip";
-import { RequestType, RequestTypeChip } from "../components/RequestTypeChip";
+  RequestType,
+} from "@/api/query/requests/useAdminRequests";
 
 export interface RequestRow {
   id: string;
