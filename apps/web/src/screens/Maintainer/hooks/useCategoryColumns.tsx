@@ -70,7 +70,7 @@ export const useCategoryColumns = ({
       {
         field: "icon",
         headerName: "Icono",
-        width: 80,
+        width: 60,
         headerAlign: "center",
         align: "center",
         cellClassName,
@@ -180,7 +180,7 @@ export const useCategoryColumns = ({
       {
         field: "examples",
         headerName: "Explicación",
-        width: 140,
+        width: 120,
         headerAlign: "center",
         align: "center",
         cellClassName,
@@ -195,6 +195,7 @@ export const useCategoryColumns = ({
               onClick={() => onOpenExplanation(rowIndex)}
               disabled={viewOnly && !hasContent}
               sx={{
+                maxWidth: "100px",
                 borderColor: hasContent ? "success.main" : "grey.400",
                 color: hasContent ? "success.main" : "grey.600",
                 textTransform: "none",
@@ -204,7 +205,7 @@ export const useCategoryColumns = ({
                 },
               }}
             >
-              {viewOnly ? "Ver" : hasContent ? "Ver/Editar" : "Agregar"}
+              {viewOnly ? "Ver" : hasContent ? "Editar" : "Agregar"}
             </Button>
           );
         },
@@ -214,7 +215,7 @@ export const useCategoryColumns = ({
             {
               field: "actions",
               headerName: "Acciones",
-              width: 160,
+              width: 100,
               sortable: false,
               filterable: false,
               headerAlign: "center" as const,
