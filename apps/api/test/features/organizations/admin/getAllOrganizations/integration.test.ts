@@ -418,409 +418,418 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse!.name).toBe("Active Data");
     });
 
-  describe("Submission status and unsubmitted changes", () => {
-    it("should return lastSubmissionStatus=null and hasUnsubmittedChanges=true for a new draft org", async () => {
-      const org = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, org.id, {
-        legalName: "Draft Org",
-        tradeName: "Draft Org",
+    describe("Submission status and unsubmitted changes", () => {
+      it("should return lastSubmissionStatus=null and hasUnsubmittedChanges=true for a new draft org", async () => {
+        const org = await createTestOrganization(prisma);
+        await createTestOrganizationData(prisma, org.id, {
+          legalName: "Draft Org",
+          tradeName: "Draft Org",
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.lastSubmissionStatus).toBeNull();
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(false);
       });
 
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
+      it("should return lastSubmissionStatus=PENDING and hasUnsubmittedChanges=false for an org under review", async () => {
+        const org = await createTestOrganization(prisma);
+        const orgData = await createTestOrganizationData(prisma, org.id, {
+          legalName: "Review Org",
+          tradeName: "Review Org",
+        });
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData.id,
+          SubmissionStatus.PENDING,
+          testUser.id
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(false);
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+      it("should return lastSubmissionStatus=APPROVED and hasUnsubmittedChanges=false for an accredited org", async () => {
+        const org = await createTestOrganization(prisma);
+        const orgData = await createTestOrganizationData(prisma, org.id, {
+          legalName: "Accredited Org",
+          tradeName: "Accredited Org",
+        });
+        const { submission } = await createTestOrganizationDataSubmission(
+          prisma,
+          orgData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id,
+          testUser.id
+        );
 
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.lastSubmissionStatus).toBeNull();
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(false);
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(true);
+
+        // Verify submission was approved by test user
+        expect(submission.reviewerId).toBe(testUser.id);
+      });
+
+      it("should return lastSubmissionStatus=REJECTED and hasUnsubmittedChanges=false for a rejected org (initial rejection)", async () => {
+        const org = await createTestOrganization(prisma);
+        const orgData = await createTestOrganizationData(prisma, org.id, {
+          legalName: "Rejected Org",
+          tradeName: "Rejected Org",
+        });
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData.id,
+          SubmissionStatus.REJECTED,
+          testUser.id,
+          testUser.id
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(false);
+      });
+
+      it("should show ACCREDITED status and PENDING lastSubmissionStatus for re-accreditation", async () => {
+        const org = await createTestOrganization(prisma);
+
+        // First org_data: APPROVED (accreditation)
+        const approvedOrgData = await createTestOrganizationData(
+          prisma,
+          org.id,
+          {
+            legalName: "Approved Data",
+            tradeName: "Approved Data",
+          }
+        );
+        await createTestOrganizationDataSubmission(
+          prisma,
+          approvedOrgData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id
+        );
+
+        // Second org_data: PENDING re-accreditation with updated name
+        const pendingOrgData = await createTestOrganizationData(
+          prisma,
+          org.id,
+          {
+            legalName: "Updated Data",
+            tradeName: "Updated Data",
+          }
+        );
+        await createTestOrganizationDataSubmission(
+          prisma,
+          pendingOrgData.id,
+          SubmissionStatus.PENDING,
+          testUser.id,
+          testUser.id
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.name).toBe("Updated Data");
+        // Should be ACCREDITED because there's an APPROVED submission on ACTIVE org_data
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(true);
+        // Latest submission is PENDING
+        expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
+        // The displayed name should come from the PENDING row (higher priority)
+        expect(orgResponse!.name).toBe("Updated Data");
+        // PENDING submission covers the new data, so no unsubmitted changes
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+      });
+
+      it("should return lastSubmissionStatus=REJECTED and hasUnsubmittedChanges=false for a re-accreditation rejection", async () => {
+        const org = await createTestOrganization(prisma);
+
+        // 1. Approved version (Accredited)
+        const approvedData = await createTestOrganizationData(prisma, org.id, {
+          legalName: "Approved Name",
+          tradeName: "Approved Name",
+        });
+        await createTestOrganizationDataSubmission(
+          prisma,
+          approvedData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id
+        );
+
+        // 2. Rejected version (Re-accreditation attempt, stays ACTIVE)
+        const rejectedData = await createTestOrganizationData(prisma, org.id, {
+          legalName: "Rejected Name",
+          tradeName: "Rejected Name",
+        });
+        await createTestOrganizationDataSubmission(
+          prisma,
+          rejectedData.id,
+          SubmissionStatus.REJECTED,
+          testUser.id,
+          testUser.id
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(true);
+        expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
+        // APPROVED has display priority (3) over REJECTED (4): official data is shown
+        expect(orgResponse!.name).toBe("Approved Name");
+      });
+
+      it("should return status=BLOCKED even if accredited", async () => {
+        const org = await createTestOrganization(prisma, {
+          status: OrganizationStatus.BLOCKED,
+        });
+        const orgData = await createTestOrganizationData(prisma, org.id);
+        const { submission } = await createTestOrganizationDataSubmission(
+          prisma,
+          orgData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id,
+          testUser.id
+        );
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.status).toBe("BLOCKED");
+        expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
+
+        // Verify submission was approved by test user
+        expect(submission.reviewerId).toBe(testUser.id);
+      });
+
+      it("should show draft data as current even when there was an approved version", async () => {
+        const org = await createTestOrganization(prisma);
+
+        // 1. Approved version
+        const approvedData = await createTestOrganizationData(prisma, org.id, {
+          legalName: "Official Name",
+          tradeName: "Official Name",
+        });
+        await createTestOrganizationDataSubmission(
+          prisma,
+          approvedData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id,
+          testUser.id
+        );
+
+        // 2. New Draft (ACTIVE, no submission)
+        await createTestOrganizationData(prisma, org.id, {
+          legalName: "New Draft Name",
+          tradeName: "New Draft Name",
+        });
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+        const orgResponse = body.data.find((o) => o.id === org.id.toString());
+
+        expect(orgResponse).toBeDefined();
+        expect(orgResponse!.name).toBe("New Draft Name");
+        expect(orgResponse!.status).toBe("ACTIVE");
+        expect(orgResponse!.isAccredited).toBe(true);
+        expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
+        expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
+      });
     });
 
-    it("should return lastSubmissionStatus=PENDING and hasUnsubmittedChanges=false for an org under review", async () => {
-      const org = await createTestOrganization(prisma);
-      const orgData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Review Org",
-        tradeName: "Review Org",
+    describe("Filtering", () => {
+      it("should filter organizations by multiple statuses [array]", async () => {
+        // 1. Accredited
+        const accreditedOrg = await createTestOrganization(prisma);
+        const accreditedData = await createTestOrganizationData(
+          prisma,
+          accreditedOrg.id
+        );
+        await createTestOrganizationDataSubmission(
+          prisma,
+          accreditedData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id,
+          testUser.id
+        );
+
+        // 2. Blocked
+        const blockedOrg = await createTestOrganization(prisma, {
+          status: OrganizationStatus.BLOCKED,
+        });
+        await createTestOrganizationData(prisma, blockedOrg.id);
+
+        // 3. Not Accredited (Draft)
+        const draftOrg = await createTestOrganization(prisma);
+        await createTestOrganizationData(prisma, draftOrg.id);
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?statuses=ACCREDITED&statuses=BLOCKED",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+
+        expect(body.data.length).toBeGreaterThanOrEqual(2);
+        const statuses = body.data.map((o) => o.status);
+        expect(statuses).toContain("ACTIVE");
+        expect(statuses).toContain("BLOCKED");
+        expect(statuses).not.toContain("NOT_ACCREDITED");
       });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.PENDING,
-        testUser.id
-      );
+      it("should filter organizations by multiple statuses [comma separated]", async () => {
+        // 1. Accredited
+        const accreditedOrg = await createTestOrganization(prisma);
+        const accreditedData = await createTestOrganizationData(
+          prisma,
+          accreditedOrg.id
+        );
+        await createTestOrganizationDataSubmission(
+          prisma,
+          accreditedData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id,
+          testUser.id
+        );
 
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
+        // 2. Blocked
+        const blockedOrg = await createTestOrganization(prisma, {
+          status: OrganizationStatus.BLOCKED,
+        });
+        await createTestOrganizationData(prisma, blockedOrg.id);
+
+        // 3. Not Accredited (Draft)
+        const draftOrg = await createTestOrganization(prisma);
+        await createTestOrganizationData(prisma, draftOrg.id);
+
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?statuses=ACCREDITED,BLOCKED",
+        });
+
+        expect(response.statusCode).toBe(200);
+        const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
+
+        expect(body.data.length).toBeGreaterThanOrEqual(2);
+        const statuses = body.data.map((o) => o.status);
+        expect(statuses).toContain("ACTIVE");
+        expect(statuses).toContain("BLOCKED");
+        expect(statuses).not.toContain("NOT_ACCREDITED");
       });
+      it("should return 400 for invalid page parameter", async () => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?offset=invalid",
+        });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
-
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(false);
-    });
-
-    it("should return lastSubmissionStatus=APPROVED and hasUnsubmittedChanges=false for an accredited org", async () => {
-      const org = await createTestOrganization(prisma);
-      const orgData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Accredited Org",
-        tradeName: "Accredited Org",
+        expect(response.statusCode).toBe(400);
       });
-      const { submission } = await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id,
-        testUser.id
-      );
+      it("should return 400 for invalid statuses parameter [comma separated]", async () => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?statuses=invalid,NOT_ACCREDITED",
+        });
 
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
-
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(true);
-
-      // Verify submission was approved by test user
-      expect(submission.reviewerId).toBe(testUser.id);
-    });
-
-    it("should return lastSubmissionStatus=REJECTED and hasUnsubmittedChanges=false for a rejected org (initial rejection)", async () => {
-      const org = await createTestOrganization(prisma);
-      const orgData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Rejected Org",
-        tradeName: "Rejected Org",
-      });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.REJECTED,
-        testUser.id,
-        testUser.id
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
-
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(false);
-    });
-
-    it("should show ACCREDITED status and PENDING lastSubmissionStatus for re-accreditation", async () => {
-      const org = await createTestOrganization(prisma);
-
-      // First org_data: APPROVED (accreditation)
-      const approvedOrgData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Approved Data",
-        tradeName: "Approved Data",
-      });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        approvedOrgData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id
-      );
-
-      // Second org_data: PENDING re-accreditation with updated name
-      const pendingOrgData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Updated Data",
-        tradeName: "Updated Data",
-      });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        pendingOrgData.id,
-        SubmissionStatus.PENDING,
-        testUser.id,
-        testUser.id
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
+        expect(response.statusCode).toBe(400);
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+      it("should return 400 for invalid statuses parameter [array]", async () => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?statuses=invalid&statuses=NOT_ACCREDITED",
+        });
 
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.name).toBe("Updated Data");
-      // Should be ACCREDITED because there's an APPROVED submission on ACTIVE org_data
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(true);
-      // Latest submission is PENDING
-      expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
-      // The displayed name should come from the PENDING row (higher priority)
-      expect(orgResponse!.name).toBe("Updated Data");
-      // PENDING submission covers the new data, so no unsubmitted changes
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-    });
-
-    it("should return lastSubmissionStatus=REJECTED and hasUnsubmittedChanges=false for a re-accreditation rejection", async () => {
-      const org = await createTestOrganization(prisma);
-
-      // 1. Approved version (Accredited)
-      const approvedData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Approved Name",
-        tradeName: "Approved Name",
-      });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        approvedData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id
-      );
-
-      // 2. Rejected version (Re-accreditation attempt, stays ACTIVE)
-      const rejectedData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Rejected Name",
-        tradeName: "Rejected Name",
-      });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        rejectedData.id,
-        SubmissionStatus.REJECTED,
-        testUser.id,
-        testUser.id
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
+        expect(response.statusCode).toBe(400);
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+      it("should return 400 for invalid pageSize parameter", async () => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?limit=invalid",
+        });
 
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(true);
-      expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      // APPROVED has display priority (3) over REJECTED (4): official data is shown
-      expect(orgResponse!.name).toBe("Approved Name");
-    });
-
-    it("should return status=BLOCKED even if accredited", async () => {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.BLOCKED,
-      });
-      const orgData = await createTestOrganizationData(prisma, org.id);
-      const { submission } = await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id,
-        testUser.id
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
+        expect(response.statusCode).toBe(400);
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
+      it("should return 400 for invalid sortOrder", async () => {
+        const response = await app.inject({
+          method: "GET",
+          url: "/api/admin/organizations/?sortOrder=invalid",
+        });
 
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.status).toBe("BLOCKED");
-      expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
-
-      // Verify submission was approved by test user
-      expect(submission.reviewerId).toBe(testUser.id);
-    });
-
-    it("should show draft data as current even when there was an approved version", async () => {
-      const org = await createTestOrganization(prisma);
-
-      // 1. Approved version
-      const approvedData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Official Name",
-        tradeName: "Official Name",
+        expect(response.statusCode).toBe(400);
       });
-      await createTestOrganizationDataSubmission(
-        prisma,
-        approvedData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id,
-        testUser.id
-      );
-
-      // 2. New Draft (ACTIVE, no submission)
-      await createTestOrganizationData(prisma, org.id, {
-        legalName: "New Draft Name",
-        tradeName: "New Draft Name",
-      });
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
-
-      expect(orgResponse).toBeDefined();
-      expect(orgResponse!.name).toBe("New Draft Name");
-      expect(orgResponse!.status).toBe("ACTIVE");
-      expect(orgResponse!.isAccredited).toBe(true);
-      expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
-      expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
-    });
-  });
-
-  describe("Filtering", () => {
-    it("should filter organizations by multiple statuses [array]", async () => {
-      // 1. Accredited
-      const accreditedOrg = await createTestOrganization(prisma);
-      const accreditedData = await createTestOrganizationData(
-        prisma,
-        accreditedOrg.id
-      );
-      await createTestOrganizationDataSubmission(
-        prisma,
-        accreditedData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id,
-        testUser.id
-      );
-
-      // 2. Blocked
-      const blockedOrg = await createTestOrganization(prisma, {
-        status: OrganizationStatus.BLOCKED,
-      });
-      await createTestOrganizationData(prisma, blockedOrg.id);
-
-      // 3. Not Accredited (Draft)
-      const draftOrg = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, draftOrg.id);
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?statuses=ACCREDITED&statuses=BLOCKED",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-
-      expect(body.data.length).toBeGreaterThanOrEqual(2);
-      const statuses = body.data.map((o) => o.status);
-      expect(statuses).toContain("ACTIVE");
-      expect(statuses).toContain("BLOCKED");
-      expect(statuses).not.toContain("NOT_ACCREDITED");
-    });
-    it("should filter organizations by multiple statuses [comma separated]", async () => {
-      // 1. Accredited
-      const accreditedOrg = await createTestOrganization(prisma);
-      const accreditedData = await createTestOrganizationData(
-        prisma,
-        accreditedOrg.id
-      );
-      await createTestOrganizationDataSubmission(
-        prisma,
-        accreditedData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id,
-        testUser.id
-      );
-
-      // 2. Blocked
-      const blockedOrg = await createTestOrganization(prisma, {
-        status: OrganizationStatus.BLOCKED,
-      });
-      await createTestOrganizationData(prisma, blockedOrg.id);
-
-      // 3. Not Accredited (Draft)
-      const draftOrg = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, draftOrg.id);
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?statuses=ACCREDITED,BLOCKED",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-
-      expect(body.data.length).toBeGreaterThanOrEqual(2);
-      const statuses = body.data.map((o) => o.status);
-      expect(statuses).toContain("ACTIVE");
-      expect(statuses).toContain("BLOCKED");
-      expect(statuses).not.toContain("NOT_ACCREDITED");
-    });
-    it("should return 400 for invalid page parameter", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?offset=invalid",
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-    it("should return 400 for invalid statuses parameter [comma separated]", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?statuses=invalid,NOT_ACCREDITED",
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 for invalid statuses parameter [array]", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?statuses=invalid&statuses=NOT_ACCREDITED",
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 for invalid pageSize parameter", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?limit=invalid",
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 for invalid sortOrder", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/?sortOrder=invalid",
-      });
-
-      expect(response.statusCode).toBe(400);
     });
   });
 });
