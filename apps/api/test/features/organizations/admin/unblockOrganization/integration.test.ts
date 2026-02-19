@@ -73,20 +73,6 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       expect(updatedOrg!.updatedById).toBe(testUser.id);
     });
 
-    it("should return error when unblocking already active organization", async () => {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.ACTIVE,
-      });
-      await createTestOrganizationData(prisma, org.id);
-
-      const response = await app.inject({
-        method: "POST",
-        url: `/api/admin/organizations/${org.id.toString()}/unblock`,
-      });
-
-      expect(response.statusCode).toBe(409);
-    });
-
     it("should unblock organization without affecting organization data", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.BLOCKED,
@@ -260,6 +246,25 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(400);
     });
+
+    it("should return 409 when organization is already ACTIVE", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org.id);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/admin/organizations/${org.id.toString()}/unblock`,
+      });
+
+      expect(response.statusCode).toBe(409);
+
+      const afterOrg = await prisma.organization.findUnique({
+        where: { id: org.id },
+      });
+      expect(afterOrg!.status).toBe(OrganizationStatus.ACTIVE);
+    });
   });
 
   describe("Data consistency", () => {
@@ -369,25 +374,6 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       // Verify the organization was updated by the test user
       expect(afterOrg!.updatedById).toBe(testUser.id);
-    });
-
-    it("should return 409 when organization is already ACTIVE", async () => {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.ACTIVE,
-      });
-      await createTestOrganizationData(prisma, org.id);
-
-      const response = await app.inject({
-        method: "POST",
-        url: `/api/admin/organizations/${org.id.toString()}/unblock`,
-      });
-
-      expect(response.statusCode).toBe(409);
-
-      const afterOrg = await prisma.organization.findUnique({
-        where: { id: org.id },
-      });
-      expect(afterOrg!.status).toBe(OrganizationStatus.ACTIVE);
     });
   });
 
