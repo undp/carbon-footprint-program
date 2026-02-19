@@ -17,6 +17,7 @@ export default fp(
       fastify.log.warn(
         "AZURE_STORAGE_ACCOUNT_NAME is not set — blob storage is disabled. File upload/download will not work."
       );
+      fastify.decorate("blobServiceClient", undefined);
       fastify.decorate("blobStorage", undefined);
       done();
       return;
@@ -30,6 +31,7 @@ export default fp(
     const containerClient: ContainerClient =
       blobServiceClient.getContainerClient(AZURE_STORAGE_CONTAINER_NAME);
 
+    fastify.decorate("blobServiceClient", blobServiceClient);
     fastify.decorate("blobStorage", containerClient);
 
     // Verify container in background — don't block startup

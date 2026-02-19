@@ -7,7 +7,7 @@ import type {
   FastifyBaseLogger,
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
-import type { ContainerClient } from "@azure/storage-blob";
+import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
 import type { UserRole } from "@/plugins/app/authorizationPlugin.js";
@@ -28,6 +28,12 @@ export type FastifyZodInstance = FastifyInstance<
 declare module "fastify" {
   interface FastifyInstance {
     prisma: PrismaClient;
+
+    /**
+     * Azure Blob Storage service client for SAS token generation.
+     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     */
+    blobServiceClient?: BlobServiceClient;
 
     /**
      * Azure Blob Storage container client for file uploads/downloads.
