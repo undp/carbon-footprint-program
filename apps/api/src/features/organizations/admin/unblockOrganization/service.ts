@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { UnblockOrganizationResponse } from "@repo/types";
+import type { UnblockOrganizationResponse, User } from "@repo/types";
 import { OrganizationNotFoundError } from "../../errors.js";
 import { OrganizationStatus } from "@repo/database";
 
@@ -8,7 +8,8 @@ import { OrganizationStatus } from "@repo/database";
  */
 export const unblockOrganizationService = async (
   prismaClient: PrismaClient,
-  organizationId: string
+  organizationId: string,
+  user: User | null
 ): Promise<UnblockOrganizationResponse> => {
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -25,6 +26,7 @@ export const unblockOrganizationService = async (
     },
     data: {
       status: OrganizationStatus.ACTIVE,
+      updatedById: user ? BigInt(user.id) : undefined,
     },
   });
 
