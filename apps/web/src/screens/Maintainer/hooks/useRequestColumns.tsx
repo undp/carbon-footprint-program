@@ -9,57 +9,45 @@ import {
 import { RequestStatusChip } from "../components/RequestStatusChip";
 import { RequestTypeChip } from "../components/RequestTypeChip";
 import {
+  AdminRequestDatum,
   RequestStatus,
-  RequestType,
 } from "@/api/query/requests/useAdminRequests";
 
-export interface RequestRow {
-  id: string;
-  empresa: string;
-  tipo: RequestType;
-  periodo: string;
-  estado: RequestStatus;
-  fechaEnvio: string;
-}
-
-export const useRequestColumns = (): GridColDef<RequestRow>[] => {
+export const useRequestColumns = (): GridColDef<AdminRequestDatum>[] => {
   const cellClassName = "content-center";
-  return useMemo<GridColDef<RequestRow>[]>(
+
+  return useMemo<GridColDef<AdminRequestDatum>[]>(
     () => [
       {
-        field: "empresa",
+        field: "organizationName",
         headerName: "Empresa",
         cellClassName,
         flex: 1,
       },
       {
-        field: "tipo",
+        field: "type",
         headerName: "Tipo",
         cellClassName,
         flex: 1,
-        renderCell: (params) => {
-          const type = params.row.tipo;
-          return <RequestTypeChip type={type} />;
-        },
+        renderCell: (params) => <RequestTypeChip type={params.row.type} />,
       },
       {
-        field: "periodo",
+        field: "year",
         headerName: "Periodo",
         cellClassName,
         flex: 0.8,
       },
       {
-        field: "estado",
+        field: "status",
         headerName: "Estado",
         cellClassName,
         flex: 1,
-        renderCell: (params) => {
-          const estado = params.row.estado;
-          return <RequestStatusChip status={estado} />;
-        },
+        renderCell: (params) => (
+          <RequestStatusChip status={params.row.status} />
+        ),
       },
       {
-        field: "fechaEnvio",
+        field: "requestedAt",
         headerName: "Fecha Envío",
         cellClassName,
         flex: 0.8,
@@ -72,10 +60,8 @@ export const useRequestColumns = (): GridColDef<RequestRow>[] => {
         sortable: false,
         filterable: false,
         renderCell: (params) => {
-          const estado = params.row.estado;
-
-          // TODO: use real enum
-          const showApproveReject = estado === RequestStatus.PENDING;
+          const status = params.row.status;
+          const showApproveReject = status === RequestStatus.PENDING;
 
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
