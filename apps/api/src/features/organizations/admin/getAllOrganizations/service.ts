@@ -13,7 +13,7 @@ export const getAllOrganizationsService = async (
   query?: GetAllOrganizationsQuery
 ): Promise<GetAllOrganizationsResponse> => {
   // Parse pagination parameters
-  const limit = query?.limit ?? 10;
+  const limit = Math.max(1, query?.limit ?? 10);
   const offset = query?.offset ?? 0;
 
   // Build where clause for status filtering
