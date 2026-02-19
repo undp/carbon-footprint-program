@@ -9,6 +9,7 @@ import { mapCategoryToResponse } from "../mappers.js";
 import {
   CategoryNotFoundError,
   CategoriesFromDifferentMethodologyVersionsError,
+  SameCategoryError,
 } from "../errors.js";
 
 export const swapCategoryPositionsService = async (
@@ -18,6 +19,10 @@ export const swapCategoryPositionsService = async (
 ): Promise<SwapCategoryPositionsResponse> => {
   const idA = BigInt(data.categoryIdA);
   const idB = BigInt(data.categoryIdB);
+
+  if (idA === idB) {
+    throw new SameCategoryError();
+  }
 
   const [catA, catB] = await Promise.all([
     prismaClient.category.findFirst({

@@ -19,6 +19,12 @@ export const CategoryPositionAlreadyExistsError = createError(
   409
 );
 
+export const SameCategoryError = createError(
+  "SAME_CATEGORY",
+  "Both category IDs must be different",
+  422
+);
+
 export const CategoriesFromDifferentMethodologyVersionsError = createError(
   "CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS",
   "Both categories must belong to the same methodology version",

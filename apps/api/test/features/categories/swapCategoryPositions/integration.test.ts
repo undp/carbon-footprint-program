@@ -264,6 +264,34 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
       expect(body.code).toBe("CATEGORY_NOT_FOUND");
     });
 
+    it("should return 422 when both category IDs are the same", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Swap Same ID",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const cat = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Same",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/categories/swap-positions",
+        payload: {
+          categoryIdA: cat.id.toString(),
+          categoryIdB: cat.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("SAME_CATEGORY");
+    });
+
     it("should return 422 when categories belong to different methodology versions", async () => {
       const methodologyA = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Swap Different Methodology A",
