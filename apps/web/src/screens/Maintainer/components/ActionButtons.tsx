@@ -149,7 +149,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
               setDeleteOpen(false);
               onDelete?.();
             }}
-            color="error"
+            color="primary"
             variant="contained"
           >
             Eliminar
