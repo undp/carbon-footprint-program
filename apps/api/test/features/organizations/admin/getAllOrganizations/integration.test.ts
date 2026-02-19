@@ -333,16 +333,15 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: "/api/admin/organizations/?statuses=NOT_ACCREDITED",
+        url: "/api/admin/organizations/?statuses=ACTIVE",
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
-      // All returned organizations should be NOT_ACCREDITED
+      // All returned organizations should be ACTIVE
       body.data.forEach((org) => {
         expect(org.status).toBe("ACTIVE");
-        expect(org.isAccredited).toBe(false);
       });
 
       // Blocked org should not be in results
@@ -352,41 +351,33 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(blockedInResults).toBe(false);
     });
 
-    it("should filter organizations by accreditationStatus", async () => {
-      const draftOrg = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, draftOrg.id);
+    it("should filter organizations by BLOCKED status", async () => {
+      const activeOrg = await createTestOrganization(prisma);
+      await createTestOrganizationData(prisma, activeOrg.id);
 
-      const accreditedOrg = await createTestOrganization(prisma);
-      const accreditedOrgData = await createTestOrganizationData(
-        prisma,
-        accreditedOrg.id
-      );
-      await createTestOrganizationDataSubmission(
-        prisma,
-        accreditedOrgData.id,
-        SubmissionStatus.APPROVED,
-        testUser.id
-      );
+      const blockedOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, blockedOrg.id);
 
       const response = await app.inject({
         method: "GET",
-        url: "/api/admin/organizations/?statuses=ACCREDITED",
+        url: "/api/admin/organizations/?statuses=BLOCKED",
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
-      // All returned organizations should be ACCREDITED
+      // All returned organizations should be BLOCKED
       body.data.forEach((org) => {
-        expect(org.status).toBe("ACTIVE");
-        expect(org.isAccredited).toBe(true);
+        expect(org.status).toBe("BLOCKED");
       });
 
-      // Draft org should not be in results
-      const draftInResults = body.data.some(
-        (o) => o.id === draftOrg.id.toString()
+      // Active org should not be in results
+      const activeInResults = body.data.some(
+        (o) => o.id === activeOrg.id.toString()
       );
-      expect(draftInResults).toBe(false);
+      expect(activeInResults).toBe(false);
     });
   });
 
@@ -710,19 +701,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
     describe("Filtering", () => {
       it("should filter organizations by multiple statuses [array]", async () => {
-        // 1. Accredited
-        const accreditedOrg = await createTestOrganization(prisma);
-        const accreditedData = await createTestOrganizationData(
-          prisma,
-          accreditedOrg.id
-        );
-        await createTestOrganizationDataSubmission(
-          prisma,
-          accreditedData.id,
-          SubmissionStatus.APPROVED,
-          testUser.id,
-          testUser.id
-        );
+        // 1. Active
+        const activeOrg = await createTestOrganization(prisma);
+        await createTestOrganizationData(prisma, activeOrg.id);
 
         // 2. Blocked
         const blockedOrg = await createTestOrganization(prisma, {
@@ -730,13 +711,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         });
         await createTestOrganizationData(prisma, blockedOrg.id);
 
-        // 3. Not Accredited (Draft)
-        const draftOrg = await createTestOrganization(prisma);
-        await createTestOrganizationData(prisma, draftOrg.id);
-
         const response = await app.inject({
           method: "GET",
-          url: "/api/admin/organizations/?statuses=ACCREDITED&statuses=BLOCKED",
+          url: "/api/admin/organizations/?statuses=ACTIVE&statuses=BLOCKED",
         });
 
         expect(response.statusCode).toBe(200);
@@ -747,22 +724,13 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         expect(statuses).toContain("ACTIVE");
         expect(statuses).toContain("BLOCKED");
         const ids = body.data.map((o) => o.id);
-        expect(ids).not.toContain(draftOrg.id.toString());
+        expect(ids).toContain(activeOrg.id.toString());
+        expect(ids).toContain(blockedOrg.id.toString());
       });
       it("should filter organizations by multiple statuses [comma separated]", async () => {
-        // 1. Accredited
-        const accreditedOrg = await createTestOrganization(prisma);
-        const accreditedData = await createTestOrganizationData(
-          prisma,
-          accreditedOrg.id
-        );
-        await createTestOrganizationDataSubmission(
-          prisma,
-          accreditedData.id,
-          SubmissionStatus.APPROVED,
-          testUser.id,
-          testUser.id
-        );
+        // 1. Active
+        const activeOrg = await createTestOrganization(prisma);
+        await createTestOrganizationData(prisma, activeOrg.id);
 
         // 2. Blocked
         const blockedOrg = await createTestOrganization(prisma, {
@@ -770,13 +738,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         });
         await createTestOrganizationData(prisma, blockedOrg.id);
 
-        // 3. Not Accredited (Draft)
-        const draftOrg = await createTestOrganization(prisma);
-        await createTestOrganizationData(prisma, draftOrg.id);
-
         const response = await app.inject({
           method: "GET",
-          url: "/api/admin/organizations/?statuses=ACCREDITED,BLOCKED",
+          url: "/api/admin/organizations/?statuses=ACTIVE,BLOCKED",
         });
 
         expect(response.statusCode).toBe(200);
@@ -787,7 +751,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         expect(statuses).toContain("ACTIVE");
         expect(statuses).toContain("BLOCKED");
         const ids = body.data.map((o) => o.id);
-        expect(ids).not.toContain(draftOrg.id.toString());
+        expect(ids).toContain(activeOrg.id.toString());
+        expect(ids).toContain(blockedOrg.id.toString());
       });
       it("should return 400 for invalid page parameter", async () => {
         const response = await app.inject({
