@@ -16,11 +16,13 @@ export async function createTestSubmissionSubjectForOrganizationData(
   const subject = await prisma.submissionSubject.create({
     data: {
       subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
-      organizationData: {
-        create: {
-          organizationDataId,
-        },
-      },
+    },
+  });
+
+  await prisma.submissionSubjectOrganizationData.create({
+    data: {
+      subjectId: subject.id,
+      organizationDataId: organizationDataId,
     },
   });
 
