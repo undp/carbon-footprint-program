@@ -1,4 +1,4 @@
-import { FC, useState, type ComponentType } from "react";
+import { FC, useState, useEffect, useRef, type ComponentType } from "react";
 import {
   Box,
   IconButton,
@@ -110,7 +110,18 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
   onClick,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const pendingAnchorRef = useRef<HTMLElement | null>(null);
   const theme = useTheme();
+
+  // Defer popover open until isEditing is true; avoids opening before the row enters edit mode.
+  useEffect(() => {
+    if (isEditing && pendingAnchorRef.current) {
+      setAnchorEl(pendingAnchorRef.current);
+      pendingAnchorRef.current = null;
+    } else if (!isEditing) {
+      pendingAnchorRef.current = null;
+    }
+  }, [isEditing]);
 
   const { control } = useFormContext();
   const { errors } = useFormState({ control });
@@ -141,8 +152,8 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
           if (isEditing) {
             setAnchorEl(e.currentTarget);
           } else if (onClick) {
+            pendingAnchorRef.current = e.currentTarget;
             onClick();
-            setAnchorEl(e.currentTarget);
           }
         }}
         sx={
