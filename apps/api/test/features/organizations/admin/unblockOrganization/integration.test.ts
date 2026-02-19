@@ -16,7 +16,7 @@ import {
   SubmissionStatus,
 } from "@repo/database";
 import type { UnblockOrganizationResponse } from "@repo/types";
-import { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import {
   createTestOrganization,
   cleanupTestOrganization,
@@ -173,7 +173,8 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.PENDING
+        SubmissionStatus.PENDING,
+        testUser.id
       );
 
       const response = await app.inject({
