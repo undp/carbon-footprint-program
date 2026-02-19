@@ -19,6 +19,12 @@ export const CategoryPositionAlreadyExistsError = createError(
   409
 );
 
+export const CategoriesFromDifferentMethodologyVersionsError = createError(
+  "CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS",
+  "Both categories must belong to the same methodology version",
+  422
+);
+
 export const MethodologyVersionNotFoundForCategoryError = createError(
   "METHODOLOGY_VERSION_NOT_FOUND_FOR_CATEGORY",
   "Methodology version not found",

@@ -6,7 +6,10 @@ import {
   type SwapCategoryPositionsResponse,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
-import { CategoryNotFoundError } from "../errors.js";
+import {
+  CategoryNotFoundError,
+  CategoriesFromDifferentMethodologyVersionsError,
+} from "../errors.js";
 
 export const swapCategoryPositionsService = async (
   prismaClient: PrismaClient,
@@ -27,6 +30,10 @@ export const swapCategoryPositionsService = async (
 
   if (!catA || !catB) {
     throw new CategoryNotFoundError();
+  }
+
+  if (catA.methodologyVersionId !== catB.methodologyVersionId) {
+    throw new CategoriesFromDifferentMethodologyVersionsError();
   }
 
   const positionA = catA.position;

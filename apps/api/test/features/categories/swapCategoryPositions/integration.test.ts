@@ -264,6 +264,42 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
       expect(body.code).toBe("CATEGORY_NOT_FOUND");
     });
 
+    it("should return 422 when categories belong to different methodology versions", async () => {
+      const methodologyA = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Swap Different Methodology A",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const methodologyB = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Swap Different Methodology B",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const catA = await createTestCategory(prisma, methodologyA.id, {
+        name: "Test - Swap Diff Method A",
+        position: 1,
+      });
+      const catB = await createTestCategory(prisma, methodologyB.id, {
+        name: "Test - Swap Diff Method B",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/categories/swap-positions",
+        payload: {
+          categoryIdA: catA.id.toString(),
+          categoryIdB: catB.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS");
+    });
+
     it("should return 404 when categoryIdB is deleted", async () => {
       const methodology = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Swap Deleted B",

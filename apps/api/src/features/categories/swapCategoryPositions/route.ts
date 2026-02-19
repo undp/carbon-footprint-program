@@ -19,6 +19,7 @@ export const swapCategoryPositionsRoute = (fastify: FastifyZodInstance) => {
         response: {
           201: SwapCategoryPositionsResponseSchema,
           404: ApiErrorResponseSchema,
+          422: ApiErrorResponseSchema,
         },
       },
     },
