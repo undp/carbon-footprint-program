@@ -1,6 +1,15 @@
-import { FC, ReactNode, useCallback, useMemo, useState } from "react";
+import {
+  FC,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, MenuItem, Paper, Select, Typography } from "@mui/material";
+import { alpha, Box, MenuItem, Paper, Select, Typography } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
@@ -156,6 +165,18 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   const { form, fieldArray, handleCellChange } =
     useCategoriesForm(initialCategories);
   const currentRows = form.watch("categories");
+
+  // Sync form when server data changes (e.g. positions after a delete).
+  // Use a ref so the effect only triggers on serverCategories changes, not on
+  // editingRowId changes (which would reset mid-edit or before refetch arrives).
+  const editingRowIdRef = useRef(editingRowId);
+  useLayoutEffect(() => {
+    editingRowIdRef.current = editingRowId;
+  }, [editingRowId]);
+  useEffect(() => {
+    if (editingRowIdRef.current !== null) return;
+    form.reset({ categories: serverCategories.map(toFormCategory) });
+  }, [serverCategories, form]);
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
@@ -493,11 +514,18 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
                 "& .MuiDataGrid-cell .MuiTextField-root": {
                   alignSelf: "center",
                 },
+                "& .MuiDataGrid-row.row--editing": {
+                  backgroundColor: theme.palette.grey[100],
+                  // backgroundColor: alpha(theme.palette.primary.main, 0.1),
+                },
               })}
               columns={columns}
               rows={currentRows}
               rowHeight={60}
               getRowId={(row: Category) => row.id}
+              getRowClassName={({ id }) =>
+                String(id) === editingRowId ? "row--editing" : ""
+              }
             />
           </Box>
         </form>
