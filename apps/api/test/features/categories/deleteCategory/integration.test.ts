@@ -77,6 +77,117 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
     });
   });
 
+  describe("Position reordering after deletion", () => {
+    it("should shift positions of subsequent categories down by 1", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Position Reorder After Delete",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const cat1 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat Pos 1",
+        position: 1,
+      });
+      const cat2 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat Pos 2",
+        position: 2,
+      });
+      const cat3 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat Pos 3",
+        position: 3,
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/categories/${cat2.id}`,
+      });
+
+      const [dbCat1, dbCat3] = await Promise.all([
+        prisma.category.findUnique({ where: { id: cat1.id } }),
+        prisma.category.findUnique({ where: { id: cat3.id } }),
+      ]);
+
+      expect(dbCat1!.position).toBe(1);
+      expect(dbCat3!.position).toBe(2);
+    });
+
+    it("should not change positions of categories before the deleted one", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Position No Change Before Delete",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const cat1 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat Before 1",
+        position: 1,
+      });
+      const cat2 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat Before 2",
+        position: 2,
+      });
+      const cat3 = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat Before 3",
+        position: 3,
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/categories/${cat3.id}`,
+      });
+
+      const [dbCat1, dbCat2] = await Promise.all([
+        prisma.category.findUnique({ where: { id: cat1.id } }),
+        prisma.category.findUnique({ where: { id: cat2.id } }),
+      ]);
+
+      expect(dbCat1!.position).toBe(1);
+      expect(dbCat2!.position).toBe(2);
+    });
+
+    it("should not affect categories from a different methodology version", async () => {
+      const methodologyA = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Position Isolate A",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const methodologyB = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Position Isolate B",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const catA1 = await createTestCategory(prisma, methodologyA.id, {
+        name: "Test - Isolate A1",
+        position: 1,
+      });
+      const catA2 = await createTestCategory(prisma, methodologyA.id, {
+        name: "Test - Isolate A2",
+        position: 2,
+      });
+      const catB1 = await createTestCategory(prisma, methodologyB.id, {
+        name: "Test - Isolate B1",
+        position: 1,
+      });
+      const catB2 = await createTestCategory(prisma, methodologyB.id, {
+        name: "Test - Isolate B2",
+        position: 2,
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/categories/${catA1.id}`,
+      });
+
+      const [dbCatA2, dbCatB1, dbCatB2] = await Promise.all([
+        prisma.category.findUnique({ where: { id: catA2.id } }),
+        prisma.category.findUnique({ where: { id: catB1.id } }),
+        prisma.category.findUnique({ where: { id: catB2.id } }),
+      ]);
+
+      expect(dbCatA2!.position).toBe(1);
+      expect(dbCatB1!.position).toBe(1);
+      expect(dbCatB2!.position).toBe(2);
+    });
+  });
+
   describe("Error handling", () => {
     it("should return 404 when category does not exist", async () => {
       const response = await app.inject({
