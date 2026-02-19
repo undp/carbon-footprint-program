@@ -10,7 +10,6 @@ export const adminOrganizationSummarySelect = {
   sectorName: true,
   subsectorName: true,
   sizeName: true,
-  displayStatus: true,
   lastSubmissionStatus: true,
   hasUnsubmittedChanges: true,
   hasCarbonInventories: true,

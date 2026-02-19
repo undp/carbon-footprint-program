@@ -5,15 +5,16 @@ import {
   BasePaginatedResponseSchema,
   BasePaginationQuerySchema,
 } from "../../../common/index.js";
-import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
-import { OrganizationStatus } from "@repo/database";
+import { OrganizationStatusSchema } from "../../baseSchemas.js";
 
 // Organization list item for admin (with all fields)
 const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
   sectorName: z.string().nullable().describe("CountrySector.name"),
   subsectorName: z.string().nullable().describe("CountrySubsector.name"),
   sizeName: z.string().nullable().describe("CountryOrganizationSize.name"),
-  status: z.enum(OrganizationStatus),
+  status: OrganizationStatusSchema.describe(
+    "Organization status: ACTIVE | BLOCKED"
+  ),
   isAccredited: z.boolean(),
   hasCarbonInventories: z
     .boolean()
@@ -57,7 +58,7 @@ const StatusesQueryParamSchema = z
     }
     return value;
   })
-  .pipe(z.array(OrganizationDisplayStatusSchema));
+  .pipe(z.array(OrganizationStatusSchema));
 
 // Query parameters
 export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
