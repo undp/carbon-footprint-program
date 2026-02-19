@@ -22,13 +22,7 @@ import {
   createTestOrganization,
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
-import {
-  createTestOrganizationData,
-  getTestSectorId,
-  getTestSubsectorId,
-  getTestMainActivityId,
-  getTestCountryOrganizationSizeId,
-} from "@test/factories/organizationDataFactory.js";
+import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import { createTestMembership } from "@test/factories/membershipFactory.js";
@@ -51,10 +45,29 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
     testUser = await getTestLoggedUser(prisma);
 
     // Get test data IDs
-    sectorId = await getTestSectorId(prisma);
-    subsectorId = await getTestSubsectorId(prisma);
-    mainActivityId = await getTestMainActivityId(prisma);
-    countryOrganizationSizeId = await getTestCountryOrganizationSizeId(prisma);
+    const sector = await prisma.countrySector.findFirst({
+      select: { id: true },
+    });
+    const subsector = await prisma.countrySubsector.findFirst({
+      select: { id: true },
+    });
+    const mainActivity = await prisma.organizationMainActivity.findFirst({
+      select: { id: true },
+    });
+    const size = await prisma.countryOrganizationSize.findFirst({
+      select: { id: true },
+    });
+
+    if (!sector || !subsector || !mainActivity || !size) {
+      throw new Error(
+        "Missing test data in database. Please ensure the database is properly seeded."
+      );
+    }
+
+    sectorId = sector.id;
+    subsectorId = subsector.id;
+    mainActivityId = mainActivity.id;
+    countryOrganizationSizeId = size.id;
     representativePositionId = await getTestCountryJobPositionId(prisma);
   });
 
@@ -588,7 +601,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
         status: OrganizationStatus.ACTIVE,
       });
 
-      const org1Data = await createTestOrganizationData(prisma, org1.id, {
+      await createTestOrganizationData(prisma, org1.id, {
         legalName: "Organization 1",
       });
       const org2Data = await createTestOrganizationData(prisma, org2.id, {
@@ -604,6 +617,12 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
         url: `/api/app/organizations/${org1.id.toString()}`,
         payload: updateBody,
       });
+
+      // Verify org1 data updated
+      const org1DataCheck = await prisma.organizationData.findFirst({
+        where: { organizationId: org1.id },
+      });
+      expect(org1DataCheck!.legalName).toBe("Updated Legal Name");
 
       // Verify org2 data unchanged
       const org2DataCheck = await prisma.organizationData.findUnique({
