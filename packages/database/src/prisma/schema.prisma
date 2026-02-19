@@ -668,7 +668,7 @@ view OrganizationSummaryView {
   countryId                          BigInt             @map("country_id")
   organizationStatus                 OrganizationStatus @map("organization_status")
   organizationCreatedAt              DateTime           @map("organization_created_at")
-  organizationUpdatedAt              DateTime           @map("organization_updated_at")
+  organizationUpdatedAt              DateTime?          @map("organization_updated_at")
   organizationDataId                 BigInt             @map("organization_data_id")
   legalName                          String             @map("legal_name")
   tradeName                          String?            @map("trade_name")
