@@ -698,7 +698,7 @@ view OrganizationSummaryView {
   representativePositionName         String             @map("representative_position_name")
   hasCarbonInventories               Boolean            @map("has_carbon_inventories")
   totalEmissions                     Decimal            @map("total_emissions") @db.Decimal(28, 10)
-  lastEdition                        DateTime           @map("last_edition")
+  lastMeasurement                    DateTime           @map("last_measurement")
   organization                       Organization       @relation(fields: [organizationId], references: [id])
 
   @@map("organization_summary_view")

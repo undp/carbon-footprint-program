@@ -65,10 +65,12 @@ reference_organization_data AS (
 ),
 
 -- 5. Carbon inventory stats (unchanged)
+-- TODO: update this CTE to consider only COMPLETED and VERIFIED carbon inventories
 organization_carbon_stats AS (
   SELECT
     ci.organization_id,
     TRUE AS has_carbon_inventories,
+    MAX(ci.created_at) as last_measurement,
     COALESCE(SUM(csv.value), 0) AS total_emissions
   FROM carbon_inventory ci
   LEFT JOIN carbon_inventory_subtotals_view csv
@@ -105,7 +107,7 @@ SELECT
   rod.updated_at                                           AS organization_data_updated_at,
 
   -- Last submission status (includes REJECTED, from any org_data)
-  ls.submission_status::TEXT                                AS last_submission_status,
+  ls.submission_status::TEXT                               AS last_submission_status,
 
   -- Has unsubmitted changes flag
   (uc.organization_id IS NOT NULL)                         AS has_unsubmitted_changes,
@@ -132,7 +134,7 @@ SELECT
   COALESCE(ocs.total_emissions, 0)                         AS total_emissions,
 
   -- Last edition timestamp
-  GREATEST(o.updated_at, rod.updated_at)                   AS last_edition
+  ocs.last_measurement                                         AS last_measurement
 
 FROM organization o
 LEFT JOIN reference_organization_data rod

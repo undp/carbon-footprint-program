@@ -98,7 +98,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         reviewOrgData.id,
-        SubmissionStatus.PENDING
+        SubmissionStatus.PENDING,
+        testUser.id,
+        testUser.id
       );
 
       // Accredited organization
@@ -114,7 +116,7 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         prisma,
         accreditedOrgData.id,
         SubmissionStatus.APPROVED,
-        null,
+        testUser.id,
         testUser.id
       );
 
@@ -139,9 +141,12 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         (o) => o.id === accreditedOrg.id.toString()
       );
 
-      expect(draftResponse!.status).toBe("NOT_ACCREDITED");
-      expect(reviewResponse!.status).toBe("NOT_ACCREDITED");
-      expect(accreditedResponse!.status).toBe("ACCREDITED");
+      expect(draftResponse!.status).toBe("ACTIVE");
+      expect(draftResponse!.isAccredited).toBe(false);
+      expect(reviewResponse!.status).toBe("ACTIVE");
+      expect(reviewResponse!.isAccredited).toBe(false);
+      expect(accreditedResponse!.status).toBe("ACTIVE");
+      expect(accreditedResponse!.isAccredited).toBe(true);
     });
 
     it("should return organizations with both NOT_ACCREDITED and BLOCKED statuses", async () => {
@@ -176,8 +181,10 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         (o) => o.id === blockedOrg.id.toString()
       );
 
-      expect(activeResponse!.status).toBe("NOT_ACCREDITED");
+      expect(activeResponse!.status).toBe("ACTIVE");
+      expect(activeResponse!.isAccredited).toBe(false);
       expect(blockedResponse!.status).toBe("BLOCKED");
+      expect(blockedResponse!.isAccredited).toBe(false);
     });
   });
 
@@ -334,7 +341,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       // All returned organizations should be NOT_ACCREDITED
       body.data.forEach((org) => {
-        expect(org.status).toBe("NOT_ACCREDITED");
+        expect(org.status).toBe("ACTIVE");
+        expect(org.isAccredited).toBe(false);
       });
 
       // Blocked org should not be in results
@@ -370,7 +378,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       // All returned organizations should be ACCREDITED
       body.data.forEach((org) => {
-        expect(org.status).toBe("ACCREDITED");
+        expect(org.status).toBe("ACTIVE");
+        expect(org.isAccredited).toBe(true);
       });
 
       // Draft org should not be in results
@@ -451,7 +460,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.lastSubmissionStatus).toBeNull();
       expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
-      expect(orgResponse!.status).toBe("NOT_ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(false);
     });
 
     it("should return lastSubmissionStatus=PENDING and hasUnsubmittedChanges=false for an org under review", async () => {
@@ -479,7 +489,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
       expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      expect(orgResponse!.status).toBe("NOT_ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(false);
     });
 
     it("should return lastSubmissionStatus=APPROVED and hasUnsubmittedChanges=false for an accredited org", async () => {
@@ -508,7 +519,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
       expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      expect(orgResponse!.status).toBe("ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(true);
 
       // Verify submission was approved by test user
       expect(submission.reviewerId).toBe(testUser.id);
@@ -540,7 +552,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
       expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
-      expect(orgResponse!.status).toBe("NOT_ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(false);
     });
 
     it("should show ACCREDITED status and PENDING lastSubmissionStatus for re-accreditation", async () => {
@@ -583,7 +596,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.name).toBe("Updated Data");
       // Should be ACCREDITED because there's an APPROVED submission on ACTIVE org_data
-      expect(orgResponse!.status).toBe("ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(true);
       // Latest submission is PENDING
       expect(orgResponse!.lastSubmissionStatus).toBe("PENDING");
       // The displayed name should come from the PENDING row (higher priority)
@@ -630,7 +644,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       const orgResponse = body.data.find((o) => o.id === org.id.toString());
 
       expect(orgResponse).toBeDefined();
-      expect(orgResponse!.status).toBe("ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(true);
       expect(orgResponse!.lastSubmissionStatus).toBe("REJECTED");
       expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
       // APPROVED has display priority (3) over REJECTED (4): official data is shown
@@ -700,7 +715,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.name).toBe("New Draft Name");
-      expect(orgResponse!.status).toBe("ACCREDITED");
+      expect(orgResponse!.status).toBe("ACTIVE");
+      expect(orgResponse!.isAccredited).toBe(true);
       expect(orgResponse!.hasUnsubmittedChanges).toBe(true);
       expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
     });
@@ -742,7 +758,7 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       expect(body.data.length).toBeGreaterThanOrEqual(2);
       const statuses = body.data.map((o) => o.status);
-      expect(statuses).toContain("ACCREDITED");
+      expect(statuses).toContain("ACTIVE");
       expect(statuses).toContain("BLOCKED");
       expect(statuses).not.toContain("NOT_ACCREDITED");
     });
@@ -781,7 +797,7 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
       expect(body.data.length).toBeGreaterThanOrEqual(2);
       const statuses = body.data.map((o) => o.status);
-      expect(statuses).toContain("ACCREDITED");
+      expect(statuses).toContain("ACTIVE");
       expect(statuses).toContain("BLOCKED");
       expect(statuses).not.toContain("NOT_ACCREDITED");
     });
