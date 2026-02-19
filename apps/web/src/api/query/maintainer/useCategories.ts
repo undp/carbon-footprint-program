@@ -28,13 +28,8 @@ export const useCategories = (methodologyVersionId: string | undefined) =>
 
 export const useAddCategory = (methodologyVersionId: string | undefined) => {
   const queryClient = useQueryClient();
-  return useMutation<
-    CreateCategoryResponse,
-    Error,
-    CreateCategoryRequest
-  >({
-    mutationFn: (data) =>
-      apiClient.post("categories", { json: data }).json(),
+  return useMutation<CreateCategoryResponse, Error, CreateCategoryRequest>({
+    mutationFn: (data) => apiClient.post("categories", { json: data }).json(),
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
@@ -50,15 +45,9 @@ interface UpdateCategoryVariables {
   data: UpdateCategoryRequest;
 }
 
-export const useUpdateCategory = (
-  methodologyVersionId: string | undefined
-) => {
+export const useUpdateCategory = (methodologyVersionId: string | undefined) => {
   const queryClient = useQueryClient();
-  return useMutation<
-    UpdateCategoryResponse,
-    Error,
-    UpdateCategoryVariables
-  >({
+  return useMutation<UpdateCategoryResponse, Error, UpdateCategoryVariables>({
     mutationFn: ({ id, data }) =>
       apiClient.patch(`categories/${id}`, { json: data }).json(),
     onSuccess: () => {
@@ -71,9 +60,7 @@ export const useUpdateCategory = (
   });
 };
 
-export const useDeleteCategory = (
-  methodologyVersionId: string | undefined
-) => {
+export const useDeleteCategory = (methodologyVersionId: string | undefined) => {
   const queryClient = useQueryClient();
   return useMutation<DeleteCategoryResponse, Error, string>({
     mutationFn: (id) => apiClient.delete(`categories/${id}`).json(),
