@@ -2,10 +2,8 @@ import { FC } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
 import { StylizedDataGrid } from "@components";
 import { useRequestColumns } from "../hooks/useRequestColumns";
-import {
-  AdminRequestsResponse,
-  useAdminRequests,
-} from "@/api/query/requests/useAdminRequests";
+import { useAdminRequests } from "@/api/query/requests/useAdminRequests";
+import { GetAllAdminRequestsResponse } from "@repo/types";
 
 const TABLE_ROW_COUNT = 6;
 
@@ -64,7 +62,7 @@ export const RequestScreenTable: FC = () => {
         columns={columns}
         rows={requests}
         rowHeight={52}
-        getRowId={(row: AdminRequestsResponse[number]) => row.id}
+        getRowId={(row: GetAllAdminRequestsResponse[number]) => row.id}
       />
     </Box>
   );

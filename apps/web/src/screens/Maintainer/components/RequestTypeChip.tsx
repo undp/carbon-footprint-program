@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { alpha, Box } from "@mui/material";
-import { RequestType } from "@/api/query/requests/useAdminRequests";
+import { SubmissionSubjectType as RequestType } from "@repo/types";
 
 interface RequestTypeChipProps {
   type: RequestType;

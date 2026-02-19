@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { alpha, Box } from "@mui/material";
-import { RequestStatus } from "@/api/query/requests/useAdminRequests";
+import { SubmissionStatus as RequestStatus } from "@repo/types";
 
 interface RequestStatusChipProps {
   status: RequestStatus;

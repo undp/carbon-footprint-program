@@ -7,7 +7,7 @@ import {
   CheckCircleOutlined,
   CancelOutlined,
 } from "@mui/icons-material";
-import { RequestStatus } from "@/api/query/requests/useAdminRequests";
+import { SubmissionStatus as RequestStatus } from "@repo/types";
 import groupBy from "lodash-es/groupBy";
 import sumBy from "lodash-es/sumBy";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";

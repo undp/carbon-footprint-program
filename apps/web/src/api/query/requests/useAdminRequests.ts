@@ -4,30 +4,13 @@
 // import { apiClient } from "@/api/http";
 // import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
 
-export enum RequestStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED",
-}
+import {
+  GetAllAdminRequestsResponse,
+  SubmissionSubjectType as RequestType,
+  SubmissionStatus as RequestStatus,
+} from "@repo/types";
 
-export enum RequestType {
-  ORGANIZATION_ACREDITATION = "ORGANIZATION_ACREDITATION",
-  CARBON_INVENTORY_CALCULATION = "CARBON_INVENTORY_CALCULATION",
-  CARBON_INVENTORY_VERIFICATION = "CARBON_INVENTORY_VERIFICATION",
-  REDUCTION_PLAN_VERFICATION = "REDUCTION_PLAN_VERFICATION",
-  NEUTRALIZATION_PLAN_VERFICATION = "NEUTRALIZATION_PLAN_VERFICATION",
-}
-
-export type AdminRequestsResponse = {
-  id: string;
-  organizationName: string;
-  type: RequestType;
-  year: number;
-  status: RequestStatus;
-  requestedAt: string;
-}[];
-
-const MOCK_DATA: AdminRequestsResponse = [
+const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "1",
     organizationName: "Empresa Demo S.A.",
@@ -119,14 +102,14 @@ const MOCK_DATA: AdminRequestsResponse = [
 ];
 
 export const useAdminRequests = (): {
-  data: AdminRequestsResponse;
+  data: GetAllAdminRequestsResponse;
   isLoading: boolean;
 } => {
   return {
     data: MOCK_DATA,
     isLoading: false,
   };
-  // return useQuery<AdminRequestsResponse>({
+  // return useQuery<GetAllAdminRequestsResponse>({
   //   queryKey: [...requestsKeys.adminAll],
   //   queryFn: () => apiClient.get("/admin/requests").json(),
   //   staleTime: STALE_TIME_MS,

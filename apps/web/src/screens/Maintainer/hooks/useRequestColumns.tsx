@@ -9,16 +9,16 @@ import {
 import { RequestStatusChip } from "../components/RequestStatusChip";
 import { RequestTypeChip } from "../components/RequestTypeChip";
 import {
-  AdminRequestsResponse,
-  RequestStatus,
-} from "@/api/query/requests/useAdminRequests";
+  GetAllAdminRequestsResponse,
+  SubmissionStatus as RequestStatus,
+} from "@repo/types";
 
 export const useRequestColumns = (): GridColDef<
-  AdminRequestsResponse[number]
+  GetAllAdminRequestsResponse[number]
 >[] => {
   const cellClassName = "content-center";
 
-  return useMemo<GridColDef<AdminRequestsResponse[number]>[]>(
+  return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
     () => [
       {
         field: "organizationName",

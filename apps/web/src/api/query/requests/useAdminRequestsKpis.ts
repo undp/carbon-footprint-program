@@ -3,18 +3,13 @@
 // import { requestsKeys } from "./keys.js";
 // import { apiClient } from "@/api/http";
 // import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
-import { RequestStatus, RequestType } from "./useAdminRequests.js";
+import {
+  GetAdminRequestsKpisResponse,
+  SubmissionStatus as RequestStatus,
+  SubmissionSubjectType as RequestType,
+} from "@repo/types";
 
-type AdminRequestsKpisResponse = {
-  total: number;
-  counts: {
-    type: RequestType;
-    status: RequestStatus;
-    value: number;
-  }[];
-};
-
-const MOCK_DATA: AdminRequestsKpisResponse = {
+const MOCK_DATA: GetAdminRequestsKpisResponse = {
   total: 10,
   counts: [
     {
@@ -96,7 +91,7 @@ const MOCK_DATA: AdminRequestsKpisResponse = {
 };
 
 export const useAdminRequestsKpis = (): {
-  data: AdminRequestsKpisResponse;
+  data: GetAdminRequestsKpisResponse;
   isLoading: boolean;
 } => {
   return {
