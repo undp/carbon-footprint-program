@@ -1,5 +1,5 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { getMyOrganizationsService } from "./service.js";
+import { getMyOrganizationsSelectorOptionsService } from "./service.js";
 
 export const getMyOrganizationsHandler = async (
   request: FastifyRequest,
@@ -11,7 +11,7 @@ export const getMyOrganizationsHandler = async (
   const prisma = request.server.prisma;
   const userId = request.currentUser!.id;
 
-  const result = await getMyOrganizationsService(prisma, userId);
+  const result = await getMyOrganizationsSelectorOptionsService(prisma, userId);
 
   log.info(
     { count: result.length },

@@ -1,5 +1,5 @@
 import { getMyOrganizationsHandler } from "./handler.js";
-import { MyOrganizationsSelectorOptionsResponseSchema } from "@repo/types";
+import { GetMyOrganizationsSelectorOptionsResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
@@ -16,7 +16,7 @@ export const getMyOrganizationsRoute: StandardRouteSignature = (
         description:
           "Get all organizations where the user has an active membership",
         response: {
-          200: MyOrganizationsSelectorOptionsResponseSchema,
+          200: GetMyOrganizationsSelectorOptionsResponseSchema,
           401: ApiErrorResponseSchema,
         },
       },
