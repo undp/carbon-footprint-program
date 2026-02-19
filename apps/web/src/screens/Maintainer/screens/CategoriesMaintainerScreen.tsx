@@ -367,24 +367,27 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
   );
 
-  const handleMoveUp = useCallback(
-    async (row: FormCategory) => {
+  const handleMove = useCallback(
+    async (row: FormCategory, direction: "up" | "down") => {
       const rows = form.getValues("categories");
       const sorted = [...rows].sort((a, b) => a.position - b.position);
       const sortedIdx = sorted.findIndex((r) => r.id === row.id);
-      if (sortedIdx <= 0 || row.id.startsWith("temp_")) return;
 
-      const above = sorted[sortedIdx - 1];
-      if (above.id.startsWith("temp_")) return;
+      if (row.id.startsWith("temp_")) return;
+      if (direction === "up" && sortedIdx <= 0) return;
+      if (direction === "down" && (sortedIdx === -1 || sortedIdx >= sorted.length - 1)) return;
+
+      const neighbor = sorted[direction === "up" ? sortedIdx - 1 : sortedIdx + 1];
+      if (neighbor.id.startsWith("temp_")) return;
 
       try {
         await swapMutation.mutateAsync({
           categoryIdA: row.id,
-          categoryIdB: above.id,
+          categoryIdB: neighbor.id,
         });
         const updatedRows = rows.map((r) => {
-          if (r.id === row.id) return { ...r, position: above.position };
-          if (r.id === above.id) return { ...r, position: row.position };
+          if (r.id === row.id) return { ...r, position: neighbor.position };
+          if (r.id === neighbor.id) return { ...r, position: row.position };
           return r;
         });
         updatedRows.sort((a, b) => a.position - b.position);
@@ -399,41 +402,14 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     [form, swapMutation, enqueueSnackbar]
   );
 
+  const handleMoveUp = useCallback(
+    (row: FormCategory) => handleMove(row, "up"),
+    [handleMove]
+  );
+
   const handleMoveDown = useCallback(
-    async (row: FormCategory) => {
-      const rows = form.getValues("categories");
-      const sorted = [...rows].sort((a, b) => a.position - b.position);
-      const sortedIdx = sorted.findIndex((r) => r.id === row.id);
-      if (
-        sortedIdx === -1 ||
-        sortedIdx >= sorted.length - 1 ||
-        row.id.startsWith("temp_")
-      )
-        return;
-
-      const below = sorted[sortedIdx + 1];
-      if (below.id.startsWith("temp_")) return;
-
-      try {
-        await swapMutation.mutateAsync({
-          categoryIdA: row.id,
-          categoryIdB: below.id,
-        });
-        const updatedRows = rows.map((r) => {
-          if (r.id === row.id) return { ...r, position: below.position };
-          if (r.id === below.id) return { ...r, position: row.position };
-          return r;
-        });
-        updatedRows.sort((a, b) => a.position - b.position);
-        form.reset({ categories: updatedRows });
-      } catch {
-        void enqueueSnackbar({
-          message: "Error al mover categoría",
-          variant: "error",
-        });
-      }
-    },
-    [form, swapMutation, enqueueSnackbar]
+    (row: FormCategory) => handleMove(row, "down"),
+    [handleMove]
   );
 
   const handleExitEditMode = useCallback(() => {
