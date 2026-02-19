@@ -1,37 +1,3 @@
-// helper.ts
-// getApprovedOrganizationDataId bigint | null (OrganizationData ACTIVE & submission APPROVED)
-// getRejectedOrganizationDataId bigint | null (OrganizationData ACTIVE & submission REJECTED)
-// getPendingOrganizationDataId bigint | null (OrganizationData ACTIVE & submission PENDING)
-// getDraftOrganizationDataId bigint | null (OrganizationData ACTIVE & submission NULL)
-
-// updateOrganization service.ts
-// const approvedOrganizationDataId = getApprovedOrganizationDataId(organizationId);
-// const rejectedOrganizationDataId = getRejectedOrganizationDataId(organizationId);
-// const pendingOrganizationDataId = getPendingOrganizationDataId(organizationId);
-// const draftOrganizationDataId = getDraftOrganizationDataId(organizationId);
-
-// if(pendingOrganizationDataId) throw new Error("Organization is under review");
-// if(getDraftOrganizationDataId) update(draft)
-// if(getApprovedOrganizationDataId) create(approved) + update(created) + submission(updated)
-
-// getOrganizationById service.ts
-
-// const approvedOrganizationDataId = getApprovedOrganizationDataId(organizationId);
-// const rejectedOrganizationDataId = getRejectedOrganizationDataId(organizationId);
-// const pendingOrganizationDataId = getPendingOrganizationDataId(organizationId);
-// const draftOrganizationDataId = getDraftOrganizationDataId(organizationId);
-
-// organizationDisplaySubmissionStatus (APPROVED, REJECTED, SUBMITTED, DRAFT)
-// organizationDisplaySubmissionStatusValues (APPROVED, REJECTED, SUBMITTED, DRAFT)
-
-// returns {
-//   APPROVED: informationObject() | null,
-//   REJECTED: informationObject | null,
-//   SUBMITTED: informationObject | null,
-//   DRAFT: informationObject | null,
-
-// }
-
 import type { PrismaClient, Prisma } from "@repo/database";
 import {
   OrganizationDataStatus,
@@ -156,12 +122,8 @@ export const createOrganizationData = async (
 ) => {
   return prisma.organizationData.create({
     data: {
-      organization: {
-        connect: { id: BigInt(organizationId) },
-      },
-      creator: {
-        connect: { id: BigInt(userId) },
-      },
+      organizationId: BigInt(organizationId),
+      createdById: BigInt(userId),
       status: OrganizationDataStatus.ACTIVE,
 
       legalName: data.legalName,
@@ -175,21 +137,11 @@ export const createOrganizationData = async (
       representativePhone: data.representativePhone,
       representativeEmail: data.representativeEmail,
 
-      countryOrganizationSize: {
-        connect: { id: BigInt(data.countryOrganizationSizeId) },
-      },
-      sector: {
-        connect: { id: BigInt(data.sectorId) },
-      },
-      subsector: {
-        connect: { id: BigInt(data.subsectorId) },
-      },
-      mainActivity: {
-        connect: { id: BigInt(data.mainActivityId) },
-      },
-      representativeCountryJobPosition: {
-        connect: { id: BigInt(data.representativePositionId) },
-      },
+      countryOrganizationSizeId: BigInt(data.countryOrganizationSizeId),
+      sectorId: BigInt(data.sectorId),
+      subsectorId: BigInt(data.subsectorId),
+      mainActivityId: BigInt(data.mainActivityId),
+      representativeCountryJobPositionId: BigInt(data.representativePositionId),
     },
   });
 };
@@ -205,9 +157,7 @@ export const updateOrganizationData = async (
       id: BigInt(organizationDataId),
     },
     data: {
-      updater: {
-        connect: { id: BigInt(userId) },
-      },
+      updatedById: BigInt(userId),
 
       legalName: data.legalName,
       tradeName: data.tradeName,
@@ -220,21 +170,11 @@ export const updateOrganizationData = async (
       representativePhone: data.representativePhone,
       representativeEmail: data.representativeEmail,
 
-      countryOrganizationSize: {
-        connect: { id: BigInt(data.countryOrganizationSizeId) },
-      },
-      sector: {
-        connect: { id: BigInt(data.sectorId) },
-      },
-      subsector: {
-        connect: { id: BigInt(data.subsectorId) },
-      },
-      mainActivity: {
-        connect: { id: BigInt(data.mainActivityId) },
-      },
-      representativeCountryJobPosition: {
-        connect: { id: BigInt(data.representativePositionId) },
-      },
+      countryOrganizationSizeId: BigInt(data.countryOrganizationSizeId),
+      sectorId: BigInt(data.sectorId),
+      subsectorId: BigInt(data.subsectorId),
+      mainActivityId: BigInt(data.mainActivityId),
+      representativeCountryJobPositionId: BigInt(data.representativePositionId),
     },
   });
 };
