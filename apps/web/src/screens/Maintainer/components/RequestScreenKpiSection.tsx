@@ -1,5 +1,5 @@
-import { FC } from "react";
-import { alpha, Box, Card, Skeleton, Stack, Typography } from "@mui/material";
+import { FC, useMemo } from "react";
+import { Stack } from "@mui/material";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
 import {
   TaskOutlined,
@@ -8,68 +8,54 @@ import {
   CancelOutlined,
 } from "@mui/icons-material";
 import { RequestStatus } from "@/api/query/requests/useAdminRequests";
+import groupBy from "lodash-es/groupBy";
+import sumBy from "lodash-es/sumBy";
+import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
+import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 
-const getColorByRequestStatus = (status: RequestStatus | null): string => {
-  if (!status) return "#459F90";
-
-  if (status === RequestStatus.PENDING) return "#E65100";
-  if (status === RequestStatus.APPROVED) return "#004D35";
-  if (status === RequestStatus.REJECTED) return "#C62828";
-
-  return "#000000";
+const TOTAL_CARD_ASSETS = {
+  label: "Total",
+  color: "#459F90",
+  Icon: TaskOutlined,
 };
 
-const getIconByRequestStatus = (
-  status: RequestStatus | null
-): typeof TaskOutlined | null => {
-  if (!status) return TaskOutlined;
-
-  if (status === RequestStatus.PENDING) return AccessTimeOutlined;
-  if (status === RequestStatus.APPROVED) return CheckCircleOutlined;
-  if (status === RequestStatus.REJECTED) return CancelOutlined;
-
-  return null;
+const COLOR_BY_STATUS: Record<RequestStatus, string> = {
+  [RequestStatus.PENDING]: "#E65100",
+  [RequestStatus.APPROVED]: "#004D35",
+  [RequestStatus.REJECTED]: "#C62828",
 };
 
-const getLabelByRequestStatus = (status: RequestStatus | null): string => {
-  if (!status) return "Total";
-
-  if (status === RequestStatus.PENDING) return "Pendientes";
-  if (status === RequestStatus.APPROVED) return "Aprobadas";
-  if (status === RequestStatus.REJECTED) return "Rechazadas";
-
-  return "";
+const ICON_BY_STATUS: Record<RequestStatus, typeof TaskOutlined> = {
+  [RequestStatus.PENDING]: AccessTimeOutlined,
+  [RequestStatus.APPROVED]: CheckCircleOutlined,
+  [RequestStatus.REJECTED]: CancelOutlined,
 };
 
-const KpiCardSkeleton: FC = () => (
-  <Card
-    sx={{
-      minHeight: "130px",
-      flex: 1,
-      p: 2,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
-      borderRadius: "12px",
-      boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-    }}
-  >
-    <Box className="flex w-full justify-between">
-      <Skeleton variant="text" width={80} height={20} />
-      <Skeleton variant="rounded" width={40} height={40} />
-    </Box>
-    <Skeleton variant="text" width={60} height={40} sx={{ mt: 1 }} />
-  </Card>
-);
+const LABEL_BY_STATUS: Record<RequestStatus, string> = {
+  [RequestStatus.PENDING]: "Pendientes",
+  [RequestStatus.APPROVED]: "Aprobadas",
+  [RequestStatus.REJECTED]: "Rechazadas",
+};
 
 export const RequestScreenKpiSection: FC = () => {
-  const { data: kpis, isLoading } = useAdminRequestsKpis();
+  const { data: kpisData, isLoading } = useAdminRequestsKpis();
+
+  const groupedData = useMemo<
+    { status: RequestStatus; value: number }[]
+  >(() => {
+    const byStatus = groupBy(kpisData.counts, (kpi) => kpi.status);
+
+    return Object.values(byStatus).map((group) => ({
+      status: group[0].status,
+      value: sumBy(group, "value"),
+    }));
+  }, [kpisData]);
 
   if (isLoading) {
     return (
       <Stack direction="row" spacing={2}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <KpiCardSkeleton key={i} />
+          <RequestScreenKpiCardSkeleton key={i} />
         ))}
       </Stack>
     );
@@ -77,43 +63,23 @@ export const RequestScreenKpiSection: FC = () => {
 
   return (
     <Stack direction="row" spacing={2}>
-      {kpis?.map((kpi) => {
-        const Icon = getIconByRequestStatus(kpi.status);
-        const color = getColorByRequestStatus(kpi.status);
-        const label = getLabelByRequestStatus(kpi.status);
+      <RequestScreenKpiCard
+        key={TOTAL_CARD_ASSETS.label}
+        label={TOTAL_CARD_ASSETS.label}
+        color={TOTAL_CARD_ASSETS.color}
+        Icon={TOTAL_CARD_ASSETS.Icon}
+        value={kpisData?.total ?? 0}
+      />
+      {groupedData.map((kpi) => {
+        const label = LABEL_BY_STATUS[kpi.status];
         return (
-          <Card
+          <RequestScreenKpiCard
             key={label}
-            sx={{
-              minHeight: "130px",
-              flex: 1,
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              borderRadius: "12px",
-              backgroundColor: alpha(color, 0.1),
-              boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-            }}
-          >
-            <Box className="flex w-full justify-between">
-              <Typography variant="body2" color="text.secondary">
-                {label}
-              </Typography>
-              <Box
-                className="flex h-10 w-10 items-center justify-center rounded-lg"
-                sx={{
-                  backgroundColor: alpha(color, 0.1),
-                  color: color,
-                }}
-              >
-                {Icon && <Icon />}
-              </Box>
-            </Box>
-            <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-              {kpi.value}
-            </Typography>
-          </Card>
+            label={label}
+            color={COLOR_BY_STATUS[kpi.status]}
+            Icon={ICON_BY_STATUS[kpi.status]}
+            value={kpi.value}
+          />
         );
       })}
     </Stack>

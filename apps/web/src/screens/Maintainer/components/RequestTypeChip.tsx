@@ -7,19 +7,19 @@ interface RequestTypeChipProps {
 }
 
 const statusColors: Record<RequestType, string> = {
-  [RequestType.ORG_ACREDITATION]: "#1565C0",
-  [RequestType.CALCULATION_DIPLOMA]: "#1E8449",
-  [RequestType.VERIFICATION_SEAL]: "#4A4A4A",
-  [RequestType.REDUCTION_SEAL]: "#B8860B",
-  [RequestType.NEUTRALIZATION_SEAL]: "#117A65",
+  [RequestType.ORGANIZATION_ACREDITATION]: "#1565C0",
+  [RequestType.CARBON_INVENTORY_CALCULATION]: "#1E8449",
+  [RequestType.CARBON_INVENTORY_VERIFICATION]: "#4A4A4A",
+  [RequestType.REDUCTION_PLAN_VERFICATION]: "#B8860B",
+  [RequestType.NEUTRALIZATION_PLAN_VERFICATION]: "#117A65",
 };
 
 const statusLabels: Record<RequestType, string> = {
-  [RequestType.ORG_ACREDITATION]: "Acreditación",
-  [RequestType.CALCULATION_DIPLOMA]: "Diploma Medición",
-  [RequestType.VERIFICATION_SEAL]: "Sello Verificación",
-  [RequestType.REDUCTION_SEAL]: "Sello Reducción",
-  [RequestType.NEUTRALIZATION_SEAL]: "Sello Neutralización",
+  [RequestType.ORGANIZATION_ACREDITATION]: "Acreditación",
+  [RequestType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
+  [RequestType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
+  [RequestType.REDUCTION_PLAN_VERFICATION]: "Sello Reducción",
+  [RequestType.NEUTRALIZATION_PLAN_VERFICATION]: "Sello Neutralización",
 };
 
 export const RequestTypeChip: FC<RequestTypeChipProps> = ({ type }) => {

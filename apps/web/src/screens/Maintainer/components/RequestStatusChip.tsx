@@ -10,14 +10,12 @@ const statusColors: Record<RequestStatus, string> = {
   [RequestStatus.PENDING]: "#FFA726", // Orange
   [RequestStatus.APPROVED]: "#66BB6A", // Green
   [RequestStatus.REJECTED]: "#EF5350", // Red
-  [RequestStatus.DRAFT]: "#616161", // Grey
 };
 
 const statusLabels: Record<RequestStatus, string> = {
   [RequestStatus.PENDING]: "Pendiente",
   [RequestStatus.APPROVED]: "Aprobada",
   [RequestStatus.REJECTED]: "Rechazada",
-  [RequestStatus.DRAFT]: "Borrador",
 };
 
 export const RequestStatusChip: FC<RequestStatusChipProps> = ({ status }) => {

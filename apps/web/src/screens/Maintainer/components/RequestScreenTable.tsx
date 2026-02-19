@@ -3,7 +3,7 @@ import { Box, Skeleton, Stack } from "@mui/material";
 import { StylizedDataGrid } from "@components";
 import { useRequestColumns } from "../hooks/useRequestColumns";
 import {
-  AdminRequestDatum,
+  AdminRequestsResponse,
   useAdminRequests,
 } from "@/api/query/requests/useAdminRequests";
 
@@ -64,7 +64,7 @@ export const RequestScreenTable: FC = () => {
         columns={columns}
         rows={requests}
         rowHeight={52}
-        getRowId={(row: AdminRequestDatum) => row.id}
+        getRowId={(row: AdminRequestsResponse[number]) => row.id}
       />
     </Box>
   );

@@ -3,41 +3,107 @@
 // import { requestsKeys } from "./keys.js";
 // import { apiClient } from "@/api/http";
 // import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
-import { RequestStatus } from "./useAdminRequests.js";
+import { RequestStatus, RequestType } from "./useAdminRequests.js";
 
-interface KpiDatum {
-  status: RequestStatus | null;
-  value: number;
-}
+type AdminRequestsKpisResponse = {
+  total: number;
+  counts: {
+    type: RequestType;
+    status: RequestStatus;
+    value: number;
+  }[];
+};
 
-const MOCK_DATA: KpiDatum[] = [
-  {
-    status: null,
-    value: 11,
-  },
-  {
-    status: RequestStatus.PENDING,
-    value: 3,
-  },
-  {
-    status: RequestStatus.APPROVED,
-    value: 1,
-  },
-  {
-    status: RequestStatus.REJECTED,
-    value: 1,
-  },
-];
+const MOCK_DATA: AdminRequestsKpisResponse = {
+  total: 10,
+  counts: [
+    {
+      type: RequestType.ORGANIZATION_ACREDITATION,
+      status: RequestStatus.PENDING,
+      value: 3,
+    },
+    {
+      type: RequestType.ORGANIZATION_ACREDITATION,
+      status: RequestStatus.APPROVED,
+      value: 1,
+    },
+    {
+      type: RequestType.ORGANIZATION_ACREDITATION,
+      status: RequestStatus.REJECTED,
+      value: 1,
+    },
+    {
+      type: RequestType.CARBON_INVENTORY_CALCULATION,
+      status: RequestStatus.PENDING,
+      value: 3,
+    },
+    {
+      type: RequestType.CARBON_INVENTORY_CALCULATION,
+      status: RequestStatus.APPROVED,
+      value: 1,
+    },
+    {
+      type: RequestType.CARBON_INVENTORY_CALCULATION,
+      status: RequestStatus.REJECTED,
+      value: 1,
+    },
+    {
+      type: RequestType.CARBON_INVENTORY_VERIFICATION,
+      status: RequestStatus.PENDING,
+      value: 3,
+    },
+    {
+      type: RequestType.CARBON_INVENTORY_VERIFICATION,
+      status: RequestStatus.APPROVED,
+      value: 1,
+    },
+    {
+      type: RequestType.CARBON_INVENTORY_VERIFICATION,
+      status: RequestStatus.REJECTED,
+      value: 1,
+    },
+    {
+      type: RequestType.REDUCTION_PLAN_VERFICATION,
+      status: RequestStatus.PENDING,
+      value: 3,
+    },
+    {
+      type: RequestType.REDUCTION_PLAN_VERFICATION,
+      status: RequestStatus.APPROVED,
+      value: 1,
+    },
+    {
+      type: RequestType.REDUCTION_PLAN_VERFICATION,
+      status: RequestStatus.REJECTED,
+      value: 1,
+    },
+    {
+      type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+      status: RequestStatus.PENDING,
+      value: 3,
+    },
+    {
+      type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+      status: RequestStatus.APPROVED,
+      value: 1,
+    },
+    {
+      type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+      status: RequestStatus.REJECTED,
+      value: 1,
+    },
+  ],
+};
 
 export const useAdminRequestsKpis = (): {
-  data: KpiDatum[];
+  data: AdminRequestsKpisResponse;
   isLoading: boolean;
 } => {
   return {
     data: MOCK_DATA,
     isLoading: false,
   };
-  // return useQuery<KpiDatum[]>({
+  // return useQuery<AdminRequestsKpisResponse>({
   //   queryKey: [...requestsKeys.adminKpis],
   //   queryFn: () => apiClient.get("/admin/requests/kpis").json(),
   //   staleTime: STALE_TIME_MS,
