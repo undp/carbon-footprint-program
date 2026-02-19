@@ -9,30 +9,27 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
-import type { MyOrganizationsSelectorOptionsResponse } from "@repo/types";
-import { MembershipStatus, OrganizationStatus } from "@repo/database";
+import type { PrismaClient, User } from "@repo/database";
+import { OrganizationStatus, MembershipStatus } from "@repo/database";
+import type { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
 import {
   createTestOrganization,
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
-import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import { createTestMembership } from "@test/factories/membershipFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("GET /api/app/organizations/me - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
-  let testUserId: bigint;
+  let testUser: User;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
-
-    // Get the test user that will be used for authenticated requests
-    const testUser = await getTestLoggedUser(prisma);
-    testUserId = testUser.id;
+    testUser = await getTestLoggedUser(prisma);
   });
 
   afterAll(async () => {
@@ -45,16 +42,17 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
   });
 
   describe("Happy path", () => {
-    it("should retrieve user's organizations with active membership", async () => {
-      // Create test organization with active membership for test user
-      const org = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, org.id, {
-        legalName: "My Organization",
-        tradeName: "My Organization",
+    it("should return organizations where user has ACTIVE membership in EntityReference format", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
       });
-
-      // Create active membership for test user
-      await createTestMembership(prisma, testUserId, org.id);
+      await createTestOrganizationData(prisma, org.id, {
+        legalName: "Test Organization",
+        tradeName: "TestOrg",
+      });
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -64,87 +62,34 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
+      ) as GetMyOrganizationsSelectorOptionsResponse;
 
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBe(1);
-      expect(body[0]).toMatchObject({
+      expect(body).toHaveLength(1);
+      expect(body[0]).toEqual({
         id: org.id.toString(),
-        name: "My Organization",
+        name: "TestOrg",
       });
     });
 
-    it("should retrieve multiple organizations for user", async () => {
-      // Create first organization
-      const org1 = await createTestOrganization(prisma);
+    it("should return multiple organizations if user is member of multiple", async () => {
+      const org1 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
       await createTestOrganizationData(prisma, org1.id, {
-        legalName: "Organization One",
         tradeName: "Organization One",
       });
-      await createTestMembership(prisma, testUserId, org1.id);
+      await createTestMembership(prisma, testUser.id, org1.id, {
+        status: MembershipStatus.ACTIVE,
+      });
 
-      // Create second organization
-      const org2 = await createTestOrganization(prisma);
+      const org2 = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
       await createTestOrganizationData(prisma, org2.id, {
-        legalName: "Organization Two",
         tradeName: "Organization Two",
       });
-      await createTestMembership(prisma, testUserId, org2.id);
-
-      // Create third organization
-      const org3 = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, org3.id, {
-        legalName: "Organization Three",
-        tradeName: "Organization Three",
-      });
-      await createTestMembership(prisma, testUserId, org3.id);
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/app/organizations/me",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
-
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBe(3);
-
-      const orgIds = body.map((org) => org.id);
-      expect(orgIds).toContain(org1.id.toString());
-      expect(orgIds).toContain(org2.id.toString());
-      expect(orgIds).toContain(org3.id.toString());
-    });
-  });
-
-  describe("Empty result", () => {
-    it("should return empty array when user has no organizations", async () => {
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/app/organizations/me",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
-
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBe(0);
-    });
-
-    it("should return empty array when user only has deleted memberships", async () => {
-      // Create organization with deleted membership
-      const org = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, org.id, {
-        legalName: "Deleted Membership Org",
-        tradeName: "Deleted Membership Org",
-      });
-
-      await createTestMembership(prisma, testUserId, org.id, {
-        status: MembershipStatus.DELETED,
+      await createTestMembership(prisma, testUser.id, org2.id, {
+        status: MembershipStatus.ACTIVE,
       });
 
       const response = await app.inject({
@@ -155,30 +100,33 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
+      ) as GetMyOrganizationsSelectorOptionsResponse;
 
-      expect(Array.isArray(body)).toBe(true);
-      expect(body.length).toBe(0);
+      expect(body).toHaveLength(2);
+
+      const org1Response = body.find((o) => o.id === org1.id.toString());
+      const org2Response = body.find((o) => o.id === org2.id.toString());
+
+      expect(org1Response).toEqual({
+        id: org1.id.toString(),
+        name: "Organization One",
+      });
+      expect(org2Response).toEqual({
+        id: org2.id.toString(),
+        name: "Organization Two",
+      });
     });
   });
 
   describe("Membership filtering", () => {
-    it("should only return organizations with active memberships", async () => {
-      // Create organization with active membership
-      const activeOrg = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, activeOrg.id, {
-        legalName: "Active Membership Org",
-        tradeName: "Active Membership Org",
+    it("should exclude organizations where user has DELETED membership", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
       });
-      await createTestMembership(prisma, testUserId, activeOrg.id);
-
-      // Create organization with deleted membership
-      const deletedOrg = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, deletedOrg.id, {
-        legalName: "Deleted Membership Org",
+      await createTestOrganizationData(prisma, org.id, {
         tradeName: "Deleted Membership Org",
       });
-      await createTestMembership(prisma, testUserId, deletedOrg.id, {
+      await createTestMembership(prisma, testUser.id, org.id, {
         status: MembershipStatus.DELETED,
       });
 
@@ -190,34 +138,103 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
+      ) as GetMyOrganizationsSelectorOptionsResponse;
 
-      expect(body.length).toBe(1);
-      expect(body[0].id).toBe(activeOrg.id.toString());
+      expect(body).toHaveLength(0);
+    });
+
+    it("should exclude organizations where user is not a member", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Non-member Org",
+      });
+      // No membership created
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(0);
+    });
+
+    it("should return empty array if user has no memberships", async () => {
+      // Create organization but no membership
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org.id);
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toEqual([]);
     });
   });
 
   describe("Organization status handling", () => {
-    it("should return both active and blocked organizations", async () => {
-      // Create active organization
+    it("should return BLOCKED organizations if user is member", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Blocked Org",
+      });
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(1);
+      expect(body[0]).toEqual({
+        id: org.id.toString(),
+        name: "Blocked Org",
+      });
+    });
+
+    it("should return both ACTIVE and BLOCKED organizations where user has ACTIVE membership", async () => {
       const activeOrg = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
       await createTestOrganizationData(prisma, activeOrg.id, {
-        legalName: "Active Organization",
-        tradeName: "Active Organization",
+        tradeName: "Active Org",
       });
-      await createTestMembership(prisma, testUserId, activeOrg.id);
+      await createTestMembership(prisma, testUser.id, activeOrg.id, {
+        status: MembershipStatus.ACTIVE,
+      });
 
-      // Create blocked organization
       const blockedOrg = await createTestOrganization(prisma, {
         status: OrganizationStatus.BLOCKED,
       });
       await createTestOrganizationData(prisma, blockedOrg.id, {
-        legalName: "Blocked Organization",
-        tradeName: "Blocked Organization",
+        tradeName: "Blocked Org",
       });
-      await createTestMembership(prisma, testUserId, blockedOrg.id);
+      await createTestMembership(prisma, testUser.id, blockedOrg.id, {
+        status: MembershipStatus.ACTIVE,
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -227,24 +244,40 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
+      ) as GetMyOrganizationsSelectorOptionsResponse;
 
-      expect(body.length).toBe(2);
+      expect(body).toHaveLength(2);
 
-      const orgIds = body.map((org) => org.id);
-      expect(orgIds).toContain(activeOrg.id.toString());
-      expect(orgIds).toContain(blockedOrg.id.toString());
+      const activeOrgResponse = body.find(
+        (o) => o.id === activeOrg.id.toString()
+      );
+      const blockedOrgResponse = body.find(
+        (o) => o.id === blockedOrg.id.toString()
+      );
+
+      expect(activeOrgResponse).toEqual({
+        id: activeOrg.id.toString(),
+        name: "Active Org",
+      });
+      expect(blockedOrgResponse).toEqual({
+        id: blockedOrg.id.toString(),
+        name: "Blocked Org",
+      });
     });
   });
 
-  describe("Response structure", () => {
-    it("should return correct response structure with id and name", async () => {
-      const org = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, org.id, {
-        legalName: "Test Organization",
-        tradeName: "Test Organization",
+  describe("Data consistency", () => {
+    it("should use tradeName as the name in EntityReference format", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
       });
-      await createTestMembership(prisma, testUserId, org.id);
+      await createTestOrganizationData(prisma, org.id, {
+        legalName: "Legal Name Corp",
+        tradeName: "Trade Name Inc",
+      });
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
 
       const response = await app.inject({
         method: "GET",
@@ -254,13 +287,118 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as MyOrganizationsSelectorOptionsResponse;
+      ) as GetMyOrganizationsSelectorOptionsResponse;
 
-      expect(body.length).toBe(1);
+      expect(body[0].name).toBe("Trade Name Inc");
+      expect(body[0].name).not.toBe("Legal Name Corp");
+    });
+
+    it("should return organizations in consistent format", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, org.id, {
+        tradeName: "Test Company",
+      });
+      await createTestMembership(prisma, testUser.id, org.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
       expect(body[0]).toHaveProperty("id");
       expect(body[0]).toHaveProperty("name");
       expect(typeof body[0].id).toBe("string");
       expect(typeof body[0].name).toBe("string");
+      expect(Object.keys(body[0])).toHaveLength(2);
+    });
+  });
+
+  describe("Mixed scenarios", () => {
+    it("should handle mix of ACTIVE and DELETED memberships correctly", async () => {
+      const activeOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, activeOrg.id, {
+        tradeName: "Active Membership Org",
+      });
+      await createTestMembership(prisma, testUser.id, activeOrg.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      const deletedOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, deletedOrg.id, {
+        tradeName: "Deleted Membership Org",
+      });
+      await createTestMembership(prisma, testUser.id, deletedOrg.id, {
+        status: MembershipStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(1);
+      expect(body[0]).toEqual({
+        id: activeOrg.id.toString(),
+        name: "Active Membership Org",
+      });
+    });
+
+    it("should only return organizations with ACTIVE membership status regardless of organization status", async () => {
+      // BLOCKED org with ACTIVE membership - should appear
+      const blockedActiveOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.BLOCKED,
+      });
+      await createTestOrganizationData(prisma, blockedActiveOrg.id, {
+        tradeName: "Blocked Active Membership",
+      });
+      await createTestMembership(prisma, testUser.id, blockedActiveOrg.id, {
+        status: MembershipStatus.ACTIVE,
+      });
+
+      // ACTIVE org with DELETED membership - should not appear
+      const activeDeletedOrg = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prisma, activeDeletedOrg.id, {
+        tradeName: "Active Deleted Membership",
+      });
+      await createTestMembership(prisma, testUser.id, activeDeletedOrg.id, {
+        status: MembershipStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/app/organizations/me",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetMyOrganizationsSelectorOptionsResponse;
+
+      expect(body).toHaveLength(1);
+      expect(body[0]).toEqual({
+        id: blockedActiveOrg.id.toString(),
+        name: "Blocked Active Membership",
+      });
     });
   });
 });
