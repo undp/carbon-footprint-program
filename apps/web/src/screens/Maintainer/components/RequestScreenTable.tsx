@@ -10,7 +10,7 @@ const TABLE_ROW_COUNT = 6;
 const TableSkeleton: FC = () => (
   <Box
     sx={{
-      backgroundColor: "white",
+      backgroundColor: "background.paper",
       borderRadius: "12px",
       boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
       p: 2,
@@ -45,7 +45,7 @@ export const RequestScreenTable: FC = () => {
     <Box>
       <StylizedDataGrid
         sx={(theme) => ({
-          backgroundColor: "white",
+          backgroundColor: "background.paper",
           border: "none",
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
           "& .MuiDataGrid-main": {
