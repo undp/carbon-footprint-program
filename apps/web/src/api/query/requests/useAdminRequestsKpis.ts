@@ -91,7 +91,7 @@ const MOCK_DATA: GetAdminRequestsKpisResponse = {
 };
 
 export const useAdminRequestsKpis = (): {
-  data: GetAdminRequestsKpisResponse;
+  data: GetAdminRequestsKpisResponse | undefined;
   isLoading: boolean;
 } => {
   return {

@@ -102,7 +102,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
 ];
 
 export const useAdminRequests = (): {
-  data: GetAllAdminRequestsResponse;
+  data: GetAllAdminRequestsResponse | undefined;
   isLoading: boolean;
 } => {
   return {
