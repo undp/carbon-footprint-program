@@ -32,7 +32,8 @@ import {
   LocalGasStationOutlined,
   PublicOutlined,
 } from "@mui/icons-material";
-import { useFormContext, useFormState, type FieldError } from "react-hook-form";
+import { useFormContext, useFormState } from "react-hook-form";
+import { getNestedError } from "./cellUtils";
 
 /** Map of icon names to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
@@ -75,18 +76,6 @@ export const CATEGORY_COLORS = [
   "#C4E8D0", // pale green
   "#F0D5E8", // rose
 ];
-
-function getNestedError(
-  obj: Record<string, unknown>,
-  ...keys: (string | number)[]
-): FieldError | undefined {
-  let current: unknown = obj;
-  for (const key of keys) {
-    if (current == null || typeof current !== "object") return undefined;
-    current = (current as Record<string | number, unknown>)[key];
-  }
-  return current as FieldError | undefined;
-}
 
 interface IconPickerCellProps {
   iconName: string;
