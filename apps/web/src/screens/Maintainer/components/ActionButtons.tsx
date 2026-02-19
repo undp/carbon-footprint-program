@@ -85,32 +85,36 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             </IconButton>
           </Tooltip>
         )}
-        {!isEditing && onMoveUp && (
-          <Tooltip title="Mover arriba">
-            <span>
-              <IconButton
-                size="small"
-                onClick={onMoveUp}
-                disabled={moveUpDisabled}
-              >
-                <KeyboardArrowUpOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-        {!isEditing && onMoveDown && (
-          <Tooltip title="Mover abajo">
-            <span>
-              <IconButton
-                size="small"
-                onClick={onMoveDown}
-                disabled={moveDownDisabled}
-              >
-                <KeyboardArrowDownOutlined fontSize="small" />
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
+        <>
+          <Box sx={{ display: "flex", flexDirection: "column" }}>
+            {!isEditing && onMoveUp && (
+              <Tooltip title="Mover arriba" placement="top">
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={onMoveUp}
+                    disabled={moveUpDisabled}
+                  >
+                    <KeyboardArrowUpOutlined fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+            {!isEditing && onMoveDown && (
+              <Tooltip title="Mover abajo">
+                <span>
+                  <IconButton
+                    size="small"
+                    onClick={onMoveDown}
+                    disabled={moveDownDisabled}
+                  >
+                    <KeyboardArrowDownOutlined fontSize="small" />
+                  </IconButton>
+                </span>
+              </Tooltip>
+            )}
+          </Box>
+        </>
         {!isEditing && onDuplicate && (
           <Tooltip title="Duplicar">
             <IconButton size="small" onClick={onDuplicate}>
@@ -120,13 +124,15 @@ export const ActionButtons: FC<ActionButtonProps> = ({
         )}
         {!isEditing && onDelete && (
           <Tooltip title="Eliminar">
-            <IconButton
-              size="small"
-              onClick={() => setDeleteOpen(true)}
-              disabled={isActiveRow}
-            >
-              <DeleteOutlined fontSize="small" />
-            </IconButton>
+            <span className="content-center">
+              <IconButton
+                size="small"
+                onClick={() => setDeleteOpen(true)}
+                disabled={isActiveRow}
+              >
+                <DeleteOutlined fontSize="small" />
+              </IconButton>
+            </span>
           </Tooltip>
         )}
       </Box>
