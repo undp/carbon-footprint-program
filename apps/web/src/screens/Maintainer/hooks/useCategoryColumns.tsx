@@ -201,7 +201,7 @@ export const useCategoryColumns = ({
                 textTransform: "none",
                 "&:hover": {
                   borderColor: hasContent ? "success.dark" : "grey.500",
-                  backgroundColor: hasContent ? "success.50" : "grey.50",
+                  backgroundColor: hasContent ? undefined : "grey.50",
                 },
               }}
             >
