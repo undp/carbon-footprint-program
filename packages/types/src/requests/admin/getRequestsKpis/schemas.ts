@@ -3,11 +3,11 @@ import { z } from "zod";
 export const RequestsKpiCountItem = z.object({
   type: z
     .enum([
-      "ORGANIZATION_ACREDITATION",
+      "ORGANIZATION_ACCREDITATION",
       "CARBON_INVENTORY_CALCULATION",
       "CARBON_INVENTORY_VERIFICATION",
-      "REDUCTION_PLAN_VERFICATION",
-      "NEUTRALIZATION_PLAN_VERFICATION",
+      "REDUCTION_PLAN_VERIFICATION",
+      "NEUTRALIZATION_PLAN_VERIFICATION",
     ])
     .describe("The type of the request"),
   status: z

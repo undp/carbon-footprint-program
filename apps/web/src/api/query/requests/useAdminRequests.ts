@@ -30,7 +30,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "3",
     organizationName: "Retail Global Corp.",
-    type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+    type: RequestType.NEUTRALIZATION_PLAN_VERIFICATION,
     year: 2024,
     status: RequestStatus.REJECTED,
     requestedAt: "28 nov 2024",
@@ -38,7 +38,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "4",
     organizationName: "Empresa Demo S.A.",
-    type: RequestType.REDUCTION_PLAN_VERFICATION,
+    type: RequestType.REDUCTION_PLAN_VERIFICATION,
     year: 2023,
     status: RequestStatus.APPROVED,
     requestedAt: "10 dic 2023",
@@ -46,7 +46,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "5",
     organizationName: "Logística Express",
-    type: RequestType.REDUCTION_PLAN_VERFICATION,
+    type: RequestType.REDUCTION_PLAN_VERIFICATION,
     year: 2024,
     status: RequestStatus.REJECTED,
     requestedAt: "15 oct 2024",
@@ -70,7 +70,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "8",
     organizationName: "Tech Solutions Ltd.",
-    type: RequestType.ORGANIZATION_ACREDITATION,
+    type: RequestType.ORGANIZATION_ACCREDITATION,
     year: 2024,
     status: RequestStatus.PENDING,
     requestedAt: "15 dic 2024",
@@ -78,7 +78,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "9",
     organizationName: "Logística Express",
-    type: RequestType.ORGANIZATION_ACREDITATION,
+    type: RequestType.ORGANIZATION_ACCREDITATION,
     year: 2024,
     status: RequestStatus.PENDING,
     requestedAt: "14 dic 2024",
@@ -86,7 +86,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
   {
     id: "10",
     organizationName: "Empresa Demo S.A.",
-    type: RequestType.ORGANIZATION_ACREDITATION,
+    type: RequestType.ORGANIZATION_ACCREDITATION,
     year: 2025,
     status: RequestStatus.PENDING,
     requestedAt: "16 dic 2024",

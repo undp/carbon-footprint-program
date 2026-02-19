@@ -13,17 +13,17 @@ const MOCK_DATA: GetAdminRequestsKpisResponse = {
   total: 10,
   counts: [
     {
-      type: RequestType.ORGANIZATION_ACREDITATION,
+      type: RequestType.ORGANIZATION_ACCREDITATION,
       status: RequestStatus.PENDING,
       value: 3,
     },
     {
-      type: RequestType.ORGANIZATION_ACREDITATION,
+      type: RequestType.ORGANIZATION_ACCREDITATION,
       status: RequestStatus.APPROVED,
       value: 1,
     },
     {
-      type: RequestType.ORGANIZATION_ACREDITATION,
+      type: RequestType.ORGANIZATION_ACCREDITATION,
       status: RequestStatus.REJECTED,
       value: 1,
     },
@@ -58,32 +58,32 @@ const MOCK_DATA: GetAdminRequestsKpisResponse = {
       value: 1,
     },
     {
-      type: RequestType.REDUCTION_PLAN_VERFICATION,
+      type: RequestType.REDUCTION_PLAN_VERIFICATION,
       status: RequestStatus.PENDING,
       value: 3,
     },
     {
-      type: RequestType.REDUCTION_PLAN_VERFICATION,
+      type: RequestType.REDUCTION_PLAN_VERIFICATION,
       status: RequestStatus.APPROVED,
       value: 1,
     },
     {
-      type: RequestType.REDUCTION_PLAN_VERFICATION,
+      type: RequestType.REDUCTION_PLAN_VERIFICATION,
       status: RequestStatus.REJECTED,
       value: 1,
     },
     {
-      type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+      type: RequestType.NEUTRALIZATION_PLAN_VERIFICATION,
       status: RequestStatus.PENDING,
       value: 3,
     },
     {
-      type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+      type: RequestType.NEUTRALIZATION_PLAN_VERIFICATION,
       status: RequestStatus.APPROVED,
       value: 1,
     },
     {
-      type: RequestType.NEUTRALIZATION_PLAN_VERFICATION,
+      type: RequestType.NEUTRALIZATION_PLAN_VERIFICATION,
       status: RequestStatus.REJECTED,
       value: 1,
     },
