@@ -1,26 +1,10 @@
 import { FC } from "react";
-import { alpha, Box, Button, Card, Stack, Typography } from "@mui/material";
+import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import { FilterListOutlined, FileDownloadOutlined } from "@mui/icons-material";
-import { StylizedDataGrid } from "@components";
-import { useRequestColumns, type RequestRow } from "../hooks/useRequestColumns";
-import { useAdminRequestsKpis } from "../../../api/query/requests/useAdminRequestsKpis";
-import { useAdminRequests } from "../../../api/query/requests/useAdminRequests";
+import { RequestScreenKpiSection } from "../components/RequestScreenKpiSection";
+import { RequestScreenTable } from "../components/RequestScreenTable";
 
 export const AdminRequestsScreen: FC = () => {
-  const {
-    data: kpis,
-    isLoading: isLoadingKpis,
-    // refetch: refetchKpis,
-  } = useAdminRequestsKpis();
-
-  const {
-    data: requests = [],
-    isLoading: isLoadingRequests,
-    // refetch: refetchRequests,
-  } = useAdminRequests();
-
-  const columns = useRequestColumns();
-
   return (
     <Box className="flex flex-col gap-6">
       {/* Header */}
@@ -65,65 +49,10 @@ export const AdminRequestsScreen: FC = () => {
       </Card>
 
       {/* KPI Cards */}
-      <Stack direction="row" spacing={2}>
-        {kpis?.map((kpi) => (
-          <Card
-            key={kpi.label}
-            sx={{
-              minHeight: "130px",
-              flex: 1,
-              p: 2,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-              borderRadius: "12px",
-              backgroundColor: alpha(kpi.color, 0.1),
-              boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-            }}
-          >
-            <Box className="flex w-full justify-between">
-              <Typography variant="body2" color="text.secondary">
-                {kpi.label}
-              </Typography>
-              <Box
-                className="flex h-10 w-10 items-center justify-center rounded-lg"
-                sx={{
-                  backgroundColor: alpha(kpi.color, 0.1),
-                  color: kpi.color,
-                }}
-              ></Box>
-            </Box>
-            <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-              {kpi.value}
-            </Typography>
-          </Card>
-        ))}
-      </Stack>
+      <RequestScreenKpiSection />
 
       {/* Table */}
-      <Box>
-        <StylizedDataGrid
-          sx={(theme) => ({
-            backgroundColor: "white",
-            border: "none",
-            boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-            "& .MuiDataGrid-main": {
-              padding: "16px !important",
-            },
-            "& .MuiDataGrid-columnHeader": {
-              backgroundColor: theme.palette.background.default,
-            },
-            "& .MuiDataGrid-cell": {
-              minHeight: "65px",
-              padding: "10px",
-            },
-          })}
-          columns={columns}
-          rows={requests}
-          rowHeight={52}
-          getRowId={(row: RequestRow) => row.id}
-        />
-      </Box>
+      <RequestScreenTable />
     </Box>
   );
 };
