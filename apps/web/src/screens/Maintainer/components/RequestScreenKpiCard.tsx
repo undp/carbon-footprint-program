@@ -16,7 +16,6 @@ export const RequestScreenKpiCard: FC<RequestScreenKpiCardProps> = ({
   value,
 }) => (
   <Card
-    key={label}
     sx={{
       minHeight: "130px",
       flex: 1,
