@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SasUrlResponseSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { downloadFileHandler } from "./handler.js";
@@ -13,9 +14,10 @@ export const downloadFileRoute: StandardRouteSignature = (fastify, options) => {
     {
       schema: {
         tags: ["files"],
-        summary: "Download a file",
+        summary: "Get a temporary download URL for a file",
         params: ParamsSchema,
         response: {
+          200: SasUrlResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },

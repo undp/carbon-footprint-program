@@ -11,27 +11,17 @@ export const downloadFileHandler = async (
   const log = request.log.child({ module: "files" });
   const { uuid } = request.params;
 
-  const blobStorage = request.server.blobStorage;
-  if (!blobStorage) {
+  const blobServiceClient = request.server.blobServiceClient;
+  if (!blobServiceClient) {
     throw new StorageNotConfiguredError();
   }
 
-  log.info({ uuid }, "Downloading file...");
+  log.info({ uuid }, "Generating download URL...");
 
   const prisma = request.server.prisma;
-  const { stream, mimeType, originalName } = await downloadFileService(
-    prisma,
-    blobStorage,
-    uuid
-  );
+  const result = await downloadFileService(prisma, blobServiceClient, uuid);
 
-  log.info({ uuid }, "File download started");
+  log.info({ uuid }, "Download URL generated");
 
-  return reply
-    .header("Content-Type", mimeType)
-    .header(
-      "Content-Disposition",
-      `attachment; filename="${encodeURIComponent(originalName)}"`
-    )
-    .send(stream);
+  return reply.status(200).send(result);
 };

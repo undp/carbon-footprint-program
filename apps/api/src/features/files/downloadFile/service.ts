@@ -1,35 +1,35 @@
-import type { Readable } from "node:stream";
 import type { PrismaClient } from "@repo/database";
-import type { ContainerClient } from "@azure/storage-blob";
+import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
+import type { SasUrlResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
-
-interface DownloadResult {
-  stream: Readable;
-  mimeType: string;
-  originalName: string;
-}
+import { generateReadSasUrl } from "../sasHelper.js";
+import {
+  AZURE_STORAGE_ACCOUNT_NAME,
+  AZURE_STORAGE_CONTAINER_NAME,
+} from "@/config/environment.js";
 
 export const downloadFileService = async (
   prisma: PrismaClient,
-  blobStorage: ContainerClient,
+  blobServiceClient: BlobServiceClient,
   uuid: string
-): Promise<DownloadResult> => {
+): Promise<SasUrlResponse> => {
   const file = await prisma.file.findUnique({
     where: { uuid, status: FileStatus.ACTIVE },
   });
   if (!file) throw new FileNotFoundError(uuid);
 
-  const blobClient = blobStorage.getBlobClient(file.blobPath);
-  const downloadResponse = await blobClient.download();
+  const { url, expiresAt } = await generateReadSasUrl(
+    blobServiceClient,
+    AZURE_STORAGE_ACCOUNT_NAME!,
+    AZURE_STORAGE_CONTAINER_NAME,
+    file.blobPath,
+    15,
+    {
+      contentType: file.mimeType,
+      contentDisposition: `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+    }
+  );
 
-  if (!downloadResponse.readableStreamBody) {
-    throw new Error("readableStreamBody is not available in this runtime");
-  }
-
-  return {
-    stream: downloadResponse.readableStreamBody as unknown as Readable,
-    mimeType: file.mimeType,
-    originalName: file.originalName,
-  };
+  return { url, expiresAt: expiresAt.toISOString() };
 };
