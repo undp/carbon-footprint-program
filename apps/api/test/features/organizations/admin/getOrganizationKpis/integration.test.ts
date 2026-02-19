@@ -133,7 +133,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         reviewOrgData.id,
-        "PENDING"
+        SubmissionStatus.PENDING,
+        testUser.id
       );
 
       // Create ACCREDITED organization
@@ -145,7 +146,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         accreditedOrgData.id,
-        "APPROVED"
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -268,7 +270,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     it("should handle organizations with only OUTDATED data", async () => {
       const org = await createTestOrganization(prisma);
       await createTestOrganizationData(prisma, org.id, {
-        status: "OUTDATED",
+        status: OrganizationDataStatus.OUTDATED,
       });
 
       const response = await app.inject({
@@ -290,7 +292,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData1.id,
-        SubmissionStatus.REJECTED
+        SubmissionStatus.REJECTED,
+        testUser.id
       );
 
       // Mark first data as OUTDATED after rejection
@@ -304,7 +307,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData2.id,
-        "PENDING"
+        SubmissionStatus.PENDING,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -369,7 +373,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         org3Data.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -403,7 +408,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.REJECTED
+        SubmissionStatus.REJECTED,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -436,7 +442,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         approvedData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       // 2. Pending re-accreditation (new org_data under review)
@@ -444,7 +451,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         pendingData.id,
-        SubmissionStatus.PENDING
+        SubmissionStatus.PENDING,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -472,7 +480,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       // Any carbon inventory linked to the org makes hasCarbonInventories=true
