@@ -1,11 +1,11 @@
 import type { PrismaClient } from "@repo/database";
 import type { BlockOrganizationResponse, User } from "@repo/types";
-import { OrganizationNotFoundError } from "../../errors.js";
+import {
+  OrganizationNotFoundError,
+  OrganizationAlreadyBlockedError,
+} from "../../errors.js";
 import { OrganizationStatus } from "@repo/database";
 
-/**
- * Block an organization by setting its status to BLOCKED.
- */
 export const blockOrganizationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
@@ -20,6 +20,13 @@ export const blockOrganizationService = async (
   if (!organization) {
     throw new OrganizationNotFoundError(organizationId);
   }
+
+  const isBlocked = organization.status === OrganizationStatus.BLOCKED;
+
+  if (isBlocked) {
+    throw new OrganizationAlreadyBlockedError(organizationId);
+  }
+
   await prismaClient.organization.update({
     where: {
       id: BigInt(organizationId),

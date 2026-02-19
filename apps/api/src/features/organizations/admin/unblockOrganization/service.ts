@@ -1,11 +1,11 @@
 import type { PrismaClient } from "@repo/database";
 import type { UnblockOrganizationResponse, User } from "@repo/types";
-import { OrganizationNotFoundError } from "../../errors.js";
+import {
+  OrganizationNotFoundError,
+  OrganizationAlreadyUnblockedError,
+} from "../../errors.js";
 import { OrganizationStatus } from "@repo/database";
 
-/**
- * Unblock an organization by setting its status to ACTIVE.
- */
 export const unblockOrganizationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
@@ -20,6 +20,13 @@ export const unblockOrganizationService = async (
   if (!organization) {
     throw new OrganizationNotFoundError(organizationId);
   }
+
+  const isBlocked = organization.status === OrganizationStatus.BLOCKED;
+
+  if (!isBlocked) {
+    throw new OrganizationAlreadyUnblockedError(organizationId);
+  }
+
   await prismaClient.organization.update({
     where: {
       id: BigInt(organizationId),
