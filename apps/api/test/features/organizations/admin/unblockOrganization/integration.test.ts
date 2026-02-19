@@ -371,7 +371,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       expect(afterOrg!.updatedById).toBe(testUser.id);
     });
 
-    it("should be idempotent (ACTIVE to ACTIVE) but throw error", async () => {
+    it("should return 409 when organization is already ACTIVE", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
