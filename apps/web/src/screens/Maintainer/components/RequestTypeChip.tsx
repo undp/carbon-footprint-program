@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { alpha, Box } from "@mui/material";
+import { alpha, Box, Typography } from "@mui/material";
 import { SubmissionSubjectType as RequestType } from "@repo/types";
 
 interface RequestTypeChipProps {
@@ -26,18 +26,19 @@ export const RequestTypeChip: FC<RequestTypeChipProps> = ({ type }) => {
   return (
     <Box
       sx={{
+        display: "flex",
+        alignItems: "center",
         width: "fit-content",
         px: 1.5,
-        py: 0.5,
+        height: "24px",
         borderRadius: "6px",
-        borderColor: statusColors[type],
         backgroundColor: alpha(statusColors[type], 0.2),
         color: statusColors[type],
-        fontWeight: 500,
-        fontSize: "0.875rem",
       }}
     >
-      {statusLabels[type]}
+      <Typography variant="caption" fontWeight="fontWeightMedium">
+        {statusLabels[type]}
+      </Typography>
     </Box>
   );
 };
