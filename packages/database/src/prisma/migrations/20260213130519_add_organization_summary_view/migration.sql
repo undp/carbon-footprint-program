@@ -1,8 +1,8 @@
 -- CreateView: organization_summary_view
 CREATE OR REPLACE VIEW "organization_summary_view" AS
 
--- 1. Accreditation: does any ACTIVE org_data have an APPROVED submission?
-WITH accreditation AS (
+-- 1. Accredited organizations: does any ACTIVE org_data have an APPROVED submission?
+WITH accredited_organizations AS (
   SELECT DISTINCT od.organization_id
   FROM organization_data od
   JOIN submission_subject_organization_data ssod
@@ -13,8 +13,8 @@ WITH accreditation AS (
   WHERE od.status = 'ACTIVE'
 ),
 
--- 2. Latest submission: most recent submission (any status) per organization
-latest_submission AS (
+-- 2. Organizations latest submission: most recent submission (any status) per organization
+organizations_latest_submission AS (
   SELECT DISTINCT ON (od.organization_id)
     od.organization_id,
     s.status AS submission_status
@@ -26,8 +26,8 @@ latest_submission AS (
   ORDER BY od.organization_id, s.id DESC
 ),
 
--- 3. Unsubmitted changes: ACTIVE org_data with no submission at all (true drafts only)
-unsubmitted_changes AS (
+-- 3. Organizations with unsubmitted changes: ACTIVE org_data with no submission at all (true drafts only)
+organizations_with_unsubmitted_changes AS (
   SELECT DISTINCT od.organization_id
   FROM organization_data od
   WHERE od.status = 'ACTIVE'
@@ -38,8 +38,8 @@ unsubmitted_changes AS (
     )
 ),
 
--- 4. Reference row: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3) > REJECTED(4), then newest
-reference_organization_data AS (
+-- 4. Organization displayed data: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3) > REJECTED(4), then newest
+organization_displayed_data AS (
   SELECT
     od.*,
     ROW_NUMBER() OVER (
@@ -64,9 +64,9 @@ reference_organization_data AS (
   WHERE od.status = 'ACTIVE'
 ),
 
--- 5. Carbon inventory stats (unchanged)
+-- 5. Organization carbon inventories summary
 -- TODO: update this CTE to consider only COMPLETED and VERIFIED carbon inventories
-organization_carbon_stats AS (
+organization_carbon_inventories_summary AS (
   SELECT
     ci.organization_id,
     TRUE AS has_carbon_inventories,
@@ -137,13 +137,13 @@ SELECT
   ocs.last_measurement                                         AS last_measurement
 
 FROM organization o
-LEFT JOIN reference_organization_data rod
+LEFT JOIN organization_displayed_data rod
   ON rod.organization_id = o.id AND rod.rn = 1
-LEFT JOIN accreditation acc
+LEFT JOIN accredited_organizations acc
   ON acc.organization_id = o.id
-LEFT JOIN latest_submission ls
+LEFT JOIN organizations_latest_submission ls
   ON ls.organization_id = o.id
-LEFT JOIN unsubmitted_changes uc
+LEFT JOIN organizations_with_unsubmitted_changes uc
   ON uc.organization_id = o.id
 LEFT JOIN country_organization_size cos
   ON cos.id = rod.country_organization_size_id
@@ -155,6 +155,6 @@ LEFT JOIN organization_main_activity oma
   ON oma.id = rod.main_activity_id
 LEFT JOIN country_job_position cjp
   ON cjp.id = rod.representative_country_job_position_id
-LEFT JOIN organization_carbon_stats ocs
+LEFT JOIN organization_carbon_inventories_summary ocs
   ON ocs.organization_id = o.id
 WHERE rod.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
