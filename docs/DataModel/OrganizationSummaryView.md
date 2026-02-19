@@ -57,8 +57,8 @@ The view is constructed using **5 Common Table Expressions (CTEs)** that handle 
 
 | Field                 | Type   | Description                                                        |
 | :-------------------- | :----- | :----------------------------------------------------------------- |
-| `organization_id`     | UUID   | Unique identifier for the organization.                            |
-| `country_id`          | UUID   | The country the organization belongs to.                           |
+| `organization_id`     | BIGINT | Unique identifier for the organization.                            |
+| `country_id`          | BIGINT | The country the organization belongs to.                           |
 | `organization_status` | Enum   | System status of the organization (e.g., `ACTIVE`, `BLOCKED`).     |
 | `name`                | String | Computed display name: `COALESCE(trade_name, legal_name, tax_id)`. |
 | `legal_name`          | String | Official registered name.                                          |
