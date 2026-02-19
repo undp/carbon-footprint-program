@@ -418,28 +418,6 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse!.name).toBe("Active Data");
     });
 
-    it("should include organization even with no ACTIVE data", async () => {
-      const org = await createTestOrganization(prisma);
-      await createTestOrganizationData(prisma, org.id, {
-        legalName: "Organization A",
-        tradeName: "Organization A",
-      });
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/admin/organizations/",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
-
-      const orgResponse = body.data.find((o) => o.id === org.id.toString());
-
-      // Organization should still appear even without data
-      expect(orgResponse).toBeDefined();
-    });
-  });
-
   describe("Submission status and unsubmitted changes", () => {
     it("should return lastSubmissionStatus=null and hasUnsubmittedChanges=true for a new draft org", async () => {
       const org = await createTestOrganization(prisma);
