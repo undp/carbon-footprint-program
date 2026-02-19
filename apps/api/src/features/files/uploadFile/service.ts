@@ -3,7 +3,7 @@ import type { PrismaClient, SubmissionFileType } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import type { FileType, UploadFileResponse } from "@repo/types";
 import { FileUploadFailedError } from "../errors.js";
-import { validateFileTypeExists, createFileLink } from "../helpers.js";
+import { validateFileTypeExists, createFileLink, buildBlobPath } from "../helpers.js";
 import { mapFileToResponse } from "../mappers.js";
 
 interface UploadFileInput {
@@ -27,10 +27,7 @@ export const uploadFileService = async (
   await validateFileTypeExists(prisma, fileType, ownerIdBigInt);
 
   const fileUuid = randomUUID();
-
-  // Build a unique blob path
-  const sanitizedName = originalName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const blobPath = `${fileType}/${ownerId}/${fileUuid}-${sanitizedName}`;
+  const blobPath = buildBlobPath(fileType, ownerId, fileUuid, originalName);
 
   const blockBlobClient = blobStorage.getBlockBlobClient(blobPath);
 
@@ -49,7 +46,6 @@ export const uploadFileService = async (
       const createdFile = await tx.file.create({
         data: {
           uuid: fileUuid,
-          fileType,
           originalName,
           mimeType,
           sizeBytes: buffer.length,

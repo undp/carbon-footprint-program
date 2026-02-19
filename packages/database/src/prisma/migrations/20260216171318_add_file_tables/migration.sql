@@ -1,7 +1,4 @@
 -- CreateEnum
-CREATE TYPE "file_type" AS ENUM ('SUBMISSION_ATTACHMENT');
-
--- CreateEnum
 CREATE TYPE "file_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateEnum
@@ -11,7 +8,6 @@ CREATE TYPE "submission_file_type" AS ENUM ('ATTACHMENT', 'RECOGNITION');
 CREATE TABLE "file" (
     "id" BIGSERIAL NOT NULL,
     "uuid" UUID NOT NULL,
-    "file_type" "file_type" NOT NULL,
     "original_name" TEXT NOT NULL,
     "mime_type" TEXT NOT NULL,
     "size_bytes" INTEGER NOT NULL,
