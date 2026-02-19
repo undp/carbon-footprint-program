@@ -47,7 +47,8 @@ The view is constructed using **5 Common Table Expressions (CTEs)** that handle 
 ### 5. `organization_carbon_inventories_summary`
 
 - **Goal:** Aggregates carbon footprint data.
-- **Logic:** Sums emissions from the `carbon_inventory_subtotals_view` and identifies if the organization has any inventories at all. Filters by status (excluding `DELETED` and `DRAFT`) and includes the last 3 years.
+- **Logic:** Sums emissions from the `carbon_inventory_subtotals_view` and identifies if the organization has any inventories at all. Filters by status (excluding `DELETED` and `DRAFT`) and by **measurement year** — specifically `(organization_data->>'year')::int >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2`, which includes the current year and the two prior years (3 years total).
+- **Note on year filtering:** The filter uses the measurement year stored in the inventory's `organization_data` JSON (`year` field), not the record's `created_at` timestamp. This is intentional: the view aggregates inventories by the period they measure, not by when the record was created. For example, if the current year is 2026, inventories with measurement years 2024, 2025, and 2026 are included regardless of their `created_at` date.
 
 ---
 
