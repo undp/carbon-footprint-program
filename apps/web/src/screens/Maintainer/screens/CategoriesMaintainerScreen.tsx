@@ -9,7 +9,19 @@ import {
   useState,
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { alpha, Box, MenuItem, Paper, Select, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+  MenuItem,
+  Paper,
+  Select,
+  Typography,
+} from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
@@ -45,6 +57,7 @@ import { InfoBanner } from "../components/InfoBanner";
  */
 export const CategoriesMaintainerScreen: FC = () => {
   const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
+  const stopEditing = useMaintainerStore((s) => s.stopEditing);
   const { data: methodologies = [] } = useMethodologies();
 
   const [selectedMethodologyId, setSelectedMethodologyId] = useState<
@@ -61,6 +74,11 @@ export const CategoriesMaintainerScreen: FC = () => {
 
   const effectiveMethodologyId =
     editingMethodology?.id ?? selectedMethodologyId ?? activeMethodology?.id;
+
+  const handleExitEditMode = useCallback(() => {
+    setSelectedMethodologyId(effectiveMethodologyId);
+    stopEditing();
+  }, [effectiveMethodologyId, stopEditing]);
 
   const targetMethodology = methodologies.find(
     (m) => m.id === effectiveMethodologyId
@@ -125,6 +143,7 @@ export const CategoriesMaintainerScreen: FC = () => {
       initialCategories={categories.map(toFormCategory)}
       serverCategories={categories}
       methodologySelector={methodologySelector}
+      onExitEditMode={handleExitEditMode}
     />
   );
 };
@@ -138,6 +157,7 @@ interface CategoriesFormProps {
   initialCategories: FormCategory[];
   serverCategories: Category[];
   methodologySelector: ReactNode;
+  onExitEditMode: () => void;
 }
 
 const CategoriesForm: FC<CategoriesFormProps> = ({
@@ -147,10 +167,12 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   initialCategories,
   serverCategories,
   methodologySelector,
+  onExitEditMode,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
   const [explanationModal, setExplanationModal] = useState<{
     open: boolean;
     rowIndex: number;
@@ -414,6 +436,11 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     [form, swapMutation, enqueueSnackbar]
   );
 
+  const handleExitEditMode = useCallback(() => {
+    if (editingRowId) handleCancelEditRow();
+    onExitEditMode();
+  }, [editingRowId, handleCancelEditRow, onExitEditMode]);
+
   const handleOpenExplanation = useCallback((rowIndex: number) => {
     setExplanationModal({ open: true, rowIndex });
   }, []);
@@ -549,14 +576,55 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
           }}
         >
           <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
-          <Box>
+          <Box sx={{ flex: 1 }}>
             <Typography variant="body2" fontWeight={600}>
               Editando: {targetMethodology.name}
             </Typography>
           </Box>
+          <Button
+            size="small"
+            variant="contained"
+            color="primary"
+            onClick={() => setExitEditModeOpen(true)}
+          >
+            Salir de modo edición
+          </Button>
         </Paper>
       )}
-      {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
+      <Dialog
+        open={exitEditModeOpen}
+        onClose={() => setExitEditModeOpen(false)}
+      >
+        <DialogTitle>Salir de modo edición</DialogTitle>
+        <DialogContent>
+          {editingRowId ? (
+            <DialogContentText>
+              Tienes cambios sin guardar en la fila que estás editando. Si sales
+              del modo edición, los cambios se perderán.
+            </DialogContentText>
+          ) : (
+            <DialogContentText>
+              Estás a punto de salir del modo edición de{" "}
+              <strong>{targetMethodology.name}</strong>. Podrás volver a
+              editarla desde la pantalla de Metodologías.
+            </DialogContentText>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
+          <Button
+            variant="outlined"
+            color={editingRowId ? "error" : "primary"}
+            onClick={() => {
+              setExitEditModeOpen(false);
+              handleExitEditMode();
+            }}
+          >
+            {editingRowId ? "Salir sin guardar" : "Salir"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+      {/* {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />} */}
       <UnsavedChangesDialog
         open={status === "blocked"}
         onCancel={() => reset?.()}
