@@ -6,7 +6,7 @@ interface RequestTypeChipProps {
   type: RequestType;
 }
 
-const statusColors: Record<RequestType, string> = {
+const typeColors: Record<RequestType, string> = {
   [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
   [RequestType.CARBON_INVENTORY_CALCULATION]: "#1E8449",
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#4A4A4A",
@@ -14,7 +14,7 @@ const statusColors: Record<RequestType, string> = {
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#117A65",
 };
 
-const statusLabels: Record<RequestType, string> = {
+const typeLabels: Record<RequestType, string> = {
   [RequestType.ORGANIZATION_ACCREDITATION]: "Acreditación",
   [RequestType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
@@ -32,12 +32,12 @@ export const RequestTypeChip: FC<RequestTypeChipProps> = ({ type }) => {
         px: 1.5,
         height: "24px",
         borderRadius: "6px",
-        backgroundColor: alpha(statusColors[type], 0.2),
-        color: statusColors[type],
+        backgroundColor: alpha(typeColors[type], 0.2),
+        color: typeColors[type],
       }}
     >
       <Typography variant="caption" fontWeight="fontWeightMedium">
-        {statusLabels[type]}
+        {typeLabels[type]}
       </Typography>
     </Box>
   );
