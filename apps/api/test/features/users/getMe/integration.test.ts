@@ -130,7 +130,7 @@ describe("GET /api/users/me - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetMeResponse;
-      expect(body?.idpUserId).toBe("me@test.com");
+      expect(body?.idpUserId).toBe("test-user-idp-id);
     });
   });
 });

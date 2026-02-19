@@ -77,7 +77,8 @@ organization_carbon_inventories_summary AS (
     ON csv.carbon_inventory_id = ci.id
   WHERE ci.organization_id IS NOT NULL
   AND ci.status NOT IN ('DELETED', 'DRAFT')
-  AND ci.year BETWEEN current_year() - 2 AND current_year()
+  AND (ci.organization_data->>'year') IS NOT NULL
+  AND (ci.organization_data->>'year')::int >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
   GROUP BY ci.organization_id
 )
 
