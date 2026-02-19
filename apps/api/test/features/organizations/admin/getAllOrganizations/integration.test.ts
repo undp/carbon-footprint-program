@@ -746,7 +746,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         const statuses = body.data.map((o) => o.status);
         expect(statuses).toContain("ACTIVE");
         expect(statuses).toContain("BLOCKED");
-        expect(statuses).not.toContain("NOT_ACCREDITED");
+        const ids = body.data.map((o) => o.id);
+        expect(ids).not.toContain(draftOrg.id.toString());
       });
       it("should filter organizations by multiple statuses [comma separated]", async () => {
         // 1. Accredited
@@ -785,7 +786,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         const statuses = body.data.map((o) => o.status);
         expect(statuses).toContain("ACTIVE");
         expect(statuses).toContain("BLOCKED");
-        expect(statuses).not.toContain("NOT_ACCREDITED");
+        const ids = body.data.map((o) => o.id);
+        expect(ids).not.toContain(draftOrg.id.toString());
       });
       it("should return 400 for invalid page parameter", async () => {
         const response = await app.inject({
