@@ -29,7 +29,7 @@ export const unblockOrganizationService = async (
 
   await prismaClient.organization.update({
     where: {
-      id: BigInt(organizationId),
+      id: organization.id,
     },
     data: {
       status: OrganizationStatus.ACTIVE,
