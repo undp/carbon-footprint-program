@@ -53,6 +53,13 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Fecha Envío",
         cellClassName,
         flex: 0.8,
+        valueFormatter: (value: string) => {
+          return new Intl.DateTimeFormat("es", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+          }).format(new Date(value));
+        },
       },
       {
         field: "actions",

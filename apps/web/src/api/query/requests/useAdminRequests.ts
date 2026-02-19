@@ -17,7 +17,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.CARBON_INVENTORY_CALCULATION,
     year: 2024,
     status: RequestStatus.PENDING,
-    requestedAt: "5 dic 2024",
+    requestedAt: "2024-12-05T00:00:00Z",
   },
   {
     id: "2",
@@ -25,7 +25,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.CARBON_INVENTORY_CALCULATION,
     year: 2024,
     status: RequestStatus.REJECTED,
-    requestedAt: "10 dic 2024",
+    requestedAt: "2024-12-10T00:00:00Z",
   },
   {
     id: "3",
@@ -33,7 +33,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.NEUTRALIZATION_PLAN_VERIFICATION,
     year: 2024,
     status: RequestStatus.REJECTED,
-    requestedAt: "28 nov 2024",
+    requestedAt: "2024-11-28T00:00:00Z",
   },
   {
     id: "4",
@@ -41,7 +41,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.REDUCTION_PLAN_VERIFICATION,
     year: 2023,
     status: RequestStatus.APPROVED,
-    requestedAt: "10 dic 2023",
+    requestedAt: "2023-12-10T00:00:00Z",
   },
   {
     id: "5",
@@ -49,7 +49,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.REDUCTION_PLAN_VERIFICATION,
     year: 2024,
     status: RequestStatus.REJECTED,
-    requestedAt: "15 oct 2024",
+    requestedAt: "2024-10-15T00:00:00Z",
   },
   {
     id: "6",
@@ -57,7 +57,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.CARBON_INVENTORY_CALCULATION,
     year: 2024,
     status: RequestStatus.PENDING,
-    requestedAt: "12 dic 2024",
+    requestedAt: "2024-12-12T00:00:00Z",
   },
   {
     id: "7",
@@ -65,7 +65,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.CARBON_INVENTORY_VERIFICATION,
     year: 2024,
     status: RequestStatus.PENDING,
-    requestedAt: "-",
+    requestedAt: "2024-12-11T00:00:00Z",
   },
   {
     id: "8",
@@ -73,7 +73,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.ORGANIZATION_ACCREDITATION,
     year: 2024,
     status: RequestStatus.PENDING,
-    requestedAt: "15 dic 2024",
+    requestedAt: "2024-12-15T00:00:00Z",
   },
   {
     id: "9",
@@ -81,7 +81,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.ORGANIZATION_ACCREDITATION,
     year: 2024,
     status: RequestStatus.PENDING,
-    requestedAt: "14 dic 2024",
+    requestedAt: "2024-12-14T00:00:00Z",
   },
   {
     id: "10",
@@ -89,7 +89,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.ORGANIZATION_ACCREDITATION,
     year: 2025,
     status: RequestStatus.PENDING,
-    requestedAt: "16 dic 2024",
+    requestedAt: "2024-12-16T00:00:00Z",
   },
   {
     id: "11",
@@ -97,7 +97,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     type: RequestType.CARBON_INVENTORY_CALCULATION,
     year: 2024,
     status: RequestStatus.APPROVED,
-    requestedAt: "18 dic 2024",
+    requestedAt: "2024-12-18T00:00:00Z",
   },
 ];
 
