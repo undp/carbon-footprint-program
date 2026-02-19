@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient, User } from "@repo/database";
 import type { GetOrganizationKpisResponse } from "@repo/types";
 import {
   OrganizationDataStatus,
@@ -23,15 +23,18 @@ import {
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  let testUser: User;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
+    testUser = await getTestLoggedUser(prisma);
   });
 
   afterAll(async () => {
@@ -200,7 +203,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         org2Data.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       // BLOCKED + ACCREDITED
@@ -211,7 +215,8 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         org3Data.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       // BLOCKED + DRAFT

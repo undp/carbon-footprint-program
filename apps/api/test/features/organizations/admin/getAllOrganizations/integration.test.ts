@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient, User } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
 import {
   SubmissionStatus,
@@ -22,15 +22,18 @@ import {
 } from "@test/factories/organizationFactory.js";
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("GET /api/admin/organizations/ - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  let testUser: User;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
+    testUser = await getTestLoggedUser(prisma);
   });
 
   afterAll(async () => {
@@ -107,11 +110,16 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
           legalName: "Accredited Org",
         }
       );
-      await createTestOrganizationDataSubmission(
+      const { submission } = await createTestOrganizationDataSubmission(
         prisma,
         accreditedOrgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        null,
+        testUser.id
       );
+
+      // Verify the submission was approved by the test user
+      expect(submission.reviewerId).toBe(testUser.id);
 
       const response = await app.inject({
         method: "GET",
@@ -348,7 +356,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         accreditedOrgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -454,7 +463,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.PENDING
+        SubmissionStatus.PENDING,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -478,10 +488,12 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         legalName: "Accredited Org",
         tradeName: "Accredited Org",
       });
-      await createTestOrganizationDataSubmission(
+      const { submission } = await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -497,6 +509,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
       expect(orgResponse!.hasUnsubmittedChanges).toBe(false);
       expect(orgResponse!.status).toBe("ACCREDITED");
+
+      // Verify submission was approved by test user
+      expect(submission.reviewerId).toBe(testUser.id);
     });
 
     it("should return lastSubmissionStatus=REJECTED and hasUnsubmittedChanges=false for a rejected org (initial rejection)", async () => {
@@ -508,7 +523,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.REJECTED
+        SubmissionStatus.REJECTED,
+        testUser.id,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -537,7 +554,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         approvedOrgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       // Second org_data: PENDING re-accreditation with updated name
@@ -548,7 +566,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         pendingOrgData.id,
-        SubmissionStatus.PENDING
+        SubmissionStatus.PENDING,
+        testUser.id,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -583,7 +603,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         approvedData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id
       );
 
       // 2. Rejected version (Re-accreditation attempt, stays ACTIVE)
@@ -594,7 +615,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         rejectedData.id,
-        SubmissionStatus.REJECTED
+        SubmissionStatus.REJECTED,
+        testUser.id,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -619,10 +642,12 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         status: OrganizationStatus.BLOCKED,
       });
       const orgData = await createTestOrganizationData(prisma, org.id);
-      await createTestOrganizationDataSubmission(
+      const { submission } = await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -637,6 +662,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(orgResponse).toBeDefined();
       expect(orgResponse!.status).toBe("BLOCKED");
       expect(orgResponse!.lastSubmissionStatus).toBe("APPROVED");
+
+      // Verify submission was approved by test user
+      expect(submission.reviewerId).toBe(testUser.id);
     });
 
     it("should show draft data as current even when there was an approved version", async () => {
@@ -650,7 +678,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         approvedData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       // 2. New Draft (ACTIVE, no submission)
@@ -687,7 +717,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         accreditedData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       // 2. Blocked
@@ -724,7 +756,9 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       await createTestOrganizationDataSubmission(
         prisma,
         accreditedData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       // 2. Blocked

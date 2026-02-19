@@ -54,6 +54,7 @@ export async function createTestOrganizationDataSubmission(
   prisma: PrismaClient,
   organizationDataId: bigint,
   status: SubmissionStatus = SubmissionStatus.PENDING,
+  userId: bigint,
   reviewerId?: bigint,
   reviewComments?: string
 ): Promise<{ subject: SubmissionSubject; submission: Submission }> {
@@ -66,6 +67,7 @@ export async function createTestOrganizationDataSubmission(
     status,
     reviewerId,
     reviewComments,
+    createdById: userId,
   });
 
   return { subject, submission };
@@ -86,6 +88,7 @@ export async function approveSubmission(
       status: SubmissionStatus.APPROVED,
       reviewerId,
       reviewComments,
+      updatedById: reviewerId,
     },
   });
 }
@@ -106,6 +109,7 @@ export async function rejectSubmission(
       status: SubmissionStatus.REJECTED,
       reviewerId,
       reviewComments,
+      updatedById: reviewerId,
     },
   });
 }

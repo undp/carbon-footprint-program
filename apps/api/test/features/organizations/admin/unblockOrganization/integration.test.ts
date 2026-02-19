@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient, User } from "@repo/database";
 import {
   OrganizationStatus,
   OrganizationDataStatus,
@@ -23,15 +23,18 @@ import {
 } from "@test/factories/organizationFactory.js";
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
+  let testUser: User;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
+    testUser = await getTestLoggedUser(prisma);
   });
 
   afterAll(async () => {
@@ -65,6 +68,9 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       });
 
       expect(updatedOrg!.status).toBe(OrganizationStatus.ACTIVE);
+
+      // Verify the organization was updated by the test user
+      expect(updatedOrg!.updatedById).toBe(testUser.id);
     });
 
     it("should return error when unblocking already active organization", async () => {
@@ -110,11 +116,14 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       const orgData = await createTestOrganizationData(prisma, org.id);
 
       // Create approved submission
-      await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.APPROVED
-      );
+      const { submission: createdSubmission } =
+        await createTestOrganizationDataSubmission(
+          prisma,
+          orgData.id,
+          SubmissionStatus.APPROVED,
+          testUser.id,
+          testUser.id
+        );
 
       const response = await app.inject({
         method: "POST",
@@ -123,7 +132,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
 
       expect(response.statusCode).toBe(200);
 
-      // Verify submission is still approved
+      // Verify submission is still approved and was approved by test user
       const submission = await prisma.submission.findFirst({
         where: {
           subject: {
@@ -135,6 +144,7 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       });
 
       expect(submission!.status).toBe(SubmissionStatus.APPROVED);
+      expect(submission!.reviewerId).toBe(testUser.id);
     });
 
     it("should unblock draft organization", async () => {
@@ -195,10 +205,12 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       });
       const orgData = await createTestOrganizationData(prisma, org.id);
 
-      await createTestOrganizationDataSubmission(
+      const { submission } = await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       const response = await app.inject({
@@ -209,6 +221,14 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UnblockOrganizationResponse;
       expect(body).toEqual({ organizationId: org.id.toString() });
+
+      const unblockedOrg = await prisma.organization.findUnique({
+        where: { id: org.id },
+      });
+
+      // Verify submission was approved by test user
+      expect(submission.reviewerId).toBe(testUser.id);
+      expect(unblockedOrg!.updatedById).toBe(testUser.id);
     });
   });
 
@@ -318,6 +338,9 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
         beforeUnblock.getTime()
       );
       expect(updatedAt.getTime()).toBeLessThanOrEqual(afterUnblock.getTime());
+
+      // Verify the organization was updated by the test user
+      expect(updatedOrg!.updatedById).toBe(testUser.id);
     });
   });
 
@@ -342,6 +365,9 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
         where: { id: org.id },
       });
       expect(afterOrg!.status).toBe(OrganizationStatus.ACTIVE);
+
+      // Verify the organization was updated by the test user
+      expect(afterOrg!.updatedById).toBe(testUser.id);
     });
 
     it("should be idempotent (ACTIVE to ACTIVE) but throw error", async () => {
@@ -394,6 +420,10 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
         where: { id: org.id },
       });
       expect(afterUnblock!.status).toBe(OrganizationStatus.ACTIVE);
+
+      // Verify the organization was updated by the test user in both operations
+      expect(afterBlock!.updatedById).toBe(testUser.id);
+      expect(afterUnblock!.updatedById).toBe(testUser.id);
     });
 
     it("should preserve data integrity through block/unblock cycle", async () => {
@@ -406,7 +436,9 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.APPROVED
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
       );
 
       // Block
@@ -436,7 +468,12 @@ describe("POST /api/admin/organizations/:id/unblock - Integration Tests", () => 
           },
         },
       });
+      const unblockedOrg = await prisma.organization.findUnique({
+        where: { id: org.id },
+      });
       expect(submission!.status).toBe(SubmissionStatus.APPROVED);
+      expect(submission!.reviewerId).toBe(testUser.id);
+      expect(unblockedOrg!.updatedById).toBe(testUser.id);
     });
   });
 });
