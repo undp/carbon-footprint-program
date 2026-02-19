@@ -1,4 +1,4 @@
-import { SubmissionSubjectType } from "@repo/database";
+import { SubmissionSubjectType } from "@repo/database/enums";
 import { z } from "zod";
 
 export const RequestsKpiCountItem = z.object({
