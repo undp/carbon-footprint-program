@@ -36,6 +36,6 @@ export const unblockOrganizationService = async (
   });
 
   return {
-    organizationId: organizationId,
+    organizationId,
   };
 };

@@ -36,6 +36,6 @@ export const blockOrganizationService = async (
   });
 
   return {
-    organizationId: organizationId,
+    organizationId,
   };
 };
