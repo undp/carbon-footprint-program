@@ -8,8 +8,6 @@ import {
   CancelOutlined,
 } from "@mui/icons-material";
 import { SubmissionStatus as RequestStatus } from "@repo/types";
-import groupBy from "lodash-es/groupBy";
-import sumBy from "lodash-es/sumBy";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 
@@ -37,18 +35,26 @@ const LABEL_BY_STATUS: Record<RequestStatus, string> = {
   [RequestStatus.REJECTED]: "Rechazadas",
 };
 
+const STATUS_ORDER: RequestStatus[] = [
+  RequestStatus.PENDING,
+  RequestStatus.APPROVED,
+  RequestStatus.REJECTED,
+];
+
 export const RequestScreenKpiSection: FC = () => {
   const { data: kpisData, isLoading } = useAdminRequestsKpis();
 
-  const groupedData = useMemo<
-    { status: RequestStatus; value: number }[]
-  >(() => {
-    const byStatus = groupBy(kpisData?.counts ?? [], (kpi) => kpi.status);
-
-    return Object.values(byStatus).map((group) => ({
-      status: group[0].status,
-      value: sumBy(group, "value"),
-    }));
+  const valueByStatus = useMemo(() => {
+    const counts = kpisData?.counts ?? [];
+    const map: Record<RequestStatus, number> = {
+      [RequestStatus.PENDING]: 0,
+      [RequestStatus.APPROVED]: 0,
+      [RequestStatus.REJECTED]: 0,
+    };
+    for (const kpi of counts) {
+      map[kpi.status] += kpi.value;
+    }
+    return map;
   }, [kpisData]);
 
   if (isLoading) {
@@ -70,18 +76,15 @@ export const RequestScreenKpiSection: FC = () => {
         Icon={TOTAL_CARD_ASSETS.Icon}
         value={kpisData?.total ?? 0}
       />
-      {groupedData.map((kpi) => {
-        const label = LABEL_BY_STATUS[kpi.status];
-        return (
-          <RequestScreenKpiCard
-            key={label}
-            label={label}
-            color={COLOR_BY_STATUS[kpi.status]}
-            Icon={ICON_BY_STATUS[kpi.status]}
-            value={kpi.value}
-          />
-        );
-      })}
+      {STATUS_ORDER.map((status) => (
+        <RequestScreenKpiCard
+          key={status}
+          label={LABEL_BY_STATUS[status]}
+          color={COLOR_BY_STATUS[status]}
+          Icon={ICON_BY_STATUS[status]}
+          value={valueByStatus[status]}
+        />
+      ))}
     </Stack>
   );
 };
