@@ -159,8 +159,8 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
-  const handleStopEditRow = useCallback(async () => {
-    if (!editingRowId) return;
+  const handleStopEditRow = useCallback(async (): Promise<boolean> => {
+    if (!editingRowId) return true;
 
     const rows = form.getValues("categories");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
@@ -172,7 +172,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
         message: "Corrige los errores antes de guardar",
         variant: "error",
       });
-      return;
+      return false;
     }
 
     if (row && isNewRow(row.id)) {
@@ -198,10 +198,10 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
           message: "Error al crear categoría",
           variant: "error",
         });
-        return;
+        return false;
       }
       setEditingRowId(null);
-      return;
+      return true;
     }
 
     const dirtyFields = form.formState.dirtyFields;
@@ -232,8 +232,10 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
         message: "Error al guardar cambios",
         variant: "error",
       });
+      return false;
     }
     setEditingRowId(null);
+    return true;
   }, [
     editingRowId,
     methodologyVersionId,
@@ -266,7 +268,10 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
-      if (editingRowId) await handleStopEditRow();
+      if (editingRowId) {
+        const success = await handleStopEditRow();
+        if (!success) return;
+      }
       setEditingRowId(rowId);
     },
     [editingRowId, handleStopEditRow]

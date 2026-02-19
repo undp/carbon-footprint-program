@@ -50,8 +50,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
-  const handleStopEditRow = useCallback(async () => {
-    if (!editingRowId) return;
+  const handleStopEditRow = useCallback(async (): Promise<boolean> => {
+    if (!editingRowId) return true;
 
     const rows = form.getValues("methodologies");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
@@ -64,7 +64,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         message: "Corrige los errores antes de guardar",
         variant: "error",
       });
-      return;
+      return false;
     }
 
     if (row && isNewRow(row.id)) {
@@ -89,10 +89,10 @@ export const MethodologiesMaintainerScreen: FC = () => {
           message: "Error al crear metodología",
           variant: "error",
         });
-        return;
+        return false;
       }
       setEditingRowId(null);
-      return;
+      return true;
     }
     // Existing row - update if dirty
     const dirtyFields = form.formState.dirtyFields;
@@ -120,8 +120,10 @@ export const MethodologiesMaintainerScreen: FC = () => {
         message: "Error al guardar cambios",
         variant: "error",
       });
+      return false;
     }
     setEditingRowId(null);
+    return true;
   }, [
     editingRowId,
     form,
@@ -155,7 +157,10 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
-      if (editingRowId) await handleStopEditRow();
+      if (editingRowId) {
+        const success = await handleStopEditRow();
+        if (!success) return;
+      }
       setEditingRowId(rowId);
     },
     [editingRowId, handleStopEditRow]
