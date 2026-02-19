@@ -4,7 +4,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getOrganizationKpisRoute: StandardRouteSignature = (
   fastify,
-  options
+  _options
 ) => {
   fastify.get(
     "/kpis",
@@ -17,9 +17,6 @@ export const getOrganizationKpisRoute: StandardRouteSignature = (
         response: {
           200: GetOrganizationKpisResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     getOrganizationKpisHandler
