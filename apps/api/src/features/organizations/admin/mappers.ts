@@ -34,8 +34,7 @@ export function mapAdminOrganizationSummaryToResponse(
     sizeName: org.sizeName,
     status: org.organizationStatus,
     isAccredited: org.isAccredited,
-    lastSubmissionStatus:
-      (org.lastSubmissionStatus as SubmissionStatus) ?? null,
+    lastSubmissionStatus: org.lastSubmissionStatus ?? null,
     hasUnsubmittedChanges: Boolean(org.hasUnsubmittedChanges),
     hasCarbonInventories: org.hasCarbonInventories,
     lastMeasurement: org.lastMeasurement?.toISOString() ?? null,
