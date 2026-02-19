@@ -368,6 +368,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       const org3 = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
+      // First data record without submission; ensures only the submitted one affects KPIs
       await createTestOrganizationData(prisma, org3.id);
       const org3Data = await createTestOrganizationData(prisma, org3.id);
       await createTestOrganizationDataSubmission(
