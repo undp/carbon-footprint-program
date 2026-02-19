@@ -18,7 +18,7 @@ export const getAllOrganizationsService = async (
 
   // Build where clause for status filtering
   const where = query?.statuses
-    ? { displayStatus: { in: query.statuses } }
+    ? { organizationStatus: { in: query.statuses } }
     : {};
 
   const sortBy = query?.sortBy || "name";
