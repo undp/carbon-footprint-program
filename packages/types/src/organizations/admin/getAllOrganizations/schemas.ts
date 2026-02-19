@@ -39,7 +39,7 @@ const GetAllOrganizationsSortKeysSchema = z.enum([
   "sizeName",
   "status",
   "hasCarbonInventories",
-  "lastEdition",
+  "lastMeasurement",
   "totalEmissions",
 ]);
 
