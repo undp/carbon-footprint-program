@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { EntityReferenceSchema } from "../../baseSchemas.js";
 
-// MyOrganizationsSelectorOptionsSchema
-export const MyOrganizationsSelectorOptionsResponseSchema = z.array(
+export const GetMyOrganizationsSelectorOptionsResponseSchema = z.array(
   EntityReferenceSchema
 );
