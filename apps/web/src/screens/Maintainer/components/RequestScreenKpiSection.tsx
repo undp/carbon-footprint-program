@@ -43,7 +43,7 @@ export const RequestScreenKpiSection: FC = () => {
   const groupedData = useMemo<
     { status: RequestStatus; value: number }[]
   >(() => {
-    const byStatus = groupBy(kpisData.counts, (kpi) => kpi.status);
+    const byStatus = groupBy(kpisData?.counts ?? [], (kpi) => kpi.status);
 
     return Object.values(byStatus).map((group) => ({
       status: group[0].status,
