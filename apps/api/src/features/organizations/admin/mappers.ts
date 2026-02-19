@@ -38,9 +38,7 @@ export function mapAdminOrganizationSummaryToResponse(
       (org.lastSubmissionStatus as SubmissionStatus) ?? null,
     hasUnsubmittedChanges: Boolean(org.hasUnsubmittedChanges),
     hasCarbonInventories: org.hasCarbonInventories,
-    lastMeasurement: org.lastMeasurement
-      ? org.lastMeasurement.toISOString()
-      : null,
+    lastMeasurement: org.lastMeasurement?.toISOString() ?? null,
     totalEmissions: kgToTon(Number(org.totalEmissions)),
   };
 }
