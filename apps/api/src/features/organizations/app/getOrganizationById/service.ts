@@ -49,7 +49,7 @@ export const getOrganizationByIdService = async (
     hasUnsubmittedChanges: org.hasUnsubmittedChanges,
     isEditable:
       org.displayStatus !== OrganizationDisplayStatusValues.BLOCKED &&
-      org.lastSubmissionStatus !== SubmissionStatus.REJECTED,
+      org.lastSubmissionStatus !== SubmissionStatus.PENDING,
     sector: org.sectorId
       ? {
           id: org.sectorId.toString(),

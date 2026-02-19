@@ -147,7 +147,7 @@ export const createOrganizationData = async (
 };
 
 export const updateOrganizationData = async (
-  prisma: PrismaClient,
+  prisma: PrismaClient | Prisma.TransactionClient,
   organizationDataId: string,
   userId: string,
   data: OrganizationMutationData

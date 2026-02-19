@@ -52,57 +52,69 @@ export const updateOrganizationService = async (
     throw new OrganizationAccessDeniedError(organizationId);
   }
 
-  const pendingOrganizationData = await getPendingOrganizationData(
-    prismaClient,
-    organizationId
-  );
-
-  if (pendingOrganizationData) {
-    throw new OrganizationUnderReviewError(organizationId);
-  }
-
-  const draftOrganizationData = await getDraftOrganizationData(
-    prismaClient,
-    organizationId
-  );
-
-  if (draftOrganizationData) {
-    await updateOrganizationData(
-      prismaClient,
-      draftOrganizationData.id.toString(),
-      userId,
-      body
+  return await prismaClient.$transaction(async (tx) => {
+    const pendingOrganizationData = await getPendingOrganizationData(
+      tx,
+      organizationId
     );
-  }
 
-  const approvedOrganizationData = await getApprovedOrganizationData(
-    prismaClient,
-    organizationId
-  );
+    if (pendingOrganizationData) {
+      throw new OrganizationUnderReviewError(organizationId);
+    }
 
-  if (approvedOrganizationData) {
-    const newOrganizationData = await createOrganizationData(
-      prismaClient,
-      organizationId,
-      userId,
-      body
+    const draftOrganizationData = await getDraftOrganizationData(
+      tx,
+      organizationId
     );
-    await createOrganizationDataSubmission(
-      prismaClient,
-      newOrganizationData.id.toString(),
-      userId
+
+    if (draftOrganizationData) {
+      await updateOrganizationData(
+        tx,
+        draftOrganizationData.id.toString(),
+        userId,
+        body
+      );
+      return {
+        organizationId: organization.id.toString(),
+      };
+    }
+
+    const approvedOrganizationData = await getApprovedOrganizationData(
+      tx,
+      organizationId
     );
-  }
 
-  const rejectedOrganizationData = await getRejectedOrganizationData(
-    prismaClient,
-    organizationId
-  );
-  if (rejectedOrganizationData) {
-    await createOrganizationData(prismaClient, organizationId, userId, body);
-  }
+    if (approvedOrganizationData) {
+      const newOrganizationData = await createOrganizationData(
+        tx,
+        organizationId,
+        userId,
+        body
+      );
+      await createOrganizationDataSubmission(
+        tx,
+        newOrganizationData.id.toString(),
+        userId
+      );
+      return {
+        organizationId: organization.id.toString(),
+      };
+    }
 
-  return {
-    organizationId: organization.id.toString(),
-  };
+    const rejectedOrganizationData = await getRejectedOrganizationData(
+      tx,
+      organizationId
+    );
+
+    if (rejectedOrganizationData) {
+      await createOrganizationData(tx, organizationId, userId, body);
+      return {
+        organizationId: organization.id.toString(),
+      };
+    }
+
+    return {
+      organizationId: organization.id.toString(),
+    };
+  });
 };
