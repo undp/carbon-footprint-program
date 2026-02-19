@@ -61,7 +61,7 @@ export const RequestScreenTable: FC = () => {
         })}
         columns={columns}
         rows={requests}
-        rowHeight={52}
+        rowHeight={65}
         getRowId={(row: GetAllAdminRequestsResponse[number]) => row.id}
       />
     </Box>
