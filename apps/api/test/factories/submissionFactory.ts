@@ -41,6 +41,7 @@ export async function createTestSubmission(
     data: {
       subjectId,
       status: SubmissionStatus.PENDING,
+      updatedAt: null,
       ...overrides,
     },
   });
