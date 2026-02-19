@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import { OrganizationStatus } from "@repo/database";
 import type { GetOrganizationKpisResponse } from "@repo/types";
 
 export const getOrganizationKpisService = async (
@@ -15,7 +16,10 @@ export const getOrganizationKpisService = async (
 
   // Initialize all valid combinations with count 0
   const countMap = new Map<string, number>();
-  const statuses: Array<"ACTIVE" | "BLOCKED"> = ["ACTIVE", "BLOCKED"];
+  const statuses: Array<OrganizationStatus> = [
+    OrganizationStatus.ACTIVE,
+    OrganizationStatus.BLOCKED,
+  ];
   const booleanValues = [true, false];
 
   for (const status of statuses) {
@@ -37,7 +41,7 @@ export const getOrganizationKpisService = async (
   const counts = Array.from(countMap.entries()).map(([key, count]) => {
     const [status, accredited, withInventories] = key.split("-");
     return {
-      status: status as "ACTIVE" | "BLOCKED",
+      status: status as OrganizationStatus,
       accredited: accredited === "true",
       withInventories: withInventories === "true",
       count,
