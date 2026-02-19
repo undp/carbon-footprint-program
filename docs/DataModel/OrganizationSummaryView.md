@@ -14,18 +14,18 @@ To avoid repetitive and complex `JOIN` logic, subqueries, and prioritization rul
 
 The view is constructed using **5 Common Table Expressions (CTEs)** that handle specific logical domains before being combined in the final `SELECT`.
 
-### 1. `accredited_organizations`
+### 1. `accredited_organizations_ids`
 
 - **Goal:** Identifies organizations that have successfully completed the accreditation process.
 - **Logic:** Checks for at least one `ACTIVE` `organization_data` record linked to an `APPROVED` `submission`.
 - **Path:** `organization_data (ACTIVE)` → `submission_subject_organization_data` → `submission (APPROVED)`.
 
-### 2. `organizations_latest_submission`
+### 2. `organizations_latest_submission_status`
 
 - **Goal:** Retrieves the single most recent submission for each organization, regardless of its status.
 - **Logic:** Uses `DISTINCT ON (organization_id)` combined with `ORDER BY id DESC` to isolate the latest submission record.
 
-### 3. `organizations_with_unsubmitted_changes`
+### 3. `organizations_ids_with_unsubmitted_changes`
 
 - **Goal:** Identifies "pure drafts"—organizations with `ACTIVE` data that has never been attached to any submission.
 - **Logic:** Uses `NOT EXISTS` to find `organization_data` records that do not appear in the `submission_subject_organization_data` mapping table.
@@ -35,19 +35,19 @@ The view is constructed using **5 Common Table Expressions (CTEs)** that handle 
 - **Goal:** Selects the single "representative" `organization_data` record to display for the organization.
 - **Logic:** Uses `ROW_NUMBER()` with a specific priority matrix to handle versioning and pending changes:
 
-| Priority | Condition                        | Description                                 |
-| :------- | :------------------------------- | :------------------------------------------ |
-| **1**    | `submission.status = 'PENDING'`  | Data currently under review by an admin.    |
-| **2**    | `No submission associated`       | Pure draft (new changes not yet submitted). |
-| **3**    | `submission.status = 'APPROVED'` | Currently active, approved public data.     |
-| **4**    | `Other (REJECTED, etc.)`         | Fallback to other states.                   |
+| Priority | Condition                                      | Description                                 |
+| :------- | :--------------------------------------------- | :------------------------------------------ |
+| **1**    | `submission.status = 'PENDING'`                | Data currently under review by an admin.    |
+| **2**    | `s_active.status IS NULL AND s_any.id IS NULL` | Pure draft (new changes not yet submitted). |
+| **3**    | `submission.status = 'APPROVED'`               | Currently active, approved public data.     |
+| **4**    | `Else`                                         | Fallback to other states (REJECTED).        |
 
 - _Tie-breaker:_ If multiple records share a priority, the one with the highest `id` (most recent) wins.
 
 ### 5. `organization_carbon_inventories_summary`
 
 - **Goal:** Aggregates carbon footprint data.
-- **Logic:** Sums emissions from the `carbon_inventory_subtotals_view` and identifies if the organization has any inventories at all.
+- **Logic:** Sums emissions from the `carbon_inventory_subtotals_view` and identifies if the organization has any inventories at all. Filters by status (excluding `DELETED` and `DRAFT`) and includes the last 3 years.
 
 ---
 
@@ -76,11 +76,11 @@ The view is constructed using **5 Common Table Expressions (CTEs)** that handle 
 
 ### Carbon Footprint
 
-| Field                    | Type      | Description                                                          |
-| :----------------------- | :-------- | :------------------------------------------------------------------- |
-| `has_carbon_inventories` | Boolean   | Indicates if the organization has registered any carbon inventories. |
-| `total_emissions`        | Numeric   | Sum of all emissions across all inventories.                         |
-| `last_measurement`       | Timestamp | Date of the most recent carbon inventory entry.                      |
+| Field                    | Type      | Description                                                                      |
+| :----------------------- | :-------- | :------------------------------------------------------------------------------- |
+| `has_carbon_inventories` | Boolean   | Indicates if the organization has registered any carbon inventories (non-draft). |
+| `total_emissions`        | Numeric   | Sum of all emissions for the last 3 years.                                       |
+| `last_measurement`       | Timestamp | Date of the most recent carbon inventory entry.                                  |
 
 ### Metadata & Lookups
 
@@ -97,5 +97,5 @@ The view is constructed using **5 Common Table Expressions (CTEs)** that handle 
 
 ## Implementation Notes
 
-- **Filter:** The view explicitly excludes organizations that do not have at least one `ACTIVE` `organization_data` record (`WHERE rod.id IS NOT NULL`).
+- **Filter:** The view explicitly excludes organizations that do not have at least one `ACTIVE` `organization_data` record (`WHERE odd.id IS NOT NULL`).
 - **Performance:** By pre-joining lookup tables (like `country_sector`), the view allows the API to perform simple `SELECT *` queries without additional complex joins.
