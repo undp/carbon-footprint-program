@@ -3,6 +3,7 @@ import { IdSchema } from "../../../zod.js";
 import {
   EntityReferenceSchema,
   CommonOrganizationFieldsSchema,
+  OrganizationDisplayStatusSchema,
 } from "../../baseSchemas.js";
 
 // Representative details
@@ -36,6 +37,9 @@ const OrganizationDetailsSchema = CommonOrganizationFieldsSchema.extend({
   employeeCount: z.number().int().nullable().describe("Number of employees"),
   representative: Representative.describe(
     "Organization representative details"
+  ),
+  status: OrganizationDisplayStatusSchema.describe(
+    "Organization status: ACCREDITED | NOT_ACCREDITED | BLOCKED"
   ),
 });
 

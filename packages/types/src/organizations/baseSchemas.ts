@@ -44,9 +44,6 @@ export const OrganizationMutationDataSchema = z.object({
 export const CommonOrganizationFieldsSchema = z.object({
   id: IdSchema.describe("The organization ID"),
   name: z.string().describe("Display name of the organization"),
-  status: OrganizationDisplayStatusSchema.describe(
-    "Organization status: ACCREDITED | NOT_ACCREDITED | BLOCKED"
-  ),
   lastSubmissionStatus: z
     .enum(SubmissionStatus)
     .nullable()

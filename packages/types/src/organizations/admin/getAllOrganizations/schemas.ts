@@ -6,18 +6,24 @@ import {
   BasePaginationQuerySchema,
 } from "../../../common/index.js";
 import { OrganizationDisplayStatusSchema } from "../../baseSchemas.js";
+import { OrganizationStatus } from "@repo/database";
 
 // Organization list item for admin (with all fields)
 const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
   sectorName: z.string().nullable().describe("CountrySector.name"),
   subsectorName: z.string().nullable().describe("CountrySubsector.name"),
   sizeName: z.string().nullable().describe("CountryOrganizationSize.name"),
+  status: z.enum(OrganizationStatus),
+  isAccredited: z.boolean(),
   hasCarbonInventories: z
     .boolean()
     .describe(
       "Whether the organization has carbon inventories calculated or in a further stage"
     ),
-  lastEdition: z.iso.datetime().nullable().describe("organization.updated_at"),
+  lastMeasurement: z.iso
+    .datetime()
+    .nullable()
+    .describe("The last valid carbon inventory date"),
   totalEmissions: z
     .number()
     .describe(
