@@ -494,6 +494,7 @@ model EmissionFactor {
   @@map("emission_factor")
 }
 
+// TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
 enum InventoryStatus {
   DRAFT
   SUBMITTED
