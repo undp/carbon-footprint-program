@@ -11,7 +11,7 @@ export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
   options
 ) => {
   fastify.post(
-    "/:id/accredit",
+    "/:id/request-accreditation",
     {
       schema: {
         tags: ["app-organizations"],
