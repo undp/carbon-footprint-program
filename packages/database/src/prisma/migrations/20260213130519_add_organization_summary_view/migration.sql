@@ -76,6 +76,8 @@ organization_carbon_inventories_summary AS (
   LEFT JOIN carbon_inventory_subtotals_view csv
     ON csv.carbon_inventory_id = ci.id
   WHERE ci.organization_id IS NOT NULL
+  AND ci.status NOT IN ('DELETED', 'DRAFT')
+  AND ci.year BETWEEN current_year() - 2 AND current_year()
   GROUP BY ci.organization_id
 )
 
@@ -158,3 +160,5 @@ LEFT JOIN country_job_position cjp
 LEFT JOIN organization_carbon_inventories_summary ocs
   ON ocs.organization_id = o.id
 WHERE rod.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
+
+-- TODO: remove fields that can be derived from the view. sort and filtering must be done using the ORM.
