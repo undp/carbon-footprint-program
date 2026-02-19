@@ -2,10 +2,11 @@ import type { PrismaClient } from "@repo/database";
 import type {
   GetAllOrganizationsResponse,
   GetAllOrganizationsQuery,
-  OrganizationDisplayStatus,
 } from "@repo/types";
-import { SubmissionStatus } from "@repo/database";
-import { kgToTon } from "@/utils/number.js";
+import {
+  adminOrganizationSummarySelect,
+  mapAdminOrganizationSummaryToResponse,
+} from "../mappers.js";
 
 export const getAllOrganizationsService = async (
   prismaClient: PrismaClient,
@@ -33,19 +34,7 @@ export const getAllOrganizationsService = async (
     orderBy,
     skip: offset,
     take: limit,
-    select: {
-      organizationId: true,
-      name: true,
-      sectorName: true,
-      subsectorName: true,
-      sizeName: true,
-      displayStatus: true,
-      lastSubmissionStatus: true,
-      hasUnsubmittedChanges: true,
-      hasCarbonInventories: true,
-      lastEdition: true,
-      totalEmissions: true,
-    },
+    select: adminOrganizationSummarySelect,
   });
 
   // Get total count for pagination metadata
@@ -56,21 +45,9 @@ export const getAllOrganizationsService = async (
   const hasNext = offset + limit < total;
   const hasPrev = offset > 0;
 
-  // Map to response format
-  const organizations = data.map((org) => ({
-    id: org.organizationId.toString(),
-    name: org.name,
-    sectorName: org.sectorName,
-    subsectorName: org.subsectorName,
-    sizeName: org.sizeName,
-    status: org.displayStatus as OrganizationDisplayStatus,
-    lastSubmissionStatus:
-      (org.lastSubmissionStatus as SubmissionStatus) ?? null,
-    hasUnsubmittedChanges: Boolean(org.hasUnsubmittedChanges),
-    hasCarbonInventories: org.hasCarbonInventories,
-    lastEdition: org.lastEdition ? org.lastEdition.toISOString() : null,
-    totalEmissions: kgToTon(Number(org.totalEmissions)),
-  }));
+  const organizations: GetAllOrganizationsResponse["data"] = data.map(
+    mapAdminOrganizationSummaryToResponse
+  );
 
   return {
     data: organizations,
