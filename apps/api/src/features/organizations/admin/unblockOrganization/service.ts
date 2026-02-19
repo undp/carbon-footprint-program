@@ -1,9 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { UnblockOrganizationResponse, User } from "@repo/types";
-import {
-  OrganizationNotFoundError,
-  OrganizationAlreadyUnblockedError,
-} from "../../errors.js";
+import { OrganizationNotFoundError } from "../../errors.js";
+import { OrganizationAlreadyUnblockedError } from "../errors.js";
 import { OrganizationStatus } from "@repo/database";
 
 export const unblockOrganizationService = async (
