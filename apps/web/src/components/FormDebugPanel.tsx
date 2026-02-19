@@ -14,8 +14,9 @@ export const FormDebugPanel: FC<{ control: Control<any> }> = ({ control }) => {
   const [collapsed, setCollapsed] = useState(true);
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const values = useWatch({ control });
-  const { isDirty, isValid, isSubmitting, isSubmitted, errors } =
-    useFormState({ control });
+  const { isDirty, isValid, isSubmitting, isSubmitted, errors } = useFormState({
+    control,
+  });
 
   return (
     <div

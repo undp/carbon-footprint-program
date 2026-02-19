@@ -17,9 +17,7 @@ interface ExplanationModalProps {
   onClose: () => void;
 }
 
-const ExplanationModalContent: FC<
-  Omit<ExplanationModalProps, "open">
-> = ({
+const ExplanationModalContent: FC<Omit<ExplanationModalProps, "open">> = ({
   value,
   title = "Editar Explicación",
   readOnly = false,

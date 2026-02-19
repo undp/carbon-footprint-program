@@ -13,8 +13,8 @@ export const SwapCategoryPositionsRequestSchema = z
 // Response Schema
 export const SwapCategoryPositionsResponseSchema = z
   .object({
-    categories: z.tuple([CategorySchema, CategorySchema]).describe(
-      "Both updated categories after the swap"
-    ),
+    categories: z
+      .tuple([CategorySchema, CategorySchema])
+      .describe("Both updated categories after the swap"),
   })
   .strict();

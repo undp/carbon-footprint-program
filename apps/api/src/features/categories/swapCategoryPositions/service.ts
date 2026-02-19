@@ -64,6 +64,9 @@ export const swapCategoryPositionsService = async (
   });
 
   return {
-    categories: [mapCategoryToResponse(updatedA), mapCategoryToResponse(updatedB)],
+    categories: [
+      mapCategoryToResponse(updatedA),
+      mapCategoryToResponse(updatedB),
+    ],
   };
 };

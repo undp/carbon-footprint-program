@@ -543,7 +543,6 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
                 },
                 "& .MuiDataGrid-row.row--editing": {
                   backgroundColor: theme.palette.grey[100],
-                  // backgroundColor: alpha(theme.palette.primary.main, 0.1),
                 },
               })}
               columns={columns}
@@ -624,7 +623,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
           </Button>
         </DialogActions>
       </Dialog>
-      {/* {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />} */}
+      {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
         onCancel={() => reset?.()}

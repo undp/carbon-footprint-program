@@ -5,7 +5,13 @@ import {
   useFormContext,
   type FieldError,
 } from "react-hook-form";
-import { TextField, Typography, Tooltip, type SxProps, type Theme } from "@mui/material";
+import {
+  TextField,
+  Typography,
+  Tooltip,
+  type SxProps,
+  type Theme,
+} from "@mui/material";
 
 /** Traverse a nested object by path segments, returning the value at that path. */
 function getNestedError(

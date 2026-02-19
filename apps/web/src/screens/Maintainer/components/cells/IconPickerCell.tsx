@@ -3,7 +3,6 @@ import {
   Box,
   IconButton,
   Popover,
-  Tooltip,
   Typography,
   Divider,
   type SvgIconProps,
