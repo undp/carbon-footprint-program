@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { alpha, Box } from "@mui/material";
+import { alpha, Box, Typography } from "@mui/material";
 import { SubmissionStatus as RequestStatus } from "@repo/types";
 
 interface RequestStatusChipProps {
@@ -22,17 +22,19 @@ export const RequestStatusChip: FC<RequestStatusChipProps> = ({ status }) => {
   return (
     <Box
       sx={{
+        display: "flex",
+        alignItems: "center",
         width: "fit-content",
         px: 1.5,
-        py: 0.5,
+        minHeight: "32px",
         borderRadius: "6px",
         backgroundColor: alpha(statusColors[status], 0.2),
         color: statusColors[status],
-        fontWeight: 500,
-        fontSize: "0.875rem",
       }}
     >
-      {statusLabels[status]}
+      <Typography variant="caption" fontWeight="fontWeightMedium">
+        {statusLabels[status]}
+      </Typography>
     </Box>
   );
 };
