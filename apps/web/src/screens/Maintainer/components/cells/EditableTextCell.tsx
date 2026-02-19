@@ -40,6 +40,46 @@ interface EditableTextCellProps {
   truncateLines?: number;
 }
 
+interface EditingTextFieldProps {
+  initialValue: string;
+  onChange: (value: string) => void;
+  fieldError?: FieldError;
+  multiline: boolean;
+  maxRows: number;
+}
+
+/** Mounts fresh each time the cell enters edit mode, so useState always picks up the latest formValue. */
+const EditingTextField: FC<EditingTextFieldProps> = ({
+  initialValue,
+  onChange,
+  fieldError,
+  multiline,
+  maxRows,
+}) => {
+  const [localValue, setLocalValue] = useState(initialValue);
+
+  return (
+    <TextField
+      fullWidth
+      size="small"
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={() => onChange(localValue)}
+      onKeyDown={(e) => e.stopPropagation()}
+      error={!!fieldError}
+      label={fieldError?.message ?? ""}
+      multiline={multiline}
+      maxRows={maxRows}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          backgroundColor: "white",
+        },
+        minHeight: 0,
+      }}
+    />
+  );
+};
+
 export const EditableTextCell: FC<EditableTextCellProps> = ({
   formArrayName = "methodologies",
   rowIndex,
@@ -61,8 +101,6 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
     rowIndex,
     fieldName
   );
-
-  const [localValue, setLocalValue] = useState(formValue);
 
   if (!isEditing) {
     const truncateSx: SxProps<Theme> =
@@ -107,23 +145,12 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   }
 
   return (
-    <TextField
-      fullWidth
-      size="small"
-      value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={() => onChange(localValue)}
-      onKeyDown={(e) => e.stopPropagation()}
-      error={!!fieldError}
-      label={fieldError?.message ?? ""}
+    <EditingTextField
+      initialValue={formValue}
+      onChange={onChange}
+      fieldError={fieldError}
       multiline={multiline}
       maxRows={maxRows}
-      sx={{
-        "& .MuiOutlinedInput-root": {
-          backgroundColor: "white",
-        },
-        minHeight: 0,
-      }}
     />
   );
 };
