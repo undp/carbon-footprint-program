@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { SubmissionStatus } from "@repo/database";
+import { OrganizationStatus, SubmissionStatus } from "@repo/database/enums";
 
 export const EntityReferenceSchema = z.object({
   id: IdSchema.describe("The entity ID"),
@@ -12,6 +12,8 @@ export const OrganizationDisplayStatusSchema = z.enum([
   "NOT_ACCREDITED",
   "BLOCKED",
 ]);
+
+export const OrganizationStatusSchema = z.enum(OrganizationStatus);
 
 export const OrganizationDisplayStatusValues =
   OrganizationDisplayStatusSchema.enum;

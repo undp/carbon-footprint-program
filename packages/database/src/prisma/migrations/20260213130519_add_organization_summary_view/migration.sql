@@ -2,7 +2,7 @@
 CREATE OR REPLACE VIEW "organization_summary_view" AS
 
 -- 1. Accredited organizations: does any ACTIVE org_data have an APPROVED submission?
-WITH accredited_organizations AS (
+WITH accredited_organizations_ids AS (
   SELECT DISTINCT od.organization_id
   FROM organization_data od
   JOIN submission_subject_organization_data ssod
@@ -14,7 +14,7 @@ WITH accredited_organizations AS (
 ),
 
 -- 2. Organizations latest submission: most recent submission (any status) per organization
-organizations_latest_submission AS (
+organizations_latest_submission_status AS (
   SELECT DISTINCT ON (od.organization_id)
     od.organization_id,
     s.status AS submission_status
@@ -27,7 +27,7 @@ organizations_latest_submission AS (
 ),
 
 -- 3. Organizations with unsubmitted changes: ACTIVE org_data with no submission at all (true drafts only)
-organizations_with_unsubmitted_changes AS (
+organizations_ids_with_unsubmitted_changes AS (
   SELECT DISTINCT od.organization_id
   FROM organization_data od
   WHERE od.status = 'ACTIVE'
@@ -76,6 +76,9 @@ organization_carbon_inventories_summary AS (
   LEFT JOIN carbon_inventory_subtotals_view csv
     ON csv.carbon_inventory_id = ci.id
   WHERE ci.organization_id IS NOT NULL
+  AND ci.status NOT IN ('DELETED', 'DRAFT')
+  AND (ci.organization_data->>'year') IS NOT NULL
+  AND (ci.organization_data->>'year')::int >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
   GROUP BY ci.organization_id
 )
 
@@ -87,40 +90,40 @@ SELECT
   o.updated_at                                             AS organization_updated_at,
 
   -- Reference organization_data fields
-  rod.id                                                   AS organization_data_id,
-  rod.legal_name,
-  rod.trade_name,
-  rod.tax_id,
-  COALESCE(rod.trade_name, rod.legal_name, rod.tax_id)     AS name,
-  rod.sector_id,
-  rod.subsector_id,
-  rod.country_organization_size_id,
-  rod.main_activity_id,
-  rod.address,
-  rod.employees_count,
-  rod.representative_full_name,
-  rod.representative_tax_id,
-  rod.representative_country_job_position_id,
-  rod.representative_phone,
-  rod.representative_email,
-  rod.created_at                                           AS organization_data_created_at,
-  rod.updated_at                                           AS organization_data_updated_at,
+  odd.id                                                   AS organization_data_id,
+  odd.legal_name,
+  odd.trade_name,
+  odd.tax_id,
+  COALESCE(odd.trade_name, odd.legal_name, odd.tax_id)     AS name,
+  odd.sector_id,
+  odd.subsector_id,
+  odd.country_organization_size_id,
+  odd.main_activity_id,
+  odd.address,
+  odd.employees_count,
+  odd.representative_full_name,
+  odd.representative_tax_id,
+  odd.representative_country_job_position_id,
+  odd.representative_phone,
+  odd.representative_email,
+  odd.created_at                                           AS organization_data_created_at,
+  odd.updated_at                                           AS organization_data_updated_at,
 
   -- Last submission status (includes REJECTED, from any org_data)
-  ls.submission_status::TEXT                               AS last_submission_status,
+  lss.submission_status::TEXT                               AS last_submission_status,
 
   -- Has unsubmitted changes flag
-  (uc.organization_id IS NOT NULL)                         AS has_unsubmitted_changes,
+  (uioc.organization_id IS NOT NULL)                         AS has_unsubmitted_changes,
 
   -- Display status (derived from accreditation CTE, not reference row)
   CASE
     WHEN o.status = 'BLOCKED' THEN 'BLOCKED'
-    WHEN acc.organization_id IS NOT NULL THEN 'ACCREDITED'
+    WHEN acoi.organization_id IS NOT NULL THEN 'ACCREDITED'
     ELSE 'NOT_ACCREDITED'
   END                                                      AS display_status,
 
   -- Accreditation flag (from accreditation CTE, independent of BLOCKED)
-  (acc.organization_id IS NOT NULL)                        AS is_accredited,
+  (acoi.organization_id IS NOT NULL)                        AS is_accredited,
 
   -- Pre-joined lookup names
   cos.name                                                 AS size_name,
@@ -137,24 +140,26 @@ SELECT
   ocs.last_measurement                                         AS last_measurement
 
 FROM organization o
-LEFT JOIN organization_displayed_data rod
-  ON rod.organization_id = o.id AND rod.rn = 1
-LEFT JOIN accredited_organizations acc
-  ON acc.organization_id = o.id
-LEFT JOIN organizations_latest_submission ls
-  ON ls.organization_id = o.id
-LEFT JOIN organizations_with_unsubmitted_changes uc
-  ON uc.organization_id = o.id
+LEFT JOIN organization_displayed_data odd
+  ON odd.organization_id = o.id AND odd.rn = 1
+LEFT JOIN accredited_organizations_ids acoi
+  ON acoi.organization_id = o.id
+LEFT JOIN organizations_latest_submission_status lss
+  ON lss.organization_id = o.id
+LEFT JOIN organizations_ids_with_unsubmitted_changes uioc
+  ON uioc.organization_id = o.id
 LEFT JOIN country_organization_size cos
-  ON cos.id = rod.country_organization_size_id
+  ON cos.id = odd.country_organization_size_id
 LEFT JOIN country_sector cs
-  ON cs.id = rod.sector_id
+  ON cs.id = odd.sector_id
 LEFT JOIN country_subsector csub
-  ON csub.id = rod.subsector_id
+  ON csub.id = odd.subsector_id
 LEFT JOIN organization_main_activity oma
-  ON oma.id = rod.main_activity_id
+  ON oma.id = odd.main_activity_id
 LEFT JOIN country_job_position cjp
-  ON cjp.id = rod.representative_country_job_position_id
+  ON cjp.id = odd.representative_country_job_position_id
 LEFT JOIN organization_carbon_inventories_summary ocs
   ON ocs.organization_id = o.id
-WHERE rod.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
+WHERE odd.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
+
+-- TODO: remove fields that can be derived from the view. sort and filtering must be done using the ORM.

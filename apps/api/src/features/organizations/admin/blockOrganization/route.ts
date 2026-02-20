@@ -20,7 +20,9 @@ export const blockOrganizationRoute: StandardRouteSignature = (
         params: BlockOrganizationParamsSchema,
         response: {
           200: BlockOrganizationResponseSchema,
+          400: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
+          409: ApiErrorResponseSchema,
         },
       },
     },

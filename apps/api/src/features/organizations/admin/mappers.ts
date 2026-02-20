@@ -1,4 +1,4 @@
-import type { Prisma, SubmissionStatus } from "@repo/database";
+import type { Prisma } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
 import { kgToTon } from "@/utils/number.js";
 
@@ -10,7 +10,6 @@ export const adminOrganizationSummarySelect = {
   sectorName: true,
   subsectorName: true,
   sizeName: true,
-  displayStatus: true,
   lastSubmissionStatus: true,
   hasUnsubmittedChanges: true,
   hasCarbonInventories: true,
@@ -34,13 +33,10 @@ export function mapAdminOrganizationSummaryToResponse(
     sizeName: org.sizeName,
     status: org.organizationStatus,
     isAccredited: org.isAccredited,
-    lastSubmissionStatus:
-      (org.lastSubmissionStatus as SubmissionStatus) ?? null,
-    hasUnsubmittedChanges: Boolean(org.hasUnsubmittedChanges),
+    lastSubmissionStatus: org.lastSubmissionStatus ?? null,
+    hasUnsubmittedChanges: org.hasUnsubmittedChanges,
     hasCarbonInventories: org.hasCarbonInventories,
-    lastMeasurement: org.lastMeasurement
-      ? org.lastMeasurement.toISOString()
-      : null,
+    lastMeasurement: org.lastMeasurement?.toISOString() ?? null,
     totalEmissions: kgToTon(Number(org.totalEmissions)),
   };
 }

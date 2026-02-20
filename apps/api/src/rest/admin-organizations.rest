@@ -24,8 +24,8 @@ GET {{baseUrl}}/api/admin/organizations?sortBy=name&sortOrder=desc HTTP/1.1
 GET {{baseUrl}}/api/admin/organizations?sortBy=totalEmissions&sortOrder=desc HTTP/1.1
 
 
-### Get All Organizations - Sort by Last Edition
-GET {{baseUrl}}/api/admin/organizations?sortBy=lastEdition&sortOrder=desc HTTP/1.1
+### Get All Organizations - Sort by Last Measurement
+GET {{baseUrl}}/api/admin/organizations?sortBy=lastMeasurement&sortOrder=desc HTTP/1.1
 
 
 ### Get All Organizations - Filter by Status (BLOCKED)

@@ -124,7 +124,6 @@ export const createOrganizationData = async (
     data: {
       organizationId: BigInt(organizationId),
       createdById: BigInt(userId),
-      status: OrganizationDataStatus.ACTIVE,
 
       legalName: data.legalName,
       tradeName: data.tradeName,
