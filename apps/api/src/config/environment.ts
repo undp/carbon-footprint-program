@@ -135,3 +135,11 @@ export const FORCED_USER_EMAIL_WHEN_NO_PROVIDER =
   process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
 
 export const APP_VERSION = process.env.APP_VERSION || "unknown";
+
+// ============================================================================
+// Azure AI Foundry Configuration
+// ============================================================================
+
+export const AI_FOUNDRY_ENDPOINT = process.env.AI_FOUNDRY_ENDPOINT ?? "";
+export const AI_FOUNDRY_AGENT_NAME =
+  process.env.AI_FOUNDRY_AGENT_NAME ?? "HuellaLatamChatBot";

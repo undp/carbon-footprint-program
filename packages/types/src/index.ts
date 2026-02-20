@@ -1,4 +1,5 @@
 export * from "./carbonInventories/index.js";
+export * from "./chatbot/index.js";
 export * from "./countryOrganizationSizes/index.js";
 export * from "./countrySectors/index.js";
 export * from "./jobPositions/index.js";
