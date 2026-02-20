@@ -24,6 +24,7 @@ import { createTestOrganizationData } from "@test/factories/organizationDataFact
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("GET /api/app/organizations/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -75,7 +76,7 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(body.taxId).toBe("123456789");
       expect(body.name).toBeDefined();
       expect(body.address).toBe("123 Test Street");
-      expect(body.employeeCount).toBe(50);
+      expect(body.employeesCount).toBe(50);
       expect(body.representative).toBeDefined();
       expect(body.representative.fullName).toBeDefined();
       expect(body.representative.taxId).toBeDefined();
@@ -642,12 +643,12 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(body.mainActivity).toBeNull();
       expect(body.tradeName).toBeNull();
       expect(body.address).toBeNull();
-      expect(body.employeeCount).toBeNull();
+      expect(body.employeesCount).toBeNull();
     });
 
     it("should return entity references with id and name when set", async () => {
       const org = await createTestOrganization(prisma);
-      const orgData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationData(prisma, org.id);
       await createTestMembership(prisma, testUser.id, org.id);
 
       const response = await app.inject({

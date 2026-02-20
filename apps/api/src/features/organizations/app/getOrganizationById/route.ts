@@ -16,7 +16,8 @@ export const getOrganizationByIdRoute: StandardRouteSignature = (
       schema: {
         tags: ["app-organizations"],
         summary: "Get organization by ID",
-        description: "Get organization details by ID (admin access)",
+        description:
+          "Get organization details by ID (requires active membership)",
         params: GetOrganizationByIdParamsSchema,
         response: {
           200: GetOrganizationByIdResponseSchema,

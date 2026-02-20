@@ -21,7 +21,13 @@ export const requestOrganizationAccreditationService = async (
   organizationId: string,
   user: User | null
 ): Promise<RequestOrganizationAccreditationResponse> => {
-  const userId = user!.id;
+  if (!user) {
+    throw new Error(
+      "User must be authenticated to request organization accreditation"
+    );
+  }
+
+  const userId = user.id;
   const organization = await prismaClient.organization.findUnique({
     where: {
       id: BigInt(organizationId),

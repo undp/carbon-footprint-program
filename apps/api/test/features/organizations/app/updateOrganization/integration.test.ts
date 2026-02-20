@@ -121,7 +121,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateOrganizationResponse;
-      expect(body).toEqual({ organizationId: org.id.toString() });
+      expect(body).toEqual({ id: org.id.toString() });
 
       // Verify the draft was updated in-place
       const updatedOrgData = await prisma.organizationData.findUnique({
@@ -173,7 +173,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateOrganizationResponse;
-      expect(body).toEqual({ organizationId: org.id.toString() });
+      expect(body).toEqual({ id: org.id.toString() });
 
       // Verify old APPROVED data remains ACTIVE and unchanged
       const oldOrgData = await prisma.organizationData.findUnique({
@@ -252,7 +252,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateOrganizationResponse;
-      expect(body).toEqual({ organizationId: org.id.toString() });
+      expect(body).toEqual({ id: org.id.toString() });
 
       // Verify old REJECTED data remains ACTIVE
       const oldOrgData = await prisma.organizationData.findUnique({

@@ -45,7 +45,7 @@ export const mapOrganizationSummaryToResponse = (
         }
       : null,
     address: org.address,
-    employeeCount: org.employeesCount,
+    employeesCount: org.employeesCount,
     representative: {
       fullName: org.representativeFullName,
       taxId: org.representativeTaxId,

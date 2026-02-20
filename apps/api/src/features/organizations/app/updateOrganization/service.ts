@@ -20,8 +20,32 @@ import {
 } from "../../helpers.js";
 
 /**
- * Updates organization data with a simple update strategy.
- * Finds the ACTIVE organization_data and updates it in place.
+ * Updates organization data based on current submission state.
+ *
+ * State Machine Behavior:
+ * ----------------------
+ * 1. PENDING (under review):
+ *    - Throws OrganizationUnderReviewError
+ *    - User must wait for admin approval/rejection before making changes
+ *
+ * 2. DRAFT (no submission):
+ *    - Updates the existing organization data in place
+ *    - No new submission is created
+ *    - Changes remain as draft until explicitly submitted
+ *
+ * 3. APPROVED (accredited):
+ *    - Creates NEW organization data record with changes
+ *    - Automatically creates and submits for review (PENDING status)
+ *    - Original approved data remains unchanged
+ *    - New changes require admin approval before taking effect
+ *
+ * 4. REJECTED (previously rejected):
+ *    - Creates NEW organization data as draft
+ *    - No automatic submission - user can edit freely
+ *    - User must explicitly request accreditation when ready
+ *
+ * Note: This ensures approved organizations maintain their accredited data
+ * while new changes go through review process.
  */
 export const updateOrganizationService = async (
   prismaClient: PrismaClient,
@@ -75,7 +99,7 @@ export const updateOrganizationService = async (
         body
       );
       return {
-        organizationId: organization.id.toString(),
+        id: organization.id.toString(),
       };
     }
 
@@ -97,7 +121,7 @@ export const updateOrganizationService = async (
         userId
       );
       return {
-        organizationId: organization.id.toString(),
+        id: organization.id.toString(),
       };
     }
 
@@ -109,12 +133,12 @@ export const updateOrganizationService = async (
     if (rejectedOrganizationData) {
       await createOrganizationData(tx, organizationId, userId, body);
       return {
-        organizationId: organization.id.toString(),
+        id: organization.id.toString(),
       };
     }
 
     return {
-      organizationId: organization.id.toString(),
+      id: organization.id.toString(),
     };
   });
 };
