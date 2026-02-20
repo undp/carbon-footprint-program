@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Stack } from "@mui/material";
+import { Stack, useTheme } from "@mui/material";
 import type { SvgIconComponent } from "@mui/icons-material";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
 import {
@@ -8,21 +8,12 @@ import {
   CheckCircleOutlined,
   CancelOutlined,
 } from "@mui/icons-material";
-import { SubmissionStatus as RequestStatus } from "@repo/types";
+import {
+  SubmissionStatus as RequestStatus,
+  SubmissionStatus,
+} from "@repo/types";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
-
-const TOTAL_CARD_ASSETS = {
-  label: "Total",
-  color: "#459F90",
-  Icon: TaskOutlined,
-};
-
-const COLOR_BY_STATUS: Record<RequestStatus, string> = {
-  [RequestStatus.PENDING]: "#E65100",
-  [RequestStatus.APPROVED]: "#004D35",
-  [RequestStatus.REJECTED]: "#C62828",
-};
 
 const ICON_BY_STATUS: Record<RequestStatus, SvgIconComponent> = {
   [RequestStatus.PENDING]: AccessTimeOutlined,
@@ -44,6 +35,15 @@ const STATUS_ORDER: RequestStatus[] = [
 
 export const RequestScreenKpiSection: FC = () => {
   const { data: kpisData, isLoading } = useAdminRequestsKpis();
+  const theme = useTheme();
+
+  const REQUESTS_STATUS_COLORS: Record<SubmissionStatus, string> = {
+    [SubmissionStatus.PENDING]: theme.palette.warning.dark,
+    [SubmissionStatus.APPROVED]: theme.palette.success.dark,
+    [SubmissionStatus.REJECTED]: theme.palette.error.dark,
+  };
+
+  const REQUESTS_TOTAL_COLOR = theme.palette.secondary.dark;
 
   const valueByStatus = useMemo(() => {
     const counts = kpisData?.counts ?? [];
@@ -71,17 +71,16 @@ export const RequestScreenKpiSection: FC = () => {
   return (
     <Stack direction="row" spacing={2}>
       <RequestScreenKpiCard
-        key={TOTAL_CARD_ASSETS.label}
-        label={TOTAL_CARD_ASSETS.label}
-        color={TOTAL_CARD_ASSETS.color}
-        Icon={TOTAL_CARD_ASSETS.Icon}
+        label="Total"
+        color={REQUESTS_TOTAL_COLOR}
+        Icon={TaskOutlined}
         value={kpisData?.total ?? 0}
       />
       {STATUS_ORDER.map((status) => (
         <RequestScreenKpiCard
           key={status}
           label={LABEL_BY_STATUS[status]}
-          color={COLOR_BY_STATUS[status]}
+          color={REQUESTS_STATUS_COLORS[status]}
           Icon={ICON_BY_STATUS[status]}
           value={valueByStatus[status]}
         />
