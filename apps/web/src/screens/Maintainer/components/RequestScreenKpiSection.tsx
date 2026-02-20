@@ -1,5 +1,6 @@
 import { FC, useMemo } from "react";
 import { Stack } from "@mui/material";
+import type { SvgIconComponent } from "@mui/icons-material";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
 import {
   TaskOutlined,
@@ -23,7 +24,7 @@ const COLOR_BY_STATUS: Record<RequestStatus, string> = {
   [RequestStatus.REJECTED]: "#C62828",
 };
 
-const ICON_BY_STATUS: Record<RequestStatus, typeof TaskOutlined> = {
+const ICON_BY_STATUS: Record<RequestStatus, SvgIconComponent> = {
   [RequestStatus.PENDING]: AccessTimeOutlined,
   [RequestStatus.APPROVED]: CheckCircleOutlined,
   [RequestStatus.REJECTED]: CancelOutlined,

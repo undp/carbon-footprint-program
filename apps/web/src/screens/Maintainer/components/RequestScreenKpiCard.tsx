@@ -1,11 +1,11 @@
 import { FC } from "react";
 import { alpha, Box, Card, Typography } from "@mui/material";
-import { TaskOutlined } from "@mui/icons-material";
+import type { SvgIconComponent } from "@mui/icons-material";
 
 interface RequestScreenKpiCardProps {
   label: string;
   color: string;
-  Icon: typeof TaskOutlined;
+  Icon: SvgIconComponent;
   value: number;
 }
 
