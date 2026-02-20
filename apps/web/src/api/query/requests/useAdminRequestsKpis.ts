@@ -10,7 +10,7 @@ import {
 } from "@repo/types";
 
 const MOCK_DATA: GetAdminRequestsKpisResponse = {
-  total: 10,
+  total: 25,
   counts: [
     {
       type: RequestType.ORGANIZATION_ACCREDITATION,
