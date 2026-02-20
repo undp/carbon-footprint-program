@@ -14,6 +14,9 @@ Estas emisiones son relevantes debido a la liberación de **metano (CH₄)** y *
 - ¿Realizas **crianza o engorda de animales**?
 - ¿Tu empresa utiliza **animales para transporte de carga o trabajo**?
 
+💡 **Tip importante:**  
+Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**
+
 ---
 
 ## ¿Cómo es el cálculo de emisiones?
@@ -87,6 +90,29 @@ Debes rellenar los siguientes campos:
 | Cantidad | Número promedio anual de animales | 90 |
 
 ⚠️ Selecciona correctamente el **tipo de animal**, ya que los factores de emisión varían entre especies  
+
+---
+
+### 📌 Ejemplo práctico
+
+Supongamos que durante el año tu empresa tuvo en promedio:
+
+- **120 vacas**
+
+Y el factor de emisión para vacas (ejemplo referencial) es:
+
+- **Por cada vaca que tienes en tu campo, se generan 1.500 kg CO₂eq al año**
+
+Entonces el cálculo sería:
+
+>$CO₂eq$ = $120\ vacas \times 1.500\ kg\ CO₂eq/vaca$ = $180.000\ kg\ CO₂eq$
+
+Es decir, la actividad ganadera habría generado:
+
+- **180.000 kg CO₂eq en el año**
+- O lo mismo que **180 toneladas de CO₂eq**
+
+⚠️ Es importante que el factor de emisión esté expresado en **kg CO₂eq por animal por año**, y que la cantidad declarada corresponda al **promedio anual de animales**.
 
 ---
 

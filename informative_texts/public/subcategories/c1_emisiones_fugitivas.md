@@ -14,7 +14,7 @@ Estas emisiones suelen ser **invisibles**, pero pueden tener un **alto impacto c
 - ¿Tu empresa maneja o transporta **gases industriales o refrigerantes**?
 - ¿Tienes **facturas, boletas o reportes técnicos** de recarga de gas o mantenciones?
 
-💡 **Tip importante:**  
+💡 **Tip importante:**
 Si **no utilizas gases refrigerantes**, **no tienes equipos de refrigeración**, **nunca has realizado mantenciones ni recargas de gas** o no sabes de este concepto, es probable que **no tengas emisiones fugitivas relevantes**.
 
 ---
@@ -67,7 +67,7 @@ Si una empresa realizó una mantención y recargó gas:
 >**Cantidad de gas liberado** ≈ **Cantidad de gas recargado**
 
 *Ejemplo:*  
-Si se recargaron **5 kg de R-410A**, puedes declarar **5 kg** como gas liberado.
+Si se recargaron **5 kg de HFC-32**, puedes declarar **5 kg** como gas liberado.
 
 ---
 
@@ -85,7 +85,7 @@ Debes rellenar los siguientes campos:
 
 | Campo | Qué debes ingresar | Ejemplo |
 |:------|:-------------------|--------:|
-| Gas | Tipo de gas liberado | R-410A, R-134a, R-404A |
+| Gas | Tipo de gas liberado | HFC-32, R-134a, R-404A |
 | Unidad | Unidad en la que se declara el gas | kg |
 | Cantidad | Total anual de gas liberado | 5 kg |
 
@@ -93,6 +93,30 @@ Debes rellenar los siguientes campos:
 ⚠️ Asegúrate de seleccionar correctamente el **tipo de gas**, ya que cada uno tiene un impacto climático distinto  
 
 ⚠️ Para conocer el tipo de gas liberado, puedes consultar a tu servicio de mantención, revisar la etiqueta del equipo o buscar el modelo en internet
+
+---
+
+### 📌 Ejemplo práctico
+
+Supongamos que durante el año tu empresa recargó:
+
+- **5 kg de HFC-32**
+
+Y el potencial de calentamiento global (GWP) del HFC-32 es (ejemplo referencial):
+
+- **Por cada kg utilizado de HFC-32, se generan 677 kg CO₂eq**
+
+Entonces el cálculo sería:
+
+>$CO₂eq$ = $5\ kg \times 677\ kg\ CO₂eq/kg$ = $4.062\ kg\ CO₂eq$
+
+Es decir, la recarga habría generado:
+
+- **4.062 kg CO₂eq en el año**
+- O lo mismo que **4,06 toneladas de CO₂eq**
+
+⚠️ Es importante que las **unidades coincidan**.  
+Si el factor está en **kg CO₂eq por kg de gas**, la cantidad debe estar en **kg**.
 
 ---
 
