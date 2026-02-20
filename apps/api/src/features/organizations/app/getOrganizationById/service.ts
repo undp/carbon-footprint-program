@@ -16,6 +16,17 @@ export const getOrganizationByIdService = async (
     where: {
       organizationId: BigInt(organizationId),
     },
+    include: {
+      organizationData: {
+        include: {
+          sector: true,
+          subsector: true,
+          countryOrganizationSize: true,
+          mainActivity: true,
+          representativeCountryJobPosition: true,
+        },
+      },
+    },
   });
 
   if (!org) {
