@@ -2,16 +2,22 @@ import type { PrismaClient } from "@repo/database";
 import type {
   CreateOrganizationBody,
   CreateOrganizationResponse,
+  User,
 } from "@repo/types";
 import { OrganizationStatus, MembershipStatus } from "@repo/database";
 import { AdminRoleNotFoundError } from "../../errors.js";
 import { createOrganizationData } from "../../helpers.js";
+import { UserNotFoundError } from "../../../users/errors.js";
 
 export const createOrganizationService = async (
   prismaClient: PrismaClient,
-  userId: string,
-  body: CreateOrganizationBody
+  body: CreateOrganizationBody,
+  user: User | null
 ): Promise<CreateOrganizationResponse> => {
+  if (!user) {
+    throw new UserNotFoundError();
+  }
+  const userId = user.id;
   return await prismaClient.$transaction(async (tx) => {
     // 1. Get user's country from their job position
     const user = await tx.user.findUnique({
