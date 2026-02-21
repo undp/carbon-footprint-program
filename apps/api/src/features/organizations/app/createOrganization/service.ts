@@ -15,6 +15,8 @@ export const createOrganizationService = async (
   user: User | null
 ): Promise<CreateOrganizationResponse> => {
   if (!user) {
+    // TODO: The organizationAuthorizationPlugin should be used to check if the user is authenticated
+    // TODO: Check if this error can be shared and use in the authorization/authentication plugins.
     throw new UserNotFoundError();
   }
   const userId = user.id;
