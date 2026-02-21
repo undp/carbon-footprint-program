@@ -6,6 +6,7 @@ import type {
 import { MembershipStatus } from "@repo/database";
 import {
   OrganizationAccessDeniedError,
+  OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   OrganizationUnderReviewError,
 } from "../../errors.js";
@@ -139,8 +140,6 @@ export const updateOrganizationService = async (
       };
     }
 
-    return {
-      id: organization.id.toString(),
-    };
+    throw new OrganizationDataNotFoundError(organizationId);
   });
 };
