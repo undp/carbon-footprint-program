@@ -69,7 +69,6 @@ export const createOrganizationService = async (
         organizationRoleId: adminRole.id,
         status: MembershipStatus.ACTIVE,
         createdById: BigInt(userId),
-        updatedById: BigInt(userId),
       },
     });
 
