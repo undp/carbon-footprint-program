@@ -42,7 +42,6 @@ export const createOrganizationService = async (
         countryId: user.countryJobPosition.countryId,
         status: OrganizationStatus.ACTIVE,
         createdById: BigInt(userId),
-        updatedById: BigInt(userId),
       },
     });
 
