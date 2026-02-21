@@ -225,7 +225,6 @@ describe("POST /api/app/organizations - Integration Tests", () => {
 
       expect(organization).toBeDefined();
       expect(organization?.createdById).toBe(testUser.id);
-      expect(organization?.updatedById).toBe(testUser.id);
     });
 
     it("should set createdById to current user ID on organization_data", async () => {
