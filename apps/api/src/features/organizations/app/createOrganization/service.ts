@@ -53,11 +53,13 @@ export const createOrganizationService = async (
     // Note: ACCREDITED_MEMBER is the organization-level role that grants full
     // management permissions within the organization (not to be confused with
     // system-level ADMIN role)
+    // TODO: refactor when definitive roles are implemented.
     const adminRole = await tx.organizationRole.findFirst({
       where: { role: { name: "ACCREDITED_MEMBER" } },
     });
 
     if (!adminRole) {
+      // TODO: refactor when definitive roles are implemented.
       throw new AdminRoleNotFoundError();
     }
 
