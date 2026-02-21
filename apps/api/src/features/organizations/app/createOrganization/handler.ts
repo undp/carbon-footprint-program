@@ -2,7 +2,7 @@ import type {
   CreateOrganizationBody,
   CreateOrganizationResponse,
 } from "@repo/types";
-import { createPostHandler } from "../../../../handlerFactory/createPostHandler.js";
+import { createPostHandler } from "@/handlerFactory/createPostHandler.js";
 import { createOrganizationService } from "./service.js";
 
 export const createOrganizationHandler = createPostHandler<
