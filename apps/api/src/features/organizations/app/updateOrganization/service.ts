@@ -53,6 +53,7 @@ export const updateOrganizationService = async (
   userId: string,
   body: UpdateOrganizationBody
 ): Promise<UpdateOrganizationResponse> => {
+  // TODO: check if this validation can be shared and used in the authorization/authentication plugins.
   const organization = await prismaClient.organization.findUnique({
     where: {
       id: BigInt(organizationId),
@@ -64,6 +65,7 @@ export const updateOrganizationService = async (
   }
 
   // Verify user has ACTIVE membership
+  // TODO: The organizationAuthorizationPlugin should be used to check if the user has an active membership
   const membership = await prismaClient.userOrganizationMembership.findFirst({
     where: {
       userId: BigInt(userId),
