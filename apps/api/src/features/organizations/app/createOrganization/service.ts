@@ -7,7 +7,10 @@ import type {
 import { OrganizationStatus, MembershipStatus } from "@repo/database";
 import { AdminRoleNotFoundError } from "../../errors.js";
 import { createOrganizationData } from "../../helpers.js";
-import { UserNotFoundError } from "../../../users/errors.js";
+import {
+  InvalidCountryJobPositionIdError,
+  UserNotFoundError,
+} from "../../../users/errors.js";
 
 export const createOrganizationService = async (
   prismaClient: PrismaClient,
@@ -28,7 +31,7 @@ export const createOrganizationService = async (
     });
 
     if (!user?.countryJobPosition?.countryId) {
-      throw new Error(
+      throw new InvalidCountryJobPositionIdError(
         "User must have a valid country job position to create an organization"
       );
     }
