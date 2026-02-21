@@ -15,6 +15,7 @@ import {
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
 } from "../../errors.js";
+import { UserNotFoundError } from "../../../users/errors.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -22,9 +23,9 @@ export const requestOrganizationAccreditationService = async (
   user: User | null
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
-    throw new Error(
-      "User must be authenticated to request organization accreditation"
-    );
+    // TODO: The organizationAuthorizationPlugin should be used to check if the user is authenticated
+    // TODO: Check if this error can be shared and use in the authorization/authentication plugins.
+    throw new UserNotFoundError();
   }
 
   const userId = user.id;
@@ -38,6 +39,7 @@ export const requestOrganizationAccreditationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
   // Verify user has ACTIVE membership
+  // TODO: The organizationAuthorizationPlugin should be used to check if the user has an active membership
   const membership = await prismaClient.userOrganizationMembership.findFirst({
     where: {
       userId: BigInt(userId),
