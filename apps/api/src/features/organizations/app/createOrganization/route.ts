@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const createOrganizationRoute: StandardRouteSignature = (
   fastify,
-  options
+  _options
 ) => {
   fastify.post(
     "/",
@@ -24,9 +24,6 @@ export const createOrganizationRoute: StandardRouteSignature = (
           400: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     createOrganizationHandler

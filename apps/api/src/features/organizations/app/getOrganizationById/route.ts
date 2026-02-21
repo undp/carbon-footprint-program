@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getOrganizationByIdRoute: StandardRouteSignature = (
   fastify,
-  options
+  _options
 ) => {
   fastify.get(
     "/:id",
@@ -24,9 +24,6 @@ export const getOrganizationByIdRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     getOrganizationByIdHandler

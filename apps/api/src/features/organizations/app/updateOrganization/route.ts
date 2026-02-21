@@ -9,7 +9,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const updateOrganizationRoute: StandardRouteSignature = (
   fastify,
-  options
+  _options
 ) => {
   fastify.patch(
     "/:id",
@@ -26,9 +26,6 @@ export const updateOrganizationRoute: StandardRouteSignature = (
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     updateOrganizationHandler

@@ -8,7 +8,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
   fastify,
-  options
+  _options
 ) => {
   fastify.post(
     "/:id/request-accreditation",
@@ -25,9 +25,6 @@ export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     requestOrganizationAccreditationHandler
