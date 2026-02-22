@@ -3,6 +3,7 @@
     "idpUserId": "test-user-idp-id",
     "email": "me@test.com",
     "countryJobPositionName": "Otro",
+    "role": "SUPERADMIN",
     "countryIsoCode": "CL",
     "firstName": "Test",
     "lastName": "Tester"
