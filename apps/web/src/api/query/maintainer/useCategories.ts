@@ -19,7 +19,7 @@ export const useCategories = (methodologyVersionId: string | undefined) =>
     queryFn: () =>
       apiClient
         .get("categories", {
-          searchParams: { methodologyVersionId: methodologyVersionId! },
+          searchParams: { methodologyVersionId },
         })
         .json(),
     staleTime: STALE_TIME_MS,
