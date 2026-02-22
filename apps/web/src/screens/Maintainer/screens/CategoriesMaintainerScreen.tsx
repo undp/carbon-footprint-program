@@ -44,7 +44,7 @@ import { useCategoryColumns } from "../hooks/useCategoryColumns";
 import { MethodologyVersionStatus, type Category } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import { FormDebugPanel } from "@components/FormDebugPanel";
+import { FormDebugPanel } from "@/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";

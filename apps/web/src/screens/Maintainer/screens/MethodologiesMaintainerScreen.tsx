@@ -20,7 +20,7 @@ import {
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import { type Methodology, MethodologyVersionStatus } from "@repo/types";
 import { StylizedDataGrid } from "@components";
-import { FormDebugPanel } from "@/components/FormDebugPanel";
+import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 
