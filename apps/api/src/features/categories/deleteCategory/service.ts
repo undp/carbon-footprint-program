@@ -23,7 +23,7 @@ export const deleteCategoryService = async (
       where: { id: categoryId },
       data: {
         status: CategoryStatus.DELETED,
-        updatedById: user ? BigInt(user.id) : null,
+        updatedById: user ? BigInt(user.id) : undefined,
       },
     });
 
