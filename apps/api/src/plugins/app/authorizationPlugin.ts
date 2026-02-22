@@ -26,23 +26,13 @@ import type {
   FastifyRequest,
   FastifyReply,
 } from "fastify";
-
-/**
- * User roles enum - to be synced with database schema when implemented.
- * TODO: Update this enum when roles are added to the User schema.
- */
-export enum UserRole {
-  USER = "user",
-  EDITOR = "editor",
-  ADMIN = "admin",
-  SUPERADMIN = "superadmin",
-}
+import { SystemRole } from "@repo/database";
 
 /**
  * Type for role checking function.
  */
 export type RequireRolesFunction = (
-  allowedRoles: UserRole[]
+  allowedRoles: SystemRole[]
 ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 const authorizationPlugin: FastifyPluginCallback = (fastify) => {
@@ -57,12 +47,12 @@ const authorizationPlugin: FastifyPluginCallback = (fastify) => {
    * fastify.get("/admin-only", {
    *   onRequest: [
    *     fastify.requireAuth,
-   *     fastify.requireRoles([UserRole.ADMIN])
+   *     fastify.requireRoles([SystemRole.ADMIN])
    *   ]
    * }, handler);
    * ```
    */
-  fastify.decorate("requireRoles", function (allowedRoles: UserRole[]) {
+  fastify.decorate("requireRoles", function (allowedRoles: SystemRole[]) {
     return async function (request: FastifyRequest, reply: FastifyReply) {
       const log = request.log.child({ module: "authorization" });
 
@@ -87,38 +77,29 @@ const authorizationPlugin: FastifyPluginCallback = (fastify) => {
         });
       }
 
-      // TODO: Implement actual role checking when User schema has roles
-      // For now, this is a placeholder that logs the authorization attempt
-      log.info(
-        {
-          userId: request.currentUser.id,
-          requiredRoles: allowedRoles,
-          // userRoles: request.currentUser.roles, // TODO: Uncomment when schema has roles
-        },
-        "Role authorization check (placeholder - always passes)"
-      );
+      // Check if user has one of the required roles
+      const userRole = request.currentUser.role;
+      const hasRequiredRole = allowedRoles.includes(userRole);
 
-      // PLACEHOLDER: Always allow for now
-      // TODO: Replace with actual role checking:
-      // const userRoles = request.currentUser.roles || [];
-      // const hasRequiredRole = allowedRoles.some(role => userRoles.includes(role));
-      //
-      // if (!hasRequiredRole) {
-      //   log.warn(
-      //     {
-      //       userId: request.currentUser.id,
-      //       userRoles,
-      //       requiredRoles: allowedRoles,
-      //     },
-      //     "Authorization failed: insufficient permissions"
-      //   );
-      //   return reply.status(403).send({
-      //     code: "FORBIDDEN",
-      //     message: "Insufficient permissions",
-      //   });
-      // }
-      //
-      // log.debug({ userId: request.currentUser.id }, "Authorization successful");
+      if (!hasRequiredRole) {
+        log.warn(
+          {
+            userId: request.currentUser.id,
+            userRole,
+            requiredRoles: allowedRoles,
+          },
+          "Authorization failed: insufficient permissions"
+        );
+        return reply.status(403).send({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions",
+        });
+      }
+
+      log.debug(
+        { userId: request.currentUser.id, userRole },
+        "Authorization successful"
+      );
     };
   });
 
