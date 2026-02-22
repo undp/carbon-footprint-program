@@ -375,9 +375,14 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
 
       if (row.id.startsWith("temp_")) return;
       if (direction === "up" && sortedIdx <= 0) return;
-      if (direction === "down" && (sortedIdx === -1 || sortedIdx >= sorted.length - 1)) return;
+      if (
+        direction === "down" &&
+        (sortedIdx === -1 || sortedIdx >= sorted.length - 1)
+      )
+        return;
 
-      const neighbor = sorted[direction === "up" ? sortedIdx - 1 : sortedIdx + 1];
+      const neighbor =
+        sorted[direction === "up" ? sortedIdx - 1 : sortedIdx + 1];
       if (neighbor.id.startsWith("temp_")) return;
 
       try {
