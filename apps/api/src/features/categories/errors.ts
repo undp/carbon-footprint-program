@@ -3,7 +3,7 @@ import { Prisma } from "@repo/database";
 
 export const CategoryNotFoundError = createError(
   "CATEGORY_NOT_FOUND",
-  "Category not found",
+  "Category not found (ID: %s)",
   404
 );
 
@@ -27,7 +27,7 @@ export const SameCategoryError = createError(
 
 export const CategoriesFromDifferentMethodologyVersionsError = createError(
   "CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS",
-  "Both categories must belong to the same methodology version",
+  "Both categories must belong to the same methodology version (Category IDs: %s, %s)",
   422
 );
 

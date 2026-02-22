@@ -34,11 +34,13 @@ export const swapCategoryPositionsService = async (
   ]);
 
   if (!catA || !catB) {
-    throw new CategoryNotFoundError();
+    const missingIds = [];
+    if (!catA) missingIds.push(idA);
+    if (!catB) missingIds.push(idB);
+    throw new CategoryNotFoundError(missingIds.join(", "));
   }
-
   if (catA.methodologyVersionId !== catB.methodologyVersionId) {
-    throw new CategoriesFromDifferentMethodologyVersionsError();
+    throw new CategoriesFromDifferentMethodologyVersionsError(catA.id, catB.id);
   }
 
   const positionA = catA.position;
