@@ -14,7 +14,8 @@ const ROLE_PRIORITY: Record<OrganizationRole, number> = {
 
 export const getOrganizationUsersService = async (
   prismaClient: PrismaClient,
-  organizationId: string
+  organizationId: string,
+  userId: string
 ): Promise<GetOrganizationUsersResponse> => {
   // Verify organization exists
   const organization = await prismaClient.organization.findUnique({
@@ -65,6 +66,7 @@ export const getOrganizationUsersService = async (
         name,
         email: membership.user.email || "",
         organizationRole: membership.role,
+        isCurrentUser: BigInt(membership.user.id) === BigInt(userId),
       };
     })
     .sort((a, b) => {

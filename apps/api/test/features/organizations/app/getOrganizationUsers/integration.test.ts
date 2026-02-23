@@ -82,6 +82,17 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(body.users).toBeDefined();
       expect(Array.isArray(body.users)).toBe(true);
       expect(body.users.length).toBe(2);
+
+      // Check isCurrentUser
+      const currentUser = body.users.find(
+        (u) => u.userId === testUser.id.toString()
+      );
+      const otherUser = body.users.find(
+        (u) => u.userId === adminUser.id.toString()
+      );
+
+      expect(currentUser?.isCurrentUser).toBe(true);
+      expect(otherUser?.isCurrentUser).toBe(false);
     });
 
     it("should reject VIEWER role from getting users", async () => {
@@ -228,6 +239,13 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(adminUserData!.name).toBe(
         `${adminUser.firstName} ${adminUser.lastName}`
       );
+      expect(adminUserData!.isCurrentUser).toBe(false);
+
+      const currentUserData = body.users.find(
+        (u) => u.userId === testUser.id.toString()
+      );
+      expect(currentUserData).toBeDefined();
+      expect(currentUserData!.isCurrentUser).toBe(true);
     });
 
     it("should not return deleted memberships", async () => {

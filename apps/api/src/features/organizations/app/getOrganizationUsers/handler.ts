@@ -17,8 +17,13 @@ export const getOrganizationUsersHandler = async (
   log.info({ organizationId }, "Getting organization users...");
 
   const prisma = request.server.prisma;
+  const userId = request.currentUser!.id;
 
-  const data = await getOrganizationUsersService(prisma, organizationId);
+  const data = await getOrganizationUsersService(
+    prisma,
+    organizationId,
+    userId
+  );
 
   log.info(
     { organizationId, userCount: data.users.length },

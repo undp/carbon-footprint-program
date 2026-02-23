@@ -15,6 +15,7 @@ const OrganizationUserSchema = z.object({
   organizationRole: z
     .enum(OrganizationRole)
     .describe("The user's role in the organization"),
+  isCurrentUser: z.boolean().describe("Whether the user is the current user"),
 });
 
 // Response schema
