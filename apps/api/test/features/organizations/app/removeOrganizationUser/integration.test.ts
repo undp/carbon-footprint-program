@@ -268,25 +268,25 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       expect(response.statusCode).toBe(403);
     });
 
-    it("should return 404 when user is not a member", async () => {
+    it("should return 403 when user is not a member", async () => {
       const organization = await createTestOrganization(prisma);
 
-      await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+      const member = await createTestUser(prisma, {
+        email: "member@example.com",
       });
-
-      const nonMember = await createTestUser(prisma, {
-        email: "nonmember@example.com",
+      await createTestMembership(prisma, adminUser.id, organization.id, {
+        role: OrganizationRole.ORGANIZATION_ADMIN,
       });
 
       const response = await app.inject({
         method: "DELETE",
-        url: `/api/app/organizations/${organization.id}/users/${nonMember.id}`,
+        url: `/api/app/organizations/${organization.id}/users/${member.id}`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("MEMBERSHIP_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
+      expect(body.message).toBe("You do not have access to this organization");
     });
 
     it("should return 403 when trying to remove self and is not last admin", async () => {
