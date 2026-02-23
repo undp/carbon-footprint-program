@@ -9,7 +9,8 @@ import type {
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { SystemRole } from "@repo/database/enums";
+import type { SystemRole, OrganizationRole } from "@repo/database/enums";
+import type { OrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -71,6 +72,35 @@ declare module "fastify" {
      */
     requireRoles: (
       allowedRoles: SystemRole[]
+    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+
+    /**
+     * Require user to have at least one of the specified roles within an organization.
+     * Must be used after requireAuth.
+     *
+     * @param organizationIdExtractor - Function to extract organization ID from request
+     * @param allowedRoles - Array of organization roles, user must have at least one
+     * @returns Hook function for organization role-based authorization
+     *
+     * @example
+     * // Define extractor
+     * const extractOrgId: OrganizationIdExtractor = async (request) =>
+     *   request.params.organizationId;
+     *
+     * // Use in route
+     * fastify.post("/organizations/:organizationId/users", {
+     *   onRequest: [
+     *     fastify.requireAuth,
+     *     fastify.requireOrganizationRole(
+     *       extractOrgId,
+     *       [OrganizationRole.ORGANIZATION_ADMIN]
+     *     )
+     *   ]
+     * }, handler);
+     */
+    requireOrganizationRole: (
+      organizationIdExtractor: OrganizationIdExtractor,
+      allowedRoles: OrganizationRole[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 
