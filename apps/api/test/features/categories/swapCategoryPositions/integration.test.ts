@@ -69,8 +69,12 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
       const body = JSON.parse(response.body) as SwapCategoryPositionsResponse;
       expect(body.categories).toHaveLength(2);
 
-      const returnedA = body.categories.find((c) => c.id === catA.id.toString());
-      const returnedB = body.categories.find((c) => c.id === catB.id.toString());
+      const returnedA = body.categories.find(
+        (c) => c.id === catA.id.toString()
+      );
+      const returnedB = body.categories.find(
+        (c) => c.id === catB.id.toString()
+      );
 
       expect(returnedA!.position).toBe(2);
       expect(returnedB!.position).toBe(1);
@@ -169,8 +173,12 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
       });
 
       const body = JSON.parse(response.body) as SwapCategoryPositionsResponse;
-      const foundCatA = body.categories.find((c) => c.id === catA.id.toString());
-      const foundCatB = body.categories.find((c) => c.id === catB.id.toString());
+      const foundCatA = body.categories.find(
+        (c) => c.id === catA.id.toString()
+      );
+      const foundCatB = body.categories.find(
+        (c) => c.id === catB.id.toString()
+      );
       expect(foundCatA).toBeDefined();
       expect(foundCatA!.status).toBe(CategoryStatus.ACTIVE);
       expect(foundCatB).toBeDefined();
