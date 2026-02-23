@@ -16,3 +16,5 @@ export AZURE_AUTH_AUTHORITY="https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogi
 export LOCATION="eastus2"
 
 export DRY_RUN="false"
+
+export APP_VERSION=""

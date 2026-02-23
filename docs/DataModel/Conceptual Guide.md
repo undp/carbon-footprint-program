@@ -95,9 +95,24 @@ Factors are uniquely defined per subcategory and dimension combination, versione
 
 ## 7. Organizations & Users
 
-- Organizations may have branches
-- Users can act independently or within organizations
-- Roles are split into system roles and organization roles
+### 7.1 Organizations
+
+- Organizations represent the legal entities participating in the platform.
+- They follow a versioned data model via `organization_data`.
+- **ACTIVE/OUTDATED Pattern**: The system uses an explicit status on `organization_data` to manage versions, while the review outcome is derived from the linked `submission`.
+- **Lifecycle Flow**:
+  1. **Creation**: A new `organization` is created with status **ACTIVE**. A corresponding `organization_data` record is created with status **ACTIVE** and no linked submission (this represents the **Draft** state).
+  2. **Submission**: When the user submits for accreditation, a `submission` is created (status **PENDING**) linked to the **ACTIVE** `organization_data`. (State: **Under Review**).
+  3. **Review (Approval)**: Upon admin approval, the `submission` status changes to **APPROVED**. The `organization_data` remains **ACTIVE**. The organization is now considered "accredited" because it has an **ACTIVE** data record with an **APPROVED** submission.
+  4. **Review (Rejection)**: If rejected, the `submission` status changes to **REJECTED**, and the `organization_data` is immediately marked as **OUTDATED**. To resubmit, a new **ACTIVE** `organization_data` must be created.
+  5. **Updates**: Editing an accredited organization creates a new **ACTIVE** `organization_data` row (Draft). The previous **ACTIVE** (Approved) row remains **ACTIVE** and official until the new version is approved.
+  6. **Re-accreditation**: When the new version is submitted, it becomes **Under Review** (PENDING submission) while the old one remains the official **ACTIVE** (Approved) version. Upon approval of the new version, the old one is marked **OUTDATED**, and the new one becomes the current official **ACTIVE** version.
+  7. **Blocking**: An organization can be **BLOCKED** independently of its accreditation status. This is an administrative action that does not affect the `organization_data` status.
+
+### 7.2 Users
+
+- Users can act independently or within organizations.
+- Roles are split into system roles and organization roles.
 
 ---
 
@@ -137,6 +152,13 @@ Purely derived emissions results, immutable and timestamped.
 ### Submissions
 
 Immutable review artifacts representing validation processes.
+
+**Submission Flow**:
+
+1.  **Subject Creation**: A `submission_subject` is created and linked to a concrete entity (e.g., `carbon_inventory` or `organization_data`).
+2.  **Submission**: A `submission` record is created with status **PENDING**.
+3.  **Review**: A reviewer (admin) transitions the status to **APPROVED** or **REJECTED**.
+4.  **Constraints**: A subject can have only one **PENDING** or **APPROVED** submission at a time. If rejected, the user can submit again.
 
 ### Recognition
 

@@ -1,5 +1,7 @@
 import { Prisma } from "@repo/database";
 
+export { kgToTon, tonToKg } from "@repo/utils";
+
 /**
  * Converts a value to a number, preserving null and undefined values.
  *

@@ -21,6 +21,8 @@ function createPrismaExecOptions(databaseUrl: string) {
     env: {
       // eslint-disable-next-line turbo/no-undeclared-env-vars
       PATH: process.env.PATH,
+      // eslint-disable-next-line turbo/no-undeclared-env-vars
+      HOME: process.env.HOME,
       DATABASE_URL: databaseUrl,
       SEEDS_DATASET: "testing",
     },
@@ -63,12 +65,13 @@ export async function setupTestDatabase(): Promise<{
     .withDatabase(TEST_DATABASE_CONFIG.database)
     .withUsername(TEST_DATABASE_CONFIG.username)
     .withPassword(TEST_DATABASE_CONFIG.password)
-    .withStartupTimeout(120000) // 2 minutes
+    .withStartupTimeout(180000) // 3 minutes – accounts for first-run image pull in CI
     .start();
 
   const baseUrl = container.getConnectionUri();
   const url = new URL(baseUrl);
-  url.searchParams.set("connection_limit", "1");
+  // Note: connection_limit is not set; Vitest runs files sequentially (fileParallelism: false).
+  // url.searchParams.set("connection_limit", "1");
   const databaseUrl = url.toString();
 
   return { databaseUrl, container };

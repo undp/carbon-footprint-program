@@ -1,12 +1,16 @@
 import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 
-const isCustomFactorSource = (factorSource: string | null): boolean => {
+const isCustomFactorSource = (
+  factorSource: string | null | undefined
+): boolean => {
   if (!factorSource) return false;
   return CUSTOM_FACTOR_SOURCES.includes(factorSource);
 };
 
-export const isFactorValueEditable = (factorSource: string | null): boolean => {
+export const isFactorValueEditable = (
+  factorSource: string | null | undefined
+): boolean => {
   return isCustomFactorSource(factorSource);
 };
 

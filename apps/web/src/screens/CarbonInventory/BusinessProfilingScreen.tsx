@@ -1,10 +1,11 @@
 import { FC } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import capinautPointing from "@assets/capinaut-pointing.png";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
+import { DevTool } from "@hookform/devtools";
 import {
   FormAutocompleteField,
   FormSelectField,
@@ -18,6 +19,7 @@ import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
 import { useBusinessProfilingNavigation } from "./hooks/useBusinessProfilingNavigation";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
+import { IS_DEVELOPMENT } from "@/config/environment";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 
@@ -82,6 +84,7 @@ export const BusinessProfilingScreen: FC = () => {
 
   const {
     yearLabel,
+    nameLabel,
     companyNameLabel,
     companySizeLabel,
     sectorLabel,
@@ -109,177 +112,185 @@ export const BusinessProfilingScreen: FC = () => {
     return null;
   }
 
-  return (
-    <form
-      id="business-profiling-form"
-      onSubmit={handleSubmit((data) => submit(data, isDirty))}
-      noValidate
-    >
-      <CarbonInventoryLayout
-        headerProps={{
-          title: "Simulador de Inventario Organizacional",
-        }}
-        footerProps={{
-          buttons: [
-            {
-              text: "Volver",
-              align: "right",
-              buttonProps: {
-                startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                onClick: goBack,
-              },
-            },
-            {
-              text: "Siguiente",
-              align: "right",
-              buttonProps: {
-                endIcon: <ArrowRightAltRounded />,
-                variant: "contained",
-                type: "submit",
-                form: "business-profiling-form",
-                loading: isSubmitting || isInventoryLoading,
-                disabled: isFormDisabled,
-              },
-            },
-          ],
-        }}
-        isLoading={isInventoryLoading}
-        hasError={hasInventoryError}
-        errorMessage={ERROR_MESSAGE}
-      >
-        <Box className="flex min-h-0 flex-1 flex-col gap-6">
-          <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
-            <StepHeader
-              title="Paso 1: Perfil de empresa"
-              description="Esta información nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
-            />
-            <Box className="flex flex-row gap-6">
-              <Box className="flex flex-1 flex-col gap-2">
-                <FormSelectField
-                  name="year"
-                  control={control}
-                  label={yearLabel}
-                  labelId="year-label"
-                  options={YEARS.map((year) => ({
-                    label: year,
-                    value: year,
-                  }))}
-                  required
-                />
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      type: "submit",
+      form: "business-profiling-form",
+      loading: isSubmitting || isInventoryLoading,
+      disabled: isFormDisabled,
+    },
+  };
 
-                <FormSelectField
-                  name="companySize"
-                  control={control}
-                  label={companySizeLabel}
-                  labelId="company-size-label"
-                  options={companySizeOptions}
-                  disabled={organizationSizesLoading}
-                />
-              </Box>
-              <Box className="flex flex-1 flex-col gap-8">
-                <FormTextField
-                  name="companyName"
-                  control={control}
-                  label={companyNameLabel}
-                />
-              </Box>
-            </Box>
-          </Box>
-          <Box className="flex flex-col gap-2 rounded-lg bg-white p-6">
-            <Box className="flex flex-1 flex-row gap-6">
-              <FormAutocompleteField
-                name="sector"
-                control={control}
-                label={sectorLabel}
-                labelId="sector-label"
-                options={sectorOptions}
-                loading={sectorsLoading}
-                required
+  return (
+    <>
+      <form
+        id="business-profiling-form"
+        onSubmit={handleSubmit((data) => submit(data, isDirty))}
+        noValidate
+      >
+        <CarbonInventoryLayout
+          headerProps={{
+            title: "Simulador de Inventario Organizacional",
+          }}
+          footerProps={{
+            buttons: [backButton, nextButton],
+          }}
+          isLoading={isInventoryLoading}
+          hasError={hasInventoryError}
+          errorMessage={ERROR_MESSAGE}
+        >
+          <Box className="flex min-h-0 flex-1 flex-col gap-6">
+            <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
+              <StepHeader
+                title="Paso 1: Perfilamiento"
+                description="La información de tu empresa nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
               />
-              <FormAutocompleteField
-                name="subSector"
-                control={control}
-                label={subSectorLabel}
-                labelId="sub-sector-label"
-                options={subsectorSelectOptions}
-                loading={sectorsLoading}
-                disabled={
-                  !selectedSector ||
-                  subsectorSelectOptions.length === 0 ||
-                  sectorsLoading
-                }
-                required
-              />
-            </Box>
-            <Box className="flex flex-col gap-8">
+              <Box className="flex flex-col gap-2">
+                <Box className="flex flex-1 flex-row gap-6">
+                  <FormSelectField
+                    name="year"
+                    control={control}
+                    label={yearLabel}
+                    labelId="year-label"
+                    options={YEARS.map((year) => ({
+                      label: year,
+                      value: year,
+                    }))}
+                    required
+                  />
+                  <FormTextField
+                    name="name"
+                    control={control}
+                    label={nameLabel}
+                    required
+                  />
+                </Box>
+                <Divider />
+                <Box className="mt-6 flex flex-1 flex-row gap-6">
+                  <FormTextField
+                    name="companyName"
+                    control={control}
+                    label={companyNameLabel}
+                  />
+
+                  <FormSelectField
+                    name="companySize"
+                    control={control}
+                    label={companySizeLabel}
+                    labelId="company-size-label"
+                    options={companySizeOptions}
+                    disabled={organizationSizesLoading}
+                  />
+                </Box>
+              </Box>
               <Box className="flex flex-1 flex-row gap-6">
                 <FormAutocompleteField
-                  name="activity"
+                  name="sector"
                   control={control}
-                  label={activityLabel}
-                  labelId="activity-label"
-                  options={activityOptions}
-                  loading={activitiesLoading}
-                  disabled={activitiesLoading || activityOptions.length === 0}
+                  label={sectorLabel}
+                  labelId="sector-label"
+                  options={sectorOptions}
+                  loading={sectorsLoading}
+                  required
                 />
-
-                <FormTextField
-                  name="quantity"
+                <FormAutocompleteField
+                  name="subSector"
                   control={control}
-                  label={quantityLabel}
-                  disabled={!selectedActivityId}
-                  required={!!selectedActivityId}
-                  requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
-                  type="number"
-                  min={0}
-                  minMessage="La cantidad no puede ser negativa"
-                  slotProps={{ htmlInput: { min: 0 } }}
-                  sx={{
-                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      {
-                        WebkitAppearance: "none",
-                        margin: 0,
+                  label={subSectorLabel}
+                  labelId="sub-sector-label"
+                  options={subsectorSelectOptions}
+                  loading={sectorsLoading}
+                  disabled={
+                    !selectedSector ||
+                    subsectorSelectOptions.length === 0 ||
+                    sectorsLoading
+                  }
+                  required
+                />
+              </Box>
+              <Box className="flex flex-col gap-8">
+                <Box className="flex flex-1 flex-row gap-6">
+                  <FormAutocompleteField
+                    name="activity"
+                    control={control}
+                    label={activityLabel}
+                    labelId="activity-label"
+                    options={activityOptions}
+                    loading={activitiesLoading}
+                    disabled={activitiesLoading || activityOptions.length === 0}
+                  />
+
+                  <FormTextField
+                    name="quantity"
+                    control={control}
+                    label={quantityLabel}
+                    disabled={!selectedActivityId}
+                    required={!!selectedActivityId}
+                    requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
+                    type="number"
+                    min={0}
+                    minMessage="La cantidad no puede ser negativa"
+                    slotProps={{ htmlInput: { min: 0 } }}
+                    sx={{
+                      "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
+                        {
+                          WebkitAppearance: "none",
+                          margin: 0,
+                        },
+                      "& input[type=number]": {
+                        MozAppearance: "textfield",
                       },
-                    "& input[type=number]": {
-                      MozAppearance: "textfield",
-                    },
-                  }}
-                />
+                    }}
+                  />
+                </Box>
               </Box>
-            </Box>
-            <Box
-              className="flex h-20 w-full flex-row p-2"
-              sx={{
-                background: gradient,
-              }}
-            >
-              <Box className="flex h-full w-10 items-center justify-center">
-                <Box
-                  component="img"
-                  src={capinautPointing}
-                  alt="Actividad principal"
-                />
-              </Box>
+              <Box
+                className="flex h-20 w-full flex-row p-2"
+                sx={{
+                  background: gradient,
+                }}
+              >
+                <Box className="flex h-full w-10 items-center justify-center">
+                  <Box
+                    component="img"
+                    src={capinautPointing}
+                    alt="Actividad principal"
+                  />
+                </Box>
 
-              <Box>
-                <Typography variant="body1" fontWeight="fontWeightBold">
-                  ¿Cuál es la actividad principal de tu negocio?
-                </Typography>
-                <Typography variant="body1">
-                  Es la forma más simple y representativa de medir lo que hace
-                  tu empresa. Te permite ver tu huella por unidad de servicio o
-                  producto.
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Ejemplo: Actividad principal del negocio → cómo mides tu
-                  operación (ej: paquetes entregados). Actividad principal al
-                  año → cuántos hiciste el último año (ej: 220.000 paquetes).
-                </Typography>
+                <Box>
+                  <Typography variant="body1" fontWeight="fontWeightBold">
+                    ¿Cuál es la actividad principal de tu negocio?
+                  </Typography>
+                  <Typography variant="body1">
+                    Es la forma más simple y representativa de medir lo que hace
+                    tu empresa. Te permite ver tu huella por unidad de servicio
+                    o producto.
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Ejemplo: Actividad principal del negocio → cómo mides tu
+                    operación (ej: paquetes entregados). Actividad principal al
+                    año → cuántos hiciste el último año (ej: 220.000 paquetes).
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           </Box>
-        </Box>
-      </CarbonInventoryLayout>
-    </form>
+        </CarbonInventoryLayout>
+      </form>
+      {IS_DEVELOPMENT && <DevTool control={control} />}
+    </>
   );
 };

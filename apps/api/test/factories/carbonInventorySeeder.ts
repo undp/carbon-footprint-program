@@ -1,38 +1,7 @@
-import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
+import { CarbonInventoryLineStatus } from "@repo/types";
 import { mapBigIntField } from "@/utils/bigint.js";
-
-/**
- * Gets a pre-seeded test user by email
- */
-export async function getTestUser(
-  prisma: PrismaClient,
-  email: string
-): Promise<{ id: bigint; email: string | null }> {
-  const user = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true, email: true },
-  });
-
-  if (!user) {
-    throw new Error(
-      `Test user with email '${email}' not found in database. ` +
-        "Please ensure the database is properly seeded with test users before running tests."
-    );
-  }
-
-  return user;
-}
-
-/**
- * Gets multiple pre-seeded test users at once
- */
-export async function getTestUsers(
-  prisma: PrismaClient,
-  emails: string[]
-): Promise<Array<{ id: bigint; email: string | null }>> {
-  return Promise.all(emails.map((email) => getTestUser(prisma, email)));
-}
+import { getTestLoggedUser } from "./userFactory.js";
 
 /**
  * Common carbon inventory data patterns for testing
@@ -122,8 +91,7 @@ export const carbonInventoryPatterns = {
     organizationBranchId: bigint,
     methodologyVersionId: bigint,
     preselectedNodesId: bigint,
-    createdById: bigint,
-    updatedById: bigint
+    createdById: bigint
   ): Prisma.CarbonInventoryUncheckedCreateInput => ({
     organizationId: organizationId,
     organizationBranchId: organizationBranchId,
@@ -142,7 +110,6 @@ export const carbonInventoryPatterns = {
     preselectedNodesId: preselectedNodesId,
     isEditable: false,
     createdById: createdById,
-    updatedById: updatedById,
   }),
 
   /**
@@ -190,8 +157,16 @@ export const carbonInventoryPatterns = {
  */
 export async function createCarbonInventory(
   prisma: PrismaClient,
-  data: Prisma.CarbonInventoryUncheckedCreateInput
+  rawData: Prisma.CarbonInventoryUncheckedCreateInput
 ) {
+  const { id } = await getTestLoggedUser(prisma);
+
+  const data = {
+    ...rawData,
+    createdById: rawData.createdById ?? id,
+    updatedAt: null,
+  };
+
   return prisma.carbonInventory.create({ data });
 }
 
@@ -203,7 +178,13 @@ export async function createCarbonInventories(
   prisma: PrismaClient,
   dataArray: Prisma.CarbonInventoryUncheckedCreateInput[]
 ) {
-  await prisma.carbonInventory.createMany({ data: dataArray });
+  const { id } = await getTestLoggedUser(prisma);
+
+  const dataWithUserIds = dataArray.map((rawData) => ({
+    ...rawData,
+    createdById: rawData.createdById ?? id,
+  }));
+  await prisma.carbonInventory.createMany({ data: dataWithUserIds });
 }
 
 /**
@@ -242,6 +223,7 @@ export async function seedCarbonInventory(
         mapBigIntField(data.preselectedNodesId?.toString()) ?? null,
       createdById: data.createdById ?? null,
       updatedById: data.updatedById ?? null,
+      updatedAt: null,
     },
   });
 }
@@ -260,79 +242,6 @@ export async function cleanupCarbonInventoryTestData(
   await prisma.carbonInventoryLineInput.deleteMany({});
   await prisma.carbonInventoryLine.deleteMany({});
   await prisma.carbonInventory.deleteMany({});
-}
-
-/**
- * Gets the ACTIVE status ID for lines
- */
-export async function getActiveStatusId(prisma: PrismaClient): Promise<bigint> {
-  const activeStatus = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "ACTIVE",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!activeStatus) {
-    throw new Error(
-      "ACTIVE status not found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return activeStatus.id;
-}
-
-/**
- * Gets the DELETED status ID for lines
- */
-export async function getDeletedStatusId(
-  prisma: PrismaClient
-): Promise<bigint> {
-  const deletedStatus = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "DELETED",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!deletedStatus) {
-    throw new Error(
-      "DELETED status not found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return deletedStatus.id;
-}
-
-/**
- * Gets the OUTDATED status ID for lines
- */
-export async function getOutdatedStatusId(
-  prisma: PrismaClient
-): Promise<bigint> {
-  const outdatedStatus = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code: "OUTDATED",
-    },
-    select: {
-      id: true,
-    },
-  });
-
-  if (!outdatedStatus) {
-    throw new Error(
-      "OUTDATED status not found in database. Please ensure the database is properly seeded."
-    );
-  }
-
-  return outdatedStatus.id;
 }
 
 /**
@@ -376,16 +285,15 @@ export async function createCarbonInventoryLine(
   carbonInventoryId: bigint,
   subcategoryId: bigint,
   options?: {
-    statusId?: bigint;
+    status?: CarbonInventoryLineStatus;
   }
 ) {
-  const statusId = options?.statusId ?? (await getActiveStatusId(prisma));
-
   return prisma.carbonInventoryLine.create({
     data: {
       carbonInventoryId,
       subcategoryId,
-      statusId,
+      status: options?.status ?? CarbonInventoryLineStatus.ACTIVE,
+      updatedAt: null,
     },
   });
 }
@@ -418,6 +326,7 @@ export async function createCarbonInventoryLineInput(
       manualFactor: options?.manualFactor ?? null,
       comment: options?.comment ?? null,
       isActive: options?.isActive ?? true,
+      updatedAt: null,
     },
   });
 }
@@ -438,6 +347,7 @@ export async function createCarbonInventoryLineResult(
           ? new Prisma.Decimal(totalEmissions)
           : totalEmissions,
       resultDetails: {},
+      updatedAt: null,
     },
   });
 }
@@ -455,7 +365,10 @@ export async function createInventoryWithEmissions(
 ) {
   // Create the inventory
   const inventory = await prisma.carbonInventory.create({
-    data: inventoryData,
+    data: {
+      ...inventoryData,
+      updatedAt: null,
+    },
   });
 
   // Get methodology version
@@ -474,8 +387,6 @@ export async function createInventoryWithEmissions(
   if (!methodologyVersion) {
     throw new Error("No methodology version found for testing");
   }
-
-  const activeStatusId = await getActiveStatusId(prisma);
 
   // If emissions by category specified, use those; otherwise create default emissions
   const emissionsByCategory =
@@ -510,7 +421,7 @@ export async function createInventoryWithEmissions(
       prisma,
       inventory.id,
       subcategory.id,
-      { statusId: activeStatusId }
+      { status: CarbonInventoryLineStatus.ACTIVE }
     );
 
     // Create input

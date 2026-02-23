@@ -1,0 +1,449 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  beforeEach,
+  inject,
+} from "vitest";
+import { createTestApp } from "@test/factories/appFactory.js";
+import {
+  carbonInventoryPatterns,
+  createInventoryFromPattern,
+  cleanupCarbonInventoryTestData,
+  getSubcategoryIds,
+  createCarbonInventoryLine,
+} from "@test/factories/carbonInventorySeeder.js";
+import {
+  type AddSubcategoriesToCarbonInventoryResponse,
+  CarbonInventoryLineStatus,
+} from "@repo/types";
+import type { FastifyInstance } from "fastify";
+import type { PrismaClient } from "@repo/database";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import {
+  getTestMethodologyVersionId,
+  createEmptyMethodologyVersion,
+} from "@test/factories/methodologyFactory.js";
+
+describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests", () => {
+  let app: FastifyInstance;
+  let prisma: PrismaClient;
+
+  beforeAll(async () => {
+    const databaseUrl = inject("databaseUrl");
+    app = await createTestApp(databaseUrl);
+    prisma = app.prisma;
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
+
+  beforeEach(async () => {
+    await cleanupCarbonInventoryTestData(prisma);
+  });
+
+  describe("Successful addition", () => {
+    it("should add multiple subcategories to a carbon inventory", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThanOrEqual(3);
+
+      const subcategoryIdsToAdd = [
+        subcategoryIds[0].toString(),
+        subcategoryIds[1].toString(),
+        subcategoryIds[2].toString(),
+      ];
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: subcategoryIdsToAdd,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as AddSubcategoriesToCarbonInventoryResponse;
+      expect(body.added).toBe(3);
+      expect(body.skipped).toBe(0);
+
+      const createdLines = await prisma.carbonInventoryLine.findMany({
+        where: {
+          carbonInventoryId: carbonInventory.id,
+          subcategoryId: {
+            in: subcategoryIds.slice(0, 3),
+          },
+          status: CarbonInventoryLineStatus.ACTIVE,
+        },
+      });
+
+      expect(createdLines.length).toBe(3);
+    });
+
+    it("should skip subcategories that already have ACTIVE lines", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThanOrEqual(3);
+
+      // Create an ACTIVE line for the first subcategory
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+
+      const subcategoryIdsToAdd = [
+        subcategoryIds[0].toString(), // Already has ACTIVE line - should be skipped
+        subcategoryIds[1].toString(), // Should be added
+        subcategoryIds[2].toString(), // Should be added
+      ];
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: subcategoryIdsToAdd,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as AddSubcategoriesToCarbonInventoryResponse;
+      expect(body.added).toBe(2);
+      expect(body.skipped).toBe(1);
+    });
+
+    it("should skip all subcategories if they all already have ACTIVE lines", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThanOrEqual(2);
+
+      // Create ACTIVE lines for all subcategories
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[1]
+      );
+
+      const subcategoryIdsToAdd = [
+        subcategoryIds[0].toString(),
+        subcategoryIds[1].toString(),
+      ];
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: subcategoryIdsToAdd,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as AddSubcategoriesToCarbonInventoryResponse;
+      expect(body.added).toBe(0);
+      expect(body.skipped).toBe(2);
+    });
+
+    it("should add a single subcategory", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThan(0);
+
+      const subcategoryIdToAdd = subcategoryIds[0].toString();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: [subcategoryIdToAdd],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as AddSubcategoriesToCarbonInventoryResponse;
+      expect(body.added).toBe(1);
+      expect(body.skipped).toBe(0);
+    });
+  });
+
+  describe("Error cases", () => {
+    it("should return 404 when carbon inventory does not exist", async () => {
+      const nonExistentId = "999999";
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${nonExistentId}/subcategories/add`,
+        payload: {
+          subcategoryIds: ["1", "2", "3"],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
+    });
+
+    it("should return 404 when carbon inventory has no methodology", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      // Remove methodology from the carbon inventory
+      await prisma.carbonInventory.update({
+        where: { id: carbonInventory.id },
+        data: { methodologyVersionId: null },
+      });
+
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      expect(subcategoryIds.length).toBeGreaterThan(0);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: [subcategoryIds[0].toString()],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toMatch(
+        /Methodology not found for carbon inventory with ID .+/
+      );
+    });
+
+    it("should return 404 when one or more subcategories do not exist", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: ["999999", "999998"],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.message).toBe("One or more subcategories not found");
+    });
+
+    it("should return 422 when one or more subcategories do not belong to the carbon inventory's methodology", async () => {
+      // Create two different methodologies
+      const methodologyId1 = await getTestMethodologyVersionId(prisma);
+
+      // Create an empty methodology (no subcategories) to simulate a different methodology
+      // Then try to add subcategories from methodology 1 to a carbon inventory using methodology 2
+      const methodologyId2 = (await createEmptyMethodologyVersion(prisma)).id;
+
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId2 }
+      );
+
+      // Get subcategories from methodology 1 (which has subcategories)
+      const subcategoryIdsFromMethodology1 = await getSubcategoryIds(
+        prisma,
+        methodologyId1
+      );
+
+      // Only test if there are subcategories in methodology 1
+      if (subcategoryIdsFromMethodology1.length > 0) {
+        const response = await app.inject({
+          method: "POST",
+          url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+          payload: {
+            subcategoryIds: [subcategoryIdsFromMethodology1[0].toString()],
+          },
+        });
+
+        expect(response.statusCode).toBe(422);
+        const body = JSON.parse(response.body) as ApiErrorResponse;
+        expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
+        expect(body.message).toBe(
+          "One or more subcategories do not belong to the carbon inventory's methodology"
+        );
+      }
+    });
+  });
+
+  describe("Validation errors", () => {
+    it("should return 400 for invalid carbon inventory ID format (non-numeric)", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories/invalid-id/subcategories/add",
+        payload: {
+          subcategoryIds: ["1", "2", "3"],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for invalid carbon inventory ID format (decimal)", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories/123.45/subcategories/add",
+        payload: {
+          subcategoryIds: ["1", "2", "3"],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for invalid carbon inventory ID format (negative)", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories/-123/subcategories/add",
+        payload: {
+          subcategoryIds: ["1", "2", "3"],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for missing subcategoryIds in body", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for empty subcategoryIds array", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for invalid subcategoryIds (non-numeric string)", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: ["abc", "def"],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for invalid subcategoryIds (decimal string)", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: ["1.5", "2.7"],
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 for invalid subcategoryIds (non-array)", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/add`,
+        payload: {
+          subcategoryIds: "not-an-array",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
+});

@@ -6,38 +6,6 @@ erDiagram
 	direction TB
 
 	%% ============================================================
-	%% DEPRECATED TABLES
-	%% ------------------------------------------------------------
-	%% The following tables are kept for historical reference only:
-	%% - carbon_inventory_detail
-	%% They MUST NOT be used for new features.
-	%% ============================================================
-	%% carbon_inventory_detail {
-	%% 	  BIGINT id PK ""  
-	%% 	  BIGINT carbon_inventory_id FK ""  
-	%% 	  BIGINT subcategory_id FK ""
-	%% 	  enum type "DETAILED | TOTAL"
-	%% 	  string first_selection "NULLABLE"
-	%% 	  string second_selection "NULLABLE"
-	%% 	  float quantity  "NULLABLE"
-	%% 	  BIGINT measurement_unit_id FK "NULLABLE" 
-	%% 	  float factor "NULLABLE"
-	%% 	  BIGINT factor_rate_measurement_unit_id FK "NULLABLE"
-	%% 	  string factor_source "NULLABLE"
-	%% 	  BIGINT emission_factor_id FK "NULLABLE"
-	%% 	  float total_emissions "NULLABLE" 
-	%% 	  text comment  "NULLABLE"
-	%% 	  BIGINT status_id FK "status_catalog(id)"
-	%% 	  %% Restricciones:
-	%% 	  %% Si type==SIMPLIFIED, el usuario llenará first_selection, second_selection, quantity, measurement_unit_id y la plataforma automáticamente escogerá un emission_factor_id y copiará el valor del factor, lo transformará a la misma unidad de medida del usuario y llenará factor y factor_rate_measurement_unit_id. Finalmente hará el P*Q y llenará total_emissions
-	%% 	  %% Si type==EXPERT, el usuario llenará first_selection, second_selection, quantity, measurement_unit_id, factor y el factor_source. El factor_rate_measurement_unit_id se escogerá automáticamente según el measurement_unit_id. emission_factor_id será NULL. Finalmente la plataforma hará el P*Q y llenará total_emissions
-	%% 	  %% Si type==DIRECT, todas las columnas serán NULL y el usuario ingresará el valor directo a total_emissions.
-	%% 	  %% Alternar el type no modificará las filas, sino que marcará las actuales como status=OUTDATED y creará nuevas filas con el type adecuado (si no existen aún). Si ya existían, las recuperará a ACTIVE.
-	%% 	  %% Todas las filas con status ACTIVE deben ser del mismo type.
-	%% 	  %% Las filas DELETED nunca se recuperan, quedan para trazabilidad.
-	%% }
-
-	%% ============================================================
 	%% Design Principles
 	%% ============================================================
 
@@ -139,12 +107,11 @@ erDiagram
 	%% ============================================================
 	
 	country {
-		BIGINT id PK ""  
-		string name  ""  
-		string iso_code  ""
-		BIGINT active_methodology_version_id FK "NULLABLE"
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
+		BIGINT id PK ""
+		string name  ""
+		string iso_code "UNIQUE"
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
 	}
 
 	country_parameter {
@@ -198,62 +165,62 @@ erDiagram
 		string name  "UNIQUE"  
 	}
 
+	organization_main_activity {
+		BIGINT id PK ""
+		string name ""
+		BIGINT country_sector_id FK ""
+		BIGINT country_subsector_id FK ""
+		timestamptz created_at ""
+		timestamptz updated_at ""
+		BIGINT created_by FK ""
+		BIGINT updated_by FK ""
+	}
+
 	country_job_position {
 		BIGINT id PK ""  
 		BIGINT country_id FK ""
 		string name  ""  
 	}
 
-	%% Postgres ENUM is great when values are stable forever (e.g., magnitude = mass|volume|energy). It becomes painful when values are product-managed and will evolve (status workflows, modes, etc.).
-	status_catalog {
-		BIGINT id PK ""
-		%% Like: SUBMISSION | CARBON_INVENTORY | ENTITY
-		string scope 
-		%% Like: DRAFT, ACTIVE, DELETED, OUTDATED, SUBMITTED, APPROVED, REJECTED, ...
-		string code 
-		string label 
-		boolean is_terminal ""
-		boolean is_visible ""
-		int sort_order ""
-		boolean is_active ""
-		%% UNIQUE(scope, code)
-		%% To prevent misuse we will use convention & tests
-		%% To avoid misuse we will implement DB trigger to validate status.scope against the referencing table
-	}
-
 	%% ============================================================
-	%% 🟩 Methodology & factors (9)
+	%% 🟩 Methodology & factors (10)
 	%% ============================================================
 	
 	methodology_version {
-		BIGINT id PK ""  
-		BIGINT country_id FK ""  
-		string name  ""  
-		string description  ""  
-		%% Uses all status values
-		BIGINT status_id FK "status_catalog(id)"
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT id PK ""
+		BIGINT country_id FK ""
+		string name  ""
+		string description  ""
+		string regulation ""
+		string version ""
+		enum status "PUBLISHED | UNPUBLISHED | DELETED"
+		timestamptz created_at  ""
+		timestamptz updated_at  "NULLABLE"
+		BIGINT created_by_id FK "NULLABLE"
+		BIGINT updated_by_id FK "NULLABLE"
 		%% Enforce via trigger at most 1 active per country
-		%% Enforce via DB trigger on country table: validates country.active_methodology_version_id (when NOT NULL) references a methodology_version row where status_id points to status_catalog with code='ACTIVE'. Trigger runs BEFORE INSERT/UPDATE on country, raises error if validation fails. Implementation: CREATE TRIGGER validate_country_active_methodology_version BEFORE INSERT OR UPDATE ON country FOR EACH ROW EXECUTE FUNCTION check_active_methodology_version_status()
 	}
 
 	category {
-		BIGINT id PK "" 
-		BIGINT methodology_version_id FK ""   
-		string name  ""  
+		BIGINT id PK ""
+		BIGINT methodology_version_id FK ""
+		string name ""
+		string icon ""
 		%% just for displaying
-		string synonyms "" 
+		string synonyms ""
 		%% just for displaying
-		string description  "" 
+		string description ""
 		%% just for displaying
 		string examples ""
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""
+		%% Position must be > 0 (enforced by DB CHECK constraint)
+		int position ""
+		status "ACTIVE | DELETED"
+		timestamptz created_at  ""
+		timestamptz updated_at  "NULLABLE"
+		BIGINT created_by_id FK "NULLABLE"
+		BIGINT updated_by_id FK "NULLABLE"
+		%% UNIQUE(methodology_version_id, name)
+		%% UNIQUE(methodology_version_id, position)
 	}
 
 	subcategory {
@@ -289,37 +256,35 @@ erDiagram
 	}
 
 	emission_factor_dimension_value {
-		BIGINT id PK ""   
-		BIGINT dimension_id FK "emission_factor_dimension(id)" 
+		BIGINT id PK ""
+		BIGINT dimension_id FK "emission_factor_dimension(id)"
 		BIGINT parent_value_id FK "NULLABLE, emission_factor_dimension_value(id)"
 		%% Like: Natural gas, Diesel, Kerosene, etc
 		string value ""
-		string normalized_value ""
-		boolean is_active ""		
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK "" 
-		%% UNIQUE(dimension_id, normalized_value)
+		boolean is_active ""
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
+		BIGINT created_by FK "NULLABLE"
+		BIGINT updated_by FK "NULLABLE"
+		%% UNIQUE(dimension_id, value)
 	}
 
 	emission_factor {
-		BIGINT id PK ""   
+		BIGINT id PK ""
 		BIGINT subcategory_id FK ""
 		%% Emission factors currently support up to two dimensions via fixed columns.
-		%% A binding table was considered for unbounded dimensions but intentionally not used to keep queries and constraints simple. 
+		%% A binding table was considered for unbounded dimensions but intentionally not used to keep queries and constraints simple.
 		BIGINT dimension_value_1_id FK "NULLABLE, emission_factor_dimension_value(id)"
-		BIGINT dimension_value_2_id FK "NULLABLE, emission_factor_dimension_value(id)" 
-		BIGINT rate_measurement_unit_id FK ""  
-		string source  ""  
-		JSONB gas_details ""  
-		numeric value  ""  
-		%% Uses all status values
-		BIGINT status_id FK "status_catalog(id)"
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT dimension_value_2_id FK "NULLABLE, emission_factor_dimension_value(id)"
+		BIGINT rate_measurement_unit_id FK ""
+		string source  ""
+		JSONB gas_details ""
+		numeric value  ""
+		enum status "ACTIVE | DELETED"
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
+		BIGINT created_by FK ""
+		BIGINT updated_by FK ""
 		%% Enforce UNIQUE (subcategory_id, dimension_value_1_id, dimension_value_2_id) WHERE status = 'ACTIVE'
 	}
 
@@ -347,7 +312,7 @@ erDiagram
 
 	measurement_unit {
 		BIGINT id PK ""  
-		enum magnitude  "mass|volume|..."  
+		enum magnitude  "MASS|VOLUME|..."  
 		string name  ""  
 		string abbreviation  ""  
 		numeric base_factor  ""  
@@ -356,13 +321,21 @@ erDiagram
 	}
 
 	rate_measurement_unit {
-		BIGINT id PK ""  
-		string name  ""  
-		string abbreviation  ""  
-		BIGINT numerator_measurement_unit_id FK ""  
-		BIGINT denominator_measurement_unit_id FK ""  
+		BIGINT id PK ""
+		string name  ""
+		string abbreviation  ""
+		BIGINT numerator_measurement_unit_id FK ""
+		BIGINT denominator_measurement_unit_id FK ""
 	}
-	
+
+	subcategory_measurement_unit {
+		BIGINT id PK ""
+		BIGINT subcategory_id FK "subcategory(id)"
+		BIGINT measurement_unit_id FK "measurement_unit(id)"
+		timestamptz created_at ""
+		%% UNIQUE(subcategory_id, measurement_unit_id)
+	}
+
 	global_warming_potential {
 		BIGINT id PK ""  
 		string name "UNIQUE"
@@ -374,23 +347,42 @@ erDiagram
 	%% ============================================================
 	
 	organization {
-		BIGINT id PK ""  
-		BIGINT country_id FK ""  
-		string unique_identifier  "UNIQUE"  
-		string legal_name  ""  
-		string industry  ""  
-		string subindustry  ""  
-		BIGINT country_organization_size_id FK ""  
-		string main_activity  ""  
-		string scale_of_activity  ""  
-		string address  ""  
-		string region  ""  
-		int workers_count  ""  
-		string territorial_scope  ""  
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT id PK
+		BIGINT country_id FK
+		enum status "ACTIVE | BLOCKED" 
+		timestamptz created_at
+		timestamptz updated_at
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"
+  	}
+
+	organization_data {
+		BIGINT id PK
+		BIGINT organization_id FK
+		enum status "ACTIVE | OUTDATED"
+
+		%% organization data
+		string legal_name
+		string trade_name
+		string tax_id
+		BIGINT country_organization_size_id FK
+		BIGINT main_activity_id FK
+		BIGINT sector_id FK
+		BIGINT subsector_id FK
+		string address
+		int employees_count
+
+		%% representative data
+		string representative_full_name
+		string representative_tax_id
+		BIGINT representative_country_job_position_id FK
+		string representative_phone
+		string representative_email
+
+		timestamptz created_at
+		timestamptz updated_at
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"
 	}
 
 	organization_branch {
@@ -404,14 +396,20 @@ erDiagram
 	}
 	
 	user {
-		BIGINT id PK ""  
-		uuid uuid  ""  
-		string email  "U"
-		BIGINT country_job_position_id FK ""
-		timestamptz created_at  ""  
-		timestamptz updated_at  "" 
-		BIGINT created_by FK "NULLABLE"  
-		BIGINT updated_by FK "NULLABLE" 
+		BIGINT id PK ""
+		uuid uuid  ""
+		string idp_user_id "NULLABLE, UNIQUE"
+		string idp_name "NULLABLE"
+		string email  "NULLABLE, UNIQUE"
+		BIGINT country_job_position_id FK "NULLABLE"
+		string first_name "NULLABLE"
+		string last_name "NULLABLE"
+		boolean terms_accepted ""
+		timestamptz terms_accepted_at "NULLABLE"
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
+		BIGINT created_by FK "NULLABLE"
+		BIGINT updated_by FK "NULLABLE"
 	}
 	
 	%% abstract parent table 
@@ -428,13 +426,14 @@ erDiagram
 	organization_role {
 		BIGINT id PK "FK(role.id)" 
 	}
+
 	
 	user_organization_membership {
 		BIGINT id PK ""  
-		BIGINT user_id FK ""  
+		BIGINT user_id FK "" 
 		BIGINT organization_id FK ""  
 		BIGINT organization_role_id FK ""  
-		enum accreditation_status  "REQUESTED|VALIDATED|REJECTED"  
+		enum status "ACTIVE|DELETED"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
@@ -458,23 +457,23 @@ erDiagram
 	%% 🟧 Inventory & calculation (9)
 	%% ============================================================
 
-	%% organization & organization_branch will be NULL when user does not belongs to any org.
+	%% organization & organization_branch will be NULL when user does not belong to any org.
 	carbon_inventory {
-		BIGINT id PK ""  
-		BIGINT organization_id FK "NULLABLE"  
-		BIGINT organization_branch_id FK "NULLABLE"  
-		BIGINT user_id FK ""  
-		BIGINT methodology_version_id FK ""  
-		JSONB organization_data  ""  
-		int year  ""  
-		BIGINT status_id FK "status_catalog(id)"  
-		%% Using an enum because we are 100% sure it will never change
-		enum usage_mode  "SIMPLIFIED | EXPERT" 
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
-		%% CHECK ((organization_id IS NOT NULL AND organization_branch_id IS NULL) OR (organization_branch_id IS NOT NULL))
+		BIGINT id PK ""
+		string name "NULLABLE"
+		BIGINT organization_id FK "NULLABLE"
+		BIGINT organization_branch_id FK "NULLABLE"
+		JSONB organization_data "NULLABLE"
+		int year "NULLABLE"
+		enum status "DRAFT | SUBMITTED | VERIFIED | DELETED"
+		enum usage_mode "SIMPLIFIED | EXPERT"
+		BIGINT methodology_version_id FK "NULLABLE"
+		BIGINT preselected_nodes_id FK "NULLABLE"
+		boolean is_editable ""
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
+		BIGINT created_by FK "NULLABLE"
+		BIGINT updated_by FK "NULLABLE"
 	}
 
 	%% A "line" represents what is being measured (subcategory) for a given inventory.
@@ -483,12 +482,11 @@ erDiagram
 		BIGINT id PK ""
 		BIGINT carbon_inventory_id FK "carbon_inventory(id)"
 		BIGINT subcategory_id FK "subcategory(id)"
-
-		enum status "ACTIVE | DELETED"
-		timestamptz created_at  ""  
-		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		enum status "ACTIVE | OUTDATED | DELETED"
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
+		BIGINT created_by FK ""
+		BIGINT updated_by FK ""
 	}
 
 	carbon_inventory_line_input {
@@ -551,6 +549,10 @@ erDiagram
 		%% optionally store breakdown: per-gas, CO2e, etc.
 		JSONB result_details "NULLABLE"
 		timestamptz calculated_at ""
+		timestamptz created_at  ""
+		timestamptz updated_at  ""
+		BIGINT created_by FK "NULLABLE"
+		BIGINT updated_by FK "NULLABLE"
 		%% Ensure 1 result per input: UNIQUE(line_input_id)
 	}
 
@@ -614,7 +616,7 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject {
 		BIGINT id PK "" 
-		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN"
+		enum subject_type "CARBON_INVENTORY | REDUCTION_PROJECT | NEUTRALIZATION_PLAN | ORGANIZATION_DATA"
 		timestamptz created_at  ""  
 		BIGINT created_by FK ""  
 	}
@@ -622,32 +624,38 @@ erDiagram
 	%% The data within this table is immutable once created
 	submission_subject_carbon_inventory {
 		BIGINT subject_id PK "FK"
-		BIGINT carbon_inventory_id FK ""
+		BIGINT carbon_inventory_id FK "UNIQUE carbon_inventory(id)"
 	}
 	
 	%% The data within this table is immutable once created
 	submission_subject_reduction_project {
 		BIGINT subject_id PK "FK"
-		BIGINT reduction_project_id FK ""
+		BIGINT reduction_project_id FK "UNIQUE reduction_project(id)"
 	}
 	
 	%% The data within this table is immutable once created
 	submission_subject_neutralization_plan {
 		BIGINT subject_id PK "FK"
-		BIGINT neutralization_plan_id FK ""
+		BIGINT neutralization_plan_id FK "UNIQUE neutralization_plan(id)"
+	}
+
+	%% The data within this table is immutable once created
+	submission_subject_organization_data {
+		BIGINT subject_id PK "FK"
+		BIGINT organization_data_id FK "UNIQUE organization_data(id)"
 	}
 
 	submission {
 		BIGINT id PK "" 
 		BIGINT subject_id FK "submission_subject(id)" 
-		BIGINT status_id FK "status_catalog(id)"
-		string seal_type  "NULLABLE"  
-		TEXT reviewer_entity "NULLABLE"
-		TEXT review_comments "NULLABLE"
+		enum status "PENDING | APPROVED | REJECTED"
+		BIGINT reviewer_id FK "NULLABLE, user(id)"
+		text review_comments "NULLABLE"
 		timestamptz created_at  ""  
 		timestamptz updated_at  ""  
-		BIGINT created_by FK ""  
-		BIGINT updated_by FK ""  
+		BIGINT created_by FK "NULLABLE, user(id)"
+		BIGINT updated_by FK "NULLABLE, user(id)"  
+		%% UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
 	}
 
 	recognition_catalog {
@@ -686,20 +694,32 @@ country
 	country ||--o{ user_role_assignment : "has"
 	country ||--o{ country_organization_size: "has many"
 	country ||--o{ country_job_position : "has many"
+	country ||--o{ organization : "has"
 
 country_sector
 	country_sector ||--o{ country_subsector : "has"
 	country_sector ||--o{ sector_profiling : "could appear at"
+	country_sector ||--o{ organization_main_activity : "has many"
 
 country_subsector
 	country_subsector ||--o{ subsector_profiling : "could appear at"
+	country_subsector ||--o{ organization_main_activity : "has many"
 
 organization
 	organization ||--o{ carbon_inventory : "has"
 	organization ||--o{ organization_branch : "may have"
 	organization ||--o{ recognition : "awards"
 	organization ||--o{ user_organization_membership : "grant access via"
-	organization }o--|| country_organization_size : "has"
+	organization ||--o{ organization_data : "has"
+
+organization_data
+	organization_data }o--|| country_organization_size : "has"
+	organization_data }o--|| country_sector : "has"
+	organization_data }o--|| country_subsector : "has"
+	organization_data ||--|| country_job_position : "has"
+	organization_data ||--o{ submission_subject_organization_data : "submitted via"
+	organization_data }o--|| organization_main_activity : "has"
+
 
 organization_branch
 	organization_branch |o--o{ reduction_project : "may execute"
@@ -715,15 +735,13 @@ role
 	system_role ||--o{ user_role_assignment : "assigned at"
 
 user
-	user ||--o{ carbon_inventory : "creates"
 	user ||--o{ user_organization_membership : "access with"
-	user }o--|| country_job_position : "has one"
+	user }o--o| country_job_position : "may have one"
 	user ||--o| user_role_assignment : "access with"
 
 methodology_version
 	methodology_version ||--o{ carbon_inventory : "has many"
 	methodology_version ||--o{ category : "has many"
-	methodology_version }o--|| status_catalog : "has one"
 	
 category
 	category ||--o{ subcategory : "has many"
@@ -735,6 +753,10 @@ subcategory
 	subcategory ||--o{ sector_profiling: "could appear at"
 	subcategory ||--o{ subsector_profiling: "could appear at"
 	subcategory ||--o{ carbon_inventory_line: "could have many"
+	subcategory ||--o{ subcategory_measurement_unit: "accepts"
+
+measurement_unit
+	measurement_unit ||--o{ subcategory_measurement_unit: "allowed in"
 
 emission_factor_dimension
 	emission_factor_dimension ||--o{ emission_factor_dimension_value : "has many" 
@@ -746,7 +768,6 @@ emission_factor
 	emission_factor ||--o{ reduction_suggestion_catalog : "could have many"
 	emission_factor ||--o{ carbon_inventory_line_factor : "used by"
 	emission_factor }o--|| rate_measurement_unit : "expressed in"
-	emission_factor }o--|| status_catalog : "has one" 
 	%% At most 2 values, depending on subcategory configuration:
 	emission_factor }o--|| emission_factor_dimension_value : "binds (dimension_value_1)"
 	emission_factor }o--|| emission_factor_dimension_value : "binds (dimension_value_2)"
@@ -756,7 +777,6 @@ carbon_inventory
 	carbon_inventory ||--o{ submission_subject_carbon_inventory: "submitted as"
 	carbon_inventory ||--o{ neutralization_plan: "associated to"
 	carbon_inventory ||--o{ reduction_project: "associated to"
-	carbon_inventory }o--|| status_catalog: "has one"
 	
 carbon_inventory_line
 	carbon_inventory_line ||--o{ reduction_personalized_suggestion: "could have many"
@@ -774,10 +794,11 @@ submission_subject
 	submission_subject ||--|| submission_subject_carbon_inventory : "associated via"
 	submission_subject ||--|| submission_subject_reduction_project : "associated via"
 	submission_subject ||--|| submission_subject_neutralization_plan : "associated via"
+	submission_subject ||--|| submission_subject_organization_data : "associated via"
 
 submission
 	submission ||--o| recognition: "may award"
-	submission }o--|| status_catalog: "has one"
+	submission ||--o{ submission_subject: "has"
 
 neutralization_plan
 	neutralization_plan ||--o{ submission_subject_neutralization_plan : "submitted via"

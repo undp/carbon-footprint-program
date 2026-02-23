@@ -7,15 +7,16 @@ import {
   SvgIconProps,
   Typography,
 } from "@mui/material";
-import { round } from "lodash-es";
-
-import { Category } from "@repo/types";
+import { InventoryCategory } from "@repo/types";
 import React from "react";
 import {
   DirectEmissionCategoryIcon,
   IndirectEmissionCategoryIcon,
   OthersCategoryIcon,
 } from "@/icons";
+import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
+import { formatEmissions } from "@/utils/formatting";
+import { kgToTon } from "@/utils/number";
 
 const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
   1: DirectEmissionCategoryIcon,
@@ -24,16 +25,14 @@ const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
 };
 
 interface Props {
-  category: Category;
-  categoryEmissions: number | null;
+  category: InventoryCategory;
 }
 
-export const TotalCategoryEmissionCard: React.FC<Props> = ({
-  category,
-  categoryEmissions,
-}) => {
+export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
   const IconComponent =
     ICONS_PER_CATEGORY_POSITION[category.position] ?? OthersCategoryIcon;
+
+  const totalEmissions = useEmissionCategoryTotal(category.id);
 
   return (
     <Box className="flex">
@@ -68,7 +67,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({
         </Box>
         <Box className="justify-left flex flex-1 items-center">
           <Typography variant="subtitle1" fontWeight="bold">
-            {round(categoryEmissions ?? 0, 2)} tCO₂e
+            {formatEmissions(kgToTon(totalEmissions ?? 0))}
           </Typography>
         </Box>
       </Card>

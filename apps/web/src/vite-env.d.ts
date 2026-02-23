@@ -11,6 +11,8 @@ interface ImportMetaEnv {
   readonly VITE_AZURE_AUTH_AUTHORITY?: string;
   readonly VITE_FRONT_BASE_URL?: string;
   readonly VITE_AZURE_API_CLIENT_ID?: string;
+  readonly IS_DEMO_APP?: string;
+  readonly DEV: boolean;
 }
 
 interface ImportMeta {

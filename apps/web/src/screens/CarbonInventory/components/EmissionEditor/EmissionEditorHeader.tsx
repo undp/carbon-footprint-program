@@ -11,16 +11,17 @@ import {
   Skeleton,
 } from "@mui/material";
 import { NumericInput } from "@/components";
+import { formatEmissions } from "@/utils/formatting";
+import { kgToTon } from "@/utils/number";
 import { Subcategory } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 
 interface EmissionEditorHeaderProps
   extends Pick<Subcategory, "name" | "description"> {
   isTotalManualEmissionsModeAvailable: boolean;
-  subcategoryHasEmissionFactors: boolean;
   totalEmission: number;
   setTotalEmission: (value: number) => void;
-  isTotalManualEmissionsMode: boolean;
+  isTotalManualEmissionsModeActive: boolean;
   setIsTotalManualEmissionsMode: (value: boolean) => Promise<void>;
   isManualModeLoading?: boolean;
   // Manual mode line actions
@@ -29,16 +30,16 @@ interface EmissionEditorHeaderProps
   manualModeLineHasComment?: boolean;
   onManualModeLineDelete?: () => void;
   onManualModeLineComment?: () => void;
+  hasEmissionFactors?: boolean;
 }
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
   description,
   isTotalManualEmissionsModeAvailable,
-  subcategoryHasEmissionFactors,
   totalEmission,
   setTotalEmission,
-  isTotalManualEmissionsMode,
+  isTotalManualEmissionsModeActive,
   setIsTotalManualEmissionsMode,
   isManualModeLoading = false,
   categoryPosition,
@@ -46,6 +47,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   manualModeLineHasComment = false,
   onManualModeLineDelete,
   onManualModeLineComment,
+  hasEmissionFactors,
 }) => {
   const onChangeTotalEmission = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -53,9 +55,6 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
     },
     [setTotalEmission]
   );
-
-  const showManualEmissionsMode =
-    isTotalManualEmissionsModeAvailable && subcategoryHasEmissionFactors;
 
   return (
     <Box className="flex h-20 gap-4">
@@ -78,11 +77,11 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               <InfoOutline fontSize="inherit" />
             </IconButton>
           </Box>
-
           <Typography variant="caption" fontWeight="regular">
             {description}
           </Typography>
-          {!subcategoryHasEmissionFactors && (
+
+          {!hasEmissionFactors && (
             <Box className="items-bottom flex gap-1">
               <WarningRounded
                 sx={(theme) => ({
@@ -104,44 +103,45 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
       </Box>
       <Box className="flex flex-row content-center items-center gap-2">
         {/* Case 1: Loading and activating manual mode (Skeleton) */}
-        {isManualModeLoading && isTotalManualEmissionsMode && (
+        {isManualModeLoading && isTotalManualEmissionsModeActive && (
           <Skeleton variant="rectangular" width={200} height={30} />
         )}
 
         {/* Case 2: Manual mode active and not loading (Input) */}
-        {!isManualModeLoading && isTotalManualEmissionsMode && (
-          <NumericInput
-            label="Emisiones"
-            value={totalEmission ?? 0}
-            onChange={onChangeTotalEmission}
-            sx={{
-              minHeight: 40,
-              height: 40,
-            }}
-          />
+        {!isManualModeLoading && isTotalManualEmissionsModeActive && (
+          <>
+            <NumericInput
+              label="Emisiones"
+              value={totalEmission ?? 0}
+              onChange={onChangeTotalEmission}
+              sx={{
+                minHeight: 40,
+                height: 40,
+              }}
+            />
+            <Typography variant="subtitle1" fontWeight="bold">
+              (tCO₂e)
+            </Typography>
+          </>
         )}
 
         {/* Case 3: Loading and deactivating manual mode (Shows 0) */}
-        {isManualModeLoading && !isTotalManualEmissionsMode && (
+        {isManualModeLoading && !isTotalManualEmissionsModeActive && (
           <Typography variant="subtitle1" fontWeight="bold">
-            0
+            0 (tCO₂e)
           </Typography>
         )}
 
         {/* Case 4: Detailed mode active and not loading (Shows the real total) */}
-        {!isManualModeLoading && !isTotalManualEmissionsMode && (
+        {!isManualModeLoading && !isTotalManualEmissionsModeActive && (
           <Typography variant="subtitle1" fontWeight="bold">
-            {totalEmission}
+            {formatEmissions(kgToTon(totalEmission))}
           </Typography>
         )}
-
-        <Typography variant="subtitle1" fontWeight="bold">
-          (tCO₂e)
-        </Typography>
       </Box>
       <Box
         className={`align-end flex-row-reverse items-center gap-2 ${
-          showManualEmissionsMode ? "flex" : "hidden"
+          isTotalManualEmissionsModeAvailable ? "flex" : "hidden"
         }`}
       >
         <FormControlLabel
@@ -150,7 +150,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               sx={{
                 padding: 1,
               }}
-              checked={isTotalManualEmissionsMode}
+              checked={isTotalManualEmissionsModeActive}
               onChange={(e) =>
                 void setIsTotalManualEmissionsMode(e.target.checked)
               }
@@ -165,7 +165,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         />
       </Box>
       {/* Action buttons for manual mode line */}
-      {isTotalManualEmissionsMode && hasManualModeLine && (
+      {isTotalManualEmissionsModeActive && hasManualModeLine && (
         <Box className="flex items-center">
           <EmissionEditorActionsCell
             rowId="manual-mode-line"

@@ -9,7 +9,7 @@ import type {
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { UserRole } from "@/plugins/app/authorizationPlugin.js";
+import type { SystemRole } from "@repo/database/enums";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -60,17 +60,17 @@ declare module "fastify" {
      * @example
      * // Single role
      * fastify.get("/admin", {
-     *   onRequest: [fastify.requireAuth, fastify.requireRoles(["admin"])],
+     *   onRequest: [fastify.requireAuth, fastify.requireRoles([SystemRole.ADMIN])],
      * }, handler);
      *
      * @example
      * // Multiple roles (user needs at least one)
      * fastify.get("/content", {
-     *   onRequest: [fastify.requireAuth, fastify.requireRoles(["editor", "admin"])],
+     *   onRequest: [fastify.requireAuth, fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN])],
      * }, handler);
      */
     requireRoles: (
-      allowedRoles: UserRole[]
+      allowedRoles: SystemRole[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 

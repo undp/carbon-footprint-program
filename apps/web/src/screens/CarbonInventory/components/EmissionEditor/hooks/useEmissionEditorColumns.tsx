@@ -5,6 +5,7 @@ import {
   MeasurementUnit,
   RateMeasurementUnit,
   Subcategory,
+  UsageMode,
 } from "@repo/types";
 import {
   EmissionCaptureFormLine,
@@ -38,6 +39,7 @@ interface UseEmissionEditorColumnsParams {
   onUpdateComment: (rowId: LineId, comment: string) => void;
   onUploadFiles: (rowId: LineId) => void;
   isManualModeLoading?: boolean;
+  inventoryUsageMode: UsageMode;
 }
 
 export const useEmissionEditorColumns = ({
@@ -51,8 +53,45 @@ export const useEmissionEditorColumns = ({
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
+  inventoryUsageMode,
   isManualModeLoading = false,
 }: UseEmissionEditorColumnsParams): GridColDef<EmissionCaptureFormLine>[] => {
+  const displayedUnits = useMemo(() => {
+    if (subcategory.allowedMeasurementUnitIds.length === 0)
+      return measurementUnits || [];
+
+    // Track which units have associated emission factors to show only those when in non-expert mode, but show all allowed units in expert mode
+    const rateMeasurementUnitById = new Map(
+      rateMeasurementUnits?.map((mu) => [mu.id, mu]) || []
+    );
+    const unitIdsWithEmissionFactors = new Set<string>();
+    subcategory.emissionFactors.forEach((ef) => {
+      const rateMeasurementUnit = rateMeasurementUnitById.get(
+        ef.rateMeasurementUnitId
+      );
+      if (rateMeasurementUnit)
+        unitIdsWithEmissionFactors.add(rateMeasurementUnit.denominatorUnit.id);
+    });
+
+    const allowedUnits =
+      measurementUnits?.filter((mu) =>
+        subcategory.allowedMeasurementUnitIds.includes(mu.id)
+      ) || [];
+
+    const filtered = allowedUnits.filter(
+      (mu) =>
+        inventoryUsageMode === UsageMode.EXPERT ||
+        unitIdsWithEmissionFactors.has(mu.id)
+    );
+    return filtered;
+  }, [
+    inventoryUsageMode,
+    measurementUnits,
+    rateMeasurementUnits,
+    subcategory.allowedMeasurementUnitIds,
+    subcategory.emissionFactors,
+  ]);
+
   return useMemo(() => {
     const firstDimension = dimensions.find((d) => d.position === 1);
     const secondDimension = dimensions.find((d) => d.position === 2);
@@ -129,7 +168,7 @@ export const useEmissionEditorColumns = ({
           <EmissionEditorMeasurementUnitCell
             subcategoryId={subcategory.id}
             lineId={params.row.lineId}
-            measurementUnits={measurementUnits || []}
+            measurementUnits={displayedUnits}
             onChange={(value: string) => onCellChange(value, params)}
             disabled={isManualModeLoading}
           />
@@ -255,7 +294,7 @@ export const useEmissionEditorColumns = ({
   }, [
     dimensions,
     subcategory.emissionFactors,
-    measurementUnits,
+    displayedUnits,
     rateMeasurementUnits,
     categoryPosition,
     onCellChange,

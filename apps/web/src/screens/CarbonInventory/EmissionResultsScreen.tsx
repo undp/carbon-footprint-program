@@ -1,0 +1,188 @@
+import { FC, useEffect } from "react";
+import { Box } from "@mui/material";
+import { useParams } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
+import { CarbonInventoryLayout, type FooterButton } from "./layout";
+import { StepHeader } from "./components/StepHeader";
+import {
+  EmissionCategorySummary,
+  EmissionEquivalenceCard,
+  EmissionsPieChart,
+  EmissionRankingCard,
+  ReductionPlanCard,
+} from "./components";
+import { Routes } from "@/interfaces";
+import {
+  useEmissionsSummaryCategories,
+  useSubcategoriesRanking,
+  useSectorRanking,
+  useMainActivityEquivalence,
+  useSuggestedReductionPlan,
+} from "@/api/query";
+import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
+import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useAuth } from "../../contexts";
+
+export const EmissionResultsScreen: FC = () => {
+  const { inventoryId } = useParams({
+    from: Routes.CARBON_INVENTORY_EMISSION_RESULTS,
+  });
+
+  const { user } = useAuth();
+
+  const { enqueueSnackbar } = useSnackbar();
+
+  const { goBack, goToList, goToLanding } =
+    useEmissionResultsNavigation(inventoryId);
+
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    isError: isSummaryError,
+  } = useEmissionsSummaryCategories(inventoryId);
+
+  const {
+    data: ownRankings,
+    isLoading: isOwnRankingLoading,
+    isError: isOwnRankingError,
+  } = useSubcategoriesRanking(inventoryId);
+
+  const {
+    data: sectorRankings,
+    isLoading: isSectorRankingLoading,
+    isError: isSectorRankingError,
+  } = useSectorRanking(inventoryId);
+
+  const {
+    data: equivalence,
+    isLoading: isEquivalenceLoading,
+    isError: isEquivalenceError,
+  } = useMainActivityEquivalence(inventoryId);
+
+  const {
+    data: reductionPlan,
+    isLoading: isReductionPlanLoading,
+    isError: isReductionPlanError,
+  } = useSuggestedReductionPlan(inventoryId);
+
+  const isError =
+    isSummaryError ||
+    isOwnRankingError ||
+    isSectorRankingError ||
+    isEquivalenceError ||
+    isReductionPlanError;
+
+  const totalEmissions = summaryData?.totalEmissions ?? 0;
+  const categories = summaryData?.categories ?? [];
+
+  useEffect(() => {
+    if (isError)
+      enqueueSnackbar("Ocurrió un error al cargar la información", {
+        variant: "error",
+        preventDuplicate: true,
+      });
+  }, [isError, enqueueSnackbar]);
+
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      onClick: goBack,
+    },
+  };
+
+  const nextButton: FooterButton = user
+    ? {
+        text: "Guardar Borrador",
+        align: "right",
+        buttonProps: { variant: "contained", onClick: goToList },
+      }
+    : {
+        text: "Volver a empezar",
+        align: "right",
+        buttonProps: { variant: "contained", onClick: goToLanding },
+      };
+
+  return (
+    <CarbonInventoryLayout
+      headerProps={{
+        title: "Simulador de Inventario Organizacional",
+        subtitle: summaryData?.carbonInventory.name ?? undefined,
+      }}
+      footerProps={{
+        buttons: [backButton, nextButton],
+      }}
+    >
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
+        <StepHeader
+          title="Paso 5: Resultados"
+          description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
+        />
+
+        {/* Page Content */}
+        <Box className="flex min-h-0 flex-1 flex-row gap-4">
+          {/* Left container: Emission category cards + equivalence + plot + rankings */}
+          <Box className="flex min-h-0 flex-3 flex-col gap-4">
+            {/* Top subcontainer: Emission category cards + equivalence */}
+            <Box className="flex min-h-0 flex-1 flex-row gap-4">
+              {/* Emission category cards */}
+              <Box className="flex min-h-0 flex-3 flex-col gap-3 overflow-y-auto">
+                <EmissionCategorySummary
+                  totalEmissions={totalEmissions}
+                  categories={categories}
+                  isLoading={isSummaryLoading}
+                  hasError={isSummaryError}
+                />
+              </Box>
+              <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+                <EmissionEquivalenceCard
+                  value={equivalence?.rate.toFixed(2).replace(".", ",") ?? null}
+                  unit={
+                    equivalence ? `kg CO₂e/${equivalence.activityName}` : null
+                  }
+                  isLoading={isEquivalenceLoading}
+                  hasError={isEquivalenceError}
+                />
+              </Box>
+            </Box>
+            {/* Bottom subcontainer: plot + rankings */}
+            <Box className="flex min-h-0 flex-1 flex-row gap-4">
+              <Box className="flex min-h-0 flex-1">
+                <EmissionsPieChart
+                  categories={categories.map((c) => ({
+                    name: c.name,
+                    subtotal: c.subtotal,
+                    percentage: c.percentage,
+                  }))}
+                  totalEmissions={totalEmissions}
+                  isLoading={isSummaryLoading}
+                  hasError={isSummaryError}
+                />
+              </Box>
+              <Box className="flex min-h-0 flex-1">
+                <EmissionRankingCard
+                  ownRankings={ownRankings ?? []}
+                  sectorRankings={sectorRankings ?? []}
+                  isLoading={isOwnRankingLoading || isSectorRankingLoading}
+                  hasError={isOwnRankingError || isSectorRankingError}
+                />
+              </Box>
+            </Box>
+          </Box>
+          {/* Right container: reduction plan */}
+          <Box className="flex min-h-0 flex-1">
+            <ReductionPlanCard
+              mainGoal={reductionPlan?.summary ?? null}
+              actions={reductionPlan?.items ?? null}
+              // TODO: implement navigation to full reduction plan
+              onViewFullPlan={() => {}}
+              isLoading={isReductionPlanLoading}
+              hasError={isReductionPlanError}
+            />
+          </Box>
+        </Box>
+      </Box>
+    </CarbonInventoryLayout>
+  );
+};

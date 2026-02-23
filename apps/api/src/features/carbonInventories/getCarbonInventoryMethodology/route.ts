@@ -1,0 +1,38 @@
+import { getCarbonInventoryMethodologyHandler } from "./handler.js";
+import {
+  IdSchema,
+  GetCarbonInventoryMethodologyResponseSchema,
+} from "@repo/types";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import { z } from "zod";
+import { StandardRouteSignature } from "@/routes/api/index.js";
+
+const ParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
+
+export const getCarbonInventoryMethodologyRoute: StandardRouteSignature = (
+  fastify,
+  options
+) => {
+  fastify.get(
+    "/:id/methodology",
+    {
+      schema: {
+        tags: ["carbon-inventories"],
+        summary: "Get methodology for carbon inventory",
+        description:
+          "Retrieves the methodology associated with a given carbon inventory, including all its categories, subcategories, dimensions, dimension values, and emission factors.",
+        params: ParamsSchema,
+        response: {
+          200: GetCarbonInventoryMethodologyResponseSchema,
+          404: ApiErrorResponseSchema,
+        },
+      },
+      config: {
+        public: options?.public ?? false,
+      },
+    },
+    getCarbonInventoryMethodologyHandler
+  );
+};

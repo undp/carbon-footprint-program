@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -9,19 +9,19 @@ import {
   useEmissionEditorForm,
   useEmissionEditorComment,
   useEmissionEditorColumns,
-  useEmissionTotal,
+  useEmissionSubcategoryTotal,
 } from "./hooks";
 import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
-import { useEmissionCaptureState } from "../../hooks/useEmissionCaptureState";
+import { UsageMode } from "@repo/types";
 
 interface EmissionEditorProps {
-  isTotalManualEmissionsModeAvailable: boolean;
+  inventoryUsageMode: UsageMode;
   subcategory: SubcategoryWithLines;
   categoryPosition: number;
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
-  isTotalManualEmissionsModeAvailable,
+  inventoryUsageMode,
   subcategory,
   categoryPosition,
 }) => {
@@ -32,7 +32,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     rows,
     manualModeLine,
     isTotalManualEmissionsModeLoading,
-    isTotalManualEmissionsMode,
+    isTotalManualEmissionsModeActive,
     handleAddLine,
     handleCellChange,
     handleFactorSourceChange,
@@ -45,20 +45,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     rateMeasurementUnits: rateMeasurementUnits || [],
   });
 
-  const totalEmission = useEmissionTotal(subcategory);
-  const setSubcategoryTotal = useEmissionCaptureState(
-    (state) => state.setSubcategoryTotal
-  );
-
-  // Sync subcategory total to the global state for category total calculation
-  useEffect(() => {
-    setSubcategoryTotal(subcategory.id, totalEmission);
-  }, [
-    subcategory.id,
-    totalEmission,
-    isTotalManualEmissionsMode,
-    setSubcategoryTotal,
-  ]);
+  const totalEmission = useEmissionSubcategoryTotal(subcategory.id);
 
   const { commentDialogProps, openCommentDialog } = useEmissionEditorComment({
     subcategoryId: subcategory.id,
@@ -70,6 +57,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     measurementUnits,
     rateMeasurementUnits,
     categoryPosition,
+    inventoryUsageMode,
     onCellChange: handleCellChange,
     onFactorSourceChange: handleFactorSourceChange,
     onDeleteLine: handleDeleteLine,
@@ -78,11 +66,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       // TODO: Implement upload files functionality
     },
   });
-
-  const subcategoryHasEmissionFactors = subcategory.emissionFactors.length > 0;
-
-  const isTotalManualEmissionsModeActive =
-    isTotalManualEmissionsMode || !subcategoryHasEmissionFactors;
 
   // Handlers for manual mode line actions
   const handleManualModeLineComment = useCallback(() => {
@@ -97,21 +80,15 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     }
   }, [manualModeLine, handleDeleteLine]);
 
-  // Don't render if in manual mode but no line exists to store data
-  if (isTotalManualEmissionsModeActive && !manualModeLine) {
-    return null;
-  }
-
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
         isTotalManualEmissionsModeAvailable={
-          isTotalManualEmissionsModeAvailable
+          subcategory.isTotalManualEmissionsModeAvailable
         }
-        subcategoryHasEmissionFactors={subcategoryHasEmissionFactors}
-        isTotalManualEmissionsMode={isTotalManualEmissionsModeActive}
+        isTotalManualEmissionsModeActive={isTotalManualEmissionsModeActive}
         setIsTotalManualEmissionsMode={handleSetManualMode}
         isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
@@ -122,6 +99,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         manualModeLineHasComment={!!manualModeLine?.comment}
         onManualModeLineDelete={handleManualModeLineDelete}
         onManualModeLineComment={handleManualModeLineComment}
+        hasEmissionFactors={subcategory.emissionFactors.length > 0}
       />
 
       <Collapse in={!isTotalManualEmissionsModeActive} collapsedSize={0}>

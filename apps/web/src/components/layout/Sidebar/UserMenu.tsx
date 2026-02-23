@@ -33,7 +33,7 @@ export const UserMenu = () => {
   }
 
   return (
-    <Box className="mb-4 flex flex-1 flex-col-reverse gap-4">
+    <Box className="mb-4 flex flex-col-reverse gap-4">
       <Card
         elevation={0}
         className="flex items-center gap-2"

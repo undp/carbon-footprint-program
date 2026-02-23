@@ -5,6 +5,7 @@ import { NumericInput } from "@/components";
 import { RateMeasurementUnit, EmissionFactorDimension } from "@repo/types";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
+import { formatEmissionFactor } from "@/utils/formatting";
 
 interface EmissionEditorFactorCellProps {
   subcategoryId: string;
@@ -25,15 +26,15 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
 }) => {
   const value = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
-  }) as number | null;
+  }) as number | null | undefined;
 
   const factorSource = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-  }) as string | null;
+  }) as string | null | undefined;
 
   const measurementUnitId = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.measurementUnitId`,
-  }) as string | null;
+  }) as string | null | undefined;
 
   const validation = useLineValidation(subcategoryId, lineId, dimensions);
 
@@ -61,7 +62,10 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <Typography>
-      {value} {unit?.abbreviation ?? ""}
+      {value !== null && value !== undefined
+        ? formatEmissionFactor(value)
+        : value}{" "}
+      {unit?.abbreviation ?? ""}
     </Typography>
   );
 

@@ -3,5 +3,5 @@ import { EmissionCaptureScreen } from "@/screens/CarbonInventory/EmissionCapture
 import { Routes } from "@/interfaces";
 
 export const Route = createFileRoute(Routes.CARBON_INVENTORY_EMISSION_CAPTURE)({
-  component: () => <EmissionCaptureScreen />,
+  component: EmissionCaptureScreen,
 });

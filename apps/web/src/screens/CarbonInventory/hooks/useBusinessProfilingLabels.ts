@@ -3,7 +3,8 @@ import { useMemo } from "react";
 type NamedItem = { name?: string };
 
 const BASE_LABELS = {
-  yearLabel: "Año del inventario a calcular",
+  nameLabel: "Nombre de la huella",
+  yearLabel: "Año de la huella",
   companyNameLabel: "Nombre de la empresa (Opcional)",
   companySizeLabel: "Tamaño (Opcional)",
   sectorLabel: "Rubro",

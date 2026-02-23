@@ -45,7 +45,10 @@ export class JwksAuthProvider implements AuthProvider {
       // so forged or tampered tokens are rejected.
       const payload = await request.jwtVerify<OidcTokenPayload>();
 
-      request.log.debug({ sub: payload.sub, oid: payload.oid }, "JwksAuthProvider: token verified");
+      request.log.debug(
+        { sub: payload.sub, oid: payload.oid },
+        "JwksAuthProvider: token verified"
+      );
 
       if (!payload.sub && !payload.oid) {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
@@ -59,8 +62,8 @@ export class JwksAuthProvider implements AuthProvider {
         );
       }
 
-      // Determine idp user id (prefer `sub`, fallback to `oid`)
-      const idpUserId = payload.sub ?? payload.oid;
+      // Determine idp user id (prefer `oid`, fallback to `sub`)
+      const idpUserId = payload.oid ?? payload.sub;
 
       // Map OidcTokenPayload to normalized AuthUser
       const user: AuthUser = {
@@ -69,7 +72,10 @@ export class JwksAuthProvider implements AuthProvider {
         idpName: this.type,
       };
 
-      request.log.info({ idpUserId }, "JwksAuthProvider: authentication succeeded");
+      request.log.info(
+        { idpUserId },
+        "JwksAuthProvider: authentication succeeded"
+      );
 
       return { user };
     } catch (error) {

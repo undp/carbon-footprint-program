@@ -9,12 +9,13 @@
     "node": ">=24.0.0"
   },
   "scripts": {
+    "build-deps": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
     "test": "echo 'Not implemented yet'",
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "start": "vite preview",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
+    "start": "vite preview",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
@@ -31,10 +32,10 @@
     "@mui/x-data-grid": "^8.20.0",
     "@mui/x-date-pickers": "^8.19.0",
     "@repo/types": "workspace:*",
+    "@repo/utils": "workspace:*",
     "@tailwindcss/vite": "^4.1.17",
     "@tanstack/react-query": "^5.90.10",
     "@tanstack/react-router": "^1.139.3",
-    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "fuse.js": "^7.1.0",
     "ky": "^1.14.1",
@@ -49,6 +50,7 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@hookform/devtools": "^4.4.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@tanstack/react-router-devtools": "^1.139.3",

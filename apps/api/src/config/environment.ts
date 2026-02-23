@@ -77,9 +77,11 @@ export const AZURE_API_CLIENT_ID = process.env.AZURE_API_CLIENT_ID;
 
 // Computed Azure AD values for Azure Entra External ID (CIAM)
 // CIAM uses ciamlogin.com instead of login.microsoftonline.com
+// Note: Azure CIAM tokens use the tenant ID (not the subdomain) in the issuer claim,
+// e.g. https://<tenant-id>.ciamlogin.com/<tenant-id>/v2.0
 const AZURE_AD_ISSUER =
   AZURE_EXTERNAL_TENANT_ID && AZURE_EXTERNAL_TENANT_SUBDOMAIN
-    ? `https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0`
+    ? `https://${AZURE_EXTERNAL_TENANT_ID}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0`
     : undefined;
 const AZURE_AD_JWKS_URI =
   AZURE_EXTERNAL_TENANT_ID && AZURE_EXTERNAL_TENANT_SUBDOMAIN
@@ -133,3 +135,8 @@ export const AUTH_PROVIDER: AuthProviderType = (() => {
 
 export const FORCED_USER_EMAIL_WHEN_NO_PROVIDER =
   process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
+
+export const FORCED_USER_IDP_ID_WHEN_NO_PROVIDER =
+  process.env.FORCED_USER_IDP_ID_WHEN_NO_PROVIDER;
+
+export const APP_VERSION = process.env.APP_VERSION || "unknown";

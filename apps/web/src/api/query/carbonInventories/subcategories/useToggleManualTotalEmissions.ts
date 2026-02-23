@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { carbonInventoryKeys } from "../keys";
+import { invalidateCarbonInventoryEmissions } from "../keys";
 import { apiClient } from "@/api/http";
 
 interface ToggleManualTotalEmissionsParams {
@@ -20,12 +20,7 @@ export const useToggleManualTotalEmissions = (
           { json: { activated } }
         )
         .json(),
-    onSuccess: () => {
-      // Return the promise so that the mutation caller can await the invalidation
-      return queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.detail(inventoryId),
-        exact: true,
-      });
-    },
+    onSuccess: () =>
+      invalidateCarbonInventoryEmissions(queryClient, inventoryId),
   });
 };

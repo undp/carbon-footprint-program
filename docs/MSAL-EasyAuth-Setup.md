@@ -145,13 +145,6 @@ These steps configure the recommended Easy-Auth approach where Azure App Service
    - _(You can add multiple URIs after the registration on the "Authentication (Preview)" option)_
 
 4. Click **"Register"**
-5. Add the other necessary redirect URIs to your frontend web application:
-   - In your Frontend App registration, navigate to **"Authentication (Preview)"** in the left menu
-   - Select
-     - **Platform**: Single-page application (SPA)
-     - **Development URI**: `http://localhost:5173/auth/sign-in`
-     - **Production URI**: `https://<your-production-domain.com>/auth/sign-in`
-       > 💡 _**Note**: This URIs is used as the post logout redirection on the front._
 
 > 💡 _**Tip**: Save the Front App Registration ID you will need ahead_
 
@@ -955,12 +948,9 @@ export class EasyAuthProvider implements AuthProvider {
     const oid = principal.claims.find((c) => c.typ === "oid")?.val;
 
     return {
-      success: true,
-      user: {
-        idpUserId: oid,
-        email,
-        idpName: "easy-auth",
-      },
+      idpUserId: oid,
+      email,
+      idpName: "easy-auth",
     };
   }
 }

@@ -30,7 +30,8 @@ export interface LineValidationState {
 
 export type SubcategoryWithLines = MethodologySubcategory & {
   lines: EmissionCaptureFormLine[];
-  isTotalManualEmissionsMode: CarbonInventorySubcategory["isTotalManualEmissionsMode"];
+  isTotalManualEmissionsModeAvailable: CarbonInventorySubcategory["isTotalManualEmissionsModeAvailable"];
+  isTotalManualEmissionsModeActive: CarbonInventorySubcategory["isTotalManualEmissionsModeActive"];
 };
 
 type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
@@ -38,6 +39,7 @@ type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
 };
 
 export type EmissionCaptureMergedData = {
+  name: GetCarbonInventoryByIdResponse["name"];
   year: GetCarbonInventoryByIdResponse["year"];
   usageMode: GetCarbonInventoryByIdResponse["usageMode"];
   categories: CategoryWithSubcategoriesAndLines[];
@@ -59,7 +61,9 @@ export type EmissionCaptureFormValues = {
   subcategories: Record<
     SubcategoryId,
     {
-      isTotalManualEmissionsMode: CarbonInventorySubcategory["isTotalManualEmissionsMode"];
+      categoryId: CategoryWithSubcategoriesAndLines["id"];
+      isTotalManualEmissionsModeAvailable: CarbonInventorySubcategory["isTotalManualEmissionsModeAvailable"];
+      isTotalManualEmissionsModeActive: CarbonInventorySubcategory["isTotalManualEmissionsModeActive"];
       lines: Record<LineId, EmissionCaptureFormLine>;
     }
   >;

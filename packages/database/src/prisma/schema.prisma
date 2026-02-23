@@ -1,6 +1,7 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../generated/client"
+  provider        = "prisma-client"
+  output          = "../generated/prisma"
+  moduleFormat    = "esm"
   previewFeatures = ["views"]
 }
 
@@ -13,58 +14,60 @@ model Country {
   name                     String
   isoCode                  String                    @unique @map("iso_code")
   createdAt                DateTime                  @default(now()) @map("created_at")
-  updatedAt                DateTime                  @default(now()) @updatedAt @map("updated_at")
+  updatedAt                DateTime?                 @updatedAt @map("updated_at")
   countryJobPositions      CountryJobPosition[]
   countryOrganizationSizes CountryOrganizationSize[]
   countrySectors           CountrySector[]
   countryParameters        CountryParameter[]
   methodologyVersions      MethodologyVersion[]
+  organizations            Organization[]
 
   @@map("country")
 }
 
 model CountryParameter {
-  id          BigInt   @id @default(autoincrement())
-  countryId   BigInt   @map("country_id")
+  id          BigInt    @id @default(autoincrement())
+  countryId   BigInt    @map("country_id")
   key         String
   value       String
   description String
   type        String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById BigInt?  @map("created_by_id")
-  updatedById BigInt?  @map("updated_by_id")
-  country     Country  @relation(fields: [countryId], references: [id])
-  creator     User?    @relation("country_parameter_created_by", fields: [createdById], references: [id])
-  updater     User?    @relation("country_parameter_updated_by", fields: [updatedById], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  createdById BigInt?   @map("created_by_id")
+  updatedById BigInt?   @map("updated_by_id")
+  country     Country   @relation(fields: [countryId], references: [id])
+  creator     User?     @relation("country_parameter_created_by", fields: [createdById], references: [id])
+  updater     User?     @relation("country_parameter_updated_by", fields: [updatedById], references: [id])
 
   @@unique([countryId, key])
   @@map("country_parameter")
 }
 
 model SystemParameter {
-  id          BigInt   @id @default(autoincrement())
-  key         String   @unique
+  id          BigInt    @id @default(autoincrement())
+  key         String    @unique
   value       String
   description String
   type        String
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at")
-  createdById BigInt?  @map("created_by_id")
-  updatedById BigInt?  @map("updated_by_id")
-  creator     User?    @relation("system_parameter_created_by", fields: [createdById], references: [id])
-  updater     User?    @relation("system_parameter_updated_by", fields: [updatedById], references: [id])
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime? @updatedAt @map("updated_at")
+  createdById BigInt?   @map("created_by_id")
+  updatedById BigInt?   @map("updated_by_id")
+  creator     User?     @relation("system_parameter_created_by", fields: [createdById], references: [id])
+  updater     User?     @relation("system_parameter_updated_by", fields: [updatedById], references: [id])
 
   @@map("system_parameter")
 }
 
 model CountryOrganizationSize {
-  id        BigInt   @id @default(autoincrement())
-  countryId BigInt   @map("country_id")
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  country   Country  @relation(fields: [countryId], references: [id])
+  id               BigInt             @id @default(autoincrement())
+  countryId        BigInt             @map("country_id")
+  name             String
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime?          @updatedAt @map("updated_at")
+  country          Country            @relation(fields: [countryId], references: [id])
+  organizationData OrganizationData[]
 
   @@unique([countryId, name])
   @@map("country_organization_size")
@@ -75,7 +78,7 @@ model CountrySector {
   countryId                  BigInt                     @map("country_id")
   name                       String
   createdAt                  DateTime                   @default(now()) @map("created_at")
-  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at")
+  updatedAt                  DateTime?                  @updatedAt @map("updated_at")
   createdById                BigInt?                    @map("created_by_id")
   updatedById                BigInt?                    @map("updated_by_id")
   country                    Country                    @relation(fields: [countryId], references: [id])
@@ -83,6 +86,7 @@ model CountrySector {
   updater                    User?                      @relation("country_sector_updated_by", fields: [updatedById], references: [id])
   subsectors                 CountrySubsector[]
   organizationMainActivities OrganizationMainActivity[]
+  organizationData           OrganizationData[]
 
   @@unique([countryId, name])
   @@map("country_sector")
@@ -93,73 +97,95 @@ model CountrySubsector {
   countrySectorId            BigInt                     @map("country_sector_id")
   name                       String
   createdAt                  DateTime                   @default(now()) @map("created_at")
-  updatedAt                  DateTime                   @default(now()) @updatedAt @map("updated_at")
+  updatedAt                  DateTime?                  @updatedAt @map("updated_at")
   createdById                BigInt?                    @map("created_by_id")
   updatedById                BigInt?                    @map("updated_by_id")
   countrySector              CountrySector              @relation(fields: [countrySectorId], references: [id])
   creator                    User?                      @relation("country_subsector_created_by", fields: [createdById], references: [id])
   updater                    User?                      @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
   organizationMainActivities OrganizationMainActivity[]
+  organizationData           OrganizationData[]
 
   @@unique([countrySectorId, name])
   @@map("country_subsector")
 }
 
 model OrganizationMainActivity {
-  id                 BigInt            @id @default(autoincrement())
+  id                 BigInt             @id @default(autoincrement())
   name               String
-  countrySectorId    BigInt?           @map("country_sector_id")
-  countrySubsectorId BigInt?           @map("country_subsector_id")
-  createdAt          DateTime          @default(now()) @map("created_at")
-  updatedAt          DateTime          @default(now()) @updatedAt @map("updated_at")
-  createdById        BigInt?           @map("created_by_id")
-  updatedById        BigInt?           @map("updated_by_id")
-  countrySector      CountrySector?    @relation(fields: [countrySectorId], references: [id])
-  countrySubsector   CountrySubsector? @relation(fields: [countrySubsectorId], references: [id])
-  creator            User?             @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
-  updater            User?             @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  countrySectorId    BigInt?            @map("country_sector_id")
+  countrySubsectorId BigInt?            @map("country_subsector_id")
+  createdAt          DateTime           @default(now()) @map("created_at")
+  updatedAt          DateTime?          @updatedAt @map("updated_at")
+  createdById        BigInt?            @map("created_by_id")
+  updatedById        BigInt?            @map("updated_by_id")
+  countrySector      CountrySector?     @relation(fields: [countrySectorId], references: [id])
+  countrySubsector   CountrySubsector?  @relation(fields: [countrySubsectorId], references: [id])
+  creator            User?              @relation("organization_main_activity_created_by", fields: [createdById], references: [id])
+  updater            User?              @relation("organization_main_activity_updated_by", fields: [updatedById], references: [id])
+  organizationData   OrganizationData[]
 
   @@unique([name, countrySectorId, countrySubsectorId], map: "organization_main_activity_name_country_sector_id_country_s_key")
   @@map("organization_main_activity")
 }
 
 model CountryJobPosition {
-  id        BigInt   @id @default(autoincrement())
-  countryId BigInt   @map("country_id")
-  name      String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
-  country   Country  @relation(fields: [countryId], references: [id])
-  users     User[]
+  id               BigInt             @id @default(autoincrement())
+  countryId        BigInt             @map("country_id")
+  name             String
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime?          @updatedAt @map("updated_at")
+  country          Country            @relation(fields: [countryId], references: [id])
+  users            User[]
+  organizationData OrganizationData[]
 
   @@unique([countryId, name])
   @@map("country_job_position")
 }
 
-model Role {
-  id               BigInt            @id @default(autoincrement())
-  name             String            @unique
-  description      String
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime          @default(now()) @updatedAt @map("updated_at")
-  organizationRole OrganizationRole?
-  systemRole       SystemRole?
+enum SystemRole {
+  USER
+  ADMIN
+  SUPERADMIN
 
-  @@map("role")
+  @@map("system_role")
 }
 
-model OrganizationRole {
-  id   BigInt @id
-  role Role   @relation(fields: [id], references: [id], onDelete: Cascade)
+enum OrganizationRole {
+  VIEWER
+  ORGANIZATION_CONTRIBUTOR
+  ORGANIZATION_ADMIN
+  EXTERNAL_VERIFIER
+  EXTERNAL_CONSULTANT
 
   @@map("organization_role")
 }
 
-model SystemRole {
-  id   BigInt @id
-  role Role   @relation(fields: [id], references: [id], onDelete: Cascade)
+enum MembershipStatus {
+  ACTIVE
+  DELETED
 
-  @@map("system_role")
+  @@map("membership_status")
+}
+
+model UserOrganizationMembership {
+  id             BigInt           @id @default(autoincrement())
+  userId         BigInt           @map("user_id")
+  organizationId BigInt           @map("organization_id")
+  role           OrganizationRole @default(VIEWER)
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime?        @updatedAt @map("updated_at")
+  createdById    BigInt?          @map("created_by_id")
+  updatedById    BigInt?          @map("updated_by_id")
+
+  user         User         @relation("user_memberships", fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  creator      User?        @relation("membership_created_by", fields: [createdById], references: [id])
+  updater      User?        @relation("membership_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([userId, organizationId, role])
+  @@map("user_organization_membership")
 }
 
 model User {
@@ -168,11 +194,12 @@ model User {
   idpUserId                            String?                        @unique @map("idp_user_id")
   idpName                              String?                        @map("idp_name")
   email                                String?                        @unique
+  role                                 SystemRole                     @default(USER)
   countryJobPositionId                 BigInt?                        @map("country_job_position_id")
   firstName                            String?                        @map("first_name")
   lastName                             String?                        @map("last_name")
   createdAt                            DateTime                       @default(now()) @map("created_at")
-  updatedAt                            DateTime                       @default(now()) @updatedAt @map("updated_at")
+  updatedAt                            DateTime?                      @updatedAt @map("updated_at")
   createdById                          BigInt?                        @map("created_by_id")
   updatedById                          BigInt?                        @map("updated_by_id")
   termsAccepted                        Boolean                        @default(false) @map("terms_accepted")
@@ -214,20 +241,32 @@ model User {
   usersCreated                         User[]                         @relation("user_created_by")
   updater                              User?                          @relation("user_updated_by", fields: [updatedById], references: [id])
   usersUpdated                         User[]                         @relation("user_updated_by")
+  organizationsCreated                 Organization[]                 @relation("organization_created_by")
+  organizationsUpdated                 Organization[]                 @relation("organization_updated_by")
+  organizationsDataCreated             OrganizationData[]             @relation("organization_data_created_by")
+  organizationsDataUpdated             OrganizationData[]             @relation("organization_data_updated_by")
+  submissionSubjectsCreated            SubmissionSubject[]            @relation("submission_subject_created_by")
+  submissionsReviewed                  Submission[]                   @relation("submission_reviewer")
+  submissionsCreated                   Submission[]                   @relation("submission_created_by")
+  submissionsUpdated                   Submission[]                   @relation("submission_updated_by")
+  memberships                          UserOrganizationMembership[]   @relation("user_memberships")
+  membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
+  membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
 
   @@map("user")
 }
 
 model MeasurementUnit {
-  id                     BigInt                     @id @default(autoincrement())
-  name                   String
-  magnitude              Magnitude
-  abbreviation           String                     @unique
-  baseFactor             Float                      @map("base_factor")
-  isBase                 Boolean                    @map("is_base")
-  rateUnitsAsDenominator RateMeasurementUnit[]      @relation("denominator_measurement_unit")
-  rateUnitsAsNumerator   RateMeasurementUnit[]      @relation("numerator_measurement_unit")
-  lineInputs             CarbonInventoryLineInput[]
+  id                          BigInt                       @id @default(autoincrement())
+  name                        String
+  magnitude                   Magnitude
+  abbreviation                String                       @unique
+  baseFactor                  Float                        @map("base_factor")
+  isBase                      Boolean                      @map("is_base")
+  rateUnitsAsDenominator      RateMeasurementUnit[]        @relation("denominator_measurement_unit")
+  rateUnitsAsNumerator        RateMeasurementUnit[]        @relation("numerator_measurement_unit")
+  lineInputs                  CarbonInventoryLineInput[]
+  subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
   @@map("measurement_unit")
 }
@@ -262,71 +301,44 @@ enum Magnitude {
   @@map("Magnitude")
 }
 
-enum InventoryStatus {
-  DRAFT
-  SUBMITTED
-  VERIFIED
+enum MethodologyVersionStatus {
+  PUBLISHED
+  UNPUBLISHED
   DELETED
 
-  @@map("inventory_status")
+  @@map("methodology_version_status")
 }
 
-enum UsageMode {
-  SIMPLIFIED
-  EXPERT
+enum CategoryStatus {
+  ACTIVE
+  DELETED
 
-  @@map("usage_mode")
-}
-
-/// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
-enum InputType {
-  SIMPLIFIED
-  EXPERT
-  DIRECT
-
-  @@map("input_type")
-}
-
-model StatusCatalog {
-  id                  BigInt                @id @default(autoincrement())
-  scope               String
-  code                String
-  name                String
-  isTerminal          Boolean?              @map("is_terminal")
-  isVisible           Boolean?              @map("is_visible")
-  sortOrder           Int?                  @map("sort_order")
-  isActive            Boolean?              @map("is_active")
-  createdAt           DateTime              @default(now()) @map("created_at")
-  updatedAt           DateTime              @default(now()) @updatedAt @map("updated_at")
-  methodologyVersions MethodologyVersion[]
-  emissionFactors     EmissionFactor[]
-  inventoryLines      CarbonInventoryLine[]
-
-  @@unique([scope, code])
-  @@map("status_catalog")
+  @@map("category_status")
 }
 
 model MethodologyVersion {
-  id                BigInt            @id @default(autoincrement())
-  countryId         BigInt            @map("country_id")
+  id                BigInt                   @id @default(autoincrement())
+  countryId         BigInt                   @map("country_id")
   name              String
-  description       String?
-  statusId          BigInt            @map("status_id")
-  createdAt         DateTime          @default(now()) @map("created_at")
-  updatedAt         DateTime          @default(now()) @updatedAt @map("updated_at")
-  createdById       BigInt?           @map("created_by_id")
-  updatedById       BigInt?           @map("updated_by_id")
-  country           Country           @relation(fields: [countryId], references: [id])
-  status            StatusCatalog     @relation(fields: [statusId], references: [id])
-  creator           User?             @relation("methodology_version_created_by", fields: [createdById], references: [id])
-  updater           User?             @relation("methodology_version_updated_by", fields: [updatedById], references: [id])
+  description       String
+  regulation        String
+  version           String
+  status            MethodologyVersionStatus
+  createdAt         DateTime                 @default(now()) @map("created_at")
+  updatedAt         DateTime?                @updatedAt @map("updated_at")
+  createdById       BigInt?                  @map("created_by_id")
+  updatedById       BigInt?                  @map("updated_by_id")
+  country           Country                  @relation(fields: [countryId], references: [id])
+  creator           User?                    @relation("methodology_version_created_by", fields: [createdById], references: [id])
+  updater           User?                    @relation("methodology_version_updated_by", fields: [updatedById], references: [id])
   categories        Category[]
   carbonInventories CarbonInventory[]
 
+  // Partial unique index exists in SQL migrations:
+  // ("country_id", "name") WHERE status <> 'DELETED'
   // TODO: Enforce via trigger at most 1 active per country
   // TODO: Enforce somehow country's active_methodology_version_id must point to ACTIVE
 
-  @@unique([countryId, name])
   @@map("methodology_version")
 }
 
@@ -334,44 +346,62 @@ model Category {
   id                   BigInt             @id @default(autoincrement())
   methodologyVersionId BigInt             @map("methodology_version_id")
   name                 String
-  synonyms             String?
-  description          String?
+  icon                 String
+  color                String
+  synonyms             String
+  description          String
   examples             String?
   // Position must be > 0 (enforced by DB CHECK constraint: category_position_check)
   position             Int
+  status               CategoryStatus     @default(ACTIVE)
   createdAt            DateTime           @default(now()) @map("created_at")
-  updatedAt            DateTime           @default(now()) @updatedAt @map("updated_at")
+  updatedAt            DateTime?          @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
   updatedById          BigInt?            @map("updated_by_id")
-  methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id])
+  methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?              @relation("category_created_by", fields: [createdById], references: [id])
   updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id])
   subcategories        Subcategory[]
 
-  @@unique([methodologyVersionId, name])
-  @@unique([methodologyVersionId, position])
+  // Partial unique indexes exist in SQL migrations:
+  // ("methodology_version_id", "name") WHERE status <> 'DELETED'
+  // ("methodology_version_id", "position") WHERE status <> 'DELETED'
+
   @@map("category")
 }
 
 model Subcategory {
-  id              BigInt                    @id @default(autoincrement())
-  categoryId      BigInt                    @map("category_id")
-  name            String
-  description     String?
-  examples        String?
-  createdAt       DateTime                  @default(now()) @map("created_at")
-  updatedAt       DateTime                  @default(now()) @updatedAt @map("updated_at")
-  createdById     BigInt?                   @map("created_by_id")
-  updatedById     BigInt?                   @map("updated_by_id")
-  category        Category                  @relation(fields: [categoryId], references: [id])
-  creator         User?                     @relation("subcategory_created_by", fields: [createdById], references: [id])
-  updater         User?                     @relation("subcategory_updated_by", fields: [updatedById], references: [id])
-  dimensions      EmissionFactorDimension[]
-  emissionFactors EmissionFactor[]
-  inventoryLines  CarbonInventoryLine[]
+  id                          BigInt                       @id @default(autoincrement())
+  categoryId                  BigInt                       @map("category_id")
+  name                        String
+  description                 String?
+  examples                    String?
+  createdAt                   DateTime                     @default(now()) @map("created_at")
+  updatedAt                   DateTime?                    @updatedAt @map("updated_at")
+  createdById                 BigInt?                      @map("created_by_id")
+  updatedById                 BigInt?                      @map("updated_by_id")
+  category                    Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  creator                     User?                        @relation("subcategory_created_by", fields: [createdById], references: [id])
+  updater                     User?                        @relation("subcategory_updated_by", fields: [updatedById], references: [id])
+  dimensions                  EmissionFactorDimension[]
+  emissionFactors             EmissionFactor[]
+  inventoryLines              CarbonInventoryLine[]
+  subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
   @@unique([categoryId, name])
   @@map("subcategory")
+}
+
+model SubcategoryMeasurementUnit {
+  id                BigInt          @id @default(autoincrement())
+  subcategoryId     BigInt          @map("subcategory_id")
+  measurementUnitId BigInt          @map("measurement_unit_id")
+  createdAt         DateTime        @default(now()) @map("created_at")
+  subcategory       Subcategory     @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  measurementUnit   MeasurementUnit @relation(fields: [measurementUnitId], references: [id])
+
+  @@unique([subcategoryId, measurementUnitId])
+  @@map("subcategory_measurement_unit")
 }
 
 model EmissionFactorDimension {
@@ -383,10 +413,10 @@ model EmissionFactorDimension {
   position      Int
   isRequired    Boolean                        @map("is_required")
   createdAt     DateTime                       @default(now()) @map("created_at")
-  updatedAt     DateTime                       @default(now()) @updatedAt @map("updated_at")
+  updatedAt     DateTime?                      @updatedAt @map("updated_at")
   createdById   BigInt?                        @map("created_by_id")
   updatedById   BigInt?                        @map("updated_by_id")
-  subcategory   Subcategory                    @relation(fields: [subcategoryId], references: [id])
+  subcategory   Subcategory                    @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
   creator       User?                          @relation("emission_factor_dimension_created_by", fields: [createdById], references: [id])
   updater       User?                          @relation("emission_factor_dimension_updated_by", fields: [updatedById], references: [id])
   values        EmissionFactorDimensionValue[]
@@ -403,7 +433,7 @@ model EmissionFactorDimensionValue {
   value                       String
   isActive                    Boolean                        @default(true) @map("is_active")
   createdAt                   DateTime                       @default(now()) @map("created_at")
-  updatedAt                   DateTime                       @default(now()) @updatedAt @map("updated_at")
+  updatedAt                   DateTime?                      @updatedAt @map("updated_at")
   createdById                 BigInt?                        @map("created_by_id")
   updatedById                 BigInt?                        @map("updated_by_id")
   dimension                   EmissionFactorDimension        @relation(fields: [dimensionId], references: [id])
@@ -420,6 +450,13 @@ model EmissionFactorDimensionValue {
   @@map("emission_factor_dimension_value")
 }
 
+enum EmissionFactorStatus {
+  ACTIVE
+  DELETED
+
+  @@map("emission_factor_status")
+}
+
 model EmissionFactor {
   id                    BigInt                        @id @default(autoincrement())
   subcategoryId         BigInt                        @map("subcategory_id")
@@ -429,16 +466,15 @@ model EmissionFactor {
   source                String
   gasDetails            Json                          @map("gas_details") @db.JsonB
   value                 Decimal                       @db.Decimal(28, 10)
-  statusId              BigInt                        @map("status_id")
+  status                EmissionFactorStatus          @default(ACTIVE)
   createdAt             DateTime                      @default(now()) @map("created_at")
-  updatedAt             DateTime                      @default(now()) @updatedAt @map("updated_at")
+  updatedAt             DateTime?                     @updatedAt @map("updated_at")
   createdById           BigInt?                       @map("created_by_id")
   updatedById           BigInt?                       @map("updated_by_id")
-  subcategory           Subcategory                   @relation(fields: [subcategoryId], references: [id])
+  subcategory           Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
   dimensionValue1       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id])
   dimensionValue2       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id])
   rateMeasurementUnit   RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id])
-  status                StatusCatalog                 @relation(fields: [statusId], references: [id])
   creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
   updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
   lineFactors           CarbonInventoryLineFactor[]
@@ -449,28 +485,56 @@ model EmissionFactor {
   @@map("emission_factor")
 }
 
+// TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
+enum InventoryStatus {
+  DRAFT
+  SUBMITTED
+  VERIFIED
+  DELETED
+
+  @@map("inventory_status")
+}
+
+enum UsageMode {
+  SIMPLIFIED
+  EXPERT
+
+  @@map("usage_mode")
+}
+
 model CarbonInventory {
-  id                   BigInt                         @id @default(autoincrement())
-  organizationId       BigInt?                        @map("organization_id")
-  organizationBranchId BigInt?                        @map("organization_branch_id")
-  organizationData     Json?                          @map("organization_data") @db.JsonB
+  id                   BigInt                            @id @default(autoincrement())
+  name                 String?
+  organizationId       BigInt?                           @map("organization_id")
+  organizationBranchId BigInt?                           @map("organization_branch_id")
+  organizationData     Json?                             @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus                @default(DRAFT)
-  usageMode            UsageMode                      @map("usage_mode")
-  methodologyVersionId BigInt?                        @map("methodology_version_id")
-  preselectedNodesId   BigInt?                        @map("preselected_nodes_id")
-  isEditable           Boolean                        @default(true) @map("is_editable")
-  createdAt            DateTime                       @default(now()) @map("created_at")
-  updatedAt            DateTime                       @default(now()) @updatedAt @map("updated_at")
-  createdById          BigInt?                        @map("created_by_id")
-  updatedById          BigInt?                        @map("updated_by_id")
-  methodologyVersion   MethodologyVersion?            @relation(fields: [methodologyVersionId], references: [id])
-  creator              User?                          @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
-  updater              User?                          @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+  status               InventoryStatus                   @default(DRAFT)
+  usageMode            UsageMode                         @map("usage_mode")
+  methodologyVersionId BigInt?                           @map("methodology_version_id")
+  preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
+  isEditable           Boolean                           @default(true) @map("is_editable")
+  createdAt            DateTime                          @default(now()) @map("created_at")
+  updatedAt            DateTime?                         @updatedAt @map("updated_at")
+  createdById          BigInt?                           @map("created_by_id")
+  updatedById          BigInt?                           @map("updated_by_id")
+  methodologyVersion   MethodologyVersion?               @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
+  creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
+  updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
   lines                CarbonInventoryLine[]
   subtotals            CarbonInventorySubtotalsView[]
+  organization         Organization?                     @relation(fields: [organizationId], references: [id])
+  submission           SubmissionSubjectCarbonInventory?
 
   @@map("carbon_inventory")
+}
+
+enum CarbonInventoryLineStatus {
+  ACTIVE
+  OUTDATED
+  DELETED
+
+  @@map("carbon_inventory_line_status")
 }
 
 // A "line" represents what is being measured (subcategory + optional selections) for a given inventory.
@@ -479,19 +543,27 @@ model CarbonInventoryLine {
   id                BigInt                     @id @default(autoincrement())
   carbonInventoryId BigInt                     @map("carbon_inventory_id")
   subcategoryId     BigInt                     @map("subcategory_id")
-  statusId          BigInt                     @map("status_id")
+  status            CarbonInventoryLineStatus  @default(ACTIVE)
   createdAt         DateTime                   @default(now()) @map("created_at")
-  updatedAt         DateTime                   @default(now()) @updatedAt @map("updated_at")
+  updatedAt         DateTime?                  @updatedAt @map("updated_at")
   createdById       BigInt?                    @map("created_by_id")
   updatedById       BigInt?                    @map("updated_by_id")
-  carbonInventory   CarbonInventory            @relation(fields: [carbonInventoryId], references: [id])
-  subcategory       Subcategory                @relation(fields: [subcategoryId], references: [id])
-  status            StatusCatalog              @relation(fields: [statusId], references: [id])
+  carbonInventory   CarbonInventory            @relation(fields: [carbonInventoryId], references: [id], onDelete: Cascade)
+  subcategory       Subcategory                @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
   creator           User?                      @relation("carbon_inventory_line_created_by", fields: [createdById], references: [id])
   updater           User?                      @relation("carbon_inventory_line_updated_by", fields: [updatedById], references: [id])
   inputs            CarbonInventoryLineInput[]
 
   @@map("carbon_inventory_line")
+}
+
+/// UsageMode represents inventory-level behavior (SIMPLIFIED/EXPERT), while InputType represents per-line input method and introduces DIRECT for line-only direct input.
+enum InputType {
+  SIMPLIFIED
+  EXPERT
+  DIRECT
+
+  @@map("input_type")
 }
 
 model CarbonInventoryLineInput {
@@ -509,10 +581,10 @@ model CarbonInventoryLineInput {
   comment                String?
   isActive               Boolean                       @default(true) @map("is_active")
   createdAt              DateTime                      @default(now()) @map("created_at")
-  updatedAt              DateTime                      @default(now()) @updatedAt @map("updated_at")
+  updatedAt              DateTime?                     @updatedAt @map("updated_at")
   createdById            BigInt?                       @map("created_by_id")
   updatedById            BigInt?                       @map("updated_by_id")
-  line                   CarbonInventoryLine           @relation(fields: [lineId], references: [id])
+  line                   CarbonInventoryLine           @relation(fields: [lineId], references: [id], onDelete: Cascade)
   selection1             EmissionFactorDimensionValue? @relation("line_input_selection_1", fields: [selection1Id], references: [id])
   selection2             EmissionFactorDimensionValue? @relation("line_input_selection_2", fields: [selection2Id], references: [id])
   measurementUnit        MeasurementUnit?              @relation(fields: [measurementUnitId], references: [id])
@@ -541,10 +613,10 @@ model CarbonInventoryLineFactor {
   appliedFactorSource     String?                  @map("applied_factor_source")
   derivationDetails       Json?                    @map("derivation_details") @db.JsonB
   createdAt               DateTime                 @default(now()) @map("created_at")
-  updatedAt               DateTime                 @default(now()) @updatedAt @map("updated_at")
+  updatedAt               DateTime?                @updatedAt @map("updated_at")
   createdById             BigInt?                  @map("created_by_id")
   updatedById             BigInt?                  @map("updated_by_id")
-  lineInput               CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id])
+  lineInput               CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id], onDelete: Cascade)
   emissionFactor          EmissionFactor?          @relation(fields: [emissionFactorId], references: [id])
   appliedFactorRateUnit   RateMeasurementUnit      @relation("applied_factor_rate_unit", fields: [appliedFactorRateUnitId], references: [id])
   creator                 User?                    @relation("carbon_inventory_line_factor_created_by", fields: [createdById], references: [id])
@@ -561,10 +633,10 @@ model CarbonInventoryLineResult {
   resultDetails  Json?                    @map("result_details") @db.JsonB
   calculatedAt   DateTime                 @default(now()) @map("calculated_at")
   createdAt      DateTime                 @default(now()) @map("created_at")
-  updatedAt      DateTime                 @default(now()) @updatedAt @map("updated_at")
+  updatedAt      DateTime?                @updatedAt @map("updated_at")
   createdById    BigInt?                  @map("created_by_id")
   updatedById    BigInt?                  @map("updated_by_id")
-  lineInput      CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id])
+  lineInput      CarbonInventoryLineInput @relation(fields: [lineInputId], references: [id], onDelete: Cascade)
   creator        User?                    @relation("carbon_inventory_line_result_created_by", fields: [createdById], references: [id])
   updater        User?                    @relation("carbon_inventory_line_result_updated_by", fields: [updatedById], references: [id])
 
@@ -580,4 +652,185 @@ view CarbonInventorySubtotalsView {
   carbonInventory   CarbonInventory @relation(fields: [carbonInventoryId], references: [id])
 
   @@map("carbon_inventory_subtotals_view")
+}
+
+view OrganizationSummaryView {
+  organizationId                     BigInt             @unique @map("organization_id")
+  countryId                          BigInt             @map("country_id")
+  organizationStatus                 OrganizationStatus @map("organization_status")
+  organizationCreatedAt              DateTime           @map("organization_created_at")
+  organizationUpdatedAt              DateTime?          @map("organization_updated_at")
+  organizationDataId                 BigInt             @map("organization_data_id")
+  legalName                          String             @map("legal_name")
+  tradeName                          String?            @map("trade_name")
+  taxId                              String             @map("tax_id")
+  name                               String             @map("name")
+  sectorId                           BigInt?            @map("sector_id")
+  subsectorId                        BigInt?            @map("subsector_id")
+  countryOrganizationSizeId          BigInt?            @map("country_organization_size_id")
+  mainActivityId                     BigInt?            @map("main_activity_id")
+  address                            String?
+  employeesCount                     Int?               @map("employees_count")
+  representativeFullName             String             @map("representative_full_name")
+  representativeTaxId                String             @map("representative_tax_id")
+  representativeCountryJobPositionId BigInt             @map("representative_country_job_position_id")
+  representativePhone                String             @map("representative_phone")
+  representativeEmail                String             @map("representative_email")
+  organizationDataCreatedAt          DateTime           @map("organization_data_created_at")
+  organizationDataUpdatedAt          DateTime?          @map("organization_data_updated_at")
+  lastSubmissionStatus               SubmissionStatus?  @map("last_submission_status")
+  hasUnsubmittedChanges              Boolean            @map("has_unsubmitted_changes")
+  displayStatus                      String             @map("display_status")
+  isAccredited                       Boolean            @map("is_accredited")
+  sizeName                           String?            @map("size_name")
+  sectorName                         String?            @map("sector_name")
+  subsectorName                      String?            @map("subsector_name")
+  mainActivityName                   String?            @map("main_activity_name")
+  representativePositionName         String             @map("representative_position_name")
+  hasCarbonInventories               Boolean            @map("has_carbon_inventories")
+  totalEmissions                     Decimal            @map("total_emissions") @db.Decimal(28, 10)
+  lastMeasurement                    DateTime?          @map("last_measurement")
+  organization                       Organization       @relation(fields: [organizationId], references: [id])
+
+  @@map("organization_summary_view")
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  BLOCKED
+
+  @@map("organization_status")
+}
+
+model Organization {
+  id          BigInt             @id @default(autoincrement())
+  countryId   BigInt             @map("country_id")
+  status      OrganizationStatus @default(ACTIVE)
+  createdAt   DateTime           @default(now()) @map("created_at")
+  updatedAt   DateTime?          @updatedAt @map("updated_at")
+  createdById BigInt?            @map("created_by_id")
+  updatedById BigInt?            @map("updated_by_id")
+
+  country           Country                      @relation(fields: [countryId], references: [id])
+  creator           User?                        @relation("organization_created_by", fields: [createdById], references: [id])
+  updater           User?                        @relation("organization_updated_by", fields: [updatedById], references: [id])
+  data              OrganizationData[]
+  carbonInventories CarbonInventory[]
+  memberships       UserOrganizationMembership[]
+  summary           OrganizationSummaryView?
+
+  @@map("organization")
+}
+
+enum OrganizationDataStatus {
+  OUTDATED
+  ACTIVE
+
+  @@map("organization_data_status")
+}
+
+model OrganizationData {
+  id                                 BigInt                             @id @default(autoincrement())
+  organizationId                     BigInt                             @map("organization_id")
+  status                             OrganizationDataStatus             @default(ACTIVE)
+  legalName                          String                             @map("legal_name")
+  tradeName                          String?                            @map("trade_name")
+  taxId                              String                             @map("tax_id")
+  countryOrganizationSizeId          BigInt?                            @map("country_organization_size_id")
+  sectorId                           BigInt?                            @map("sector_id")
+  mainActivityId                     BigInt?                            @map("main_activity_id")
+  subsectorId                        BigInt?                            @map("subsector_id")
+  address                            String?
+  employeesCount                     Int?                               @map("employees_count")
+  representativeFullName             String                             @map("representative_full_name")
+  representativeTaxId                String                             @map("representative_tax_id")
+  representativeCountryJobPositionId BigInt                             @map("representative_country_job_position_id")
+  representativePhone                String                             @map("representative_phone")
+  representativeEmail                String                             @map("representative_email")
+  createdAt                          DateTime                           @default(now()) @map("created_at")
+  updatedAt                          DateTime?                          @updatedAt @map("updated_at")
+  createdById                        BigInt?                            @map("created_by_id")
+  updatedById                        BigInt?                            @map("updated_by_id")
+  organization                       Organization                       @relation(fields: [organizationId], references: [id])
+  countryOrganizationSize            CountryOrganizationSize?           @relation(fields: [countryOrganizationSizeId], references: [id])
+  sector                             CountrySector?                     @relation(fields: [sectorId], references: [id])
+  subsector                          CountrySubsector?                  @relation(fields: [subsectorId], references: [id])
+  representativeCountryJobPosition   CountryJobPosition                 @relation(fields: [representativeCountryJobPositionId], references: [id])
+  creator                            User?                              @relation("organization_data_created_by", fields: [createdById], references: [id])
+  updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
+  submission                         SubmissionSubjectOrganizationData?
+  mainActivity                       OrganizationMainActivity?          @relation(fields: [mainActivityId], references: [id])
+
+  // NOTE: The following constraints are implemented on the migrations:
+  // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'
+  // - UNIQUE INDEX on organization_id WHERE status IN ('DRAFT', 'SUBMITTED')
+  @@map("organization_data")
+}
+
+enum SubmissionSubjectType {
+  CARBON_INVENTORY
+  ORGANIZATION_DATA
+
+  @@map("submission_subject_type")
+}
+
+model SubmissionSubject {
+  id          BigInt                @id @default(autoincrement())
+  subjectType SubmissionSubjectType @map("subject_type")
+  createdAt   DateTime              @default(now()) @map("created_at")
+  createdById BigInt?               @map("created_by_id")
+  creator     User?                 @relation("submission_subject_created_by", fields: [createdById], references: [id])
+
+  submissions      Submission[]
+  carbonInventory  SubmissionSubjectCarbonInventory?
+  organizationData SubmissionSubjectOrganizationData?
+
+  @@map("submission_subject")
+}
+
+model SubmissionSubjectCarbonInventory {
+  subjectId         BigInt            @id @map("subject_id")
+  carbonInventoryId BigInt            @unique @map("carbon_inventory_id")
+  subject           SubmissionSubject @relation(fields: [subjectId], references: [id])
+  carbonInventory   CarbonInventory   @relation(fields: [carbonInventoryId], references: [id])
+
+  @@map("submission_subject_carbon_inventory")
+}
+
+model SubmissionSubjectOrganizationData {
+  subjectId          BigInt            @id @map("subject_id")
+  organizationDataId BigInt            @unique @map("organization_data_id")
+  subject            SubmissionSubject @relation(fields: [subjectId], references: [id])
+  organizationData   OrganizationData  @relation(fields: [organizationDataId], references: [id])
+
+  @@map("submission_subject_organization_data")
+}
+
+enum SubmissionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+
+  @@map("submission_status")
+}
+
+model Submission {
+  id             BigInt           @id @default(autoincrement())
+  subjectId      BigInt           @map("subject_id")
+  status         SubmissionStatus @default(PENDING)
+  reviewerId     BigInt?          @map("reviewer_id")
+  reviewComments String?          @map("review_comments")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime?        @updatedAt @map("updated_at")
+  createdById    BigInt?          @map("created_by_id")
+  updatedById    BigInt?          @map("updated_by_id")
+
+  subject  SubmissionSubject @relation(fields: [subjectId], references: [id])
+  reviewer User?             @relation("submission_reviewer", fields: [reviewerId], references: [id])
+  creator  User?             @relation("submission_created_by", fields: [createdById], references: [id])
+  updater  User?             @relation("submission_updated_by", fields: [updatedById], references: [id])
+
+  // NOTE: The following constraints are implemented on the migrations:
+  // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
+  @@map("submission")
 }

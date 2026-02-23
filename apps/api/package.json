@@ -10,17 +10,15 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "pretest": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
-    "test": "vitest",
+    "build-deps": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
+    "test": "vitest run",
     "test:ui": "vitest --ui",
-    "predev": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "dev": "concurrently -n types,db,api -c cyan,magenta,green \"pnpm --filter @repo/types run dev\" \"pnpm --filter @repo/database run dev\" \"pnpm --filter api run dev:api-only\"",
     "dev:api-only": "tsx watch src/server.ts",
-    "prebuild": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build",
     "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
-    "start": "node dist/server.js",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
+    "start": "node dist/server.js",
     "clean": "rimraf dist .turbo tsconfig.tsbuildinfo"
   },
   "dependencies": {
@@ -36,6 +34,7 @@
     "@fastify/under-pressure": "^9.0.3",
     "@repo/database": "workspace:*",
     "@repo/types": "workspace:*",
+    "@repo/utils": "workspace:*",
     "fastify": "^5.6.2",
     "fastify-plugin": "^5.1.0",
     "fastify-type-provider-zod": "^6.1.0",

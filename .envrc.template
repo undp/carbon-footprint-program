@@ -11,6 +11,8 @@ export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
+export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=     # Must be set when using AUTH_PROVIDER="forced-user"
+export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=      # Must be set when using AUTH_PROVIDER="forced-user"
 
 # Web
 export VITE_API_BASE_URL=""  # URL for the API
@@ -18,3 +20,6 @@ export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0" # Authority URL for Azure Entra External Authentication
 export VITE_FRONT_BASE_URL=""
+
+# Common
+export APP_VERSION=""

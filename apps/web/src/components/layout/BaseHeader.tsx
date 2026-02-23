@@ -1,7 +1,6 @@
 import React, { FC, PropsWithChildren } from "react";
 import { AppBar, AppBarProps, Box, Toolbar } from "@mui/material";
 import { HuellaLatamLogo } from "@/icons";
-import clsx from "clsx";
 
 interface Props extends AppBarProps {
   showLogo?: boolean;
@@ -21,10 +20,10 @@ export const BaseHeader: FC<PropsWithChildren<Props>> = ({
     <AppBar
       {...props}
       color="transparent"
-      className={clsx("bg-white", className)}
+      className={className}
       position="static"
     >
-      <Toolbar className="px-6 py-4">
+      <Toolbar className="bg-white px-6 py-4">
         {showLogo && (
           <Box
             className="flex cursor-pointer items-center"

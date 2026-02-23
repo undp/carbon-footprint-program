@@ -30,6 +30,7 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 IMAGE_NAME="${IMAGE_NAME:-api}"
 IMAGE_TAG="${IMAGE_TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo latest)}"
 API_PORT="${API_PORT:-8080}"
+APP_VERSION="${APP_VERSION:-$IMAGE_TAG}"
 
 # Stack for the current environment (App Service, DB, ACR, etc.)
 STACK_NAME_ENV="undp-huella-latam-stack-$ENVIRONMENT"
@@ -94,7 +95,7 @@ log "Setting app settings..."
 az webapp config appsettings set \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --name "$APP_SERVICE_NAME" \
-  --settings WEBSITES_PORT="$API_PORT" NODE_ENV=production >/dev/null
+  --settings WEBSITES_PORT="$API_PORT" NODE_ENV=production APP_VERSION="${APP_VERSION:-unknown}" >/dev/null
 
 log "Restarting app..."
 az webapp restart -g "$AZURE_RESOURCE_GROUP" -n "$APP_SERVICE_NAME"

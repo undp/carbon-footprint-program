@@ -7,7 +7,7 @@ export const AuthenticationLayout: FC<PropsWithChildren> = ({ children }) => {
 
   return (
     <Box className="flex min-h-screen">
-      <Box className="flex flex-col items-center w-1/2">
+      <Box className="flex w-1/2 flex-col items-center">
         <AppBar position="static" color="transparent" elevation={0}>
           <Toolbar>
             <IconButton
@@ -31,7 +31,7 @@ export const AuthenticationLayout: FC<PropsWithChildren> = ({ children }) => {
         {children}
       </Box>
 
-      <Box className="flex flex-col gap-6 items-center w-1/2 bg-[url(@assets/mountains.webp)] bg-cover">
+      <Box className="flex w-1/2 flex-col items-center gap-6 bg-[url(@assets/mountains.webp)] bg-cover">
         <LatamFootprintIcon
           sx={{
             position: "fixed",

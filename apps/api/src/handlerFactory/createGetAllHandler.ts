@@ -1,5 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { FastifyReply, FastifyRequest } from "fastify";
+import { EmptyResourceError } from "../errors/EmptyResourceError.js";
+import type { User } from "@repo/types";
 
 /**
  * Creates a generic GET all handler
@@ -8,10 +10,14 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 export const createGetAllHandler =
   <
     TResponse extends Array<unknown>,
-    TQuery extends Record<string, unknown> = Record<string, never>,
+    TQuery extends Record<string, unknown> | null = null,
   >(
     moduleName: string,
-    serviceFn: (prisma: PrismaClient, query?: TQuery) => Promise<TResponse>,
+    serviceFn: (
+      prisma: PrismaClient,
+      query: TQuery | null,
+      user: User | null
+    ) => Promise<TResponse>,
     resourceName: string,
     treatEmptyAsNotFound: boolean = true
   ) =>
@@ -23,17 +29,13 @@ export const createGetAllHandler =
     log.info(`Getting all ${resourceName}...`);
 
     const prisma = request.server.prisma;
-    const query = request.query as TQuery | undefined;
+    const user = request.currentUser ?? null;
+    const query = (request.query ?? null) as TQuery | null;
 
     // Call service with query params (if any)
-    const data = await serviceFn(prisma, query);
-
+    const data = await serviceFn(prisma, query, user);
     if (treatEmptyAsNotFound && (!data || data.length === 0)) {
-      log.warn(`${resourceName} not found`);
-      return reply.status(404).send({
-        code: "RESOURCE_NOT_FOUND",
-        message: `${resourceName} not found`,
-      });
+      throw new EmptyResourceError(resourceName);
     }
     log.info(`${resourceName} found successfully`);
 

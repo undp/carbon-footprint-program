@@ -2,7 +2,7 @@ import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
-import { CarbonInventoryLayout } from "./layout";
+import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import { StepHeader } from "./components/StepHeader";
 import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
@@ -12,6 +12,9 @@ import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/
 import { SubcategoryPreselectionField } from "./components";
 import { CategoryCard } from "./components/CategoryCard";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { DevTool } from "@hookform/devtools";
+import { IS_DEVELOPMENT } from "@/config/environment";
+import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 
 const ERROR_MESSAGE = {
   title:
@@ -24,6 +27,10 @@ const ERROR_MESSAGE = {
 export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
+  });
+
+  const { data } = useEmissionCaptureData({
+    inventoryId,
   });
 
   const {
@@ -49,6 +56,29 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
 
+  const backButton: FooterButton = {
+    text: "Volver",
+    align: "right",
+    buttonProps: {
+      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+      disabled: isSubmitting,
+      onClick: goBack,
+    },
+  };
+
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      type: "submit",
+      form: "subcategory-preselection-form",
+      loading: isSubmitting,
+      disabled: isFormDisabled,
+    },
+  };
+
   return (
     <FormProvider {...methods}>
       <form
@@ -59,37 +89,16 @@ export const SubcategoryPreselectionScreen: FC = () => {
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
+            subtitle: data?.name ?? undefined,
           }}
           footerProps={{
-            buttons: [
-              {
-                text: "Volver",
-                align: "right",
-                buttonProps: {
-                  startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-                  disabled: isSubmitting,
-                  onClick: goBack,
-                },
-              },
-              {
-                text: "Siguiente",
-                align: "right",
-                buttonProps: {
-                  endIcon: <ArrowRightAltRounded />,
-                  variant: "contained",
-                  type: "submit",
-                  form: "subcategory-preselection-form",
-                  loading: isSubmitting,
-                  disabled: isFormDisabled,
-                },
-              },
-            ],
+            buttons: [backButton, nextButton],
           }}
           isLoading={isLoading}
           hasError={hasError}
           errorMessage={ERROR_MESSAGE}
         >
-          <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto rounded-lg bg-white p-6">
+          <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto rounded-lg bg-white p-6">
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
@@ -130,6 +139,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           </Box>
         </CarbonInventoryLayout>
       </form>
+      {IS_DEVELOPMENT && <DevTool control={methods.control} />}
     </FormProvider>
   );
 };

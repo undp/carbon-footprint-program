@@ -6,6 +6,11 @@ export const Routes = {
     "/app/carbon-inventory/$inventoryId/subcategory-preselection",
   CARBON_INVENTORY_EMISSION_CAPTURE:
     "/app/carbon-inventory/$inventoryId/emission-capture",
+  CARBON_INVENTORIES: "/app/carbon-inventories",
+  CARBON_INVENTORY_EMISSION_SUMMARY:
+    "/app/carbon-inventory/$inventoryId/emission-summary",
+  CARBON_INVENTORY_EMISSION_RESULTS:
+    "/app/carbon-inventory/$inventoryId/emission-results",
   HOME: "/app/home",
   MY_ORGANIZATION: "/app/my-organization",
   CARBON_INVENTORY: "/app/carbon-inventory",
@@ -17,6 +22,15 @@ export const Routes = {
   TRANSPARENCY: "/transparency",
   CAPINAUT: "/capinaut",
   SIGN_IN: "/sign-in",
+  ADMIN: "/admin",
+  ADMIN_METHODOLOGIES: "/admin/methodologies",
+  ADMIN_CATEGORIES: "/admin/categories",
+  ADMIN_ITEMS: "/admin/items",
+  ADMIN_SUBCATEGORIES: "/admin/subcategories",
+  ADMIN_EMISSION_FACTORS: "/admin/emission-factors",
+  ADMIN_UNITS: "/admin/units",
+  ADMIN_PARAMETERS: "/admin/parameters",
+  ADMIN_MAIN_ACTIVITIES: "/admin/main-activities",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];

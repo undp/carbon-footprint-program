@@ -23,6 +23,8 @@ export async function seedSubcategories(
         name: subcategory.name,
         description: subcategory.description,
         examples: subcategory.examples,
+        allowedMeasurementUnitsAbbreviations:
+          subcategory.allowedMeasurementUnitsAbbreviations ?? [],
       }))
     )
   );
@@ -80,7 +82,19 @@ export async function seedSubcategories(
   });
 
   // Verify all subcategories were created
-  const subcategories = await prisma.subcategory.findMany();
+  const subcategories = await prisma.subcategory.findMany({
+    include: {
+      category: {
+        include: {
+          methodologyVersion: {
+            include: {
+              country: true,
+            },
+          },
+        },
+      },
+    },
+  });
 
   if (subcategories.length !== subcategoriesData.length)
     throw new Error(
@@ -89,5 +103,63 @@ export async function seedSubcategories(
 
   console.log(
     `   ✓ Ensured ${subcategoriesData.length} subcategories exist for dataset ${dataset}`
+  );
+
+  // Create SubcategoryMeasurementUnit records
+  console.log("   Seeding subcategory measurement units...");
+
+  // Fetch all measurement units by abbreviation
+  const measurementUnits = await prisma.measurementUnit.findMany();
+  const measurementUnitsByAbbreviation = new Map(
+    measurementUnits.map((mu) => [mu.abbreviation, mu])
+  );
+
+  // Create a map of subcategories by full path for lookup
+  const subcategoriesByFullPath = new Map(
+    subcategories.map((subcategory) => [
+      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
+      subcategory,
+    ])
+  );
+
+  // Prepare SubcategoryMeasurementUnit records
+  const subcategoryMeasurementUnitsToCreate: {
+    subcategoryId: bigint;
+    measurementUnitId: bigint;
+  }[] = [];
+
+  for (const subcategoryData of subcategoriesData) {
+    const subcategory = subcategoriesByFullPath.get(
+      `${subcategoryData.countryIsoCode}:${subcategoryData.methodologyVersionName}:${subcategoryData.categoryName}:${subcategoryData.name}`
+    );
+    if (!subcategory) {
+      throw new Error(
+        `Subcategory '${subcategoryData.name}' not found for category '${subcategoryData.categoryName}' in methodology '${subcategoryData.methodologyVersionName}' for dataset ${dataset}`
+      );
+    }
+
+    for (const abbreviation of subcategoryData.allowedMeasurementUnitsAbbreviations) {
+      const measurementUnit = measurementUnitsByAbbreviation.get(abbreviation);
+      if (!measurementUnit) {
+        throw new Error(
+          `Measurement unit with abbreviation '${abbreviation}' not found for subcategory '${subcategoryData.name}' in dataset ${dataset}`
+        );
+      }
+
+      subcategoryMeasurementUnitsToCreate.push({
+        subcategoryId: subcategory.id,
+        measurementUnitId: measurementUnit.id,
+      });
+    }
+  }
+
+  // Batch create SubcategoryMeasurementUnit records (skips duplicates)
+  await prisma.subcategoryMeasurementUnit.createMany({
+    data: subcategoryMeasurementUnitsToCreate,
+    skipDuplicates: true,
+  });
+
+  console.log(
+    `   ✓ Ensured ${subcategoryMeasurementUnitsToCreate.length} subcategory measurement units exist for dataset ${dataset}`
   );
 }

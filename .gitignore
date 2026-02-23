@@ -74,3 +74,6 @@ coverage/
 # Legacy paths (if any)
 server/dist
 public/dist
+
+# Claude
+.claude

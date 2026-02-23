@@ -86,7 +86,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     Object.entries(currentFormValues.subcategories || {}).forEach(
       ([subcatId, subcatData]) => {
         // Preserve manual total emissions for subcategories in manual mode
-        if (subcatData.isTotalManualEmissionsMode) {
+        if (subcatData.isTotalManualEmissionsModeActive) {
           const lines = Object.values(subcatData.lines || {});
           const manualTotal = lines[0]?.manualTotalEmissions;
           if (manualTotal !== undefined && manualTotal !== null) {
@@ -153,14 +153,18 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         });
 
         formData.subcategories[subcategory.id] = {
+          categoryId: category.id,
           lines: linesRecord,
-          isTotalManualEmissionsMode: subcategory.isTotalManualEmissionsMode,
+          isTotalManualEmissionsModeActive:
+            subcategory.isTotalManualEmissionsModeActive,
+          isTotalManualEmissionsModeAvailable:
+            subcategory.isTotalManualEmissionsModeAvailable,
         };
 
         // Detect if the mode changed OR if it's dirty (touched by user)
         const isModeDirty =
           !!dirtyFields.subcategories?.[subcategory.id]
-            ?.isTotalManualEmissionsMode;
+            ?.isTotalManualEmissionsModeActive;
 
         if (isModeDirty) subcategoriesToForceSync.push(subcategory.id);
       });
@@ -188,7 +192,7 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     // STEP 4: Restore preserved manual total emissions
     Object.entries(preservedManualTotals).forEach(([subcatId, total]) => {
       const subcatData = formData.subcategories[subcatId];
-      if (subcatData && subcatData.isTotalManualEmissionsMode) {
+      if (subcatData && subcatData.isTotalManualEmissionsModeActive) {
         const lineIds = Object.keys(subcatData.lines || {});
         const targetLineId = lineIds[0];
 
@@ -210,20 +214,16 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
   const addLine = useCallback(
     (subcategoryId: SubcategoryId) => {
       const newLine = createNewLine(subcategoryId);
-      const currentLines = getValues(`subcategories.${subcategoryId}.lines`);
 
       setValue(
-        `subcategories.${subcategoryId}.lines`,
-        {
-          ...currentLines,
-          [newLine.lineId]: newLine,
-        },
+        `subcategories.${subcategoryId}.lines.${newLine.lineId}`,
+        newLine,
         { shouldDirty: true }
       );
 
       return newLine;
     },
-    [getValues, setValue]
+    [setValue]
   );
 
   /**
@@ -238,20 +238,12 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
 
       if (!lineToRemove) return;
 
-      if (lineToRemove.isNew) {
-        // For new lines, remove them completely from the form state
-        const { [lineId]: _, ...remainingLines } = currentLines;
-        setValue(`subcategories.${subcategoryId}.lines`, remainingLines, {
-          shouldDirty: true,
-        });
-      } else {
-        // For existing server lines, mark them as deleted
-        setValue(
-          `subcategories.${subcategoryId}.lines.${lineId}.isDeleted`,
-          true,
-          { shouldDirty: true }
-        );
-      }
+      // Mark the line as deleted
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.isDeleted`,
+        true,
+        { shouldDirty: true }
+      );
     },
     [getValues, setValue]
   );
@@ -262,6 +254,27 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
    * removes deleted lines completely (they no longer exist on server),
    * and resets the dirty state.
    */
+  /**
+   * Returns the set of line IDs that have been modified by the user.
+   * Reads from form.formState.dirtyFields at call time so it's always up-to-date.
+   */
+  const getDirtyLineIds = useCallback((): Set<string> => {
+    const dirtyLineIds = new Set<string>();
+    const currentDirtyFields = form.formState.dirtyFields;
+    const subcategories = currentDirtyFields?.subcategories;
+    if (subcategories) {
+      for (const subcatDirty of Object.values(subcategories)) {
+        const linesDirty = (subcatDirty as Record<string, unknown>)?.lines;
+        if (linesDirty && typeof linesDirty === "object") {
+          for (const lineId of Object.keys(linesDirty)) {
+            dirtyLineIds.add(lineId);
+          }
+        }
+      }
+    }
+    return dirtyLineIds;
+  }, [form]);
+
   const resetAfterSave = useCallback(() => {
     const currentValues = getValues();
     const cleanedFormData: EmissionCaptureFormValues = {
@@ -317,5 +330,6 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     addLine,
     removeLine,
     resetAfterSave,
+    getDirtyLineIds,
   };
 };

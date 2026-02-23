@@ -12,6 +12,10 @@ GET {{baseUrl}}/api/carbon-inventories?year=2024 HTTP/1.1
 GET {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 
 
+### Get Carbon Inventory Results by ID
+GET {{baseUrl}}/api/carbon-inventories/1/results HTTP/1.1
+
+
 ### Create Carbon Inventory - Minimal (SIMPLIFIED mode)
 POST {{baseUrl}}/api/carbon-inventories HTTP/1.1
 Content-Type: application/json
@@ -35,6 +39,7 @@ PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 Content-Type: application/json
 
 {
+  "name": "Updated Inventory Name",
   "organizationId": "1",
   "organizationBranchId": "1",
   "organizationData": {
@@ -53,11 +58,12 @@ Content-Type: application/json
 }
 
 
-### Update Carbon Inventory - Partial update (only year and usageMode)
+### Update Carbon Inventory - Partial update (only year, name and usageMode)
 PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 Content-Type: application/json
 
 {
+  "name": "Partial Update Example",
   "year": 2024,
   "usageMode": "EXPERT"
 }
@@ -68,6 +74,7 @@ PATCH {{baseUrl}}/api/carbon-inventories/1 HTTP/1.1
 Content-Type: application/json
 
 {
+  "name": null,
   "organizationId": null,
   "organizationBranchId": null,
   "organizationData": null,

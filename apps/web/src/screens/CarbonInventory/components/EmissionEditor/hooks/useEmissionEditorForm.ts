@@ -31,7 +31,7 @@ interface UseEmssionEditorFormResults {
   rows: EmissionCaptureFormLine[];
   manualModeLine: EmissionCaptureFormLine | null;
   isTotalManualEmissionsModeLoading: boolean;
-  isTotalManualEmissionsMode: boolean;
+  isTotalManualEmissionsModeActive: boolean;
   handleAddLine: () => void;
   handleCellChange: (
     value: string | number | null,
@@ -86,8 +86,10 @@ export const useEmissionEditorForm = ({
     throwOnError: true,
   });
 
-  const [isLocalTotalManualEmissionsMode, setIsLocalTotalManualEmissionsMode] =
-    useState<boolean | null>(null);
+  const [
+    isLocalTotalManualEmissionsModeActive,
+    setIsLocalTotalManualEmissionsModeActive,
+  ] = useState<boolean | null>(null);
 
   // Get standard form context methods
   const formContext = useFormContext<EmissionCaptureFormValues>();
@@ -112,16 +114,20 @@ export const useEmissionEditorForm = ({
     );
   }, [formLines]);
 
-  const isTotalManualEmissionsMode = useMemo(() => {
+  const isTotalManualEmissionsModeActive = useMemo(() => {
     return (
-      isLocalTotalManualEmissionsMode ?? subcategory.isTotalManualEmissionsMode
+      isLocalTotalManualEmissionsModeActive ??
+      subcategory.isTotalManualEmissionsModeActive
     );
-  }, [isLocalTotalManualEmissionsMode, subcategory.isTotalManualEmissionsMode]);
+  }, [
+    isLocalTotalManualEmissionsModeActive,
+    subcategory.isTotalManualEmissionsModeActive,
+  ]);
 
   // Get the first non-deleted line (used for manual mode actions)
   const manualModeLine = useMemo(() => {
-    return isTotalManualEmissionsMode && rows.length > 0 ? rows[0] : null;
-  }, [rows, isTotalManualEmissionsMode]);
+    return isTotalManualEmissionsModeActive && rows.length > 0 ? rows[0] : null;
+  }, [rows, isTotalManualEmissionsModeActive]);
 
   // Form actions - now local only, no API calls
   const handleAddLine = useCallback(() => {
@@ -177,7 +183,26 @@ export const useEmissionEditorForm = ({
       );
 
       if (CUSTOM_FACTOR_SOURCES.includes(newFactorSource)) {
-        resetFactorValueFields(subcategoryId, lineId);
+        // Reset factor value and base factor, but keep the compatible rate unit
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+          null,
+          { shouldDirty: true }
+        );
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
+          null,
+          { shouldDirty: true }
+        );
+        const compatibleRateUnitId = getCompatibleRateUnitId(
+          line.measurementUnitId,
+          rateMeasurementUnits
+        );
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
+          compatibleRateUnitId,
+          { shouldDirty: true }
+        );
         return;
       }
 
@@ -227,7 +252,7 @@ export const useEmissionEditorForm = ({
 
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
-        factor.originalEmissionFactorId,
+        factor.originalEmissionFactorId ?? factor.id,
         { shouldDirty: true }
       );
       setValue(
@@ -241,14 +266,7 @@ export const useEmissionEditorForm = ({
         { shouldDirty: true }
       );
     },
-    [
-      emissionFactors,
-      rateMeasurementUnits,
-      setValue,
-      subcategoryId,
-      getValues,
-      resetFactorValueFields,
-    ]
+    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
   );
 
   const determineAutoLoadFactorSource = useCallback(
@@ -431,12 +449,12 @@ export const useEmissionEditorForm = ({
 
       startAction();
       setIsTotalManualEmissionsModeLoading(true);
-      setIsLocalTotalManualEmissionsMode(isManual);
+      setIsLocalTotalManualEmissionsModeActive(isManual);
 
       // 1. Set the value in RHF with shouldDirty: true
       // This allows the global useEffect to detect that the user touched the mode
       setValue(
-        `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+        `subcategories.${subcategoryId}.isTotalManualEmissionsModeActive`,
         isManual,
         { shouldDirty: true }
       );
@@ -475,9 +493,9 @@ export const useEmissionEditorForm = ({
         await toggleManualMode({ activated: isManual });
       } catch (err) {
         // Revert local state on error (both submit and toggleManualMode)
-        setIsLocalTotalManualEmissionsMode(null);
+        setIsLocalTotalManualEmissionsModeActive(null);
         setValue(
-          `subcategories.${subcategoryId}.isTotalManualEmissionsMode`,
+          `subcategories.${subcategoryId}.isTotalManualEmissionsModeActive`,
           !isManual,
           { shouldDirty: false }
         );
@@ -488,7 +506,7 @@ export const useEmissionEditorForm = ({
           variant: "error",
         });
       } finally {
-        setIsLocalTotalManualEmissionsMode(null);
+        setIsLocalTotalManualEmissionsModeActive(null);
         setIsTotalManualEmissionsModeLoading(false);
         endAction();
       }
@@ -511,7 +529,7 @@ export const useEmissionEditorForm = ({
     rows,
     manualModeLine,
     isTotalManualEmissionsModeLoading,
-    isTotalManualEmissionsMode,
+    isTotalManualEmissionsModeActive,
     // Form actions
     handleAddLine,
     handleCellChange,

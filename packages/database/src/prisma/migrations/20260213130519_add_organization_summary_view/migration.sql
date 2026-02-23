@@ -1,0 +1,165 @@
+-- CreateView: organization_summary_view
+CREATE OR REPLACE VIEW "organization_summary_view" AS
+
+-- 1. Accredited organizations: does any ACTIVE org_data have an APPROVED submission?
+WITH accredited_organizations_ids AS (
+  SELECT DISTINCT od.organization_id
+  FROM organization_data od
+  JOIN submission_subject_organization_data ssod
+    ON ssod.organization_data_id = od.id
+  JOIN submission s
+    ON s.subject_id = ssod.subject_id
+    AND s.status = 'APPROVED'
+  WHERE od.status = 'ACTIVE'
+),
+
+-- 2. Organizations latest submission: most recent submission (any status) per organization
+organizations_latest_submission_status AS (
+  SELECT DISTINCT ON (od.organization_id)
+    od.organization_id,
+    s.status AS submission_status
+  FROM organization_data od
+  JOIN submission_subject_organization_data ssod
+    ON ssod.organization_data_id = od.id
+  JOIN submission s
+    ON s.subject_id = ssod.subject_id
+  ORDER BY od.organization_id, s.id DESC
+),
+
+-- 3. Organizations with unsubmitted changes: ACTIVE org_data with no submission at all (true drafts only)
+organizations_ids_with_unsubmitted_changes AS (
+  SELECT DISTINCT od.organization_id
+  FROM organization_data od
+  WHERE od.status = 'ACTIVE'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM submission_subject_organization_data ssod
+      WHERE ssod.organization_data_id = od.id
+    )
+),
+
+-- 4. Organization displayed data: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3) > REJECTED(4), then newest
+organization_displayed_data AS (
+  SELECT
+    od.*,
+    ROW_NUMBER() OVER (
+      PARTITION BY od.organization_id
+      ORDER BY
+        CASE
+          WHEN s_active.status = 'PENDING'                    THEN 1
+          WHEN s_active.status IS NULL AND s_any.id IS NULL   THEN 2  -- true draft (no submission)
+          WHEN s_active.status = 'APPROVED'                   THEN 3
+          ELSE                                                     4  -- REJECTED
+        END,
+        od.id DESC
+    ) AS rn
+  FROM organization_data od
+  LEFT JOIN submission_subject_organization_data ssod
+    ON ssod.organization_data_id = od.id
+  LEFT JOIN submission s_active
+    ON s_active.subject_id = ssod.subject_id
+    AND s_active.status IN ('PENDING', 'APPROVED')
+  LEFT JOIN submission s_any
+    ON s_any.subject_id = ssod.subject_id
+  WHERE od.status = 'ACTIVE'
+),
+
+-- 5. Organization carbon inventories summary
+-- TODO: update this CTE to consider only COMPLETED and VERIFIED carbon inventories
+organization_carbon_inventories_summary AS (
+  SELECT
+    ci.organization_id,
+    TRUE AS has_carbon_inventories,
+    MAX(ci.created_at) as last_measurement,
+    COALESCE(SUM(csv.value), 0) AS total_emissions
+  FROM carbon_inventory ci
+  LEFT JOIN carbon_inventory_subtotals_view csv
+    ON csv.carbon_inventory_id = ci.id
+  WHERE ci.organization_id IS NOT NULL
+  AND ci.status NOT IN ('DELETED', 'DRAFT')
+  AND (ci.organization_data->>'year') IS NOT NULL
+  AND (ci.organization_data->>'year')::int >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
+  GROUP BY ci.organization_id
+)
+
+SELECT
+  o.id                                                     AS organization_id,
+  o.country_id,
+  o.status                                                 AS organization_status,
+  o.created_at                                             AS organization_created_at,
+  o.updated_at                                             AS organization_updated_at,
+
+  -- Reference organization_data fields
+  odd.id                                                   AS organization_data_id,
+  odd.legal_name,
+  odd.trade_name,
+  odd.tax_id,
+  COALESCE(odd.trade_name, odd.legal_name, odd.tax_id)     AS name,
+  odd.sector_id,
+  odd.subsector_id,
+  odd.country_organization_size_id,
+  odd.main_activity_id,
+  odd.address,
+  odd.employees_count,
+  odd.representative_full_name,
+  odd.representative_tax_id,
+  odd.representative_country_job_position_id,
+  odd.representative_phone,
+  odd.representative_email,
+  odd.created_at                                           AS organization_data_created_at,
+  odd.updated_at                                           AS organization_data_updated_at,
+
+  -- Last submission status (includes REJECTED, from any org_data)
+  lss.submission_status::TEXT                               AS last_submission_status,
+
+  -- Has unsubmitted changes flag
+  (uioc.organization_id IS NOT NULL)                         AS has_unsubmitted_changes,
+
+  -- Display status (derived from accreditation CTE, not reference row)
+  CASE
+    WHEN o.status = 'BLOCKED' THEN 'BLOCKED'
+    WHEN acoi.organization_id IS NOT NULL THEN 'ACCREDITED'
+    ELSE 'NOT_ACCREDITED'
+  END                                                      AS display_status,
+
+  -- Accreditation flag (from accreditation CTE, independent of BLOCKED)
+  (acoi.organization_id IS NOT NULL)                        AS is_accredited,
+
+  -- Pre-joined lookup names
+  cos.name                                                 AS size_name,
+  cs.name                                                  AS sector_name,
+  csub.name                                                AS subsector_name,
+  oma.name                                                 AS main_activity_name,
+  cjp.name                                                 AS representative_position_name,
+
+  -- Carbon inventory stats
+  COALESCE(ocs.has_carbon_inventories, FALSE)              AS has_carbon_inventories,
+  COALESCE(ocs.total_emissions, 0)                         AS total_emissions,
+
+  -- Last edition timestamp
+  ocs.last_measurement                                         AS last_measurement
+
+FROM organization o
+LEFT JOIN organization_displayed_data odd
+  ON odd.organization_id = o.id AND odd.rn = 1
+LEFT JOIN accredited_organizations_ids acoi
+  ON acoi.organization_id = o.id
+LEFT JOIN organizations_latest_submission_status lss
+  ON lss.organization_id = o.id
+LEFT JOIN organizations_ids_with_unsubmitted_changes uioc
+  ON uioc.organization_id = o.id
+LEFT JOIN country_organization_size cos
+  ON cos.id = odd.country_organization_size_id
+LEFT JOIN country_sector cs
+  ON cs.id = odd.sector_id
+LEFT JOIN country_subsector csub
+  ON csub.id = odd.subsector_id
+LEFT JOIN organization_main_activity oma
+  ON oma.id = odd.main_activity_id
+LEFT JOIN country_job_position cjp
+  ON cjp.id = odd.representative_country_job_position_id
+LEFT JOIN organization_carbon_inventories_summary ocs
+  ON ocs.organization_id = o.id
+WHERE odd.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
+
+-- TODO: remove fields that can be derived from the view. sort and filtering must be done using the ORM.

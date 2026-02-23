@@ -14,12 +14,11 @@ import {
   cleanupCarbonInventoryTestData,
   getSubcategoryIds,
   createCarbonInventoryLine,
-  getActiveStatusId,
   createCarbonInventoryLineInput,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
-import { Prisma } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
+import { EmissionFactorStatus } from "@repo/types";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
@@ -61,8 +60,6 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         throw new Error("No rate measurement unit found for testing");
       }
 
-      const activeStatus = await getActiveStatusId(prisma);
-
       // Value with 11 decimal places should be truncated to 10
       const valueWithExtraDecimals = new Prisma.Decimal("2.01234567891");
 
@@ -75,7 +72,8 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           source: "Test Source",
           gasDetails: {},
           value: valueWithExtraDecimals,
-          statusId: activeStatus,
+          status: EmissionFactorStatus.ACTIVE,
+          updatedAt: null,
         },
       });
 
@@ -108,8 +106,6 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         throw new Error("No rate measurement unit found for testing");
       }
 
-      const activeStatus = await getActiveStatusId(prisma);
-
       // Value with 19 digits before decimal point should fail (28 - 10 = 18 max)
       const invalidValue = new Prisma.Decimal("1234567890123456789.123456789");
 
@@ -123,7 +119,8 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
             source: "Test Source",
             gasDetails: {},
             value: invalidValue,
-            statusId: activeStatus,
+            status: EmissionFactorStatus.ACTIVE,
+            updatedAt: null,
           },
         })
       ).rejects.toThrow();
@@ -148,8 +145,6 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         throw new Error("No rate measurement unit found for testing");
       }
 
-      const activeStatus = await getActiveStatusId(prisma);
-
       // Value at maximum: 18 digits before, 10 after
       const validValue = new Prisma.Decimal("123456789012345678.0123456789");
 
@@ -162,7 +157,8 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           source: "Test Source",
           gasDetails: {},
           value: validValue,
-          statusId: activeStatus,
+          status: EmissionFactorStatus.ACTIVE,
+          updatedAt: null,
         },
       });
 
@@ -456,6 +452,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           lineInputId: input.id,
           appliedFactorValue: valueWithExtraDecimals,
           appliedFactorRateUnitId: rateMeasurementUnit.id,
+          updatedAt: null,
         },
       });
 
@@ -495,6 +492,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
             lineInputId: input.id,
             appliedFactorValue: invalidValue,
             appliedFactorRateUnitId: rateMeasurementUnit.id,
+            updatedAt: null,
           },
         })
       ).rejects.toThrow();
@@ -530,6 +528,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           lineInputId: input.id,
           appliedFactorValue: validValue,
           appliedFactorRateUnitId: rateMeasurementUnit.id,
+          updatedAt: null,
         },
       });
 
@@ -565,6 +564,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         data: {
           lineInputId: input.id,
           totalEmissions: valueWithExtraDecimals,
+          updatedAt: null,
         },
       });
 
@@ -598,6 +598,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           data: {
             lineInputId: input.id,
             totalEmissions: invalidValue,
+            updatedAt: null,
           },
         })
       ).rejects.toThrow();
@@ -627,6 +628,7 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
         data: {
           lineInputId: input.id,
           totalEmissions: validValue,
+          updatedAt: null,
         },
       });
 

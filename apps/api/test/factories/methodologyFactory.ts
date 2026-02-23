@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import { MethodologyVersionStatus, PrismaClient } from "@repo/database";
 
 /**
  * Gets the first methodology version from the database
@@ -41,31 +41,6 @@ export async function getTestCountryId(prisma: PrismaClient): Promise<bigint> {
 }
 
 /**
- * Gets an ENTITY status with the specified code from the database
- * This is useful for tests that need a statusId for methodology versions
- */
-export async function getTestEntityStatusId(
-  prisma: PrismaClient,
-  code: string = "ACTIVE"
-): Promise<bigint> {
-  const status = await prisma.statusCatalog.findFirst({
-    where: {
-      scope: "ENTITY",
-      code,
-    },
-    select: { id: true },
-  });
-
-  if (!status) {
-    throw new Error(
-      `Status with code '${code}' and scope 'ENTITY' not found in database. Please ensure the database is properly seeded.`
-    );
-  }
-
-  return status.id;
-}
-
-/**
  * Creates a methodology version with no categories (and therefore no subcategories)
  * This is useful for testing edge cases where a methodology has no subcategories
  */
@@ -74,13 +49,15 @@ export async function createEmptyMethodologyVersion(
   options?: {
     name?: string;
     description?: string;
+    regulation?: string;
+    version?: string;
+    status?: MethodologyVersionStatus;
   }
 ): Promise<{ id: bigint }> {
   const countryId = await getTestCountryId(prisma);
-  const statusId = await getTestEntityStatusId(prisma);
 
   // Generate a unique name to avoid unique constraint violations on (country_id, name)
-  const baseName = options?.name ?? "Empty Methodology for Testing";
+  const baseName = options?.name ?? "Test - Empty Methodology for Testing";
   const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
   const uniqueName = `${baseName} ${randomSuffix}`;
 
@@ -91,7 +68,10 @@ export async function createEmptyMethodologyVersion(
       description:
         options?.description ??
         "A methodology with no subcategories for testing purposes",
-      statusId,
+      regulation: options?.regulation ?? "Test Regulation",
+      version: options?.version ?? "1.0",
+      status: options?.status ?? MethodologyVersionStatus.PUBLISHED,
+      updatedAt: null,
     },
     select: { id: true },
   });
