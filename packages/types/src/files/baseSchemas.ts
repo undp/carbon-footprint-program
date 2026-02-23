@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+export const FileTypeSchema = z.enum(["SUBMISSION", "BADGE"]);
+
+export const BadgeTypeSchema = z.enum(["CARBON_INVENTORY", "ORGANIZATION_DATA"]);
+
 export const FileTypeSchema = z.enum(["SUBMISSION"]);
 
 export const FileStatusSchema = z.enum(["ACTIVE", "DELETED"]);
