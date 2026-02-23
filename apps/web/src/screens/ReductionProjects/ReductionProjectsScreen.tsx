@@ -1,9 +1,11 @@
 import { FC, useState } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { Box, Typography, Button, Divider, IconButton } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import { MainLayout } from "@/components/layout";
 import { PageHeader, ProjectsTable, ApplicationsTable } from "./components";
 import { ReductionProject, SealApplication, Branch } from "./types";
+import { Routes } from "@/interfaces/routes";
 
 // Mock data matching Figma design
 const mockProjects: ReductionProject[] = [
@@ -52,6 +54,7 @@ const mockBranches: Branch[] = [
 const mockYears = ["2024", "2023", "2022", "2021"];
 
 export const ReductionProjectsScreen: FC = () => {
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedBranch, setSelectedBranch] = useState("1");
 
@@ -80,7 +83,7 @@ export const ReductionProjectsScreen: FC = () => {
   };
 
   const handleAddProject = () => {
-    console.log("Add new reduction project");
+    navigate({ to: Routes.ADD_REDUCTION_PROJECT });
   };
 
   return (
