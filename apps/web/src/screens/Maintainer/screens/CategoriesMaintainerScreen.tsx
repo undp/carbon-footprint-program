@@ -519,8 +519,9 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
                 "& .MuiDataGrid-columnHeader": {
                   backgroundColor: theme.palette.grey[200],
                 },
-                "& .MuiDataGrid-cell .MuiTextField-root": {
-                  alignSelf: "center",
+                "& .MuiDataGrid-cell": {
+                  display: "flex",
+                  alignItems: "center",
                 },
                 "& .MuiDataGrid-row.row--editing": {
                   backgroundColor: theme.palette.grey[100],
@@ -528,7 +529,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
               })}
               columns={columns}
               rows={currentRows}
-              rowHeight={60}
+              getRowHeight={() => 70}
               getRowId={(row: Category) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""

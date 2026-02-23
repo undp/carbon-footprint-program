@@ -53,8 +53,6 @@ export const useCategoryColumns = ({
     [rows]
   );
 
-  const cellClassName = "content-center";
-
   return useMemo<GridColDef<Category>[]>(
     () => [
       {
@@ -65,7 +63,6 @@ export const useCategoryColumns = ({
         filterable: false,
         headerAlign: "center",
         align: "center",
-        cellClassName,
       },
       {
         field: "icon",
@@ -73,7 +70,6 @@ export const useCategoryColumns = ({
         width: 60,
         headerAlign: "center",
         align: "center",
-        cellClassName,
         renderCell: (params: GridRenderCellParams<Category>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -102,7 +98,6 @@ export const useCategoryColumns = ({
         headerName: "Categoría/Alcance",
         flex: 0.4,
         minWidth: 180,
-        cellClassName,
         renderCell: (params: GridRenderCellParams<Category>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -128,7 +123,6 @@ export const useCategoryColumns = ({
         headerName: "Nombre",
         flex: 0.4,
         minWidth: 180,
-        cellClassName,
         renderCell: (params: GridRenderCellParams<Category>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -154,7 +148,6 @@ export const useCategoryColumns = ({
         headerName: "Descripción",
         flex: 0.6,
         minWidth: 200,
-        cellClassName,
         renderCell: (params: GridRenderCellParams<Category>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
@@ -183,7 +176,6 @@ export const useCategoryColumns = ({
         width: 120,
         headerAlign: "center",
         align: "center",
-        cellClassName,
         renderCell: (params: GridRenderCellParams<Category>) => {
           const rowIndex = getRowIndex(params.row.id);
           const hasContent = !!params.row.examples;
@@ -215,12 +207,11 @@ export const useCategoryColumns = ({
             {
               field: "actions",
               headerName: "Acciones",
-              width: 100,
+              width: 120,
               sortable: false,
               filterable: false,
               headerAlign: "center" as const,
               align: "center" as const,
-              cellClassName,
               renderCell: (params: GridRenderCellParams<Category>) => {
                 const sortedIdx = sortedRows.findIndex(
                   (r) => r.id === params.row.id

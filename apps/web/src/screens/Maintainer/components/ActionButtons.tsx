@@ -86,9 +86,14 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           </Tooltip>
         )}
         <>
-          <Box sx={{ display: "flex", flexDirection: "column" }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+            }}
+          >
             {!isEditing && onMoveUp && (
-              <Tooltip title="Mover arriba" placement="top">
+              <Tooltip title="Mover arriba">
                 <span>
                   <IconButton
                     size="small"
