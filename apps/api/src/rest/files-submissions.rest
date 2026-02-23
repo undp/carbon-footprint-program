@@ -1,22 +1,23 @@
 @baseUrl = http://localhost:8080
 
 ### ==========================================
-### Upload Flow (SAS two-step)
+### Submission Upload — ATTACHMENT
 ### ==========================================
 
 ### Step 1: Request Upload URL
-# @name requestUpload
-POST {{baseUrl}}/api/files/SUBMISSION/1/request-upload HTTP/1.1
+# @name requestUploadAttachment
+POST {{baseUrl}}/api/files/submission/1/request-upload HTTP/1.1
 Content-Type: application/json
 
 {
     "originalName": "test-document.pdf",
-    "mimeType": "application/pdf"
+    "mimeType": "application/pdf",
+    "submissionFileType": "ATTACHMENT"
 }
 
 
 ### Step 2: Upload file directly to Azure
-PUT {{requestUpload.response.body.uploadUrl}} HTTP/1.1
+PUT {{requestUploadAttachment.response.body.uploadUrl}} HTTP/1.1
 x-ms-blob-type: BlockBlob
 Content-Type: application/pdf
 
@@ -24,24 +25,23 @@ Content-Type: application/pdf
 
 
 ### Step 3: Confirm Upload
-POST {{baseUrl}}/api/files/SUBMISSION/1/confirm-upload HTTP/1.1
+POST {{baseUrl}}/api/files/submission/1/confirm-upload HTTP/1.1
 Content-Type: application/json
 
 {
-    "uuid": "{{requestUpload.response.body.uuid}}",
+    "uuid": "{{requestUploadAttachment.response.body.uuid}}",
     "originalName": "test-document.pdf",
-    "mimeType": "application/pdf",
-    "sizeBytes": 12345
+    "submissionFileType": "ATTACHMENT"
 }
 
 
 ### ==========================================
-### Upload Flow (with submission file type)
+### Submission Upload — RECOGNITION
 ### ==========================================
 
-### Step 1: Request Upload URL (RECOGNITION)
+### Step 1: Request Upload URL
 # @name requestUploadRecognition
-POST {{baseUrl}}/api/files/SUBMISSION/1/request-upload HTTP/1.1
+POST {{baseUrl}}/api/files/submission/1/request-upload HTTP/1.1
 Content-Type: application/json
 
 {
@@ -59,38 +59,40 @@ Content-Type: application/pdf
 < ./test-files/test-document.pdf
 
 
-### Step 3: Confirm Upload (RECOGNITION)
-POST {{baseUrl}}/api/files/SUBMISSION/1/confirm-upload HTTP/1.1
+### Step 3: Confirm Upload
+POST {{baseUrl}}/api/files/submission/1/confirm-upload HTTP/1.1
 Content-Type: application/json
 
 {
     "uuid": "{{requestUploadRecognition.response.body.uuid}}",
     "originalName": "recognition-cert.pdf",
-    "mimeType": "application/pdf",
-    "sizeBytes": 12345,
     "submissionFileType": "RECOGNITION"
 }
 
 
 ### ==========================================
-### Query & Access
+### Query
 ### ==========================================
 
 ### Get Files - Submission (all active)
-GET {{baseUrl}}/api/files/SUBMISSION/1 HTTP/1.1
+GET {{baseUrl}}/api/files/submission/1 HTTP/1.1
 
 
 ### Get Files - Submission (filter by status)
-GET {{baseUrl}}/api/files/SUBMISSION/1?status=ACTIVE HTTP/1.1
+GET {{baseUrl}}/api/files/submission/1?status=ACTIVE HTTP/1.1
 
 
-### Get Files - Submission (filter by submission file type)
-GET {{baseUrl}}/api/files/SUBMISSION/1?submissionFileType=ATTACHMENT HTTP/1.1
+### Get Files - Submission (filter by attachment type)
+GET {{baseUrl}}/api/files/submission/1?submissionFileType=ATTACHMENT HTTP/1.1
 
 
-### Get Files - Submission (filter recognition files)
-GET {{baseUrl}}/api/files/SUBMISSION/1?submissionFileType=RECOGNITION HTTP/1.1
+### Get Files - Submission (filter by recognition type)
+GET {{baseUrl}}/api/files/submission/1?submissionFileType=RECOGNITION HTTP/1.1
 
+
+### ==========================================
+### File Access
+### ==========================================
 
 ### Preview File (replace UUID with actual value)
 GET {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000/preview HTTP/1.1

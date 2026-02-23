@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { StorageNotConfiguredError } from "../errors.js";
+import { StorageNotConfiguredError } from "../shared/errors.js";
 import { downloadFileService } from "./service.js";
 
 export const downloadFileHandler = async (
