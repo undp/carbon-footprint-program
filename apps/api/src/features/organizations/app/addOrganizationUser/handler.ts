@@ -17,10 +17,7 @@ export const addOrganizationUserHandler = async (
   const { organizationId } = request.params;
   const body = request.body;
 
-  log.info(
-    { organizationId, email: body.email },
-    "Adding user to organization..."
-  );
+  log.info({ organizationId }, "Adding user to organization...");
 
   const prisma = request.server.prisma;
   const user = request.currentUser ?? null;
