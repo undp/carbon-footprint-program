@@ -9,7 +9,7 @@ import type {
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { SystemRole } from "@repo/database";
+import type { SystemRole } from "@repo/database/enums";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.

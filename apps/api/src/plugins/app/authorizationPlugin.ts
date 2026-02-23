@@ -26,7 +26,7 @@ import type {
   FastifyRequest,
   FastifyReply,
 } from "fastify";
-import { SystemRole } from "@repo/database";
+import { SystemRole } from "@repo/database/enums";
 
 /**
  * Type for role checking function.
