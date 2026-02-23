@@ -49,12 +49,12 @@ export const PageHeader: FC<PageHeaderProps> = ({
 
       <Box className="flex items-center gap-6">
         <FormControl size="small" sx={{ minWidth: 120 }}>
-          <InputLabel id="year-select-label">Ano</InputLabel>
+          <InputLabel id="year-select-label">Año</InputLabel>
           <Select
             labelId="year-select-label"
             id="year-select"
             value={selectedYear}
-            label="Ano"
+            label="Año"
             onChange={handleYearChange}
           >
             {years.map((year) => (
