@@ -1,5 +1,6 @@
 import type { PrismaClient, User } from "@repo/database";
 import { SystemRole } from "@repo/database/enums";
+import { randomUUID } from "crypto";
 
 /**
  * Gets a pre-seeded test user by email
@@ -35,7 +36,7 @@ export async function createTestUser(
   prisma: PrismaClient,
   overrides?: Partial<User>
 ): Promise<User> {
-  const randomId = Math.random().toString(36).substring(7);
+  const randomId = randomUUID();
   const defaultEmail = `test-user-${randomId}@example.com`;
   const defaultIdpUserId = `test-idp-${randomId}`;
 
@@ -57,6 +58,12 @@ export async function createTestUser(
 export async function cleanupTestUsers(prisma: PrismaClient): Promise<void> {
   // Delete users created for testing (exclude the main test user)
   const mainTestUserEmail = process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
+  if (!mainTestUserEmail) {
+    throw new Error(
+      "Environment variable FORCED_USER_EMAIL_WHEN_NO_PROVIDER is not set. " +
+        "Please set it to the email of the main test user in the database before running tests."
+    );
+  }
   await prisma.user.deleteMany({
     where: {
       email: {
