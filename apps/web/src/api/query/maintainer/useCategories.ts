@@ -13,7 +13,7 @@ import type {
   SwapCategoryPositionsResponse,
 } from "@repo/types";
 
-export const useCategories = (methodologyVersionId: string | undefined) =>
+export const useCategories = (methodologyVersionId?: string) =>
   useQuery<GetAllCategoriesResponse>({
     queryKey: maintainerKeys.categories.all(methodologyVersionId ?? ""),
     queryFn: () =>
@@ -26,7 +26,7 @@ export const useCategories = (methodologyVersionId: string | undefined) =>
     enabled: !!methodologyVersionId,
   });
 
-export const useAddCategory = (methodologyVersionId: string | undefined) => {
+export const useAddCategory = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
   return useMutation<CreateCategoryResponse, Error, CreateCategoryRequest>({
     mutationFn: (data) => apiClient.post("categories", { json: data }).json(),
@@ -45,7 +45,7 @@ interface UpdateCategoryVariables {
   data: UpdateCategoryRequest;
 }
 
-export const useUpdateCategory = (methodologyVersionId: string | undefined) => {
+export const useUpdateCategory = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
   return useMutation<UpdateCategoryResponse, Error, UpdateCategoryVariables>({
     mutationFn: ({ id, data }) =>
@@ -60,7 +60,7 @@ export const useUpdateCategory = (methodologyVersionId: string | undefined) => {
   });
 };
 
-export const useDeleteCategory = (methodologyVersionId: string | undefined) => {
+export const useDeleteCategory = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
   return useMutation<DeleteCategoryResponse, Error, string>({
     mutationFn: (id) => apiClient.delete(`categories/${id}`).json(),
@@ -74,9 +74,7 @@ export const useDeleteCategory = (methodologyVersionId: string | undefined) => {
   });
 };
 
-export const useSwapCategoryPositions = (
-  methodologyVersionId: string | undefined
-) => {
+export const useSwapCategoryPositions = (methodologyVersionId?: string) => {
   const queryClient = useQueryClient();
   return useMutation<
     SwapCategoryPositionsResponse,
