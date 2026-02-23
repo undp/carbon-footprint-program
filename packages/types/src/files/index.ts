@@ -1,7 +1,5 @@
 export * from "./baseSchemas.js";
 export * from "./baseTypes.js";
-export * from "./uploadFile/schemas.js";
-export * from "./uploadFile/types.js";
 export * from "./getFiles/schemas.js";
 export * from "./getFiles/types.js";
 export * from "./deleteFile/schemas.js";
@@ -12,3 +10,7 @@ export * from "./requestUpload/schemas.js";
 export * from "./requestUpload/types.js";
 export * from "./confirmUpload/schemas.js";
 export * from "./confirmUpload/types.js";
+export * from "./badges/schemas.js";
+export * from "./badges/types.js";
+export * from "./submissions/schemas.js";
+export * from "./submissions/types.js";

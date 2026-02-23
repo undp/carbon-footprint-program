@@ -3,9 +3,10 @@ import { FileStatus, SubmissionStatus } from "@repo/database/enums";
 
 export const FileTypeSchema = z.enum(["SUBMISSION", "BADGE"]);
 
-export const BadgeTypeSchema = z.enum(["CARBON_INVENTORY", "ORGANIZATION_DATA"]);
-
-export const FileTypeSchema = z.enum(["SUBMISSION"]);
+export const BadgeTypeSchema = z.enum([
+  "CARBON_INVENTORY",
+  "ORGANIZATION_DATA",
+]);
 
 export const FileStatusSchema = z.enum(FileStatus);
 
