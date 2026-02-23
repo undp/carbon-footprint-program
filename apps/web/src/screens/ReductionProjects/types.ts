@@ -25,3 +25,20 @@ export type Branch = {
   id: string;
   name: string;
 };
+
+export type AddReductionProjectFormData = {
+  projectName: string;
+  branch: string;
+  implementationDate: string;
+  emissionSubcategory: string;
+  projectDescription: string;
+  pcg: string;
+  reportedInOtherInitiative: boolean;
+  includedInNDC: boolean;
+  reductionYear: string;
+  baselineValue: number;
+  projectValue: number;
+  carbonLeakage: number;
+  removals: number;
+  totalReduction: number;
+};
