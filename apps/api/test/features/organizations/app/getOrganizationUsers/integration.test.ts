@@ -275,7 +275,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
   });
 
   describe("Error handling", () => {
-    it("should return 404 when organization does not exist", async () => {
+    it("should return 403 when organization does not exist", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/app/organizations/999999/users",
