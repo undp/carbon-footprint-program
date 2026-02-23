@@ -1,6 +1,6 @@
-import { FC, useState } from "react";
+import { FC, useMemo } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import {
   Box,
   Typography,
@@ -15,7 +15,8 @@ import { InfoOutlined, Save, ArrowBack } from "@mui/icons-material";
 import { FormTextField } from "@/components/form/FormTextField";
 import { FormSelectField } from "@/components/form/FormSelectField";
 import { InfoButton } from "@/components/InfoButton";
-import { Routes } from "@/interfaces/routes";
+import { MainLayout } from "@/components/layout";
+import { Routes } from "@/interfaces";
 
 type AddReductionProjectFormData = {
   projectName: string;
@@ -24,6 +25,8 @@ type AddReductionProjectFormData = {
   emissionSubcategory: string;
   projectDescription: string;
   pcg: string;
+  reportedInOtherInitiative: boolean;
+  includedInNDC: boolean;
   reductionYear: string;
   baselineValue: number;
   projectValue: number;
@@ -65,9 +68,6 @@ const organizationInfo = {
 
 export const AddReductionProjectScreen: FC = () => {
   const navigate = useNavigate();
-  const [reportedInOtherInitiative, setReportedInOtherInitiative] =
-    useState(false);
-  const [includedInNDC, setIncludedInNDC] = useState(false);
 
   const { control, handleSubmit, watch } = useForm<AddReductionProjectFormData>(
     {
@@ -78,6 +78,8 @@ export const AddReductionProjectScreen: FC = () => {
         emissionSubcategory: "",
         projectDescription: "",
         pcg: "",
+        reportedInOtherInitiative: false,
+        includedInNDC: false,
         reductionYear: "",
         baselineValue: 0,
         projectValue: 0,
@@ -93,9 +95,14 @@ export const AddReductionProjectScreen: FC = () => {
   const carbonLeakage = watch("carbonLeakage");
   const removals = watch("removals");
 
-  // Calculate total reduction automatically
-  const calculatedReduction =
-    baselineValue - projectValue - carbonLeakage + removals;
+  // Calculate total reduction automatically with NaN protection
+  const calculatedReduction = useMemo(() => {
+    const baseline = Number(baselineValue) || 0;
+    const project = Number(projectValue) || 0;
+    const leakage = Number(carbonLeakage) || 0;
+    const removal = Number(removals) || 0;
+    return baseline - project - leakage + removal;
+  }, [baselineValue, projectValue, carbonLeakage, removals]);
 
   const handleSaveDraft = () => {
     console.log("Save draft");
@@ -112,33 +119,28 @@ export const AddReductionProjectScreen: FC = () => {
   };
 
   return (
-    <Box className="flex min-h-screen flex-col bg-[#f9f9f9]">
-      {/* Header */}
-      <Box
-        className="flex items-center gap-6 bg-white px-6 py-4"
-        sx={{ boxShadow: "0px 4px 8px 0px rgba(0,0,0,0.04)" }}
-      >
-        <Button
-          onClick={handleBack}
-          sx={{
-            minWidth: "auto",
-            p: 0,
-            color: "text.primary",
-          }}
-        >
-          <ArrowBack />
-        </Button>
-        <Typography variant="h6" sx={{ color: "text.primary", flex: 1 }}>
-          Postulación Sello Reducción
-        </Typography>
-      </Box>
+    <MainLayout>
+      <Box className="flex flex-1 flex-col gap-6 p-6">
+        {/* Header */}
+        <Box className="flex items-center gap-4">
+          <Button
+            onClick={handleBack}
+            startIcon={<ArrowBack />}
+            sx={{ color: "text.primary" }}
+          >
+            Volver
+          </Button>
+          <Typography variant="h5" sx={{ color: "text.primary" }}>
+            Postulación Sello Reducción
+          </Typography>
+        </Box>
 
-      {/* Main Content */}
-      <Box className="mx-auto mt-20 w-[1230px]">
-        <Box
-          className="flex max-h-[656px] flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4"
-          sx={{ backdropFilter: "blur(5px)" }}
-        >
+        {/* Main Content */}
+        <Box className="mx-auto w-full max-w-[1230px]">
+          <Box
+            className="flex flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4"
+            sx={{ backdropFilter: "blur(5px)" }}
+          >
           {/* Title and Save Draft Button */}
           <Box className="flex h-10 items-center justify-between">
             <Box className="flex items-center gap-2">
@@ -266,25 +268,35 @@ export const AddReductionProjectScreen: FC = () => {
 
               {/* Checkboxes */}
               <Box className="flex gap-6">
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={reportedInOtherInitiative}
-                      onChange={(e) =>
-                        setReportedInOtherInitiative(e.target.checked)
+                <Controller
+                  name="reportedInOtherInitiative"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
                       }
+                      label="Se ha reportado en otra iniciativa"
                     />
-                  }
-                  label="Se ha reportado en otra iniciativa"
+                  )}
                 />
-                <FormControlLabel
-                  control={
-                    <Checkbox
-                      checked={includedInNDC}
-                      onChange={(e) => setIncludedInNDC(e.target.checked)}
+                <Controller
+                  name="includedInNDC"
+                  control={control}
+                  render={({ field }) => (
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          checked={field.value}
+                          onChange={field.onChange}
+                        />
+                      }
+                      label="Se ha incorporado en meta nacional como mitigación del NDC"
                     />
-                  }
-                  label="Se ha incorporado en meta nacional como mitigación del NDC"
+                  )}
                 />
               </Box>
             </Box>
@@ -588,48 +600,39 @@ export const AddReductionProjectScreen: FC = () => {
                   </Box>
                 ))}
               </Box>
-              <Box sx={{ height: 40 }} />
+            </Box>
+          </Box>
+
+            {/* Action Buttons */}
+            <Box className="flex justify-end gap-4 pt-4">
+              <Button
+                variant="outlined"
+                onClick={handleBack}
+                sx={{
+                  textTransform: "uppercase",
+                  fontSize: 12,
+                  fontWeight: 500,
+                }}
+              >
+                Volver
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit(handleFormSubmit)}
+                sx={{
+                  textTransform: "uppercase",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  minWidth: 214,
+                }}
+              >
+                Postular Sello Reducción
+              </Button>
             </Box>
           </Box>
         </Box>
       </Box>
-
-      {/* Footer with Action Buttons */}
-      <Box
-        className="fixed bottom-0 left-0 flex w-full items-center justify-end bg-white px-6 py-4"
-        sx={{ boxShadow: "4px 0px 8px 0px rgba(0,0,0,0.04)" }}
-      >
-        <Box className="flex gap-6">
-          <Button
-            onClick={handleBack}
-            sx={{
-              px: 2,
-              py: 1,
-              color: "primary.main",
-              textTransform: "uppercase",
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
-            Volver
-          </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit(handleFormSubmit)}
-            sx={{
-              width: 214,
-              px: 2,
-              py: 1.5,
-              textTransform: "uppercase",
-              fontSize: 12,
-              fontWeight: 500,
-            }}
-          >
-            Postular Sello Reducción
-          </Button>
-        </Box>
-      </Box>
-    </Box>
+    </MainLayout>
   );
 };
