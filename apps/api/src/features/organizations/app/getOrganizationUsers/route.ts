@@ -39,7 +39,6 @@ export const getOrganizationUsersRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
-      onRequest: [fastify.requireAuth],
       preHandler: [
         fastify.requireOrganizationRole(extractOrganizationId, [
           OrganizationRole.ORGANIZATION_ADMIN,

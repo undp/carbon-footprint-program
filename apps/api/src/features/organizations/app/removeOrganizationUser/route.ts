@@ -40,7 +40,6 @@ export const removeOrganizationUserRoute: StandardRouteSignature = (
           409: ApiErrorResponseSchema,
         },
       },
-      onRequest: [fastify.requireAuth],
       preHandler: [
         fastify.requireOrganizationRole(extractOrganizationId, [
           OrganizationRole.ORGANIZATION_ADMIN,

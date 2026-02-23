@@ -5,6 +5,7 @@ import { updateOrganizationUserRoleRoute } from "@/features/organizations/app/up
 import { removeOrganizationUserRoute } from "@/features/organizations/app/removeOrganizationUser/route.js";
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
+  fastify.addHook("onRequest", fastify.requireAuth);
   addOrganizationUserRoute(fastify);
   getOrganizationUsersRoute(fastify);
   updateOrganizationUserRoleRoute(fastify);
