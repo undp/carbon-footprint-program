@@ -48,7 +48,7 @@ export const getOrganizationFormFieldsHandler = async (
       },
       {
         key: "representativeTaxId",
-        label: "ID representante ",
+        label: "ID representante",
         required: true,
       },
       {
