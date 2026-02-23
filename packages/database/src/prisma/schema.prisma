@@ -762,6 +762,7 @@ model File {
 
   createdBy       User             @relation("file_created_by", fields: [createdById], references: [id])
   submissionFiles SubmissionFile[]
+  badge           Badge?           @relation("badge_file")
 
   @@map("file")
 }
@@ -831,6 +832,7 @@ model Submission {
   status         SubmissionStatus @default(PENDING)
   reviewerId     BigInt?          @map("reviewer_id")
   reviewComments String?          @map("review_comments")
+  badgeId        BigInt?          @map("badge_id")
   createdAt      DateTime         @default(now()) @map("created_at")
   updatedAt      DateTime?        @updatedAt @map("updated_at")
   createdById    BigInt?          @map("created_by_id")
@@ -841,8 +843,38 @@ model Submission {
   creator  User?             @relation("submission_created_by", fields: [createdById], references: [id])
   updater  User?             @relation("submission_updated_by", fields: [updatedById], references: [id])
   files    SubmissionFile[]
+  badge    Badge?            @relation(fields: [badgeId], references: [id])
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
   @@map("submission")
+}
+
+enum BadgeType {
+  CARBON_INVENTORY
+  ORGANIZATION_DATA
+
+  @@map("badge_type")
+}
+
+enum BadgeStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("badge_status")
+}
+
+model Badge {
+  id        BigInt      @id @default(autoincrement())
+  type      BadgeType
+  status    BadgeStatus @default(ACTIVE)
+  fileId    BigInt      @unique @map("file_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  file        File         @relation("badge_file", fields: [fileId], references: [id])
+  submissions Submission[]
+
+  // Enforced by partial unique index in migration:
+  // UNIQUE (type) WHERE status = 'ACTIVE'
+  @@map("badge")
 }
