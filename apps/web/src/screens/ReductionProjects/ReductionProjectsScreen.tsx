@@ -5,7 +5,7 @@ import { InfoOutlined } from "@mui/icons-material";
 import { MainLayout } from "@/components/layout";
 import { PageHeader, ProjectsTable, ApplicationsTable } from "./components";
 import { ReductionProject, SealApplication, Branch } from "./types";
-import { Routes } from "@/interfaces/routes";
+import { Routes } from "@/interfaces";
 
 // Mock data matching Figma design
 const mockProjects: ReductionProject[] = [
