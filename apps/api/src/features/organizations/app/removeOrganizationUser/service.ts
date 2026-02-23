@@ -38,6 +38,11 @@ export const removeOrganizationUserService = async (
     throw new MembershipNotFoundError();
   }
 
+  // Prevent removing self
+  if (currentUser && BigInt(userId) === BigInt(currentUser.id)) {
+    throw new CannotModifySelfError();
+  }
+
   // If user is an admin, check if they're the last admin and perform update
   // in a transaction to prevent race conditions
   if (membership.role === OrganizationRole.ORGANIZATION_ADMIN) {
@@ -52,10 +57,6 @@ export const removeOrganizationUserService = async (
 
       if (adminCount <= 1) {
         throw new CannotRemoveLastAdminError();
-      }
-      // Prevent removing self
-      if (currentUser && userId === currentUser.id) {
-        throw new CannotModifySelfError();
       }
 
       // Soft delete: update membership status to DELETED

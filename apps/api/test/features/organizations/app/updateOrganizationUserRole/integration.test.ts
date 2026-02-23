@@ -323,7 +323,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       expect(body.code).toBe("MEMBERSHIP_NOT_FOUND");
     });
 
-    it("should return 409 when trying to update own role and it is the last admin", async () => {
+    it("should return 403 when trying to update own role and it is the last admin", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
@@ -338,9 +338,9 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         },
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CANNOT_REMOVE_LAST_ADMIN");
+      expect(body.code).toBe("CANNOT_MODIFY_SELF");
     });
 
     it("should return 400 when role is missing", async () => {

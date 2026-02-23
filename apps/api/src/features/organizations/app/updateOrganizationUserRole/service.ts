@@ -43,6 +43,11 @@ export const updateOrganizationUserRoleService = async (
     throw new MembershipNotFoundError();
   }
 
+  // Prevent updating own role
+  if (currentUser && BigInt(userId) === BigInt(currentUser.id)) {
+    throw new CannotModifySelfError();
+  }
+
   // If user is currently an admin and being changed to non-admin role,
   // check if they're the last admin and perform update in a transaction
   // to prevent race conditions
@@ -61,11 +66,6 @@ export const updateOrganizationUserRoleService = async (
 
       if (adminCount <= 1) {
         throw new CannotRemoveLastAdminError();
-      }
-
-      // Prevent updating own role
-      if (currentUser && userId === currentUser.id) {
-        throw new CannotModifySelfError();
       }
 
       return await tx.userOrganizationMembership.update({
