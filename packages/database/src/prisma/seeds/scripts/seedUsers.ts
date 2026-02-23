@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 type UserData = (Required<
-  Pick<Prisma.UserCreateInput, "firstName" | "lastName" | "idpUserId" | "role">
+  Pick<Prisma.UserCreateInput, "firstName" | "lastName" | "idpUserId">
 > & {
   email: string;
   countryJobPositionName: Prisma.CountryJobPositionCreateInput["name"];
