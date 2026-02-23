@@ -1,4 +1,5 @@
 import type { PrismaClient, User } from "@repo/database";
+import { SystemRole } from "@repo/database/enums";
 
 /**
  * Gets a pre-seeded test user by email
@@ -25,4 +26,45 @@ export async function getTestLoggedUser(prisma: PrismaClient): Promise<User> {
   }
 
   return user;
+}
+
+/**
+ * Creates a test user with specified overrides
+ */
+export async function createTestUser(
+  prisma: PrismaClient,
+  overrides?: Partial<User>
+): Promise<User> {
+  const randomId = Math.random().toString(36).substring(7);
+  const defaultEmail = `test-user-${randomId}@example.com`;
+  const defaultIdpUserId = `test-idp-${randomId}`;
+
+  return await prisma.user.create({
+    data: {
+      email: defaultEmail,
+      idpUserId: defaultIdpUserId,
+      role: SystemRole.USER,
+      firstName: "Test",
+      lastName: "User",
+      ...overrides,
+    },
+  });
+}
+
+/**
+ * Cleans up test users created by createTestUser
+ */
+export async function cleanupTestUsers(prisma: PrismaClient): Promise<void> {
+  // Delete users created for testing (exclude the main test user)
+  const mainTestUserEmail = process.env.FORCED_USER_EMAIL_WHEN_NO_PROVIDER;
+  await prisma.user.deleteMany({
+    where: {
+      email: {
+        not: mainTestUserEmail,
+      },
+      idpUserId: {
+        startsWith: "test-idp-",
+      },
+    },
+  });
 }
