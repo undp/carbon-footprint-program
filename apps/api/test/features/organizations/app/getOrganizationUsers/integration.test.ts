@@ -255,7 +255,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(body.users[0].userId).toBe(testUser.id.toString());
     });
 
-    it("should return empty array when organization has only one member", async () => {
+    it("should return one user in the array when organization has only one member", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
