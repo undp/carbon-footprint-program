@@ -15,6 +15,7 @@ export const Routes = {
   MY_ORGANIZATION: "/app/my-organization",
   CARBON_INVENTORY: "/app/carbon-inventory",
   REDUCTION_PROJECTS: "/app/reduction-projects",
+  ADD_REDUCTION_PROJECT: "/app/reduction-projects/add",
   REDUCTION_PLAN: "/app/reduction-plan",
   AWARDS: "/app/awards",
   USER_FORM: "/app/user/form",
