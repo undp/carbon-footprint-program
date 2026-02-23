@@ -1,6 +1,6 @@
 import { uuid, z } from "zod";
 import { IdSchema } from "../zod.js";
-import { SystemRole } from "@repo/database";
+import { SystemRole } from "@repo/database/enums";
 
 export const UserSchema = z.object({
   id: IdSchema.describe("The ID of the user"),
