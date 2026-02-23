@@ -11,7 +11,9 @@ import {
   Tooltip,
 } from "@mui/material";
 import { SystemUpdateAlt, Download } from "@mui/icons-material";
+import { formatEmissions } from "@/utils/formatting";
 import { ReductionProject } from "../types";
+import { headerCellSx, bodyCellSx, tableContainerSx } from "./tableStyles";
 
 type ProjectsTableProps = {
   projects: ReductionProject[];
@@ -19,34 +21,13 @@ type ProjectsTableProps = {
   onDownload?: (project: ReductionProject) => void;
 };
 
-const headerCellSx = {
-  backgroundColor: "rgba(65, 64, 70, 0.03)",
-  fontWeight: 500,
-  color: "text.primary",
-  borderBottom: "1px solid #d9d9d9",
-  py: 1,
-};
-
-const bodyCellSx = {
-  backgroundColor: "white",
-  borderBottom: "1px solid #d9d9d9",
-  py: 2,
-};
-
 export const ProjectsTable: FC<ProjectsTableProps> = ({
   projects,
   onEdit,
   onDownload,
 }) => {
-  const formatNumber = (num: number) => {
-    return num.toLocaleString("es-CL");
-  };
-
   return (
-    <TableContainer
-      component={Box}
-      sx={{ border: "1px solid #d9d9d9", borderRadius: 1, overflow: "hidden" }}
-    >
+    <TableContainer component={Box} sx={tableContainerSx}>
       <Table size="small">
         <TableHead>
           <TableRow>
@@ -54,16 +35,16 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
               Nombre Proyecto
             </TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
-              Implementacion
+              Implementación
             </TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
               Primer Reporte
             </TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
-              Reduccion tCO<sub>2</sub>e
+              Reducción tCO<sub>2</sub>e
             </TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
-              Anos reportados
+              Años reportados
             </TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
               Acciones
@@ -87,7 +68,7 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
                   fontWeight: 600,
                 }}
               >
-                {formatNumber(project.reductionTCO2e)}
+                {formatEmissions(project.reductionTCO2e)}
               </TableCell>
               <TableCell sx={{ ...bodyCellSx, textAlign: "center" }}>
                 {project.yearsReported}
@@ -99,7 +80,7 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
                       size="small"
                       onClick={() => onEdit?.(project)}
                       sx={{
-                        border: "1px solid",
+                        border: 1,
                         borderColor: "primary.main",
                         borderRadius: 1,
                         width: 32,
@@ -116,7 +97,7 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
                       size="small"
                       onClick={() => onDownload?.(project)}
                       sx={{
-                        border: "1px solid",
+                        border: 1,
                         borderColor: "primary.main",
                         borderRadius: 1,
                         width: 32,

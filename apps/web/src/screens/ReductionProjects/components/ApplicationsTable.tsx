@@ -13,24 +13,11 @@ import {
 } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import { SealApplication, SealApplicationStatus } from "../types";
+import { headerCellSx, bodyCellSx, tableContainerSx } from "./tableStyles";
 
 type ApplicationsTableProps = {
   applications: SealApplication[];
   onDownload?: (application: SealApplication) => void;
-};
-
-const headerCellSx = {
-  backgroundColor: "rgba(65, 64, 70, 0.03)",
-  fontWeight: 500,
-  color: "text.primary",
-  borderBottom: "1px solid #d9d9d9",
-  py: 1,
-};
-
-const bodyCellSx = {
-  backgroundColor: "white",
-  borderBottom: "1px solid #d9d9d9",
-  py: 2,
 };
 
 const getStatusConfig = (
@@ -51,7 +38,7 @@ const getStatusConfig = (
       };
     case "IN_REVIEW":
       return {
-        label: "EN REVISION",
+        label: "EN REVISIÓN",
         bgColor: "rgba(100, 181, 246, 0.3)",
         textColor: "#284862",
       };
@@ -75,14 +62,11 @@ export const ApplicationsTable: FC<ApplicationsTableProps> = ({
   onDownload,
 }) => {
   return (
-    <TableContainer
-      component={Box}
-      sx={{ border: "1px solid #d9d9d9", borderRadius: 1, overflow: "hidden" }}
-    >
+    <TableContainer component={Box} sx={tableContainerSx}>
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell sx={headerCellSx}>Ano de reduccion</TableCell>
+            <TableCell sx={headerCellSx}>Año de reducción</TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
               Fecha
             </TableCell>
@@ -127,7 +111,7 @@ export const ApplicationsTable: FC<ApplicationsTableProps> = ({
                       size="small"
                       onClick={() => onDownload?.(application)}
                       sx={{
-                        border: "1px solid",
+                        border: 1,
                         borderColor: "primary.main",
                         borderRadius: 1,
                         width: 32,
