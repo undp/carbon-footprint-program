@@ -15,7 +15,7 @@ export const mapOrganizationSummaryToResponse = (
     legalName: org.legalName,
     tradeName: org.tradeName,
     status: org.displayStatus as OrganizationDisplayStatus,
-    lastSubmissionStatus: org.lastSubmissionStatus as SubmissionStatus,
+    lastSubmissionStatus: org.lastSubmissionStatus,
     hasUnsubmittedChanges: org.hasUnsubmittedChanges,
     isEditable:
       org.displayStatus !== OrganizationDisplayStatusValues.BLOCKED &&
