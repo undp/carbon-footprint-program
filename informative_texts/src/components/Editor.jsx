@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm'
 
 import "/src/styles/editor.css";
 
+import { files as mdFiles } from 'virtual:subcategory-files'
 
 import {
   MDXEditor,
@@ -20,15 +21,20 @@ import {
   BlockTypeSelect,
   ListsToggle,
   UndoRedo,
-  CreateLink 
+  CreateLink
 } from '@mdxeditor/editor'
+
+function formatLabel(filename) {
+  return filename.replace(/\.md$/, '').replace(/_/g, ' ')
+}
 
 export default function Editor() {
   const [content, setContent] = useState('Loading...')
   const [editorKey, setEditorKey] = useState(0)
+  const [selectedFile, setSelectedFile] = useState(mdFiles[0])
 
-  function loadMarkdown() {
-    fetch('/subcategories/general_structure.md')
+  function loadMarkdown(filename) {
+    fetch(`/subcategories/${filename}`)
       .then(res => res.text())
       .then(text => {
         setContent(text)
@@ -37,8 +43,14 @@ export default function Editor() {
       .catch(() => setContent('# Error loading file'))
   }
 
+  function handleFileChange(e) {
+    const filename = e.target.value
+    setSelectedFile(filename)
+    loadMarkdown(filename)
+  }
+
   useEffect(() => {
-    loadMarkdown()
+    loadMarkdown(selectedFile)
   }, [])
 
   return (
@@ -48,6 +60,15 @@ export default function Editor() {
         <header className="editor-header">
           <h1>Editor con MDX package</h1>
         </header>
+
+        <div className="file-selector">
+          <label htmlFor="md-select">Archivo:</label>
+          <select id="md-select" value={selectedFile} onChange={handleFileChange}>
+            {mdFiles.map(file => (
+              <option key={file} value={file}>{formatLabel(file)}</option>
+            ))}
+          </select>
+        </div>
 
         <div className="editor-split">
 
@@ -92,7 +113,7 @@ export default function Editor() {
         </div>
 
         <div className="editor-footer">
-          <button onClick={loadMarkdown} className="reload-btn">
+          <button onClick={() => loadMarkdown(selectedFile)} className="reload-btn">
             Load file
           </button>
         </div>
