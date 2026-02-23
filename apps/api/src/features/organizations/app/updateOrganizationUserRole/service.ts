@@ -4,9 +4,13 @@ import type {
   UpdateOrganizationUserRoleResponse,
   User,
 } from "@repo/types";
-import { MembershipStatus } from "@repo/database/enums";
+import { MembershipStatus, OrganizationRole } from "@repo/database/enums";
 import { OrganizationNotFoundError } from "../../errors.js";
-import { MembershipNotFoundError, CannotModifySelfError } from "../errors.js";
+import {
+  MembershipNotFoundError,
+  CannotModifySelfError,
+  CannotRemoveLastAdminError,
+} from "../errors.js";
 
 export const updateOrganizationUserRoleService = async (
   prismaClient: PrismaClient,
@@ -26,11 +30,6 @@ export const updateOrganizationUserRoleService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
-  // Prevent updating own role
-  if (currentUser && userId === currentUser.id) {
-    throw new CannotModifySelfError();
-  }
-
   // Find user's ACTIVE membership
   const membership = await prismaClient.userOrganizationMembership.findFirst({
     where: {
@@ -44,7 +43,49 @@ export const updateOrganizationUserRoleService = async (
     throw new MembershipNotFoundError();
   }
 
-  // Update role
+  // If user is currently an admin and being changed to non-admin role,
+  // check if they're the last admin and perform update in a transaction
+  // to prevent race conditions
+  if (
+    membership.role === OrganizationRole.ORGANIZATION_ADMIN &&
+    data.role !== OrganizationRole.ORGANIZATION_ADMIN
+  ) {
+    const updatedMembership = await prismaClient.$transaction(async (tx) => {
+      const adminCount = await tx.userOrganizationMembership.count({
+        where: {
+          organizationId: organization.id,
+          role: OrganizationRole.ORGANIZATION_ADMIN,
+          status: MembershipStatus.ACTIVE,
+        },
+      });
+
+      if (adminCount <= 1) {
+        throw new CannotRemoveLastAdminError();
+      }
+
+      // Prevent updating own role
+      if (currentUser && userId === currentUser.id) {
+        throw new CannotModifySelfError();
+      }
+
+      return await tx.userOrganizationMembership.update({
+        where: {
+          id: membership.id,
+        },
+        data: {
+          role: data.role,
+          updatedById: currentUser ? BigInt(currentUser.id) : undefined,
+        },
+      });
+    });
+
+    return {
+      membershipId: updatedMembership.id.toString(),
+      role: updatedMembership.role,
+    };
+  }
+
+  // Non-admin role changes can be performed without transaction
   const updatedMembership =
     await prismaClient.userOrganizationMembership.update({
       where: {

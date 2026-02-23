@@ -38,34 +38,47 @@ export const removeOrganizationUserService = async (
     throw new MembershipNotFoundError();
   }
 
-  // If user is an admin, check if they're the last admin
+  // If user is an admin, check if they're the last admin and perform update
+  // in a transaction to prevent race conditions
   if (membership.role === OrganizationRole.ORGANIZATION_ADMIN) {
-    const adminCount = await prismaClient.userOrganizationMembership.count({
+    await prismaClient.$transaction(async (tx) => {
+      const adminCount = await tx.userOrganizationMembership.count({
+        where: {
+          organizationId: organization.id,
+          role: OrganizationRole.ORGANIZATION_ADMIN,
+          status: MembershipStatus.ACTIVE,
+        },
+      });
+
+      if (adminCount <= 1) {
+        throw new CannotRemoveLastAdminError();
+      }
+      // Prevent removing self
+      if (currentUser && userId === currentUser.id) {
+        throw new CannotModifySelfError();
+      }
+
+      // Soft delete: update membership status to DELETED
+      await tx.userOrganizationMembership.update({
+        where: {
+          id: membership.id,
+        },
+        data: {
+          status: MembershipStatus.DELETED,
+          updatedById: currentUser ? BigInt(currentUser.id) : undefined,
+        },
+      });
+    });
+  } else {
+    // Non-admin users can be removed without transaction
+    await prismaClient.userOrganizationMembership.update({
       where: {
-        organizationId: organization.id,
-        role: OrganizationRole.ORGANIZATION_ADMIN,
-        status: MembershipStatus.ACTIVE,
+        id: membership.id,
+      },
+      data: {
+        status: MembershipStatus.DELETED,
+        updatedById: currentUser ? BigInt(currentUser.id) : undefined,
       },
     });
-
-    if (adminCount <= 1) {
-      throw new CannotRemoveLastAdminError();
-    }
   }
-
-  // Prevent removing self
-  if (currentUser && userId === currentUser.id) {
-    throw new CannotModifySelfError();
-  }
-
-  // Soft delete: update membership status to DELETED
-  await prismaClient.userOrganizationMembership.update({
-    where: {
-      id: membership.id,
-    },
-    data: {
-      status: MembershipStatus.DELETED,
-      updatedById: currentUser ? BigInt(currentUser.id) : undefined,
-    },
-  });
 };

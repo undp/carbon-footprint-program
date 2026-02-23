@@ -89,8 +89,8 @@ declare module "fastify" {
      *
      * // Use in route
      * fastify.post("/organizations/:organizationId/users", {
-     *   onRequest: [
-     *     fastify.requireAuth,
+     *   onRequest: [fastify.requireAuth],
+     *   preHandler: [
      *     fastify.requireOrganizationRole(
      *       extractOrgId,
      *       [OrganizationRole.ORGANIZATION_ADMIN]

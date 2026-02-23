@@ -323,7 +323,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       expect(body.code).toBe("MEMBERSHIP_NOT_FOUND");
     });
 
-    it("should return 403 when trying to update own role", async () => {
+    it("should return 409 when trying to update own role and it is the last admin", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
@@ -338,9 +338,9 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         },
       });
 
-      expect(response.statusCode).toBe(403);
+      expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CANNOT_MODIFY_SELF");
+      expect(body.code).toBe("CANNOT_REMOVE_LAST_ADMIN");
     });
 
     it("should return 400 when role is missing", async () => {
@@ -413,6 +413,44 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       });
 
       expect(response.statusCode).toBe(400);
+    });
+
+    it("should allow demoting an admin when there are multiple admins", async () => {
+      const organization = await createTestOrganization(prisma);
+
+      // Create two admins
+      await createTestMembership(prisma, testUser.id, organization.id, {
+        role: OrganizationRole.ORGANIZATION_ADMIN,
+      });
+
+      await createTestMembership(prisma, adminUser.id, organization.id, {
+        role: OrganizationRole.ORGANIZATION_ADMIN,
+      });
+
+      // Demote adminUser (testUser is still admin, so this should work)
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/app/organizations/${organization.id}/users/${adminUser.id}`,
+        payload: {
+          role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateOrganizationUserRoleResponse;
+      expect(body.role).toBe(OrganizationRole.ORGANIZATION_CONTRIBUTOR);
+
+      // Verify there's still one admin in the database
+      const adminCount = await prisma.userOrganizationMembership.count({
+        where: {
+          organizationId: organization.id,
+          role: OrganizationRole.ORGANIZATION_ADMIN,
+          status: "ACTIVE",
+        },
+      });
+      expect(adminCount).toBe(1);
     });
   });
 });
