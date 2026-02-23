@@ -8,4 +8,6 @@ export {
   MethodologyVersionStatus,
   CategoryStatus,
   FileStatus,
+  BadgeType,
+  BadgeStatus,
 } from "@repo/database/enums";
