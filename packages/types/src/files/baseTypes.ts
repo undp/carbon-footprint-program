@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { FileSchema, FileTypeSchema } from "./baseSchemas.js";
+import { FileTypeSchema } from "./baseSchemas.js";
+import type { FileSchema } from "./baseSchemas.js";
+
+export const FileType = FileTypeSchema.enum;
+export type FileType = (typeof FileType)[keyof typeof FileType];
 
 export type File = z.infer<typeof FileSchema>;
-export type FileType = z.infer<typeof FileTypeSchema>;
