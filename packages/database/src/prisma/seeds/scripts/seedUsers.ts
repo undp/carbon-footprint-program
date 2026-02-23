@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import { type PrismaClient, type Prisma, SystemRole } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -8,7 +8,6 @@ import {
   generateSeedDataPath,
   type SeedsDataset,
 } from "../utils/index.js";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -18,6 +17,7 @@ type UserData = (Required<
   email: string;
   countryJobPositionName: Prisma.CountryJobPositionCreateInput["name"];
   countryIsoCode: Prisma.CountryCreateInput["isoCode"];
+  role: SystemRole;
 })[];
 
 const UserDataSchema: z.ZodType<UserData> = z.array(
@@ -26,6 +26,7 @@ const UserDataSchema: z.ZodType<UserData> = z.array(
     email: z.email(),
     countryJobPositionName: z.string().min(1),
     countryIsoCode: z.string().min(1),
+    role: z.enum(SystemRole),
     firstName: z.string(),
     lastName: z.string(),
   })
@@ -80,6 +81,7 @@ export async function seedUsers(prisma: PrismaClient, dataset: SeedsDataset) {
       countryJobPositionId: jobPosition.id,
       firstName: user.firstName,
       lastName: user.lastName,
+      role: user.role,
     };
   });
 

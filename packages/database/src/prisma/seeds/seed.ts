@@ -1,8 +1,5 @@
 import { PrismaClient, generatePrismaAdapter } from "../../index.js";
 import { SEEDS_DATASET } from "../../environment.js";
-import { seedAllRoles } from "./scripts/seedAllRoles.js";
-import { seedOrganizationRoles } from "./scripts/seedOrganizationRoles.js";
-import { seedSystemRoles } from "./scripts/seedSystemRoles.js";
 import { seedMeasurementUnits } from "./scripts/seedMeasurementUnits.js";
 import { seedCountrySectorSubsectors } from "./scripts/seedCountrySectorSubsectors.js";
 import { seedCountries } from "./scripts/seedCountries.js";
@@ -18,9 +15,6 @@ const prisma = new PrismaClient({
 
 async function main() {
   await prisma.$connect();
-  await seedAllRoles(prisma, SEEDS_DATASET);
-  await seedOrganizationRoles(prisma, SEEDS_DATASET); // needs seedAllRoles to be seeded first
-  await seedSystemRoles(prisma, SEEDS_DATASET); // needs seedAllRoles to be seeded first
   await seedMeasurementUnits(prisma, SEEDS_DATASET);
   await seedCountries(prisma, SEEDS_DATASET);
   await seedCountryJobPositions(prisma, SEEDS_DATASET); // needs the countries to be seeded first
