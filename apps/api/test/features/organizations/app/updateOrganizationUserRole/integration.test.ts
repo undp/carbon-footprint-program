@@ -287,7 +287,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
   });
 
   describe("Error handling", () => {
-    it("should return 404 when organization does not exist", async () => {
+    it("should return 403 when organization does not exist", async () => {
       const response = await app.inject({
         method: "PATCH",
         url: `/api/app/organizations/999999/users/${adminUser.id}`,
