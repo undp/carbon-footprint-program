@@ -590,6 +590,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
             </DialogContentText>
           )}
         </DialogContent>
+        {/** TODO: Refactor this section to use a generic Modal component */}
         <DialogActions>
           <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
           <Button
