@@ -31,6 +31,7 @@ import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emissio
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AppCarbonInventoryIndexRouteImport } from './routes/app/carbon-inventory/index'
 import { Route as AppUserFormRouteImport } from './routes/app/user/form'
+import { Route as AppReductionProjectsAddRouteImport } from './routes/app/reduction-projects/add'
 import { Route as AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/app/carbon-inventory/$inventoryId/subcategory-preselection'
 import { Route as AppCarbonInventoryInventoryIdEmissionSummaryRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-summary'
 import { Route as AppCarbonInventoryInventoryIdEmissionResultsRouteImport } from './routes/app/carbon-inventory/$inventoryId/emission-results'
@@ -147,6 +148,11 @@ const AppUserFormRoute = AppUserFormRouteImport.update({
   path: '/app/user/form',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AppReductionProjectsAddRoute = AppReductionProjectsAddRouteImport.update({
+  id: '/add',
+  path: '/add',
+  getParentRoute: () => AppReductionProjectsRoute,
+} as any)
 const AppCarbonInventoryInventoryIdSubcategoryPreselectionRoute =
   AppCarbonInventoryInventoryIdSubcategoryPreselectionRouteImport.update({
     id: '/$inventoryId/subcategory-preselection',
@@ -198,7 +204,8 @@ export interface FileRoutesByFullPath {
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
-  '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRouteWithChildren
+  '/app/reduction-projects/add': typeof AppReductionProjectsAddRoute
   '/app/user/form': typeof AppUserFormRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -226,7 +233,8 @@ export interface FileRoutesByTo {
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
-  '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRouteWithChildren
+  '/app/reduction-projects/add': typeof AppReductionProjectsAddRoute
   '/app/user/form': typeof AppUserFormRoute
   '/app/carbon-inventory': typeof AppCarbonInventoryIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -256,7 +264,8 @@ export interface FileRoutesById {
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
-  '/app/reduction-projects': typeof AppReductionProjectsRoute
+  '/app/reduction-projects': typeof AppReductionProjectsRouteWithChildren
+  '/app/reduction-projects/add': typeof AppReductionProjectsAddRoute
   '/app/user/form': typeof AppUserFormRoute
   '/app/carbon-inventory/': typeof AppCarbonInventoryIndexRoute
   '/app/carbon-inventory/$inventoryId/business-profiling': typeof AppCarbonInventoryInventoryIdBusinessProfilingRoute
@@ -288,6 +297,7 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/reduction-projects/add'
     | '/app/user/form'
     | '/app/carbon-inventory/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -316,6 +326,7 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/reduction-projects/add'
     | '/app/user/form'
     | '/app/carbon-inventory'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -345,6 +356,7 @@ export interface FileRouteTypes {
     | '/app/my-organization'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
+    | '/app/reduction-projects/add'
     | '/app/user/form'
     | '/app/carbon-inventory/'
     | '/app/carbon-inventory/$inventoryId/business-profiling'
@@ -366,7 +378,7 @@ export interface RootRouteChildren {
   AppHomeRoute: typeof AppHomeRoute
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
-  AppReductionProjectsRoute: typeof AppReductionProjectsRoute
+  AppReductionProjectsRoute: typeof AppReductionProjectsRouteWithChildren
   AppUserFormRoute: typeof AppUserFormRoute
 }
 
@@ -526,6 +538,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppUserFormRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/app/reduction-projects/add': {
+      id: '/app/reduction-projects/add'
+      path: '/add'
+      fullPath: '/app/reduction-projects/add'
+      preLoaderRoute: typeof AppReductionProjectsAddRouteImport
+      parentRoute: typeof AppReductionProjectsRoute
+    }
     '/app/carbon-inventory/$inventoryId/subcategory-preselection': {
       id: '/app/carbon-inventory/$inventoryId/subcategory-preselection'
       path: '/$inventoryId/subcategory-preselection'
@@ -614,6 +633,17 @@ const AppCarbonInventoryRouteChildren: AppCarbonInventoryRouteChildren = {
 const AppCarbonInventoryRouteWithChildren =
   AppCarbonInventoryRoute._addFileChildren(AppCarbonInventoryRouteChildren)
 
+interface AppReductionProjectsRouteChildren {
+  AppReductionProjectsAddRoute: typeof AppReductionProjectsAddRoute
+}
+
+const AppReductionProjectsRouteChildren: AppReductionProjectsRouteChildren = {
+  AppReductionProjectsAddRoute: AppReductionProjectsAddRoute,
+}
+
+const AppReductionProjectsRouteWithChildren =
+  AppReductionProjectsRoute._addFileChildren(AppReductionProjectsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
@@ -626,7 +656,7 @@ const rootRouteChildren: RootRouteChildren = {
   AppHomeRoute: AppHomeRoute,
   AppMyOrganizationRoute: AppMyOrganizationRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,
-  AppReductionProjectsRoute: AppReductionProjectsRoute,
+  AppReductionProjectsRoute: AppReductionProjectsRouteWithChildren,
   AppUserFormRoute: AppUserFormRoute,
 }
 export const routeTree = rootRouteImport
