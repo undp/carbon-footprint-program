@@ -2,7 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import type { BadgeType } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import { validateBadgeType, findActiveBadgeByType } from "../helpers.js";
-import { mapFileToResponse } from "../../shared/mappers.js";
+import { mapFileToResponse } from "../../mappers.js";
 import type { GetBadgeFilesQuery, GetBadgeFilesResponse } from "@repo/types";
 
 export const badgeGetFilesService = async (
