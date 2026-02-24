@@ -32,14 +32,14 @@ export const useOrganizationColumns = ({
       {
         field: "name",
         headerName: "Empresa",
-        sortable: true,
+
         cellClassName,
         flex: 1,
       },
       {
         field: "sectorName",
         headerName: "Rubro",
-        sortable: true,
+
         cellClassName,
         flex: 0.9,
         valueFormatter: (value: string | null) => value ?? "-",
@@ -47,7 +47,7 @@ export const useOrganizationColumns = ({
       {
         field: "subsectorName",
         headerName: "Sub-Rubro",
-        sortable: true,
+
         cellClassName,
         flex: 1,
         valueFormatter: (value: string | null) => value ?? "-",
@@ -55,7 +55,7 @@ export const useOrganizationColumns = ({
       {
         field: "sizeName",
         headerName: "Tamaño",
-        sortable: true,
+
         cellClassName,
         flex: 0.7,
         valueFormatter: (value: string | null) => value ?? "-",
@@ -63,7 +63,7 @@ export const useOrganizationColumns = ({
       {
         field: "status",
         headerName: "Estado",
-        sortable: true,
+
         valueGetter: (_value, row) =>
           statusSortingOrder[
             getDisplayStatus(
@@ -85,7 +85,7 @@ export const useOrganizationColumns = ({
       {
         field: "lastMeasurement",
         headerName: "Última Medición",
-        sortable: true,
+
         cellClassName,
         flex: 0.9,
         valueFormatter: (value: string | null) => {
@@ -100,7 +100,7 @@ export const useOrganizationColumns = ({
       {
         field: "totalEmissions",
         headerName: "Emisiones (tCO₂e)",
-        sortable: true,
+
         cellClassName,
         flex: 0.9,
         align: "right",
