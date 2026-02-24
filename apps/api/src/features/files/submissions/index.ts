@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { submissionRequestUploadRoute } from "./requestUpload/route.js";
-import { submissionConfirmUploadRoute } from "./confirmUpload/route.js";
-import { submissionGetFilesRoute } from "./getFiles/route.js";
+import { submissionRequestUploadRoute } from "./requestSubmissionUpload/route.js";
+import { submissionConfirmUploadRoute } from "./confirmSubmissionUpload/route.js";
+import { submissionGetFilesRoute } from "./getSubmissionFiles/route.js";
 
 export default function submissionsPlugin(fastify: FastifyZodInstance) {
   submissionRequestUploadRoute(fastify);
