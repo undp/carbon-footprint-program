@@ -4,8 +4,8 @@ import type { SubmissionFileType } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { SubmissionRequestUploadResponse } from "@repo/types";
 import { validateSubmissionExists } from "../helpers.js";
-import { buildBlobPath } from "../../shared/buildBlobPath.js";
-import { generateWriteSasUrl } from "../../shared/sasHelper.js";
+import { buildBlobPath } from "../../helpers/buildBlobPath.js";
+import { generateWriteSasUrl } from "../../helpers/sasHelper.js";
 import {
   AZURE_STORAGE_ACCOUNT_NAME,
   AZURE_STORAGE_CONTAINER_NAME,

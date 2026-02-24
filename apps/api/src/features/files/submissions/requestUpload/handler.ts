@@ -1,6 +1,6 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { SubmissionRequestUploadBody } from "@repo/types";
-import { StorageNotConfiguredError } from "../../shared/errors.js";
+import { StorageNotConfiguredError } from "../../errors.js";
 import { submissionRequestUploadService } from "./service.js";
 
 export const submissionRequestUploadHandler = async (

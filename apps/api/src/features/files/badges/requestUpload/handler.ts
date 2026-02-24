@@ -1,7 +1,7 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { BadgeType } from "@repo/database";
 import type { BadgeRequestUploadBody } from "@repo/types";
-import { StorageNotConfiguredError } from "../../shared/errors.js";
+import { StorageNotConfiguredError } from "../../errors.js";
 import { badgeRequestUploadService } from "./service.js";
 
 export const badgeRequestUploadHandler = async (

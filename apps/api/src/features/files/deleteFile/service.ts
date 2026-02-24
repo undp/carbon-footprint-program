@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@repo/database";
 import { Prisma } from "@repo/database";
 import { type DeleteFileResponse, FileStatus } from "@repo/types";
-import { FileNotFoundError } from "../shared/errors.js";
-import { mapFileToResponse } from "../shared/mappers.js";
+import { FileNotFoundError } from "../errors.js";
+import { mapFileToResponse } from "../mappers.js";
 
 export const deleteFileService = async (
   prisma: PrismaClient,
