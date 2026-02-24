@@ -4,6 +4,7 @@ import {
   BlobSASPermissions,
   SASProtocol,
 } from "@azure/storage-blob";
+import { SAS_URL_EXPIRY_MINUTES } from "@/config/constants.js";
 
 interface SasUrlResult {
   url: string;
@@ -24,8 +25,8 @@ export async function generateReadSasUrl(
   accountName: string,
   containerName: string,
   blobPath: string,
-  expiresInMinutes = 15,
-  options?: ReadSasOptions
+  options?: ReadSasOptions,
+  expiresInMinutes = SAS_URL_EXPIRY_MINUTES
 ): Promise<SasUrlResult> {
   const startsOn = new Date();
   const expiresAt = new Date(startsOn.getTime() + expiresInMinutes * 60 * 1000);
@@ -66,7 +67,7 @@ export async function generateWriteSasUrl(
   accountName: string,
   containerName: string,
   blobPath: string,
-  expiresInMinutes = 15
+  expiresInMinutes = SAS_URL_EXPIRY_MINUTES
 ): Promise<SasUrlResult> {
   const startsOn = new Date();
   const expiresAt = new Date(startsOn.getTime() + expiresInMinutes * 60 * 1000);

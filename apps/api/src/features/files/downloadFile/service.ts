@@ -24,7 +24,6 @@ export const downloadFileService = async (
     AZURE_STORAGE_ACCOUNT_NAME!,
     AZURE_STORAGE_CONTAINER_NAME,
     file.blobPath,
-    15,
     {
       contentType: file.mimeType,
       contentDisposition: `attachment; filename="${encodeURIComponent(file.originalName)}"`,
