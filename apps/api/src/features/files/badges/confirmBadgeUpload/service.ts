@@ -21,7 +21,7 @@ export const badgeConfirmUploadService = async (
 
   const blobPath = buildBlobPath({
     fileType: FileType.BADGE,
-    ownerId: badgeType,
+    groupKey: badgeType,
     uuid,
     name: originalName,
   });

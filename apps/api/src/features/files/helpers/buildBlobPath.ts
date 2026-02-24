@@ -4,7 +4,7 @@ interface BuildBlobPathParams {
   fileType: FileType;
   uuid: string;
   name: string;
-  ownerId?: string;
+  groupKey?: string;
   subPath?: string;
 }
 
@@ -12,17 +12,17 @@ export function buildBlobPath({
   fileType,
   uuid,
   name,
-  ownerId,
+  groupKey,
   subPath,
 }: BuildBlobPathParams): string {
   const sanitizedName = name.replace(/[^a-zA-Z0-9._-]/g, "_");
 
-  if (ownerId && subPath) {
-    return `${fileType}/${ownerId}/${subPath}/${uuid}-${sanitizedName}`;
+  if (groupKey && subPath) {
+    return `${fileType}/${groupKey}/${subPath}/${uuid}-${sanitizedName}`;
   }
 
-  if (ownerId) {
-    return `${fileType}/${ownerId}/${uuid}-${sanitizedName}`;
+  if (groupKey) {
+    return `${fileType}/${groupKey}/${uuid}-${sanitizedName}`;
   }
 
   return `${fileType}/${uuid}-${sanitizedName}`;

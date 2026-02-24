@@ -27,7 +27,7 @@ export const submissionRequestUploadService = async (
   const fileUuid = randomUUID();
   const blobPath = buildBlobPath({
     fileType: "SUBMISSION",
-    ownerId: submissionId,
+    groupKey: submissionId,
     subPath: submissionFileType,
     uuid: fileUuid,
     name: originalName,

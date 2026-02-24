@@ -25,7 +25,7 @@ export const badgeRequestUploadService = async (
   const fileUuid = randomUUID();
   const blobPath = buildBlobPath({
     fileType: FileType.BADGE,
-    ownerId: badgeType,
+    groupKey: badgeType,
     uuid: fileUuid,
     name: originalName,
   });

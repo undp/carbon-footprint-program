@@ -29,7 +29,7 @@ export const submissionConfirmUploadService = async (
 
   const blobPath = buildBlobPath({
     fileType: FileType.SUBMISSION,
-    ownerId: submissionId,
+    groupKey: submissionId,
     subPath: submissionFileType,
     uuid,
     name: originalName,
