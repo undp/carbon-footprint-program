@@ -1,31 +1,27 @@
 import { z } from "zod";
-import { IdSchema } from "@repo/types";
 import {
-  SubmissionRequestUploadBodySchema,
-  SubmissionRequestUploadResponseSchema,
+  RequestSubmissionUploadParamsSchema,
+  RequestSubmissionUploadBodySchema,
+  RequestSubmissionUploadResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { submissionRequestUploadHandler } from "./handler.js";
 
-const ParamsSchema = z.object({
-  submissionId: IdSchema.describe("The submission ID"),
-});
-
 export const submissionRequestUploadRoute = (fastify: FastifyZodInstance) => {
   fastify.post<{
-    Params: z.infer<typeof ParamsSchema>;
-    Body: z.infer<typeof SubmissionRequestUploadBodySchema>;
+    Params: z.infer<typeof RequestSubmissionUploadParamsSchema>;
+    Body: z.infer<typeof RequestSubmissionUploadBodySchema>;
   }>(
     "/:submissionId/request-upload",
     {
       schema: {
         tags: ["files"],
         summary: "Request a temporary upload URL for a submission file",
-        params: ParamsSchema,
-        body: SubmissionRequestUploadBodySchema,
+        params: RequestSubmissionUploadParamsSchema,
+        body: RequestSubmissionUploadBodySchema,
         response: {
-          200: SubmissionRequestUploadResponseSchema,
+          200: RequestSubmissionUploadResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },

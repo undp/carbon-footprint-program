@@ -1,8 +1,11 @@
 import { randomUUID } from "crypto";
 import type { PrismaClient } from "@repo/database";
-import type { SubmissionFileType } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
-import type { SubmissionRequestUploadResponse } from "@repo/types";
+import type {
+  RequestSubmissionUploadBody,
+  RequestSubmissionUploadParams,
+  RequestSubmissionUploadResponse,
+} from "@repo/types";
 import { validateSubmissionExists } from "../helpers.js";
 import { buildBlobPath } from "../../shared/buildBlobPath.js";
 import { generateWriteSasUrl } from "../../shared/sasHelper.js";
@@ -11,18 +14,14 @@ import {
   AZURE_STORAGE_CONTAINER_NAME,
 } from "@/config/environment.js";
 
-interface SubmissionRequestUploadInput {
-  submissionId: string;
-  originalName: string;
-  mimeType: string;
-  submissionFileType: SubmissionFileType;
-}
+type SubmissionRequestUploadInput = RequestSubmissionUploadBody &
+  RequestSubmissionUploadParams;
 
 export const submissionRequestUploadService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
   input: SubmissionRequestUploadInput
-): Promise<SubmissionRequestUploadResponse> => {
+): Promise<RequestSubmissionUploadResponse> => {
   const { submissionId, originalName, submissionFileType } = input;
 
   await validateSubmissionExists(prisma, submissionId);

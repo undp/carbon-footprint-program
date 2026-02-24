@@ -1,18 +1,21 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { SubmissionRequestUploadBody } from "@repo/types";
+import type {
+  RequestSubmissionUploadParams,
+  RequestSubmissionUploadBody,
+} from "@repo/types";
 import { StorageNotConfiguredError } from "../../shared/errors.js";
 import { submissionRequestUploadService } from "./service.js";
 
 export const submissionRequestUploadHandler = async (
   request: FastifyRequest<{
-    Params: { submissionId: string };
-    Body: SubmissionRequestUploadBody;
+    Params: RequestSubmissionUploadParams;
+    Body: RequestSubmissionUploadBody;
   }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "files/submissions" });
   const { submissionId } = request.params;
-  const { originalName, mimeType, submissionFileType } = request.body;
+  const { originalName, submissionFileType } = request.body;
 
   const blobServiceClient = request.server.blobServiceClient;
   if (!blobServiceClient) {
@@ -25,7 +28,7 @@ export const submissionRequestUploadHandler = async (
   const result = await submissionRequestUploadService(
     prisma,
     blobServiceClient,
-    { submissionId, originalName, mimeType, submissionFileType }
+    { submissionId, originalName, submissionFileType }
   );
 
   log.info(
