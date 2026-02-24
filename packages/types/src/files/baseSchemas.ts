@@ -1,18 +1,21 @@
 import { z } from "zod";
 import { IdSchema } from "../index.js";
+import {
+  BadgeStatus,
+  BadgeType,
+  FileStatus,
+  SubmissionFileType,
+} from "@repo/database/enums";
 
 export const FileTypeSchema = z.enum(["SUBMISSION", "BADGE"]);
 
-export const BadgeTypeSchema = z.enum([
-  "CARBON_INVENTORY",
-  "ORGANIZATION_DATA",
-]);
+export const BadgeTypeSchema = z.enum(BadgeType);
 
 export const FileStatusSchema = z.enum(FileStatus);
 
-export const BadgeStatusSchema = z.enum(["ACTIVE", "INACTIVE"]);
+export const BadgeStatusSchema = z.enum(BadgeStatus);
 
-export const SubmissionFileTypeSchema = z.enum(["ATTACHMENT", "RECOGNITION"]);
+export const SubmissionFileTypeSchema = z.enum(SubmissionFileType);
 
 export const FileSchema = z.object({
   uuid: z.uuid().describe("The UUID of the file"),
