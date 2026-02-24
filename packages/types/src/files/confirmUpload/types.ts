@@ -1,5 +1,8 @@
 import { z } from "zod";
-import type { ConfirmUploadBodySchema, ConfirmUploadResponseSchema } from "./schemas.ts";
+import type {
+  ConfirmUploadBodySchema,
+  ConfirmUploadResponseSchema,
+} from "./schemas.js";
 
 export type ConfirmUploadBody = z.infer<typeof ConfirmUploadBodySchema>;
 export type ConfirmUploadResponse = z.infer<typeof ConfirmUploadResponseSchema>;
