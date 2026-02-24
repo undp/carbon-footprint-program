@@ -1,4 +1,8 @@
 import { z } from "zod";
-import type { DeleteFileResponseSchema } from "./schemas.ts";
+import type {
+  DeleteFileParamsSchema,
+  DeleteFileResponseSchema,
+} from "./schemas.js";
 
+export type DeleteFileParams = z.infer<typeof DeleteFileParamsSchema>;
 export type DeleteFileResponse = z.infer<typeof DeleteFileResponseSchema>;
