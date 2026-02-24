@@ -1,31 +1,27 @@
 import { z } from "zod";
 import {
-  BadgeTypeSchema,
-  BadgeGetFilesQuerySchema,
-  BadgeGetFilesResponseSchema,
+  GetBadgeFilesParamsSchema,
+  GetBadgeFilesQuerySchema,
+  GetBadgeFilesResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { badgeGetFilesHandler } from "./handler.js";
 
-const ParamsSchema = z.object({
-  badgeType: BadgeTypeSchema.describe("The badge type"),
-});
-
 export const badgeGetFilesRoute = (fastify: FastifyZodInstance) => {
   fastify.get<{
-    Params: z.infer<typeof ParamsSchema>;
-    Querystring: z.infer<typeof BadgeGetFilesQuerySchema>;
+    Params: z.infer<typeof GetBadgeFilesParamsSchema>;
+    Querystring: z.infer<typeof GetBadgeFilesQuerySchema>;
   }>(
     "/:badgeType",
     {
       schema: {
         tags: ["files"],
         summary: "List badge files by type",
-        params: ParamsSchema,
-        querystring: BadgeGetFilesQuerySchema,
+        params: GetBadgeFilesParamsSchema,
+        querystring: GetBadgeFilesQuerySchema,
         response: {
-          200: BadgeGetFilesResponseSchema,
+          200: GetBadgeFilesResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

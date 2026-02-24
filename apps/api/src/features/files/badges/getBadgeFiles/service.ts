@@ -1,15 +1,15 @@
 import type { PrismaClient } from "@repo/database";
 import type { BadgeType } from "@repo/database";
 import { FileStatus } from "@repo/types";
-import type { BadgeGetFilesQuery, BadgeGetFilesResponse } from "@repo/types";
 import { validateBadgeType, findActiveBadgeByType } from "../helpers.js";
 import { mapFileToResponse } from "../../shared/mappers.js";
+import type { GetBadgeFilesQuery, GetBadgeFilesResponse } from "@repo/types";
 
 export const badgeGetFilesService = async (
   prisma: PrismaClient,
   badgeType: BadgeType,
-  query?: BadgeGetFilesQuery
-): Promise<BadgeGetFilesResponse> => {
+  query?: GetBadgeFilesQuery
+): Promise<GetBadgeFilesResponse> => {
   validateBadgeType(badgeType);
 
   const fileIds = await findActiveBadgeByType(prisma, badgeType);

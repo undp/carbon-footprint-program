@@ -1,12 +1,11 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { BadgeType } from "@repo/database";
-import type { BadgeGetFilesQuery } from "@repo/types";
+import type { GetBadgeFilesQuery, GetBadgeFilesParams } from "@repo/types";
 import { badgeGetFilesService } from "./service.js";
 
 export const badgeGetFilesHandler = async (
   request: FastifyRequest<{
-    Params: { badgeType: BadgeType };
-    Querystring: BadgeGetFilesQuery;
+    Params: GetBadgeFilesParams;
+    Querystring: GetBadgeFilesQuery;
   }>,
   reply: FastifyReply
 ) => {
