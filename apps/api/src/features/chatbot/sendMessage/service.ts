@@ -14,38 +14,28 @@ export const sendChatMessageService = async (
     new DefaultAzureCredential()
   );
 
-  // Locate the existing agent by name (listAgents returns by ID, not name)
-  let agentId: string | undefined;
-  for await (const agent of client.agents.listAgents()) {
-    if (agent.name === AI_FOUNDRY_AGENT_NAME) {
-      agentId = agent.id;
-      break;
+  const openAIClient = await client.getOpenAIClient();
+
+  const conversation = await openAIClient.conversations.create({
+    items: [
+      {
+        type: "message",
+        role: "user",
+        content: data.message,
+      },
+    ],
+  });
+
+  const response = await openAIClient.responses.create(
+    {
+      conversation: conversation.id,
+    },
+    {
+      body: { agent: { name: AI_FOUNDRY_AGENT_NAME, type: "agent_reference" } },
     }
-  }
-  if (!agentId) {
-    throw new Error(`Agent "${AI_FOUNDRY_AGENT_NAME}" not found`);
-  }
+  );
 
-  // Create a thread, send the user message, and run the agent
-  const thread = await client.agents.threads.create();
-  await client.agents.messages.create(thread.id, "user", data.message);
-  const run = await client.agents.runs.createAndPoll(thread.id, agentId);
+  await openAIClient.conversations.delete(conversation.id);
 
-  if (run.status !== "completed") {
-    throw new Error(`Agent run failed with status: ${run.status}`);
-  }
-
-  // Extract the last assistant reply
-  for await (const message of client.agents.messages.list(thread.id, {
-    order: "desc",
-  })) {
-    if (message.role === "assistant") {
-      const textBlock = message.content.find((c) => c.type === "text");
-      if (textBlock && "text" in textBlock) {
-        return { response: textBlock.text.value };
-      }
-    }
-  }
-
-  throw new Error("No assistant response found");
+  return { response: response.output_text };
 };
