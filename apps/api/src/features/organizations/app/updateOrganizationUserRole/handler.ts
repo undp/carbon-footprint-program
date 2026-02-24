@@ -2,7 +2,6 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type {
   UpdateOrganizationUserRoleParams,
   UpdateOrganizationUserRoleBody,
-  UpdateOrganizationUserRoleResponse,
 } from "@repo/types";
 import { updateOrganizationUserRoleService } from "./service.js";
 
@@ -12,7 +11,7 @@ export const updateOrganizationUserRoleHandler = async (
     Body: UpdateOrganizationUserRoleBody;
   }>,
   reply: FastifyReply
-): Promise<UpdateOrganizationUserRoleResponse> => {
+) => {
   const log = request.log.child({ module: "organization-users" });
   const { organizationId, userId } = request.params;
   const body = request.body;

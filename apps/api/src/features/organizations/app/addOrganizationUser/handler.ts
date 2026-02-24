@@ -2,7 +2,6 @@ import type { FastifyReply, FastifyRequest } from "fastify";
 import type {
   AddOrganizationUserParams,
   AddOrganizationUserBody,
-  AddOrganizationUserResponse,
 } from "@repo/types";
 import { addOrganizationUserService } from "./service.js";
 
@@ -12,7 +11,7 @@ export const addOrganizationUserHandler = async (
     Body: AddOrganizationUserBody;
   }>,
   reply: FastifyReply
-): Promise<AddOrganizationUserResponse> => {
+) => {
   const log = request.log.child({ module: "organization-users" });
   const { organizationId } = request.params;
   const body = request.body;

@@ -7,7 +7,7 @@ export const removeOrganizationUserHandler = async (
     Params: RemoveOrganizationUserParams;
   }>,
   reply: FastifyReply
-): Promise<void> => {
+) => {
   const log = request.log.child({ module: "organization-users" });
   const { organizationId, userId } = request.params;
 
@@ -16,12 +16,17 @@ export const removeOrganizationUserHandler = async (
   const prisma = request.server.prisma;
   const user = request.currentUser ?? null;
 
-  await removeOrganizationUserService(prisma, organizationId, userId, user);
+  const data = await removeOrganizationUserService(
+    prisma,
+    organizationId,
+    userId,
+    user
+  );
 
   log.info(
     { organizationId, userId },
     "User removed from organization successfully"
   );
 
-  return reply.status(200).send({});
+  return reply.status(200).send(data);
 };

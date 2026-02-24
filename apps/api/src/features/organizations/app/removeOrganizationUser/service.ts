@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { User } from "@repo/types";
+import type { User, RemoveOrganizationUserResponse } from "@repo/types";
 import { MembershipStatus, OrganizationRole } from "@repo/database/enums";
 import { OrganizationNotFoundError } from "../../errors.js";
 import {
@@ -13,7 +13,7 @@ export const removeOrganizationUserService = async (
   organizationId: string,
   userId: string,
   currentUser: User | null
-): Promise<void> => {
+): Promise<RemoveOrganizationUserResponse> => {
   // Verify organization exists
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -82,4 +82,6 @@ export const removeOrganizationUserService = async (
       },
     });
   }
+
+  return {};
 };
