@@ -40,10 +40,7 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
             <Typography
               sx={{
                 fontWeight: 600,
-                maxWidth: 280,
-                minHeight: "48px",
-                display: "flex",
-                alignItems: "flex-start",
+                whiteSpace: "nowrap",
               }}
             >
               {upload.title}

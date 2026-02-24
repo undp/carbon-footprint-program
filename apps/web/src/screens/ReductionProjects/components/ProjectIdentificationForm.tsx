@@ -1,11 +1,6 @@
 import { FC } from "react";
 import { Control, Controller } from "react-hook-form";
-import {
-  Box,
-  Alert,
-  Checkbox,
-  FormControlLabel,
-} from "@mui/material";
+import { Box, Checkbox, FormControlLabel, Typography } from "@mui/material";
 import { FormTextField } from "@/components/form/FormTextField";
 import { FormSelectField } from "@/components/form/FormSelectField";
 import { AddReductionProjectFormData } from "../types";
@@ -89,25 +84,53 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
             options={pcgOptions}
             required
           />
-          <Alert
-            icon={false}
-            severity="info"
+          <Box
             sx={{
               flex: 1,
-              background: (theme) =>
-                `linear-gradient(90deg, ${theme.palette.success.light}33 0%, ${theme.palette.info.light}33 100%)`,
-              color: "text.primary",
-              border: "none",
-              "& .MuiAlert-message": {
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-              },
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              padding: 1,
+              borderRadius: 1,
+              background:
+                "linear-gradient(90deg, rgba(86, 245, 141, 0.2) 0%, rgba(99, 228, 207, 0.2) 100%)",
             }}
           >
-            Utilizar el potencial de calentamiento global del inventario
-            nacional
-          </Alert>
+            <Box
+              sx={{
+                width: 40,
+                height: 40,
+                borderRadius: "6px",
+                overflow: "hidden",
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Box
+                component="img"
+                src="/capinauta-icon.png"
+                alt="Capinauta"
+                sx={{
+                  width: 40,
+                  height: 40,
+                  transform: "rotate(180deg) scaleY(-1)",
+                }}
+              />
+            </Box>
+            <Typography
+              sx={{
+                flex: 1,
+                fontSize: 16,
+                color: "text.primary",
+                lineHeight: "normal",
+              }}
+            >
+              Utilizar el potencial de calentamiento global del inventario
+              nacional
+            </Typography>
+          </Box>
         </Box>
 
         {/* Checkboxes */}
