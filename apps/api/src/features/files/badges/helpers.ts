@@ -45,14 +45,3 @@ export async function persistBadgeFileRecord(
 
   return mapFileToResponse(file);
 }
-
-export async function findActiveBadgeByType(
-  prisma: PrismaClient,
-  type: BadgeType
-): Promise<bigint[]> {
-  const badge = await prisma.badge.findFirst({
-    where: { type, status: BadgeStatus.ACTIVE },
-    select: { fileId: true },
-  });
-  return badge ? [badge.fileId] : [];
-}
