@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { IdSchema } from "../index.js";
+import { IdSchema } from "../zod.js";
 import {
   BadgeStatus,
   BadgeType,
