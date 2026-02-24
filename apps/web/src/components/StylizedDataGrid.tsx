@@ -75,6 +75,7 @@ export const StylizedDataGrid = ({
         },
         ...(props.slotProps || {}),
       }}
+      ignoreDiacritics
       localeText={{
         paginationRowsPerPage: "Filas por página",
         paginationDisplayedRows: ({ from, to, count }) =>
