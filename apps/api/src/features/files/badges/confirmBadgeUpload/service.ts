@@ -1,23 +1,23 @@
 import type { PrismaClient } from "@repo/database";
-import type { BadgeType } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
-import { FileType, type BadgeConfirmUploadResponse } from "@repo/types";
+import {
+  ConfirmBadgeUploadBody,
+  ConfirmBadgeUploadParams,
+  FileType,
+  type ConfirmBadgeUploadResponse,
+} from "@repo/types";
 import { validateBadgeType, createBadgeEntry } from "../helpers.js";
 import { buildBlobPath } from "../../shared/buildBlobPath.js";
 import { persistFileRecord } from "../../shared/persistFileRecord.js";
 
-interface BadgeConfirmUploadInput {
-  badgeType: BadgeType;
-  uuid: string;
-  originalName: string;
-  userId: string;
-}
+type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
+  ConfirmBadgeUploadParams & { userId: string };
 
 export const badgeConfirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
   input: BadgeConfirmUploadInput
-): Promise<BadgeConfirmUploadResponse> => {
+): Promise<ConfirmBadgeUploadResponse> => {
   const { badgeType, uuid, originalName, userId } = input;
 
   validateBadgeType(badgeType);
