@@ -5,6 +5,7 @@ import {
   VisibilityOutlined,
   EditOutlined,
   DeleteOutlined,
+  RestoreOutlined,
 } from "@mui/icons-material";
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
@@ -13,10 +14,12 @@ type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
 interface UseOrganizationColumnsProps {
   onBlock: (id: string) => void;
+  onUnblock: (id: string) => void;
 }
 
 export const useOrganizationColumns = ({
   onBlock,
+  onUnblock,
 }: UseOrganizationColumnsProps): GridColDef<OrganizationRow>[] => {
   const cellClassName = "content-center";
 
@@ -95,25 +98,38 @@ export const useOrganizationColumns = ({
         flex: 0.7,
         sortable: false,
         filterable: false,
-        renderCell: (params) => (
-          <Stack direction="row" spacing={0.5} alignItems="center">
-            <IconButton size="small" aria-label="Ver empresa">
-              <VisibilityOutlined fontSize="small" />
-            </IconButton>
-            <IconButton size="small" aria-label="Editar empresa">
-              <EditOutlined fontSize="small" />
-            </IconButton>
-            <IconButton
-              size="small"
-              aria-label="Eliminar empresa"
-              onClick={() => onBlock(params.row.id)}
-            >
-              <DeleteOutlined fontSize="small" />
-            </IconButton>
-          </Stack>
-        ),
+        renderCell: (params) => {
+          const isBlocked = params.row.status === "BLOCKED";
+          return (
+            <Stack direction="row" spacing={0.5} alignItems="center">
+              <IconButton size="small" aria-label="Ver empresa">
+                <VisibilityOutlined fontSize="small" />
+              </IconButton>
+              <IconButton size="small" aria-label="Editar empresa">
+                <EditOutlined fontSize="small" />
+              </IconButton>
+              {isBlocked ? (
+                <IconButton
+                  size="small"
+                  aria-label="Restaurar empresa"
+                  onClick={() => onUnblock(params.row.id)}
+                >
+                  <RestoreOutlined fontSize="small" />
+                </IconButton>
+              ) : (
+                <IconButton
+                  size="small"
+                  aria-label="Eliminar empresa"
+                  onClick={() => onBlock(params.row.id)}
+                >
+                  <DeleteOutlined fontSize="small" />
+                </IconButton>
+              )}
+            </Stack>
+          );
+        },
       },
     ],
-    [onBlock]
+    [onBlock, onUnblock]
   );
 };

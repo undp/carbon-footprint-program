@@ -4,7 +4,9 @@ import { StylizedDataGrid } from "@components";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
 import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganization";
+import { useUnblockOrganization } from "@/api/query/organizations/useUnblockOrganization";
 import { BlockOrganizationDialog } from "./BlockOrganizationDialog";
+import { UnblockOrganizationDialog } from "./UnblockOrganizationDialog";
 import { GetAllOrganizationsResponse } from "@repo/types";
 
 const TABLE_ROW_COUNT = 6;
@@ -36,26 +38,47 @@ const TableSkeleton: FC = () => (
 export const OrganizationScreenTable: FC = () => {
   const { data, isLoading } = useAdminOrganizations();
   const blockMutation = useBlockOrganization();
-  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
+  const unblockMutation = useUnblockOrganization();
+  const [blockOrgId, setBlockOrgId] = useState<string | null>(null);
+  const [unblockOrgId, setUnblockOrgId] = useState<string | null>(null);
   const organizations = data?.data ?? [];
-  const selectedOrg = organizations.find((org) => org.id === selectedOrgId);
+  const blockOrg = organizations.find((org) => org.id === blockOrgId);
+  const unblockOrg = organizations.find((org) => org.id === unblockOrgId);
 
   const handleBlockClick = useCallback((id: string) => {
-    setSelectedOrgId(id);
+    setBlockOrgId(id);
   }, []);
 
-  const handleCloseDialog = useCallback(() => {
-    setSelectedOrgId(null);
+  const handleUnblockClick = useCallback((id: string) => {
+    setUnblockOrgId(id);
+  }, []);
+
+  const handleCloseBlockDialog = useCallback(() => {
+    setBlockOrgId(null);
+  }, []);
+
+  const handleCloseUnblockDialog = useCallback(() => {
+    setUnblockOrgId(null);
   }, []);
 
   const handleConfirmBlock = useCallback(() => {
-    if (!selectedOrgId) return;
-    blockMutation.mutate(selectedOrgId, {
-      onSettled: () => setSelectedOrgId(null),
+    if (!blockOrgId) return;
+    blockMutation.mutate(blockOrgId, {
+      onSettled: () => setBlockOrgId(null),
     });
-  }, [selectedOrgId, blockMutation]);
+  }, [blockOrgId, blockMutation]);
 
-  const columns = useOrganizationColumns({ onBlock: handleBlockClick });
+  const handleConfirmUnblock = useCallback(() => {
+    if (!unblockOrgId) return;
+    unblockMutation.mutate(unblockOrgId, {
+      onSettled: () => setUnblockOrgId(null),
+    });
+  }, [unblockOrgId, unblockMutation]);
+
+  const columns = useOrganizationColumns({
+    onBlock: handleBlockClick,
+    onUnblock: handleUnblockClick,
+  });
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -85,11 +108,18 @@ export const OrganizationScreenTable: FC = () => {
         getRowId={(row: GetAllOrganizationsResponse["data"][number]) => row.id}
       />
       <BlockOrganizationDialog
-        open={selectedOrgId !== null}
-        organizationName={selectedOrg?.name ?? ""}
-        onClose={handleCloseDialog}
+        open={blockOrgId !== null}
+        organizationName={blockOrg?.name ?? ""}
+        onClose={handleCloseBlockDialog}
         onConfirm={handleConfirmBlock}
         isLoading={blockMutation.isPending}
+      />
+      <UnblockOrganizationDialog
+        open={unblockOrgId !== null}
+        organizationName={unblockOrg?.name ?? ""}
+        onClose={handleCloseUnblockDialog}
+        onConfirm={handleConfirmUnblock}
+        isLoading={unblockMutation.isPending}
       />
     </Box>
   );
