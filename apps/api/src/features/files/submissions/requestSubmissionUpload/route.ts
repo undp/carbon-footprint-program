@@ -7,8 +7,11 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { submissionRequestUploadHandler } from "./handler.js";
+import type { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const submissionRequestUploadRoute = (fastify: FastifyZodInstance) => {
+export const submissionRequestUploadRoute: StandardRouteSignature = (
+  fastify: FastifyZodInstance
+) => {
   fastify.post<{
     Params: z.infer<typeof RequestSubmissionUploadParamsSchema>;
     Body: z.infer<typeof RequestSubmissionUploadBodySchema>;
