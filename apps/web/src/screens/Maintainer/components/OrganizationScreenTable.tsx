@@ -107,6 +107,12 @@ export const OrganizationScreenTable: FC = () => {
         rowHeight={65}
         getRowId={(row: GetAllOrganizationsResponse["data"][number]) => row.id}
         disableColumnSorting={false}
+        hideFooter={false}
+        pagination
+        pageSizeOptions={[10, 25, 50, 100]}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 10 } },
+        }}
       />
       <BlockOrganizationDialog
         open={blockOrgId !== null}
