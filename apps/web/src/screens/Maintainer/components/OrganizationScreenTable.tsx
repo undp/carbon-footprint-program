@@ -102,6 +102,9 @@ export const OrganizationScreenTable: FC = () => {
             padding: "10px",
           },
         })}
+        disableColumnMenu={false}
+        disableColumnFilter={false}
+        showToolbar
         columns={columns}
         rows={organizations}
         rowHeight={65}
