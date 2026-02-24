@@ -22,13 +22,6 @@ export const badgeConfirmUploadHandler = async (
     throw new StorageNotConfiguredError();
   }
 
-  if (!request.currentUser?.id) {
-    return reply.status(401).send({
-      code: "UNAUTHORIZED",
-      message: "Authentication is required to upload files",
-    });
-  }
-
   log.info({ uuid, badgeType }, "Confirming badge upload...");
 
   const prisma = request.server.prisma;
@@ -36,7 +29,7 @@ export const badgeConfirmUploadHandler = async (
     badgeType,
     uuid,
     originalName,
-    userId: request.currentUser.id,
+    userId: request.currentUser!.id,
   });
 
   log.info({ uuid, badgeType }, "Badge upload confirmed");

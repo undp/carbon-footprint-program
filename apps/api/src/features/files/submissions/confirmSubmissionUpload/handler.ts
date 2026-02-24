@@ -22,13 +22,6 @@ export const submissionConfirmUploadHandler = async (
     throw new StorageNotConfiguredError();
   }
 
-  if (!request.currentUser?.id) {
-    return reply.status(401).send({
-      code: "UNAUTHORIZED",
-      message: "Authentication is required to upload files",
-    });
-  }
-
   log.info({ uuid, submissionId }, "Confirming submission upload...");
 
   const prisma = request.server.prisma;
@@ -37,7 +30,7 @@ export const submissionConfirmUploadHandler = async (
     uuid,
     originalName,
     submissionFileType,
-    userId: request.currentUser.id,
+    userId: request.currentUser!.id,
   });
 
   log.info({ uuid, submissionId }, "Submission upload confirmed");
