@@ -64,9 +64,9 @@ export const getOrganizationUsersService = async (
       return {
         userId: membership.user.id.toString(),
         name,
-        email: membership.user.email || "",
+        email: membership.user.email!,
         organizationRole: membership.role,
-        isCurrentUser: BigInt(membership.user.id) === BigInt(userId),
+        isCurrentUser: membership.user.id === BigInt(userId),
       };
     })
     .sort((a, b) => {
