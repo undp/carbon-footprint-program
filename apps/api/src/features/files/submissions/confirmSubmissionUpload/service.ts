@@ -6,9 +6,11 @@ import {
   FileType,
   type ConfirmSubmissionUploadResponse,
 } from "@repo/types";
-import { validateSubmissionExists, createSubmissionFile } from "../helpers.js";
-import { buildBlobPath } from "../../shared/buildBlobPath.js";
-import { persistFileRecord } from "../../shared/persistFileRecord.js";
+import {
+  validateSubmissionExists,
+  persistSubmissionFileRecord,
+} from "../helpers.js";
+import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 
 type SubmissionConfirmUploadInput = ConfirmSubmissionUploadBody &
   ConfirmSubmissionUploadParams & {
@@ -33,11 +35,16 @@ export const submissionConfirmUploadService = async (
     name: originalName,
   });
 
-  return persistFileRecord(
+  return persistSubmissionFileRecord(
     prisma,
     blobStorage,
-    { uuid, blobPath, originalName, userId },
-    (tx, fileId) =>
-      createSubmissionFile(tx, fileId, submissionId, submissionFileType)
+    {
+      uuid,
+      blobPath,
+      originalName,
+      userId,
+    },
+    submissionId,
+    submissionFileType
   );
 };

@@ -1,10 +1,12 @@
+import { BadgeType, type PrismaClient, BadgeStatus } from "@repo/database";
+import type { ContainerClient } from "@azure/storage-blob";
+import type { ConfirmBadgeUploadResponse } from "@repo/types";
 import {
-  BadgeType,
-  type PrismaClient,
-  type Prisma,
-  BadgeStatus,
-} from "@repo/database";
-import { FileTypeNotFoundError } from "../shared/errors.js";
+  checkFileRecordExists,
+  type PersistFileRecordParams,
+} from "../helpers/persistFileRecord.js";
+import { FileTypeNotFoundError } from "../errors.js";
+import { mapFileToResponse } from "../mappers.js";
 
 export function validateBadgeType(type: BadgeType): void {
   if (!Object.values(BadgeType).includes(type)) {
@@ -12,18 +14,43 @@ export function validateBadgeType(type: BadgeType): void {
   }
 }
 
-export async function createBadgeEntry(
-  tx: Prisma.TransactionClient,
-  fileId: bigint,
+export async function persistBadgeFileRecord(
+  prisma: PrismaClient,
+  blobStorage: ContainerClient,
+  params: PersistFileRecordParams,
   type: BadgeType
-): Promise<void> {
-  await tx.badge.updateMany({
-    where: { type, status: BadgeStatus.ACTIVE },
-    data: { status: BadgeStatus.INACTIVE },
+): Promise<ConfirmBadgeUploadResponse> {
+  const { sizeBytes, mimeType } = await checkFileRecordExists(
+    blobStorage,
+    params.blobPath,
+    params.uuid
+  );
+
+  const file = await prisma.$transaction(async (tx) => {
+    await tx.badge.updateMany({
+      where: { type, status: BadgeStatus.ACTIVE },
+      data: { status: BadgeStatus.INACTIVE },
+    });
+
+    return tx.file.create({
+      data: {
+        uuid: params.uuid,
+        originalName: params.originalName,
+        mimeType,
+        sizeBytes,
+        blobPath: params.blobPath,
+        createdById: BigInt(params.userId),
+        badge: {
+          create: {
+            type,
+            status: BadgeStatus.ACTIVE,
+          },
+        },
+      },
+    });
   });
-  await tx.badge.create({
-    data: { type, fileId, status: BadgeStatus.ACTIVE },
-  });
+
+  return mapFileToResponse(file);
 }
 
 export async function findActiveBadgeByType(

@@ -3,7 +3,7 @@ import type {
   ConfirmBadgeUploadParams,
   ConfirmBadgeUploadBody,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "../../shared/errors.js";
+import { StorageNotConfiguredError } from "../../errors.js";
 import { badgeConfirmUploadService } from "./service.js";
 
 export const badgeConfirmUploadHandler = async (

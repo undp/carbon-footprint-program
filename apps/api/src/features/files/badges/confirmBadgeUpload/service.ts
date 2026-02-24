@@ -6,9 +6,8 @@ import {
   FileType,
   type ConfirmBadgeUploadResponse,
 } from "@repo/types";
-import { validateBadgeType, createBadgeEntry } from "../helpers.js";
-import { buildBlobPath } from "../../shared/buildBlobPath.js";
-import { persistFileRecord } from "../../shared/persistFileRecord.js";
+import { validateBadgeType, persistBadgeFileRecord } from "../helpers.js";
+import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 
 type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
   ConfirmBadgeUploadParams & { userId: string };
@@ -29,10 +28,15 @@ export const badgeConfirmUploadService = async (
     name: originalName,
   });
 
-  return persistFileRecord(
+  return persistBadgeFileRecord(
     prisma,
     blobStorage,
-    { uuid, blobPath, originalName, userId },
-    (tx, fileId) => createBadgeEntry(tx, fileId, badgeType)
+    {
+      uuid,
+      blobPath,
+      originalName,
+      userId,
+    },
+    badgeType
   );
 };
