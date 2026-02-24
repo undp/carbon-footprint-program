@@ -7,7 +7,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { downloadFileHandler } from "./handler.js";
 
-export const downloadFileRoute: StandardRouteSignature = (fastify, options) => {
+export const downloadFileRoute: StandardRouteSignature = (fastify) => {
   fastify.get<{ Params: z.infer<typeof DownloadFileParamsSchema> }>(
     "/:uuid/download",
     {
@@ -20,9 +20,6 @@ export const downloadFileRoute: StandardRouteSignature = (fastify, options) => {
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     downloadFileHandler
