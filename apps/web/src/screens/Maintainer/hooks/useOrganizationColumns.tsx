@@ -9,10 +9,17 @@ import {
 } from "@mui/icons-material";
 import {
   getDisplayStatus,
+  OrganizationDisplayStatus,
   OrganizationStatusChip,
-  statusSortingOrder,
 } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
+
+const STATUS_SORT_ORDER: Record<OrganizationDisplayStatus, number> = {
+  [OrganizationDisplayStatus.WITH_MEASUREMENTS]: 0,
+  [OrganizationDisplayStatus.REGISTERED]: 1,
+  [OrganizationDisplayStatus.NOT_ACCREDITED]: 2,
+  [OrganizationDisplayStatus.BLOCKED]: 3,
+};
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
@@ -65,7 +72,7 @@ export const useOrganizationColumns = ({
         headerName: "Estado",
 
         valueGetter: (_value, row) =>
-          statusSortingOrder[
+          STATUS_SORT_ORDER[
             getDisplayStatus(
               row.status,
               row.isAccredited,

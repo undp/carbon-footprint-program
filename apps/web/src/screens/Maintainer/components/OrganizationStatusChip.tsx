@@ -2,19 +2,12 @@ import { FC } from "react";
 import { alpha, Box, Typography, useTheme, type Theme } from "@mui/material";
 import { OrganizationStatus } from "@repo/types";
 
-enum OrganizationDisplayStatus {
+export enum OrganizationDisplayStatus {
   WITH_MEASUREMENTS = "WITH_MEASUREMENTS",
   REGISTERED = "REGISTERED",
   NOT_ACCREDITED = "NOT_ACCREDITED",
   BLOCKED = "BLOCKED",
 }
-
-export const statusSortingOrder: Record<OrganizationDisplayStatus, number> = {
-  [OrganizationDisplayStatus.WITH_MEASUREMENTS]: 1,
-  [OrganizationDisplayStatus.REGISTERED]: 2,
-  [OrganizationDisplayStatus.NOT_ACCREDITED]: 3,
-  [OrganizationDisplayStatus.BLOCKED]: 4,
-};
 
 interface OrganizationStatusChipProps {
   status: OrganizationStatus;
