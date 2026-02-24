@@ -3,7 +3,7 @@ import type {
   RequestBadgeUploadBody,
   RequestBadgeUploadParams,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "../../shared/errors.js";
+import { StorageNotConfiguredError } from "../../errors.js";
 import { badgeRequestUploadService } from "./service.js";
 
 export const badgeRequestUploadHandler = async (
