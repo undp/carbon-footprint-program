@@ -3,7 +3,7 @@ import type {
   ConfirmSubmissionUploadParams,
   ConfirmSubmissionUploadBody,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "../../shared/errors.js";
+import { StorageNotConfiguredError } from "../../errors.js";
 import { submissionConfirmUploadService } from "./service.js";
 
 export const submissionConfirmUploadHandler = async (

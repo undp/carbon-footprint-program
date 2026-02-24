@@ -5,7 +5,7 @@ import type {
   GetSubmissionFilesResponse,
 } from "@repo/types";
 import { validateSubmissionExists, findSubmissionFileIds } from "../helpers.js";
-import { mapFileToResponse } from "../../shared/mappers.js";
+import { mapFileToResponse } from "../../mappers.js";
 
 export const submissionGetFilesService = async (
   prisma: PrismaClient,
