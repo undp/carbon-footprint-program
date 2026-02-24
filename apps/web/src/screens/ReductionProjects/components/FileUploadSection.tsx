@@ -37,7 +37,15 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
       <Box className="flex flex-col gap-8 lg:flex-row">
         {uploads.map((upload, index) => (
           <Box key={index} className="flex flex-1 flex-col gap-3">
-            <Typography sx={{ fontWeight: 600, maxWidth: 280 }}>
+            <Typography
+              sx={{
+                fontWeight: 600,
+                maxWidth: 280,
+                minHeight: "48px",
+                display: "flex",
+                alignItems: "flex-start",
+              }}
+            >
               {upload.title}
             </Typography>
             <Box

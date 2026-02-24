@@ -1,7 +1,6 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { Routes } from "@/interfaces";
-import { ReductionProjectsScreen } from "@/screens/ReductionProjects";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { Routes } from "@/interfaces/routes";
 
 export const Route = createFileRoute(Routes.REDUCTION_PROJECTS)({
-  component: ReductionProjectsScreen,
+  component: () => <Outlet />,
 });
