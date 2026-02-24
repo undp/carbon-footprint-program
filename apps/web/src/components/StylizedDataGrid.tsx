@@ -24,12 +24,6 @@ export const StylizedDataGrid = ({
   disableRowSelectionOnClick = true,
   checkboxSelection = false,
   getRowHeight = () => "auto",
-  slotProps = {
-    loadingOverlay: {
-      variant: "skeleton",
-      noRowsVariant: "skeleton",
-    },
-  },
   ...props
 }: StylizedDataGridProps) => {
   const baseStyles: SxProps<Theme> = {
@@ -74,7 +68,13 @@ export const StylizedDataGrid = ({
       disableRowSelectionOnClick={disableRowSelectionOnClick}
       checkboxSelection={checkboxSelection}
       getRowHeight={getRowHeight}
-      slotProps={slotProps}
+      slotProps={{
+        loadingOverlay: {
+          variant: "skeleton",
+          noRowsVariant: "skeleton",
+        },
+        ...(props.slotProps || {}),
+      }}
       localeText={{
         paginationRowsPerPage: "Filas por página",
         paginationDisplayedRows: ({ from, to, count }) =>
