@@ -2,8 +2,8 @@ import type { PrismaClient } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
 import type { DownloadFileResponse } from "@repo/types";
-import { FileNotFoundError } from "../shared/errors.js";
-import { generateReadSasUrl } from "../shared/sasHelper.js";
+import { FileNotFoundError } from "../errors.js";
+import { generateReadSasUrl } from "../helpers/sasHelper.js";
 import {
   AZURE_STORAGE_ACCOUNT_NAME,
   AZURE_STORAGE_CONTAINER_NAME,

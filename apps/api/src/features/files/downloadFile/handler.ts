@@ -1,5 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import { StorageNotConfiguredError } from "../shared/errors.js";
+import { StorageNotConfiguredError } from "../errors.js";
 import { downloadFileService } from "./service.js";
 import { DownloadFileParams } from "@repo/types";
 
