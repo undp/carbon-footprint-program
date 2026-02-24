@@ -1,13 +1,15 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { BadgeType } from "@repo/database";
-import type { BadgeConfirmUploadBody } from "@repo/types";
+import type {
+  ConfirmBadgeUploadParams,
+  ConfirmBadgeUploadBody,
+} from "@repo/types";
 import { StorageNotConfiguredError } from "../../shared/errors.js";
 import { badgeConfirmUploadService } from "./service.js";
 
 export const badgeConfirmUploadHandler = async (
   request: FastifyRequest<{
-    Params: { badgeType: BadgeType };
-    Body: BadgeConfirmUploadBody;
+    Params: ConfirmBadgeUploadParams;
+    Body: ConfirmBadgeUploadBody;
   }>,
   reply: FastifyReply
 ) => {
