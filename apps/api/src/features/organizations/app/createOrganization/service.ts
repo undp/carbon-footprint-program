@@ -4,13 +4,14 @@ import type {
   CreateOrganizationResponse,
   User,
 } from "@repo/types";
-import { OrganizationStatus, MembershipStatus } from "@repo/database";
-import { AdminRoleNotFoundError } from "../../errors.js";
-import { createOrganizationData } from "../../helpers.js";
 import {
-  InvalidCountryJobPositionIdError,
-  UserNotFoundError,
-} from "../../../users/errors.js";
+  OrganizationStatus,
+  MembershipStatus,
+  OrganizationRole,
+} from "@repo/database";
+import { createOrganizationData } from "../../helpers.js";
+import { UserNotFoundError } from "../../../users/errors.js";
+import { NoCountryFoundError } from "../../../methodologies/errors.js";
 
 export const createOrganizationService = async (
   prismaClient: PrismaClient,
@@ -22,54 +23,36 @@ export const createOrganizationService = async (
     // TODO: Check if this error can be shared and use in the authorization/authentication plugins.
     throw new UserNotFoundError();
   }
-  const userId = user.id;
+  // TODO: get this country from the user
+  const country = await prismaClient.country.findFirst({
+    orderBy: { id: "asc" },
+  });
+
+  if (!country) {
+    throw new NoCountryFoundError();
+  }
+
   return await prismaClient.$transaction(async (tx) => {
-    // 1. Get user's country from their job position
-    const user = await tx.user.findUnique({
-      where: { id: BigInt(userId) },
-      include: { countryJobPosition: true },
-    });
-
-    if (!user?.countryJobPosition?.countryId) {
-      throw new InvalidCountryJobPositionIdError(
-        "User must have a valid country job position to create an organization"
-      );
-    }
-
-    // 2. Create organization
+    // Create organization
     const organization = await tx.organization.create({
       data: {
-        countryId: user.countryJobPosition.countryId,
+        countryId: country.id,
         status: OrganizationStatus.ACTIVE,
-        createdById: BigInt(userId),
+        createdById: BigInt(user.id),
       },
     });
 
-    // 3. Create organization data
-    await createOrganizationData(tx, organization.id.toString(), userId, body);
+    // Create organization data
+    await createOrganizationData(tx, organization.id.toString(), user.id, body);
 
-    // 4. Find ACCREDITED_MEMBER role to assign to the organization creator
-    // Note: ACCREDITED_MEMBER is the organization-level role that grants full
-    // management permissions within the organization (not to be confused with
-    // system-level ADMIN role)
-    // TODO: refactor when definitive roles are implemented.
-    const adminRole = await tx.organizationRole.findFirst({
-      where: { role: { name: "ACCREDITED_MEMBER" } },
-    });
-
-    if (!adminRole) {
-      // TODO: refactor when definitive roles are implemented.
-      throw new AdminRoleNotFoundError();
-    }
-
-    // 5. Create membership
+    // Create membership
     await tx.userOrganizationMembership.create({
       data: {
-        userId: BigInt(userId),
+        userId: BigInt(user.id),
         organizationId: organization.id,
-        organizationRoleId: adminRole.id,
+        role: OrganizationRole.ORGANIZATION_ADMIN,
         status: MembershipStatus.ACTIVE,
-        createdById: BigInt(userId),
+        createdById: BigInt(user.id),
       },
     });
 
