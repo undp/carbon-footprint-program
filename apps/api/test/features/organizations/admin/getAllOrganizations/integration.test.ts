@@ -79,13 +79,13 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
     });
 
     it("should return organizations with correct accreditation status", async () => {
-      // Draft organization (NOT_ACCREDITED)
+      // Draft organization (not accredited)
       const draftOrg = await createTestOrganization(prisma);
       await createTestOrganizationData(prisma, draftOrg.id, {
         legalName: "Draft Org",
       });
 
-      // Under review organization (NOT_ACCREDITED)
+      // Under review organization (not accredited)
       const reviewOrg = await createTestOrganization(prisma);
       const reviewOrgData = await createTestOrganizationData(
         prisma,
@@ -148,8 +148,8 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(accreditedResponse!.isAccredited).toBe(true);
     });
 
-    it("should return organizations with both NOT_ACCREDITED and BLOCKED statuses", async () => {
-      // ACTIVE and NOT_ACCREDITED organization
+    it("should return organizations with both not accredited and BLOCKED statuses", async () => {
+      // ACTIVE and not accredited organization
       const activeOrg = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
@@ -338,9 +338,10 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
-      // All returned organizations should be ACTIVE
+      // All returned organizations should be ACTIVE and not accredited
       body.data.forEach((org) => {
         expect(org.status).toBe("ACTIVE");
+        expect(org.isAccredited).toBe(false);
       });
 
       // Blocked org should not be in results
@@ -571,7 +572,7 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
 
         expect(orgResponse).toBeDefined();
         expect(orgResponse!.name).toBe("Updated Data");
-        // Should be ACCREDITED because there's an APPROVED submission on ACTIVE org_data
+        // Should be ACTIVE and accredited because there's an APPROVED submission on ACTIVE org_data
         expect(orgResponse!.status).toBe("ACTIVE");
         expect(orgResponse!.isAccredited).toBe(true);
         // Latest submission is PENDING

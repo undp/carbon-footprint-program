@@ -9,5 +9,5 @@ export const UpdateOrganizationParamsSchema = z.object({
 export const UpdateOrganizationBodySchema = OrganizationMutationDataSchema;
 
 export const UpdateOrganizationResponseSchema = z.object({
-  organizationId: IdSchema.describe("The updated organization ID"),
+  id: IdSchema.describe("The updated organization ID"),
 });

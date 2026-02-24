@@ -2,24 +2,27 @@ import type { Prisma } from "@repo/database";
 import type { GetAllOrganizationsResponse } from "@repo/types";
 import { kgToTon } from "@/utils/number.js";
 
-export const adminOrganizationSummarySelect = {
-  organizationId: true,
-  organizationStatus: true,
-  isAccredited: true,
-  name: true,
-  sectorName: true,
-  subsectorName: true,
-  sizeName: true,
-  lastSubmissionStatus: true,
-  hasUnsubmittedChanges: true,
-  hasCarbonInventories: true,
-  lastMeasurement: true,
-  totalEmissions: true,
-} satisfies Prisma.OrganizationSummaryViewSelect;
+export const adminOrganizationSummaryViewInclude = {
+  organizationData: {
+    select: {
+      legalName: true,
+      tradeName: true,
+      taxId: true,
+      sector: { select: { name: true } },
+      subsector: { select: { name: true } },
+      countryOrganizationSize: { select: { name: true } },
+    },
+  },
+  organization: {
+    select: {
+      status: true,
+    },
+  },
+} satisfies Prisma.OrganizationSummaryViewInclude;
 
 export type OrganizationSummaryViewRow =
   Prisma.OrganizationSummaryViewGetPayload<{
-    select: typeof adminOrganizationSummarySelect;
+    include: typeof adminOrganizationSummaryViewInclude;
   }>;
 
 export function mapAdminOrganizationSummaryToResponse(
@@ -28,10 +31,10 @@ export function mapAdminOrganizationSummaryToResponse(
   return {
     id: org.organizationId.toString(),
     name: org.name,
-    sectorName: org.sectorName,
-    subsectorName: org.subsectorName,
-    sizeName: org.sizeName,
-    status: org.organizationStatus,
+    sectorName: org.organizationData.sector?.name ?? null,
+    subsectorName: org.organizationData.subsector?.name ?? null,
+    sizeName: org.organizationData.countryOrganizationSize?.name ?? null,
+    status: org.organization.status,
     isAccredited: org.isAccredited,
     lastSubmissionStatus: org.lastSubmissionStatus ?? null,
     hasUnsubmittedChanges: org.hasUnsubmittedChanges,
