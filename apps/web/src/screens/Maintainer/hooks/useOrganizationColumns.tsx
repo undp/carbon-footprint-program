@@ -56,6 +56,7 @@ export const useOrganizationColumns = ({
         flex: 0.9,
         renderCell: (params) => (
           <OrganizationStatusChip
+            status={params.row.status}
             isAccredited={params.row.isAccredited}
             hasCarbonInventories={params.row.hasCarbonInventories}
           />
