@@ -7,8 +7,11 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { submissionConfirmUploadHandler } from "./handler.js";
+import type { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const submissionConfirmUploadRoute = (fastify: FastifyZodInstance) => {
+export const submissionConfirmUploadRoute: StandardRouteSignature = (
+  fastify: FastifyZodInstance
+) => {
   fastify.post<{
     Params: z.infer<typeof ConfirmSubmissionUploadParamsSchema>;
     Body: z.infer<typeof ConfirmSubmissionUploadBodySchema>;

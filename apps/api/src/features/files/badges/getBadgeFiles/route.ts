@@ -7,8 +7,11 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { badgeGetFilesHandler } from "./handler.js";
+import type { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const badgeGetFilesRoute = (fastify: FastifyZodInstance) => {
+export const badgeGetFilesRoute: StandardRouteSignature = (
+  fastify: FastifyZodInstance
+) => {
   fastify.get<{
     Params: z.infer<typeof GetBadgeFilesParamsSchema>;
     Querystring: z.infer<typeof GetBadgeFilesQuerySchema>;
