@@ -11,7 +11,22 @@ import { RequestTypeChip } from "../components/RequestTypeChip";
 import {
   GetAllAdminRequestsResponse,
   SubmissionStatus as RequestStatus,
+  SubmissionSubjectType as RequestType,
 } from "@repo/types";
+
+const STATUS_SORT_ORDER: Record<RequestStatus, number> = {
+  [RequestStatus.PENDING]: 0,
+  [RequestStatus.APPROVED]: 1,
+  [RequestStatus.REJECTED]: 2,
+};
+
+const TYPE_SORT_ORDER: Record<RequestType, number> = {
+  [RequestType.ORGANIZATION_ACCREDITATION]: 0,
+  [RequestType.CARBON_INVENTORY_CALCULATION]: 1,
+  [RequestType.CARBON_INVENTORY_VERIFICATION]: 2,
+  [RequestType.REDUCTION_PLAN_VERIFICATION]: 3,
+  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: 4,
+};
 
 export const useRequestColumns = (): GridColDef<
   GetAllAdminRequestsResponse[number]
@@ -31,6 +46,7 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Tipo",
         cellClassName,
         flex: 1,
+        valueGetter: (_value, row) => TYPE_SORT_ORDER[row.type],
         renderCell: (params) => <RequestTypeChip type={params.row.type} />,
       },
       {
@@ -44,6 +60,7 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Estado",
         cellClassName,
         flex: 1,
+        valueGetter: (_value, row) => STATUS_SORT_ORDER[row.status],
         renderCell: (params) => (
           <RequestStatusChip status={params.row.status} />
         ),

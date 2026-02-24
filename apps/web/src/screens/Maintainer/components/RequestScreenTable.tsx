@@ -59,6 +59,7 @@ export const RequestScreenTable: FC = () => {
             padding: "10px",
           },
         })}
+        disableColumnSorting={false}
         columns={columns}
         rows={requests}
         rowHeight={65}
