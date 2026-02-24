@@ -847,6 +847,7 @@ model Submission {
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
+  @@index([badgeId])
   @@map("submission")
 }
 
