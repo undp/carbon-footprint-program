@@ -1,10 +1,11 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { StorageNotConfiguredError } from "../shared/errors.js";
 import { downloadFileService } from "./service.js";
+import { DownloadFileParams } from "@repo/types";
 
 export const downloadFileHandler = async (
   request: FastifyRequest<{
-    Params: { uuid: string };
+    Params: DownloadFileParams;
   }>,
   reply: FastifyReply
 ) => {

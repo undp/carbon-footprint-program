@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
-import type { SasUrlResponse } from "@repo/types";
+import type { DownloadFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../shared/errors.js";
 import { generateReadSasUrl } from "../shared/sasHelper.js";
 import {
@@ -13,7 +13,7 @@ export const downloadFileService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
   uuid: string
-): Promise<SasUrlResponse> => {
+): Promise<DownloadFileResponse> => {
   const file = await prisma.file.findUnique({
     where: { uuid, status: FileStatus.ACTIVE },
   });
