@@ -12,8 +12,6 @@ CREATE TABLE "badge" (
     CONSTRAINT "badge_pkey" PRIMARY KEY ("id")
 );
 CREATE UNIQUE INDEX "badge_file_id_key" ON "badge"("file_id");
--- Only one ACTIVE badge per type
-CREATE UNIQUE INDEX "badge_type_active_key" ON "badge"("type") WHERE status = 'ACTIVE';
 
 ALTER TABLE "badge"
   ADD CONSTRAINT "badge_file_id_fkey"
