@@ -1,23 +1,22 @@
 import { z } from "zod";
-import { SasUrlResponseSchema } from "@repo/types";
+import {
+  DownloadFileParamsSchema,
+  DownloadFileResponseSchema,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { downloadFileHandler } from "./handler.js";
 
-const ParamsSchema = z.object({
-  uuid: z.string().uuid().describe("The UUID of the file to download"),
-});
-
 export const downloadFileRoute: StandardRouteSignature = (fastify, options) => {
-  fastify.get<{ Params: z.infer<typeof ParamsSchema> }>(
+  fastify.get<{ Params: z.infer<typeof DownloadFileParamsSchema> }>(
     "/:uuid/download",
     {
       schema: {
         tags: ["files"],
         summary: "Get a temporary download URL for a file",
-        params: ParamsSchema,
+        params: DownloadFileParamsSchema,
         response: {
-          200: SasUrlResponseSchema,
+          200: DownloadFileResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
