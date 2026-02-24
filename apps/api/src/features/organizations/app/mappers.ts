@@ -3,58 +3,71 @@ import {
   type GetOrganizationByIdResponse,
   type OrganizationDisplayStatus,
 } from "@repo/types";
-import { SubmissionStatus, type OrganizationSummaryView } from "@repo/database";
+import {
+  SubmissionStatus,
+  type OrganizationSummaryView,
+  type OrganizationData,
+  type CountrySector,
+  type CountrySubsector,
+  type CountryOrganizationSize,
+  type OrganizationMainActivity,
+  type CountryJobPosition,
+} from "@repo/database";
 
 export const mapOrganizationSummaryToResponse = (
-  org: OrganizationSummaryView
+  org: OrganizationSummaryView & {
+    organizationData: OrganizationData & {
+      sector: CountrySector | null;
+      subsector: CountrySubsector | null;
+      countryOrganizationSize: CountryOrganizationSize | null;
+      mainActivity: OrganizationMainActivity | null;
+      representativeCountryJobPosition: CountryJobPosition;
+    };
+  }
 ): GetOrganizationByIdResponse => {
+  const orgData = org.organizationData;
+
   return {
     id: org.organizationId.toString(),
     name: org.name,
-    taxId: org.taxId,
-    legalName: org.legalName,
-    tradeName: org.tradeName,
+    taxId: orgData.taxId,
+    legalName: orgData.legalName,
+    tradeName: orgData.tradeName,
     status: org.displayStatus as OrganizationDisplayStatus,
     lastSubmissionStatus: org.lastSubmissionStatus,
     hasUnsubmittedChanges: org.hasUnsubmittedChanges,
     isEditable:
       org.displayStatus !== OrganizationDisplayStatusValues.BLOCKED &&
       org.lastSubmissionStatus !== SubmissionStatus.PENDING,
-    sector: org.sectorId
+    sector: orgData.sector
+      ? { id: orgData.sector.id.toString(), name: orgData.sector.name }
+      : null,
+    subsector: orgData.subsector
+      ? { id: orgData.subsector.id.toString(), name: orgData.subsector.name }
+      : null,
+    countryOrganizationSize: orgData.countryOrganizationSize
       ? {
-          id: org.sectorId.toString(),
-          name: org.sectorName!,
+          id: orgData.countryOrganizationSize.id.toString(),
+          name: orgData.countryOrganizationSize.name,
         }
       : null,
-    subsector: org.subsectorId
+    mainActivity: orgData.mainActivity
       ? {
-          id: org.subsectorId.toString(),
-          name: org.subsectorName!,
+          id: orgData.mainActivity.id.toString(),
+          name: orgData.mainActivity.name,
         }
       : null,
-    countryOrganizationSize: org.countryOrganizationSizeId
-      ? {
-          id: org.countryOrganizationSizeId.toString(),
-          name: org.sizeName!,
-        }
-      : null,
-    mainActivity: org.mainActivityId
-      ? {
-          id: org.mainActivityId.toString(),
-          name: org.mainActivityName!,
-        }
-      : null,
-    address: org.address,
-    employeesCount: org.employeesCount,
+    address: orgData.address,
+    employeesCount: orgData.employeesCount,
     representative: {
-      fullName: org.representativeFullName,
-      taxId: org.representativeTaxId,
+      fullName: orgData.representativeFullName,
+      taxId: orgData.representativeTaxId,
       position: {
-        id: org.representativeCountryJobPositionId.toString(),
-        name: org.representativePositionName,
+        id: orgData.representativeCountryJobPosition.id.toString(),
+        name: orgData.representativeCountryJobPosition.name,
       },
-      email: org.representativeEmail,
-      phone: org.representativePhone,
+      email: orgData.representativeEmail,
+      phone: orgData.representativePhone,
     },
   };
 };

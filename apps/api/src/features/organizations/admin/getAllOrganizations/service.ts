@@ -4,7 +4,7 @@ import type {
   GetAllOrganizationsQuery,
 } from "@repo/types";
 import {
-  adminOrganizationSummarySelect,
+  adminOrganizationSummaryViewInclude,
   mapAdminOrganizationSummaryToResponse,
 } from "../mappers.js";
 
@@ -18,7 +18,7 @@ export const getAllOrganizationsService = async (
 
   // Build where clause for status filtering
   const where = query?.statuses
-    ? { organizationStatus: { in: query.statuses } }
+    ? { organization: { status: { in: query.statuses } } }
     : {};
 
   const sortBy = query?.sortBy || "name";
@@ -34,7 +34,7 @@ export const getAllOrganizationsService = async (
     orderBy,
     skip: offset,
     take: limit,
-    select: adminOrganizationSummarySelect,
+    include: adminOrganizationSummaryViewInclude,
   });
 
   // Get total count for pagination metadata
