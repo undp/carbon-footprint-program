@@ -1,7 +1,7 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { badgeRequestUploadRoute } from "./requestUpload/route.js";
-import { badgeConfirmUploadRoute } from "./confirmUpload/route.js";
-import { badgeGetFilesRoute } from "./getFiles/route.js";
+import { badgeRequestUploadRoute } from "./requestBadgeUpload/route.js";
+import { badgeConfirmUploadRoute } from "./confirmBadgeUpload/route.js";
+import { badgeGetFilesRoute } from "./getBadgeFiles/route.js";
 
 export default function badgeRoutes(fastify: FastifyZodInstance) {
   badgeRequestUploadRoute(fastify);
