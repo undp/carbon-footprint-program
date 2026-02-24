@@ -16,7 +16,7 @@
   - [Plugin de Blob Storage](#plugin-de-blob-storage)
   - [Autenticación: DefaultAzureCredential](#autenticación-defaultazurecredential)
   - [Estructura de Features](#estructura-de-features)
-  - [Helpers de Owner](#helpers-de-owner)
+  - [Flujo de Subida (SAS dos pasos)](#flujo-de-subida-sas-dos-pasos)
   - [Endpoints](#endpoints)
   - [Almacenamiento en Blob: blobPath](#almacenamiento-en-blob-blobpath)
 - [Desarrollo Local](#desarrollo-local)
@@ -26,14 +26,16 @@
 
 ## Descripción General
 
-El sistema permite subir, listar, descargar y eliminar archivos asociados a dos tipos de entidades:
+El sistema permite subir, listar, previsualizar, descargar y eliminar archivos asociados a dos subdominos:
 
-| Entidad              | Caso de Uso                                  |
-| -------------------- | -------------------------------------------- |
-| **Organization**     | Documentos generales de la organización      |
-| **Carbon Inventory** | Certificaciones y PDFs del inventario de carbono |
+| Subdominio       | Entidad propietaria | Caso de uso                                         |
+| ---------------- | ------------------- | --------------------------------------------------- |
+| **Badges**       | `BadgeType` (enum)  | Imágenes SVG de insignias por tipo de inventario    |
+| **Submissions**  | `submission.id`     | Adjuntos y certificados de reconocimiento de submissions |
 
 Los archivos se almacenan en **Azure Blob Storage** y los metadatos se persisten en **PostgreSQL** a través de Prisma. La autenticación contra Azure Storage se realiza mediante **Managed Identity** (sin claves ni connection strings).
+
+La subida de archivos sigue un **flujo SAS de dos pasos**: el cliente solicita una URL firmada temporal, sube directamente a Azure Blob Storage y luego confirma la operación a la API para crear el registro en base de datos.
 
 ---
 
@@ -41,21 +43,28 @@ Los archivos se almacenan en **Azure Blob Storage** y los metadatos se persisten
 
 ### Decisiones de Diseño
 
-1. **Patrón polimórfico con link tables**: Siguiendo el patrón ya establecido por `SubmissionSubject` en el proyecto, la tabla `file` es genérica y las tablas `organization_data_file`, `carbon_inventory_file`, `carbon_inventory_line_file` y `submission_file` actúan como link tables que vinculan un archivo a su entidad propietaria. Esto evita foreign keys nullable y permite agregar nuevos tipos de archivo en el futuro sin modificar la tabla principal.
+1. **Patrón polimórfico con link tables**: La tabla `file` es genérica y las tablas `badge` y `submission_file` actúan como link tables que vinculan un archivo a su entidad propietaria. Esto evita foreign keys nullable y mantiene la tabla principal limpia.
 
-2. **Soft delete**: Los archivos no se eliminan físicamente. El campo `status` cambia de `ACTIVE` a `DELETED`. El blob en Azure Storage se preserva (puede limpiarse con un proceso batch posterior).
+2. **Soft delete**: Los archivos no se eliminan físicamente. El campo `status` cambia de `ACTIVE` a `DELETED`. El blob en Azure Storage se preserva.
 
-3. **`blobPath` como único dato de ubicación**: Solo se guarda la ruta relativa dentro del contenedor (ej: `ORGANIZATION_DATA_ATTACHMENT/1/uuid-document.pdf`). El nombre de la cuenta de almacenamiento y el contenedor vienen de variables de entorno, no se duplican por archivo.
+3. **`blobPath` como único dato de ubicación**: Solo se guarda la ruta relativa dentro del contenedor. El nombre de la cuenta y el contenedor vienen de variables de entorno, no se duplican por archivo.
 
-4. **Enums del modelo Prisma como fuente de verdad**: `FileType` y `FileStatus` se definen en el schema de Prisma y se re-exportan a través de `@repo/types` para que toda la aplicación (API, tipos compartidos, futuro frontend) use los mismos valores.
+4. **`mimeType` y `sizeBytes` leídos desde Azure**: Al confirmar la subida, la API obtiene `contentType` y `contentLength` directamente de las propiedades del blob en Azure. El cliente no necesita enviarlos, lo que garantiza valores fidedignos.
 
-5. **`uuid` para referencia externa**: Cada archivo tiene un UUID único que puede usarse como identificador público (en URLs, APIs externas) sin exponer el ID autoincremental interno.
+5. **`uuid` para referencia externa**: Cada archivo tiene un UUID único para usar como identificador público sin exponer el ID autoincremental interno.
+
+6. **Badges con estado propio**: La tabla `badge` tiene un campo `status` (`ACTIVE`/`INACTIVE`). Al subir una nueva imagen para un tipo de badge, la anterior se desactiva automáticamente en la misma transacción.
+
+7. **Separación de subdomains**: Las rutas de badges y submissions están registradas bajo prefijos dedicados (`/badge`, `/submission`), con parámetros de ruta tipados individualmente (`BadgeTypeSchema` vs `IdSchema`). Esto elimina el uso de `z.union` en los params de Fastify, que causaba incompatibilidad con `ZodTypeProvider`.
 
 ### Enums
 
 ```
-FileType:   ORGANIZATION_DATA_ATTACHMENT | CARBON_INVENTORY_ATTACHMENT | CARBON_INVENTORY_LINE_INPUT_ATTACHMENT | SUBMISSION_ATTACHMENT
-FileStatus: ACTIVE | DELETED
+FileType:            SUBMISSION | BADGE
+FileStatus:          ACTIVE | DELETED
+BadgeType:           CARBON_INVENTORY | ORGANIZATION_DATA
+BadgeStatus:         ACTIVE | INACTIVE
+SubmissionFileType:  ATTACHMENT | RECOGNITION
 ```
 
 ### Tablas
@@ -64,55 +73,39 @@ FileStatus: ACTIVE | DELETED
 
 Tabla principal que almacena los metadatos de cada archivo subido.
 
-| Columna         | Tipo            | Descripción                                        |
-| --------------- | --------------- | -------------------------------------------------- |
-| `id`            | BIGINT PK       | Autoincrement                                      |
-| `uuid`          | String UNIQUE   | UUID para referencia externa                       |
-| `file_type`     | FileType        | Tipo de archivo / entidad a la que pertenece       |
-| `original_name` | String          | Nombre original del archivo subido                 |
-| `mime_type`     | String          | Tipo MIME (ej: `application/pdf`)                  |
-| `size_bytes`    | Int             | Tamaño en bytes                                    |
-| `blob_path`     | String          | Ruta relativa en el contenedor de Azure Blob Storage |
-| `status`        | FileStatus      | Estado del archivo (`ACTIVE` por defecto)          |
-| `created_by_id` | BIGINT FK       | Usuario que subió el archivo → `user(id)`          |
-| `created_at`    | DateTime        | Timestamp de creación                              |
-| `deleted_at`    | DateTime?       | Timestamp de eliminación (nullable, se establece al hacer soft delete) |
+| Columna         | Tipo          | Descripción                                          |
+| --------------- | ------------- | ---------------------------------------------------- |
+| `id`            | BIGINT PK     | Autoincrement                                        |
+| `uuid`          | String UNIQUE | UUID para referencia externa                         |
+| `original_name` | String        | Nombre original del archivo subido                   |
+| `mime_type`     | String        | Tipo MIME leído desde Azure al confirmar la subida   |
+| `size_bytes`    | Int           | Tamaño en bytes leído desde Azure al confirmar la subida |
+| `blob_path`     | String        | Ruta relativa en el contenedor de Azure Blob Storage |
+| `status`        | FileStatus    | Estado del archivo (`ACTIVE` por defecto)            |
+| `created_by_id` | BIGINT FK     | Usuario que subió el archivo → `user(id)`            |
+| `created_at`    | DateTime      | Timestamp de creación                                |
+| `deleted_at`    | DateTime?     | Timestamp de eliminación (soft delete)               |
 
-#### `organization_data_file` (link table)
+#### `badge` (link table)
 
-Vincula un archivo a los datos de una organización. Primary key = `file_id`.
+Vincula un archivo a un tipo de badge. Solo un badge por tipo puede estar `ACTIVE` a la vez.
 
-| Columna               | Tipo      | Descripción                        |
-| --------------------- | --------- | ---------------------------------- |
-| `file_id`             | BIGINT PK | FK → `file(id)`                    |
-| `organization_data_id`| BIGINT FK | FK → `organization_data(id)`       |
-
-#### `carbon_inventory_file` (link table)
-
-Vincula un archivo a un inventario de carbono. Primary key = `file_id`.
-
-| Columna               | Tipo      | Descripción                        |
-| --------------------- | --------- | ---------------------------------- |
-| `file_id`             | BIGINT PK | FK → `file(id)`                    |
-| `carbon_inventory_id` | BIGINT FK | FK → `carbon_inventory(id)`        |
-
-#### `carbon_inventory_line_file` (link table)
-
-Vincula un archivo a una línea de inventario de carbono. Primary key = `file_id`.
-
-| Columna                     | Tipo      | Descripción                            |
-| --------------------------- | --------- | -------------------------------------- |
-| `file_id`                   | BIGINT PK | FK → `file(id)`                        |
-| `carbon_inventory_line_id`  | BIGINT FK | FK → `carbon_inventory_line(id)`       |
+| Columna   | Tipo        | Descripción                                  |
+| --------- | ----------- | -------------------------------------------- |
+| `id`      | BIGINT PK   | Autoincrement                                |
+| `type`    | BadgeType   | Tipo de badge (`CARBON_INVENTORY`, `ORGANIZATION_DATA`) |
+| `file_id` | BIGINT FK   | FK → `file(id)`                              |
+| `status`  | BadgeStatus | Estado (`ACTIVE` / `INACTIVE`)               |
 
 #### `submission_file` (link table)
 
-Vincula un archivo a una submission. Primary key = `file_id`.
+Vincula un archivo a una submission con un tipo opcional.
 
-| Columna         | Tipo      | Descripción                        |
-| --------------- | --------- | ---------------------------------- |
-| `file_id`       | BIGINT PK | FK → `file(id)`                    |
-| `submission_id` | BIGINT FK | FK → `submission(id)`              |
+| Columna         | Tipo                | Descripción                        |
+| --------------- | ------------------- | ---------------------------------- |
+| `file_id`       | BIGINT PK           | FK → `file(id)`                    |
+| `submission_id` | BIGINT FK           | FK → `submission(id)`              |
+| `type`          | SubmissionFileType? | `ATTACHMENT` o `RECOGNITION` (nullable) |
 
 ### Diagrama ER (parcial)
 
@@ -121,7 +114,6 @@ erDiagram
     file {
         BIGINT id PK
         string uuid UK
-        enum file_type "ORGANIZATION_DATA_ATTACHMENT | ..."
         string original_name
         string mime_type
         int size_bytes
@@ -132,33 +124,21 @@ erDiagram
         timestamptz deleted_at
     }
 
-    organization_data_file {
-        BIGINT file_id PK
-        BIGINT organization_data_id FK
-    }
-
-    carbon_inventory_file {
-        BIGINT file_id PK
-        BIGINT carbon_inventory_id FK
-    }
-
-    carbon_inventory_line_file {
-        BIGINT file_id PK
-        BIGINT carbon_inventory_line_id FK
+    badge {
+        BIGINT id PK
+        enum type "CARBON_INVENTORY | ORGANIZATION_DATA"
+        BIGINT file_id FK
+        enum status "ACTIVE | INACTIVE"
     }
 
     submission_file {
         BIGINT file_id PK
         BIGINT submission_id FK
+        enum type "ATTACHMENT | RECOGNITION"
     }
 
-    file ||--o| organization_data_file : "linked via"
-    file ||--o| carbon_inventory_file : "linked via"
-    file ||--o| carbon_inventory_line_file : "linked via"
+    file ||--o| badge : "linked via"
     file ||--o| submission_file : "linked via"
-    organization_data ||--o{ organization_data_file : "has files"
-    carbon_inventory ||--o{ carbon_inventory_file : "has files"
-    carbon_inventory_line ||--o{ carbon_inventory_line_file : "has files"
     submission ||--o{ submission_file : "has files"
     user ||--o{ file : "uploads"
 ```
@@ -188,7 +168,7 @@ resource filesContainer '...' = {
 }
 ```
 
-**¿Por qué `publicAccess: 'None'`?** Todos los archivos se acceden a través de la API (que valida autenticación). No hay motivo para exponer blobs directamente a internet.
+**¿Por qué `publicAccess: 'None'`?** Todos los archivos se acceden a través de URLs SAS generadas por la API (que valida autenticación). No hay motivo para exponer blobs directamente a internet.
 
 ### RBAC y Managed Identity
 
@@ -222,16 +202,14 @@ resource storageBlobContributor 'Microsoft.Authorization/roleAssignments@2022-04
 
 **¿Por qué Managed Identity en lugar de claves?**
 
-| Aspecto           | Account Keys / Connection Strings | Managed Identity (RBAC) |
-| ----------------- | --------------------------------- | ----------------------- |
-| Secretos          | Sí (deben rotarse)               | No                      |
-| Riesgo de filtración | Alto (logs, código, .env)      | Ninguno                 |
-| Rotación          | Manual                            | Automática (Azure AD)   |
-| Principio mínimo privilegio | No (acceso total)      | Sí (solo blobs)         |
+| Aspecto                     | Account Keys / Connection Strings | Managed Identity (RBAC) |
+| --------------------------- | --------------------------------- | ----------------------- |
+| Secretos                    | Sí (deben rotarse)                | No                      |
+| Riesgo de filtración        | Alto (logs, código, .env)         | Ninguno                 |
+| Rotación                    | Manual                            | Automática (Azure AD)   |
+| Principio mínimo privilegio | No (acceso total)                 | Sí (solo blobs)         |
 
 ### Wiring en `main.bicep`
-
-El módulo de role assignment se conecta en `infra/main.bicep`:
 
 ```bicep
 module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = {
@@ -245,14 +223,10 @@ module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = 
 
 ### Variables de Entorno en App Service
 
-El módulo `infra/modules/appService.bicep` recibe el nombre de la cuenta de storage y lo inyecta como app settings:
-
-| Variable                       | Valor                 | Descripción                          |
-| ------------------------------ | --------------------- | ------------------------------------ |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | Nombre de la cuenta   | Se pasa desde `main.bicep`           |
-| `AZURE_STORAGE_CONTAINER_NAME` | `files`               | Fijo, coincide con el contenedor en Bicep |
-
-Estas variables **solo se inyectan si `storageAccountName` no es vacío**, usando un array condicional en Bicep.
+| Variable                       | Valor               | Descripción                                        |
+| ------------------------------ | ------------------- | -------------------------------------------------- |
+| `AZURE_STORAGE_ACCOUNT_NAME`   | Nombre de la cuenta | Se pasa desde `main.bicep`                         |
+| `AZURE_STORAGE_CONTAINER_NAME` | `files`             | Fijo, coincide con el contenedor en Bicep          |
 
 ---
 
@@ -262,140 +236,141 @@ Estas variables **solo se inyectan si `storageAccountName` no es vacío**, usand
 
 **Archivo**: `apps/api/src/plugins/app/blobStoragePlugin.ts`
 
-Sigue el patrón de plugins de Fastify del proyecto (similar a `prisma.ts`):
-
 1. Lee `AZURE_STORAGE_ACCOUNT_NAME` de las variables de entorno
-2. Si no está configurado, decora con `undefined` y muestra un warning (permite correr la API sin storage para desarrollo)
+2. Si no está configurado, decora con `undefined` (permite correr la API sin storage para desarrollo)
 3. Crea un `BlobServiceClient` usando `DefaultAzureCredential`
 4. Obtiene un `ContainerClient` para el contenedor configurado
-5. En el hook `onReady`, verifica que el contenedor existe (warning si no)
-6. Decora la instancia de Fastify con `blobStorage`
+5. En el hook `onReady`, verifica que el contenedor existe
+6. Decora la instancia de Fastify con `blobStorage` y `blobServiceClient`
 
 ```typescript
 // Tipo augmentado en apps/api/src/types/fastify.ts
 declare module "fastify" {
   interface FastifyInstance {
     blobStorage?: ContainerClient;
+    blobServiceClient?: BlobServiceClient;
   }
 }
 ```
 
 ### Autenticación: DefaultAzureCredential
 
-`DefaultAzureCredential` de `@azure/identity` prueba automáticamente múltiples métodos de autenticación en orden:
-
-| Entorno      | Método utilizado                     |
-| ------------ | ------------------------------------ |
-| **Producción** (App Service) | Managed Identity del App Service |
-| **Local** (con `az login`)   | Credenciales de Azure CLI        |
-
-No se necesita configuración diferente por entorno. El SDK selecciona el método correcto automáticamente.
+| Entorno                              | Método utilizado                 |
+| ------------------------------------ | -------------------------------- |
+| **Producción** (App Service)         | Managed Identity del App Service |
+| **Local** (con `az login`)           | Credenciales de Azure CLI        |
 
 ### Estructura de Features
 
-Cada operación de archivos sigue el patrón `route → handler → service`:
-
 ```
 apps/api/src/features/files/
-├── errors.ts                    # Errores de dominio (404, 503, 500)
-├── mappers.ts                   # Prisma File → API response
-├── ownerHelpers.ts              # Helpers compartidos por file type
-├── uploadFile/
-│   ├── route.ts                 # POST /:fileType/:ownerId
-│   ├── handler.ts               # Parse multipart, validaciones
-│   └── service.ts               # Upload blob + crear registros en DB
-├── getFiles/
-│   ├── route.ts                 # GET /:fileType/:ownerId
-│   ├── handler.ts
-│   └── service.ts               # Consulta archivos por owner
-├── downloadFile/
-│   ├── route.ts                 # GET /:fileType/:ownerId/files/:fileId/download
-│   ├── handler.ts               # Stream blob → response
-│   └── service.ts               # Verificar ownership + obtener blob stream
-└── deleteFile/
-    ├── route.ts                 # DELETE /:fileType/:ownerId/files/:fileId
-    ├── handler.ts
-    └── service.ts               # Soft delete (status → DELETED)
+├── shared/
+│   ├── buildBlobPath.ts       # Construye la ruta del blob en Azure
+│   ├── errors.ts              # FileNotFoundError, FileTypeNotFoundError, StorageNotConfiguredError
+│   ├── mappers.ts             # Prisma File → API response
+│   ├── sasHelper.ts           # generateReadSasUrl, generateWriteSasUrl (User Delegation SAS)
+│   └── persistFileRecord.ts   # Helper transaccional compartido para confirm-upload
+├── badges/
+│   ├── helpers.ts             # validateBadgeType, createBadgeEntry, findActiveBadgeByType
+│   ├── index.ts               # Plugin de Fastify (prefijo /badge)
+│   ├── requestUpload/         # POST /:badgeType/request-upload
+│   ├── confirmUpload/         # POST /:badgeType/confirm-upload
+│   └── getFiles/              # GET /:badgeType
+├── submissions/
+│   ├── helpers.ts             # validateSubmissionExists, createSubmissionFile, findSubmissionFileIds
+│   ├── index.ts               # Plugin de Fastify (prefijo /submission)
+│   ├── requestUpload/         # POST /:submissionId/request-upload
+│   ├── confirmUpload/         # POST /:submissionId/confirm-upload
+│   └── getFiles/              # GET /:submissionId
+├── downloadFile/              # GET /:uuid/download
+├── previewFile/               # GET /:uuid/preview
+└── deleteFile/                # DELETE /:uuid
 ```
 
-### Helpers de Owner
+### Flujo de Subida (SAS dos pasos)
 
-**Archivo**: `apps/api/src/features/files/ownerHelpers.ts`
+En lugar de enviar el archivo a través de la API (que actuaría como proxy), el cliente sube directamente a Azure Blob Storage usando una URL SAS firmada temporalmente:
 
-Para evitar duplicación de código entre los distintos tipos de archivo, se crearon tres helpers que encapsulan la lógica polimórfica:
-
-| Función               | Responsabilidad                                          |
-| --------------------- | -------------------------------------------------------- |
-| `validateOwnerExists` | Verifica que la entidad propietaria exista en DB         |
-| `createFileLink`      | Crea el registro en la link table correcta según `FileType` |
-| `findFileIdsByOwner`  | Consulta los IDs de archivos vinculados a un owner       |
-
-Todas usan el enum `FileType` importado de `@repo/types` (que re-exporta el enum de Prisma):
-
-```typescript
-import { FileType } from "@repo/types";
-
-if (fileType === FileType.ORGANIZATION_DATA_ATTACHMENT) {
-  // → prisma.organizationDataFile...
-} else if (fileType === FileType.CARBON_INVENTORY_ATTACHMENT) {
-  // → prisma.carbonInventoryFile...
-} else if (fileType === FileType.CARBON_INVENTORY_LINE_INPUT_ATTACHMENT) {
-  // → prisma.carbonInventoryLineFile...
-} else if (fileType === FileType.SUBMISSION_ATTACHMENT) {
-  // → prisma.submissionFile...
-}
 ```
+1. POST /api/files/{subdomain}/{ownerId}/request-upload
+   → API genera UUID + blobPath, devuelve uploadUrl (SAS write, 15 min) + uuid
+
+2. PUT {uploadUrl}   (directo a Azure, sin pasar por la API)
+   Headers: x-ms-blob-type: BlockBlob, Content-Type: {mimeType}
+   Body: archivo binario
+
+3. POST /api/files/{subdomain}/{ownerId}/confirm-upload
+   Body: { uuid, originalName, [submissionFileType] }
+   → API verifica que el blob existe en Azure
+   → Lee mimeType y sizeBytes directamente de las propiedades del blob
+   → Crea registro en file + link table en una transacción
+   → Devuelve el objeto File creado
+```
+
+**¿Por qué SAS en lugar de multipart upload?**
+- El archivo no transita por la API → menor latencia, menor carga en el servidor
+- Azure escala el ancho de banda de forma independiente
+- La URL SAS expira en 15 minutos → ventana de subida acotada
+- `mimeType` y `sizeBytes` se leen de Azure → no se puede manipular desde el cliente
 
 ### Endpoints
 
-Todos los endpoints están bajo `/api/files/` y requieren autenticación.
+Todos los endpoints requieren autenticación.
 
-| Método   | Ruta                                              | Descripción      | Response |
-| -------- | ------------------------------------------------- | ---------------- | -------- |
-| `POST`   | `/api/files/:fileType/:ownerId`                   | Subir archivo    | 201      |
-| `GET`    | `/api/files/:fileType/:ownerId`                   | Listar archivos  | 200      |
-| `GET`    | `/api/files/:fileType/:ownerId/files/:fileId/download` | Descargar archivo | Stream  |
-| `DELETE` | `/api/files/:fileType/:ownerId/files/:fileId`     | Eliminar archivo (soft) | 200 |
+#### Badges (`/api/files/badge`)
 
-**Parámetros de ruta**:
-- `fileType`: `ORGANIZATION_DATA_ATTACHMENT` | `CARBON_INVENTORY_ATTACHMENT` | `CARBON_INVENTORY_LINE_INPUT_ATTACHMENT` | `SUBMISSION_ATTACHMENT`
-- `ownerId`: ID de la entidad propietaria (según `fileType`: organization_data, carbon_inventory, carbon_inventory_line, o submission)
-- `fileId`: ID del archivo
+| Método | Ruta                                  | Descripción                          | Response |
+| ------ | ------------------------------------- | ------------------------------------ | -------- |
+| `GET`  | `/api/files/badge/:badgeType`         | Listar archivos activos del badge    | 200      |
+| `POST` | `/api/files/badge/:badgeType/request-upload`  | Obtener URL SAS de escritura | 200      |
+| `POST` | `/api/files/badge/:badgeType/confirm-upload`  | Confirmar subida y crear registro | 201   |
+
+**`badgeType`**: `CARBON_INVENTORY` | `ORGANIZATION_DATA`
+
+#### Submissions (`/api/files/submission`)
+
+| Método | Ruta                                          | Descripción                          | Response |
+| ------ | --------------------------------------------- | ------------------------------------ | -------- |
+| `GET`  | `/api/files/submission/:submissionId`         | Listar archivos de la submission     | 200      |
+| `POST` | `/api/files/submission/:submissionId/request-upload`  | Obtener URL SAS de escritura | 200  |
+| `POST` | `/api/files/submission/:submissionId/confirm-upload`  | Confirmar subida y crear registro | 201 |
+
+**`submissionId`**: ID numérico de la submission (string numérico, validado con regex `/^\d+$/`)
+
+Body de `request-upload` y `confirm-upload` para submissions incluye `submissionFileType: ATTACHMENT | RECOGNITION`.
+
+#### Archivo individual (`/api/files`)
+
+| Método   | Ruta                      | Descripción                          | Response |
+| -------- | ------------------------- | ------------------------------------ | -------- |
+| `GET`    | `/api/files/:uuid/preview`   | URL SAS de lectura inline (preview) | 200      |
+| `GET`    | `/api/files/:uuid/download`  | URL SAS de lectura con attachment   | 200      |
+| `DELETE` | `/api/files/:uuid`           | Soft delete (status → DELETED)      | 200      |
 
 ### Almacenamiento en Blob: blobPath
 
-Cada archivo se almacena en el blob con una ruta estructurada:
+La ruta en Azure Blob Storage organiza los archivos por subdominio, propietario y tipo:
 
-```
-{fileType}/{ownerId}/{uuid}-{sanitizedOriginalName}
-```
+| Subdominio  | Formato                                                  | Ejemplo                                               |
+| ----------- | -------------------------------------------------------- | ----------------------------------------------------- |
+| Badge       | `BADGE/{badgeType}/{uuid}-{sanitizedName}`               | `BADGE/CARBON_INVENTORY/a1b2-badge.svg`               |
+| Submission  | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/ATTACHMENT/a1b2-reporte.pdf` |
 
-**Ejemplo**: `ORGANIZATION_DATA_ATTACHMENT/42/a1b2c3d4-reporte-anual.pdf`
-
-- `fileType` y `ownerId` organizan los blobs por entidad
-- `uuid` garantiza unicidad (evita colisiones de nombres)
-- `sanitizedOriginalName` preserva legibilidad (caracteres especiales reemplazados por `_`)
-
-Solo el `blobPath` se guarda en la base de datos. La URL completa se reconstruye en runtime:
-
-```
-https://{AZURE_STORAGE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_STORAGE_CONTAINER_NAME}/{blobPath}
-```
+- `{sanitizedName}`: nombre original con caracteres especiales reemplazados por `_`
+- El `blobPath` se guarda en la base de datos; la URL completa se reconstruye en runtime mediante SAS
 
 ---
 
 ## Desarrollo Local
 
-Para probar el upload/download de archivos localmente se necesita una cuenta de Azure Storage real:
+Para probar el upload/download de archivos localmente se necesita una cuenta de Azure Storage real.
 
 ### Permisos RBAC automáticos para desarrolladores
 
 El rol **Storage Blob Data Contributor** se asigna automáticamente al grupo de desarrolladores (`AZURE_SUBSCRIPTION_GROUP`) durante el deployment de infraestructura, controlado por el parámetro `enableDevGroupStorageAccess`:
 
-- **Development** (`main.development.bicepparam`): `enableDevGroupStorageAccess = true` — todos los miembros del grupo de desarrolladores reciben acceso automáticamente al ejecutar `deploy.sh`.
-- **Production/Staging**: `enableDevGroupStorageAccess = false` (default) — solo el App Service Managed Identity tiene acceso.
-
-Esto se implementa en `main.bicep` como un módulo condicional que reutiliza `storageRoleAssignment.bicep` con `principalType: 'Group'`:
+- **Development** (`main.development.bicepparam`): `enableDevGroupStorageAccess = true`
+- **Production/Staging**: `enableDevGroupStorageAccess = false` (default)
 
 ```bicep
 module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
@@ -409,7 +384,7 @@ module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if
 
 ### Pasos
 
-1. **Asegurarse de pertenecer al grupo Azure AD** configurado en `AZURE_SUBSCRIPTION_GROUP` (los permisos se asignan automáticamente al grupo al ejecutar `deploy.sh`)
+1. **Asegurarse de pertenecer al grupo Azure AD** configurado en `AZURE_SUBSCRIPTION_GROUP`
 
 2. **Iniciar sesión con Azure CLI**:
    ```bash
@@ -418,8 +393,6 @@ module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if
 
 3. **Configurar variables en `.envrc`**:
    ```bash
-   # Azure Blob Storage (local development only)
-   # In production these are set automatically by the Bicep infrastructure (appService.bicep).
    export AZURE_STORAGE_ACCOUNT_NAME="nombre-de-tu-cuenta"
    export AZURE_STORAGE_CONTAINER_NAME="files"
    ```
@@ -441,8 +414,6 @@ La infraestructura de Bicep maneja todo:
 - `storageRoleAssignment.bicep` asigna el rol RBAC al App Service (y opcionalmente al grupo de desarrolladores)
 - `appService.bicep` inyecta las variables de entorno `AZURE_STORAGE_ACCOUNT_NAME` y `AZURE_STORAGE_CONTAINER_NAME`
 
-Al ejecutar `./infra/deploy.sh`, los nuevos recursos se crean o actualizan automáticamente como parte del Deployment Stack existente.
-
 ---
 
 ## Archivos Involucrados
@@ -453,29 +424,32 @@ Al ejecutar `./infra/deploy.sh`, los nuevos recursos se crean o actualizan autom
 | ------- | --------- |
 | `infra/modules/storageRoleAssignment.bicep` | RBAC: App Service → Storage |
 | `apps/api/src/plugins/app/blobStoragePlugin.ts` | Plugin de Fastify para blob storage |
-| `apps/api/src/features/files/errors.ts` | Errores de dominio |
-| `apps/api/src/features/files/mappers.ts` | Prisma → API response |
-| `apps/api/src/features/files/ownerHelpers.ts` | Helpers polimórficos por tipo de archivo |
-| `apps/api/src/features/files/uploadFile/` | Feature: subir archivo |
-| `apps/api/src/features/files/getFiles/` | Feature: listar archivos |
-| `apps/api/src/features/files/downloadFile/` | Feature: descargar archivo |
-| `apps/api/src/features/files/deleteFile/` | Feature: eliminar archivo (soft) |
-| `apps/api/src/routes/api/files/index.ts` | Registro de rutas |
-| `packages/types/src/files/` | Schemas Zod y tipos compartidos |
-| `packages/database/.../20260216171318_add_file_tables` | Migración de Prisma |
+| `apps/api/src/features/files/shared/buildBlobPath.ts` | Construcción de rutas de blob |
+| `apps/api/src/features/files/shared/errors.ts` | Errores de dominio |
+| `apps/api/src/features/files/shared/mappers.ts` | Prisma → API response |
+| `apps/api/src/features/files/shared/sasHelper.ts` | Generación de URLs SAS (User Delegation) |
+| `apps/api/src/features/files/shared/persistFileRecord.ts` | Helper transaccional para confirm-upload |
+| `apps/api/src/features/files/badges/` | Subdomain badges (helpers, plugin, routes) |
+| `apps/api/src/features/files/submissions/` | Subdomain submissions (helpers, plugin, routes) |
+| `apps/api/src/features/files/downloadFile/` | Feature: descargar archivo (SAS) |
+| `apps/api/src/features/files/previewFile/` | Feature: previsualizar archivo (SAS) |
+| `apps/api/src/features/files/deleteFile/` | Feature: eliminar archivo (soft delete) |
+| `apps/api/src/routes/api/files/index.ts` | Registro de rutas con prefijos /badge y /submission |
+| `packages/types/src/files/badges/` | Schemas Zod y tipos para badges |
+| `packages/types/src/files/submissions/` | Schemas Zod y tipos para submissions |
 
 ### Archivos Modificados
 
 | Archivo | Cambio |
 | ------- | ------ |
-| `packages/database/src/prisma/schema.prisma` | Modelos `File`, `OrganizationDataFile`, `CarbonInventoryFile`, `CarbonInventoryLineFile`, `SubmissionFile` + enums |
+| `packages/database/src/prisma/schema.prisma` | Modelos `File`, `Badge`, `SubmissionFile` + enums |
 | `infra/modules/storage.bicep` | Blob service + contenedor `files` |
 | `infra/modules/appService.bicep` | Parámetro `storageAccountName` + app settings |
-| `infra/main.bicep` | Módulo `storageRoleAssignment` + pasar storage name al App Service |
+| `infra/main.bicep` | Módulo `storageRoleAssignment` + storage name |
 | `apps/api/src/config/environment.ts` | Variables `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME` |
-| `apps/api/src/types/fastify.ts` | Augment `FastifyInstance` con `blobStorage` |
-| `packages/types/src/enums.ts` | Re-export `FileType`, `FileStatus` |
-| `packages/types/src/index.ts` | Export `./files/index.js` |
+| `apps/api/src/types/fastify.ts` | Augment `FastifyInstance` con `blobStorage`, `blobServiceClient` |
+| `packages/types/src/files/baseSchemas.ts` | `FileTypeSchema`, `BadgeTypeSchema`, `SubmissionFileTypeSchema`, `BadgeStatusSchema` |
+| `packages/types/src/files/index.ts` | Re-exports de subdomains badges y submissions |
 | `.envrc.template` | Variables de storage para desarrollo local |
 
 ---
@@ -486,3 +460,4 @@ Al ejecutar `./infra/deploy.sh`, los nuevos recursos se crean o actualizan autom
 - [DefaultAzureCredential](https://learn.microsoft.com/en-us/javascript/api/@azure/identity/defaultazurecredential)
 - [Storage Blob Data Contributor Role](https://learn.microsoft.com/en-us/azure/role-based-access-control/built-in-roles/storage#storage-blob-data-contributor)
 - [Managed Identities for Azure Resources](https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview)
+- [User Delegation SAS](https://learn.microsoft.com/en-us/azure/storage/common/storage-sas-overview#user-delegation-sas)
