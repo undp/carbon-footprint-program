@@ -1,8 +1,12 @@
 import { randomUUID } from "crypto";
 import type { PrismaClient } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
-import type { BadgeType } from "@repo/database";
-import { FileType, type BadgeRequestUploadResponse } from "@repo/types";
+import {
+  FileType,
+  RequestBadgeUploadBody,
+  RequestBadgeUploadParams,
+  RequestBadgeUploadResponse,
+} from "@repo/types";
 import { validateBadgeType } from "../helpers.js";
 import { buildBlobPath } from "../../shared/buildBlobPath.js";
 import { generateWriteSasUrl } from "../../shared/sasHelper.js";
@@ -11,17 +15,14 @@ import {
   AZURE_STORAGE_CONTAINER_NAME,
 } from "@/config/environment.js";
 
-interface BadgeRequestUploadInput {
-  badgeType: BadgeType;
-  originalName: string;
-  mimeType: string;
-}
+type BadgeRequestUploadInput = RequestBadgeUploadBody &
+  RequestBadgeUploadParams;
 
 export const badgeRequestUploadService = async (
   _prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
   input: BadgeRequestUploadInput
-): Promise<BadgeRequestUploadResponse> => {
+): Promise<RequestBadgeUploadResponse> => {
   const { badgeType, originalName } = input;
 
   validateBadgeType(badgeType);

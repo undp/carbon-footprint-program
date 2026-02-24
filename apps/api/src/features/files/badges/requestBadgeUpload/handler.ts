@@ -1,19 +1,21 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { BadgeType } from "@repo/database";
-import type { BadgeRequestUploadBody } from "@repo/types";
+import type {
+  RequestBadgeUploadBody,
+  RequestBadgeUploadParams,
+} from "@repo/types";
 import { StorageNotConfiguredError } from "../../shared/errors.js";
 import { badgeRequestUploadService } from "./service.js";
 
 export const badgeRequestUploadHandler = async (
   request: FastifyRequest<{
-    Params: { badgeType: BadgeType };
-    Body: BadgeRequestUploadBody;
+    Params: RequestBadgeUploadParams;
+    Body: RequestBadgeUploadBody;
   }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "files/badges" });
   const { badgeType } = request.params;
-  const { originalName, mimeType } = request.body;
+  const { originalName } = request.body;
 
   const blobServiceClient = request.server.blobServiceClient;
   if (!blobServiceClient) {
@@ -26,7 +28,6 @@ export const badgeRequestUploadHandler = async (
   const result = await badgeRequestUploadService(prisma, blobServiceClient, {
     badgeType,
     originalName,
-    mimeType,
   });
 
   log.info({ uuid: result.uuid, badgeType }, "Badge upload URL generated");

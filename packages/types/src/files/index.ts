@@ -14,3 +14,5 @@ export * from "./submissions/getSubmissionFiles/schemas.js";
 export * from "./submissions/getSubmissionFiles/types.js";
 export * from "./badges/getBadgeFiles/schemas.js";
 export * from "./badges/getBadgeFiles/types.js";
+export * from "./badges/requestBadgeUpload/schemas.js";
+export * from "./badges/requestBadgeUpload/types.js";
