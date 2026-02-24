@@ -14,8 +14,8 @@ export const deleteFileHandler = async (
   log.info({ uuid }, "Deleting file...");
 
   const prisma = request.server.prisma;
-  const result = await deleteFileService(prisma, uuid);
+  await deleteFileService(prisma, uuid);
 
   log.info({ uuid }, "File deleted successfully");
-  return reply.status(200).send(result);
+  return reply.status(200).send();
 };
