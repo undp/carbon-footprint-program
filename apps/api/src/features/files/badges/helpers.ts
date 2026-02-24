@@ -4,9 +4,9 @@ import type { ConfirmBadgeUploadResponse } from "@repo/types";
 import {
   checkFileRecordExists,
   type PersistFileRecordParams,
-} from "../shared/persistFileRecord.js";
-import { FileTypeNotFoundError } from "../shared/errors.js";
-import { mapFileToResponse } from "../shared/mappers.js";
+} from "../helpers/persistFileRecord.js";
+import { FileTypeNotFoundError } from "../errors.js";
+import { mapFileToResponse } from "../mappers.js";
 
 export function validateBadgeType(type: BadgeType): void {
   if (!Object.values(BadgeType).includes(type)) {

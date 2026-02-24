@@ -1,5 +1,5 @@
 import { RestError, type ContainerClient } from "@azure/storage-blob";
-import { FileNotFoundError } from "./errors.js";
+import { FileNotFoundError } from "../errors.js";
 
 export interface PersistFileRecordParams {
   uuid: string;

@@ -1,16 +1,12 @@
-import {
-  type PrismaClient,
-  type Prisma,
-  type SubmissionFileType,
-} from "@repo/database";
+import { type PrismaClient, type SubmissionFileType } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import type { ConfirmSubmissionUploadResponse } from "@repo/types";
 import {
   checkFileRecordExists,
   type PersistFileRecordParams,
-} from "../shared/persistFileRecord.js";
-import { FileTypeNotFoundError } from "../shared/errors.js";
-import { mapFileToResponse } from "../shared/mappers.js";
+} from "../helpers/persistFileRecord.js";
+import { FileTypeNotFoundError } from "../errors.js";
+import { mapFileToResponse } from "../mappers.js";
 
 export async function validateSubmissionExists(
   prisma: PrismaClient,
