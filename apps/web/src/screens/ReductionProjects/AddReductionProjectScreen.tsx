@@ -10,6 +10,7 @@ import { AddReductionProjectFormData } from "./types";
 import {
   OrganizationInfoSection,
   ProjectIdentificationForm,
+  GeiConsideradosSection,
   ReductionReportSection,
   FileUploadSection,
 } from "./components";
@@ -59,6 +60,7 @@ export const AddReductionProjectScreen: FC = () => {
         pcg: "",
         reportedInOtherInitiative: false,
         includedInNDC: false,
+        selectedGases: [],
         reductionYear: "",
         baselineValue: 0,
         projectValue: 0,
@@ -151,6 +153,9 @@ export const AddReductionProjectScreen: FC = () => {
               subcategories={mockSubcategories}
               pcgOptions={mockPCGOptions}
             />
+
+            {/* GEI Considerados Section */}
+            <GeiConsideradosSection control={control} />
 
             {/* Reduction Report Section */}
             <ReductionReportSection

@@ -26,6 +26,14 @@ export type Branch = {
   name: string;
 };
 
+export type GreenhouseGas =
+  | "CO2"
+  | "CH4"
+  | "HIDROFLUOROCARBONADOS"
+  | "PERFLUOROCARBONADOS"
+  | "SF6"
+  | "NF3";
+
 export type AddReductionProjectFormData = {
   projectName: string;
   branch: string;
@@ -35,6 +43,7 @@ export type AddReductionProjectFormData = {
   pcg: string;
   reportedInOtherInitiative: boolean;
   includedInNDC: boolean;
+  selectedGases: GreenhouseGas[];
   reductionYear: string;
   baselineValue: number;
   projectValue: number;
