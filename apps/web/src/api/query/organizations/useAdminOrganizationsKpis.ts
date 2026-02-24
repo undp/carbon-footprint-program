@@ -9,8 +9,8 @@ export const useAdminOrganizationsKpis = (): {
   isLoading: boolean;
 } => {
   return useQuery<GetOrganizationKpisResponse>({
-    queryKey: [...organizationsKeys.adminKpis],
-    queryFn: () => apiClient.get("/admin/organizations/kpis").json(),
+    queryKey: organizationsKeys.adminKpis,
+    queryFn: async () => apiClient.get("admin/organizations/kpis").json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
   });

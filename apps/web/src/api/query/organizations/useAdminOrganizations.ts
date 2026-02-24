@@ -9,8 +9,8 @@ export const useAdminOrganizations = (): {
   isLoading: boolean;
 } => {
   return useQuery<GetAllOrganizationsResponse>({
-    queryKey: [...organizationsKeys.adminAll],
-    queryFn: () => apiClient.get("/admin/organizations").json(),
+    queryKey: organizationsKeys.adminAll,
+    queryFn: async () => apiClient.get("admin/organizations").json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
   });
