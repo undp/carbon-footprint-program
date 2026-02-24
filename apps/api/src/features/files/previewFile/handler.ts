@@ -1,10 +1,11 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { StorageNotConfiguredError } from "../shared/errors.js";
 import { previewFileService } from "./service.js";
+import { PreviewFileParams } from "@repo/types";
 
 export const previewFileHandler = async (
   request: FastifyRequest<{
-    Params: { uuid: string };
+    Params: PreviewFileParams;
   }>,
   reply: FastifyReply
 ) => {

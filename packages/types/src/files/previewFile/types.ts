@@ -1,4 +1,8 @@
 import { z } from "zod";
-import type { SasUrlResponseSchema } from "./schemas.js";
+import type {
+  PreviewFileParamsSchema,
+  PreviewFileResponseSchema,
+} from "./schemas.js";
 
-export type SasUrlResponse = z.infer<typeof SasUrlResponseSchema>;
+export type PreviewFileParams = z.infer<typeof PreviewFileParamsSchema>;
+export type PreviewFileResponse = z.infer<typeof PreviewFileResponseSchema>;

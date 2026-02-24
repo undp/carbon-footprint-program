@@ -1,9 +1,10 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import { deleteFileService } from "./service.js";
+import { DeleteFileParams } from "@repo/types";
 
 export const deleteFileHandler = async (
   request: FastifyRequest<{
-    Params: { uuid: string };
+    Params: DeleteFileParams;
   }>,
   reply: FastifyReply
 ) => {
