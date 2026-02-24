@@ -7,7 +7,6 @@ import {
   RequestBadgeUploadParams,
   RequestBadgeUploadResponse,
 } from "@repo/types";
-import { validateBadgeType } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { generateWriteSasUrl } from "../../helpers/sasHelper.js";
 import {
@@ -24,8 +23,6 @@ export const badgeRequestUploadService = async (
   input: BadgeRequestUploadInput
 ): Promise<RequestBadgeUploadResponse> => {
   const { badgeType, originalName } = input;
-
-  validateBadgeType(badgeType);
 
   const fileUuid = randomUUID();
   const blobPath = buildBlobPath({

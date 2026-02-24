@@ -1,18 +1,11 @@
-import { BadgeType, type PrismaClient, BadgeStatus } from "@repo/database";
+import { type BadgeType, type PrismaClient, BadgeStatus } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import type { ConfirmBadgeUploadResponse } from "@repo/types";
 import {
   checkFileRecordExists,
   type PersistFileRecordParams,
 } from "../helpers/persistFileRecord.js";
-import { FileTypeNotFoundError } from "../errors.js";
 import { mapFileToResponse } from "../mappers.js";
-
-export function validateBadgeType(type: BadgeType): void {
-  if (!Object.values(BadgeType).includes(type)) {
-    throw new FileTypeNotFoundError("BadgeType", type);
-  }
-}
 
 export async function persistBadgeFileRecord(
   prisma: PrismaClient,

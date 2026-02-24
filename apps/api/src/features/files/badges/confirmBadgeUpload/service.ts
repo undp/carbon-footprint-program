@@ -6,7 +6,7 @@ import {
   FileType,
   type ConfirmBadgeUploadResponse,
 } from "@repo/types";
-import { validateBadgeType, persistBadgeFileRecord } from "../helpers.js";
+import { persistBadgeFileRecord } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 
 type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
@@ -18,8 +18,6 @@ export const badgeConfirmUploadService = async (
   input: BadgeConfirmUploadInput
 ): Promise<ConfirmBadgeUploadResponse> => {
   const { badgeType, uuid, originalName, userId } = input;
-
-  validateBadgeType(badgeType);
 
   const blobPath = buildBlobPath({
     fileType: FileType.BADGE,
