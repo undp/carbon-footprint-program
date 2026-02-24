@@ -1,12 +1,15 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { SubmissionConfirmUploadBody } from "@repo/types";
+import type {
+  ConfirmSubmissionUploadParams,
+  ConfirmSubmissionUploadBody,
+} from "@repo/types";
 import { StorageNotConfiguredError } from "../../shared/errors.js";
 import { submissionConfirmUploadService } from "./service.js";
 
 export const submissionConfirmUploadHandler = async (
   request: FastifyRequest<{
-    Params: { submissionId: string };
-    Body: SubmissionConfirmUploadBody;
+    Params: ConfirmSubmissionUploadParams;
+    Body: ConfirmSubmissionUploadBody;
   }>,
   reply: FastifyReply
 ) => {
