@@ -85,6 +85,7 @@ export const useRequestColumns = (): GridColDef<
         flex: 0.5,
         sortable: false,
         filterable: false,
+        disableColumnMenu: true,
         renderCell: (params) => {
           const status = params.row.status;
           const showApproveReject = status === RequestStatus.PENDING;
