@@ -1,21 +1,17 @@
 import { z } from "zod";
-import { IdSchema } from "@repo/types";
 import {
-  SubmissionConfirmUploadBodySchema,
-  SubmissionConfirmUploadResponseSchema,
+  ConfirmSubmissionUploadParamsSchema,
+  ConfirmSubmissionUploadBodySchema,
+  ConfirmSubmissionUploadResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { submissionConfirmUploadHandler } from "./handler.js";
 
-const ParamsSchema = z.object({
-  submissionId: IdSchema.describe("The submission ID"),
-});
-
 export const submissionConfirmUploadRoute = (fastify: FastifyZodInstance) => {
   fastify.post<{
-    Params: z.infer<typeof ParamsSchema>;
-    Body: z.infer<typeof SubmissionConfirmUploadBodySchema>;
+    Params: z.infer<typeof ConfirmSubmissionUploadParamsSchema>;
+    Body: z.infer<typeof ConfirmSubmissionUploadBodySchema>;
   }>(
     "/:submissionId/confirm-upload",
     {
@@ -23,10 +19,10 @@ export const submissionConfirmUploadRoute = (fastify: FastifyZodInstance) => {
         tags: ["files"],
         summary:
           "Confirm a submission file upload and create the database record",
-        params: ParamsSchema,
-        body: SubmissionConfirmUploadBodySchema,
+        params: ConfirmSubmissionUploadParamsSchema,
+        body: ConfirmSubmissionUploadBodySchema,
         response: {
-          201: SubmissionConfirmUploadResponseSchema,
+          201: ConfirmSubmissionUploadResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },

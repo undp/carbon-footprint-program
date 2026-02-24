@@ -1,24 +1,25 @@
 import type { PrismaClient } from "@repo/database";
-import type { SubmissionFileType } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
-import { FileType, type SubmissionConfirmUploadResponse } from "@repo/types";
+import {
+  ConfirmSubmissionUploadBody,
+  ConfirmSubmissionUploadParams,
+  FileType,
+  type ConfirmSubmissionUploadResponse,
+} from "@repo/types";
 import { validateSubmissionExists, createSubmissionFile } from "../helpers.js";
 import { buildBlobPath } from "../../shared/buildBlobPath.js";
 import { persistFileRecord } from "../../shared/persistFileRecord.js";
 
-interface SubmissionConfirmUploadInput {
-  submissionId: string;
-  uuid: string;
-  originalName: string;
-  submissionFileType: SubmissionFileType;
-  userId: string;
-}
+type SubmissionConfirmUploadInput = ConfirmSubmissionUploadBody &
+  ConfirmSubmissionUploadParams & {
+    userId: string;
+  };
 
 export const submissionConfirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
   input: SubmissionConfirmUploadInput
-): Promise<SubmissionConfirmUploadResponse> => {
+): Promise<ConfirmSubmissionUploadResponse> => {
   const { submissionId, uuid, originalName, submissionFileType, userId } =
     input;
 
