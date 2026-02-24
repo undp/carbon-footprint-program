@@ -1,8 +1,10 @@
-import { FC } from "react";
+import { FC, useCallback, useState } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
 import { StylizedDataGrid } from "@components";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
+import { useBlockOrganization } from "@/api/query/organizations/useBlockOrganization";
+import { BlockOrganizationDialog } from "./BlockOrganizationDialog";
 import { GetAllOrganizationsResponse } from "@repo/types";
 
 const TABLE_ROW_COUNT = 6;
@@ -33,8 +35,27 @@ const TableSkeleton: FC = () => (
 
 export const OrganizationScreenTable: FC = () => {
   const { data, isLoading } = useAdminOrganizations();
-  const columns = useOrganizationColumns();
+  const blockMutation = useBlockOrganization();
+  const [selectedOrgId, setSelectedOrgId] = useState<string | null>(null);
   const organizations = data?.data ?? [];
+  const selectedOrg = organizations.find((org) => org.id === selectedOrgId);
+
+  const handleBlockClick = useCallback((id: string) => {
+    setSelectedOrgId(id);
+  }, []);
+
+  const handleCloseDialog = useCallback(() => {
+    setSelectedOrgId(null);
+  }, []);
+
+  const handleConfirmBlock = useCallback(() => {
+    if (!selectedOrgId) return;
+    blockMutation.mutate(selectedOrgId, {
+      onSettled: () => setSelectedOrgId(null),
+    });
+  }, [selectedOrgId, blockMutation]);
+
+  const columns = useOrganizationColumns({ onBlock: handleBlockClick });
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -62,6 +83,13 @@ export const OrganizationScreenTable: FC = () => {
         rows={organizations}
         rowHeight={65}
         getRowId={(row: GetAllOrganizationsResponse["data"][number]) => row.id}
+      />
+      <BlockOrganizationDialog
+        open={selectedOrgId !== null}
+        organizationName={selectedOrg?.name ?? ""}
+        onClose={handleCloseDialog}
+        onConfirm={handleConfirmBlock}
+        isLoading={blockMutation.isPending}
       />
     </Box>
   );

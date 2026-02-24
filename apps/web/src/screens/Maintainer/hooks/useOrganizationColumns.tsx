@@ -11,7 +11,13 @@ import { GetAllOrganizationsResponse } from "@repo/types";
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
-export const useOrganizationColumns = (): GridColDef<OrganizationRow>[] => {
+interface UseOrganizationColumnsProps {
+  onBlock: (id: string) => void;
+}
+
+export const useOrganizationColumns = ({
+  onBlock,
+}: UseOrganizationColumnsProps): GridColDef<OrganizationRow>[] => {
   const cellClassName = "content-center";
 
   return useMemo<GridColDef<OrganizationRow>[]>(
@@ -88,7 +94,7 @@ export const useOrganizationColumns = (): GridColDef<OrganizationRow>[] => {
         flex: 0.7,
         sortable: false,
         filterable: false,
-        renderCell: () => (
+        renderCell: (params) => (
           <Stack direction="row" spacing={0.5} alignItems="center">
             <IconButton size="small" aria-label="Ver empresa">
               <VisibilityOutlined fontSize="small" />
@@ -96,13 +102,17 @@ export const useOrganizationColumns = (): GridColDef<OrganizationRow>[] => {
             <IconButton size="small" aria-label="Editar empresa">
               <EditOutlined fontSize="small" />
             </IconButton>
-            <IconButton size="small" aria-label="Eliminar empresa">
+            <IconButton
+              size="small"
+              aria-label="Eliminar empresa"
+              onClick={() => onBlock(params.row.id)}
+            >
               <DeleteOutlined fontSize="small" />
             </IconButton>
           </Stack>
         ),
       },
     ],
-    []
+    [onBlock]
   );
 };
