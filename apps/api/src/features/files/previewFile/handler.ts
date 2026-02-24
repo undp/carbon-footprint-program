@@ -17,10 +17,18 @@ export const previewFileHandler = async (
     throw new StorageNotConfiguredError();
   }
 
+  const { storageAccountName, storageContainerName } = request.server;
+
   log.info({ uuid }, "Generating preview URL...");
 
   const prisma = request.server.prisma;
-  const result = await previewFileService(prisma, blobServiceClient, uuid);
+  const result = await previewFileService(
+    prisma,
+    blobServiceClient,
+    storageAccountName!,
+    storageContainerName!,
+    uuid
+  );
 
   log.info({ uuid }, "Preview URL generated");
 

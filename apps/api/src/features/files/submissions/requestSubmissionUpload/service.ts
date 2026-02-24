@@ -9,10 +9,6 @@ import type {
 import { validateSubmissionExists } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 import { generateWriteSasUrl } from "../../helpers/sasHelper.js";
-import {
-  AZURE_STORAGE_ACCOUNT_NAME,
-  AZURE_STORAGE_CONTAINER_NAME,
-} from "@/config/environment.js";
 
 type SubmissionRequestUploadInput = RequestSubmissionUploadBody &
   RequestSubmissionUploadParams;
@@ -20,6 +16,8 @@ type SubmissionRequestUploadInput = RequestSubmissionUploadBody &
 export const submissionRequestUploadService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
+  accountName: string,
+  containerName: string,
   input: SubmissionRequestUploadInput
 ): Promise<RequestSubmissionUploadResponse> => {
   const { submissionId, originalName, submissionFileType } = input;
@@ -37,8 +35,8 @@ export const submissionRequestUploadService = async (
 
   const { url, expiresAt } = await generateWriteSasUrl(
     blobServiceClient,
-    AZURE_STORAGE_ACCOUNT_NAME!,
-    AZURE_STORAGE_CONTAINER_NAME,
+    accountName,
+    containerName,
     blobPath
   );
 

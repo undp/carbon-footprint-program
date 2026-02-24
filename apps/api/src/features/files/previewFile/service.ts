@@ -4,14 +4,12 @@ import { FileStatus } from "@repo/types";
 import type { PreviewFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
 import { generateReadSasUrl } from "../helpers/sasHelper.js";
-import {
-  AZURE_STORAGE_ACCOUNT_NAME,
-  AZURE_STORAGE_CONTAINER_NAME,
-} from "@/config/environment.js";
 
 export const previewFileService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
+  accountName: string,
+  containerName: string,
   uuid: string
 ): Promise<PreviewFileResponse> => {
   const file = await prisma.file.findUnique({
@@ -21,8 +19,8 @@ export const previewFileService = async (
 
   const { url, expiresAt } = await generateReadSasUrl(
     blobServiceClient,
-    AZURE_STORAGE_ACCOUNT_NAME!,
-    AZURE_STORAGE_CONTAINER_NAME,
+    accountName,
+    containerName,
     file.blobPath,
     { contentType: file.mimeType }
   );

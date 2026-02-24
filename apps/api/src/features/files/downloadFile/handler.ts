@@ -17,10 +17,18 @@ export const downloadFileHandler = async (
     throw new StorageNotConfiguredError();
   }
 
+  const { storageAccountName, storageContainerName } = request.server;
+
   log.info({ uuid }, "Generating download URL...");
 
   const prisma = request.server.prisma;
-  const result = await downloadFileService(prisma, blobServiceClient, uuid);
+  const result = await downloadFileService(
+    prisma,
+    blobServiceClient,
+    storageAccountName!,
+    storageContainerName!,
+    uuid
+  );
 
   log.info({ uuid }, "Download URL generated");
 

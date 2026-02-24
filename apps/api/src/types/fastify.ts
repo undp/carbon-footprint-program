@@ -42,6 +42,18 @@ declare module "fastify" {
     blobStorage?: ContainerClient;
 
     /**
+     * Azure Storage Account name (validated at startup).
+     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     */
+    storageAccountName?: string;
+
+    /**
+     * Azure Blob Storage container name.
+     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     */
+    storageContainerName?: string;
+
+    /**
      * Authentication service for managing auth providers.
      */
     authService: AuthService;
