@@ -124,6 +124,7 @@ export const useOrganizationColumns = ({
         flex: 0.7,
         sortable: false,
         filterable: false,
+        disableColumnMenu: true,
         renderCell: (params) => {
           const isBlocked = params.row.status === "BLOCKED";
           return (
