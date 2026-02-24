@@ -48,6 +48,7 @@ Content-Type: application/json
   "representativeTaxId": "22222222-2",
   "representativePositionId": "2",
   "representativePhone": "+9876543210",
+  "representativeEmail": "jane.smith@example.com",
   "mainActivityId": "2"
 }
 
@@ -119,4 +120,4 @@ Content-Type: application/json
 
 
 ### Request Organization Accreditation
-POST {{baseUrl}}/api/app/organizations/{{organizationId}}/accredit HTTP/1.1
+POST {{baseUrl}}/api/app/organizations/{{organizationId}}/request-accreditation HTTP/1.1
