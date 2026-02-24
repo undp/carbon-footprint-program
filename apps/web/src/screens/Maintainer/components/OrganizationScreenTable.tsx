@@ -106,6 +106,7 @@ export const OrganizationScreenTable: FC = () => {
         rows={organizations}
         rowHeight={65}
         getRowId={(row: GetAllOrganizationsResponse["data"][number]) => row.id}
+        disableColumnSorting={false}
       />
       <BlockOrganizationDialog
         open={blockOrgId !== null}
