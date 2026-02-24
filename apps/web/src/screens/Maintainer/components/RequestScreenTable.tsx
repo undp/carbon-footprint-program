@@ -60,6 +60,9 @@ export const RequestScreenTable: FC = () => {
           },
         })}
         disableColumnSorting={false}
+        disableColumnMenu={false}
+        disableColumnFilter={false}
+        showToolbar
         columns={columns}
         rows={requests}
         rowHeight={65}
