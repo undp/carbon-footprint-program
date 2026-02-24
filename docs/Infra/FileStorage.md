@@ -28,10 +28,10 @@
 
 El sistema permite subir, listar, previsualizar, descargar y eliminar archivos asociados a dos subdominos:
 
-| Subdominio       | Entidad propietaria | Caso de uso                                         |
-| ---------------- | ------------------- | --------------------------------------------------- |
-| **Badges**       | `BadgeType` (enum)  | Imágenes SVG de insignias por tipo de inventario    |
-| **Submissions**  | `submission.id`     | Adjuntos y certificados de reconocimiento de submissions |
+| Subdominio      | Entidad propietaria | Caso de uso                                              |
+| --------------- | ------------------- | -------------------------------------------------------- |
+| **Badges**      | `BadgeType` (enum)  | Imágenes SVG de insignias por tipo de inventario         |
+| **Submissions** | `submission.id`     | Adjuntos y certificados de reconocimiento de submissions |
 
 Los archivos se almacenan en **Azure Blob Storage** y los metadatos se persisten en **PostgreSQL** a través de Prisma. La autenticación contra Azure Storage se realiza mediante **Managed Identity** (sin claves ni connection strings).
 
@@ -73,38 +73,38 @@ SubmissionFileType:  ATTACHMENT | RECOGNITION
 
 Tabla principal que almacena los metadatos de cada archivo subido.
 
-| Columna         | Tipo          | Descripción                                          |
-| --------------- | ------------- | ---------------------------------------------------- |
-| `id`            | BIGINT PK     | Autoincrement                                        |
-| `uuid`          | String UNIQUE | UUID para referencia externa                         |
-| `original_name` | String        | Nombre original del archivo subido                   |
-| `mime_type`     | String        | Tipo MIME leído desde Azure al confirmar la subida   |
+| Columna         | Tipo          | Descripción                                              |
+| --------------- | ------------- | -------------------------------------------------------- |
+| `id`            | BIGINT PK     | Autoincrement                                            |
+| `uuid`          | String UNIQUE | UUID para referencia externa                             |
+| `original_name` | String        | Nombre original del archivo subido                       |
+| `mime_type`     | String        | Tipo MIME leído desde Azure al confirmar la subida       |
 | `size_bytes`    | Int           | Tamaño en bytes leído desde Azure al confirmar la subida |
-| `blob_path`     | String        | Ruta relativa en el contenedor de Azure Blob Storage |
-| `status`        | FileStatus    | Estado del archivo (`ACTIVE` por defecto)            |
-| `created_by_id` | BIGINT FK     | Usuario que subió el archivo → `user(id)`            |
-| `created_at`    | DateTime      | Timestamp de creación                                |
-| `deleted_at`    | DateTime?     | Timestamp de eliminación (soft delete)               |
+| `blob_path`     | String        | Ruta relativa en el contenedor de Azure Blob Storage     |
+| `status`        | FileStatus    | Estado del archivo (`ACTIVE` por defecto)                |
+| `created_by_id` | BIGINT FK     | Usuario que subió el archivo → `user(id)`                |
+| `created_at`    | DateTime      | Timestamp de creación                                    |
+| `deleted_at`    | DateTime?     | Timestamp de eliminación (soft delete)                   |
 
 #### `badge` (link table)
 
 Vincula un archivo a un tipo de badge. Solo un badge por tipo puede estar `ACTIVE` a la vez.
 
-| Columna   | Tipo        | Descripción                                  |
-| --------- | ----------- | -------------------------------------------- |
-| `id`      | BIGINT PK   | Autoincrement                                |
+| Columna   | Tipo        | Descripción                                             |
+| --------- | ----------- | ------------------------------------------------------- |
+| `id`      | BIGINT PK   | Autoincrement                                           |
 | `type`    | BadgeType   | Tipo de badge (`CARBON_INVENTORY`, `ORGANIZATION_DATA`) |
-| `file_id` | BIGINT FK   | FK → `file(id)`                              |
-| `status`  | BadgeStatus | Estado (`ACTIVE` / `INACTIVE`)               |
+| `file_id` | BIGINT FK   | FK → `file(id)`                                         |
+| `status`  | BadgeStatus | Estado (`ACTIVE` / `INACTIVE`)                          |
 
 #### `submission_file` (link table)
 
 Vincula un archivo a una submission con un tipo opcional.
 
-| Columna         | Tipo                | Descripción                        |
-| --------------- | ------------------- | ---------------------------------- |
-| `file_id`       | BIGINT PK           | FK → `file(id)`                    |
-| `submission_id` | BIGINT FK           | FK → `submission(id)`              |
+| Columna         | Tipo                | Descripción                             |
+| --------------- | ------------------- | --------------------------------------- |
+| `file_id`       | BIGINT PK           | FK → `file(id)`                         |
+| `submission_id` | BIGINT FK           | FK → `submission(id)`                   |
 | `type`          | SubmissionFileType? | `ATTACHMENT` o `RECOGNITION` (nullable) |
 
 ### Diagrama ER (parcial)
@@ -223,10 +223,10 @@ module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = 
 
 ### Variables de Entorno en App Service
 
-| Variable                       | Valor               | Descripción                                        |
-| ------------------------------ | ------------------- | -------------------------------------------------- |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | Nombre de la cuenta | Se pasa desde `main.bicep`                         |
-| `AZURE_STORAGE_CONTAINER_NAME` | `files`             | Fijo, coincide con el contenedor en Bicep          |
+| Variable                       | Valor               | Descripción                               |
+| ------------------------------ | ------------------- | ----------------------------------------- |
+| `AZURE_STORAGE_ACCOUNT_NAME`   | Nombre de la cuenta | Se pasa desde `main.bicep`                |
+| `AZURE_STORAGE_CONTAINER_NAME` | `files`             | Fijo, coincide con el contenedor en Bicep |
 
 ---
 
@@ -255,10 +255,10 @@ declare module "fastify" {
 
 ### Autenticación: DefaultAzureCredential
 
-| Entorno                              | Método utilizado                 |
-| ------------------------------------ | -------------------------------- |
-| **Producción** (App Service)         | Managed Identity del App Service |
-| **Local** (con `az login`)           | Credenciales de Azure CLI        |
+| Entorno                      | Método utilizado                 |
+| ---------------------------- | -------------------------------- |
+| **Producción** (App Service) | Managed Identity del App Service |
+| **Local** (con `az login`)   | Credenciales de Azure CLI        |
 
 ### Estructura de Features
 
@@ -308,6 +308,7 @@ En lugar de enviar el archivo a través de la API (que actuaría como proxy), el
 ```
 
 **¿Por qué SAS en lugar de multipart upload?**
+
 - El archivo no transita por la API → menor latencia, menor carga en el servidor
 - Azure escala el ancho de banda de forma independiente
 - La URL SAS expira en 15 minutos → ventana de subida acotada
@@ -319,21 +320,21 @@ Todos los endpoints requieren autenticación.
 
 #### Badges (`/api/files/badge`)
 
-| Método | Ruta                                  | Descripción                          | Response |
-| ------ | ------------------------------------- | ------------------------------------ | -------- |
-| `GET`  | `/api/files/badge/:badgeType`         | Listar archivos activos del badge    | 200      |
-| `POST` | `/api/files/badge/:badgeType/request-upload`  | Obtener URL SAS de escritura | 200      |
-| `POST` | `/api/files/badge/:badgeType/confirm-upload`  | Confirmar subida y crear registro | 201   |
+| Método | Ruta                                         | Descripción                       | Response |
+| ------ | -------------------------------------------- | --------------------------------- | -------- |
+| `GET`  | `/api/files/badge/:badgeType`                | Listar archivos activos del badge | 200      |
+| `POST` | `/api/files/badge/:badgeType/request-upload` | Obtener URL SAS de escritura      | 200      |
+| `POST` | `/api/files/badge/:badgeType/confirm-upload` | Confirmar subida y crear registro | 201      |
 
 **`badgeType`**: `CARBON_INVENTORY` | `ORGANIZATION_DATA`
 
 #### Submissions (`/api/files/submission`)
 
-| Método | Ruta                                          | Descripción                          | Response |
-| ------ | --------------------------------------------- | ------------------------------------ | -------- |
-| `GET`  | `/api/files/submission/:submissionId`         | Listar archivos de la submission     | 200      |
-| `POST` | `/api/files/submission/:submissionId/request-upload`  | Obtener URL SAS de escritura | 200  |
-| `POST` | `/api/files/submission/:submissionId/confirm-upload`  | Confirmar subida y crear registro | 201 |
+| Método | Ruta                                                 | Descripción                       | Response |
+| ------ | ---------------------------------------------------- | --------------------------------- | -------- |
+| `GET`  | `/api/files/submission/:submissionId`                | Listar archivos de la submission  | 200      |
+| `POST` | `/api/files/submission/:submissionId/request-upload` | Obtener URL SAS de escritura      | 200      |
+| `POST` | `/api/files/submission/:submissionId/confirm-upload` | Confirmar subida y crear registro | 201      |
 
 **`submissionId`**: ID numérico de la submission (string numérico, validado con regex `/^\d+$/`)
 
@@ -341,20 +342,20 @@ Body de `request-upload` y `confirm-upload` para submissions incluye `submission
 
 #### Archivo individual (`/api/files`)
 
-| Método   | Ruta                      | Descripción                          | Response |
-| -------- | ------------------------- | ------------------------------------ | -------- |
-| `GET`    | `/api/files/:uuid/preview`   | URL SAS de lectura inline (preview) | 200      |
-| `GET`    | `/api/files/:uuid/download`  | URL SAS de lectura con attachment   | 200      |
-| `DELETE` | `/api/files/:uuid`           | Soft delete (status → DELETED)      | 200      |
+| Método   | Ruta                        | Descripción                         | Response |
+| -------- | --------------------------- | ----------------------------------- | -------- |
+| `GET`    | `/api/files/:uuid/preview`  | URL SAS de lectura inline (preview) | 200      |
+| `GET`    | `/api/files/:uuid/download` | URL SAS de lectura con attachment   | 200      |
+| `DELETE` | `/api/files/:uuid`          | Soft delete (status → DELETED)      | 200      |
 
 ### Almacenamiento en Blob: blobPath
 
 La ruta en Azure Blob Storage organiza los archivos por subdominio, propietario y tipo:
 
-| Subdominio  | Formato                                                  | Ejemplo                                               |
-| ----------- | -------------------------------------------------------- | ----------------------------------------------------- |
-| Badge       | `BADGE/{badgeType}/{uuid}-{sanitizedName}`               | `BADGE/CARBON_INVENTORY/a1b2-badge.svg`               |
-| Submission  | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/ATTACHMENT/a1b2-reporte.pdf` |
+| Subdominio | Formato                                                                 | Ejemplo                                     |
+| ---------- | ----------------------------------------------------------------------- | ------------------------------------------- |
+| Badge      | `BADGE/{badgeType}/{uuid}-{sanitizedName}`                              | `BADGE/CARBON_INVENTORY/a1b2-badge.svg`     |
+| Submission | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/ATTACHMENT/a1b2-reporte.pdf` |
 
 - `{sanitizedName}`: nombre original con caracteres especiales reemplazados por `_`
 - El `blobPath` se guarda en la base de datos; la URL completa se reconstruye en runtime mediante SAS
@@ -387,11 +388,13 @@ module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if
 1. **Asegurarse de pertenecer al grupo Azure AD** configurado en `AZURE_SUBSCRIPTION_GROUP`
 
 2. **Iniciar sesión con Azure CLI**:
+
    ```bash
    az login
    ```
 
 3. **Configurar variables en `.envrc`**:
+
    ```bash
    export AZURE_STORAGE_ACCOUNT_NAME="nombre-de-tu-cuenta"
    export AZURE_STORAGE_CONTAINER_NAME="files"
@@ -410,6 +413,7 @@ module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if
 **No se requieren cambios en los scripts de deployment** (`deploy.sh`, `deploy-api.sh`).
 
 La infraestructura de Bicep maneja todo:
+
 - `storage.bicep` crea el contenedor `files`
 - `storageRoleAssignment.bicep` asigna el rol RBAC al App Service (y opcionalmente al grupo de desarrolladores)
 - `appService.bicep` inyecta las variables de entorno `AZURE_STORAGE_ACCOUNT_NAME` y `AZURE_STORAGE_CONTAINER_NAME`
@@ -420,37 +424,37 @@ La infraestructura de Bicep maneja todo:
 
 ### Archivos Creados
 
-| Archivo | Propósito |
-| ------- | --------- |
-| `infra/modules/storageRoleAssignment.bicep` | RBAC: App Service → Storage |
-| `apps/api/src/plugins/app/blobStoragePlugin.ts` | Plugin de Fastify para blob storage |
-| `apps/api/src/features/files/shared/buildBlobPath.ts` | Construcción de rutas de blob |
-| `apps/api/src/features/files/shared/errors.ts` | Errores de dominio |
-| `apps/api/src/features/files/shared/mappers.ts` | Prisma → API response |
-| `apps/api/src/features/files/shared/sasHelper.ts` | Generación de URLs SAS (User Delegation) |
-| `apps/api/src/features/files/shared/persistFileRecord.ts` | Helper transaccional para confirm-upload |
-| `apps/api/src/features/files/badges/` | Subdomain badges (helpers, plugin, routes) |
-| `apps/api/src/features/files/submissions/` | Subdomain submissions (helpers, plugin, routes) |
-| `apps/api/src/features/files/downloadFile/` | Feature: descargar archivo (SAS) |
-| `apps/api/src/features/files/previewFile/` | Feature: previsualizar archivo (SAS) |
-| `apps/api/src/features/files/deleteFile/` | Feature: eliminar archivo (soft delete) |
-| `apps/api/src/routes/api/files/index.ts` | Registro de rutas con prefijos /badge y /submission |
-| `packages/types/src/files/badges/` | Schemas Zod y tipos para badges |
-| `packages/types/src/files/submissions/` | Schemas Zod y tipos para submissions |
+| Archivo                                                   | Propósito                                           |
+| --------------------------------------------------------- | --------------------------------------------------- |
+| `infra/modules/storageRoleAssignment.bicep`               | RBAC: App Service → Storage                         |
+| `apps/api/src/plugins/app/blobStoragePlugin.ts`           | Plugin de Fastify para blob storage                 |
+| `apps/api/src/features/files/shared/buildBlobPath.ts`     | Construcción de rutas de blob                       |
+| `apps/api/src/features/files/shared/errors.ts`            | Errores de dominio                                  |
+| `apps/api/src/features/files/shared/mappers.ts`           | Prisma → API response                               |
+| `apps/api/src/features/files/shared/sasHelper.ts`         | Generación de URLs SAS (User Delegation)            |
+| `apps/api/src/features/files/shared/persistFileRecord.ts` | Helper transaccional para confirm-upload            |
+| `apps/api/src/features/files/badges/`                     | Subdomain badges (helpers, plugin, routes)          |
+| `apps/api/src/features/files/submissions/`                | Subdomain submissions (helpers, plugin, routes)     |
+| `apps/api/src/features/files/downloadFile/`               | Feature: descargar archivo (SAS)                    |
+| `apps/api/src/features/files/previewFile/`                | Feature: previsualizar archivo (SAS)                |
+| `apps/api/src/features/files/deleteFile/`                 | Feature: eliminar archivo (soft delete)             |
+| `apps/api/src/routes/api/files/index.ts`                  | Registro de rutas con prefijos /badge y /submission |
+| `packages/types/src/files/badges/`                        | Schemas Zod y tipos para badges                     |
+| `packages/types/src/files/submissions/`                   | Schemas Zod y tipos para submissions                |
 
 ### Archivos Modificados
 
-| Archivo | Cambio |
-| ------- | ------ |
-| `packages/database/src/prisma/schema.prisma` | Modelos `File`, `Badge`, `SubmissionFile` + enums |
-| `infra/modules/storage.bicep` | Blob service + contenedor `files` |
-| `infra/modules/appService.bicep` | Parámetro `storageAccountName` + app settings |
-| `infra/main.bicep` | Módulo `storageRoleAssignment` + storage name |
-| `apps/api/src/config/environment.ts` | Variables `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME` |
-| `apps/api/src/types/fastify.ts` | Augment `FastifyInstance` con `blobStorage`, `blobServiceClient` |
-| `packages/types/src/files/baseSchemas.ts` | `FileTypeSchema`, `BadgeTypeSchema`, `SubmissionFileTypeSchema`, `BadgeStatusSchema` |
-| `packages/types/src/files/index.ts` | Re-exports de subdomains badges y submissions |
-| `.envrc.template` | Variables de storage para desarrollo local |
+| Archivo                                      | Cambio                                                                               |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `packages/database/src/prisma/schema.prisma` | Modelos `File`, `Badge`, `SubmissionFile` + enums                                    |
+| `infra/modules/storage.bicep`                | Blob service + contenedor `files`                                                    |
+| `infra/modules/appService.bicep`             | Parámetro `storageAccountName` + app settings                                        |
+| `infra/main.bicep`                           | Módulo `storageRoleAssignment` + storage name                                        |
+| `apps/api/src/config/environment.ts`         | Variables `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`               |
+| `apps/api/src/types/fastify.ts`              | Augment `FastifyInstance` con `blobStorage`, `blobServiceClient`                     |
+| `packages/types/src/files/baseSchemas.ts`    | `FileTypeSchema`, `BadgeTypeSchema`, `SubmissionFileTypeSchema`, `BadgeStatusSchema` |
+| `packages/types/src/files/index.ts`          | Re-exports de subdomains badges y submissions                                        |
+| `.envrc.template`                            | Variables de storage para desarrollo local                                           |
 
 ---
 

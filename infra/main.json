@@ -19,10 +19,7 @@
     },
     "keyVaultSkuName": {
       "type": "string",
-      "allowedValues": [
-        "standard",
-        "premium"
-      ],
+      "allowedValues": ["standard", "premium"],
       "metadata": {
         "description": "Key Vault SKU"
       }
@@ -44,10 +41,7 @@
     "storageNetworkAclDefaultAction": {
       "type": "string",
       "defaultValue": "Deny",
-      "allowedValues": [
-        "Allow",
-        "Deny"
-      ],
+      "allowedValues": ["Allow", "Deny"],
       "metadata": {
         "description": "Storage Account network ACL default action. Use Allow for development, Deny for production."
       }
@@ -72,11 +66,7 @@
     },
     "dbSkuTier": {
       "type": "string",
-      "allowedValues": [
-        "Burstable",
-        "GeneralPurpose",
-        "MemoryOptimized"
-      ],
+      "allowedValues": ["Burstable", "GeneralPurpose", "MemoryOptimized"],
       "metadata": {
         "description": "Database SKU tier"
       }
@@ -99,10 +89,7 @@
     },
     "dbGeoRedundantBackup": {
       "type": "string",
-      "allowedValues": [
-        "Enabled",
-        "Disabled"
-      ],
+      "allowedValues": ["Enabled", "Disabled"],
       "metadata": {
         "description": "Enable geo-redundant backup"
       }
@@ -149,10 +136,7 @@
     },
     "staticWebAppSkuName": {
       "type": "string",
-      "allowedValues": [
-        "Free",
-        "Standard"
-      ],
+      "allowedValues": ["Free", "Standard"],
       "metadata": {
         "description": "SKU tier for Azure Static Web Apps (Free or Standard)"
       }
@@ -188,12 +172,7 @@
     "staticWebAppProvider": {
       "type": "string",
       "defaultValue": "GitHub",
-      "allowedValues": [
-        "GitHub",
-        "GitLab",
-        "Bitbucket",
-        "Custom"
-      ],
+      "allowedValues": ["GitHub", "GitLab", "Bitbucket", "Custom"],
       "metadata": {
         "description": "Git provider type (GitHub, GitLab, Bitbucket, or Custom for manual deployment)"
       }
@@ -235,10 +214,7 @@
     },
     "frontDoorSkuName": {
       "type": "string",
-      "allowedValues": [
-        "Standard_AzureFrontDoor",
-        "Premium_AzureFrontDoor"
-      ],
+      "allowedValues": ["Standard_AzureFrontDoor", "Premium_AzureFrontDoor"],
       "metadata": {
         "description": "SKU for Azure Front Door"
       }
@@ -260,10 +236,7 @@
     "frontDoorWafMode": {
       "type": "string",
       "defaultValue": "Detection",
-      "allowedValues": [
-        "Prevention",
-        "Detection"
-      ],
+      "allowedValues": ["Prevention", "Detection"],
       "metadata": {
         "description": "WAF protection mode: Prevention blocks threats, Detection only logs"
       }
@@ -287,11 +260,7 @@
     "acrSku": {
       "type": "string",
       "defaultValue": "Basic",
-      "allowedValues": [
-        "Basic",
-        "Standard",
-        "Premium"
-      ],
+      "allowedValues": ["Basic", "Standard", "Premium"],
       "metadata": {
         "description": "Container Registry SKU tier"
       }
@@ -873,9 +842,7 @@
           }
         }
       },
-      "dependsOn": [
-        "keyVault"
-      ]
+      "dependsOn": ["keyVault"]
     },
     "staticWebApp": {
       "type": "Microsoft.Resources/deployments",
@@ -943,10 +910,7 @@
             "skuName": {
               "type": "string",
               "defaultValue": "Free",
-              "allowedValues": [
-                "Free",
-                "Standard"
-              ],
+              "allowedValues": ["Free", "Standard"],
               "metadata": {
                 "description": "SKU tier for Azure Static Web Apps"
               }
@@ -1106,11 +1070,7 @@
             "acrSku": {
               "type": "string",
               "defaultValue": "Basic",
-              "allowedValues": [
-                "Basic",
-                "Standard",
-                "Premium"
-              ],
+              "allowedValues": ["Basic", "Standard", "Premium"],
               "metadata": {
                 "description": "Container Registry SKU tier"
               }
@@ -1354,9 +1314,7 @@
                   "linuxFxVersion": "[parameters('linuxFxVersion')]",
                   "acrUseManagedIdentityCreds": "[parameters('useAcrManagedIdentity')]",
                   "cors": {
-                    "allowedOrigins": [
-                      "[parameters('allowedOrigin')]"
-                    ],
+                    "allowedOrigins": ["[parameters('allowedOrigin')]"],
                     "supportCredentials": true
                   },
                   "appSettings": "[concat(createArray(createObject('name', 'API_PORT', 'value', '8080'), createObject('name', 'WEBSITES_PORT', 'value', '8080'), createObject('name', 'LOG_LEVEL', 'value', 'info'), createObject('name', 'SCM_DO_BUILD_DURING_DEPLOYMENT', 'value', 'false'), createObject('name', 'ALLOWED_ORIGIN', 'value', parameters('allowedOrigin')), createObject('name', 'DATABASE_URL', 'value', format('postgresql://{0}:{1}@{2}:5432/{3}?sslmode=require', parameters('databaseUser'), parameters('databasePassword'), parameters('databaseHost'), parameters('databaseName')))), if(not(equals(parameters('storageAccountName'), '')), createArray(createObject('name', 'AZURE_STORAGE_ACCOUNT_NAME', 'value', parameters('storageAccountName')), createObject('name', 'AZURE_STORAGE_CONTAINER_NAME', 'value', 'files')), createArray()), if(parameters('enableAzureAuth'), createArray(createObject('name', 'AZURE_EXTERNAL_TENANT_ID', 'value', parameters('azureAuthExternalTenantId')), createObject('name', 'AZURE_API_CLIENT_ID', 'value', parameters('azureAuthClientId')), createObject('name', 'AUTH_PROVIDER', 'value', 'easy-auth')), createArray()))]"
@@ -1470,10 +1428,7 @@
           ]
         }
       },
-      "dependsOn": [
-        "acr",
-        "appService"
-      ]
+      "dependsOn": ["acr", "appService"]
     },
     "appServiceStorageBlobContributor": {
       "type": "Microsoft.Resources/deployments",
@@ -1518,10 +1473,7 @@
             "principalType": {
               "type": "string",
               "defaultValue": "ServicePrincipal",
-              "allowedValues": [
-                "ServicePrincipal",
-                "Group"
-              ],
+              "allowedValues": ["ServicePrincipal", "Group"],
               "metadata": {
                 "description": "Principal type: ServicePrincipal for managed identities, Group for Azure AD groups"
               }
@@ -1542,10 +1494,7 @@
           ]
         }
       },
-      "dependsOn": [
-        "appService",
-        "storage"
-      ]
+      "dependsOn": ["appService", "storage"]
     },
     "devGroupStorageBlobContributor": {
       "condition": "[and(parameters('enableDevGroupStorageAccess'), not(equals(parameters('devGroupObjectId'), '')))]",
@@ -1594,10 +1543,7 @@
             "principalType": {
               "type": "string",
               "defaultValue": "ServicePrincipal",
-              "allowedValues": [
-                "ServicePrincipal",
-                "Group"
-              ],
+              "allowedValues": ["ServicePrincipal", "Group"],
               "metadata": {
                 "description": "Principal type: ServicePrincipal for managed identities, Group for Azure AD groups"
               }
@@ -1618,9 +1564,7 @@
           ]
         }
       },
-      "dependsOn": [
-        "storage"
-      ]
+      "dependsOn": ["storage"]
     },
     "frontDoor": {
       "condition": "[parameters('enableFrontDoor')]",
@@ -1707,10 +1651,7 @@
             "wafMode": {
               "type": "string",
               "defaultValue": "Detection",
-              "allowedValues": [
-                "Prevention",
-                "Detection"
-              ],
+              "allowedValues": ["Prevention", "Detection"],
               "metadata": {
                 "description": "WAF mode: Prevention blocks attacks, Detection only logs"
               }
@@ -1768,9 +1709,7 @@
                           "matchVariable": "RemoteAddr",
                           "operator": "IPMatch",
                           "negateCondition": false,
-                          "matchValue": [
-                            "0.0.0.0/0"
-                          ]
+                          "matchValue": ["0.0.0.0/0"]
                         }
                       ],
                       "action": "Block"
@@ -1843,13 +1782,8 @@
                 "originGroup": {
                   "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', variables('frontDoorProfileName'), 'origin-group-swa')]"
                 },
-                "supportedProtocols": [
-                  "Http",
-                  "Https"
-                ],
-                "patternsToMatch": [
-                  "/*"
-                ],
+                "supportedProtocols": ["Http", "Https"],
+                "patternsToMatch": ["/*"],
                 "forwardingProtocol": "HttpsOnly",
                 "linkToDefaultDomain": "Enabled",
                 "httpsRedirect": "Enabled",
@@ -1907,9 +1841,7 @@
                   "associations": [
                     {
                       "domains": "[concat(createArray(createObject('id', resourceId('Microsoft.Cdn/profiles/afdEndpoints', variables('frontDoorProfileName'), format('endpoint-{0}', uniqueString(resourceGroup().id))))), if(not(equals(parameters('customDomainName'), '')), createArray(createObject('id', resourceId('Microsoft.Cdn/profiles/customDomains', variables('frontDoorProfileName'), replace(parameters('customDomainName'), '.', '-')))), createArray()))]",
-                      "patternsToMatch": [
-                        "/*"
-                      ]
+                      "patternsToMatch": ["/*"]
                     }
                   ]
                 }
@@ -1962,9 +1894,7 @@
           }
         }
       },
-      "dependsOn": [
-        "staticWebApp"
-      ]
+      "dependsOn": ["staticWebApp"]
     },
     "azureAuth": {
       "condition": "[parameters('enableAzureAuth')]",
@@ -2161,9 +2091,7 @@
           }
         }
       },
-      "dependsOn": [
-        "keyVault"
-      ]
+      "dependsOn": ["keyVault"]
     }
   },
   "outputs": {
