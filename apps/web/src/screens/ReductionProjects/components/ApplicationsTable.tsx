@@ -48,12 +48,10 @@ const getStatusConfig = (
         bgColor: "rgba(211, 47, 47, 0.3)",
         textColor: "#8B0000",
       };
-    default:
-      return {
-        label: status,
-        bgColor: "rgba(158, 158, 158, 0.3)",
-        textColor: "#616161",
-      };
+    default: {
+      const _exhaustive: never = status;
+      throw new Error(`Unhandled status: ${_exhaustive}`);
+    }
   }
 };
 

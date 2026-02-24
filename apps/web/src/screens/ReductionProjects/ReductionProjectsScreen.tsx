@@ -58,28 +58,23 @@ export const ReductionProjectsScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState("2024");
   const [selectedBranch, setSelectedBranch] = useState("1");
 
-  const handleYearChange = (year: string) => {
-    setSelectedYear(year);
+  const handleYearChange = setSelectedYear;
+  const handleBranchChange = setSelectedBranch;
+
+  const handleEditProject = (_project: ReductionProject) => {
+    // TODO: Implement edit project navigation
   };
 
-  const handleBranchChange = (branchId: string) => {
-    setSelectedBranch(branchId);
+  const handleDownloadProject = (_project: ReductionProject) => {
+    // TODO: Implement project download
   };
 
-  const handleEditProject = (project: ReductionProject) => {
-    console.log("Edit project:", project);
-  };
-
-  const handleDownloadProject = (project: ReductionProject) => {
-    console.log("Download project:", project);
-  };
-
-  const handleDownloadApplication = (application: SealApplication) => {
-    console.log("Download application:", application);
+  const handleDownloadApplication = (_application: SealApplication) => {
+    // TODO: Implement application download
   };
 
   const handleApplyForSeal = () => {
-    console.log("Apply for seal");
+    // TODO: Implement seal application flow
   };
 
   const handleAddProject = () => {

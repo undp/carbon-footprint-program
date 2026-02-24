@@ -1,19 +1,11 @@
 import { FC } from "react";
 import { Control, UseFormWatch } from "react-hook-form";
-import {
-  Box,
-  Typography,
-  Divider,
-  Alert,
-  TextField,
-} from "@mui/material";
+import { Box, Typography, TextField } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import { FormTextField } from "@/components/form/FormTextField";
 import { FormSelectField } from "@/components/form/FormSelectField";
 import { InfoButton } from "@/components/InfoButton";
-import { AddReductionProjectFormData } from "../types";
-
-type SelectOption = { value: string; label: string };
+import { AddReductionProjectFormData, SelectOption } from "../types";
 
 type ReductionReportSectionProps = {
   control: Control<AddReductionProjectFormData>;
@@ -21,16 +13,6 @@ type ReductionReportSectionProps = {
   years: SelectOption[];
   calculatedReduction: number;
 };
-
-const summaryHeaders = [
-  "Año reducción relativo",
-  "Año reducción absoluto",
-  "Línea base tCO\u2082e",
-  "Proyecto tCO\u2082e",
-  "Fugas de carbono tCO\u2082e",
-  "Remociones tCO\u2082e",
-  "Reducción/Remoción tCO\u2082e",
-];
 
 const inputFields: {
   name: keyof AddReductionProjectFormData;
@@ -41,26 +23,14 @@ const inputFields: {
   {
     name: "baselineValue",
     label: "tCO\u2082e",
-    headerLabel: "Línea base",
-    tooltip: "Ingrese el valor de línea base",
+    headerLabel: "Escenario base",
+    tooltip: "Ingrese el valor del escenario base",
   },
   {
     name: "projectValue",
     label: "tCO\u2082e",
-    headerLabel: "Proyecto",
-    tooltip: "Ingrese el valor del proyecto",
-  },
-  {
-    name: "carbonLeakage",
-    label: "tCO\u2082e",
-    headerLabel: "Fugas de carbono",
-    tooltip: "Ingrese el valor de fugas de carbono",
-  },
-  {
-    name: "removals",
-    label: "tCO\u2082e",
-    headerLabel: "Remociones",
-    tooltip: "Ingrese el valor de remociones",
+    headerLabel: "Escenario proyecto",
+    tooltip: "Ingrese el valor del escenario proyecto",
   },
 ];
 
@@ -75,85 +45,56 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
 
   return (
     <Box className="flex flex-col gap-4">
-      <Divider sx={{ opacity: 0.2 }} />
       <Box className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
         <Typography variant="body1" sx={{ fontSize: 18 }}>
           Reporte de reducciones/remociones - {displayName}
         </Typography>
-        <Alert
-          icon={<InfoOutlined />}
-          severity="info"
+        <Box
           sx={{
-            height: 40,
-            bgcolor: "info.light",
-            color: "info.dark",
-            "& .MuiAlert-icon": {
-              color: "info.dark",
-            },
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            px: 3,
+            py: 1,
+            borderRadius: "4px",
+            bgcolor: "rgba(2, 136, 209, 0.1)",
           }}
         >
-          Todos los valores que se ingresan deben ser en Valor Absoluto
-        </Alert>
-      </Box>
-
-      {/* Summary Table */}
-      <Box
-        className="overflow-x-auto rounded border"
-        sx={{ borderColor: "divider" }}
-      >
-        <Box className="flex" sx={{ minWidth: 700 }}>
-          {summaryHeaders.map((header, index) => (
-            <Box
-              key={index}
-              className="flex flex-1 items-center justify-center border-b px-4 py-4"
-              sx={{
-                borderColor: "divider",
-                minHeight: 56,
-                bgcolor: "action.hover",
-              }}
-            >
-              <Typography
-                sx={{ fontWeight: 500, fontSize: 16, textAlign: "center" }}
-              >
-                {header}
-              </Typography>
-            </Box>
-          ))}
-        </Box>
-        <Box className="flex" sx={{ minWidth: 700, bgcolor: "background.paper" }}>
-          {Array(7)
-            .fill("-")
-            .map((value, index) => (
-              <Box
-                key={index}
-                className="flex flex-1 items-center justify-center border-b p-4"
-                sx={{ borderColor: "divider", minHeight: 72 }}
-              >
-                <Typography sx={{ textAlign: "center" }}>{value}</Typography>
-              </Box>
-            ))}
+          <InfoOutlined sx={{ color: "#01579b", fontSize: 20 }} />
+          <Typography sx={{ color: "#01579b", fontSize: 14 }}>
+            Todos los valores que se ingresan deben ser en Valor Absoluto
+          </Typography>
         </Box>
       </Box>
 
       {/* Input Table */}
       <Box
         className="overflow-x-auto rounded border"
-        sx={{ borderColor: "divider" }}
+        sx={{
+          borderColor: "divider",
+          "& .MuiFormControl-root": { minHeight: "unset" },
+        }}
       >
-        <Box className="flex" sx={{ minWidth: 700 }}>
+        <Box className="flex" sx={{ minWidth: 600 }}>
           {/* Year selector column */}
           <Box className="flex flex-1 flex-col">
             <Box
               className="flex items-center gap-2 border-b px-2"
-              sx={{ borderColor: "divider", height: 40, bgcolor: "action.hover" }}
+              sx={{
+                borderColor: "divider",
+                height: 40,
+                bgcolor: "action.hover",
+              }}
             >
-              <Typography sx={{ fontWeight: 500, fontSize: 16 }}>
+              <Typography
+                sx={{ fontWeight: 500, fontSize: 16, whiteSpace: "nowrap" }}
+              >
                 Año de reducción
               </Typography>
               <InfoButton label="Seleccione el año de reducción" />
             </Box>
             <Box
-              className="flex items-center justify-center border-b p-4"
+              className="flex items-center border-b p-4"
               sx={{ borderColor: "divider", bgcolor: "background.paper" }}
             >
               <FormSelectField
@@ -161,7 +102,6 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
                 control={control}
                 label="Año"
                 options={years}
-                required
                 size="small"
               />
             </Box>
@@ -178,7 +118,13 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
                   bgcolor: "action.hover",
                 }}
               >
-                <Typography sx={{ fontWeight: 500, fontSize: 16 }}>
+                <Typography
+                  sx={{
+                    fontWeight: 500,
+                    fontSize: 16,
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   {field.headerLabel}
                 </Typography>
                 <InfoButton label={field.tooltip} />
@@ -206,10 +152,16 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
           <Box className="flex flex-1 flex-col">
             <Box
               className="flex items-center gap-2 border-b px-2"
-              sx={{ borderColor: "divider", height: 40, bgcolor: "action.hover" }}
+              sx={{
+                borderColor: "divider",
+                height: 40,
+                bgcolor: "action.hover",
+              }}
             >
-              <Typography sx={{ fontWeight: 500, fontSize: 16 }}>
-                Reducción/Remoción
+              <Typography
+                sx={{ fontWeight: 500, fontSize: 16, whiteSpace: "nowrap" }}
+              >
+                Reducción
               </Typography>
               <InfoButton label="Valor calculado automáticamente" />
             </Box>
@@ -217,7 +169,6 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
               className="flex items-center justify-center border-b p-4"
               sx={{
                 borderColor: "divider",
-                minHeight: 72,
                 bgcolor: "background.paper",
               }}
             >

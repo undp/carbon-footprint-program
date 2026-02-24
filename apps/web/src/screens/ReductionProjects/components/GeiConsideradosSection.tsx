@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import { AddReductionProjectFormData, GreenhouseGas } from "../types";
 
-// Lista de gases de efecto invernadero - fácil de editar
 const GREENHOUSE_GASES: {
   value: GreenhouseGas;
   label: string;
@@ -26,10 +25,6 @@ const GREENHOUSE_GASES: {
   { value: "NF3", label: "NF3" },
 ];
 
-// Dividir los gases en dos columnas
-const GASES_COLUMN_1 = GREENHOUSE_GASES.slice(0, 3);
-const GASES_COLUMN_2 = GREENHOUSE_GASES.slice(3);
-
 type GeiConsideradosSectionProps = {
   control: Control<AddReductionProjectFormData>;
 };
@@ -39,7 +34,7 @@ export const GeiConsideradosSection: FC<GeiConsideradosSectionProps> = ({
 }) => {
   return (
     <Box className="flex flex-col gap-4">
-      <Typography variant="body1" sx={{ fontSize: 18, color: "text.primary" }}>
+      <Typography sx={{ fontSize: 16, color: "text.primary" }}>
         GEI Considerados
       </Typography>
 
@@ -53,17 +48,15 @@ export const GeiConsideradosSection: FC<GeiConsideradosSectionProps> = ({
       >
         <Table>
           <TableHead>
-            <TableRow
-              sx={{
-                bgcolor: "action.hover",
-              }}
-            >
+            <TableRow sx={{ bgcolor: "background.paper" }}>
               <TableCell
                 sx={{
                   fontWeight: 500,
                   fontSize: 16,
                   color: "text.primary",
-                  width: "50%",
+                  borderBottom: "1px solid",
+                  borderColor: "divider",
+                  height: 72,
                 }}
               >
                 GEI
@@ -74,26 +67,9 @@ export const GeiConsideradosSection: FC<GeiConsideradosSectionProps> = ({
                   fontSize: 16,
                   color: "text.primary",
                   textAlign: "center",
-                }}
-              >
-                Selección
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 500,
-                  fontSize: 16,
-                  color: "text.primary",
-                  width: "50%",
-                }}
-              >
-                GEI
-              </TableCell>
-              <TableCell
-                sx={{
-                  fontWeight: 500,
-                  fontSize: 16,
-                  color: "text.primary",
-                  textAlign: "center",
+                  borderBottom: "1px solid",
+                  borderColor: "divider",
+                  height: 72,
                 }}
               >
                 Selección
@@ -101,97 +77,53 @@ export const GeiConsideradosSection: FC<GeiConsideradosSectionProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {GASES_COLUMN_1.map((gas1, index) => {
-              const gas2 = GASES_COLUMN_2[index];
-              return (
-                <TableRow
-                  key={gas1.value}
+            {GREENHOUSE_GASES.map((gas) => (
+              <TableRow
+                key={gas.value}
+                sx={{
+                  "&:last-child td": { border: 0 },
+                  bgcolor: "background.paper",
+                }}
+              >
+                <TableCell
                   sx={{
-                    "&:last-child td": { border: 0 },
-                    bgcolor: "background.paper",
+                    fontSize: 16,
+                    color: "text.primary",
+                    borderBottom: "1px solid",
+                    borderColor: "divider",
+                    height: 56,
+                    py: 0,
                   }}
                 >
-                  {/* First column gas */}
-                  <TableCell
-                    sx={{
-                      fontSize: 16,
-                      color: "text.primary",
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    {gas1.label}
-                  </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: "center",
-                      borderBottom: "1px solid",
-                      borderColor: "divider",
-                    }}
-                  >
-                    <Controller
-                      name="selectedGases"
-                      control={control}
-                      render={({ field }) => (
-                        <Checkbox
-                          checked={field.value.includes(gas1.value)}
-                          onChange={(e) => {
-                            const newValue = e.target.checked
-                              ? [...field.value, gas1.value]
-                              : field.value.filter((g) => g !== gas1.value);
-                            field.onChange(newValue);
-                          }}
-                        />
-                      )}
-                    />
-                  </TableCell>
-
-                  {/* Second column gas */}
-                  {gas2 ? (
-                    <>
-                      <TableCell
-                        sx={{
-                          fontSize: 16,
-                          color: "text.primary",
-                          borderBottom: "1px solid",
-                          borderColor: "divider",
+                  {gas.label}
+                </TableCell>
+                <TableCell
+                  sx={{
+                    textAlign: "center",
+                    borderBottom: "1px solid",
+                    borderColor: "divider",
+                    height: 56,
+                    py: 0,
+                  }}
+                >
+                  <Controller
+                    name="selectedGases"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        checked={field.value.includes(gas.value)}
+                        onChange={(e) => {
+                          const newValue = e.target.checked
+                            ? [...field.value, gas.value]
+                            : field.value.filter((g) => g !== gas.value);
+                          field.onChange(newValue);
                         }}
-                      >
-                        {gas2.label}
-                      </TableCell>
-                      <TableCell
-                        sx={{
-                          textAlign: "center",
-                          borderBottom: "1px solid",
-                          borderColor: "divider",
-                        }}
-                      >
-                        <Controller
-                          name="selectedGases"
-                          control={control}
-                          render={({ field }) => (
-                            <Checkbox
-                              checked={field.value.includes(gas2.value)}
-                              onChange={(e) => {
-                                const newValue = e.target.checked
-                                  ? [...field.value, gas2.value]
-                                  : field.value.filter((g) => g !== gas2.value);
-                                field.onChange(newValue);
-                              }}
-                            />
-                          )}
-                        />
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }} />
-                      <TableCell sx={{ borderBottom: "1px solid", borderColor: "divider" }} />
-                    </>
-                  )}
-                </TableRow>
-              );
-            })}
+                      />
+                    )}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

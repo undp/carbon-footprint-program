@@ -1,11 +1,9 @@
 import { FC } from "react";
-import { Control, Controller } from "react-hook-form";
-import { Box, Checkbox, FormControlLabel, Typography } from "@mui/material";
+import { Control } from "react-hook-form";
+import { Box, Typography } from "@mui/material";
 import { FormTextField } from "@/components/form/FormTextField";
 import { FormSelectField } from "@/components/form/FormSelectField";
-import { AddReductionProjectFormData } from "../types";
-
-type SelectOption = { value: string; label: string };
+import { AddReductionProjectFormData, SelectOption } from "../types";
 
 type ProjectIdentificationFormProps = {
   control: Control<AddReductionProjectFormData>;
@@ -42,8 +40,15 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
       </Box>
 
       {/* Row 2: Implementation Date and Emission Subcategory */}
-      <Box className="flex flex-col gap-6 md:flex-row">
-        <Box className="flex flex-1 flex-col gap-6">
+      <Box
+        sx={{
+          display: { xs: "flex", md: "grid" },
+          gridTemplateColumns: { md: "1fr 1fr" },
+          flexDirection: "column",
+          gap: "24px",
+        }}
+      >
+        <Box className="flex flex-col gap-6">
           <FormTextField
             name="implementationDate"
             control={control}
@@ -67,16 +72,28 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
           label="Descripción del proyecto"
           placeholder="Ingresa la descripción"
           multiline
-          rows={5}
+          rows={6}
           required
           inputProps={{ maxLength: 1000 }}
-          sx={{ flex: 1 }}
+          sx={{
+            "& .MuiInputBase-root": {
+              paddingTop: "10px",
+              paddingBottom: "10px",
+            },
+          }}
         />
       </Box>
 
       {/* Row 3: PCG Selection and Info Banner */}
       <Box className="flex flex-col gap-6">
-        <Box className="flex flex-col gap-6 md:flex-row">
+        <Box
+          sx={{
+            display: { xs: "flex", md: "grid" },
+            gridTemplateColumns: { md: "1fr 1fr" },
+            flexDirection: "column",
+            gap: "24px",
+          }}
+        >
           <FormSelectField
             name="pcg"
             control={control}
@@ -86,11 +103,11 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
           />
           <Box
             sx={{
-              flex: 1,
               display: "flex",
               alignItems: "center",
+              height: 56,
               gap: 1,
-              padding: 1,
+              padding: 2,
               borderRadius: 1,
               background:
                 "linear-gradient(90deg, rgba(86, 245, 141, 0.2) 0%, rgba(99, 228, 207, 0.2) 100%)",
@@ -133,39 +150,6 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
           </Box>
         </Box>
 
-        {/* Checkboxes */}
-        <Box className="flex flex-col gap-4 md:flex-row md:gap-6">
-          <Controller
-            name="reportedInOtherInitiative"
-            control={control}
-            render={({ field }) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                }
-                label="Se ha reportado en otra iniciativa"
-              />
-            )}
-          />
-          <Controller
-            name="includedInNDC"
-            control={control}
-            render={({ field }) => (
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={field.value}
-                    onChange={field.onChange}
-                  />
-                }
-                label="Se ha incorporado en meta nacional como mitigación del NDC"
-              />
-            )}
-          />
-        </Box>
       </Box>
     </Box>
   );

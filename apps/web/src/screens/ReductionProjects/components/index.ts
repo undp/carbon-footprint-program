@@ -4,5 +4,6 @@ export { ApplicationsTable } from "./ApplicationsTable";
 export { OrganizationInfoSection } from "./OrganizationInfoSection";
 export { ProjectIdentificationForm } from "./ProjectIdentificationForm";
 export { GeiConsideradosSection } from "./GeiConsideradosSection";
+export { ReportedInitiativeSection } from "./ReportedInitiativeSection";
 export { ReductionReportSection } from "./ReductionReportSection";
 export { FileUploadSection } from "./FileUploadSection";

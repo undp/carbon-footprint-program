@@ -1,11 +1,6 @@
 import { FC } from "react";
 import { Box, Typography, Divider } from "@mui/material";
-
-type OrganizationInfo = {
-  legalName: string;
-  rut: string;
-  legalRepresentative: string;
-};
+import { OrganizationInfo } from "../types";
 
 type OrganizationInfoSectionProps = {
   organizationInfo: OrganizationInfo;

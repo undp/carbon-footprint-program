@@ -1,16 +1,16 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
-import { Box, Typography, Button } from "@mui/material";
+import { Box, Typography, Button, Divider } from "@mui/material";
 import { Save, ArrowBack } from "@mui/icons-material";
 import { InfoButton } from "@/components/InfoButton";
-import { MainLayout } from "@/components/layout";
 import { Routes } from "@/interfaces";
 import { AddReductionProjectFormData } from "./types";
 import {
   OrganizationInfoSection,
   ProjectIdentificationForm,
   GeiConsideradosSection,
+  ReportedInitiativeSection,
   ReductionReportSection,
   FileUploadSection,
 } from "./components";
@@ -58,34 +58,22 @@ export const AddReductionProjectScreen: FC = () => {
         emissionSubcategory: "",
         projectDescription: "",
         pcg: "",
-        reportedInOtherInitiative: false,
-        includedInNDC: false,
         selectedGases: [],
+        reportedInOtherInitiative: false,
+        otherInitiativeDescription: "",
         reductionYear: "",
         baselineValue: 0,
         projectValue: 0,
-        carbonLeakage: 0,
-        removals: 0,
-        totalReduction: 0,
       },
     });
 
   const baselineValue = watch("baselineValue");
   const projectValue = watch("projectValue");
-  const carbonLeakage = watch("carbonLeakage");
-  const removals = watch("removals");
 
-  // Calculate total reduction automatically with NaN protection
-  const calculatedReduction = useMemo(() => {
-    const baseline = Number(baselineValue) || 0;
-    const project = Number(projectValue) || 0;
-    const leakage = Number(carbonLeakage) || 0;
-    const removal = Number(removals) || 0;
-    return baseline - project - leakage + removal;
-  }, [baselineValue, projectValue, carbonLeakage, removals]);
+  const calculatedReduction =
+    (Number(baselineValue) || 0) - (Number(projectValue) || 0);
 
   const handleSaveDraft = () => {
-    console.log("Save draft");
     // TODO: Implement save draft functionality
   };
 
@@ -94,13 +82,13 @@ export const AddReductionProjectScreen: FC = () => {
   };
 
   const handleFormSubmit = (data: AddReductionProjectFormData) => {
-    console.log("Submit form", data);
     // TODO: Implement form submission
+    void data;
   };
 
   return (
-    <MainLayout>
-      <Box className="flex flex-1 flex-col gap-6 p-6">
+    <Box className="flex h-screen flex-1 overflow-y-auto px-6 py-6">
+      <Box className="flex flex-1 flex-col gap-6">
         {/* Header */}
         <Box className="flex items-center gap-4">
           <Button
@@ -118,7 +106,7 @@ export const AddReductionProjectScreen: FC = () => {
         {/* Main Content */}
         <Box className="mx-auto w-full max-w-7xl">
           <Box
-            className="flex flex-col gap-4 overflow-y-auto rounded-lg p-4"
+            className="flex flex-col gap-4 rounded-lg p-4"
             sx={{ bgcolor: "background.paper", backdropFilter: "blur(5px)" }}
           >
             {/* Title and Save Draft Button */}
@@ -154,8 +142,19 @@ export const AddReductionProjectScreen: FC = () => {
               pcgOptions={mockPCGOptions}
             />
 
-            {/* GEI Considerados Section */}
-            <GeiConsideradosSection control={control} />
+            <Divider sx={{ opacity: 0.2 }} />
+
+            {/* GEI Considerados + Reportado en otra iniciativa - Side by side */}
+            <Box className="flex flex-col gap-6 lg:flex-row">
+              <Box className="flex-1">
+                <GeiConsideradosSection control={control} />
+              </Box>
+              <Box className="flex-1">
+                <ReportedInitiativeSection control={control} />
+              </Box>
+            </Box>
+
+            <Divider sx={{ opacity: 0.2 }} />
 
             {/* Reduction Report Section */}
             <ReductionReportSection
@@ -172,14 +171,15 @@ export const AddReductionProjectScreen: FC = () => {
             <Box className="flex justify-end gap-4 pt-4">
               <Button
                 variant="outlined"
-                onClick={handleBack}
+                startIcon={<Save />}
+                onClick={handleSaveDraft}
                 sx={{
                   textTransform: "uppercase",
                   fontSize: 12,
                   fontWeight: 500,
                 }}
               >
-                Volver
+                Guardar Borrador
               </Button>
               <Button
                 variant="contained"
@@ -198,6 +198,6 @@ export const AddReductionProjectScreen: FC = () => {
           </Box>
         </Box>
       </Box>
-    </MainLayout>
+    </Box>
   );
 };

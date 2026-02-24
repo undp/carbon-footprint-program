@@ -26,6 +26,17 @@ export type Branch = {
   name: string;
 };
 
+export type SelectOption = {
+  value: string;
+  label: string;
+};
+
+export type OrganizationInfo = {
+  legalName: string;
+  rut: string;
+  legalRepresentative: string;
+};
+
 export type GreenhouseGas =
   | "CO2"
   | "CH4"
@@ -41,13 +52,10 @@ export type AddReductionProjectFormData = {
   emissionSubcategory: string;
   projectDescription: string;
   pcg: string;
-  reportedInOtherInitiative: boolean;
-  includedInNDC: boolean;
   selectedGases: GreenhouseGas[];
+  reportedInOtherInitiative: boolean;
+  otherInitiativeDescription: string;
   reductionYear: string;
   baselineValue: number;
   projectValue: number;
-  carbonLeakage: number;
-  removals: number;
-  totalReduction: number;
 };
