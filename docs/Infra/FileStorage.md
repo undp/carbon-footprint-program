@@ -2,25 +2,40 @@
 
 ## Tabla de Contenidos
 
-- [Descripción General](#descripción-general)
-- [Modelo de Datos](#modelo-de-datos)
-  - [Decisiones de Diseño](#decisiones-de-diseño)
-  - [Enums](#enums)
-  - [Tablas](#tablas)
-  - [Diagrama ER (parcial)](#diagrama-er-parcial)
-- [Infraestructura (Bicep)](#infraestructura-bicep)
-  - [Contenedor de Blobs](#contenedor-de-blobs)
-  - [RBAC y Managed Identity](#rbac-y-managed-identity)
-  - [Variables de Entorno en App Service](#variables-de-entorno-en-app-service)
-- [Backend (API)](#backend-api)
-  - [Plugin de Blob Storage](#plugin-de-blob-storage)
-  - [Autenticación: DefaultAzureCredential](#autenticación-defaultazurecredential)
-  - [Estructura de Features](#estructura-de-features)
-  - [Flujo de Subida (SAS dos pasos)](#flujo-de-subida-sas-dos-pasos)
-  - [Endpoints](#endpoints)
-  - [Almacenamiento en Blob: blobPath](#almacenamiento-en-blob-blobpath)
-- [Desarrollo Local](#desarrollo-local)
-- [Deployment](#deployment)
+- [Almacenamiento de Archivos (File Upload \& Download)](#almacenamiento-de-archivos-file-upload--download)
+  - [Tabla de Contenidos](#tabla-de-contenidos)
+  - [Descripción General](#descripción-general)
+  - [Modelo de Datos](#modelo-de-datos)
+    - [Decisiones de Diseño](#decisiones-de-diseño)
+    - [Enums](#enums)
+    - [Tablas](#tablas)
+      - [`file`](#file)
+      - [`badge` (link table)](#badge-link-table)
+      - [`submission_file` (link table)](#submission_file-link-table)
+    - [Diagrama ER (parcial)](#diagrama-er-parcial)
+  - [Infraestructura (Bicep)](#infraestructura-bicep)
+    - [Contenedor de Blobs](#contenedor-de-blobs)
+    - [RBAC y Managed Identity](#rbac-y-managed-identity)
+    - [Wiring en `main.bicep`](#wiring-en-mainbicep)
+    - [Variables de Entorno en App Service](#variables-de-entorno-en-app-service)
+  - [Backend (API)](#backend-api)
+    - [Plugin de Blob Storage](#plugin-de-blob-storage)
+    - [Autenticación: DefaultAzureCredential](#autenticación-defaultazurecredential)
+    - [Estructura de Features](#estructura-de-features)
+    - [Flujo de Subida (SAS dos pasos)](#flujo-de-subida-sas-dos-pasos)
+    - [Endpoints](#endpoints)
+      - [Badges (`/api/files/badge`)](#badges-apifilesbadge)
+      - [Submissions (`/api/files/submission`)](#submissions-apifilessubmission)
+      - [Archivo individual (`/api/files`)](#archivo-individual-apifiles)
+    - [Almacenamiento en Blob: blobPath](#almacenamiento-en-blob-blobpath)
+  - [Desarrollo Local](#desarrollo-local)
+    - [Permisos RBAC automáticos para desarrolladores](#permisos-rbac-automáticos-para-desarrolladores)
+    - [Pasos](#pasos)
+  - [Deployment](#deployment)
+  - [Archivos Involucrados](#archivos-involucrados)
+    - [Archivos Creados](#archivos-creados)
+    - [Archivos Modificados](#archivos-modificados)
+  - [Referencias](#referencias)
 
 ---
 
@@ -277,7 +292,7 @@ apps/api/src/features/files/
 │   ├── confirmUpload/         # POST /:badgeType/confirm-upload
 │   └── getFiles/              # GET /:badgeType
 ├── submissions/
-│   ├── helpers.ts             # validateSubmissionExists, createSubmissionFile, findSubmissionFileIds
+│   ├── helpers.ts             # validateSubmissionExists, persistSubmissionFileRecord
 │   ├── index.ts               # Plugin de Fastify (prefijo /submission)
 │   ├── requestUpload/         # POST /:submissionId/request-upload
 │   ├── confirmUpload/         # POST /:submissionId/confirm-upload

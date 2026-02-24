@@ -4,7 +4,7 @@ import type {
   GetSubmissionFilesQuery,
   GetSubmissionFilesResponse,
 } from "@repo/types";
-import { validateSubmissionExists, findSubmissionFileIds } from "../helpers.js";
+import { validateSubmissionExists } from "../helpers.js";
 import { mapFileToResponse } from "../../mappers.js";
 
 export const submissionGetFilesService = async (
@@ -14,20 +14,19 @@ export const submissionGetFilesService = async (
 ): Promise<GetSubmissionFilesResponse> => {
   await validateSubmissionExists(prisma, submissionId);
 
-  const fileIds = await findSubmissionFileIds(
-    prisma,
-    submissionId,
-    query?.submissionFileType
-  );
-  if (fileIds.length === 0) return [];
-
-  const files = await prisma.file.findMany({
+  const submissionFiles = await prisma.submissionFile.findMany({
     where: {
-      id: { in: fileIds },
-      status: query?.status ?? FileStatus.ACTIVE,
+      submissionId: BigInt(submissionId),
+      ...(query?.submissionFileType && { type: query.submissionFileType }),
+      file: {
+        status: query?.status ?? FileStatus.ACTIVE,
+      },
     },
-    orderBy: { createdAt: "desc" },
+    include: {
+      file: true,
+    },
+    orderBy: { file: { createdAt: "desc" } },
   });
 
-  return files.map(mapFileToResponse);
+  return submissionFiles.map((sf) => mapFileToResponse(sf.file));
 };

@@ -51,18 +51,3 @@ export async function persistSubmissionFileRecord(
 
   return mapFileToResponse(file);
 }
-
-export async function findSubmissionFileIds(
-  prisma: PrismaClient,
-  submissionId: string,
-  submissionFileType?: SubmissionFileType
-): Promise<bigint[]> {
-  const links = await prisma.submissionFile.findMany({
-    where: {
-      submissionId: BigInt(submissionId),
-      ...(submissionFileType && { type: submissionFileType }),
-    },
-    select: { fileId: true },
-  });
-  return links.map((l) => l.fileId);
-}
