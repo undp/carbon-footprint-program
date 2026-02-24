@@ -75,6 +75,12 @@ export const StylizedDataGrid = ({
       checkboxSelection={checkboxSelection}
       getRowHeight={getRowHeight}
       slotProps={slotProps}
+      localeText={{
+        paginationRowsPerPage: "Filas por página",
+        paginationDisplayedRows: ({ from, to, count }) =>
+          `${from}-${to} de ${count}`,
+        ...(props.localeText || {}),
+      }}
       {...props}
     />
   );
