@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { IdSchema } from "../index.js";
 
 export const FileTypeSchema = z.enum(["SUBMISSION", "BADGE"]);
 
@@ -8,6 +9,8 @@ export const BadgeTypeSchema = z.enum([
 ]);
 
 export const FileStatusSchema = z.enum(["ACTIVE", "DELETED"]);
+
+export const BadgeStatusSchema = z.enum(["ACTIVE", "INACTIVE"]);
 
 export const SubmissionFileTypeSchema = z.enum(["ATTACHMENT", "RECOGNITION"]);
 
@@ -19,4 +22,12 @@ export const FileSchema = z.object({
   status: FileStatusSchema.describe("The status of the file"),
   createdAt: z.iso.datetime().describe("The upload date"),
   deletedAt: z.iso.datetime().nullable().describe("The deletion date"),
+});
+
+export const BadgeSchema = z.object({
+  id: IdSchema.describe("The ID of the badge"),
+  type: BadgeTypeSchema.describe("The type of the badge"),
+  status: BadgeStatusSchema.describe("The status of the badge"),
+  file: FileSchema.describe("The file associated with the badge"),
+  createdAt: z.iso.datetime().describe("The creation date of the badge"),
 });
