@@ -15,6 +15,7 @@ import {
   OrganizationStatus,
   OrganizationDataStatus,
   MembershipStatus,
+  OrganizationRole,
 } from "@repo/database";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
@@ -180,17 +181,13 @@ describe("POST /api/app/organizations - Integration Tests", () => {
           organizationId: BigInt(body.id),
         },
         include: {
-          organizationRole: {
-            include: {
-              role: true,
-            },
-          },
+          organization: true,
         },
       });
 
       expect(membership).toBeDefined();
       expect(membership?.status).toBe(MembershipStatus.ACTIVE);
-      expect(membership?.organizationRole.role.name).toBe("ACCREDITED_MEMBER");
+      expect(membership?.role).toBe(OrganizationRole.ORGANIZATION_ADMIN);
     });
 
     it("should set createdById to current user ID on organization", async () => {
