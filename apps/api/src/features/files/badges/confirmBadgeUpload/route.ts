@@ -25,6 +25,7 @@ export const badgeConfirmUploadRoute: StandardRouteSignature = (
         body: ConfirmBadgeUploadBodySchema,
         response: {
           201: ConfirmBadgeUploadResponseSchema,
+          401: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },

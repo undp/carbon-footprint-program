@@ -26,6 +26,7 @@ export const submissionConfirmUploadRoute: StandardRouteSignature = (
         body: ConfirmSubmissionUploadBodySchema,
         response: {
           201: ConfirmSubmissionUploadResponseSchema,
+          401: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
