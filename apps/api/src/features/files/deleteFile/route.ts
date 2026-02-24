@@ -4,7 +4,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteFileHandler } from "./handler.js";
 
-export const deleteFileRoute: StandardRouteSignature = (fastify, options) => {
+export const deleteFileRoute: StandardRouteSignature = (fastify) => {
   fastify.delete<{ Params: z.infer<typeof DeleteFileParamsSchema> }>(
     "/:uuid",
     {
@@ -16,9 +16,6 @@ export const deleteFileRoute: StandardRouteSignature = (fastify, options) => {
           200: DeleteFileResponseSchema,
           404: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     deleteFileHandler
