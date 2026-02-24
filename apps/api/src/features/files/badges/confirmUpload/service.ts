@@ -3,8 +3,8 @@ import type { BadgeType } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import { FileType, type BadgeConfirmUploadResponse } from "@repo/types";
 import { validateBadgeType, createBadgeEntry } from "../helpers.js";
-import { buildBlobPath } from "../../shared/buildBlobPath.js";
-import { persistFileRecord } from "../../shared/persistFileRecord.js";
+import { buildBlobPath } from "../../helpers/buildBlobPath.js";
+import { persistBadgeFileRecord } from "../helpers.js";
 
 interface BadgeConfirmUploadInput {
   badgeType: BadgeType;
@@ -29,10 +29,10 @@ export const badgeConfirmUploadService = async (
     name: originalName,
   });
 
-  return persistFileRecord(
+  return persistBadgeFileRecord(
     prisma,
     blobStorage,
     { uuid, blobPath, originalName, userId },
-    (tx, fileId) => createBadgeEntry(tx, fileId, badgeType)
+    badgeType
   );
 };
