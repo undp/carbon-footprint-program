@@ -8,3 +8,5 @@ export * from "./previewFile/schemas.js";
 export * from "./previewFile/types.js";
 export * from "./submissions/confirmSubmissionUpload/schemas.js";
 export * from "./submissions/confirmSubmissionUpload/types.js";
+export * from "./submissions/requestSubmissionUpload/schemas.js";
+export * from "./submissions/requestSubmissionUpload/types.js";
