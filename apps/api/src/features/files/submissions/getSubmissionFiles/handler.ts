@@ -1,11 +1,14 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
-import type { SubmissionGetFilesQuery } from "@repo/types";
+import type {
+  GetSubmissionFilesParams,
+  GetSubmissionFilesQuery,
+} from "@repo/types";
 import { submissionGetFilesService } from "./service.js";
 
 export const submissionGetFilesHandler = async (
   request: FastifyRequest<{
-    Params: { submissionId: string };
-    Querystring: SubmissionGetFilesQuery;
+    Params: GetSubmissionFilesParams;
+    Querystring: GetSubmissionFilesQuery;
   }>,
   reply: FastifyReply
 ) => {

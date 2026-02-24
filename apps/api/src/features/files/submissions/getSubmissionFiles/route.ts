@@ -1,31 +1,27 @@
 import { z } from "zod";
-import { IdSchema } from "@repo/types";
 import {
-  SubmissionGetFilesQuerySchema,
-  SubmissionGetFilesResponseSchema,
+  GetSubmissionFilesParamsSchema,
+  GetSubmissionFilesQuerySchema,
+  GetSubmissionFilesResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { submissionGetFilesHandler } from "./handler.js";
 
-const ParamsSchema = z.object({
-  submissionId: IdSchema.describe("The submission ID"),
-});
-
 export const submissionGetFilesRoute = (fastify: FastifyZodInstance) => {
   fastify.get<{
-    Params: z.infer<typeof ParamsSchema>;
-    Querystring: z.infer<typeof SubmissionGetFilesQuerySchema>;
+    Params: z.infer<typeof GetSubmissionFilesParamsSchema>;
+    Querystring: z.infer<typeof GetSubmissionFilesQuerySchema>;
   }>(
     "/:submissionId",
     {
       schema: {
         tags: ["files"],
         summary: "List files for a submission",
-        params: ParamsSchema,
-        querystring: SubmissionGetFilesQuerySchema,
+        params: GetSubmissionFilesParamsSchema,
+        querystring: GetSubmissionFilesQuerySchema,
         response: {
-          200: SubmissionGetFilesResponseSchema,
+          200: GetSubmissionFilesResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

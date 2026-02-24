@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@repo/database";
 import { FileStatus } from "@repo/types";
 import type {
-  SubmissionGetFilesQuery,
-  SubmissionGetFilesResponse,
+  GetSubmissionFilesQuery,
+  GetSubmissionFilesResponse,
 } from "@repo/types";
 import { validateSubmissionExists, findSubmissionFileIds } from "../helpers.js";
 import { mapFileToResponse } from "../../shared/mappers.js";
@@ -10,8 +10,8 @@ import { mapFileToResponse } from "../../shared/mappers.js";
 export const submissionGetFilesService = async (
   prisma: PrismaClient,
   submissionId: string,
-  query?: SubmissionGetFilesQuery
-): Promise<SubmissionGetFilesResponse> => {
+  query?: GetSubmissionFilesQuery
+): Promise<GetSubmissionFilesResponse> => {
   await validateSubmissionExists(prisma, submissionId);
 
   const fileIds = await findSubmissionFileIds(
