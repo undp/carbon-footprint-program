@@ -159,6 +159,10 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
                 "&.Mui-disabled": {
                   backgroundColor: color || "transparent",
                 },
+                ...(hasError && {
+                  border: "2px dashed",
+                  borderColor: "error.main",
+                }),
               }
             : {
                 width: 40,
