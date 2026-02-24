@@ -4,18 +4,29 @@ const PaginationSortOrderSchema = z.enum(["asc", "desc"]);
 
 // Pagination metadata
 export const BasePaginatedResponseSchema = z.object({
-  total: z.number().int().describe("Total number of matching records"),
-  limit: z.number().int().describe("Number of records per page"),
-  offset: z.number().int().describe("Starting offset for the current page"),
+  total: z
+    .number()
+    .int()
+    .optional()
+    .describe("Total number of matching records"),
+  limit: z.number().int().optional().describe("Number of records per page"),
+  offset: z
+    .number()
+    .int()
+    .optional()
+    .describe("Starting offset for the current page"),
   totalPages: z
     .number()
     .int()
+    .optional()
     .describe("Total number of pages (ceil(total / limit))"),
   hasNext: z
     .boolean()
+    .optional()
     .describe("Whether there is a next page (offset + limit < total)"),
   hasPrev: z
     .boolean()
+    .optional()
     .describe("Whether there is a previous page (offset > 0)"),
 });
 

@@ -46,7 +46,7 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
   });
 
   describe("Successful retrieval", () => {
-    it("should return all organizations with pagination", async () => {
+    it("should return all organizations without pagination if query params are not provided", async () => {
       // Create test organizations
       const org1 = await createTestOrganization(prisma);
       await createTestOrganizationData(prisma, org1.id, {
@@ -64,19 +64,18 @@ describe("GET /api/admin/organizations/ - Integration Tests", () => {
         method: "GET",
         url: "/api/admin/organizations/",
       });
-
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllOrganizationsResponse;
 
       expect(body.data).toBeDefined();
       expect(Array.isArray(body.data)).toBe(true);
       expect(body.data.length).toBeGreaterThanOrEqual(2);
-      expect(body.limit).toBeDefined();
-      expect(body.offset).toBeDefined();
-      expect(body.total).toBeDefined();
-      expect(body.totalPages).toBeDefined();
-      expect(body.hasNext).toBeDefined();
-      expect(body.hasPrev).toBeDefined();
+      expect(body.limit).toBeUndefined();
+      expect(body.offset).toBeUndefined();
+      expect(body.total).toBeUndefined();
+      expect(body.totalPages).toBeUndefined();
+      expect(body.hasNext).toBeUndefined();
+      expect(body.hasPrev).toBeUndefined();
     });
 
     it("should return organizations with correct accreditation status", async () => {
