@@ -64,6 +64,12 @@ export const RequestScreenTable: FC = () => {
         rows={requests}
         rowHeight={65}
         getRowId={(row: GetAllAdminRequestsResponse[number]) => row.id}
+        hideFooter={false}
+        pagination
+        pageSizeOptions={[10, 25, 50, 100]}
+        initialState={{
+          pagination: { paginationModel: { pageSize: 10 } },
+        }}
       />
     </Box>
   );
