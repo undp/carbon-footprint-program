@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { FileStatus, SubmissionStatus } from "@repo/database/enums";
 
 export const FileTypeSchema = z.enum(["SUBMISSION"]);
 
-export const FileStatusSchema = z.enum(["ACTIVE", "DELETED"]);
+export const FileStatusSchema = z.enum(FileStatus);
 
-export const SubmissionFileTypeSchema = z.enum(["ATTACHMENT", "RECOGNITION"]);
+export const SubmissionFileTypeSchema = z.enum(SubmissionStatus);
 
 export const FileSchema = z.object({
   uuid: z.uuid().describe("The UUID of the file"),
