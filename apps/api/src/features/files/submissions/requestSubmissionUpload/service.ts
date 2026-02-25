@@ -1,10 +1,11 @@
 import { randomUUID } from "crypto";
 import type { PrismaClient } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
-import type {
-  RequestSubmissionUploadBody,
-  RequestSubmissionUploadParams,
-  RequestSubmissionUploadResponse,
+import {
+  FileType,
+  type RequestSubmissionUploadBody,
+  type RequestSubmissionUploadParams,
+  type RequestSubmissionUploadResponse,
 } from "@repo/types";
 import { validateSubmissionExists } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
@@ -26,7 +27,7 @@ export const submissionRequestUploadService = async (
 
   const fileUuid = randomUUID();
   const blobPath = buildBlobPath({
-    fileType: "SUBMISSION",
+    fileType: FileType.SUBMISSION,
     groupKey: submissionId,
     subPath: submissionFileType,
     uuid: fileUuid,
