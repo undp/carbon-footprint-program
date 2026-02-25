@@ -12,13 +12,18 @@ import { requestOrganizationAccreditationRoute } from "@/features/organizations/
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
 
+  // ORGANIZATION_ADMIN
   addOrganizationUserRoute(fastify);
   getOrganizationUsersRoute(fastify);
   updateOrganizationUserRoleRoute(fastify);
   removeOrganizationUserRoute(fastify);
-  getMyOrganizationsRoute(fastify);
-  getOrganizationByIdRoute(fastify);
-  createOrganizationRoute(fastify);
   updateOrganizationRoute(fastify);
   requestOrganizationAccreditationRoute(fastify);
+
+  // ORGANIZATION_ADMIN, ORGANIZATION_CONTRIBUTOR, VIEWER
+  getOrganizationByIdRoute(fastify);
+
+  // AUTHENTICATED (No organization role required)
+  getMyOrganizationsRoute(fastify);
+  createOrganizationRoute(fastify);
 }
