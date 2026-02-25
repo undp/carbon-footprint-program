@@ -39,7 +39,7 @@ export const addOrganizationUserService = async (
     throw new UserNotFoundByEmailError(data.email);
   }
 
-  // Check for existing ACTIVE membership (any role)
+  // Check for existing ACTIVE membership
   const existingMembership =
     await prismaClient.userOrganizationMembership.findFirst({
       where: {
