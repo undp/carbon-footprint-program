@@ -2,7 +2,7 @@ import { FC } from "react";
 import { alpha, Box, Typography, useTheme, type Theme } from "@mui/material";
 import { OrganizationStatus } from "@repo/types";
 
-export enum OrganizationDisplayStatus {
+export enum AdminOrganizationDisplayStatus {
   WITH_MEASUREMENTS = "WITH_MEASUREMENTS",
   REGISTERED = "REGISTERED",
   NOT_ACCREDITED = "NOT_ACCREDITED",
@@ -19,36 +19,38 @@ export const getDisplayStatus = (
   status: OrganizationStatus,
   isAccredited: boolean,
   hasCarbonInventories: boolean
-): OrganizationDisplayStatus => {
-  if (status === "BLOCKED") return OrganizationDisplayStatus.BLOCKED;
+): AdminOrganizationDisplayStatus => {
+  if (status === OrganizationStatus.BLOCKED)
+    return AdminOrganizationDisplayStatus.BLOCKED;
 
-  if (hasCarbonInventories && isAccredited)
-    return OrganizationDisplayStatus.WITH_MEASUREMENTS;
+  if (isAccredited) {
+    if (hasCarbonInventories)
+      return AdminOrganizationDisplayStatus.WITH_MEASUREMENTS;
+    return AdminOrganizationDisplayStatus.REGISTERED;
+  }
 
-  if (!hasCarbonInventories && isAccredited)
-    return OrganizationDisplayStatus.REGISTERED;
-
-  return OrganizationDisplayStatus.NOT_ACCREDITED;
+  return AdminOrganizationDisplayStatus.NOT_ACCREDITED;
 };
 
 const getStatusColor = (
-  status: OrganizationDisplayStatus,
+  status: AdminOrganizationDisplayStatus,
   theme: Theme
 ): string => {
-  const map: Record<OrganizationDisplayStatus, string> = {
-    [OrganizationDisplayStatus.WITH_MEASUREMENTS]: theme.palette.success.light,
-    [OrganizationDisplayStatus.REGISTERED]: theme.palette.info.light,
-    [OrganizationDisplayStatus.NOT_ACCREDITED]: theme.palette.grey[500],
-    [OrganizationDisplayStatus.BLOCKED]: theme.palette.error.main,
+  const map: Record<AdminOrganizationDisplayStatus, string> = {
+    [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]:
+      theme.palette.success.light,
+    [AdminOrganizationDisplayStatus.REGISTERED]: theme.palette.info.light,
+    [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: theme.palette.grey[500],
+    [AdminOrganizationDisplayStatus.BLOCKED]: theme.palette.error.main,
   };
   return map[status];
 };
 
-const statusLabels: Record<OrganizationDisplayStatus, string> = {
-  [OrganizationDisplayStatus.WITH_MEASUREMENTS]: "con Mediciones",
-  [OrganizationDisplayStatus.REGISTERED]: "Registrada",
-  [OrganizationDisplayStatus.NOT_ACCREDITED]: "No acreditada",
-  [OrganizationDisplayStatus.BLOCKED]: "Bloqueada",
+const statusLabels: Record<AdminOrganizationDisplayStatus, string> = {
+  [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: "con Mediciones",
+  [AdminOrganizationDisplayStatus.REGISTERED]: "Registrada",
+  [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: "No acreditada",
+  [AdminOrganizationDisplayStatus.BLOCKED]: "Bloqueada",
 };
 
 export const OrganizationStatusChip: FC<OrganizationStatusChipProps> = ({
