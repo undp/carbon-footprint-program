@@ -1,5 +1,5 @@
 // import { useQuery } from "@tanstack/react-query";
-// import { GetAllCarbonInventoriesResponse } from "@repo/types";
+// import { GetAllAdminRequestsResponse } from "@repo/types";
 // import { requestsKeys } from "./keys.js";
 // import { apiClient } from "@/api/http";
 // import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
@@ -87,7 +87,7 @@ const MOCK_DATA: GetAllAdminRequestsResponse = [
     id: "10",
     organizationName: "Empresa Demo S.A.",
     type: RequestType.ORGANIZATION_ACCREDITATION,
-    year: 2025,
+    year: 2024,
     status: RequestStatus.PENDING,
     requestedAt: "2024-12-16T00:00:00Z",
   },
