@@ -20,8 +20,8 @@ import {
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
 import { type Methodology, MethodologyVersionStatus } from "@repo/types";
 import { StylizedDataGrid } from "@components";
+import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import { DevTool } from "@hookform/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 
 export const MethodologiesMaintainerScreen: FC = () => {
@@ -41,12 +41,13 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } =
     useMethodologiesForm(methodologies);
   const startEditing = useMaintainerStore((s) => s.startEditing);
+  const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
   const currentRows = form.watch("methodologies");
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
-  const handleStopEditRow = useCallback(async () => {
-    if (!editingRowId) return;
+  const handleStopEditRow = useCallback(async (): Promise<boolean> => {
+    if (!editingRowId) return true;
 
     const rows = form.getValues("methodologies");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
@@ -59,7 +60,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
         message: "Corrige los errores antes de guardar",
         variant: "error",
       });
-      return;
+      return false;
     }
 
     if (row && isNewRow(row.id)) {
@@ -73,6 +74,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
         });
         // Replace temp row with the real one from the server
         fieldArray.update(rowIndex, result);
+        // Reset form defaults so the new row is no longer considered dirty
+        form.reset({ methodologies: form.getValues("methodologies") });
         void enqueueSnackbar({
           message: "Metodología creada exitosamente",
           variant: "success",
@@ -82,9 +85,10 @@ export const MethodologiesMaintainerScreen: FC = () => {
           message: "Error al crear metodología",
           variant: "error",
         });
-        return;
+        return false;
       }
-      return;
+      setEditingRowId(null);
+      return true;
     }
     // Existing row - update if dirty
     const dirtyFields = form.formState.dirtyFields;
@@ -101,6 +105,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
             version: row.version,
           },
         });
+        form.reset({ methodologies: form.getValues("methodologies") });
         void enqueueSnackbar({
           message: "Cambios guardados satisfactoriamente",
           variant: "success",
@@ -111,8 +116,10 @@ export const MethodologiesMaintainerScreen: FC = () => {
         message: "Error al guardar cambios",
         variant: "error",
       });
+      return false;
     }
     setEditingRowId(null);
+    return true;
   }, [
     editingRowId,
     form,
@@ -140,12 +147,16 @@ export const MethodologiesMaintainerScreen: FC = () => {
       }
     }
 
+    form.reset({ methodologies: form.getValues("methodologies") });
     setEditingRowId(null);
   }, [editingRowId, form, isNewRow, fieldArray, methodologies]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
-      if (editingRowId) await handleStopEditRow();
+      if (editingRowId) {
+        const success = await handleStopEditRow();
+        if (!success) return;
+      }
       setEditingRowId(rowId);
     },
     [editingRowId, handleStopEditRow]
@@ -217,6 +228,18 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [form, fieldArray, isNewRow, updateMutation, enqueueSnackbar]
   );
 
+  const handleView = useCallback(
+    (row: FormMethodology) => {
+      selectMethodology({
+        id: row.id,
+        name: row.name,
+        regulation: row.regulation,
+      });
+      void navigate({ to: Routes.ADMIN_CATEGORIES });
+    },
+    [selectMethodology, navigate]
+  );
+
   const handleEdit = useCallback(
     (row: FormMethodology) => {
       if (isNewRow(row.id)) {
@@ -250,6 +273,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
       try {
         const result = await duplicateMutation.mutateAsync(row.id);
         fieldArray.insert(index + 1, result);
+        form.reset({ methodologies: form.getValues("methodologies") });
         void enqueueSnackbar({
           message: "Metodología duplicada exitosamente",
           variant: "success",
@@ -293,6 +317,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
             await deleteMutation.mutateAsync(row.id);
           }
           fieldArray.remove(index);
+          form.reset({ methodologies: form.getValues("methodologies") });
           void enqueueSnackbar({
             message: "Metodología eliminada",
             variant: "success",
@@ -325,6 +350,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
     onStopEditRow: handleStopEditRow,
     onCancelEditRow: handleCancelEditRow,
     onEdit: handleEdit,
+    onView: handleView,
     onDuplicate: handleDuplicate,
     onDelete: handleDelete,
     rows: currentRows,
@@ -332,19 +358,19 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   return (
     <FormProvider {...form}>
-      <form id="methodologies-form" noValidate>
-        <MaintainerPageHeader
-          title="Metodologías"
-          onAddRow={handleAddRow}
-          addDisabled={editingRowId !== null}
-          addLabel="Agregar fila"
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Gestiona las metodologías de cálculo. Haz clic en Editar para
-            modificar alcances, subcategorías y factores de emisión. Siempre
-            debe existir una única metodología activa.
-          </Typography>
+      <MaintainerPageHeader
+        title="Metodologías"
+        onAddRow={handleAddRow}
+        addDisabled={editingRowId !== null}
+        addLabel="Agregar fila"
+      />
+      <Box className="rounded-sm bg-white p-3">
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+          Gestiona las metodologías de cálculo. Haz clic en Editar para
+          modificar alcances, subcategorías y factores de emisión. Siempre debe
+          existir una única metodología activa.
+        </Typography>
+        <form id="methodologies-form" noValidate>
           <Box className="flex w-full">
             <StylizedDataGrid
               sx={(theme) => ({
@@ -362,9 +388,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
               loading={isLoading}
             />
           </Box>
-        </Box>
-      </form>
-      {IS_DEVELOPMENT && <DevTool control={form.control} />}
+        </form>
+      </Box>
+      {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
         onCancel={() => reset?.()}

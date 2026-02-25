@@ -8,3 +8,5 @@ export * from "./updateCategory/schemas.js";
 export * from "./updateCategory/types.js";
 export * from "./deleteCategory/schemas.js";
 export * from "./deleteCategory/types.js";
+export * from "./swapCategoryPositions/schemas.js";
+export * from "./swapCategoryPositions/types.js";

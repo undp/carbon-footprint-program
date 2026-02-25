@@ -22,6 +22,7 @@ interface UseMethodologyColumnsParams {
   onStopEditRow: () => void;
   onCancelEditRow: () => void;
   onEdit: (row: FormMethodology) => void;
+  onView: (row: FormMethodology) => void;
   onDuplicate: (row: FormMethodology) => void;
   onDelete: (row: FormMethodology) => void;
   rows: FormMethodology[];
@@ -35,6 +36,7 @@ export const useMethodologyColumns = ({
   onStopEditRow,
   onCancelEditRow,
   onEdit,
+  onView,
   onDuplicate,
   onDelete,
   rows,
@@ -181,7 +183,7 @@ export const useMethodologyColumns = ({
             onStopEditCells={onStopEditRow}
             onCancelEdit={onCancelEditRow}
             onEdit={() => onEdit(params.row)}
-            onView={() => onEdit(params.row)}
+            onView={() => onView(params.row)}
             onDuplicate={() => onDuplicate(params.row)}
             onDelete={() => onDelete(params.row)}
           />
@@ -198,6 +200,7 @@ export const useMethodologyColumns = ({
       onStopEditRow,
       onCancelEditRow,
       onEdit,
+      onView,
       onDuplicate,
       onDelete,
     ]
