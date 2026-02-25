@@ -38,9 +38,9 @@ export const duplicateMethodologyService = async (
   });
 
   const existingNameSet = new Set(existingNames.map((item) => item.name));
-  let duplicatedName = `${original.name} (copy)`;
+  let duplicatedName = `${original.name} (copia)`;
   while (existingNameSet.has(duplicatedName)) {
-    duplicatedName = `${duplicatedName} (copy)`;
+    duplicatedName = `${duplicatedName} (copia)`;
   }
 
   try {

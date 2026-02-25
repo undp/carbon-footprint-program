@@ -29,7 +29,7 @@ export const UnsavedChangesDialog: FC<Props> = ({
     </DialogContent>
     <DialogActions>
       <Button onClick={onCancel}>Cancelar</Button>
-      <Button onClick={onConfirm} color="error" variant="contained">
+      <Button onClick={onConfirm} color="primary" variant="contained">
         Salir sin guardar
       </Button>
     </DialogActions>
