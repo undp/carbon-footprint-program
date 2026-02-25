@@ -8,10 +8,7 @@ import {
   CheckCircleOutlined,
   CancelOutlined,
 } from "@mui/icons-material";
-import {
-  SubmissionStatus as RequestStatus,
-  SubmissionStatus,
-} from "@repo/types";
+import { SubmissionStatus as RequestStatus } from "@repo/types";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 
@@ -37,11 +34,11 @@ export const RequestScreenKpiSection: FC = () => {
   const { data: kpisData, isLoading } = useAdminRequestsKpis();
   const theme = useTheme();
 
-  const REQUESTS_STATUS_COLORS = useMemo(
+  const REQUESTS_STATUS_COLORS = useMemo<Record<RequestStatus, string>>(
     () => ({
-      [SubmissionStatus.PENDING]: theme.palette.warning.dark,
-      [SubmissionStatus.APPROVED]: theme.palette.success.dark,
-      [SubmissionStatus.REJECTED]: theme.palette.error.dark,
+      [RequestStatus.PENDING]: theme.palette.warning.dark,
+      [RequestStatus.APPROVED]: theme.palette.success.dark,
+      [RequestStatus.REJECTED]: theme.palette.error.dark,
     }),
     [theme]
   );
