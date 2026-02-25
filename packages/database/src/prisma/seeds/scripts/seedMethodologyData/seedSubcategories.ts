@@ -22,6 +22,8 @@ export async function seedSubcategories(
         categoryName: category.name,
         name: subcategory.name,
         description: subcategory.description,
+        icon: subcategory.icon,
+        color: subcategory.color,
         examples: subcategory.examples,
         allowedMeasurementUnitsAbbreviations:
           subcategory.allowedMeasurementUnitsAbbreviations ?? [],
@@ -70,7 +72,9 @@ export async function seedSubcategories(
     return {
       categoryId: category.id,
       name: subcategory.name,
-      description: subcategory.description || null,
+      description: subcategory.description,
+      icon: subcategory.icon,
+      color: subcategory.color,
       examples: subcategory.examples || null,
     };
   });
