@@ -11,7 +11,7 @@ import { requestOrganizationAccreditationRoute } from "@/features/organizations/
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
-  
+
   addOrganizationUserRoute(fastify);
   getOrganizationUsersRoute(fastify);
   updateOrganizationUserRoleRoute(fastify);
@@ -21,3 +21,4 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   createOrganizationRoute(fastify);
   updateOrganizationRoute(fastify);
   requestOrganizationAccreditationRoute(fastify);
+}
