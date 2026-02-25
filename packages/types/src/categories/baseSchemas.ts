@@ -24,7 +24,7 @@ export const CategorySchema = z
     color: z
       .string()
       .min(1, "Campo requerido")
-      .describe("The color code for the category"),
+      .describe("The HEX color code for the category"),
     synonyms: z
       .string()
       .min(1, "Campo requerido")
