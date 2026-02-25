@@ -1,6 +1,9 @@
 -- CreateEnum
 CREATE TYPE "Magnitude" AS ENUM ('MASS', 'VOLUME', 'DISTANCE', 'TIME','ANIMALS' ,'AREA' ,'POWER' ,'ENERGY' ,'DISTANCE_MASS' ,'ROOMS');
 
+-- CreateEnum
+CREATE TYPE "system_role" AS ENUM ('USER', 'ADMIN', 'SUPERADMIN');
+
 -- CreateTable
 CREATE TABLE "country" (
     "id" BIGSERIAL NOT NULL,
@@ -92,31 +95,6 @@ CREATE TABLE "country_job_position" (
 );
 
 -- CreateTable
-CREATE TABLE "role" (
-    "id" BIGSERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-    "description" TEXT NOT NULL,
-    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3),
-
-    CONSTRAINT "role_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "organization_role" (
-    "id" BIGINT NOT NULL,
-
-    CONSTRAINT "organization_role_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "system_role" (
-    "id" BIGINT NOT NULL,
-
-    CONSTRAINT "system_role_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "user" (
     "id" BIGSERIAL NOT NULL,
     "uuid" UUID NOT NULL,
@@ -126,6 +104,7 @@ CREATE TABLE "user" (
     "country_job_position_id" BIGINT,
     "first_name" TEXT,
     "last_name" TEXT,
+    "role" "system_role" NOT NULL DEFAULT 'USER',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
@@ -181,9 +160,6 @@ CREATE UNIQUE INDEX "country_subsector_country_sector_id_name_key" ON "country_s
 CREATE UNIQUE INDEX "country_job_position_country_id_name_key" ON "country_job_position"("country_id", "name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "role_name_key" ON "role"("name");
-
--- CreateIndex
 CREATE UNIQUE INDEX "user_uuid_key" ON "user"("uuid");
 
 -- CreateIndex
@@ -236,12 +212,6 @@ ALTER TABLE "country_subsector" ADD CONSTRAINT "country_subsector_updated_by_id_
 
 -- AddForeignKey
 ALTER TABLE "country_job_position" ADD CONSTRAINT "country_job_position_country_id_fkey" FOREIGN KEY ("country_id") REFERENCES "country"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "organization_role" ADD CONSTRAINT "organization_role_id_fkey" FOREIGN KEY ("id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "system_role" ADD CONSTRAINT "system_role_id_fkey" FOREIGN KEY ("id") REFERENCES "role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user" ADD CONSTRAINT "user_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

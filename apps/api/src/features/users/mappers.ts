@@ -8,6 +8,7 @@ export function mapUserToResponse(user: PrismaUser): UserAtResponse {
     idpUserId: user.idpUserId,
     idpName: user.idpName,
     email: user.email,
+    role: user.role,
     countryJobPositionId: user.countryJobPositionId?.toString() ?? null,
     firstName: user.firstName,
     lastName: user.lastName,

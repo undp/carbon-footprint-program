@@ -1,5 +1,6 @@
 import { uuid, z } from "zod";
 import { IdSchema } from "../zod.js";
+import { SystemRole } from "@repo/database/enums";
 
 export const UserSchema = z.object({
   id: IdSchema.describe("The ID of the user"),
@@ -13,6 +14,7 @@ export const UserSchema = z.object({
     .email("Invalid email address")
     .nullable()
     .describe("The email of the user"),
+  role: z.enum(SystemRole).describe("The system role of the user"),
   countryJobPositionId: IdSchema.nullable().describe(
     "The ID of the country job position"
   ),

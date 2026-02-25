@@ -20,9 +20,11 @@ export async function createTestOrganization(
 export async function cleanupTestOrganization(
   prisma: PrismaClient
 ): Promise<void> {
+  // Delete in correct order respecting foreign key constraints
   await prisma.submission.deleteMany();
   await prisma.submissionSubjectOrganizationData.deleteMany();
   await prisma.submissionSubject.deleteMany();
   await prisma.organizationData.deleteMany();
+  await prisma.userOrganizationMembership.deleteMany(); // Cleanup memberships
   await prisma.organization.deleteMany();
 }

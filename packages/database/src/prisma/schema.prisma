@@ -143,22 +143,20 @@ model CountryJobPosition {
   @@map("country_job_position")
 }
 
-model Role {
-  id               BigInt            @id @default(autoincrement())
-  name             String            @unique
-  description      String
-  createdAt        DateTime          @default(now()) @map("created_at")
-  updatedAt        DateTime?         @updatedAt @map("updated_at")
-  organizationRole OrganizationRole?
-  systemRole       SystemRole?
+enum SystemRole {
+  USER
+  ADMIN
+  SUPERADMIN
 
-  @@map("role")
+  @@map("system_role")
 }
 
-model OrganizationRole {
-  id          BigInt                       @id
-  role        Role                         @relation(fields: [id], references: [id], onDelete: Cascade)
-  memberships UserOrganizationMembership[]
+enum OrganizationRole {
+  VIEWER
+  ORGANIZATION_CONTRIBUTOR
+  ORGANIZATION_ADMIN
+  EXTERNAL_VERIFIER
+  EXTERNAL_CONSULTANT
 
   @@map("organization_role")
 }
@@ -171,31 +169,23 @@ enum MembershipStatus {
 }
 
 model UserOrganizationMembership {
-  id                 BigInt           @id @default(autoincrement())
-  userId             BigInt           @map("user_id")
-  organizationId     BigInt           @map("organization_id")
-  organizationRoleId BigInt           @map("organization_role_id")
-  status             MembershipStatus @default(ACTIVE)
-  createdAt          DateTime         @default(now()) @map("created_at")
-  updatedAt          DateTime?        @updatedAt @map("updated_at")
-  createdById        BigInt?          @map("created_by_id")
-  updatedById        BigInt?          @map("updated_by_id")
+  id             BigInt           @id @default(autoincrement())
+  userId         BigInt           @map("user_id")
+  organizationId BigInt           @map("organization_id")
+  role           OrganizationRole @default(VIEWER)
+  status         MembershipStatus @default(ACTIVE)
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime?        @updatedAt @map("updated_at")
+  createdById    BigInt?          @map("created_by_id")
+  updatedById    BigInt?          @map("updated_by_id")
 
-  user             User             @relation("user_memberships", fields: [userId], references: [id])
-  organization     Organization     @relation(fields: [organizationId], references: [id])
-  organizationRole OrganizationRole @relation(fields: [organizationRoleId], references: [id])
-  creator          User?            @relation("membership_created_by", fields: [createdById], references: [id])
-  updater          User?            @relation("membership_updated_by", fields: [updatedById], references: [id])
+  user         User         @relation("user_memberships", fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  creator      User?        @relation("membership_created_by", fields: [createdById], references: [id])
+  updater      User?        @relation("membership_updated_by", fields: [updatedById], references: [id])
 
-  @@unique([userId, organizationId, organizationRoleId])
+  @@unique([userId, organizationId, role])
   @@map("user_organization_membership")
-}
-
-model SystemRole {
-  id   BigInt @id
-  role Role   @relation(fields: [id], references: [id], onDelete: Cascade)
-
-  @@map("system_role")
 }
 
 model User {
@@ -204,6 +194,7 @@ model User {
   idpUserId                            String?                        @unique @map("idp_user_id")
   idpName                              String?                        @map("idp_name")
   email                                String?                        @unique
+  role                                 SystemRole                     @default(USER)
   countryJobPositionId                 BigInt?                        @map("country_job_position_id")
   firstName                            String?                        @map("first_name")
   lastName                             String?                        @map("last_name")
@@ -495,6 +486,7 @@ model EmissionFactor {
   @@map("emission_factor")
 }
 
+// TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
 enum InventoryStatus {
   DRAFT
   SUBMITTED
@@ -663,6 +655,23 @@ view CarbonInventorySubtotalsView {
   @@map("carbon_inventory_subtotals_view")
 }
 
+view OrganizationSummaryView {
+  organizationId        BigInt            @unique @map("organization_id")
+  organizationDataId    BigInt            @map("organization_data_id")
+  name                  String            @map("name")
+  lastSubmissionStatus  SubmissionStatus? @map("last_submission_status")
+  hasUnsubmittedChanges Boolean           @map("has_unsubmitted_changes")
+  displayStatus         String            @map("display_status")
+  isAccredited          Boolean           @map("is_accredited")
+  hasCarbonInventories  Boolean           @map("has_carbon_inventories")
+  totalEmissions        Decimal           @map("total_emissions") @db.Decimal(28, 10)
+  lastMeasurement       DateTime?         @map("last_measurement")
+  organization          Organization      @relation(fields: [organizationId], references: [id])
+  organizationData      OrganizationData  @relation(fields: [organizationDataId], references: [id])
+
+  @@map("organization_summary_view")
+}
+
 enum OrganizationStatus {
   ACTIVE
   BLOCKED
@@ -685,6 +694,7 @@ model Organization {
   data              OrganizationData[]
   carbonInventories CarbonInventory[]
   memberships       UserOrganizationMembership[]
+  summary           OrganizationSummaryView?
 
   @@map("organization")
 }
@@ -727,6 +737,7 @@ model OrganizationData {
   updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
   submission                         SubmissionSubjectOrganizationData?
   mainActivity                       OrganizationMainActivity?          @relation(fields: [mainActivityId], references: [id])
+  summaries                          OrganizationSummaryView[]
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'
