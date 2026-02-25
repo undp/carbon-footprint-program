@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import { CategorySchema } from "../../categories/index.js";
+import { SubCategorySchema } from "../../subCategories/index.js";
 
 export const DimensionValueSchema = z.object({
   id: IdSchema.describe("The ID of the dimension value"),
@@ -64,14 +65,12 @@ export const EmissionFactorSchema = z
     }
   );
 
-export const SubcategorySchema = z.object({
-  id: IdSchema.describe("The ID of the subcategory"),
-  name: z.string().describe("The name of the subcategory"),
-  description: z
-    .string()
-    .nullable()
-    .describe("The description of the subcategory"),
-  examples: z.string().nullable().describe("Examples for the subcategory"),
+export const InventorySubcategorySchema = SubCategorySchema.pick({
+  id: true,
+  name: true,
+  description: true,
+  examples: true,
+}).extend({
   dimensions: z
     .array(EmissionFactorDimensionSchema)
     .describe("The emission factor dimensions for this subcategory"),
@@ -94,7 +93,7 @@ export const InventoryCategorySchema = CategorySchema.pick({
   position: true,
 }).extend({
   subcategories: z
-    .array(SubcategorySchema)
+    .array(InventorySubcategorySchema)
     .describe("The subcategories in this category"),
 });
 
