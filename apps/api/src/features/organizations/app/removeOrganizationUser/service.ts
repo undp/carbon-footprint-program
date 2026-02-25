@@ -45,34 +45,24 @@ export const removeOrganizationUserService = async (
 
   // If user is an admin, check if they're the last admin and perform update
   // in a transaction to prevent race conditions
-  if (membership.role === OrganizationRole.ORGANIZATION_ADMIN) {
-    await prismaClient.$transaction(async (tx) => {
-      const adminCount = await tx.userOrganizationMembership.count({
-        where: {
-          organizationId: organization.id,
-          role: OrganizationRole.ORGANIZATION_ADMIN,
-          status: MembershipStatus.ACTIVE,
-        },
-      });
-
-      if (adminCount <= 1) {
-        throw new CannotRemoveLastAdminError();
-      }
-
-      // Soft delete: update membership status to DELETED
-      await tx.userOrganizationMembership.update({
-        where: {
-          id: membership.id,
-        },
-        data: {
-          status: MembershipStatus.DELETED,
-          updatedById: currentUser ? BigInt(currentUser.id) : undefined,
-        },
-      });
+  await prismaClient.$transaction(async (tx) => {
+    const adminCount = await tx.userOrganizationMembership.count({
+      where: {
+        organizationId: organization.id,
+        role: OrganizationRole.ORGANIZATION_ADMIN,
+        status: MembershipStatus.ACTIVE,
+      },
     });
-  } else {
-    // Non-admin users can be removed without transaction
-    await prismaClient.userOrganizationMembership.update({
+
+    if (
+      membership.role === OrganizationRole.ORGANIZATION_ADMIN &&
+      adminCount <= 1
+    ) {
+      throw new CannotRemoveLastAdminError();
+    }
+
+    // Soft delete: update membership status to DELETED
+    await tx.userOrganizationMembership.update({
       where: {
         id: membership.id,
       },
@@ -81,7 +71,6 @@ export const removeOrganizationUserService = async (
         updatedById: currentUser ? BigInt(currentUser.id) : undefined,
       },
     });
-  }
-
+  });
   return {};
 };
