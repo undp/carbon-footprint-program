@@ -24,6 +24,8 @@ export const StylizedDataGrid = ({
   disableRowSelectionOnClick = true,
   checkboxSelection = false,
   getRowHeight = () => "auto",
+  slotProps,
+  localeText,
   ...props
 }: StylizedDataGridProps) => {
   const baseStyles: SxProps<Theme> = {
@@ -73,14 +75,13 @@ export const StylizedDataGrid = ({
           variant: "skeleton",
           noRowsVariant: "skeleton",
         },
-        ...(props.slotProps || {}),
+        ...(slotProps || {}),
       }}
       ignoreDiacritics
       localeText={{
         paginationRowsPerPage: "Filas por página",
         paginationDisplayedRows: ({ from, to, count }) =>
           `${from}-${to} de ${count}`,
-        ...(props.localeText || {}),
         columnMenuSortAsc: "Ordenar ascendente",
         columnMenuSortDesc: "Ordenar descendente",
         columnMenuFilter: "Filtrar",
@@ -105,6 +106,7 @@ export const StylizedDataGrid = ({
         filterOperatorDoesNotContain: "no contiene",
         filterOperatorDoesNotEqual: "no es igual a",
         filterOperatorIsAnyOf: "es cualquiera de",
+        ...(localeText || {}),
       }}
       {...props}
     />
