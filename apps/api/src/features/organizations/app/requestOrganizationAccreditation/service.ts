@@ -4,13 +4,11 @@ import type {
   User,
 } from "@repo/types";
 import {
-  MembershipStatus,
   OrganizationDataStatus,
   SubmissionStatus,
   SubmissionSubjectType,
 } from "@repo/database";
 import {
-  OrganizationAccessDeniedError,
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
@@ -23,8 +21,6 @@ export const requestOrganizationAccreditationService = async (
   user: User | null
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
-    // TODO: The organizationAuthorizationPlugin should be used to check if the user is authenticated
-    // TODO: Check if this error can be shared and use in the authorization/authentication plugins.
     throw new UserNotFoundError();
   }
 
@@ -37,19 +33,6 @@ export const requestOrganizationAccreditationService = async (
 
   if (!organization) {
     throw new OrganizationNotFoundError(organizationId);
-  }
-  // Verify user has ACTIVE membership
-  // TODO: The organizationAuthorizationPlugin should be used to check if the user has an active membership
-  const membership = await prismaClient.userOrganizationMembership.findFirst({
-    where: {
-      userId: BigInt(userId),
-      organizationId: BigInt(organizationId),
-      status: MembershipStatus.ACTIVE,
-    },
-  });
-
-  if (!membership) {
-    throw new OrganizationAccessDeniedError(organizationId);
   }
 
   return await prismaClient.$transaction(async (tx) => {

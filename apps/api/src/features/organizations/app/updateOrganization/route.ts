@@ -1,17 +1,28 @@
+import type { FastifyRequest } from "fastify";
 import { updateOrganizationHandler } from "./handler.js";
 import {
   UpdateOrganizationParamsSchema,
   UpdateOrganizationBodySchema,
   UpdateOrganizationResponseSchema,
+  UpdateOrganizationParams,
+  UpdateOrganizationBody,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { OrganizationRole } from "@repo/database/enums";
+
+// Extractor function for organization ID
+const extractOrganizationId = async (request: FastifyRequest) =>
+  Promise.resolve((request.params as UpdateOrganizationParams).id);
 
 export const updateOrganizationRoute: StandardRouteSignature = (
   fastify,
   _options
 ) => {
-  fastify.patch(
+  fastify.patch<{
+    Params: UpdateOrganizationParams;
+    Body: UpdateOrganizationBody;
+  }>(
     "/:id",
     {
       schema: {
@@ -27,6 +38,11 @@ export const updateOrganizationRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireOrganizationRole(extractOrganizationId, [
+          OrganizationRole.ORGANIZATION_ADMIN,
+        ]),
+      ],
     },
     updateOrganizationHandler
   );
