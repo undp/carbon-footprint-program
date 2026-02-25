@@ -157,7 +157,7 @@ export const BusinessProfilingScreen: FC = () => {
                 title="Paso 1: Perfilamiento"
                 description="La información de tu empresa nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
               />
-              <Box className="flex flex-col gap-2">
+              <Box className="flex flex-col gap-3">
                 <Box className="flex flex-1 flex-row gap-6">
                   <FormSelectField
                     name="year"

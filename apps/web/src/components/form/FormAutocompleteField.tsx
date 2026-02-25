@@ -81,6 +81,9 @@ export const FormAutocompleteField = <T extends FieldValues>({
             noOptionsText="No encontrado"
             renderInput={(params) => (
               <TextField
+                sx={{
+                  minHeight: "5rem",
+                }}
                 {...params}
                 label={label}
                 error={!!fieldState.error && !props.disabled}
