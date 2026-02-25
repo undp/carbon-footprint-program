@@ -132,11 +132,13 @@ export const useRequestColumns = (): GridColDef<
 
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
+              {/* TODO: implement callback for this button */}
               <IconButton size="small" aria-label="Ver solicitud">
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
               {showApproveReject && (
                 <>
+                  {/* TODO: implement callback for this button */}
                   <IconButton
                     size="small"
                     color="success"
@@ -147,6 +149,7 @@ export const useRequestColumns = (): GridColDef<
                   >
                     <CheckOutlined fontSize="small" />
                   </IconButton>
+                  {/* TODO: implement callback for this button */}
                   <IconButton
                     size="small"
                     color="error"
