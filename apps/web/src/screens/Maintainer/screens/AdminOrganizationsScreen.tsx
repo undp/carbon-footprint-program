@@ -1,10 +1,10 @@
 import { FC } from "react";
 import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import { FileDownloadOutlined } from "@mui/icons-material";
-import { RequestScreenKpiSection } from "../components/RequestScreenKpiSection";
-import { RequestScreenTable } from "../components/RequestScreenTable";
+import { OrganizationScreenKpiSection } from "../components/OrganizationScreenKpiSection";
+import { OrganizationScreenTable } from "../components/OrganizationScreenTable";
 
-export const AdminRequestsScreen: FC = () => {
+export const AdminOrganizationsScreen: FC = () => {
   return (
     <Box className="flex flex-col gap-6">
       {/* Header */}
@@ -22,11 +22,10 @@ export const AdminRequestsScreen: FC = () => {
         >
           <Box>
             <Typography variant="h5" fontWeight={700}>
-              Solicitudes
+              Empresas
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Gestión de solicitudes de reconocimientos, acreditaciones y
-              accesos
+              Gestión de empresas registradas en el sistema
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
@@ -43,10 +42,10 @@ export const AdminRequestsScreen: FC = () => {
       </Card>
 
       {/* KPI Cards */}
-      <RequestScreenKpiSection />
+      <OrganizationScreenKpiSection />
 
       {/* Table */}
-      <RequestScreenTable />
+      <OrganizationScreenTable />
     </Box>
   );
 };
