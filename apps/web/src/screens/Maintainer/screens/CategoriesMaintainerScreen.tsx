@@ -57,12 +57,10 @@ import { InfoBanner } from "../components/InfoBanner";
  */
 export const CategoriesMaintainerScreen: FC = () => {
   const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
+  const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
+  const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
   const stopEditing = useMaintainerStore((s) => s.stopEditing);
   const { data: methodologies = [] } = useMethodologies();
-
-  const [selectedMethodologyId, setSelectedMethodologyId] = useState<
-    string | undefined
-  >(undefined);
 
   const activeMethodology = useMemo(
     () =>
@@ -73,12 +71,20 @@ export const CategoriesMaintainerScreen: FC = () => {
   );
 
   const effectiveMethodologyId =
-    editingMethodology?.id ?? selectedMethodologyId ?? activeMethodology?.id;
+    editingMethodology?.id ?? selectedMethodology?.id ?? activeMethodology?.id;
 
   const handleExitEditMode = useCallback(() => {
-    setSelectedMethodologyId(effectiveMethodologyId);
-    stopEditing();
-  }, [effectiveMethodologyId, stopEditing]);
+    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
+    if (target) {
+      selectMethodology({
+        id: target.id,
+        name: target.name,
+        regulation: target.regulation,
+      });
+    } else {
+      stopEditing();
+    }
+  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
 
   const targetMethodology = methodologies.find(
     (m) => m.id === effectiveMethodologyId
@@ -98,7 +104,10 @@ export const CategoriesMaintainerScreen: FC = () => {
         size="small"
         value={effectiveMethodologyId ?? ""}
         disabled={!!editingMethodology}
-        onChange={(e) => setSelectedMethodologyId(e.target.value)}
+        onChange={(e) => {
+          const m = methodologies.find((m) => m.id === e.target.value);
+          if (m) selectMethodology({ id: m.id, name: m.name, regulation: m.regulation });
+        }}
         sx={{ minWidth: 220 }}
       >
         {methodologies.map((m) => (

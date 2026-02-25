@@ -41,6 +41,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } =
     useMethodologiesForm(methodologies);
   const startEditing = useMaintainerStore((s) => s.startEditing);
+  const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
   const currentRows = form.watch("methodologies");
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
@@ -227,6 +228,18 @@ export const MethodologiesMaintainerScreen: FC = () => {
     [form, fieldArray, isNewRow, updateMutation, enqueueSnackbar]
   );
 
+  const handleView = useCallback(
+    (row: FormMethodology) => {
+      selectMethodology({
+        id: row.id,
+        name: row.name,
+        regulation: row.regulation,
+      });
+      void navigate({ to: Routes.ADMIN_CATEGORIES });
+    },
+    [selectMethodology, navigate]
+  );
+
   const handleEdit = useCallback(
     (row: FormMethodology) => {
       if (isNewRow(row.id)) {
@@ -337,6 +350,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
     onStopEditRow: handleStopEditRow,
     onCancelEditRow: handleCancelEditRow,
     onEdit: handleEdit,
+    onView: handleView,
     onDuplicate: handleDuplicate,
     onDelete: handleDelete,
     rows: currentRows,
