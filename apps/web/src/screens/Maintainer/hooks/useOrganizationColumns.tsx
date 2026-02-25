@@ -128,9 +128,11 @@ export const useOrganizationColumns = ({
           const isBlocked = params.row.status === "BLOCKED";
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
+              {/* TODO: implement callback for this button */}
               <IconButton size="small" aria-label="Ver empresa">
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
+              {/* TODO: implement callback for this button */}
               <IconButton size="small" aria-label="Editar empresa">
                 <EditOutlined fontSize="small" />
               </IconButton>
