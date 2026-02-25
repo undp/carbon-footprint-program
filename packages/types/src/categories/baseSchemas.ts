@@ -15,23 +15,23 @@ export const CategorySchema = z
     ),
     name: z
       .string()
-      .min(1, "Required field")
+      .min(1, "Campo requerido")
       .describe("The name of the category"),
     icon: z
       .string()
-      .min(1, "Required field")
+      .min(1, "Campo requerido")
       .describe("The icon identifier for the category"),
     color: z
       .string()
-      .min(1, "Required field")
+      .min(1, "Campo requerido")
       .describe("The color code for the category"),
     synonyms: z
       .string()
-      .min(1, "Required field")
+      .min(1, "Campo requerido")
       .describe("Alternative names for the category"),
     description: z
       .string()
-      .min(1, "Required field")
+      .min(1, "Campo requerido")
       .describe("The description of the category"),
     examples: z.string().nullable().describe("Optional examples text"),
     position: z.number().int().describe("The display position of the category"),
