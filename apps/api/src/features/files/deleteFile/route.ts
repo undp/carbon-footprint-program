@@ -1,4 +1,3 @@
-import { z } from "zod";
 import { DeleteFileResponseSchema, DeleteFileParamsSchema } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";

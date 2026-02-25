@@ -1,4 +1,3 @@
-import { z } from "zod";
 import {
   RequestBadgeUploadBodySchema,
   RequestBadgeUploadParamsSchema,
