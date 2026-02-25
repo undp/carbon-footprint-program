@@ -7,19 +7,9 @@ import {
   DeleteOutlined,
   RestoreOutlined,
 } from "@mui/icons-material";
-import {
-  getDisplayStatus,
-  AdminOrganizationDisplayStatus,
-  OrganizationStatusChip,
-} from "../components/OrganizationStatusChip";
+import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
-
-const STATUS_SORT_ORDER: Record<AdminOrganizationDisplayStatus, number> = {
-  [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: 0,
-  [AdminOrganizationDisplayStatus.REGISTERED]: 1,
-  [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: 2,
-  [AdminOrganizationDisplayStatus.BLOCKED]: 3,
-};
+import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
@@ -32,6 +22,8 @@ export const useOrganizationColumns = ({
   onBlock,
   onUnblock,
 }: UseOrganizationColumnsProps): GridColDef<OrganizationRow>[] => {
+  const { getDisplayStatus, getColor, STATUS_LABEL, STATUS_SORT_ORDER } =
+    useOrganizationDisplayStatus();
   const cellClassName = "content-center";
 
   return useMemo<GridColDef<OrganizationRow>[]>(
@@ -70,24 +62,31 @@ export const useOrganizationColumns = ({
       {
         field: "status",
         headerName: "Estado",
-
         valueGetter: (_value, row) =>
-          STATUS_SORT_ORDER[
+          STATUS_LABEL[
             getDisplayStatus(
               row.status,
               row.isAccredited,
               row.hasCarbonInventories
             )
           ],
+        sortComparator: (value1: string, value2: string, _, __) =>
+          STATUS_SORT_ORDER[value1] - STATUS_SORT_ORDER[value2],
         cellClassName,
         flex: 0.9,
-        renderCell: (params) => (
-          <OrganizationStatusChip
-            status={params.row.status}
-            isAccredited={params.row.isAccredited}
-            hasCarbonInventories={params.row.hasCarbonInventories}
-          />
-        ),
+        renderCell: (params) => {
+          const displayStatus = getDisplayStatus(
+            params.row.status,
+            params.row.isAccredited,
+            params.row.hasCarbonInventories
+          );
+          return (
+            <OrganizationStatusChip
+              label={STATUS_LABEL[displayStatus]}
+              color={getColor(displayStatus)}
+            />
+          );
+        },
       },
       {
         field: "lastMeasurement",
@@ -157,6 +156,13 @@ export const useOrganizationColumns = ({
         },
       },
     ],
-    [onBlock, onUnblock]
+    [
+      getDisplayStatus,
+      getColor,
+      STATUS_LABEL,
+      STATUS_SORT_ORDER,
+      onBlock,
+      onUnblock,
+    ]
   );
 };
