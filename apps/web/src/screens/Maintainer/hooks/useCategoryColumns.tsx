@@ -224,7 +224,7 @@ export const useCategoryColumns = ({
                 return (
                   // TODO: Create a better, and modular approach for actions buttons with different combinations
                   <ActionButtons
-                    isActiveRow={!isEditing(params.row.id)}
+                    isActiveRow={anyEditing && !isEditing(params.row.id)}
                     isEditing={isEditing(params.row.id)}
                     onStopEditCells={onStopEditRow}
                     onCancelEdit={onCancelEditRow}

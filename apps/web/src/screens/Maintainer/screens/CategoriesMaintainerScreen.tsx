@@ -596,7 +596,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
           <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
           <Button
             variant="outlined"
-            color={editingRowId ? "error" : "primary"}
+            color="primary"
             onClick={() => {
               setExitEditModeOpen(false);
               handleExitEditMode();
