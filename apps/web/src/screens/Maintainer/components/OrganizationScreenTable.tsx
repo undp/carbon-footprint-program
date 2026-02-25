@@ -1,5 +1,6 @@
 import { FC, useCallback, useState } from "react";
 import { Box, Skeleton, Stack } from "@mui/material";
+import { enqueueSnackbar } from "notistack";
 import { StylizedDataGrid } from "@components";
 import { useOrganizationColumns } from "../hooks/useOrganizationColumns";
 import { useAdminOrganizations } from "@/api/query/organizations/useAdminOrganizations";
@@ -64,14 +65,32 @@ export const OrganizationScreenTable: FC = () => {
   const handleConfirmBlock = useCallback(() => {
     if (!blockOrgId) return;
     blockMutation.mutate(blockOrgId, {
-      onSettled: () => setBlockOrgId(null),
+      onSuccess: () => {
+        setBlockOrgId(null);
+        enqueueSnackbar("Empresa bloqueada exitosamente", {
+          variant: "success",
+        });
+      },
+      onError: () => {
+        enqueueSnackbar("No se pudo bloquear la empresa", { variant: "error" });
+      },
     });
   }, [blockOrgId, blockMutation]);
 
   const handleConfirmUnblock = useCallback(() => {
     if (!unblockOrgId) return;
     unblockMutation.mutate(unblockOrgId, {
-      onSettled: () => setUnblockOrgId(null),
+      onSuccess: () => {
+        setUnblockOrgId(null);
+        enqueueSnackbar("Empresa desbloqueada exitosamente", {
+          variant: "success",
+        });
+      },
+      onError: () => {
+        enqueueSnackbar("No se pudo desbloquear la empresa", {
+          variant: "error",
+        });
+      },
     });
   }, [unblockOrgId, unblockMutation]);
 
