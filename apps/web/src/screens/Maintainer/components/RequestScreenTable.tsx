@@ -42,7 +42,7 @@ export const RequestScreenTable: FC = () => {
   }
 
   return (
-    <Box>
+    <Box className="flex w-full">
       <StylizedDataGrid
         sx={(theme) => ({
           backgroundColor: "background.paper",
