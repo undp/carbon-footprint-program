@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Button, Card, Stack, Typography } from "@mui/material";
-import { FilterListOutlined, FileDownloadOutlined } from "@mui/icons-material";
+import { FileDownloadOutlined } from "@mui/icons-material";
 import { OrganizationScreenKpiSection } from "../components/OrganizationScreenKpiSection";
 import { OrganizationScreenTable } from "../components/OrganizationScreenTable";
 
@@ -29,13 +29,7 @@ export const AdminOrganizationsScreen: FC = () => {
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>
-            <Button
-              variant="outlined"
-              startIcon={<FilterListOutlined />}
-              size="small"
-            >
-              Filtros
-            </Button>
+            {/* TODO: implement callback for this button */}
             <Button
               variant="outlined"
               startIcon={<FileDownloadOutlined />}
