@@ -4,10 +4,7 @@ import { organizationsKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
 
-export const useAdminOrganizationsKpis = (): {
-  data: GetOrganizationKpisResponse | undefined;
-  isLoading: boolean;
-} => {
+export const useAdminOrganizationsKpis = () => {
   return useQuery<GetOrganizationKpisResponse>({
     queryKey: organizationsKeys.adminKpis,
     queryFn: async () => apiClient.get("admin/organizations/kpis").json(),
