@@ -84,60 +84,19 @@ organization_carbon_inventories_summary AS (
 
 SELECT
   o.id                                                     AS organization_id,
-  o.country_id,
-  o.status                                                 AS organization_status,
-  o.created_at                                             AS organization_created_at,
-  o.updated_at                                             AS organization_updated_at,
-
-  -- Reference organization_data fields
   odd.id                                                   AS organization_data_id,
-  odd.legal_name,
-  odd.trade_name,
-  odd.tax_id,
   COALESCE(odd.trade_name, odd.legal_name, odd.tax_id)     AS name,
-  odd.sector_id,
-  odd.subsector_id,
-  odd.country_organization_size_id,
-  odd.main_activity_id,
-  odd.address,
-  odd.employees_count,
-  odd.representative_full_name,
-  odd.representative_tax_id,
-  odd.representative_country_job_position_id,
-  odd.representative_phone,
-  odd.representative_email,
-  odd.created_at                                           AS organization_data_created_at,
-  odd.updated_at                                           AS organization_data_updated_at,
-
-  -- Last submission status (includes REJECTED, from any org_data)
-  lss.submission_status::TEXT                               AS last_submission_status,
-
-  -- Has unsubmitted changes flag
-  (uioc.organization_id IS NOT NULL)                         AS has_unsubmitted_changes,
-
-  -- Display status (derived from accreditation CTE, not reference row)
+  lss.submission_status::TEXT                              AS last_submission_status,
+  (uioc.organization_id IS NOT NULL)                       AS has_unsubmitted_changes,
   CASE
     WHEN o.status = 'BLOCKED' THEN 'BLOCKED'
     WHEN acoi.organization_id IS NOT NULL THEN 'ACCREDITED'
     ELSE 'NOT_ACCREDITED'
   END                                                      AS display_status,
-
-  -- Accreditation flag (from accreditation CTE, independent of BLOCKED)
-  (acoi.organization_id IS NOT NULL)                        AS is_accredited,
-
-  -- Pre-joined lookup names
-  cos.name                                                 AS size_name,
-  cs.name                                                  AS sector_name,
-  csub.name                                                AS subsector_name,
-  oma.name                                                 AS main_activity_name,
-  cjp.name                                                 AS representative_position_name,
-
-  -- Carbon inventory stats
+  (acoi.organization_id IS NOT NULL)                       AS is_accredited,
   COALESCE(ocs.has_carbon_inventories, FALSE)              AS has_carbon_inventories,
   COALESCE(ocs.total_emissions, 0)                         AS total_emissions,
-
-  -- Last edition timestamp
-  ocs.last_measurement                                         AS last_measurement
+  ocs.last_measurement                                     AS last_measurement
 
 FROM organization o
 LEFT JOIN organization_displayed_data odd
@@ -148,18 +107,6 @@ LEFT JOIN organizations_latest_submission_status lss
   ON lss.organization_id = o.id
 LEFT JOIN organizations_ids_with_unsubmitted_changes uioc
   ON uioc.organization_id = o.id
-LEFT JOIN country_organization_size cos
-  ON cos.id = odd.country_organization_size_id
-LEFT JOIN country_sector cs
-  ON cs.id = odd.sector_id
-LEFT JOIN country_subsector csub
-  ON csub.id = odd.subsector_id
-LEFT JOIN organization_main_activity oma
-  ON oma.id = odd.main_activity_id
-LEFT JOIN country_job_position cjp
-  ON cjp.id = odd.representative_country_job_position_id
 LEFT JOIN organization_carbon_inventories_summary ocs
   ON ocs.organization_id = o.id
 WHERE odd.id IS NOT NULL -- Only include organizations with ACTIVE reference organization_data
-
--- TODO: remove fields that can be derived from the view. sort and filtering must be done using the ORM.

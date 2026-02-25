@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:8080
+
+### Get Organization Form Fields
+GET {{baseUrl}}/api/forms/organizations HTTP/1.1

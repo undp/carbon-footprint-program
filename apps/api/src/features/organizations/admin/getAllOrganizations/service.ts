@@ -4,7 +4,7 @@ import type {
   GetAllOrganizationsQuery,
 } from "@repo/types";
 import {
-  adminOrganizationSummarySelect,
+  adminOrganizationSummaryViewInclude,
   mapAdminOrganizationSummaryToResponse,
 } from "../mappers.js";
 
@@ -13,12 +13,12 @@ export const getAllOrganizationsService = async (
   query?: GetAllOrganizationsQuery
 ): Promise<GetAllOrganizationsResponse> => {
   // Parse pagination parameters
-  const limit = Math.max(1, query?.limit ?? 10);
+  const limit = query?.limit;
   const offset = query?.offset ?? 0;
 
   // Build where clause for status filtering
   const where = query?.statuses
-    ? { organizationStatus: { in: query.statuses } }
+    ? { organization: { status: { in: query.statuses } } }
     : {};
 
   const sortBy = query?.sortBy || "name";
@@ -28,26 +28,33 @@ export const getAllOrganizationsService = async (
   // Build orderBy clause
   const orderBy = { [sortBy]: sortOrder };
 
-  // Fetch paginated data
+  // Fetch data
   const data = await prismaClient.organizationSummaryView.findMany({
     where,
     orderBy,
     skip: offset,
     take: limit,
-    select: adminOrganizationSummarySelect,
+    include: adminOrganizationSummaryViewInclude,
   });
 
-  // Get total count for pagination metadata
+  const organizations: GetAllOrganizationsResponse["data"] = data.map(
+    mapAdminOrganizationSummaryToResponse
+  );
+
+  // If no limit is provided, return all records without pagination metadata
+  if (!limit) {
+    return {
+      data: organizations,
+    };
+  }
+
+  // Get total count
   const total = await prismaClient.organizationSummaryView.count({ where });
 
   // Calculate pagination metadata
   const totalPages = Math.ceil(total / limit);
   const hasNext = offset + limit < total;
   const hasPrev = offset > 0;
-
-  const organizations: GetAllOrganizationsResponse["data"] = data.map(
-    mapAdminOrganizationSummaryToResponse
-  );
 
   return {
     data: organizations,

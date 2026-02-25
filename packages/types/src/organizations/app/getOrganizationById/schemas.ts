@@ -34,7 +34,7 @@ const OrganizationDetailsSchema = CommonOrganizationFieldsSchema.extend({
     "Main business activity"
   ),
   address: z.string().nullable().describe("Physical address"),
-  employeeCount: z.number().int().nullable().describe("Number of employees"),
+  employeesCount: z.number().int().nullable().describe("Number of employees"),
   representative: Representative.describe(
     "Organization representative details"
   ),
