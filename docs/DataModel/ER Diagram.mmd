@@ -678,6 +678,51 @@ erDiagram
 	}
 
 	%% ============================================================
+	%% 🟪 Files & attachments (6)
+	%% ============================================================
+
+	%% Generic file metadata table. Ownership is resolved via link tables
+	%% (organization_data_file, carbon_inventory_file, carbon_inventory_line_file,
+	%% submission_file) following the same polymorphic pattern used by submission_subject.
+	file {
+		BIGINT id PK ""
+		string uuid "UNIQUE"
+		enum file_type "ORGANIZATION_DATA_ATTACHMENT | CARBON_INVENTORY_ATTACHMENT | CARBON_INVENTORY_LINE_INPUT_ATTACHMENT | SUBMISSION_ATTACHMENT"
+		string original_name ""
+		string mime_type ""
+		int size_bytes ""
+		string blob_path ""
+		enum status "ACTIVE | DELETED"
+		BIGINT created_by_id FK "user(id)"
+		timestamptz created_at ""
+		timestamptz deleted_at "NULLABLE"
+	}
+
+	%% Link table: file ↔ organization_data
+	organization_data_file {
+		BIGINT file_id PK "FK file(id)"
+		BIGINT organization_data_id FK "organization_data(id)"
+	}
+
+	%% Link table: file ↔ carbon_inventory
+	carbon_inventory_file {
+		BIGINT file_id PK "FK file(id)"
+		BIGINT carbon_inventory_id FK "carbon_inventory(id)"
+	}
+
+	%% Link table: file ↔ carbon_inventory_line
+	carbon_inventory_line_file {
+		BIGINT file_id PK "FK file(id)"
+		BIGINT carbon_inventory_line_id FK "carbon_inventory_line(id)"
+	}
+
+	%% Link table: file ↔ submission
+	submission_file {
+		BIGINT file_id PK "FK file(id)"
+		BIGINT submission_id FK "submission(id)"
+	}
+
+	%% ============================================================
 	%% Others
 	%% ============================================================
 
@@ -719,6 +764,7 @@ organization_data
 	organization_data ||--|| country_job_position : "has"
 	organization_data ||--o{ submission_subject_organization_data : "submitted via"
 	organization_data }o--|| organization_main_activity : "has"
+	organization_data ||--o{ organization_data_file : "has files via"
 
 
 organization_branch
@@ -738,6 +784,7 @@ user
 	user ||--o{ user_organization_membership : "access with"
 	user }o--o| country_job_position : "may have one"
 	user ||--o| user_role_assignment : "access with"
+	user ||--o{ file : "uploads"
 
 methodology_version
 	methodology_version ||--o{ carbon_inventory : "has many"
@@ -777,10 +824,12 @@ carbon_inventory
 	carbon_inventory ||--o{ submission_subject_carbon_inventory: "submitted as"
 	carbon_inventory ||--o{ neutralization_plan: "associated to"
 	carbon_inventory ||--o{ reduction_project: "associated to"
+	carbon_inventory ||--o{ carbon_inventory_file: "has files via"
 	
 carbon_inventory_line
 	carbon_inventory_line ||--o{ reduction_personalized_suggestion: "could have many"
 	carbon_inventory_line ||--o{ carbon_inventory_line_input: "receives"
+	carbon_inventory_line ||--o{ carbon_inventory_line_file: "has files via"
 
 carbon_inventory_line_input
 	carbon_inventory_line_input ||--o| emission_factor_dimension_value: "may select (selection_1)"
@@ -799,6 +848,7 @@ submission_subject
 submission
 	submission ||--o| recognition: "may award"
 	submission ||--o{ submission_subject: "has"
+	submission ||--o{ submission_file: "has files via"
 
 neutralization_plan
 	neutralization_plan ||--o{ submission_subject_neutralization_plan : "submitted via"
@@ -809,3 +859,9 @@ reduction_project
 
 reduction_suggestion_catalog
 	reduction_suggestion_catalog ||--o{ reduction_personalized_suggestion : "can generate many"
+
+file
+	file ||--o| organization_data_file : "linked via"
+	file ||--o| carbon_inventory_file : "linked via"
+	file ||--o| carbon_inventory_line_file : "linked via"
+	file ||--o| submission_file : "linked via"
