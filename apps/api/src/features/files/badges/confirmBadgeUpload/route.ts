@@ -12,10 +12,7 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 export const badgeConfirmUploadRoute: StandardRouteSignature = (
   fastify: FastifyZodInstance
 ) => {
-  fastify.post<{
-    Params: z.infer<typeof ConfirmBadgeUploadParamsSchema>;
-    Body: z.infer<typeof ConfirmBadgeUploadBodySchema>;
-  }>(
+  fastify.post(
     "/:badgeType/confirm-upload",
     {
       schema: {

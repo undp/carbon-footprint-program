@@ -5,7 +5,7 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteFileHandler } from "./handler.js";
 
 export const deleteFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.delete<{ Params: z.infer<typeof DeleteFileParamsSchema> }>(
+  fastify.delete(
     "/:uuid",
     {
       schema: {

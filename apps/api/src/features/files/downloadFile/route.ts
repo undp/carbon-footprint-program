@@ -8,7 +8,7 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { downloadFileHandler } from "./handler.js";
 
 export const downloadFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.get<{ Params: z.infer<typeof DownloadFileParamsSchema> }>(
+  fastify.get(
     "/:uuid/download",
     {
       schema: {

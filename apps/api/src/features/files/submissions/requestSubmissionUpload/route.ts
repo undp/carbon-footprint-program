@@ -12,10 +12,7 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 export const submissionRequestUploadRoute: StandardRouteSignature = (
   fastify: FastifyZodInstance
 ) => {
-  fastify.post<{
-    Params: z.infer<typeof RequestSubmissionUploadParamsSchema>;
-    Body: z.infer<typeof RequestSubmissionUploadBodySchema>;
-  }>(
+  fastify.post(
     "/:submissionId/request-upload",
     {
       schema: {

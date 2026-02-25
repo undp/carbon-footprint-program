@@ -12,10 +12,7 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 export const submissionGetFilesRoute: StandardRouteSignature = (
   fastify: FastifyZodInstance
 ) => {
-  fastify.get<{
-    Params: z.infer<typeof GetSubmissionFilesParamsSchema>;
-    Querystring: z.infer<typeof GetSubmissionFilesQuerySchema>;
-  }>(
+  fastify.get(
     "/:submissionId",
     {
       schema: {

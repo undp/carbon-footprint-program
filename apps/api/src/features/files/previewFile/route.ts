@@ -8,7 +8,7 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { previewFileHandler } from "./handler.js";
 
 export const previewFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.get<{ Params: z.infer<typeof PreviewFileParamsSchema> }>(
+  fastify.get(
     "/:uuid/preview",
     {
       schema: {

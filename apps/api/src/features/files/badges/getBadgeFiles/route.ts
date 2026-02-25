@@ -12,10 +12,7 @@ import type { StandardRouteSignature } from "@/routes/api/index.js";
 export const badgeGetFilesRoute: StandardRouteSignature = (
   fastify: FastifyZodInstance
 ) => {
-  fastify.get<{
-    Params: z.infer<typeof GetBadgeFilesParamsSchema>;
-    Querystring: z.infer<typeof GetBadgeFilesQuerySchema>;
-  }>(
+  fastify.get(
     "/:badgeType",
     {
       schema: {
