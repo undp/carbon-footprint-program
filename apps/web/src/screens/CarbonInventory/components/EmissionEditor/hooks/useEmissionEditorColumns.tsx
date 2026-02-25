@@ -4,7 +4,7 @@ import {
   EmissionFactorDimension,
   MeasurementUnit,
   RateMeasurementUnit,
-  Subcategory,
+  InventorySubcategory,
   UsageMode,
 } from "@repo/types";
 import {
@@ -23,7 +23,7 @@ import {
 
 interface UseEmissionEditorColumnsParams {
   dimensions: EmissionFactorDimension[];
-  subcategory: Subcategory;
+  subcategory: InventorySubcategory;
   measurementUnits: MeasurementUnit[] | undefined;
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   categoryPosition: number;

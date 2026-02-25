@@ -13,11 +13,11 @@ import {
 import { NumericInput } from "@/components";
 import { formatEmissions } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
-import { Subcategory } from "@repo/types";
+import { InventorySubcategory } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 
 interface EmissionEditorHeaderProps
-  extends Pick<Subcategory, "name" | "description"> {
+  extends Pick<InventorySubcategory, "name" | "description"> {
   isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;
   setTotalEmission: (value: number) => void;

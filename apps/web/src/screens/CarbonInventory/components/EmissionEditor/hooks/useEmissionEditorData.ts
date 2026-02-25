@@ -1,9 +1,9 @@
 import { useMemo } from "react";
-import { Subcategory } from "@repo/types";
+import { InventorySubcategory } from "@repo/types";
 import { useMeasurementUnits, useRateMeasurementUnits } from "@/api/query";
 
 interface UseEmissionEditorDataParams {
-  subcategory: Subcategory;
+  subcategory: InventorySubcategory;
 }
 
 export const useEmissionEditorData = ({
