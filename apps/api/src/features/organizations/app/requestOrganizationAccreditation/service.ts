@@ -100,7 +100,7 @@ export const requestOrganizationAccreditationService = async (
     // 1. Create submission subject
     const subject = await tx.submissionSubject.create({
       data: {
-        subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
+        subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
         createdById: BigInt(userId),
       },
     });
