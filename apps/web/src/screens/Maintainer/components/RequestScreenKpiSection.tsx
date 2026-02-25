@@ -37,11 +37,14 @@ export const RequestScreenKpiSection: FC = () => {
   const { data: kpisData, isLoading } = useAdminRequestsKpis();
   const theme = useTheme();
 
-  const REQUESTS_STATUS_COLORS: Record<SubmissionStatus, string> = {
-    [SubmissionStatus.PENDING]: theme.palette.warning.dark,
-    [SubmissionStatus.APPROVED]: theme.palette.success.dark,
-    [SubmissionStatus.REJECTED]: theme.palette.error.dark,
-  };
+  const REQUESTS_STATUS_COLORS = useMemo(
+    () => ({
+      [SubmissionStatus.PENDING]: theme.palette.warning.dark,
+      [SubmissionStatus.APPROVED]: theme.palette.success.dark,
+      [SubmissionStatus.REJECTED]: theme.palette.error.dark,
+    }),
+    [theme]
+  );
 
   const REQUESTS_TOTAL_COLOR = theme.palette.secondary.dark;
 
