@@ -1075,6 +1075,9 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         data: {
           categoryId: category.id,
           name: "Test Subcategory",
+          icon: "TRUCK",
+          color: "#FFFFFF",
+          description: "Test Description",
           updatedAt: null,
         },
       });
