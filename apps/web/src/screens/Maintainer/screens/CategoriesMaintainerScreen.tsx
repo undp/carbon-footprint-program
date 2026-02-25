@@ -106,7 +106,12 @@ export const CategoriesMaintainerScreen: FC = () => {
         disabled={!!editingMethodology}
         onChange={(e) => {
           const m = methodologies.find((m) => m.id === e.target.value);
-          if (m) selectMethodology({ id: m.id, name: m.name, regulation: m.regulation });
+          if (m)
+            selectMethodology({
+              id: m.id,
+              name: m.name,
+              regulation: m.regulation,
+            });
         }}
         sx={{ minWidth: 220 }}
       >
