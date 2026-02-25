@@ -15,7 +15,7 @@ import {
 export const updateOrganizationUserRoleService = async (
   prismaClient: PrismaClient,
   organizationId: string,
-  userId: string,
+  organizationUserId: string,
   data: UpdateOrganizationUserRoleBody,
   currentUser: User | null
 ): Promise<UpdateOrganizationUserRoleResponse> => {
@@ -33,7 +33,7 @@ export const updateOrganizationUserRoleService = async (
   // Find user's ACTIVE membership
   const membership = await prismaClient.userOrganizationMembership.findFirst({
     where: {
-      userId: BigInt(userId),
+      userId: BigInt(organizationUserId),
       organizationId: organization.id,
       status: MembershipStatus.ACTIVE,
     },
@@ -44,7 +44,7 @@ export const updateOrganizationUserRoleService = async (
   }
 
   // Prevent updating own role
-  if (currentUser && BigInt(userId) === BigInt(currentUser.id)) {
+  if (currentUser && BigInt(organizationUserId) === BigInt(currentUser.id)) {
     throw new CannotModifySelfError();
   }
 

@@ -24,7 +24,7 @@ export const removeOrganizationUserRoute: StandardRouteSignature = (
     Params: RemoveOrganizationUserParams;
     Reply: RemoveOrganizationUserResponse;
   }>(
-    "/:organizationId/users/:userId",
+    "/:organizationId/users/:organizationUserId",
     {
       schema: {
         tags: ["organizations"],

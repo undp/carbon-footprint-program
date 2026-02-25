@@ -5,7 +5,7 @@ import { OrganizationRole } from "@repo/database/enums";
 // Path parameters
 export const UpdateOrganizationUserRoleParamsSchema = z.object({
   organizationId: IdSchema.describe("The organization ID"),
-  userId: IdSchema.describe("The user ID"),
+  organizationUserId: IdSchema.describe("The user ID"),
 });
 
 // Request body

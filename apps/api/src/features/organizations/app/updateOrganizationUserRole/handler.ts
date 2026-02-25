@@ -13,11 +13,11 @@ export const updateOrganizationUserRoleHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "organization-users" });
-  const { organizationId, userId } = request.params;
+  const { organizationId, organizationUserId } = request.params;
   const body = request.body;
 
   log.info(
-    { organizationId, userId, newRole: body.role },
+    { organizationId, organizationUserId, newRole: body.role },
     "Updating user role in organization..."
   );
 
@@ -27,13 +27,13 @@ export const updateOrganizationUserRoleHandler = async (
   const data = await updateOrganizationUserRoleService(
     prisma,
     organizationId,
-    userId,
+    organizationUserId,
     body,
     user
   );
 
   log.info(
-    { organizationId, userId, role: data.role },
+    { organizationId, organizationUserId, role: data.role },
     "User role updated successfully"
   );
 

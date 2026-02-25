@@ -27,7 +27,7 @@ export const updateOrganizationUserRoleRoute: StandardRouteSignature = (
     Body: UpdateOrganizationUserRoleBody;
     Reply: UpdateOrganizationUserRoleResponse;
   }>(
-    "/:organizationId/users/:userId",
+    "/:organizationId/users/:organizationUserId",
     {
       schema: {
         tags: ["organizations"],

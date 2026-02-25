@@ -11,7 +11,7 @@ import {
 export const removeOrganizationUserService = async (
   prismaClient: PrismaClient,
   organizationId: string,
-  userId: string,
+  organizationUserId: string,
   currentUser: User | null
 ): Promise<RemoveOrganizationUserResponse> => {
   // Verify organization exists
@@ -28,7 +28,7 @@ export const removeOrganizationUserService = async (
   // Find user's ACTIVE membership
   const membership = await prismaClient.userOrganizationMembership.findFirst({
     where: {
-      userId: BigInt(userId),
+      userId: BigInt(organizationUserId),
       organizationId: organization.id,
       status: MembershipStatus.ACTIVE,
     },
@@ -39,7 +39,7 @@ export const removeOrganizationUserService = async (
   }
 
   // Prevent removing self
-  if (currentUser && BigInt(userId) === BigInt(currentUser.id)) {
+  if (currentUser && BigInt(organizationUserId) === BigInt(currentUser.id)) {
     throw new CannotModifySelfError();
   }
 
