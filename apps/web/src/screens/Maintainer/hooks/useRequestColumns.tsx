@@ -132,7 +132,7 @@ export const useRequestColumns = (): GridColDef<
 
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
-              <IconButton size="small" aria-label="View request">
+              <IconButton size="small" aria-label="Ver solicitud">
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
               {showApproveReject && (
@@ -140,7 +140,7 @@ export const useRequestColumns = (): GridColDef<
                   <IconButton
                     size="small"
                     color="success"
-                    aria-label="Approve request"
+                    aria-label="Aprobar solicitud"
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.success.light, 0.1),
                     })}
@@ -150,7 +150,7 @@ export const useRequestColumns = (): GridColDef<
                   <IconButton
                     size="small"
                     color="error"
-                    aria-label="Reject request"
+                    aria-label="Rechazar solicitud"
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.error.light, 0.1),
                     })}
