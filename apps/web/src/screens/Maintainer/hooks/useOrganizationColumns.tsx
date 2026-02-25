@@ -112,7 +112,7 @@ export const useOrganizationColumns = ({
         align: "right",
         headerAlign: "right",
         valueFormatter: (value: number) => {
-          if (!value) return "-";
+          if (value == null || Number.isNaN(value)) return "-";
           return new Intl.NumberFormat("es").format(value);
         },
       },
