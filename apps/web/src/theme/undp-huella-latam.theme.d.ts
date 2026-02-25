@@ -1,4 +1,5 @@
 import "@mui/material/styles";
+import { SubmissionSubjectType as RequestType } from "@repo/types";
 
 declare module "@mui/material/styles" {
   interface TypeText {
@@ -33,6 +34,7 @@ declare module "@mui/material/styles" {
       three: CategoryColors;
       [key: number]: CategoryColors;
     };
+    requestTypeColors: Record<RequestType, string>;
   }
 
   interface PaletteOptions {
@@ -50,5 +52,6 @@ declare module "@mui/material/styles" {
       three?: CategoryColors;
       [key: number]: CategoryColors;
     };
+    requestTypeColors?: Record<RequestType, string>;
   }
 }

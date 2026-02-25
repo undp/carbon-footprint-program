@@ -23,6 +23,7 @@ import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-in
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
+import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
 import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
@@ -105,6 +106,11 @@ const AdminUnitsRoute = AdminUnitsRouteImport.update({
 const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
   id: '/subcategories',
   path: '/subcategories',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRequestsRoute = AdminRequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminParametersRoute = AdminParametersRouteImport.update({
@@ -190,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -219,6 +226,7 @@ export interface FileRoutesByTo {
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -248,6 +256,7 @@ export interface FileRoutesById {
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -279,6 +288,7 @@ export interface FileRouteTypes {
     | '/admin/main-activities'
     | '/admin/methodologies'
     | '/admin/parameters'
+    | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -308,6 +318,7 @@ export interface FileRouteTypes {
     | '/admin/main-activities'
     | '/admin/methodologies'
     | '/admin/parameters'
+    | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -336,6 +347,7 @@ export interface FileRouteTypes {
     | '/admin/main-activities'
     | '/admin/methodologies'
     | '/admin/parameters'
+    | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -470,6 +482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubcategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/requests': {
+      id: '/admin/requests'
+      path: '/requests'
+      fullPath: '/admin/requests'
+      preLoaderRoute: typeof AdminRequestsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/parameters': {
       id: '/admin/parameters'
       path: '/parameters'
@@ -571,6 +590,7 @@ interface AdminRouteChildren {
   AdminMainActivitiesRoute: typeof AdminMainActivitiesRoute
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
   AdminParametersRoute: typeof AdminParametersRoute
+  AdminRequestsRoute: typeof AdminRequestsRoute
   AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
   AdminUnitsRoute: typeof AdminUnitsRoute
 }
@@ -582,6 +602,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMainActivitiesRoute: AdminMainActivitiesRoute,
   AdminMethodologiesRoute: AdminMethodologiesRoute,
   AdminParametersRoute: AdminParametersRoute,
+  AdminRequestsRoute: AdminRequestsRoute,
   AdminSubcategoriesRoute: AdminSubcategoriesRoute,
   AdminUnitsRoute: AdminUnitsRoute,
 }
