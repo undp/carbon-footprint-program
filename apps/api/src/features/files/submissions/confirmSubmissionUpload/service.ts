@@ -13,17 +13,15 @@ import {
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 
 type SubmissionConfirmUploadInput = ConfirmSubmissionUploadBody &
-  ConfirmSubmissionUploadParams & {
-    userId: string;
-  };
+  ConfirmSubmissionUploadParams;
 
 export const submissionConfirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
-  input: SubmissionConfirmUploadInput
+  input: SubmissionConfirmUploadInput,
+  userId: string
 ): Promise<ConfirmSubmissionUploadResponse> => {
-  const { submissionId, uuid, originalName, submissionFileType, userId } =
-    input;
+  const { submissionId, uuid, originalName, submissionFileType } = input;
 
   await validateSubmissionExists(prisma, submissionId);
 

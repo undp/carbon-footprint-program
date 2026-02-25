@@ -10,14 +10,15 @@ import { persistBadgeFileRecord } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 
 type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
-  ConfirmBadgeUploadParams & { userId: string };
+  ConfirmBadgeUploadParams;
 
 export const badgeConfirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
-  input: BadgeConfirmUploadInput
+  input: BadgeConfirmUploadInput,
+  userId: string
 ): Promise<ConfirmBadgeUploadResponse> => {
-  const { badgeType, uuid, originalName, userId } = input;
+  const { badgeType, uuid, originalName } = input;
 
   const blobPath = buildBlobPath({
     fileType: FileType.BADGE,

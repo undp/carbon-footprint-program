@@ -25,13 +25,17 @@ export const submissionConfirmUploadHandler = async (
   log.info({ uuid, submissionId }, "Confirming submission upload...");
 
   const prisma = request.server.prisma;
-  const result = await submissionConfirmUploadService(prisma, blobStorage, {
-    submissionId,
-    uuid,
-    originalName,
-    submissionFileType,
-    userId: request.currentUser!.id,
-  });
+  const result = await submissionConfirmUploadService(
+    prisma,
+    blobStorage,
+    {
+      submissionId,
+      uuid,
+      originalName,
+      submissionFileType,
+    },
+    request.currentUser!.id
+  );
 
   log.info({ uuid, submissionId }, "Submission upload confirmed");
   return reply.status(201).send(result);
