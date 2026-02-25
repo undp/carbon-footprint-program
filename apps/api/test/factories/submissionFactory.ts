@@ -15,7 +15,7 @@ export async function createTestSubmissionSubjectForOrganizationData(
 ): Promise<SubmissionSubject> {
   const subject = await prisma.submissionSubject.create({
     data: {
-      subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
+      subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
     },
   });
 

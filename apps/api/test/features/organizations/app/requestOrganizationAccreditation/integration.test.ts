@@ -140,7 +140,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
       expect(subject).toBeDefined();
       expect(subject?.subjectType).toBe(
-        SubmissionSubjectType.ORGANIZATION_DATA
+        SubmissionSubjectType.ORGANIZATION_ACCREDITATION
       );
       expect(subject?.createdById).toBe(testUserId);
     });
@@ -185,7 +185,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(link?.organizationDataId).toBe(organizationData.id);
       expect(link?.subject).toBeDefined();
       expect(link?.subject.subjectType).toBe(
-        SubmissionSubjectType.ORGANIZATION_DATA
+        SubmissionSubjectType.ORGANIZATION_ACCREDITATION
       );
     });
   });
