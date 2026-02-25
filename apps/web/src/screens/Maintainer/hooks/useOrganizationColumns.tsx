@@ -9,16 +9,16 @@ import {
 } from "@mui/icons-material";
 import {
   getDisplayStatus,
-  OrganizationDisplayStatus,
+  AdminOrganizationDisplayStatus,
   OrganizationStatusChip,
 } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
 
-const STATUS_SORT_ORDER: Record<OrganizationDisplayStatus, number> = {
-  [OrganizationDisplayStatus.WITH_MEASUREMENTS]: 0,
-  [OrganizationDisplayStatus.REGISTERED]: 1,
-  [OrganizationDisplayStatus.NOT_ACCREDITED]: 2,
-  [OrganizationDisplayStatus.BLOCKED]: 3,
+const STATUS_SORT_ORDER: Record<AdminOrganizationDisplayStatus, number> = {
+  [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: 0,
+  [AdminOrganizationDisplayStatus.REGISTERED]: 1,
+  [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: 2,
+  [AdminOrganizationDisplayStatus.BLOCKED]: 3,
 };
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
