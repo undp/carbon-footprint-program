@@ -103,7 +103,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(submission?.updatedById).toBe(testUserId);
     });
 
-    it("should create submission_subject with ORGANIZATION_DATA type", async () => {
+    it("should create submission_subject with ORGANIZATION_ACCREDITATION type", async () => {
       // Setup
       const organization = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
@@ -129,7 +129,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
       expect(response.statusCode).toBe(200);
 
-      // Verify: Subject was created with ORGANIZATION_DATA type
+      // Verify: Subject was created with ORGANIZATION_ACCREDITATION type
       const subject = await prisma.submissionSubject.findFirst({
         where: {
           organizationData: {
