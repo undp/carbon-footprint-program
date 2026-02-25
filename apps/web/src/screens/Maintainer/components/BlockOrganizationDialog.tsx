@@ -30,10 +30,10 @@ export const BlockOrganizationDialog: FC<BlockOrganizationDialogProps> = ({
       aria-labelledby="block-org-dialog-title"
       aria-describedby="block-org-dialog-description"
     >
-      <DialogTitle id="block-org-dialog-title">Eliminar empresa</DialogTitle>
+      <DialogTitle id="block-org-dialog-title">Bloquear empresa</DialogTitle>
       <DialogContent>
         <DialogContentText id="block-org-dialog-description">
-          ¿Estás seguro de que deseas eliminar la empresa{" "}
+          ¿Estás seguro de que deseas bloquear la empresa{" "}
           <strong>{organizationName}</strong>? La empresa será bloqueada y no
           podrá usar las funcionalidades del sistema.
         </DialogContentText>
@@ -43,7 +43,7 @@ export const BlockOrganizationDialog: FC<BlockOrganizationDialogProps> = ({
           Cancelar
         </Button>
         <Button onClick={onConfirm} color="error" disabled={isLoading}>
-          {isLoading ? "Eliminando..." : "Eliminar"}
+          {isLoading ? "Bloqueando..." : "Bloquear"}
         </Button>
       </DialogActions>
     </Dialog>
