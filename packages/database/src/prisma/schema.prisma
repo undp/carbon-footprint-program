@@ -252,6 +252,7 @@ model User {
   memberships                          UserOrganizationMembership[]   @relation("user_memberships")
   membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
   membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
+  filesUploaded                        File[]                         @relation("file_created_by")
 
   @@map("user")
 }
@@ -744,6 +745,50 @@ model OrganizationData {
   @@map("organization_data")
 }
 
+enum SubmissionFileType {
+  ATTACHMENT
+  RECOGNITION
+
+  @@map("submission_file_type")
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+
+  @@map("file_status")
+}
+
+model File {
+  id           BigInt     @id @default(autoincrement())
+  uuid         String     @unique @db.Uuid
+  originalName String     @map("original_name")
+  mimeType     String     @map("mime_type")
+  sizeBytes    Int        @map("size_bytes")
+  blobPath     String     @map("blob_path")
+  status       FileStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  deletedAt    DateTime?  @map("deleted_at")
+  createdById  BigInt     @map("created_by_id")
+
+  createdBy       User             @relation("file_created_by", fields: [createdById], references: [id])
+  submissionFiles SubmissionFile[]
+
+  @@map("file")
+}
+
+model SubmissionFile {
+  fileId       BigInt             @id @map("file_id")
+  submissionId BigInt             @map("submission_id")
+  type         SubmissionFileType @default(ATTACHMENT) @map("type")
+
+  file       File       @relation(fields: [fileId], references: [id])
+  submission Submission @relation(fields: [submissionId], references: [id])
+
+  @@index([submissionId])
+  @@map("submission_file")
+}
+
 enum SubmissionSubjectType {
   CARBON_INVENTORY
   ORGANIZATION_DATA
@@ -806,6 +851,7 @@ model Submission {
   reviewer User?             @relation("submission_reviewer", fields: [reviewerId], references: [id])
   creator  User?             @relation("submission_created_by", fields: [createdById], references: [id])
   updater  User?             @relation("submission_updated_by", fields: [updatedById], references: [id])
+  files    SubmissionFile[]
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
