@@ -23,7 +23,7 @@ export const getOrganizationByIdRoute: StandardRouteSignature = (
     "/:id",
     {
       schema: {
-        tags: ["app-organizations"],
+        tags: ["organizations"],
         summary: "Get organization by ID",
         description:
           "Get organization details by ID (requires active membership)",

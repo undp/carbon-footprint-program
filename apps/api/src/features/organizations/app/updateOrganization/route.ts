@@ -26,7 +26,7 @@ export const updateOrganizationRoute: StandardRouteSignature = (
     "/:id",
     {
       schema: {
-        tags: ["app-organizations"],
+        tags: ["organizations"],
         summary: "Update organization",
         description:
           "Update organization data (requires active membership). Behavior varies by state: DRAFT updates in-place, APPROVED creates new submission, PENDING throws error, REJECTED creates new draft.",

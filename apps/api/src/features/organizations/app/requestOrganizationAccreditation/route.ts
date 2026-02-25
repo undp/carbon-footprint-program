@@ -25,7 +25,7 @@ export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
     "/:id/request-accreditation",
     {
       schema: {
-        tags: ["app-organizations"],
+        tags: ["organizations"],
         summary: "Request organization accreditation",
         description:
           "Submit organization for accreditation (requires active membership)",
