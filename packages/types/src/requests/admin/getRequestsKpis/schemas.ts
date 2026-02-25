@@ -78,15 +78,6 @@ const RequestKpiCountSchema = z.union([
   }),
 ]);
 
-export const RequestsKpiCountItem = z.object({
-  type: z.enum(SubmissionSubjectType).describe("The type of the request"),
-  status: z.enum(SubmissionStatus).describe("The status of the request"),
-  value: z
-    .number()
-    .nonnegative()
-    .describe("The count of requests for the given type and status"),
-});
-
 const expectedKpiCount =
   Object.keys(SubmissionSubjectType).length *
   Object.keys(SubmissionStatus).length;
