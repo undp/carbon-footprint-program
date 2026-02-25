@@ -1,30 +1,15 @@
 import { FC } from "react";
-import { alpha, Box, Typography, useTheme, type Theme } from "@mui/material";
-import { SubmissionStatus as RequestStatus } from "@repo/types";
+import { alpha, Box, Typography } from "@mui/material";
 
 interface RequestStatusChipProps {
-  status: RequestStatus;
+  label: string;
+  color: string;
 }
 
-const getStatusColor = (status: RequestStatus, theme: Theme): string => {
-  const map: Record<RequestStatus, string> = {
-    [RequestStatus.PENDING]: theme.palette.warning.light,
-    [RequestStatus.APPROVED]: theme.palette.success.light,
-    [RequestStatus.REJECTED]: theme.palette.error.light,
-  };
-  return map[status];
-};
-
-const statusLabels: Record<RequestStatus, string> = {
-  [RequestStatus.PENDING]: "Pendiente",
-  [RequestStatus.APPROVED]: "Aprobada",
-  [RequestStatus.REJECTED]: "Rechazada",
-};
-
-export const RequestStatusChip: FC<RequestStatusChipProps> = ({ status }) => {
-  const theme = useTheme();
-  const color = getStatusColor(status, theme);
-
+export const RequestStatusChip: FC<RequestStatusChipProps> = ({
+  label,
+  color,
+}) => {
   return (
     <Box
       sx={{
@@ -39,7 +24,7 @@ export const RequestStatusChip: FC<RequestStatusChipProps> = ({ status }) => {
       }}
     >
       <Typography variant="caption" fontWeight="fontWeightMedium">
-        {statusLabels[status]}
+        {label}
       </Typography>
     </Box>
   );

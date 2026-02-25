@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { alpha, IconButton, Stack } from "@mui/material";
+import { alpha, IconButton, Stack, useTheme, type Theme } from "@mui/material";
 import {
   VisibilityOutlined,
   CheckOutlined,
@@ -14,23 +14,51 @@ import {
   SubmissionSubjectType as RequestType,
 } from "@repo/types";
 
-const STATUS_SORT_ORDER: Record<RequestStatus, number> = {
-  [RequestStatus.PENDING]: 0,
-  [RequestStatus.APPROVED]: 1,
-  [RequestStatus.REJECTED]: 2,
+// ASSETS FOR RENDERING THE STATUS COLUMN
+
+const STATUS_LABEL: Record<RequestStatus, string> = {
+  [RequestStatus.PENDING]: "Pendiente",
+  [RequestStatus.APPROVED]: "Aprobada",
+  [RequestStatus.REJECTED]: "Rechazada",
 };
 
-const TYPE_SORT_ORDER: Record<RequestType, number> = {
-  [RequestType.ORGANIZATION_ACCREDITATION]: 0,
-  [RequestType.CARBON_INVENTORY_CALCULATION]: 1,
-  [RequestType.CARBON_INVENTORY_VERIFICATION]: 2,
-  [RequestType.REDUCTION_PLAN_VERIFICATION]: 3,
-  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: 4,
+const getStatusColor = (status: RequestStatus, theme: Theme): string => {
+  const map: Record<RequestStatus, string> = {
+    [RequestStatus.PENDING]: theme.palette.warning.light,
+    [RequestStatus.APPROVED]: theme.palette.success.light,
+    [RequestStatus.REJECTED]: theme.palette.error.light,
+  };
+  return map[status];
+};
+
+const STATUS_SORT_ORDER: Record<string, number> = {
+  [STATUS_LABEL[RequestStatus.PENDING]]: 0,
+  [STATUS_LABEL[RequestStatus.APPROVED]]: 1,
+  [STATUS_LABEL[RequestStatus.REJECTED]]: 2,
+};
+
+// ASSETS FOR RENDERING THE TYPE COLUMN
+
+const TYPE_LABEL: Record<RequestType, string> = {
+  [RequestType.ORGANIZATION_ACCREDITATION]: "Acreditación",
+  [RequestType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
+  [RequestType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
+  [RequestType.REDUCTION_PLAN_VERIFICATION]: "Sello Reducción",
+  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello Neutralización",
+};
+
+const TYPE_SORT_ORDER: Record<string, number> = {
+  [TYPE_LABEL[RequestType.ORGANIZATION_ACCREDITATION]]: 0,
+  [TYPE_LABEL[RequestType.CARBON_INVENTORY_CALCULATION]]: 1,
+  [TYPE_LABEL[RequestType.CARBON_INVENTORY_VERIFICATION]]: 2,
+  [TYPE_LABEL[RequestType.REDUCTION_PLAN_VERIFICATION]]: 3,
+  [TYPE_LABEL[RequestType.NEUTRALIZATION_PLAN_VERIFICATION]]: 4,
 };
 
 export const useRequestColumns = (): GridColDef<
   GetAllAdminRequestsResponse[number]
 >[] => {
+  const theme = useTheme();
   const cellClassName = "content-center";
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
@@ -46,8 +74,15 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Tipo",
         cellClassName,
         flex: 1,
-        valueGetter: (_value, row) => TYPE_SORT_ORDER[row.type],
-        renderCell: (params) => <RequestTypeChip type={params.row.type} />,
+        valueGetter: (_value, row) => TYPE_LABEL[row.type],
+        sortComparator: (value1: string, value2: string, _, __) =>
+          TYPE_SORT_ORDER[value1] - TYPE_SORT_ORDER[value2],
+        renderCell: (params) => (
+          <RequestTypeChip
+            label={TYPE_LABEL[params.row.type]}
+            color={theme.palette.requestTypeColors[params.row.type]}
+          />
+        ),
       },
       {
         field: "year",
@@ -60,9 +95,14 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Estado",
         cellClassName,
         flex: 1,
-        valueGetter: (_value, row) => STATUS_SORT_ORDER[row.status],
+        valueGetter: (_value, row) => STATUS_LABEL[row.status],
+        sortComparator: (value1: string, value2: string, _, __) =>
+          STATUS_SORT_ORDER[value1] - STATUS_SORT_ORDER[value2],
         renderCell: (params) => (
-          <RequestStatusChip status={params.row.status} />
+          <RequestStatusChip
+            label={STATUS_LABEL[params.row.status]}
+            color={getStatusColor(params.row.status, theme)}
+          />
         ),
       },
       {
@@ -124,6 +164,6 @@ export const useRequestColumns = (): GridColDef<
         },
       },
     ],
-    []
+    [theme]
   );
 };
