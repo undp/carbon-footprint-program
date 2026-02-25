@@ -1,0 +1,123 @@
+@baseUrl = http://localhost:8080
+@organizationId = 1
+
+### Get My Organizations
+GET {{baseUrl}}/api/app/organizations/me HTTP/1.1
+
+
+### Get Organization by ID
+GET {{baseUrl}}/api/app/organizations/{{organizationId}} HTTP/1.1
+
+
+### Create Organization
+POST {{baseUrl}}/api/app/organizations HTTP/1.1
+Content-Type: application/json
+
+{
+  "legalName": "Acme Corporation S.A.",
+  "tradeName": "Acme Corp",
+  "taxId": "12345678-9",
+  "countryOrganizationSizeId": "1",
+  "sectorId": "1",
+  "subsectorId": "1",
+  "employeesCount": 150,
+  "address": "123 Main Street, Capital City, Country",
+  "representativeFullName": "John Doe",
+  "representativeTaxId": "98765432-1",
+  "representativePositionId": "1",
+  "representativePhone": "+1234567890",
+  "representativeEmail": "john.doe@example.com",
+  "mainActivityId": "1"
+}
+
+
+### Create Organization - Small Business
+POST {{baseUrl}}/api/app/organizations HTTP/1.1
+Content-Type: application/json
+
+{
+  "legalName": "Tech Startup LLC",
+  "tradeName": "Tech Startup",
+  "taxId": "11111111-1",
+  "countryOrganizationSizeId": "2",
+  "sectorId": "2",
+  "subsectorId": "2",
+  "employeesCount": 25,
+  "address": "456 Innovation Ave, Tech Park, Country",
+  "representativeFullName": "Jane Smith",
+  "representativeTaxId": "22222222-2",
+  "representativePositionId": "2",
+  "representativePhone": "+9876543210",
+  "representativeEmail": "jane.smith@example.com",
+  "mainActivityId": "2"
+}
+
+
+### Update Organization - Full Update
+PATCH {{baseUrl}}/api/app/organizations/{{organizationId}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "legalName": "Acme Corporation S.A. Updated",
+  "tradeName": "Acme Corp Updated",
+  "taxId": "12345678-9",
+  "countryOrganizationSizeId": "2",
+  "sectorId": "2",
+  "subsectorId": "2",
+  "employeesCount": 200,
+  "address": "789 New Address, Capital City, Country",
+  "representativeFullName": "John Doe Updated",
+  "representativeTaxId": "98765432-1",
+  "representativePositionId": "2",
+  "representativePhone": "+1234567899",
+  "representativeEmail": "john.doe@example.com",
+  "mainActivityId": "2"
+}
+
+
+### Update Organization - Partial Update (Employee Count)
+PATCH {{baseUrl}}/api/app/organizations/{{organizationId}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "legalName": "Acme Corporation S.A.",
+  "tradeName": "Acme Corp",
+  "taxId": "12345678-9",
+  "countryOrganizationSizeId": "1",
+  "sectorId": "1",
+  "subsectorId": "1",
+  "employeesCount": 175,
+  "address": "123 Main Street, Capital City, Country",
+  "representativeFullName": "John Doe",
+  "representativeTaxId": "98765432-1",
+  "representativePositionId": "1",
+  "representativeEmail": "john.doe@example.com",
+  "representativePhone": "+1234567890",
+  "mainActivityId": "1"
+}
+
+
+### Update Organization - Change Sector and Subsector
+PATCH {{baseUrl}}/api/app/organizations/{{organizationId}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "legalName": "Acme Corporation S.A.",
+  "tradeName": "Acme Corp",
+  "taxId": "12345678-9",
+  "countryOrganizationSizeId": "1",
+  "sectorId": "3",
+  "subsectorId": "3",
+  "employeesCount": 150,
+  "address": "123 Main Street, Capital City, Country",
+  "representativeFullName": "John Doe",
+  "representativeTaxId": "98765432-1",
+  "representativePositionId": "1",
+  "representativeEmail": "john.doe@example.com",
+  "representativePhone": "+1234567890",
+  "mainActivityId": "1"
+}
+
+
+### Request Organization Accreditation
+POST {{baseUrl}}/api/app/organizations/{{organizationId}}/request-accreditation HTTP/1.1

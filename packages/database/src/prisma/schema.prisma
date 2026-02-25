@@ -655,42 +655,18 @@ view CarbonInventorySubtotalsView {
 }
 
 view OrganizationSummaryView {
-  organizationId                     BigInt             @unique @map("organization_id")
-  countryId                          BigInt             @map("country_id")
-  organizationStatus                 OrganizationStatus @map("organization_status")
-  organizationCreatedAt              DateTime           @map("organization_created_at")
-  organizationUpdatedAt              DateTime?          @map("organization_updated_at")
-  organizationDataId                 BigInt             @map("organization_data_id")
-  legalName                          String             @map("legal_name")
-  tradeName                          String?            @map("trade_name")
-  taxId                              String             @map("tax_id")
-  name                               String             @map("name")
-  sectorId                           BigInt?            @map("sector_id")
-  subsectorId                        BigInt?            @map("subsector_id")
-  countryOrganizationSizeId          BigInt?            @map("country_organization_size_id")
-  mainActivityId                     BigInt?            @map("main_activity_id")
-  address                            String?
-  employeesCount                     Int?               @map("employees_count")
-  representativeFullName             String             @map("representative_full_name")
-  representativeTaxId                String             @map("representative_tax_id")
-  representativeCountryJobPositionId BigInt             @map("representative_country_job_position_id")
-  representativePhone                String             @map("representative_phone")
-  representativeEmail                String             @map("representative_email")
-  organizationDataCreatedAt          DateTime           @map("organization_data_created_at")
-  organizationDataUpdatedAt          DateTime?          @map("organization_data_updated_at")
-  lastSubmissionStatus               SubmissionStatus?  @map("last_submission_status")
-  hasUnsubmittedChanges              Boolean            @map("has_unsubmitted_changes")
-  displayStatus                      String             @map("display_status")
-  isAccredited                       Boolean            @map("is_accredited")
-  sizeName                           String?            @map("size_name")
-  sectorName                         String?            @map("sector_name")
-  subsectorName                      String?            @map("subsector_name")
-  mainActivityName                   String?            @map("main_activity_name")
-  representativePositionName         String             @map("representative_position_name")
-  hasCarbonInventories               Boolean            @map("has_carbon_inventories")
-  totalEmissions                     Decimal            @map("total_emissions") @db.Decimal(28, 10)
-  lastMeasurement                    DateTime?          @map("last_measurement")
-  organization                       Organization       @relation(fields: [organizationId], references: [id])
+  organizationId        BigInt            @unique @map("organization_id")
+  organizationDataId    BigInt            @map("organization_data_id")
+  name                  String            @map("name")
+  lastSubmissionStatus  SubmissionStatus? @map("last_submission_status")
+  hasUnsubmittedChanges Boolean           @map("has_unsubmitted_changes")
+  displayStatus         String            @map("display_status")
+  isAccredited          Boolean           @map("is_accredited")
+  hasCarbonInventories  Boolean           @map("has_carbon_inventories")
+  totalEmissions        Decimal           @map("total_emissions") @db.Decimal(28, 10)
+  lastMeasurement       DateTime?         @map("last_measurement")
+  organization          Organization      @relation(fields: [organizationId], references: [id])
+  organizationData      OrganizationData  @relation(fields: [organizationDataId], references: [id])
 
   @@map("organization_summary_view")
 }
@@ -760,6 +736,7 @@ model OrganizationData {
   updater                            User?                              @relation("organization_data_updated_by", fields: [updatedById], references: [id])
   submission                         SubmissionSubjectOrganizationData?
   mainActivity                       OrganizationMainActivity?          @relation(fields: [mainActivityId], references: [id])
+  summaries                          OrganizationSummaryView[]
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on organization_id WHERE status = 'COMPLETED'

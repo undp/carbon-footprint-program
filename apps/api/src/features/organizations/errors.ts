@@ -18,12 +18,6 @@ export const SubmissionAlreadyExistsError = createError(
   409
 );
 
-export const AdminRoleNotFoundError = createError(
-  "ADMIN_ROLE_NOT_FOUND",
-  "ADMIN role not found in system",
-  500
-);
-
 export const OrganizationUnderReviewError = createError(
   "ORGANIZATION_UNDER_REVIEW",
   "Unable to edit organization during review. Please wait for the submission to be approved or rejected.",

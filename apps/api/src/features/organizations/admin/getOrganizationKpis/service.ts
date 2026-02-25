@@ -8,7 +8,11 @@ export const getOrganizationKpisService = async (
   // Fetch all organizations from the summary view
   const organizations = await prismaClient.organizationSummaryView.findMany({
     select: {
-      organizationStatus: true,
+      organization: {
+        select: {
+          status: true,
+        },
+      },
       isAccredited: true,
       hasCarbonInventories: true,
     },
@@ -33,7 +37,7 @@ export const getOrganizationKpisService = async (
 
   // Count actual organizations
   for (const org of organizations) {
-    const key = `${org.organizationStatus}-${org.isAccredited}-${org.hasCarbonInventories}`;
+    const key = `${org.organization.status}-${org.isAccredited}-${org.hasCarbonInventories}`;
     countMap.set(key, (countMap.get(key) || 0) + 1);
   }
 
