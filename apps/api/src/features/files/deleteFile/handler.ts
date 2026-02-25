@@ -8,6 +8,8 @@ export const deleteFileHandler = async (
   }>,
   reply: FastifyReply
 ) => {
+  //TODO: Validate if user has access to the file before generating the URL
+
   const log = request.log.child({ module: "files" });
   const { uuid } = request.params;
 
