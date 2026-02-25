@@ -87,21 +87,25 @@ export const RequestsKpiCountItem = z.object({
     .describe("The count of requests for the given type and status"),
 });
 
+const expectedKpiCount =
+  Object.keys(SubmissionSubjectType).length *
+  Object.keys(SubmissionStatus).length;
+
 export const GetAdminRequestsKpisResponseSchema = z.object({
   total: z.number().nonnegative().describe("The total count of requests"),
   counts: z
     .array(RequestKpiCountSchema)
-    .length(15)
+    .length(expectedKpiCount)
     .describe(
       "Breakdown of requests by all possible combinations of type and status"
     )
     .refine(
       (items) => {
         const unique = new Set(items.map((i) => `${i.type}-${i.status}`));
-        return unique.size === 15;
+        return unique.size === expectedKpiCount;
       },
       {
-        message: "Must include all 15 unique combinations of type and status",
+        message: `Must include all ${expectedKpiCount} unique combinations of type and status`,
       }
     ),
 });
