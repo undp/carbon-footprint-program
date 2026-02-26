@@ -53,7 +53,6 @@ CREATE TABLE "subcategory" (
     "category_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
     "icon" TEXT NOT NULL,
-    "color" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "examples" TEXT,
     "status" "subcategory_status" NOT NULL DEFAULT 'ACTIVE',

@@ -383,7 +383,6 @@ model Subcategory {
   categoryId                  BigInt                       @map("category_id")
   name                        String
   icon                        String
-  color                       String
   description                 String
   examples                    String?
   status                      SubCategoryStatus            @default(ACTIVE)
