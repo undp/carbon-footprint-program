@@ -16,6 +16,7 @@ export const previewFileRoute: StandardRouteSignature = (fastify) => {
         params: PreviewFileParamsSchema,
         response: {
           200: PreviewFileResponseSchema,
+          401: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
