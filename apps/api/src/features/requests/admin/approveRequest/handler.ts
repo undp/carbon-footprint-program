@@ -14,13 +14,8 @@ export const approveRequestHandler = async (
   log.info(`Approving request ${id}...`);
 
   const prisma = request.server.prisma;
-  const user = request.currentUser ?? null;
-  const result = await approveRequestService(
-    prisma,
-    id,
-    request.body,
-    user
-  );
+  const user = request.currentUser!; // guaranteed by the requireRoles hook
+  const result = await approveRequestService(prisma, id, request.body, user.id);
 
   log.info(`Request ${id} approved successfully`);
   return reply.status(200).send(result);

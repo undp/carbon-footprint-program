@@ -14,13 +14,8 @@ export const rejectRequestHandler = async (
   log.info(`Rejecting request ${id}...`);
 
   const prisma = request.server.prisma;
-  const user = request.currentUser ?? null;
-  const result = await rejectRequestService(
-    prisma,
-    id,
-    request.body,
-    user
-  );
+  const user = request.currentUser!; // guaranteed by the requireRoles hook
+  const result = await rejectRequestService(prisma, id, request.body, user.id);
 
   log.info(`Request ${id} rejected successfully`);
   return reply.status(200).send(result);
