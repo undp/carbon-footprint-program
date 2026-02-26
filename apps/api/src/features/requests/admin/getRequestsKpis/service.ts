@@ -6,7 +6,8 @@ export const getRequestsKpisService = async (
   prismaClient: PrismaClient
 ): Promise<GetAdminRequestsKpisResponse> => {
   const submissions = await prismaClient.submission.findMany({
-    include: {
+    select: {
+      status: true,
       subject: {
         select: { subjectType: true },
       },
