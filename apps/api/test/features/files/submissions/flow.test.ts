@@ -15,6 +15,7 @@ import { cleanupTestOrganization } from "@test/factories/organizationFactory.js"
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
+import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import {
@@ -87,21 +88,6 @@ describe(
       return submission;
     }
 
-    /**
-     * Simulates the client uploading the file to blob storage after receiving
-     * a SAS URL. Uses the Azurite connection string directly.
-     */
-    async function uploadBlobToAzurite(
-      blobPath: string,
-      content = "test file content"
-    ) {
-      await app.blobStorage!
-        .getBlockBlobClient(blobPath)
-        .upload(content, Buffer.byteLength(content), {
-          blobHTTPHeaders: { blobContentType: "application/pdf" },
-        });
-    }
-
     it("should complete the full lifecycle for an ATTACHMENT file", async () => {
       const submission = await buildSubmission();
       const originalName = "report.pdf";
@@ -126,7 +112,7 @@ describe(
       // buildBlobPath({ fileType: "SUBMISSION", groupKey: submissionId,
       //   subPath: submissionFileType, uuid, name: originalName }).
       const blobPath = `SUBMISSION/${submission.id}/${submissionFileType}/${uuid}-${originalName}`;
-      await uploadBlobToAzurite(blobPath);
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, { contentType: "application/pdf" });
 
       // Step 3 – Confirm the upload
       const confirmResponse = await app.inject({
@@ -180,7 +166,7 @@ describe(
       const { uuid } = JSON.parse(reqBody) as RequestSubmissionUploadResponse;
 
       const blobPath = `SUBMISSION/${submission.id}/${submissionFileType}/${uuid}-${originalName}`;
-      await uploadBlobToAzurite(blobPath);
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, { contentType: "application/pdf" });
 
       const confirmResponse = await app.inject({
         method: "POST",
@@ -209,7 +195,9 @@ describe(
         });
         const { uuid } = JSON.parse(reqBody) as RequestSubmissionUploadResponse;
         await uploadBlobToAzurite(
-          `SUBMISSION/${submission.id}/ATTACHMENT/${uuid}-${name}`
+          app.blobStorage!,
+          `SUBMISSION/${submission.id}/ATTACHMENT/${uuid}-${name}`,
+          { contentType: "application/pdf" }
         );
         await app.inject({
           method: "POST",

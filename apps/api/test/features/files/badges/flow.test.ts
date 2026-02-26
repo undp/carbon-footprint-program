@@ -14,6 +14,7 @@ import {
   createTestFileForBadge,
   cleanupTestFiles,
 } from "@test/factories/fileFactory.js";
+import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import { BadgeType, BadgeStatus, FileStatus } from "@repo/database";
@@ -59,17 +60,6 @@ describe(
       await cleanupTestFiles(prisma);
     });
 
-    async function uploadBlobToAzurite(
-      blobPath: string,
-      content = "test badge content"
-    ) {
-      await app.blobStorage!
-        .getBlockBlobClient(blobPath)
-        .upload(content, Buffer.byteLength(content), {
-          blobHTTPHeaders: { blobContentType: "image/png" },
-        });
-    }
-
     it("should complete the full lifecycle for a CARBON_INVENTORY badge", async () => {
       const badgeType = BadgeType.CARBON_INVENTORY;
       const originalName = "badge.png";
@@ -92,7 +82,7 @@ describe(
       // Step 2 – Simulate the client uploading the file. The blob path mirrors
       // buildBlobPath({ fileType: "BADGE", groupKey: badgeType, uuid, name }).
       const blobPath = `BADGE/${badgeType}/${uuid}-${originalName}`;
-      await uploadBlobToAzurite(blobPath);
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, { contentType: "image/png" });
 
       // Step 3 – Confirm the upload
       const confirmResponse = await app.inject({
@@ -144,7 +134,7 @@ describe(
       });
       const { uuid } = JSON.parse(reqBody) as RequestBadgeUploadResponse;
 
-      await uploadBlobToAzurite(`BADGE/${badgeType}/${uuid}-${originalName}`);
+      await uploadBlobToAzurite(app.blobStorage!, `BADGE/${badgeType}/${uuid}-${originalName}`, { contentType: "image/png" });
 
       const confirmResponse = await app.inject({
         method: "POST",
@@ -181,7 +171,7 @@ describe(
         payload: { originalName },
       });
       const { uuid } = JSON.parse(reqBody) as RequestBadgeUploadResponse;
-      await uploadBlobToAzurite(`BADGE/${badgeType}/${uuid}-${originalName}`);
+      await uploadBlobToAzurite(app.blobStorage!, `BADGE/${badgeType}/${uuid}-${originalName}`, { contentType: "image/png" });
 
       await app.inject({
         method: "POST",

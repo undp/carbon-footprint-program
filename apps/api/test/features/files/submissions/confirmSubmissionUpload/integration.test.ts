@@ -15,6 +15,7 @@ import { cleanupTestOrganization } from "@test/factories/organizationFactory.js"
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
+import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import {
@@ -79,17 +80,6 @@ describe(
       return submission;
     }
 
-    async function uploadBlobToAzurite(
-      blobPath: string,
-      content = "test file content"
-    ) {
-      await app.blobStorage!
-        .getBlockBlobClient(blobPath)
-        .upload(content, Buffer.byteLength(content), {
-          blobHTTPHeaders: { blobContentType: "application/pdf" },
-        });
-    }
-
     describe("Happy path", () => {
       it("should create file and submission-file DB records when blob exists", async () => {
         const submission = await buildSubmission();
@@ -98,7 +88,7 @@ describe(
         const submissionFileType = "ATTACHMENT";
 
         const blobPath = `SUBMISSION/${submission.id}/${submissionFileType}/${uuid}-${originalName}`;
-        await uploadBlobToAzurite(blobPath);
+        await uploadBlobToAzurite(app.blobStorage!, blobPath, { contentType: "application/pdf" });
 
         const response = await app.inject({
           method: "POST",
@@ -122,7 +112,7 @@ describe(
         const submissionFileType = "RECOGNITION";
 
         const blobPath = `SUBMISSION/${submission.id}/${submissionFileType}/${uuid}-${originalName}`;
-        await uploadBlobToAzurite(blobPath);
+        await uploadBlobToAzurite(app.blobStorage!, blobPath, { contentType: "application/pdf" });
 
         await app.inject({
           method: "POST",
