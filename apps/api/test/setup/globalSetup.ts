@@ -4,7 +4,10 @@ import {
   setupTestDatabase,
   setupTestStorage,
 } from "./testcontainers.js";
+import type { StartedAzuriteContainer } from "@testcontainers/azurite";
 import type { TestProject } from "vitest/node";
+
+type TestStorageContainer = StartedAzuriteContainer | null;
 
 export default async function setup(project: TestProject) {
   // Database is required for all tests — let it propagate and fail fast.
@@ -16,7 +19,7 @@ export default async function setup(project: TestProject) {
   // instead of letting it abort the whole setup via Promise.all.
   let storageConnectionString = "";
   let storageContainerName = "";
-  let storageContainer: Awaited<ReturnType<typeof setupTestStorage>>["container"] | null = null;
+  let storageContainer: TestStorageContainer = null;
 
   try {
     const storage = await setupTestStorage();
