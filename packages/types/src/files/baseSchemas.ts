@@ -27,6 +27,11 @@ export const FileSchema = z.object({
   deletedAt: z.iso.datetime().nullable().describe("The deletion date"),
 });
 
+export const SignedUrlResponseSchema = z.object({
+  url: z.url().describe("Temporary signed URL"),
+  expiresAt: z.iso.datetime().describe("When the URL expires"),
+});
+
 export const BadgeSchema = z.object({
   id: IdSchema.describe("The ID of the badge"),
   type: BadgeTypeSchema.describe("The type of the badge"),
