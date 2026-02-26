@@ -1,0 +1,37 @@
+### Variables
+@baseUrl = http://localhost:8080/api/admin/requests
+@submissionId = 1
+
+### Get all requests
+GET {{baseUrl}}
+
+### Get request KPIs
+GET {{baseUrl}}/kpis
+
+### Approve a request (without comments)
+POST {{baseUrl}}/{{submissionId}}/approve
+Content-Type: application/json
+
+{}
+
+### Approve a request (with comments)
+POST {{baseUrl}}/{{submissionId}}/approve
+Content-Type: application/json
+
+{
+  "reviewComments": "All documentation is complete and verified. Organization meets all requirements."
+}
+
+### Reject a request (without comments)
+POST {{baseUrl}}/{{submissionId}}/reject
+Content-Type: application/json
+
+{}
+
+### Reject a request (with comments)
+POST {{baseUrl}}/{{submissionId}}/reject
+Content-Type: application/json
+
+{
+  "reviewComments": "Missing required documentation for carbon inventory verification."
+}
