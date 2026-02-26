@@ -92,6 +92,7 @@ export async function setupTestStorage(): Promise<{
 }> {
   const container = await new AzuriteContainer(TEST_STORAGE_CONFIG.image)
     .withInMemoryPersistence()
+    .withSkipApiVersionCheck()
     .withStartupTimeout(120000) // 2 minutes – accounts for first-run image pull in CI
     .start();
 
