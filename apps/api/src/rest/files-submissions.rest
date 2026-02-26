@@ -1,5 +1,6 @@
 @baseUrl = http://localhost:8080
 @submissionId = 1
+@testFilePath = ./test-files/test-document.pdf
 
 ### ==========================================
 ### Submission Upload — ATTACHMENT
@@ -22,7 +23,7 @@ PUT {{requestUploadAttachment.response.body.uploadUrl}} HTTP/1.1
 x-ms-blob-type: BlockBlob
 Content-Type: application/pdf
 
-< ./test-files/test-document.pdf
+< {{testFilePath}}
 
 
 ### Step 3: Confirm Upload
@@ -57,7 +58,7 @@ PUT {{requestUploadRecognition.response.body.uploadUrl}} HTTP/1.1
 x-ms-blob-type: BlockBlob
 Content-Type: application/pdf
 
-< ./test-files/test-document.pdf
+< {{testFilePath}}
 
 
 ### Step 3: Confirm Upload
