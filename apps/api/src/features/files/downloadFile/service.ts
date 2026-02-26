@@ -24,7 +24,7 @@ export const downloadFileService = async (
     file.blobPath,
     {
       contentType: file.mimeType,
-      contentDisposition: `attachment; filename="${encodeURIComponent(file.originalName)}"`,
+      contentDisposition: `attachment; filename="${encodeURIComponent(file.originalName)}"; filename*=UTF-8''${encodeURIComponent(file.originalName)}`,
     }
   );
 
