@@ -6,7 +6,13 @@ export const RejectRequestParamsSchema = z.object({
 });
 
 export const RejectRequestBodySchema = z.object({
-  reviewComments: z.string().optional().describe("Optional reviewer comments"),
+  reviewComments: z
+    .string()
+    .trim()
+    .min(1)
+    .max(2000)
+    .optional()
+    .describe("Optional reviewer comments"),
 });
 
 export const RejectRequestResponseSchema = z.object({
