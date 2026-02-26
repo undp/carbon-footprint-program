@@ -183,5 +183,16 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
     });
+
+    it("should return 400 for an invalid status query parameter", async () => {
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}?status=INVALID`,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
+    });
   });
 });
