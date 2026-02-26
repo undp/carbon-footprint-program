@@ -706,6 +706,7 @@ erDiagram
 		enum type "CARBON_INVENTORY | ORGANIZATION_DATA"
 		BIGINT file_id FK "file(id)"
 		enum status "ACTIVE | INACTIVE"
+		timestamptz created_at "DEFAULT now()"
 	}
 
 	%% Link table: file ↔ submission
