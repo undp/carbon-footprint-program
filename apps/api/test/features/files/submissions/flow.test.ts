@@ -124,13 +124,14 @@ describe("Submission files — Full upload flow: request-upload → upload → c
     expect(files[0].uuid).toBe(uuid);
 
     // Step 5 – Verify the DB records were created correctly
-    const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+    const fileRecord = await prisma.file.findUnique({
+      where: { uuid },
+      include: { submissionFiles: true },
+    });
     expect(fileRecord).toBeDefined();
     expect(fileRecord?.createdById).toBe(testUser.id);
 
-    const submissionFileRecord = await prisma.submissionFile.findUnique({
-      where: { fileId: fileRecord!.id },
-    });
+    const submissionFileRecord = fileRecord?.submissionFiles[0];
     expect(submissionFileRecord).toBeDefined();
     expect(submissionFileRecord?.submissionId).toBe(submission.id);
     expect(submissionFileRecord?.type).toBe(SubmissionFileType.ATTACHMENT);
@@ -164,11 +165,11 @@ describe("Submission files — Full upload flow: request-upload → upload → c
 
     expect(confirmResponse.statusCode).toBe(201);
 
-    const fileRecord = await prisma.file.findUnique({ where: { uuid } });
-    const submissionFileRecord = await prisma.submissionFile.findUnique({
-      where: { fileId: fileRecord!.id },
+    const fileRecord = await prisma.file.findUnique({
+      where: { uuid },
+      include: { submissionFiles: true },
     });
-    expect(submissionFileRecord?.type).toBe(SubmissionFileType.RECOGNITION);
+    expect(fileRecord?.submissionFiles[0]?.type).toBe(SubmissionFileType.RECOGNITION);
   });
 
   it("should allow multiple files to be uploaded on the same submission", async () => {

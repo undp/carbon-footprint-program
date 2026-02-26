@@ -104,14 +104,15 @@ describe("POST /api/files/submission/:submissionId/confirm-upload - Integration 
         payload: { uuid, originalName, submissionFileType },
       });
 
-      const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+      const fileRecord = await prisma.file.findUnique({
+        where: { uuid },
+        include: { submissionFiles: true },
+      });
       expect(fileRecord).toBeDefined();
       expect(fileRecord?.originalName).toBe(originalName);
       expect(fileRecord?.createdById).toBe(testUser.id);
 
-      const submissionFileRecord = await prisma.submissionFile.findUnique({
-        where: { fileId: fileRecord!.id },
-      });
+      const submissionFileRecord = fileRecord?.submissionFiles[0];
       expect(submissionFileRecord).toBeDefined();
       expect(submissionFileRecord?.submissionId).toBe(submission.id);
       expect(submissionFileRecord?.type).toBe(SubmissionFileType.RECOGNITION);
