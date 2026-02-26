@@ -15,6 +15,7 @@ import { buildOrganizationDataSubmission } from "@test/factories/submissionFacto
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
+import { SubmissionFileType } from "@repo/database";
 import type { RequestSubmissionUploadResponse } from "@repo/types";
 import {
   type ApiErrorResponse,
@@ -68,7 +69,7 @@ describe(
           url: `/api/files/submission/${submission.id}/request-upload`,
           payload: {
             originalName: "report.pdf",
-            submissionFileType: "ATTACHMENT",
+            submissionFileType: SubmissionFileType.ATTACHMENT,
           },
         });
 
@@ -89,7 +90,7 @@ describe(
           url: `/api/files/submission/${submission.id}/request-upload`,
           payload: {
             originalName: "certificate.pdf",
-            submissionFileType: "RECOGNITION",
+            submissionFileType: SubmissionFileType.RECOGNITION,
           },
         });
 
@@ -100,7 +101,7 @@ describe(
         const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
         const payload = {
           originalName: "file.pdf",
-          submissionFileType: "ATTACHMENT",
+          submissionFileType: SubmissionFileType.ATTACHMENT,
         };
 
         const r1 = await app.inject({
@@ -127,7 +128,7 @@ describe(
           url: `/api/files/submission/999999/request-upload`,
           payload: {
             originalName: "file.pdf",
-            submissionFileType: "ATTACHMENT",
+            submissionFileType: SubmissionFileType.ATTACHMENT,
           },
         });
 
@@ -143,7 +144,7 @@ describe(
         const response = await app.inject({
           method: "POST",
           url: `/api/files/submission/${submission.id}/request-upload`,
-          payload: { submissionFileType: "ATTACHMENT" },
+          payload: { submissionFileType: SubmissionFileType.ATTACHMENT },
         });
 
         expect(response.statusCode).toBe(400);
