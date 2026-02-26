@@ -5,58 +5,26 @@ export const getAllRequestsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllAdminRequestsResponse> => {
   const submissions = await prismaClient.submission.findMany({
-    include: {
+    select: {
+      id: true,
+      status: true,
+      createdAt: true,
       subject: {
-        include: {
-          organizationData: {
-            include: {
-              organizationData: {
-                include: {
-                  organization: {
-                    include: { summary: true },
-                  },
-                },
-              },
-            },
-          },
-          carbonInventory: {
-            include: {
-              carbonInventory: {
-                include: {
-                  organization: {
-                    include: { summary: true },
-                  },
-                },
-              },
-            },
-          },
+        select: {
+          subjectType: true,
         },
       },
+      summary: true,
     },
     orderBy: { createdAt: "desc" },
   });
 
   return submissions.map((submission) => {
-    const { subject } = submission;
-
-    let organizationName = "";
-    let year = submission.createdAt.getFullYear();
-
-    if (subject.organizationData) {
-      const org = subject.organizationData.organizationData.organization;
-      organizationName = org.summary?.name ?? "";
-      year = subject.organizationData.organizationData.createdAt.getFullYear();
-    } else if (subject.carbonInventory) {
-      const inventory = subject.carbonInventory.carbonInventory;
-      organizationName = inventory.organization?.summary?.name ?? "";
-      year = inventory.year ?? submission.createdAt.getFullYear();
-    }
-
     return {
       id: submission.id.toString(),
-      organizationName,
-      type: subject.subjectType,
-      year,
+      organizationName: submission.summary!.organizationName,
+      type: submission.subject.subjectType,
+      year: submission.summary!.period,
       status: submission.status,
       requestedAt: submission.createdAt.toISOString(),
     };
