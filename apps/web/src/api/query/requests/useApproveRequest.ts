@@ -12,7 +12,9 @@ export const useApproveRequest = () => {
     { id: string; body?: ApproveRequestBody }
   >({
     mutationFn: ({ id, body }) =>
-      apiClient.post(`admin/requests/${id}/approve`, { json: body }).json(),
+      apiClient
+        .post(`admin/requests/${id}/approve`, { json: body })
+        .json<ApproveRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: requestsKeys.adminAll }),

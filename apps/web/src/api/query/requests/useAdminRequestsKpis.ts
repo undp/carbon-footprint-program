@@ -7,7 +7,8 @@ import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
 export const useAdminRequestsKpis = () => {
   return useQuery<GetAdminRequestsKpisResponse>({
     queryKey: [...requestsKeys.adminKpis],
-    queryFn: () => apiClient.get("admin/requests/kpis").json(),
+    queryFn: () =>
+      apiClient.get("admin/requests/kpis").json<GetAdminRequestsKpisResponse>(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
   });

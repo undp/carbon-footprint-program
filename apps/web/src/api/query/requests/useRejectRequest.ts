@@ -12,7 +12,9 @@ export const useRejectRequest = () => {
     { id: string; body?: RejectRequestBody }
   >({
     mutationFn: ({ id, body }) =>
-      apiClient.post(`admin/requests/${id}/reject`, { json: body }).json(),
+      apiClient
+        .post(`admin/requests/${id}/reject`, { json: body })
+        .json<RejectRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: requestsKeys.adminAll }),
