@@ -49,7 +49,7 @@ declare module "fastify" {
 
     /**
      * Azure Blob Storage container name.
-     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     * Undefined when AZURE_STORAGE_CONTAINER_NAME is not configured.
      */
     storageContainerName?: string;
 
