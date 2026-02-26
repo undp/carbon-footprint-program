@@ -49,6 +49,7 @@ describe("GET /api/files/:uuid/preview - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
     await prisma.$disconnect();
     await app.close();
   });
