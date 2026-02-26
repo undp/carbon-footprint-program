@@ -6,9 +6,9 @@ export const FileNotFoundError = createError(
   404
 );
 
-export const FileTypeNotFoundError = createError(
-  "FILE_TYPE_NOT_FOUND",
-  "%s with ID %s not found",
+export const SubmissionNotFoundError = createError(
+  "SUBMISSION_NOT_FOUND",
+  "Submission with ID %s not found",
   404
 );
 

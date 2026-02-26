@@ -228,7 +228,7 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FILE_TYPE_NOT_FOUND");
+      expect(body.code).toBe("SUBMISSION_NOT_FOUND");
       expect(body.message).toContain("999999");
     });
 

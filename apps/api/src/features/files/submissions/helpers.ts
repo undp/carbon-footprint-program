@@ -5,7 +5,7 @@ import {
   checkFileRecordExists,
   type PersistFileRecordParams,
 } from "../helpers/persistFileRecord.js";
-import { FileTypeNotFoundError } from "../errors.js";
+import { SubmissionNotFoundError } from "../errors.js";
 import { mapFileToResponse } from "../mappers.js";
 
 export async function validateSubmissionExists(
@@ -16,7 +16,7 @@ export async function validateSubmissionExists(
     where: { id: BigInt(submissionId) },
     select: { id: true },
   });
-  if (!submission) throw new FileTypeNotFoundError("Submission", submissionId);
+  if (!submission) throw new SubmissionNotFoundError(submissionId);
 }
 
 export async function persistSubmissionFileRecord(
