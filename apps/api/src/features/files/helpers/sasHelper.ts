@@ -6,12 +6,12 @@ import {
 } from "@azure/storage-blob";
 import { SAS_URL_EXPIRY_MINUTES } from "@/config/constants.js";
 
-interface SasUrlResult {
+export interface SasUrlResult {
   url: string;
   expiresAt: Date;
 }
 
-interface ReadSasOptions {
+export interface ReadSasOptions {
   contentType?: string;
   contentDisposition?: string;
 }
