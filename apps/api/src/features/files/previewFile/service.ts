@@ -12,6 +12,8 @@ export const previewFileService = async (
   containerName: string,
   uuid: string
 ): Promise<PreviewFileResponse> => {
+  // TODO: Add actorId param and scope query by ownership/permission relation.
+  // Distinguish FileNotFoundError (404) from AuthorizationError (403) on null.
   const file = await prisma.file.findUnique({
     where: { uuid, status: FileStatus.ACTIVE },
   });
