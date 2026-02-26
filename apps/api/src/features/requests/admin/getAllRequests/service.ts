@@ -40,7 +40,7 @@ export const getAllRequestsService = async (
     const { subject } = submission;
 
     let organizationName = "";
-    let year = new Date().getFullYear();
+    let year = submission.createdAt.getFullYear();
 
     if (subject.organizationData) {
       const org = subject.organizationData.organizationData.organization;
