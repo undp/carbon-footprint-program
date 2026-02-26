@@ -10,18 +10,13 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { createTestOrganization } from "@test/factories/organizationFactory.js";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
-import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
-import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { buildOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
 import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import {
-  OrganizationStatus,
-  OrganizationDataStatus,
-  SubmissionStatus,
   SubmissionFileType,
   FileStatus,
 } from "@repo/database";
@@ -72,24 +67,9 @@ describe(
       await cleanupTestOrganization(prisma);
     });
 
-    async function buildSubmission() {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.ACTIVE,
-      });
-      const orgData = await createTestOrganizationData(prisma, org.id, {
-        status: OrganizationDataStatus.ACTIVE,
-      });
-      const { submission } = await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.PENDING,
-        testUser.id
-      );
-      return submission;
-    }
 
     it("should complete the full lifecycle for an ATTACHMENT file", async () => {
-      const submission = await buildSubmission();
+      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
       const originalName = "report.pdf";
       const submissionFileType = "ATTACHMENT";
 
@@ -154,7 +134,7 @@ describe(
     });
 
     it("should complete the full lifecycle for a RECOGNITION file", async () => {
-      const submission = await buildSubmission();
+      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
       const originalName = "certificate.pdf";
       const submissionFileType = "RECOGNITION";
 
@@ -184,7 +164,7 @@ describe(
     });
 
     it("should allow multiple files to be uploaded on the same submission", async () => {
-      const submission = await buildSubmission();
+      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
       const files = ["report-a.pdf", "report-b.pdf"];
 
       for (const name of files) {

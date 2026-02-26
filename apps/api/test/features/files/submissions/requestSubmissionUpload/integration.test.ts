@@ -10,18 +10,11 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { createTestOrganization } from "@test/factories/organizationFactory.js";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
-import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
-import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { buildOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
-import {
-  OrganizationStatus,
-  OrganizationDataStatus,
-  SubmissionStatus,
-} from "@repo/database";
 import type { RequestSubmissionUploadResponse } from "@repo/types";
 import {
   type ApiErrorResponse,
@@ -65,25 +58,10 @@ describe(
       await cleanupTestOrganization(prisma);
     });
 
-    async function buildSubmission() {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.ACTIVE,
-      });
-      const orgData = await createTestOrganizationData(prisma, org.id, {
-        status: OrganizationDataStatus.ACTIVE,
-      });
-      const { submission } = await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.PENDING,
-        testUser.id
-      );
-      return submission;
-    }
 
     describe("Happy path", () => {
       it("should return 200 with uuid, uploadUrl and expiresAt", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
@@ -104,7 +82,7 @@ describe(
       });
 
       it("should work with RECOGNITION file type", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
@@ -119,7 +97,7 @@ describe(
       });
 
       it("should generate a different uuid on each call", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
         const payload = {
           originalName: "file.pdf",
           submissionFileType: "ATTACHMENT",
@@ -160,7 +138,7 @@ describe(
       });
 
       it("should return 400 when originalName is missing", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
@@ -174,7 +152,7 @@ describe(
       });
 
       it("should return 400 when submissionFileType is missing", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
@@ -188,7 +166,7 @@ describe(
       });
 
       it("should return 400 when submissionFileType is invalid", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",

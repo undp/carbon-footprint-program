@@ -10,18 +10,13 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { createTestOrganization } from "@test/factories/organizationFactory.js";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
-import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
-import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import { buildOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestFiles } from "@test/factories/fileFactory.js";
 import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import {
-  OrganizationStatus,
-  OrganizationDataStatus,
-  SubmissionStatus,
   SubmissionFileType,
   FileStatus,
 } from "@repo/database";
@@ -64,25 +59,10 @@ describe(
       await cleanupTestOrganization(prisma);
     });
 
-    async function buildSubmission() {
-      const org = await createTestOrganization(prisma, {
-        status: OrganizationStatus.ACTIVE,
-      });
-      const orgData = await createTestOrganizationData(prisma, org.id, {
-        status: OrganizationDataStatus.ACTIVE,
-      });
-      const { submission } = await createTestOrganizationDataSubmission(
-        prisma,
-        orgData.id,
-        SubmissionStatus.PENDING,
-        testUser.id
-      );
-      return submission;
-    }
 
     describe("Happy path", () => {
       it("should create file and submission-file DB records when blob exists", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
         const uuid = "550e8400-e29b-41d4-a716-446655440000";
         const originalName = "report.pdf";
         const submissionFileType = "ATTACHMENT";
@@ -106,7 +86,7 @@ describe(
       });
 
       it("should persist the correct metadata in the database", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
         const uuid = "550e8400-e29b-41d4-a716-446655440001";
         const originalName = "document.pdf";
         const submissionFileType = "RECOGNITION";
@@ -152,7 +132,7 @@ describe(
       });
 
       it("should return 404 when the blob does not exist in storage", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
@@ -170,7 +150,7 @@ describe(
       });
 
       it("should return 400 when uuid is not a valid UUID", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
@@ -188,7 +168,7 @@ describe(
       });
 
       it("should return 400 when required body fields are missing", async () => {
-        const submission = await buildSubmission();
+        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
 
         const response = await app.inject({
           method: "POST",
