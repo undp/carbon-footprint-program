@@ -99,7 +99,8 @@ export async function setupTestStorage(): Promise<{
   const containerName = TEST_STORAGE_CONFIG.containerName;
 
   // Pre-create the test container in Azurite
-  const blobServiceClient = BlobServiceClient.fromConnectionString(connectionString);
+  const blobServiceClient =
+    BlobServiceClient.fromConnectionString(connectionString);
   await blobServiceClient.getContainerClient(containerName).createIfNotExists();
 
   // eslint-disable-next-line no-console

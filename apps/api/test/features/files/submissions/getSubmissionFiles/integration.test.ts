@@ -17,10 +17,7 @@ import {
 } from "@test/factories/fileFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
-import {
-  SubmissionFileType,
-  FileStatus,
-} from "@repo/database";
+import { SubmissionFileType, FileStatus } from "@repo/database";
 import type { GetSubmissionFilesResponse } from "@repo/types";
 import {
   type ApiErrorResponse,
@@ -49,10 +46,12 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     await cleanupTestOrganization(prisma);
   });
 
-
   describe("Happy path", () => {
     it("should return an empty array when submission has no files", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -64,7 +63,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     });
 
     it("should return all files for the given submission", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
       const { file } = await createTestFileForSubmission(
         prisma,
         testUser.id,
@@ -104,7 +106,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
 
   describe("Filter by submissionFileType", () => {
     it("should return only files matching the given submissionFileType", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       const { file: attachment } = await createTestFileForSubmission(
         prisma,
@@ -128,7 +133,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     });
 
     it("should return all files when submissionFileType filter is omitted", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       await createTestFileForSubmission(prisma, testUser.id, submission.id, {
         type: SubmissionFileType.ATTACHMENT,
@@ -149,7 +157,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
 
   describe("Filter by file status", () => {
     it("should return only ACTIVE files by default", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       await createTestFileForSubmission(prisma, testUser.id, submission.id, {
         fileOverrides: { status: FileStatus.DELETED },
@@ -173,7 +184,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     });
 
     it("should return DELETED files when status=DELETED is requested", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       const { file: deleted } = await createTestFileForSubmission(
         prisma,
@@ -211,7 +225,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     });
 
     it("should return 400 for an invalid status query param", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       const response = await app.inject({
         method: "GET",
@@ -224,7 +241,10 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     });
 
     it("should return 400 for an invalid submissionFileType query param", async () => {
-      const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
       const response = await app.inject({
         method: "GET",

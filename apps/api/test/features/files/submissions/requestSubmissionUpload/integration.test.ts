@@ -33,152 +33,166 @@ vi.mock("@/features/files/helpers/sasHelper.js", () => ({
   }),
 }));
 
-describe(
-  "POST /api/files/submission/:submissionId/request-upload - Integration Tests",
-  () => {
-    let app: FastifyInstance;
-    let prisma: PrismaClient;
-    let testUser: User;
+describe("POST /api/files/submission/:submissionId/request-upload - Integration Tests", () => {
+  let app: FastifyInstance;
+  let prisma: PrismaClient;
+  let testUser: User;
 
-    beforeAll(async () => {
-      app = await createTestApp(inject("databaseUrl"), {
-        storageConnectionString: inject("storageConnectionString"),
-        storageContainerName: inject("storageContainerName"),
-      });
-      prisma = app.prisma;
-      testUser = await getTestLoggedUser(prisma);
+  beforeAll(async () => {
+    app = await createTestApp(inject("databaseUrl"), {
+      storageConnectionString: inject("storageConnectionString"),
+      storageContainerName: inject("storageContainerName"),
     });
+    prisma = app.prisma;
+    testUser = await getTestLoggedUser(prisma);
+  });
 
-    afterAll(async () => {
-      await prisma.$disconnect();
-      await app.close();
-    });
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
 
-    beforeEach(async () => {
-      await cleanupTestFiles(prisma);
-      await cleanupTestOrganization(prisma);
-    });
+  beforeEach(async () => {
+    await cleanupTestFiles(prisma);
+    await cleanupTestOrganization(prisma);
+  });
 
+  describe("Happy path", () => {
+    it("should return 200 with uuid, uploadUrl and expiresAt", async () => {
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
-    describe("Happy path", () => {
-      it("should return 200 with uuid, uploadUrl and expiresAt", async () => {
-        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
-
-        const response = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload: {
-            originalName: "report.pdf",
-            submissionFileType: SubmissionFileType.ATTACHMENT,
-          },
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as RequestSubmissionUploadResponse;
-        expect(body.uuid).toMatch(
-          /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-        );
-        expect(body.uploadUrl).toBeTruthy();
-        expect(body.expiresAt).toBeTruthy();
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload: {
+          originalName: "report.pdf",
+          submissionFileType: SubmissionFileType.ATTACHMENT,
+        },
       });
 
-      it("should work with RECOGNITION file type", async () => {
-        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as RequestSubmissionUploadResponse;
+      expect(body.uuid).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
+      );
+      expect(body.uploadUrl).toBeTruthy();
+      expect(body.expiresAt).toBeTruthy();
+    });
 
-        const response = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload: {
-            originalName: "certificate.pdf",
-            submissionFileType: SubmissionFileType.RECOGNITION,
-          },
-        });
+    it("should work with RECOGNITION file type", async () => {
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
-        expect(response.statusCode).toBe(200);
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload: {
+          originalName: "certificate.pdf",
+          submissionFileType: SubmissionFileType.RECOGNITION,
+        },
       });
 
-      it("should generate a different uuid on each call", async () => {
-        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
-        const payload = {
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("should generate a different uuid on each call", async () => {
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
+      const payload = {
+        originalName: "file.pdf",
+        submissionFileType: SubmissionFileType.ATTACHMENT,
+      };
+
+      const r1 = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload,
+      });
+      const r2 = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload,
+      });
+
+      expect(
+        (JSON.parse(r1.body) as RequestSubmissionUploadResponse).uuid
+      ).not.toBe((JSON.parse(r2.body) as RequestSubmissionUploadResponse).uuid);
+    });
+  });
+
+  describe("Error cases", () => {
+    it("should return 404 when submission does not exist", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/999999/request-upload`,
+        payload: {
           originalName: "file.pdf",
           submissionFileType: SubmissionFileType.ATTACHMENT,
-        };
-
-        const r1 = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload,
-        });
-        const r2 = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload,
-        });
-
-        expect((JSON.parse(r1.body) as RequestSubmissionUploadResponse).uuid).not.toBe(
-          (JSON.parse(r2.body) as RequestSubmissionUploadResponse).uuid
-        );
+        },
       });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FILE_TYPE_NOT_FOUND");
+      expect(body.message).toContain("999999");
     });
 
-    describe("Error cases", () => {
-      it("should return 404 when submission does not exist", async () => {
-        const response = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/999999/request-upload`,
-          payload: {
-            originalName: "file.pdf",
-            submissionFileType: SubmissionFileType.ATTACHMENT,
-          },
-        });
+    it("should return 400 when originalName is missing", async () => {
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
 
-        expect(response.statusCode).toBe(404);
-        const body = JSON.parse(response.body) as ApiErrorResponse;
-        expect(body.code).toBe("FILE_TYPE_NOT_FOUND");
-        expect(body.message).toContain("999999");
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload: { submissionFileType: SubmissionFileType.ATTACHMENT },
       });
 
-      it("should return 400 when originalName is missing", async () => {
-        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
-
-        const response = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload: { submissionFileType: SubmissionFileType.ATTACHMENT },
-        });
-
-        expect(response.statusCode).toBe(400);
-        const body = JSON.parse(response.body) as ApiErrorResponse;
-        expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      });
-
-      it("should return 400 when submissionFileType is missing", async () => {
-        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
-
-        const response = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload: { originalName: "file.pdf" },
-        });
-
-        expect(response.statusCode).toBe(400);
-        const body = JSON.parse(response.body) as ApiErrorResponse;
-        expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      });
-
-      it("should return 400 when submissionFileType is invalid", async () => {
-        const submission = await buildOrganizationDataSubmission(prisma, testUser.id);
-
-        const response = await app.inject({
-          method: "POST",
-          url: `/api/files/submission/${submission.id}/request-upload`,
-          payload: { originalName: "file.pdf", submissionFileType: "INVALID" },
-        });
-
-        expect(response.statusCode).toBe(400);
-        const body = JSON.parse(response.body) as ApiErrorResponse;
-        expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      });
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
     });
-  }
-);
+
+    it("should return 400 when submissionFileType is missing", async () => {
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload: { originalName: "file.pdf" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
+    });
+
+    it("should return 400 when submissionFileType is invalid", async () => {
+      const submission = await buildOrganizationDataSubmission(
+        prisma,
+        testUser.id
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/submission/${submission.id}/request-upload`,
+        payload: { originalName: "file.pdf", submissionFileType: "INVALID" },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
+    });
+  });
+});

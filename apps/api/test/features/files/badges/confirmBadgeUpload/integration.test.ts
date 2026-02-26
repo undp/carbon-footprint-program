@@ -59,7 +59,9 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
       const originalName = "badge.png";
 
       const blobPath = `BADGE/${badgeType}/${uuid}-${originalName}`;
-      await uploadBlobToAzurite(app.blobStorage!, blobPath, { contentType: "image/png" });
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "image/png",
+      });
 
       const response = await app.inject({
         method: "POST",
@@ -81,7 +83,11 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
       const uuid = "660e8400-e29b-41d4-a716-446655440001";
       const originalName = "org-badge.png";
 
-      await uploadBlobToAzurite(app.blobStorage!, `BADGE/${badgeType}/${uuid}-${originalName}`, { contentType: "image/png" });
+      await uploadBlobToAzurite(
+        app.blobStorage!,
+        `BADGE/${badgeType}/${uuid}-${originalName}`,
+        { contentType: "image/png" }
+      );
 
       await app.inject({
         method: "POST",
@@ -116,7 +122,11 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
       // Confirm a new badge upload
       const uuid = "660e8400-e29b-41d4-a716-446655440002";
       const originalName = "new-badge.png";
-      await uploadBlobToAzurite(app.blobStorage!, `BADGE/${badgeType}/${uuid}-${originalName}`, { contentType: "image/png" });
+      await uploadBlobToAzurite(
+        app.blobStorage!,
+        `BADGE/${badgeType}/${uuid}-${originalName}`,
+        { contentType: "image/png" }
+      );
 
       const response = await app.inject({
         method: "POST",

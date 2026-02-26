@@ -125,5 +125,4 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
       expect(body.code).toBe(VALIDATION_ERROR_CODE);
     });
   });
-
 });

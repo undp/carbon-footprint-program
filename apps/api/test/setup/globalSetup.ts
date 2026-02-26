@@ -30,7 +30,7 @@ export default async function setup(project: TestProject) {
     // eslint-disable-next-line no-console
     console.warn(
       "\n⚠️  Azurite storage container failed to start — storage-dependent tests will fail.\n",
-      error,
+      error
     );
   }
 
