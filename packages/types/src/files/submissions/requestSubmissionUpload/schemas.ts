@@ -25,6 +25,8 @@ export const RequestSubmissionUploadBodySchema = z.object({
 
 export const RequestSubmissionUploadResponseSchema = z.object({
   uuid: z.uuid().describe("The generated file UUID"),
-  uploadUrl: z.url().describe("Temporary signed URL for uploading the file"),
+  uploadUrl: z
+    .httpUrl()
+    .describe("Temporary signed URL for uploading the file"),
   expiresAt: z.iso.datetime().describe("When the upload URL expires"),
 });
