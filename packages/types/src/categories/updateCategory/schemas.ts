@@ -15,7 +15,7 @@ export const UpdateCategoryRequestSchema = z
     name: z.string().min(1).max(255).describe("The name of the category"),
     icon: z.string().min(1).max(255).describe("The icon identifier"),
     color: z.string().min(1).max(50).describe("The color code"),
-    synonyms: z.string().describe("Comma-separated synonyms"),
+    synonyms: z.string().min(1).describe("Comma-separated synonyms"),
     description: z.string().min(1).describe("The description"),
     examples: z.string().nullable().describe("Optional examples text"),
     position: z

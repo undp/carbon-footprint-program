@@ -97,7 +97,7 @@ export const createOrganizationDataSubmission = (
       },
       subject: {
         create: {
-          subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
+          subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
           creator: {
             connect: {
               id: BigInt(userId),

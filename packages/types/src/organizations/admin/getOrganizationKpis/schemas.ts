@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { OrganizationStatus } from "@repo/database";
+import { OrganizationStatus } from "@repo/database/enums";
+
 // Individual KPI count schema
 const BaseCountSchema = z.object({
   count: z

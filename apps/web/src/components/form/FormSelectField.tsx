@@ -47,6 +47,9 @@ export const FormSelectField = <T extends FieldValues>({
       }}
       render={({ field, fieldState }) => (
         <FormControl
+          sx={{
+            minHeight: "5rem",
+          }}
           fullWidth={fullWidth}
           required={required}
           error={!!fieldState.error && !props.disabled}

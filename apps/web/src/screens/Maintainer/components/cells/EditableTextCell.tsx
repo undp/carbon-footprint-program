@@ -1,14 +1,24 @@
-import { FC, useState, useEffect } from "react";
-import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { TextField, Typography, Tooltip, SxProps, Theme } from "@mui/material";
-import type {
-  FormMethodology,
-  MethodologiesFormValues,
-} from "../../hooks/useMethodologiesForm";
+import { FC, useState } from "react";
+import {
+  useWatch,
+  useFormState,
+  useFormContext,
+  type FieldError,
+} from "react-hook-form";
+import {
+  TextField,
+  Typography,
+  Tooltip,
+  type SxProps,
+  type Theme,
+} from "@mui/material";
+import { getNestedError } from "./cellUtils";
 
 interface EditableTextCellProps {
+  /** Name of the form array (e.g. "methodologies", "categories") */
+  formArrayName?: string;
   rowIndex: number;
-  fieldName: keyof FormMethodology;
+  fieldName: string;
   isEditing: boolean;
   onChange: (value: string) => void;
   onClick?: () => void;
@@ -18,7 +28,48 @@ interface EditableTextCellProps {
   truncateLines?: number;
 }
 
+interface EditingTextFieldProps {
+  initialValue: string;
+  onChange: (value: string) => void;
+  fieldError?: FieldError;
+  multiline: boolean;
+  maxRows: number;
+}
+
+/** Mounts fresh each time the cell enters edit mode, so useState always picks up the latest formValue. */
+const EditingTextField: FC<EditingTextFieldProps> = ({
+  initialValue,
+  onChange,
+  fieldError,
+  multiline,
+  maxRows,
+}) => {
+  const [localValue, setLocalValue] = useState(initialValue);
+
+  return (
+    <TextField
+      fullWidth
+      size="small"
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={() => onChange(localValue)}
+      onKeyDown={(e) => e.stopPropagation()}
+      error={!!fieldError}
+      label={fieldError?.message ?? ""}
+      multiline={multiline}
+      maxRows={maxRows}
+      sx={{
+        "& .MuiOutlinedInput-root": {
+          backgroundColor: "white",
+        },
+        minHeight: 0,
+      }}
+    />
+  );
+};
+
 export const EditableTextCell: FC<EditableTextCellProps> = ({
+  formArrayName = "methodologies",
   rowIndex,
   fieldName,
   isEditing,
@@ -28,22 +79,16 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   maxRows = 1,
   truncateLines = 1,
 }) => {
-  const { control } = useFormContext<MethodologiesFormValues>();
-  const formValue = useWatch<MethodologiesFormValues>({
-    name: `methodologies.${rowIndex}.${fieldName}`,
-  }) as string;
-  const { errors } = useFormState({
-    control,
-    name: `methodologies.${rowIndex}.${fieldName}`,
-  });
-  const fieldError = errors.methodologies?.[rowIndex]?.[fieldName];
-
-  const [localValue, setLocalValue] = useState(formValue);
-
-  // Sync local state when form value changes externally
-  useEffect(() => {
-    setLocalValue(formValue);
-  }, [formValue]);
+  const formPath = `${formArrayName}.${rowIndex}.${fieldName}`;
+  const { control } = useFormContext();
+  const formValue = useWatch({ name: formPath }) as string;
+  const { errors } = useFormState({ control, name: formPath });
+  const fieldError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    formArrayName,
+    rowIndex,
+    fieldName
+  );
 
   if (!isEditing) {
     const truncateSx: SxProps<Theme> =
@@ -88,23 +133,12 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
   }
 
   return (
-    <TextField
-      fullWidth
-      size="small"
-      value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={() => onChange(localValue)}
-      onKeyDown={(e) => e.stopPropagation()}
-      error={!!fieldError}
-      label={fieldError?.message ?? ""}
+    <EditingTextField
+      initialValue={formValue}
+      onChange={onChange}
+      fieldError={fieldError}
       multiline={multiline}
       maxRows={maxRows}
-      sx={{
-        "& .MuiOutlinedInput-root": {
-          backgroundColor: "white",
-        },
-        minHeight: 0,
-      }}
     />
   );
 };

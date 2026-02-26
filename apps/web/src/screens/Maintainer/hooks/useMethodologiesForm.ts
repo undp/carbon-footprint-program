@@ -15,16 +15,18 @@ export interface MethodologiesFormValues {
 
 const methodologiesFormSchema = z.object({
   methodologies: z.array(
-    MethodologySchema.pick({
-      id: true,
-      name: true,
-      description: true,
-      regulation: true,
-      version: true,
-      status: true,
-    }).extend({
-      id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
-    })
+    MethodologySchema.loose()
+      .pick({
+        id: true,
+        name: true,
+        description: true,
+        regulation: true,
+        version: true,
+        status: true,
+      })
+      .extend({
+        id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
+      })
   ),
 });
 

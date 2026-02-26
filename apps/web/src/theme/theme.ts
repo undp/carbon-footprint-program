@@ -33,13 +33,6 @@ const themeOptions: ThemeOptions = {
         },
       },
     },
-    MuiFormControl: {
-      styleOverrides: {
-        root: {
-          minHeight: "5rem", // 80px equivalent, but responsive
-        },
-      },
-    },
   },
   palette,
   typography,
