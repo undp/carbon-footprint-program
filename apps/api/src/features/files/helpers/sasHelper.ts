@@ -53,7 +53,8 @@ export async function generateReadSasUrl(
     accountName
   ).toString();
 
-  const url = `https://${accountName}.blob.core.windows.net/${containerName}/${blobPath}?${sasToken}`;
+  const encodedBlobPath = blobPath.split("/").map(encodeURIComponent).join("/");
+  const url = `https://${accountName}.blob.core.windows.net/${containerName}/${encodedBlobPath}?${sasToken}`;
 
   return { url, expiresAt };
 }
@@ -90,7 +91,8 @@ export async function generateWriteSasUrl(
     accountName
   ).toString();
 
-  const url = `https://${accountName}.blob.core.windows.net/${containerName}/${blobPath}?${sasToken}`;
+  const encodedBlobPath = blobPath.split("/").map(encodeURIComponent).join("/");
+  const url = `https://${accountName}.blob.core.windows.net/${containerName}/${encodedBlobPath}?${sasToken}`;
 
   return { url, expiresAt };
 }
