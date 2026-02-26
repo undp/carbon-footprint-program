@@ -13,7 +13,7 @@ export const useRejectRequest = () => {
   >({
     mutationFn: ({ id, body }) =>
       apiClient
-        .post(`admin/requests/${id}/reject`, { json: body })
+        .post(`admin/requests/${id}/reject`, { json: body ?? {} })
         .json<RejectRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([

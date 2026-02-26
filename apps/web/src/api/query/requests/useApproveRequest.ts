@@ -13,7 +13,7 @@ export const useApproveRequest = () => {
   >({
     mutationFn: ({ id, body }) =>
       apiClient
-        .post(`admin/requests/${id}/approve`, { json: body })
+        .post(`admin/requests/${id}/approve`, { json: body ?? {} })
         .json<ApproveRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([
