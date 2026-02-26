@@ -288,15 +288,15 @@ apps/api/src/features/files/
 ├── badges/
 │   ├── helpers.ts             # validateBadgeType, createBadgeEntry, persistBadgeFileRecord
 │   ├── index.ts               # Plugin de Fastify (prefijo /badge)
-│   ├── requestUpload/         # POST /:badgeType/request-upload
-│   ├── confirmUpload/         # POST /:badgeType/confirm-upload
-│   └── getFiles/              # GET /:badgeType
+│   ├── requestBadgeUpload/    # POST /:badgeType/request-upload
+│   ├── confirmBadgeUpload/    # POST /:badgeType/confirm-upload
+│   └── getBadgeFiles/         # GET /:badgeType
 ├── submissions/
 │   ├── helpers.ts             # validateSubmissionExists, persistSubmissionFileRecord
 │   ├── index.ts               # Plugin de Fastify (prefijo /submission)
-│   ├── requestUpload/         # POST /:submissionId/request-upload
-│   ├── confirmUpload/         # POST /:submissionId/confirm-upload
-│   └── getFiles/              # GET /:submissionId
+│   ├── requestSubmissionUpload/   # POST /:submissionId/request-upload
+│   ├── confirmSubmissionUpload/   # POST /:submissionId/confirm-upload
+│   └── getSubmissionFiles/        # GET /:submissionId
 ├── downloadFile/              # GET /:uuid/download
 ├── previewFile/               # GET /:uuid/preview
 └── deleteFile/                # DELETE /:uuid
