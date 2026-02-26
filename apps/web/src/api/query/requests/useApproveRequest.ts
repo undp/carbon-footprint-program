@@ -1,0 +1,23 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ApproveRequestBody, ApproveRequestResponse } from "@repo/types";
+import { apiClient } from "@/api/http";
+import { requestsKeys } from "./keys.js";
+
+export const useApproveRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    ApproveRequestResponse,
+    Error,
+    { id: string; body?: ApproveRequestBody }
+  >({
+    mutationFn: ({ id, body }) =>
+      apiClient.post(`admin/requests/${id}/approve`, { json: body }).json(),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: requestsKeys.adminAll }),
+        queryClient.invalidateQueries({ queryKey: requestsKeys.adminKpis }),
+      ]);
+    },
+  });
+};

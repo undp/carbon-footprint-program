@@ -13,6 +13,8 @@ import {
   SubmissionStatus as RequestStatus,
   SubmissionSubjectType as RequestType,
 } from "@repo/types";
+import { useApproveRequest } from "@/api/query/requests/useApproveRequest";
+import { useRejectRequest } from "@/api/query/requests/useRejectRequest";
 
 // ASSETS FOR RENDERING THE STATUS COLUMN
 
@@ -60,6 +62,8 @@ export const useRequestColumns = (): GridColDef<
 >[] => {
   const theme = useTheme();
   const cellClassName = "content-center";
+  const { mutate: approveRequest, isPending: isApproving } = useApproveRequest();
+  const { mutate: rejectRequest, isPending: isRejecting } = useRejectRequest();
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
     () => [
@@ -130,6 +134,14 @@ export const useRequestColumns = (): GridColDef<
           const status = params.row.status;
           const showApproveReject = status === RequestStatus.PENDING;
 
+          const handleApprove = () => {
+            approveRequest({ id: params.row.id });
+          };
+
+          const handleReject = () => {
+            rejectRequest({ id: params.row.id });
+          };
+
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
               {/* TODO: implement callback for this button */}
@@ -138,22 +150,24 @@ export const useRequestColumns = (): GridColDef<
               </IconButton>
               {showApproveReject && (
                 <>
-                  {/* TODO: implement callback for this button */}
                   <IconButton
                     size="small"
                     color="success"
                     aria-label="Aprobar solicitud"
+                    onClick={handleApprove}
+                    disabled={isApproving || isRejecting}
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.success.light, 0.1),
                     })}
                   >
                     <CheckOutlined fontSize="small" />
                   </IconButton>
-                  {/* TODO: implement callback for this button */}
                   <IconButton
                     size="small"
                     color="error"
                     aria-label="Rechazar solicitud"
+                    onClick={handleReject}
+                    disabled={isApproving || isRejecting}
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.error.light, 0.1),
                     })}
@@ -167,6 +181,6 @@ export const useRequestColumns = (): GridColDef<
         },
       },
     ],
-    [theme]
+    [theme, approveRequest, rejectRequest, isApproving, isRejecting]
   );
 };
