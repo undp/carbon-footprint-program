@@ -3,7 +3,6 @@ import {
   GetBadgeFilesQuerySchema,
   GetBadgeFilesResponseSchema,
 } from "@repo/types";
-import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { badgeGetFilesHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
@@ -21,7 +20,6 @@ export const badgeGetFilesRoute: StandardRouteSignature = (
         querystring: GetBadgeFilesQuerySchema,
         response: {
           200: GetBadgeFilesResponseSchema,
-          404: ApiErrorResponseSchema,
         },
       },
     },
