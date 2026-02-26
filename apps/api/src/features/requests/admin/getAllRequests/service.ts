@@ -40,11 +40,12 @@ export const getAllRequestsService = async (
     const { subject } = submission;
 
     let organizationName = "";
-    let year = submission.createdAt.getFullYear();
+    let year = new Date().getFullYear();
 
     if (subject.organizationData) {
       const org = subject.organizationData.organizationData.organization;
       organizationName = org.summary?.name ?? "";
+      year = subject.organizationData.organizationData.createdAt.getFullYear();
     } else if (subject.carbonInventory) {
       const inventory = subject.carbonInventory.carbonInventory;
       organizationName = inventory.organization?.summary?.name ?? "";
