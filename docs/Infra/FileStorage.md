@@ -41,7 +41,7 @@
 
 ## Descripción General
 
-El sistema permite subir, listar, previsualizar, descargar y eliminar archivos asociados a dos subdominos:
+El sistema permite subir, listar, previsualizar, descargar y eliminar archivos asociados a dos subdominios:
 
 | Subdominio      | Entidad propietaria | Caso de uso                                              |
 | --------------- | ------------------- | -------------------------------------------------------- |
