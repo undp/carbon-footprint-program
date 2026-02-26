@@ -10,9 +10,7 @@ export const SubCategoryStatusSchema = z.enum(SubCategoryStatus);
 export const SubCategorySchema = z
   .object({
     id: IdSchema.describe("The ID of the sub-category"),
-    methodologyVersionId: IdSchema.describe(
-      "The ID of the methodology version"
-    ),
+    categoryId: IdSchema.describe("The ID of the parent category"),
     name: z
       .string()
       .min(1, "Campo requerido")
@@ -30,10 +28,6 @@ export const SubCategorySchema = z
       .min(1, "Campo requerido")
       .describe("The description of the sub-category"),
     examples: z.string().nullable().describe("Optional examples text"),
-    position: z
-      .number()
-      .int()
-      .describe("The display position of the sub-category"),
     status: SubCategoryStatusSchema.describe("The status of the sub-category"),
     createdAt: z.iso.datetime().describe("The creation timestamp"),
     updatedAt: z.iso
@@ -48,3 +42,10 @@ export const SubCategorySchema = z
     ),
   })
   .strict();
+
+// SubCategory with measurement unit IDs (used in API responses)
+export const SubCategoryWithUnitsSchema = SubCategorySchema.extend({
+  measurementUnitIds: z
+    .array(IdSchema)
+    .describe("IDs of the accepted measurement units"),
+});
