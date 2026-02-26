@@ -133,7 +133,7 @@ describe("POST /api/files/submission/:submissionId/confirm-upload - Integration 
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FILE_TYPE_NOT_FOUND");
+      expect(body.code).toBe("SUBMISSION_NOT_FOUND");
     });
 
     it("should return 404 when the blob does not exist in storage", async () => {
