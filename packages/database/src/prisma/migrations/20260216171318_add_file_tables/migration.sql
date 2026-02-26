@@ -29,7 +29,7 @@ CREATE TABLE "submission_file" (
     "submission_id" BIGINT NOT NULL,
     "type" "submission_file_type" NOT NULL DEFAULT 'ATTACHMENT',
 
-    CONSTRAINT "submission_file_pkey" PRIMARY KEY ("file_id")
+    CONSTRAINT "submission_file_pkey" PRIMARY KEY ("file_id","submission_id")
 );
 
 -- CreateIndex
