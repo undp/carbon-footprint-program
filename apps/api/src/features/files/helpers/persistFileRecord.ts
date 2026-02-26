@@ -17,8 +17,13 @@ export async function checkFileRecordExists(
 
   try {
     const props = await blobClient.getProperties();
+    if (props.contentLength == null) {
+      throw new Error(
+        `Blob "${blobPath}" exists but contentLength is missing from getProperties() response`
+      );
+    }
     return {
-      sizeBytes: props.contentLength!,
+      sizeBytes: props.contentLength,
       mimeType: props.contentType ?? "application/octet-stream",
     };
   } catch (err) {
