@@ -18,9 +18,8 @@ export const createOrganizationService = async (
   body: CreateOrganizationBody,
   user: User | null
 ): Promise<CreateOrganizationResponse> => {
+  // TODO: remove this if when handlerFactory folder is improved
   if (!user) {
-    // TODO: The organizationAuthorizationPlugin should be used to check if the user is authenticated
-    // TODO: Check if this error can be shared and use in the authorization/authentication plugins.
     throw new UserNotFoundError();
   }
   // TODO: get this country from the user

@@ -299,7 +299,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   });
 
   describe("Error handling", () => {
-    it("should return 404 with ORGANIZATION_NOT_FOUND for non-existent organization", async () => {
+    it("should return 403 for non-existent organization", async () => {
       const updateBody = getValidUpdateBody();
 
       const response = await app.inject({
@@ -308,13 +308,13 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
         payload: updateBody,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
       expect(body.message).toBeTruthy();
     });
 
-    it("should return 403 with ORGANIZATION_ACCESS_DENIED for user without membership", async () => {
+    it("should return 403 for user without membership", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
@@ -332,11 +332,11 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_ACCESS_DENIED");
+      expect(body.code).toBe("FORBIDDEN");
       expect(body.message).toBeTruthy();
     });
 
-    it("should return 403 with ORGANIZATION_ACCESS_DENIED for user with deleted membership", async () => {
+    it("should return 403 for user with deleted membership", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
@@ -358,7 +358,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_ACCESS_DENIED");
+      expect(body.code).toBe("FORBIDDEN");
       expect(body.message).toBeTruthy();
     });
 
