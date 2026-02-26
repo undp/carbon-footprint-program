@@ -169,7 +169,9 @@ describe("Submission files — Full upload flow: request-upload → upload → c
       where: { uuid },
       include: { submissionFiles: true },
     });
-    expect(fileRecord?.submissionFiles[0]?.type).toBe(SubmissionFileType.RECOGNITION);
+    expect(fileRecord?.submissionFiles[0]?.type).toBe(
+      SubmissionFileType.RECOGNITION
+    );
   });
 
   it("should allow multiple files to be uploaded on the same submission", async () => {
