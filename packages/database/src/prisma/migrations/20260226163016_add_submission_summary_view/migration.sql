@@ -7,7 +7,8 @@ WITH organization_data_submissions AS (
     s.status,
     od.organization_id,
     osv.name AS organization_name,
-    EXTRACT(YEAR FROM od.created_at)::INTEGER AS period
+    EXTRACT(YEAR FROM od.created_at)::INTEGER AS period,
+    od.created_at AS requested_at
   FROM submission s
   INNER JOIN submission_subject ss ON s.subject_id = ss.id
   INNER JOIN submission_subject_organization_data ssod ON ss.id = ssod.subject_id
@@ -21,7 +22,8 @@ carbon_inventory_submissions AS (
     s.status,
     ci.organization_id,
     osv.name AS organization_name,
-    COALESCE(ci.year, EXTRACT(YEAR FROM s.created_at)::INTEGER) AS period
+    COALESCE(ci.year, EXTRACT(YEAR FROM s.created_at)::INTEGER) AS period,
+    s.created_at AS requested_at
   FROM submission s
   INNER JOIN submission_subject ss ON s.subject_id = ss.id
   INNER JOIN submission_subject_carbon_inventory ssci ON ss.id = ssci.subject_id

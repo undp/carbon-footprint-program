@@ -4,29 +4,24 @@ import type { GetAllAdminRequestsResponse } from "@repo/types";
 export const getAllRequestsService = async (
   prismaClient: PrismaClient
 ): Promise<GetAllAdminRequestsResponse> => {
-  const submissions = await prismaClient.submission.findMany({
+  const submissions = await prismaClient.submissionSummaryView.findMany({
     select: {
-      id: true,
+      submissionId: true,
+      subjectType: true,
       status: true,
-      createdAt: true,
-      subject: {
-        select: {
-          subjectType: true,
-        },
-      },
-      summary: true,
+      organizationName: true,
+      period: true,
+      requestedAt: true,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { requestedAt: "desc" },
   });
 
-  return submissions.map((submission) => {
-    return {
-      id: submission.id.toString(),
-      organizationName: submission.summary!.organizationName,
-      type: submission.subject.subjectType,
-      year: submission.summary!.period,
-      status: submission.status,
-      requestedAt: submission.createdAt.toISOString(),
-    };
-  });
+  return submissions.map((submission) => ({
+    id: submission.submissionId.toString(),
+    organizationName: submission.organizationName,
+    type: submission.subjectType,
+    year: submission.period,
+    status: submission.status,
+    requestedAt: submission.requestedAt.toISOString(),
+  }));
 };
