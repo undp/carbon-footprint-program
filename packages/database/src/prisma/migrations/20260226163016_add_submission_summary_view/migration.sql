@@ -3,6 +3,8 @@ CREATE VIEW submission_summary_view AS
 WITH organization_data_submissions AS (
   SELECT
     s.id AS submission_id,
+    ss.subject_type,
+    s.status,
     od.organization_id,
     osv.name AS organization_name,
     EXTRACT(YEAR FROM od.created_at)::INTEGER AS period
@@ -15,6 +17,8 @@ WITH organization_data_submissions AS (
 carbon_inventory_submissions AS (
   SELECT
     s.id AS submission_id,
+    ss.subject_type,
+    s.status,
     ci.organization_id,
     osv.name AS organization_name,
     COALESCE(ci.year, EXTRACT(YEAR FROM s.created_at)::INTEGER) AS period
