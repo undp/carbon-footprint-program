@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import { CategorySchema } from "../../categories/index.js";
-import { SubCategorySchema } from "../../subCategories/index.js";
+import { SubCategorySchema } from "../../baseSchemas/subcategory.js";
 
 export const DimensionValueSchema = z.object({
   id: IdSchema.describe("The ID of the dimension value"),

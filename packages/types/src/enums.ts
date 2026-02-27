@@ -12,4 +12,5 @@ export {
   BadgeType,
   BadgeStatus,
   SubmissionSubjectType,
+  SubCategoryStatus,
 } from "@repo/database/enums";

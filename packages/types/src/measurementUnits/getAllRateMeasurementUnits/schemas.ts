@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import { MeasurementUnitSchema } from "../getAllMeasurementUnits/schemas.js";
+import { MeasurementUnitSchema } from "../../baseSchemas/measurementUnit.js";
 
 const RateUnitComponentSchema = MeasurementUnitSchema.pick({
   id: true,

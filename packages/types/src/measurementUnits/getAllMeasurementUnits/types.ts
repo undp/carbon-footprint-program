@@ -1,8 +1,7 @@
 import { z } from "zod";
-import type {
-  GetAllMeasurementUnitsResponseSchema,
-  MeasurementUnitSchema,
-} from "./schemas.js";
+
+import type { GetAllMeasurementUnitsResponseSchema } from "./schemas.js";
+import { MeasurementUnitSchema } from "../../baseSchemas/measurementUnit.js";
 
 export type MeasurementUnit = z.infer<typeof MeasurementUnitSchema>;
 

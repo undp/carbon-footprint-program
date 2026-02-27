@@ -1,2 +1,2 @@
-export * from "./baseSchemas.js";
-export * from "./baseTypes.js";
+export * from "./getAllSubcategories/schemas.js";
+export * from "./getAllSubcategories/types.js";
