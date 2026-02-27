@@ -3,9 +3,7 @@ import type {
   UpdateOrganizationBody,
   UpdateOrganizationResponse,
 } from "@repo/types";
-import { MembershipStatus } from "@repo/database";
 import {
-  OrganizationAccessDeniedError,
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   OrganizationUnderReviewError,
@@ -54,7 +52,6 @@ export const updateOrganizationService = async (
   userId: string,
   body: UpdateOrganizationBody
 ): Promise<UpdateOrganizationResponse> => {
-  // TODO: check if this validation can be shared and used in the authorization/authentication plugins.
   const organization = await prismaClient.organization.findUnique({
     where: {
       id: BigInt(organizationId),
@@ -63,20 +60,6 @@ export const updateOrganizationService = async (
 
   if (!organization) {
     throw new OrganizationNotFoundError(organizationId);
-  }
-
-  // Verify user has ACTIVE membership
-  // TODO: The organizationAuthorizationPlugin should be used to check if the user has an active membership
-  const membership = await prismaClient.userOrganizationMembership.findFirst({
-    where: {
-      userId: BigInt(userId),
-      organizationId: BigInt(organizationId),
-      status: MembershipStatus.ACTIVE,
-    },
-  });
-
-  if (!membership) {
-    throw new OrganizationAccessDeniedError(organizationId);
   }
 
   return await prismaClient.$transaction(async (tx) => {

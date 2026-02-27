@@ -1,0 +1,31 @@
+import {
+  RequestSubmissionUploadParamsSchema,
+  RequestSubmissionUploadBodySchema,
+  RequestSubmissionUploadResponseSchema,
+} from "@repo/types";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
+import type { FastifyZodInstance } from "@/types/fastify.js";
+import { submissionRequestUploadHandler } from "./handler.js";
+import type { StandardRouteSignature } from "@/routes/api/index.js";
+
+export const submissionRequestUploadRoute: StandardRouteSignature = (
+  fastify: FastifyZodInstance
+) => {
+  fastify.post(
+    "/:submissionId/request-upload",
+    {
+      schema: {
+        tags: ["files"],
+        summary: "Request a temporary upload URL for a submission file",
+        params: RequestSubmissionUploadParamsSchema,
+        body: RequestSubmissionUploadBodySchema,
+        response: {
+          200: RequestSubmissionUploadResponseSchema,
+          404: ApiErrorResponseSchema,
+          503: ApiErrorResponseSchema,
+        },
+      },
+    },
+    submissionRequestUploadHandler
+  );
+};

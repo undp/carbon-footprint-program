@@ -26,6 +26,9 @@ param allowedOrigin string
 @description('Enable managed identity credentials for container registry')
 param useAcrManagedIdentity bool = false
 
+@description('Azure Storage Account name for blob storage (file uploads)')
+param storageAccountName string = ''
+
 @description('Enable Azure Entra External ID authentication')
 param enableAzureAuth bool = false
 
@@ -104,7 +107,16 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           name: 'DATABASE_URL'
           value: 'postgresql://${databaseUser}:${databasePassword}@${databaseHost}:5432/${databaseName}?sslmode=require'
         }
-      ], enableAzureAuth ? [
+      ], storageAccountName != '' ? [
+        {
+          name: 'AZURE_STORAGE_ACCOUNT_NAME'
+          value: storageAccountName
+        }
+        {
+          name: 'AZURE_STORAGE_CONTAINER_NAME'
+          value: 'files'
+        }
+      ] : [], enableAzureAuth ? [
         {
           name: 'AZURE_EXTERNAL_TENANT_ID'
           value: azureAuthExternalTenantId

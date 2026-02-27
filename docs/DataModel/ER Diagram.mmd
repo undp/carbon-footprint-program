@@ -678,6 +678,46 @@ erDiagram
 	}
 
 	%% ============================================================
+	%% 🟪 Files & attachments (3)
+	%% ============================================================
+
+	%% Generic file metadata table. Ownership is resolved via link tables
+	%% (badge, submission_file) following the same polymorphic pattern used by submission_subject.
+	%% mime_type and size_bytes are read from Azure blob properties at confirm-upload time,
+	%% not provided by the client.
+	file {
+		BIGINT id PK ""
+		string uuid "UNIQUE"
+		string original_name ""
+		string mime_type "read from Azure blob properties"
+		int size_bytes "read from Azure blob properties"
+		string blob_path ""
+		enum status "ACTIVE | DELETED"
+		BIGINT created_by_id FK "user(id)"
+		timestamptz created_at ""
+		timestamptz deleted_at "NULLABLE"
+	}
+
+	%% Link table: file ↔ badge type
+	%% Only one badge per type may have status ACTIVE at a time.
+	%% Uploading a new badge automatically sets the previous one to INACTIVE.
+	badge {
+		BIGINT id PK ""
+		enum type "CARBON_INVENTORY | ORGANIZATION_DATA"
+		BIGINT file_id FK "file(id)"
+		enum status "ACTIVE | INACTIVE"
+		timestamptz created_at "DEFAULT now()"
+	}
+
+	%% Link table: file ↔ submission
+	%% type distinguishes between document attachments and recognition certificates.
+	submission_file {
+		BIGINT file_id PK "FK file(id)"
+		BIGINT submission_id FK "submission(id)"
+		enum type "ATTACHMENT | RECOGNITION"
+	}
+
+	%% ============================================================
 	%% Others
 	%% ============================================================
 
@@ -738,6 +778,7 @@ user
 	user ||--o{ user_organization_membership : "access with"
 	user }o--o| country_job_position : "may have one"
 	user ||--o| user_role_assignment : "access with"
+	user ||--o{ file : "uploads"
 
 methodology_version
 	methodology_version ||--o{ carbon_inventory : "has many"
@@ -799,6 +840,7 @@ submission_subject
 submission
 	submission ||--o| recognition: "may award"
 	submission ||--o{ submission_subject: "has"
+	submission ||--o{ submission_file: "has files via"
 
 neutralization_plan
 	neutralization_plan ||--o{ submission_subject_neutralization_plan : "submitted via"
@@ -809,3 +851,7 @@ reduction_project
 
 reduction_suggestion_catalog
 	reduction_suggestion_catalog ||--o{ reduction_personalized_suggestion : "can generate many"
+
+file
+	file ||--o| badge : "linked via"
+	file ||--o| submission_file : "linked via"

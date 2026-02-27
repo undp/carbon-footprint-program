@@ -14,7 +14,7 @@ export const createOrganizationRoute: StandardRouteSignature = (
     "/",
     {
       schema: {
-        tags: ["app-organizations"],
+        tags: ["organizations"],
         summary: "Create organization",
         description:
           "Create a new organization with auto-membership as ACCREDITED_MEMBER",

@@ -540,7 +540,7 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
   });
 
   describe("Error cases", () => {
-    it("should return 404 for non-existent organization ID", async () => {
+    it("should return 403 for non-existent organization ID", async () => {
       const nonExistentId = "999999999";
 
       const response = await app.inject({
@@ -548,10 +548,9 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
         url: `/api/app/organizations/${nonExistentId}`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
-      expect(body.message).toContain(nonExistentId);
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 for user without membership", async () => {
@@ -566,8 +565,7 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_ACCESS_DENIED");
-      expect(body.message).toContain(org.id.toString());
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 for user with deleted membership", async () => {
@@ -584,7 +582,7 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
 
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_ACCESS_DENIED");
+      expect(body.code).toBe("FORBIDDEN");
       expect(body.message).toBeTruthy();
     });
 

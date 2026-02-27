@@ -11,7 +11,7 @@ export const getMyOrganizationsRoute: StandardRouteSignature = (
     "/me",
     {
       schema: {
-        tags: ["app-organizations"],
+        tags: ["organizations"],
         summary: "Get my organizations",
         description:
           "Get all organizations where the user has an active membership",

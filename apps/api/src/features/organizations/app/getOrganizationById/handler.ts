@@ -7,14 +7,13 @@ export const getOrganizationByIdHandler = async (
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "app-organizations" });
-  const { id } = request.params;
+  const { id: organizationId } = request.params;
 
-  log.info({ organizationId: id }, "Getting organization by ID...");
+  log.info({ organizationId }, "Getting organization by ID...");
 
   const prisma = request.server.prisma;
-  const userId = request.currentUser!.id;
-  const result = await getOrganizationByIdService(prisma, userId, id);
+  const result = await getOrganizationByIdService(prisma, organizationId);
 
-  log.info({ organizationId: id }, "Organization retrieved successfully");
+  log.info({ organizationId }, "Organization retrieved successfully");
   return reply.status(200).send(result);
 };
