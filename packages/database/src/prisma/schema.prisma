@@ -486,11 +486,8 @@ model EmissionFactor {
   @@map("emission_factor")
 }
 
-// TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
 enum InventoryStatus {
-  DRAFT
-  SUBMITTED
-  VERIFIED
+  ACTIVE
   DELETED
 
   @@map("inventory_status")
@@ -510,7 +507,7 @@ model CarbonInventory {
   organizationBranchId BigInt?                           @map("organization_branch_id")
   organizationData     Json?                             @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus                   @default(DRAFT)
+  status               InventoryStatus                   @default(ACTIVE)
   usageMode            UsageMode                         @map("usage_mode")
   methodologyVersionId BigInt?                           @map("methodology_version_id")
   preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
@@ -522,10 +519,11 @@ model CarbonInventory {
   methodologyVersion   MethodologyVersion?               @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
   updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
-  lines                CarbonInventoryLine[]
-  subtotals            CarbonInventorySubtotalsView[]
-  organization         Organization?                     @relation(fields: [organizationId], references: [id])
-  submission           SubmissionSubjectCarbonInventory?
+  lines                   CarbonInventoryLine[]
+  subtotals               CarbonInventorySubtotalsView[]
+  organization            Organization?                          @relation(fields: [organizationId], references: [id])
+  calculationSubmission   SubmissionSubjectCalculatedInventory?  @relation("CalculatedInventory")
+  verificationSubmission  SubmissionSubjectVerifiedInventory?    @relation("VerifiedInventory")
 
   @@map("carbon_inventory")
 }
@@ -808,20 +806,30 @@ model SubmissionSubject {
   createdById BigInt?               @map("created_by_id")
   creator     User?                 @relation("submission_subject_created_by", fields: [createdById], references: [id])
 
-  submissions      Submission[]
-  carbonInventory  SubmissionSubjectCarbonInventory?
-  organizationData SubmissionSubjectOrganizationData?
+  submissions         Submission[]
+  calculatedInventory SubmissionSubjectCalculatedInventory?
+  verifiedInventory   SubmissionSubjectVerifiedInventory?
+  organizationData    SubmissionSubjectOrganizationData?
 
   @@map("submission_subject")
 }
 
-model SubmissionSubjectCarbonInventory {
+model SubmissionSubjectCalculatedInventory {
   subjectId         BigInt            @id @map("subject_id")
   carbonInventoryId BigInt            @unique @map("carbon_inventory_id")
   subject           SubmissionSubject @relation(fields: [subjectId], references: [id])
-  carbonInventory   CarbonInventory   @relation(fields: [carbonInventoryId], references: [id])
+  carbonInventory   CarbonInventory   @relation("CalculatedInventory", fields: [carbonInventoryId], references: [id])
 
-  @@map("submission_subject_carbon_inventory")
+  @@map("submission_subject_calculated_inventory")
+}
+
+model SubmissionSubjectVerifiedInventory {
+  subjectId         BigInt            @id @map("subject_id")
+  carbonInventoryId BigInt            @unique @map("carbon_inventory_id")
+  subject           SubmissionSubject @relation(fields: [subjectId], references: [id])
+  carbonInventory   CarbonInventory   @relation("VerifiedInventory", fields: [carbonInventoryId], references: [id])
+
+  @@map("submission_subject_verified_inventory")
 }
 
 model SubmissionSubjectOrganizationData {

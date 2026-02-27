@@ -15,11 +15,19 @@ CREATE TABLE "submission_subject" (
 );
 
 -- CreateTable
-CREATE TABLE "submission_subject_carbon_inventory" (
+CREATE TABLE "submission_subject_calculated_inventory" (
     "subject_id" BIGINT NOT NULL,
     "carbon_inventory_id" BIGINT NOT NULL,
 
-    CONSTRAINT "submission_subject_carbon_inventory_pkey" PRIMARY KEY ("subject_id")
+    CONSTRAINT "submission_subject_calculated_inventory_pkey" PRIMARY KEY ("subject_id")
+);
+
+-- CreateTable
+CREATE TABLE "submission_subject_verified_inventory" (
+    "subject_id" BIGINT NOT NULL,
+    "carbon_inventory_id" BIGINT NOT NULL,
+
+    CONSTRAINT "submission_subject_verified_inventory_pkey" PRIMARY KEY ("subject_id")
 );
 
 -- CreateTable
@@ -46,7 +54,10 @@ CREATE TABLE "submission" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "submission_subject_carbon_inventory_carbon_inventory_id_key" ON "submission_subject_carbon_inventory"("carbon_inventory_id");
+CREATE UNIQUE INDEX "submission_subject_calculated_inventory_carbon_inventory_id_key" ON "submission_subject_calculated_inventory"("carbon_inventory_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "submission_subject_verified_inventory_carbon_inventory_id_key" ON "submission_subject_verified_inventory"("carbon_inventory_id");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "submission_subject_organization_data_organization_data_id_key" ON "submission_subject_organization_data"("organization_data_id");
@@ -55,10 +66,16 @@ CREATE UNIQUE INDEX "submission_subject_organization_data_organization_data_id_k
 ALTER TABLE "submission_subject" ADD CONSTRAINT "submission_subject_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "submission_subject_carbon_inventory" ADD CONSTRAINT "submission_subject_carbon_inventory_subject_id_fkey" FOREIGN KEY ("subject_id") REFERENCES "submission_subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "submission_subject_calculated_inventory" ADD CONSTRAINT "submission_subject_calculated_inventory_subject_id_fkey" FOREIGN KEY ("subject_id") REFERENCES "submission_subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "submission_subject_carbon_inventory" ADD CONSTRAINT "submission_subject_carbon_inventory_carbon_inventory_id_fkey" FOREIGN KEY ("carbon_inventory_id") REFERENCES "carbon_inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "submission_subject_calculated_inventory" ADD CONSTRAINT "submission_subject_calculated_inventory_carbon_inventory_i_fkey" FOREIGN KEY ("carbon_inventory_id") REFERENCES "carbon_inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "submission_subject_verified_inventory" ADD CONSTRAINT "submission_subject_verified_inventory_subject_id_fkey" FOREIGN KEY ("subject_id") REFERENCES "submission_subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "submission_subject_verified_inventory" ADD CONSTRAINT "submission_subject_verified_inventory_carbon_inventory_id_fkey" FOREIGN KEY ("carbon_inventory_id") REFERENCES "carbon_inventory"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "submission_subject_organization_data" ADD CONSTRAINT "submission_subject_organization_data_subject_id_fkey" FOREIGN KEY ("subject_id") REFERENCES "submission_subject"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

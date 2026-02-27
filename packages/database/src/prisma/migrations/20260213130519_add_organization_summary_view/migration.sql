@@ -65,7 +65,7 @@ organization_displayed_data AS (
 ),
 
 -- 5. Organization carbon inventories summary
--- TODO: update this CTE to consider only COMPLETED and VERIFIED carbon inventories
+-- Only includes inventories with approved CALCULATION submissions (excludes DRAFT and unapproved)
 organization_carbon_inventories_summary AS (
   SELECT
     ci.organization_id,
@@ -73,10 +73,15 @@ organization_carbon_inventories_summary AS (
     MAX(ci.created_at) as last_measurement,
     COALESCE(SUM(csv.value), 0) AS total_emissions
   FROM carbon_inventory ci
+  INNER JOIN submission_subject_calculated_inventory ssci
+    ON ssci.carbon_inventory_id = ci.id
+  INNER JOIN submission s
+    ON s.subject_id = ssci.subject_id
+    AND s.status = 'APPROVED'
   LEFT JOIN carbon_inventory_subtotals_view csv
     ON csv.carbon_inventory_id = ci.id
   WHERE ci.organization_id IS NOT NULL
-  AND ci.status NOT IN ('DELETED', 'DRAFT')
+  AND ci.status != 'DELETED'
   AND ci.year IS NOT NULL
   AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
   GROUP BY ci.organization_id
