@@ -70,8 +70,8 @@ export const requestOrganizationAccreditationService = async (
         status: OrganizationDataStatus.ACTIVE,
         submission: {
           subject: {
-            submissions: {
-              some: { status: SubmissionStatus.REJECTED },
+            submission: {
+              status: SubmissionStatus.REJECTED,
             },
           },
         },
