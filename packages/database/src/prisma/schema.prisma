@@ -806,7 +806,7 @@ model SubmissionSubject {
   createdById BigInt?               @map("created_by_id")
   creator     User?                 @relation("submission_subject_created_by", fields: [createdById], references: [id])
 
-  submissions         Submission[]
+  submission          Submission?
   calculatedInventory SubmissionSubjectCalculatedInventory?
   verifiedInventory   SubmissionSubjectVerifiedInventory?
   organizationData    SubmissionSubjectOrganizationData?
@@ -851,7 +851,7 @@ enum SubmissionStatus {
 
 model Submission {
   id             BigInt           @id @default(autoincrement())
-  subjectId      BigInt           @map("subject_id")
+  subjectId      BigInt           @unique @map("subject_id")
   status         SubmissionStatus @default(PENDING)
   reviewerId     BigInt?          @map("reviewer_id")
   reviewComments String?          @map("review_comments")

@@ -54,6 +54,9 @@ CREATE TABLE "submission" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "submission_subject_id_key" ON "submission"("subject_id");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "submission_subject_calculated_inventory_carbon_inventory_id_key" ON "submission_subject_calculated_inventory"("carbon_inventory_id");
 
 -- CreateIndex
@@ -94,6 +97,3 @@ ALTER TABLE "submission" ADD CONSTRAINT "submission_created_by_id_fkey" FOREIGN 
 
 -- AddForeignKey
 ALTER TABLE "submission" ADD CONSTRAINT "submission_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- Only one submission can be PENDING or APPROVED for a submission subject
-CREATE UNIQUE INDEX "submission_only_one_pending_or_approved_per_subject" ON "submission"("subject_id") WHERE "status" IN ('PENDING', 'APPROVED');
