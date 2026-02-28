@@ -2,17 +2,15 @@ import { FC } from "react";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import { EditOutlined, DeleteOutlined } from "@mui/icons-material";
 
-interface UserActionsCellProps {
+interface OrganizationUserActionsCellProps {
   userId: string;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 }
 
-export const UserActionsCell: FC<UserActionsCellProps> = ({
-  userId,
-  onEdit,
-  onDelete,
-}) => {
+export const OrganizationUserActionsCell: FC<
+  OrganizationUserActionsCellProps
+> = ({ userId, onEdit, onDelete }) => {
   return (
     <Box className="flex items-center justify-center gap-2">
       <Tooltip title="Editar usuario">

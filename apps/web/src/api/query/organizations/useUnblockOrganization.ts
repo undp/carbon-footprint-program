@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UnblockOrganizationResponse } from "@repo/types";
-import { organizationsKeys } from "./keys";
+import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
 
 export const useUnblockOrganization = () => {
@@ -11,9 +11,9 @@ export const useUnblockOrganization = () => {
       apiClient.post(`admin/organizations/${id}/unblock`).json(),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: organizationsKeys.adminAll }),
+        queryClient.invalidateQueries({ queryKey: organizationKeys.adminAll }),
         queryClient.invalidateQueries({
-          queryKey: organizationsKeys.adminKpis,
+          queryKey: organizationKeys.adminKpis,
         }),
       ]);
     },

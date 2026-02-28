@@ -7,8 +7,9 @@ import {
   Select,
   Typography,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 import { useOrganizations } from "@/api/query/organizations";
-import { HeaderSkeleton } from "./Skeletons";
+import { OrganizationHeaderSkeleton } from "./Skeletons";
 
 type OrganizationHeaderProps = {
   onOrganizationChange: (organizationId: string | null) => void;
@@ -17,10 +18,19 @@ type OrganizationHeaderProps = {
 export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
   onOrganizationChange,
 }) => {
-  const { data: organizations, isLoading } = useOrganizations();
+  const { enqueueSnackbar } = useSnackbar();
+  const { data: organizations, isLoading, error } = useOrganizations();
 
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>();
+
+  useEffect(() => {
+    if (error) {
+      enqueueSnackbar("No se pudo cargar la lista de organizaciones", {
+        variant: "error",
+      });
+    }
+  }, [error, enqueueSnackbar]);
 
   const activeOrganization = useMemo(() => {
     const targetId = selectedOrganizationId ?? organizations?.[0]?.id;
@@ -33,7 +43,7 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeOrganization?.id, isLoading]);
 
-  if (isLoading) return <HeaderSkeleton />;
+  if (isLoading) return <OrganizationHeaderSkeleton />;
 
   if (!organizations?.length || !activeOrganization) return null;
 

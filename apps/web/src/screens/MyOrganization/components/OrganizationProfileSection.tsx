@@ -4,19 +4,17 @@ import { SectionCard } from "./SectionCard";
 import { InfoCard } from "./InfoCard";
 import { InfoRow } from "./InfoRow";
 import Typography from "@mui/material/Typography";
-import { GetOrganizationResponse, Representative } from "../../../api/query";
+import { GetOrganizationByIdResponse } from "@repo/types";
 
-type CompanyProfileSectionProps = {
-  profile: GetOrganizationResponse;
-  representative: Representative;
+type OrganizationProfileSectionProps = {
+  profile: GetOrganizationByIdResponse;
+  representative: GetOrganizationByIdResponse["representative"];
   onEdit: () => void;
 };
 
-export const CompanyProfileSection: FC<CompanyProfileSectionProps> = ({
-  profile,
-  representative,
-  onEdit,
-}) => {
+export const OrganizationProfileSection: FC<
+  OrganizationProfileSectionProps
+> = ({ profile, representative, onEdit }) => {
   return (
     <SectionCard
       title="Perfil empresa"
@@ -29,27 +27,30 @@ export const CompanyProfileSection: FC<CompanyProfileSectionProps> = ({
       <InfoCard title={profile.name}>
         <InfoRow label="RUT / RUC" value={profile.taxId} />
         <InfoRow label="Razón social" value={profile.legalName} />
-        <InfoRow label="Rubro / Sector económico" value={profile.sector.name} />
-        <InfoRow label="Sub-rubro" value={profile.subsector.name} />
+        <InfoRow
+          label="Rubro / Sector económico"
+          value={profile.sector?.name ?? "-"}
+        />
+        <InfoRow label="Sub-rubro" value={profile.subsector?.name ?? "-"} />
         <InfoRow
           label="Tamaño de organización"
-          value={profile.countryOrganizationSize.name}
+          value={profile.countryOrganizationSize?.name ?? "-"}
         />
         <InfoRow
           label="Actividad principal"
-          value={profile.mainActivity.name}
+          value={profile.mainActivity?.name ?? "-"}
         />
-        <InfoRow label="Dirección" value={profile.address} />
+        <InfoRow label="Dirección" value={profile.address ?? "-"} />
         <InfoRow
           label="Número de trabajadores"
-          value={profile.employeeCount.toString()}
+          value={profile.employeesCount?.toString() ?? "-"}
         />
       </InfoCard>
 
       <Typography variant="h6" fontWeight={600}>
         Representante
       </Typography>
-      <InfoCard title={representative.name}>
+      <InfoCard title={representative.fullName}>
         <InfoRow label="ID representante / Rut" value={representative.taxId} />
         <InfoRow label="Cargo" value={representative.position.name} />
         <InfoRow label="Correo" value={representative.email} />

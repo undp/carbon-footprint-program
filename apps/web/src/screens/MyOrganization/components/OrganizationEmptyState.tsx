@@ -1,13 +1,13 @@
 import { FC, useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
-import { OrganizationFormDialog } from "./Dialogs";
-import { CreateOrganizationBody } from "../../../api/query/organizations/useCreateOrganization";
+import { OrganizationFormDialog } from "./OrganizationForm";
+import { CreateOrganizationBody } from "@repo/types";
 
-interface Props {
+interface OrganizationEmptyStateProps {
   handleOrganizationCreation: (data: CreateOrganizationBody) => void;
 }
 
-export const NewOrganizationSection: FC<Props> = ({
+export const OrganizationEmptyState: FC<OrganizationEmptyStateProps> = ({
   handleOrganizationCreation,
 }) => {
   const [openFormDialog, setOpenFormDialog] = useState(false);

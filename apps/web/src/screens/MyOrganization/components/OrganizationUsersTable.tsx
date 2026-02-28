@@ -1,8 +1,9 @@
 import { FC, useMemo } from "react";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Add } from "@mui/icons-material";
 import { SectionCard } from "./SectionCard";
-import { UserActionsCell } from "./UserActionsCell";
+import { OrganizationUserActionsCell } from "./OrganizationUserActionsCell";
+import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 
 type User = {
   id: string;
@@ -11,14 +12,14 @@ type User = {
   role: string;
 };
 
-type UsersTableSectionProps = {
+type OrganizationUsersTableProps = {
   users: User[];
   onAdd: () => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;
 };
 
-export const UsersTableSection: FC<UsersTableSectionProps> = ({
+export const OrganizationUsersTable: FC<OrganizationUsersTableProps> = ({
   users,
   onAdd,
   onEdit,
@@ -57,7 +58,7 @@ export const UsersTableSection: FC<UsersTableSectionProps> = ({
         sortable: false,
         cellClassName: "content-center",
         renderCell: (params: GridRenderCellParams<User>) => (
-          <UserActionsCell
+          <OrganizationUserActionsCell
             userId={params.row.id}
             onEdit={onEdit}
             onDelete={onDelete}
@@ -77,51 +78,22 @@ export const UsersTableSection: FC<UsersTableSectionProps> = ({
         onClick: onAdd,
       }}
     >
-      <DataGrid
+      <StylizedDataGrid
         autoHeight
         columnHeaderHeight={40}
         rows={users}
         columns={columns}
-        checkboxSelection={false}
-        disableColumnResize
-        disableColumnSorting
-        disableColumnMenu
-        disableColumnFilter
-        disableColumnSelector
-        disableRowSelectionOnClick
-        hideFooter
-        getRowHeight={() => "auto"}
         localeText={{
           noRowsLabel: "No hay usuarios registrados",
         }}
         sx={(theme) => ({
-          borderRadius: "8px",
           "& .MuiDataGrid-columnHeader": {
             backgroundColor: theme.palette.background.default,
             padding: "10px 8px",
           },
-          "& .MuiDataGrid-columnHeader:focus": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-columnHeader:focus-within": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-columnSeparator": {
-            display: "none",
-          },
           "& .MuiDataGrid-cell": {
             padding: "10px 8px",
           },
-          "& .MuiDataGrid-cell:focus": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-cell:focus-within": {
-            outline: "none",
-          },
-          "& .MuiDataGrid-row:hover": {
-            backgroundColor: "transparent",
-          },
-          "--DataGrid-overlayHeight": "56px",
         })}
       />
     </SectionCard>

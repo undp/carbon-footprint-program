@@ -15,7 +15,7 @@ const TableRowSkeleton: FC = () => (
   </Box>
 );
 
-export const UsersTableSectionSkeleton: FC = () => {
+export const OrganizationUsersTableSkeleton: FC = () => {
   return (
     <Box className="flex flex-col gap-4 rounded-lg bg-white p-4">
       {/* Section header */}

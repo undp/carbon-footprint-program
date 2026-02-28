@@ -11,7 +11,7 @@ const InfoRowSkeleton: FC<{ labelWidth?: number; valueWidth?: number }> = ({
   </Box>
 );
 
-export const CompanyProfileSectionSkeleton: FC = () => {
+export const OrganizationProfileSectionSkeleton: FC = () => {
   return (
     <Box className="flex flex-col gap-4 rounded-lg bg-white p-4">
       {/* Section header */}
