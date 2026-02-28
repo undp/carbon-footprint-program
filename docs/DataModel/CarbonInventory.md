@@ -46,13 +46,16 @@ These statuses are **computed** based on approved submissions and are not stored
 | `VERIFIED`   | Has approved `CARBON_INVENTORY_VERIFICATION` submission | Full verification (after calculation) has been completed |
 | `DELETED`    | `inventory.status = DELETED` (base status)              | Soft-deleted, overrides all inferred statuses            |
 
-**Important**: The workflow progresses linearly: `DRAFT` → `CALCULATED` → `VERIFIED`. An inventory cannot be verified without first being calculated.
+**Important**:
+
+- The workflow progresses linearly: `DRAFT` → `CALCULATED` → `VERIFIED`. An inventory cannot be verified without first being calculated.
+- **Cardinality Constraint**: A carbon inventory can have **only one** active submission (PENDING or APPROVED) per type. This is enforced at the database level to ensure a single source of truth for each workflow stage.
 
 ---
 
 ## Submission Types and Their Meaning
 
-Carbon inventories use two submission types to track workflow progression:
+Carbon inventories use two submission types to track workflow progression. Each inventory is restricted to a single active submission for each of these types:
 
 ### 1. `CARBON_INVENTORY_CALCULATION`
 
@@ -61,6 +64,8 @@ Carbon inventories use two submission types to track workflow progression:
 **When Used**: After completing data entry and emission calculations, users submit for review.
 
 **Approval Effect**: Inventory transitions from `DRAFT` to `CALCULATED` status.
+
+**Cardinality**: Only one `CARBON_INVENTORY_CALCULATION` submission can be active (PENDING or APPROVED) at a time for a given inventory.
 
 **Typical Review Focus**:
 
@@ -78,6 +83,8 @@ Carbon inventories use two submission types to track workflow progression:
 **Approval Effect**: Inventory transitions from `CALCULATED` to `VERIFIED` status.
 
 **Prerequisite**: Must have approved `CARBON_INVENTORY_CALCULATION` submission first.
+
+**Cardinality**: Only one `CARBON_INVENTORY_VERIFICATION` submission can be active (PENDING or APPROVED) at a time for a given inventory.
 
 **Typical Review Focus**:
 
