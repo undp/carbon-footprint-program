@@ -21,7 +21,10 @@ import {
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
-import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
+import {
+  createTestCarbonInventoryCalculationSubmission,
+  createTestOrganizationDataSubmission,
+} from "@test/factories/submissionFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
@@ -486,15 +489,21 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       );
 
       // Any carbon inventory linked to the org makes hasCarbonInventories=true
-      await prisma.carbonInventory.create({
+      const carbonInventory = await prisma.carbonInventory.create({
         data: {
           organizationId: org.id,
           year: new Date().getFullYear() - 2,
-          status: "VERIFIED", // TODO: may change when implementing carbon verification
           usageMode: "SIMPLIFIED",
           updatedAt: null,
         },
       });
+
+      await createTestCarbonInventoryCalculationSubmission(
+        prisma,
+        carbonInventory.id,
+        SubmissionStatus.APPROVED,
+        testUser.id
+      );
 
       const response = await app.inject({
         method: "GET",

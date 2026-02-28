@@ -242,6 +242,11 @@ export async function cleanupCarbonInventoryTestData(
   await prisma.carbonInventoryLineInput.deleteMany({});
   await prisma.carbonInventoryLine.deleteMany({});
   await prisma.carbonInventory.deleteMany({});
+  await prisma.submission.deleteMany({});
+  await prisma.submissionSubjectCalculatedInventory.deleteMany({});
+  await prisma.submissionSubjectVerifiedInventory.deleteMany({});
+  await prisma.submissionSubjectOrganizationData.deleteMany({});
+  await prisma.submissionSubject.deleteMany({});
 }
 
 /**

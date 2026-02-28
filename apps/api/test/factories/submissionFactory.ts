@@ -36,47 +36,6 @@ export async function buildOrganizationDataSubmission(
 }
 
 /**
- * Creates a submission subject for organization data
- */
-export async function createTestSubmissionSubjectForOrganizationData(
-  prisma: PrismaClient,
-  organizationDataId: bigint
-): Promise<SubmissionSubject> {
-  const subject = await prisma.submissionSubject.create({
-    data: {
-      subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
-    },
-  });
-
-  await prisma.submissionSubjectOrganizationData.create({
-    data: {
-      subjectId: subject.id,
-      organizationDataId: organizationDataId,
-    },
-  });
-
-  return subject;
-}
-
-/**
- * Creates a submission for a subject
- */
-export async function createTestSubmission(
-  prisma: PrismaClient,
-  subjectId: bigint,
-  overrides?: Partial<Submission>
-): Promise<Submission> {
-  return await prisma.submission.create({
-    data: {
-      subjectId,
-      status: SubmissionStatus.PENDING,
-      updatedAt: null,
-      ...overrides,
-    },
-  });
-}
-
-/**
  * Creates a complete submission flow for organization data (subject + submission)
  */
 export async function createTestOrganizationDataSubmission(
@@ -87,60 +46,98 @@ export async function createTestOrganizationDataSubmission(
   reviewerId?: bigint,
   reviewComments?: string
 ): Promise<{ subject: SubmissionSubject; submission: Submission }> {
-  const subject = await createTestSubmissionSubjectForOrganizationData(
-    prisma,
-    organizationDataId
-  );
-
-  const submission = await createTestSubmission(prisma, subject.id, {
-    status,
-    reviewerId,
-    reviewComments,
-    createdById: userId,
+  const subject = await prisma.submissionSubject.create({
+    data: {
+      subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
+      organizationData: {
+        create: {
+          organizationDataId: organizationDataId,
+        },
+      },
+      submission: {
+        create: {
+          status: status,
+          reviewerId: reviewerId,
+          reviewComments: reviewComments,
+          createdById: userId,
+          updatedById: userId,
+        },
+      },
+    },
+    include: {
+      submission: true,
+    },
   });
 
-  return { subject, submission };
+  return { subject, submission: subject.submission! };
 }
 
-/**
- * Approves a pending submission
- */
-export async function approveSubmission(
+export async function createTestCarbonInventoryCalculationSubmission(
   prisma: PrismaClient,
-  submissionId: bigint,
-  reviewerId: bigint,
+  carbonInventoryId: bigint,
+  status: SubmissionStatus = SubmissionStatus.PENDING,
+  userId: bigint,
+  reviewerId?: bigint,
   reviewComments?: string
-): Promise<Submission> {
-  return await prisma.submission.update({
-    where: { id: submissionId },
+): Promise<{ subject: SubmissionSubject; submission: Submission }> {
+  const subject = await prisma.submissionSubject.create({
     data: {
-      status: SubmissionStatus.APPROVED,
-      reviewerId,
-      reviewComments,
-      updatedById: reviewerId,
+      subjectType: SubmissionSubjectType.CARBON_INVENTORY_CALCULATION,
+      calculatedInventory: {
+        create: {
+          carbonInventoryId: carbonInventoryId,
+        },
+      },
+      submission: {
+        create: {
+          status: status,
+          reviewerId: reviewerId,
+          reviewComments: reviewComments,
+          createdById: userId,
+          updatedById: userId,
+        },
+      },
+    },
+    include: {
+      submission: true,
     },
   });
+
+  return { subject, submission: subject.submission! };
 }
 
-/**
- * Rejects a pending submission.
- * NOTE: Does NOT mark organization data as OUTDATED - that happens when user creates new edition.
- */
-export async function rejectSubmission(
+export async function createTestCarbonInventoryVerificationSubmission(
   prisma: PrismaClient,
-  submissionId: bigint,
-  reviewerId: bigint,
-  reviewComments: string
-): Promise<Submission> {
-  return await prisma.submission.update({
-    where: { id: submissionId },
+  carbonInventoryId: bigint,
+  status: SubmissionStatus = SubmissionStatus.PENDING,
+  userId: bigint,
+  reviewerId?: bigint,
+  reviewComments?: string
+): Promise<{ subject: SubmissionSubject; submission: Submission }> {
+  const subject = await prisma.submissionSubject.create({
     data: {
-      status: SubmissionStatus.REJECTED,
-      reviewerId,
-      reviewComments,
-      updatedById: reviewerId,
+      subjectType: SubmissionSubjectType.CARBON_INVENTORY_VERIFICATION,
+      verifiedInventory: {
+        create: {
+          carbonInventoryId: carbonInventoryId,
+        },
+      },
+      submission: {
+        create: {
+          status: status,
+          reviewerId: reviewerId,
+          reviewComments: reviewComments,
+          createdById: userId,
+          updatedById: userId,
+        },
+      },
+    },
+    include: {
+      submission: true,
     },
   });
+
+  return { subject, submission: subject.submission! };
 }
 
 /**
@@ -151,6 +148,7 @@ export async function cleanupTestSubmissions(
 ): Promise<void> {
   await prisma.submission.deleteMany();
   await prisma.submissionSubjectOrganizationData.deleteMany();
-  await prisma.submissionSubjectCarbonInventory.deleteMany();
+  await prisma.submissionSubjectCalculatedInventory.deleteMany();
+  await prisma.submissionSubjectVerifiedInventory.deleteMany();
   await prisma.submissionSubject.deleteMany();
 }
