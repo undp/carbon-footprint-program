@@ -16,10 +16,8 @@ export const getPendingOrganizationData = (
       status: OrganizationDataStatus.ACTIVE,
       submission: {
         subject: {
-          submissions: {
-            some: {
-              status: SubmissionStatus.PENDING,
-            },
+          submission: {
+            status: SubmissionStatus.PENDING,
           },
         },
       },
@@ -50,10 +48,8 @@ export const getApprovedOrganizationData = (
       status: OrganizationDataStatus.ACTIVE,
       submission: {
         subject: {
-          submissions: {
-            some: {
-              status: SubmissionStatus.APPROVED,
-            },
+          submission: {
+            status: SubmissionStatus.APPROVED,
           },
         },
       },
@@ -71,10 +67,8 @@ export const getRejectedOrganizationData = (
       status: OrganizationDataStatus.ACTIVE,
       submission: {
         subject: {
-          submissions: {
-            some: {
-              status: SubmissionStatus.REJECTED,
-            },
+          submission: {
+            status: SubmissionStatus.REJECTED,
           },
         },
       },
