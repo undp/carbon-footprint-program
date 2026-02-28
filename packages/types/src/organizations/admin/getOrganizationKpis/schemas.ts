@@ -56,7 +56,7 @@ const OrganizationKpiCountSchema = z.union([
 ]);
 
 const OrganizationKpiCountSchemaLength =
-  Object.values(OrganizationKpiCountSchema).length * 2 * 2;
+  Object.values(OrganizationStatus).length * 2 * 2;
 
 // Response schema
 export const GetOrganizationKpisResponseSchema = z.object({
