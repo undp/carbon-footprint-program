@@ -1,54 +1,167 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useState } from "react";
+import {
+  useAddOrganizationUser,
+  useUpdateOrganizationUserRole,
+  useRemoveOrganizationUser,
+} from "@/api/query/organizations";
 
-// Mock data matching Figma design
-const MOCK_USERS = [
-  {
-    id: "1",
-    fullName: "Juan Pablo Morales",
-    email: "jpmorales@cementeradelvalle.cl",
-    role: "Admin",
-  },
-  {
-    id: "2",
-    fullName: "Camila Fuentes Rojas",
-    email: "cfuentes@cementeradelvalle.cl",
-    role: "Editor",
-  },
-  {
-    id: "3",
-    fullName: "Rodrigo Alarcon Vega",
-    email: "ralarcon@cementeradelvalle.cl",
-    role: "Lector",
-  },
-];
+interface AddUserFormData {
+  email: string;
+  role: string;
+}
+
+interface EditUserRoleFormData {
+  role: string;
+}
 
 /**
  * Manages organization users data and actions
- * Currently using mock data - will be replaced with API calls
  */
-export const useMyOrganizationUsers = () => {
-  // TODO: Replace with useOrganizationUsers() API call when ready
-  const users = useMemo(() => MOCK_USERS, []);
+export const useMyOrganizationUsers = (organizationId: string) => {
+  // Dialog state
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  // TODO: Implement add user modal and mutation
-  const handleAddUser = useCallback(() => {
-    console.log("TODO: Implement add user modal");
+  // Selected user info
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
+  const [selectedUserRole, setSelectedUserRole] = useState<string | null>(null);
+
+  // Mutations
+  const addUserMutation = useAddOrganizationUser();
+  const updateUserRoleMutation = useUpdateOrganizationUserRole();
+  const removeUserMutation = useRemoveOrganizationUser();
+
+  // Add user handlers
+  const openAddUserDialog = useCallback(() => {
+    setAddDialogOpen(true);
   }, []);
 
-  // TODO: Implement edit user modal and mutation
-  const handleEditUser = useCallback((_id: string) => {
-    console.log("TODO: Implement edit user modal for user:", _id);
+  const closeAddUserDialog = useCallback(() => {
+    setAddDialogOpen(false);
   }, []);
 
-  // TODO: Implement delete user confirmation and mutation
-  const handleDeleteUser = useCallback((_id: string) => {
-    console.log("TODO: Implement delete user confirmation for user:", _id);
+  const handleAddUser = useCallback(
+    async (data: AddUserFormData) => {
+      try {
+        await addUserMutation.mutateAsync({
+          organizationId,
+          data: {
+            email: data.email,
+            role: data.role,
+          },
+        });
+        closeAddUserDialog();
+      } catch (error) {
+        console.error("Error adding user:", error);
+      }
+    },
+    [organizationId, addUserMutation, closeAddUserDialog]
+  );
+
+  // Edit user role handlers
+  const openEditUserDialog = useCallback(
+    (userId: string, userName: string, role: string) => {
+      setSelectedUserId(userId);
+      setSelectedUserName(userName);
+      setSelectedUserRole(role);
+      setEditDialogOpen(true);
+    },
+    []
+  );
+
+  const closeEditUserDialog = useCallback(() => {
+    setEditDialogOpen(false);
+    setSelectedUserId(null);
+    setSelectedUserName(null);
+    setSelectedUserRole(null);
   }, []);
+
+  const handleUpdateUserRole = useCallback(
+    async (data: EditUserRoleFormData) => {
+      if (!selectedUserId) return;
+
+      try {
+        await updateUserRoleMutation.mutateAsync({
+          organizationId,
+          userId: selectedUserId,
+          data: {
+            role: data.role as any,
+          },
+        });
+        closeEditUserDialog();
+      } catch (error) {
+        console.error("Error updating user role:", error);
+      }
+    },
+    [
+      organizationId,
+      selectedUserId,
+      updateUserRoleMutation,
+      closeEditUserDialog,
+    ]
+  );
+
+  // Delete user handlers
+  const openDeleteUserDialog = useCallback(
+    (userId: string, userName: string) => {
+      setSelectedUserId(userId);
+      setSelectedUserName(userName);
+      setDeleteDialogOpen(true);
+    },
+    []
+  );
+
+  const closeDeleteUserDialog = useCallback(() => {
+    setDeleteDialogOpen(false);
+    setSelectedUserId(null);
+    setSelectedUserName(null);
+  }, []);
+
+  const handleDeleteUser = useCallback(async () => {
+    if (!selectedUserId) return;
+
+    try {
+      await removeUserMutation.mutateAsync({
+        organizationId,
+        userId: selectedUserId,
+      });
+      closeDeleteUserDialog();
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  }, [
+    organizationId,
+    selectedUserId,
+    removeUserMutation,
+    closeDeleteUserDialog,
+  ]);
 
   return {
-    users,
+    // Dialog state
+    addDialogOpen,
+    editDialogOpen,
+    deleteDialogOpen,
+
+    // Selected user info
+    selectedUserName,
+    selectedUserRole,
+
+    // Loading states
+    isAddingUser: addUserMutation.isPending,
+    isUpdatingUser: updateUserRoleMutation.isPending,
+    isDeletingUser: removeUserMutation.isPending,
+
+    // Handlers
+    openAddUserDialog,
+    closeAddUserDialog,
     handleAddUser,
-    handleEditUser,
+    openEditUserDialog,
+    closeEditUserDialog,
+    handleUpdateUserRole,
+    openDeleteUserDialog,
+    closeDeleteUserDialog,
     handleDeleteUser,
   };
 };

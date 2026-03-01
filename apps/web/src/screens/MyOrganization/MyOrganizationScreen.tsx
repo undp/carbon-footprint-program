@@ -9,6 +9,9 @@ import {
   OrganizationUsersTableSkeleton,
   OrganizationFormDialog,
   OrganizationEmptyState,
+  AddUserDialog,
+  EditUserRoleDialog,
+  DeleteUserConfirmationDialog,
 } from "./components";
 import {
   useMyOrganizationData,
@@ -17,6 +20,7 @@ import {
   useMyOrganizationSubmit,
   useMyOrganizationUsers,
 } from "./hooks";
+import { useOrganizationUsers } from "@/api/query/organizations";
 
 export const MyOrganizationScreen: FC = () => {
   // UI state management
@@ -32,6 +36,11 @@ export const MyOrganizationScreen: FC = () => {
   // Data fetching
   const { organization } = useMyOrganizationData({ activeOrganizationId });
 
+  // Fetch organization users
+  const { data: usersData, isLoading: usersLoading } = useOrganizationUsers(
+    organization?.id ?? ""
+  );
+
   // Form data preparation
   const { initialData } = useMyOrganizationForm({ organization });
 
@@ -42,9 +51,26 @@ export const MyOrganizationScreen: FC = () => {
       onSuccess: closeFormDialog,
     });
 
-  // User management (mock data for now)
-  const { users, handleAddUser, handleEditUser, handleDeleteUser } =
-    useMyOrganizationUsers();
+  // User management
+  const {
+    addDialogOpen,
+    editDialogOpen,
+    deleteDialogOpen,
+    selectedUserName,
+    selectedUserRole,
+    isAddingUser,
+    isUpdatingUser,
+    isDeletingUser,
+    openAddUserDialog,
+    closeAddUserDialog,
+    handleAddUser,
+    openEditUserDialog,
+    closeEditUserDialog,
+    handleUpdateUserRole,
+    openDeleteUserDialog,
+    closeDeleteUserDialog,
+    handleDeleteUser,
+  } = useMyOrganizationUsers(organization?.id ?? "");
 
   // No organizations exist
   if (activeOrganizationId === null) {
@@ -71,11 +97,13 @@ export const MyOrganizationScreen: FC = () => {
             />
 
             <OrganizationUsersTable
-              users={users}
-              onAdd={handleAddUser}
-              onEdit={handleEditUser}
-              onDelete={handleDeleteUser}
+              users={usersData?.users ?? []}
+              onAdd={openAddUserDialog}
+              onEdit={openEditUserDialog}
+              onDelete={openDeleteUserDialog}
+              isLoading={usersLoading}
             />
+
             <OrganizationFormDialog
               open={formDialogOpen}
               onClose={closeFormDialog}
@@ -83,6 +111,30 @@ export const MyOrganizationScreen: FC = () => {
               mode={formDialogMode}
               isSubmitting={isSubmitting}
               initialData={initialData}
+            />
+
+            <AddUserDialog
+              open={addDialogOpen}
+              onClose={closeAddUserDialog}
+              onSubmit={handleAddUser}
+              isSubmitting={isAddingUser}
+            />
+
+            <EditUserRoleDialog
+              open={editDialogOpen}
+              onClose={closeEditUserDialog}
+              onSubmit={handleUpdateUserRole}
+              currentRole={selectedUserRole ?? undefined}
+              userName={selectedUserName ?? undefined}
+              isSubmitting={isUpdatingUser}
+            />
+
+            <DeleteUserConfirmationDialog
+              open={deleteDialogOpen}
+              onClose={closeDeleteUserDialog}
+              onConfirm={handleDeleteUser}
+              userName={selectedUserName ?? undefined}
+              isDeleting={isDeletingUser}
             />
           </>
         ) : (

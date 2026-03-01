@@ -1,0 +1,147 @@
+import { FC, useCallback, useEffect } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  IconButton,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
+import { Close } from "@mui/icons-material";
+import { useForm } from "react-hook-form";
+import { FormSelectField } from "@/components/form/FormSelectField";
+
+interface EditUserRoleFormData {
+  role: string;
+}
+
+interface EditUserRoleDialogProps {
+  open: boolean;
+  onClose: () => void;
+  onSubmit: (data: EditUserRoleFormData) => void;
+  currentRole?: string;
+  userName?: string;
+  isSubmitting?: boolean;
+}
+
+const ROLE_OPTIONS = [
+  { label: "Lector", value: "VIEWER" },
+  { label: "Editor", value: "ORGANIZATION_CONTRIBUTOR" },
+  { label: "Admin", value: "ORGANIZATION_ADMIN" },
+  { label: "Verificador Externo", value: "EXTERNAL_VERIFIER" },
+  { label: "Consultor Externo", value: "EXTERNAL_CONSULTANT" },
+];
+
+export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
+  open,
+  onClose,
+  onSubmit,
+  currentRole,
+  userName,
+  isSubmitting = false,
+}) => {
+  const { control, handleSubmit, reset } = useForm<EditUserRoleFormData>({
+    defaultValues: {
+      role: currentRole ?? "",
+    },
+  });
+
+  // Update form when currentRole changes
+  useEffect(() => {
+    if (currentRole) {
+      reset({ role: currentRole });
+    }
+  }, [currentRole, reset]);
+
+  const handleClose = useCallback(() => {
+    reset();
+    onClose();
+  }, [reset, onClose]);
+
+  const handleFormSubmit = useCallback(
+    (data: EditUserRoleFormData) => {
+      onSubmit(data);
+    },
+    [onSubmit]
+  );
+
+  return (
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 1,
+          },
+        },
+      }}
+      aria-labelledby="edit-user-role-dialog-title"
+    >
+      <DialogTitle
+        id="edit-user-role-dialog-title"
+        sx={{ pr: 6, fontWeight: 600, fontSize: 24 }}
+      >
+        Editar Rol de Usuario
+      </DialogTitle>
+      <IconButton
+        aria-label="cerrar"
+        onClick={handleClose}
+        sx={(theme) => ({
+          position: "absolute",
+          right: 16,
+          top: 16,
+          color: theme.palette.grey[500],
+        })}
+      >
+        <Close />
+      </IconButton>
+
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
+        <DialogContent sx={{ pt: 0 }}>
+          {userName && (
+            <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
+              Usuario: <strong>{userName}</strong>
+            </Typography>
+          )}
+
+          <FormSelectField
+            name="role"
+            control={control}
+            label="Rol"
+            options={ROLE_OPTIONS}
+            required
+          />
+        </DialogContent>
+
+        <DialogActions
+          sx={{
+            px: 3,
+            py: 2,
+            borderTop: 1,
+            borderColor: "divider",
+            backgroundColor: "background.paper",
+          }}
+        >
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isSubmitting}
+            startIcon={
+              isSubmitting ? (
+                <CircularProgress size={20} color="inherit" />
+              ) : undefined
+            }
+          >
+            Guardar cambios
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  );
+};
