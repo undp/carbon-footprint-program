@@ -1,9 +1,11 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { Control } from "react-hook-form";
-import { FormTextField } from "@/components";
+import { FormSelectField, FormTextField } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
 import { CreateOrganizationBody } from "@repo/types";
+import { useJobPositions } from "@/api/query/jobPositions/useJobPositions";
+import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 
 interface OrganizationRepresentativeFieldsProps {
   control: Control<CreateOrganizationBody>;
@@ -16,6 +18,10 @@ interface OrganizationRepresentativeFieldsProps {
 export const OrganizationRepresentativeFields: FC<
   OrganizationRepresentativeFieldsProps
 > = ({ control }) => {
+  const { data: jobPositions, isLoading } = useJobPositions();
+
+  const jobPositionOptions = useSelectorOptions(jobPositions, "name", "id");
+
   return (
     <Box>
       <Box className="mb-4 flex items-center gap-2">
@@ -47,10 +53,12 @@ export const OrganizationRepresentativeFields: FC<
 
         {/* Row 2: Position + Phone */}
         <Box className="flex gap-6">
-          <FormTextField
+          <FormSelectField
             name="representativePositionId"
             control={control}
             label="Cargo"
+            options={jobPositionOptions}
+            disabled={isLoading}
           />
           <FormTextField
             name="representativePhone"
