@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetCarbonInventoryByIdResponse } from "@repo/types";
+import type { OrganizationDataField } from "@repo/types";
 import { roundEmissions } from "../utils.js";
 import type { CategoryData } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
@@ -7,7 +7,7 @@ import { kgToTon } from "@/utils/number.js";
 export async function resolveInventoryAttributes(
   prismaClient: PrismaClient,
   inventory: { id: bigint; name: string | null; methodologyVersionId: bigint },
-  orgData: GetCarbonInventoryByIdResponse["organizationData"]
+  orgData: OrganizationDataField
 ) {
   const sectorId = orgData?.sectorId ?? null;
   const sizeId = orgData?.sizeId ?? null;
@@ -52,7 +52,7 @@ export async function resolveInventoryAttributes(
 
 export async function calculateEquivalence(
   prismaClient: PrismaClient,
-  orgData: GetCarbonInventoryByIdResponse["organizationData"],
+  orgData: OrganizationDataField,
   totalEmissions: number
 ) {
   const mainActivityQuantity = orgData?.mainActivityQuantity ?? null;
