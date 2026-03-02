@@ -10,23 +10,24 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { useForm } from "react-hook-form";
 import { useOrganizationData } from "@/hooks";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "../../../../config/environment";
-import { CreateOrganizationBody } from "@repo/types";
+import { GetOrganizationByIdResponse } from "@repo/types";
 import { OrganizationFormFields } from "./OrganizationFormFields";
 import { OrganizationRepresentativeFields } from "./OrganizationRepresentativeFields";
+import {
+  useOrganizationFormDialogData,
+  useOrganizationFormDialogForm,
+} from "./hooks";
 
 type DialogMode = "create" | "edit" | "accreditation";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateOrganizationBody) => void;
+  organization?: GetOrganizationByIdResponse;
   mode?: DialogMode;
-  initialData?: CreateOrganizationBody;
-  isSubmitting?: boolean;
 }
 
 const DIALOG_TITLES: Record<DialogMode, string> = {
@@ -38,30 +39,19 @@ const DIALOG_TITLES: Record<DialogMode, string> = {
 export const OrganizationFormDialog: FC<Props> = ({
   open,
   onClose,
-  onSubmit,
+  organization,
   mode = "accreditation",
-  initialData,
-  isSubmitting = false,
 }) => {
-  const { control, handleSubmit, reset, watch } =
-    useForm<CreateOrganizationBody>({
-      defaultValues: {
-        legalName: initialData?.legalName ?? "",
-        tradeName: initialData?.tradeName ?? "",
-        taxId: initialData?.taxId ?? "",
-        countryOrganizationSizeId: initialData?.countryOrganizationSizeId ?? "",
-        sectorId: initialData?.sectorId ?? "",
-        subsectorId: initialData?.subsectorId ?? "",
-        mainActivityId: initialData?.mainActivityId ?? "",
-        employeesCount: initialData?.employeesCount ?? 0,
-        address: initialData?.address ?? "",
-        representativeFullName: initialData?.representativeFullName ?? "",
-        representativeTaxId: initialData?.representativeTaxId ?? "",
-        representativePositionId: initialData?.representativePositionId ?? "",
-        representativePhone: initialData?.representativePhone ?? "",
-        representativeEmail: initialData?.representativeEmail ?? "",
-      },
-    });
+  const { defaultValues } = useOrganizationFormDialogData({ organization });
+
+  const { form, onSubmit, isSubmitting } = useOrganizationFormDialogForm({
+    initialValues: defaultValues,
+    mode,
+    organizationId: organization?.id,
+    onSuccess: onClose,
+  });
+
+  const { control, handleSubmit, reset, watch } = form;
 
   // Watch the selected sector to filter subsectors
   const selectedSectorId = watch("sectorId");
@@ -76,20 +66,13 @@ export const OrganizationFormDialog: FC<Props> = ({
     activityOptions,
     activitiesLoading,
   } = useOrganizationData({
-    selectedSectorId,
+    selectedSectorId: selectedSectorId || undefined,
   });
 
   const handleClose = useCallback(() => {
     reset();
     onClose();
   }, [reset, onClose]);
-
-  const handleFormSubmit = useCallback(
-    (data: CreateOrganizationBody) => {
-      onSubmit(data);
-    },
-    [onSubmit]
-  );
 
   const buttonActionLabel = useMemo(() => {
     switch (mode) {
@@ -139,7 +122,7 @@ export const OrganizationFormDialog: FC<Props> = ({
         <Close />
       </IconButton>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)}>
         <DialogContent
           sx={{ pt: 0, overflow: "auto", maxHeight: "calc(90vh - 160px)" }}
         >
@@ -152,7 +135,7 @@ export const OrganizationFormDialog: FC<Props> = ({
             sectorsLoading={sectorsLoading}
             organizationSizesLoading={organizationSizesLoading}
             activitiesLoading={activitiesLoading}
-            selectedSectorId={selectedSectorId}
+            selectedSectorId={selectedSectorId || undefined}
           />
 
           <Divider sx={{ mb: 3, opacity: 0.2 }} />

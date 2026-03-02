@@ -16,8 +16,6 @@ import {
 import {
   useMyOrganizationData,
   useMyOrganizationState,
-  useMyOrganizationForm,
-  useMyOrganizationSubmit,
   useMyOrganizationUsers,
 } from "./hooks";
 import { useOrganizationUsers } from "@/api/query/organizations";
@@ -40,16 +38,6 @@ export const MyOrganizationScreen: FC = () => {
   const { data: usersData, isLoading: usersLoading } = useOrganizationUsers(
     organization?.id ?? ""
   );
-
-  // Form data preparation
-  const { initialData } = useMyOrganizationForm({ organization });
-
-  // Submit handlers with close callback
-  const { handleOrganizationCreation, handleOrganizationUpdate, isSubmitting } =
-    useMyOrganizationSubmit({
-      organizationId: organization?.id,
-      onSuccess: closeFormDialog,
-    });
 
   // User management
   const {
@@ -76,9 +64,7 @@ export const MyOrganizationScreen: FC = () => {
   if (activeOrganizationId === null) {
     return (
       <MainLayout>
-        <OrganizationEmptyState
-          handleOrganizationCreation={handleOrganizationCreation}
-        />
+        <OrganizationEmptyState onSuccess={closeFormDialog} />
       </MainLayout>
     );
   }
@@ -107,10 +93,8 @@ export const MyOrganizationScreen: FC = () => {
             <OrganizationFormDialog
               open={formDialogOpen}
               onClose={closeFormDialog}
-              onSubmit={handleOrganizationUpdate}
+              organization={organization}
               mode={formDialogMode}
-              isSubmitting={isSubmitting}
-              initialData={initialData}
             />
 
             <AddUserDialog

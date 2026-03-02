@@ -3,24 +3,20 @@ import {
   CreateOrganizationBody,
   GetOrganizationByIdResponse,
 } from "@repo/types";
-import { mapOrganizationToFormValues } from "../transformers";
+import { mapOrganizationToFormValues } from "../../../transformers";
 
-interface UseMyOrganizationFormProps {
+interface UseOrganizationFormDialogDataProps {
   organization?: GetOrganizationByIdResponse;
 }
 
-/**
- * Prepares form initial data from organization data
- * Maps organization object to form structure
- */
-export const useMyOrganizationForm = ({
+export const useOrganizationFormDialogData = ({
   organization,
-}: UseMyOrganizationFormProps = {}) => {
-  const initialData: CreateOrganizationBody = useMemo(
+}: UseOrganizationFormDialogDataProps = {}) => {
+  const defaultValues: CreateOrganizationBody = useMemo(
     () =>
       organization
         ? mapOrganizationToFormValues(organization)
-        : ({
+        : {
             legalName: "",
             tradeName: "",
             taxId: "",
@@ -29,17 +25,17 @@ export const useMyOrganizationForm = ({
             subsectorId: "",
             countryOrganizationSizeId: "",
             mainActivityId: "",
-            employeesCount: 0,
+            employeesCount: null,
             representativeFullName: "",
             representativeTaxId: "",
             representativePositionId: "",
             representativePhone: "",
             representativeEmail: "",
-          } as CreateOrganizationBody),
+          },
     [organization]
   );
 
   return {
-    initialData,
+    defaultValues,
   };
 };
