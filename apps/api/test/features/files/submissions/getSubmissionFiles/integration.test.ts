@@ -37,6 +37,8 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
+    await cleanupTestOrganization(prisma);
     await prisma.$disconnect();
     await app.close();
   });

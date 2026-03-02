@@ -72,6 +72,8 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestOrganization(prisma);
+
     await prisma.$disconnect();
     await app.close();
   });

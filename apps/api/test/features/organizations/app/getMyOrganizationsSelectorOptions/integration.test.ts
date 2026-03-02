@@ -33,6 +33,8 @@ describe("GET /api/app/organizations/me - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestOrganization(prisma);
+
     await prisma.$disconnect();
     await app.close();
   });

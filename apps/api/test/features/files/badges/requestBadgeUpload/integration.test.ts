@@ -45,6 +45,7 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
     await prisma.$disconnect();
     await app.close();
   });

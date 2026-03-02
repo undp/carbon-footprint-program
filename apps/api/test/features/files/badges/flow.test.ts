@@ -50,6 +50,7 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
     await prisma.$disconnect();
     await app.close();
   });

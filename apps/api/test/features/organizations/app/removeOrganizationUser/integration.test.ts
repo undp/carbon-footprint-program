@@ -40,6 +40,9 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
   });
 
   afterAll(async () => {
+    await cleanupTestMemberships(prisma);
+    await cleanupTestOrganization(prisma);
+    await cleanupTestUsers(prisma);
     await prisma.$disconnect();
     await app.close();
   });

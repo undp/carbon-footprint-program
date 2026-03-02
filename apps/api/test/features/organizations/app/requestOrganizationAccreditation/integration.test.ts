@@ -40,6 +40,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
   });
 
   afterAll(async () => {
+    await cleanupTestOrganization(prisma);
     await prisma.$disconnect();
     await app.close();
   });

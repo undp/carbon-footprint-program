@@ -53,6 +53,8 @@ describe("Submission files — Full upload flow: request-upload → upload → c
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
+    await cleanupTestOrganization(prisma);
     await prisma.$disconnect();
     await app.close();
   });

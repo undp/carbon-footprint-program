@@ -37,6 +37,7 @@ describe("POST /api/app/organizations - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestOrganization(prisma);
     await prisma.$disconnect();
     await app.close();
   });

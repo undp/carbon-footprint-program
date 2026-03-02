@@ -35,6 +35,7 @@ describe("DELETE /api/files/:uuid - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
     await prisma.$disconnect();
     await app.close();
   });

@@ -45,6 +45,8 @@ describe("POST /api/files/submission/:submissionId/confirm-upload - Integration 
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
+    await cleanupTestOrganization(prisma);
     await prisma.$disconnect();
     await app.close();
   });

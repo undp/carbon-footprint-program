@@ -33,6 +33,7 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
   });
 
   afterAll(async () => {
+    await cleanupTestFiles(prisma);
     await prisma.$disconnect();
     await app.close();
   });

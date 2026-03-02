@@ -41,6 +41,9 @@ describe("POST /api/app/organizations/:organizationId/users - Integration Tests"
   });
 
   afterAll(async () => {
+    await cleanupTestMemberships(prisma);
+    await cleanupTestOrganization(prisma);
+    await cleanupTestUsers(prisma);
     await prisma.$disconnect();
     await app.close();
   });
