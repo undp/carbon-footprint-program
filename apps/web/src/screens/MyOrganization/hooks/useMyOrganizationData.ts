@@ -1,6 +1,9 @@
 import { useEffect } from "react";
 import { useSnackbar } from "notistack";
-import { useOrganization } from "@/api/query/organizations";
+import {
+  useOrganization,
+  useOrganizationUsers,
+} from "@/api/query/organizations";
 
 interface UseMyOrganizationDataProps {
   activeOrganizationId?: string | null;
@@ -21,6 +24,12 @@ export const useMyOrganizationData = ({
     isLoading: isLoadingOrganization,
   } = useOrganization(activeOrganizationId ?? "");
 
+  const {
+    data: usersData,
+    error: usersError,
+    isLoading: isLoadingUsers,
+  } = useOrganizationUsers(organization?.id ?? "");
+
   useEffect(() => {
     if (organizationError) {
       enqueueSnackbar("No se pudo cargar la información de la organización", {
@@ -29,9 +38,20 @@ export const useMyOrganizationData = ({
     }
   }, [organizationError, enqueueSnackbar]);
 
+  useEffect(() => {
+    if (usersError) {
+      enqueueSnackbar("No se pudo cargar la lista de usuarios", {
+        variant: "error",
+      });
+    }
+  }, [usersError, enqueueSnackbar]);
+
   return {
     organization,
     isLoadingOrganization,
-    hasError: !!organizationError,
+    hasOrganizationError: !!organizationError,
+    organizationUsers: usersData?.users ?? [],
+    isLoadingUsers,
+    hasUsersError: !!usersError,
   };
 };

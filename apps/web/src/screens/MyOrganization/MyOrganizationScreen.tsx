@@ -18,7 +18,6 @@ import {
   useMyOrganizationState,
   useMyOrganizationUsers,
 } from "./hooks";
-import { useOrganizationUsers } from "@/api/query/organizations";
 
 export const MyOrganizationScreen: FC = () => {
   // UI state management
@@ -32,12 +31,8 @@ export const MyOrganizationScreen: FC = () => {
   } = useMyOrganizationState();
 
   // Data fetching
-  const { organization } = useMyOrganizationData({ activeOrganizationId });
-
-  // Fetch organization users
-  const { data: usersData, isLoading: usersLoading } = useOrganizationUsers(
-    organization?.id ?? ""
-  );
+  const { organization, organizationUsers, isLoadingUsers } =
+    useMyOrganizationData({ activeOrganizationId });
 
   // User management
   const {
@@ -83,11 +78,11 @@ export const MyOrganizationScreen: FC = () => {
             />
 
             <OrganizationUsersTable
-              users={usersData?.users ?? []}
+              users={organizationUsers}
               onAdd={openAddUserDialog}
               onEdit={openEditUserDialog}
               onDelete={openDeleteUserDialog}
-              isLoading={usersLoading}
+              isLoading={isLoadingUsers}
             />
 
             <OrganizationFormDialog
