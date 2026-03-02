@@ -1,11 +1,8 @@
 import { z } from "zod";
 import {
-  EntityReferenceSchema,
   OrganizationDisplayStatusSchema,
   OrganizationMutationDataSchema,
-} from "./baseSchemas.js";
-
-export type EntityReference = z.infer<typeof EntityReferenceSchema>;
+} from "./schemas.js";
 
 export type OrganizationDisplayStatus = z.infer<
   typeof OrganizationDisplayStatusSchema

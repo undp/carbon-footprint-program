@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { IdSchema } from "../../zod.js";
+import { OrganizationMainActivityBaseSchema } from "../../baseSchemas/organizationMainActivity.js";
 
 export const GetAllOrganizationMainActivitiesQuerySchema = z
   .object({
@@ -29,9 +29,11 @@ export const GetAllOrganizationMainActivitiesQuerySchema = z
     }
   );
 
-export const GetAllOrganizationMainActivitiesResponseSchema = z.array(
-  z.object({
-    id: IdSchema.describe("The ID of the main activity"),
-    name: z.string().min(1).describe("The name of the main activity"),
-  })
-);
+export const GetAllOrganizationMainActivitiesResponseSchema = z
+  .array(
+    OrganizationMainActivityBaseSchema.pick({
+      id: true,
+      name: true,
+    }).describe("An organization main activity")
+  )
+  .describe("A list of organization main activities");

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
-import { FileSchema, SubmissionFileTypeSchema } from "../../baseSchemas.js";
+import { SubmissionFileTypeSchema } from "../../schemas.js";
+import { FileBaseSchema } from "../../../baseSchemas/index.js";
 
 export const ConfirmSubmissionUploadParamsSchema = z.object({
   submissionId: IdSchema.describe("The submission ID"),
@@ -24,4 +25,4 @@ export const ConfirmSubmissionUploadBodySchema = z.object({
   ),
 });
 
-export const ConfirmSubmissionUploadResponseSchema = FileSchema;
+export const ConfirmSubmissionUploadResponseSchema = FileBaseSchema;

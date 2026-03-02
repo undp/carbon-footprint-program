@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { FileSchema } from "../baseSchemas.js";
+import { FileBaseSchema } from "../../baseSchemas/index.js";
 
-export const DeleteFileParamsSchema = FileSchema.pick({ uuid: true });
+export const DeleteFileParamsSchema = FileBaseSchema.pick({ uuid: true });
 
 export const DeleteFileResponseSchema = z
   .object({

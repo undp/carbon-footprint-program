@@ -1,5 +1,3 @@
-export * from "./baseSchemas.js";
-export * from "./baseTypes.js";
 export * from "./addSubcategoriesToCarbonInventory/schemas.js";
 export * from "./addSubcategoriesToCarbonInventory/types.js";
 export * from "./createCarbonInventory/schemas.js";

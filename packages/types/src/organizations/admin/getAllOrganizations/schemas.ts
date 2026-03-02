@@ -1,14 +1,14 @@
 import { z } from "zod";
-import { CommonOrganizationFieldsSchema } from "../../baseSchemas.js";
+import { CommonOrganizationFieldsSchema } from "../../schemas.js";
 
 import {
   BasePaginatedResponseSchema,
   BasePaginationQuerySchema,
 } from "../../../common/index.js";
-import { OrganizationStatusSchema } from "../../baseSchemas.js";
+import { OrganizationStatusSchema } from "../../../baseSchemas/index.js";
 
 // Organization list item for admin (with all fields)
-const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
+const AdminOrganizationItemSchema = CommonOrganizationFieldsSchema.extend({
   sectorName: z.string().nullable().describe("CountrySector.name"),
   subsectorName: z.string().nullable().describe("CountrySubsector.name"),
   sizeName: z.string().nullable().describe("CountryOrganizationSize.name"),
@@ -32,7 +32,7 @@ const AdminOrganizationListItemSchema = CommonOrganizationFieldsSchema.extend({
     ),
 });
 
-// Sort fields (based on AdminOrganizationListItemSchema fields)
+// Sort fields (based on AdminOrganizationItemSchema fields)
 const GetAllOrganizationsSortKeysSchema = z.enum([
   "name",
   "sectorName",
@@ -73,6 +73,6 @@ export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
 export const GetAllOrganizationsResponseSchema =
   BasePaginatedResponseSchema.extend({
     data: z
-      .array(AdminOrganizationListItemSchema)
+      .array(AdminOrganizationItemSchema)
       .describe("Array of organizations"),
   });

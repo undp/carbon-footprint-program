@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
 import { OrganizationRole } from "@repo/database/enums";
+import { UserBaseSchema } from "../../../baseSchemas/user.js";
 
 // Path parameters
 export const GetOrganizationUsersParamsSchema = z.object({
@@ -11,7 +12,7 @@ export const GetOrganizationUsersParamsSchema = z.object({
 const OrganizationUserSchema = z.object({
   userId: IdSchema.describe("The user ID"),
   name: z.string().describe("The user's full name or email"),
-  email: z.email().describe("The user's email address"),
+  email: UserBaseSchema.shape.email.describe("The user's email address"),
   organizationRole: z
     .enum(OrganizationRole)
     .describe("The user's role in the organization"),

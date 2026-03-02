@@ -1,4 +1,8 @@
 import { z } from "zod";
+import {
+  CategoryBaseSchema,
+  SubcategoryBaseSchema,
+} from "../../baseSchemas/index.js";
 
 const RankingSeveritySchema = z.enum(["HIGH", "MEDIUM", "LOW"]);
 
@@ -9,13 +13,9 @@ const RankingItemSchema = z
       .int()
       .positive()
       .describe("The ranking position (1-based)"),
-    name: z.string().describe("The subcategory name"),
-    categoryName: z.string().describe("The category name"),
-    categoryPosition: z
-      .number()
-      .int()
-      .positive()
-      .describe("The category position (1, 2, 3...)"),
+    name: SubcategoryBaseSchema.shape.name,
+    categoryName: CategoryBaseSchema.shape.name,
+    categoryPosition: CategoryBaseSchema.shape.position,
     subtotal: z
       .number()
       .nonnegative()

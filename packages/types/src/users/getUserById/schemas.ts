@@ -1,7 +1,7 @@
-import { UserSchema } from "../baseSchemas.js";
+import { UserBaseSchema } from "../../baseSchemas/index.js";
 
-export const GetUserByIdParamsSchema = UserSchema.pick({
+export const GetUserByIdParamsSchema = UserBaseSchema.pick({
   id: true,
 }).strict();
 
-export const GetUserByIdResponseSchema = UserSchema;
+export const GetUserByIdResponseSchema = UserBaseSchema;

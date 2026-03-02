@@ -1,5 +1,5 @@
-export * from "./baseSchemas.js";
-export * from "./baseTypes.js";
+export * from "./schemas.js";
+export * from "./types.js";
 export * from "./downloadFile/schemas.js";
 export * from "./downloadFile/types.js";
 export * from "./deleteFile/schemas.js";

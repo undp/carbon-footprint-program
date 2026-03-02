@@ -1,12 +1,7 @@
-import { z } from "zod";
-import { UserSchema } from "../baseSchemas.js";
+import { UserBaseSchema } from "../../baseSchemas/index.js";
 
-export const GetMeBodySchema = z
-  .object({
-    idpUserId: z
-      .string()
-      .describe("The ID of the user in the identity provider"),
-  })
-  .strict();
+export const GetMeBodySchema = UserBaseSchema.pick({
+  idpUserId: true,
+}).strict();
 
-export const GetMeResponseSchema = UserSchema.nullable();
+export const GetMeResponseSchema = UserBaseSchema.nullable();

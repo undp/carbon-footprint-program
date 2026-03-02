@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { FileSchema, BadgeTypeSchema } from "../../baseSchemas.js";
+import { BadgeTypeSchema, FileBaseSchema } from "../../../baseSchemas/index.js";
 
 export const ConfirmBadgeUploadParamsSchema = z.object({
   badgeType: BadgeTypeSchema.describe("The type of the badge"),
@@ -20,4 +20,4 @@ export const ConfirmBadgeUploadBodySchema = z.object({
     .describe("The original file name"),
 });
 
-export const ConfirmBadgeUploadResponseSchema = FileSchema;
+export const ConfirmBadgeUploadResponseSchema = FileBaseSchema;

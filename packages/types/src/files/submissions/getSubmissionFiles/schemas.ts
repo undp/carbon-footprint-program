@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
+import { SubmissionFileTypeSchema } from "../../schemas.js";
 import {
-  FileSchema,
+  FileBaseSchema,
   FileStatusSchema,
-  SubmissionFileTypeSchema,
-} from "../../baseSchemas.js";
+} from "../../../baseSchemas/index.js";
 
 export const GetSubmissionFilesParamsSchema = z.object({
   submissionId: IdSchema.describe("The submission ID"),
@@ -17,4 +17,4 @@ export const GetSubmissionFilesQuerySchema = z.object({
   ),
 });
 
-export const GetSubmissionFilesResponseSchema = z.array(FileSchema);
+export const GetSubmissionFilesResponseSchema = z.array(FileBaseSchema);

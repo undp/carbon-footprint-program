@@ -1,10 +1,5 @@
 import { z } from "zod";
-import type {
-  GetAllRateMeasurementUnitsResponseSchema,
-  RateMeasurementUnitSchema,
-} from "./schemas.js";
-
-export type RateMeasurementUnit = z.infer<typeof RateMeasurementUnitSchema>;
+import type { GetAllRateMeasurementUnitsResponseSchema } from "./schemas.js";
 
 export type GetAllRateMeasurementUnitsResponse = z.infer<
   typeof GetAllRateMeasurementUnitsResponseSchema

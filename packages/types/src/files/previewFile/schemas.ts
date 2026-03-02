@@ -1,5 +1,6 @@
-import { FileSchema, SignedUrlResponseSchema } from "../baseSchemas.js";
+import { FileBaseSchema } from "../../baseSchemas/index.js";
+import { SignedUrlResponseSchema } from "../schemas.js";
 
-export const PreviewFileParamsSchema = FileSchema.pick({ uuid: true });
+export const PreviewFileParamsSchema = FileBaseSchema.pick({ uuid: true });
 
 export const PreviewFileResponseSchema = SignedUrlResponseSchema;

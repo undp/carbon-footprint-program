@@ -1,9 +1,9 @@
 import { z } from "zod";
-import {
-  MethodologySchema,
-  MethodologyVersionStatusSchema,
-} from "../baseSchemas.js";
 import { IdSchema } from "../../zod.js";
+import {
+  MethodologyVersionBaseSchema,
+  MethodologyVersionStatusSchema,
+} from "../../baseSchemas/index.js";
 
 // Params Schema
 export const UpdateMethodologyParamsSchema = z
@@ -32,4 +32,4 @@ export const UpdateMethodologyRequestSchema = z
   .strict();
 
 // Response Schema
-export const UpdateMethodologyResponseSchema = MethodologySchema;
+export const UpdateMethodologyResponseSchema = MethodologyVersionBaseSchema;

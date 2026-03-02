@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 
-export const UpdateCarbonInventorySubcategoriesRequestItemSchema = z
+const SubcategoriesRequestItemSchema = z
   .object({
     id: IdSchema.describe("The ID of the subcategory"),
     selected: z
@@ -11,7 +11,7 @@ export const UpdateCarbonInventorySubcategoriesRequestItemSchema = z
   .strict();
 
 export const UpdateCarbonInventorySubcategoriesRequestSchema = z
-  .array(UpdateCarbonInventorySubcategoriesRequestItemSchema)
+  .array(SubcategoriesRequestItemSchema)
   .min(1)
   .refine(
     (data) => {
