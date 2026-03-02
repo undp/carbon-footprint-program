@@ -5,10 +5,14 @@ import { Magnitude } from "@repo/database/enums";
 export const MagnitudeSchema = z.enum(Magnitude);
 
 export const MeasurementUnitBaseSchema = z.object({
-  id: IdSchema,
-  name: z.string(),
-  magnitude: MagnitudeSchema,
-  abbreviation: z.string(),
-  baseFactor: z.number(),
-  isBase: z.boolean(),
+  id: IdSchema.describe("The unique identifier for the measurement unit."),
+  name: z.string().describe("The name of the measurement unit."),
+  magnitude: MagnitudeSchema.describe("The magnitude of the measurement unit."),
+  abbreviation: z
+    .string()
+    .describe("The abbreviation of the measurement unit."),
+  baseFactor: z.number().describe("The base factor of the measurement unit."),
+  isBase: z
+    .boolean()
+    .describe("Indicates if the measurement unit is a base unit."),
 });

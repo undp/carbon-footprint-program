@@ -6,11 +6,20 @@ import { OrganizationStatus } from "../enums.js";
 export const OrganizationStatusSchema = z.enum(OrganizationStatus);
 
 export const OrganizationBaseSchema = z.object({
-  id: IdSchema,
-  countryId: IdSchema,
-  status: OrganizationStatusSchema,
-  createdAt: z.iso.datetime(),
-  updatedAt: z.iso.datetime().nullable(),
-  createdById: UserBaseSchema.shape.id.nullable(),
-  updatedById: UserBaseSchema.shape.id.nullable(),
+  id: IdSchema.describe("The unique identifier for the organization."),
+  countryId: IdSchema.describe("The ID of the associated country."),
+  status: OrganizationStatusSchema.describe("The status of the organization."),
+  createdAt: z.iso
+    .datetime()
+    .describe("The date and time when the organization was created."),
+  updatedAt: z.iso
+    .datetime()
+    .nullable()
+    .describe("The date and time when the organization was last updated."),
+  createdById: UserBaseSchema.shape.id
+    .nullable()
+    .describe("The ID of the user who created the organization."),
+  updatedById: UserBaseSchema.shape.id
+    .nullable()
+    .describe("The ID of the user who last updated the organization."),
 });
