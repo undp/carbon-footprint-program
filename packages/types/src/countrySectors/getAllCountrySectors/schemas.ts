@@ -1,10 +1,13 @@
 import { z } from "zod";
-import { IdSchema } from "../../zod.js";
-import { CountrySubsectorBaseSchema } from "../../baseSchemas/index.js";
+import {
+  CountrySectorBaseSchema,
+  CountrySubsectorBaseSchema,
+} from "../../baseSchemas/index.js";
 
-const SectorItemSchema = z.object({
-  id: IdSchema.describe("The ID of the sector"),
-  name: z.string().min(1).describe("The name of the sector"),
+const SectorItemSchema = CountrySectorBaseSchema.pick({
+  id: true,
+  name: true,
+}).extend({
   subsectors: z
     .array(CountrySubsectorBaseSchema.pick({ id: true, name: true }))
     .describe("The subsectors of the sector"),
