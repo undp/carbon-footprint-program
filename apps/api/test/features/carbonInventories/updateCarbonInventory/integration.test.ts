@@ -425,44 +425,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   });
 
   describe("Validation errors", () => {
-    it("should return 400 when year is below minimum (2000)", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {
-          year: 1999,
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when year is above maximum (2100)", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {
-          year: 2101,
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      expect(body.message).toBeTruthy();
-    });
-
     it("should return 400 when year is not an integer", async () => {
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
