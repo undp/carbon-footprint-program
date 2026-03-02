@@ -5,6 +5,7 @@ import {
   FormTextField,
   FormSelectField,
   FormAutocompleteField,
+  FormNumericField,
 } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
 import { CreateOrganizationBody } from "@repo/types";
@@ -110,25 +111,13 @@ export const OrganizationFormFields: FC<OrganizationFormFieldsProps> = ({
 
         {/* Row 4: Employee Count + Address */}
         <Box className="flex gap-6">
-          <FormTextField
+          <FormNumericField
             name="employeesCount"
             control={control}
             label="Cantidad de trabajadores"
             disabled={organizationSizesLoading}
-            type="number"
             min={0}
             minMessage="La cantidad no puede ser negativa"
-            slotProps={{ htmlInput: { min: 0 } }}
-            sx={{
-              "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                {
-                  WebkitAppearance: "none",
-                  margin: 0,
-                },
-              "& input[type=number]": {
-                MozAppearance: "textfield",
-              },
-            }}
           />
           <FormTextField
             name="address"

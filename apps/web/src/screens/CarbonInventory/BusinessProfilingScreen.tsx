@@ -10,6 +10,7 @@ import {
   FormAutocompleteField,
   FormSelectField,
   FormTextField,
+  FormNumericField,
 } from "@/components";
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventory } from "@/api/query";
@@ -232,27 +233,15 @@ export const BusinessProfilingScreen: FC = () => {
                     disabled={activitiesLoading || activityOptions.length === 0}
                   />
 
-                  <FormTextField
+                  <FormNumericField
                     name="quantity"
                     control={control}
                     label={quantityLabel}
                     disabled={!selectedActivityId}
                     required={!!selectedActivityId}
                     requiredMessage="Este campo es obligatorio cuando seleccionas una actividad principal"
-                    type="number"
                     min={0}
                     minMessage="La cantidad no puede ser negativa"
-                    slotProps={{ htmlInput: { min: 0 } }}
-                    sx={{
-                      "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                        {
-                          WebkitAppearance: "none",
-                          margin: 0,
-                        },
-                      "& input[type=number]": {
-                        MozAppearance: "textfield",
-                      },
-                    }}
                   />
                 </Box>
               </Box>
