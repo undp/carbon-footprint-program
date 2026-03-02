@@ -1,7 +1,7 @@
 import type { Prisma } from "@repo/database";
 import {
-  OrganizationDataSchema,
-  type OrganizationData,
+  OrganizationDataFieldSchema,
+  type OrganizationDataField,
   type RankingSeverity,
 } from "@repo/types";
 import {
@@ -112,9 +112,9 @@ export function getRankingSeverity(percentage: number): RankingSeverity {
 export function safeParseCarbonInventoryOrganizationData(
   carbonInventoryId: string,
   data: unknown
-): OrganizationData | null {
+): OrganizationDataField | null {
   const organizationDataResult =
-    OrganizationDataSchema.nullable().safeParse(data);
+    OrganizationDataFieldSchema.nullable().safeParse(data);
 
   if (!organizationDataResult.success)
     throw new DataIntegrityError(
