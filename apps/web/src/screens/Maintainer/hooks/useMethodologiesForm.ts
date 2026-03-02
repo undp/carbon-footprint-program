@@ -2,7 +2,12 @@ import { useEffect, useRef, useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { type Methodology, MethodologySchema } from "@repo/types";
+import {
+  type CreateMethodologyResponse,
+  MethodologyVersionBaseSchema,
+} from "@repo/types";
+
+type Methodology = CreateMethodologyResponse;
 
 export type FormMethodology = Pick<
   Methodology,
@@ -15,7 +20,7 @@ export interface MethodologiesFormValues {
 
 const methodologiesFormSchema = z.object({
   methodologies: z.array(
-    MethodologySchema.loose()
+    MethodologyVersionBaseSchema.loose()
       .pick({
         id: true,
         name: true,

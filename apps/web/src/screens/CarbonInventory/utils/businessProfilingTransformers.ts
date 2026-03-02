@@ -1,8 +1,11 @@
-import { CarbonInventory, UpdateCarbonInventoryRequest } from "@repo/types";
+import {
+  GetCarbonInventoryByIdResponse,
+  UpdateCarbonInventoryRequest,
+} from "@repo/types";
 import { BusinessProfilingFormValues } from "../hooks/useBusinessProfilingForm";
 
 export const mapInventoryToFormValues = (
-  inventory: CarbonInventory
+  inventory: GetCarbonInventoryByIdResponse
 ): BusinessProfilingFormValues => {
   const organizationData = inventory.organizationData;
   const toSafeString = (value: unknown) => {

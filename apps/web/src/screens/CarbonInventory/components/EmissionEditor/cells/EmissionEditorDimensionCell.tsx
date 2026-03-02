@@ -1,7 +1,10 @@
 import { FC, useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { Select, MenuItem } from "@mui/material";
-import { EmissionFactorDimension } from "@repo/types";
+import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
+
+type EmissionFactorDimension =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"][number];
 
 interface EmissionEditorDimensionCellProps {
   subcategoryId: string;

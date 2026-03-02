@@ -2,16 +2,22 @@ import { FC } from "react";
 import { useWatch } from "react-hook-form";
 import { Typography, Tooltip } from "@mui/material";
 import { NumericInput } from "@/components";
-import { RateMeasurementUnit, EmissionFactorDimension } from "@repo/types";
+import {
+  GetAllRateMeasurementUnitsResponse,
+  GetCarbonInventoryMethodologyResponse,
+} from "@repo/types";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { formatEmissionFactor } from "@/utils/formatting";
 
+type EmissionFactorDimensions =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"];
+
 interface EmissionEditorFactorCellProps {
   subcategoryId: string;
   lineId: string;
-  dimensions: EmissionFactorDimension[];
-  rateMeasurementUnits: RateMeasurementUnit[];
+  dimensions: EmissionFactorDimensions;
+  rateMeasurementUnits: GetAllRateMeasurementUnitsResponse;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
 }

@@ -1,5 +1,5 @@
 import { useWatch } from "react-hook-form";
-import { EmissionFactorDimension } from "@repo/types";
+import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import {
   LineValidationState,
   EmissionCaptureFormLine,
@@ -10,10 +10,13 @@ import {
   getDisabledReasonMessage,
 } from "../services/fieldValidationService";
 
+type EmissionFactorDimensions =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"];
+
 export const useLineValidation = (
   subcategoryId: string,
   lineId: string,
-  dimensions: EmissionFactorDimension[]
+  dimensions: EmissionFactorDimensions
 ): LineValidationState => {
   const line = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}`,

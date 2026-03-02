@@ -1,10 +1,9 @@
 import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import {
-  EmissionFactorDimension,
-  MeasurementUnit,
-  RateMeasurementUnit,
-  Subcategory,
+  GetAllMeasurementUnitsResponse,
+  GetAllRateMeasurementUnitsResponse,
+  GetCarbonInventoryMethodologyResponse,
   UsageMode,
 } from "@repo/types";
 import {
@@ -21,11 +20,17 @@ import {
   EmissionEditorActionsCell,
 } from "../cells";
 
+type Subcategory =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
+
+type EmissionFactorDimensions =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"];
+
 interface UseEmissionEditorColumnsParams {
-  dimensions: EmissionFactorDimension[];
+  dimensions: EmissionFactorDimensions;
   subcategory: Subcategory;
-  measurementUnits: MeasurementUnit[] | undefined;
-  rateMeasurementUnits: RateMeasurementUnit[] | undefined;
+  measurementUnits: GetAllMeasurementUnitsResponse | undefined;
+  rateMeasurementUnits: GetAllRateMeasurementUnitsResponse | undefined;
   categoryPosition: number;
   onCellChange: (
     value: string | number | null,

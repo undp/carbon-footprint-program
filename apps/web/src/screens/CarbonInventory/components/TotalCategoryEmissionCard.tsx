@@ -7,7 +7,7 @@ import {
   SvgIconProps,
   Typography,
 } from "@mui/material";
-import { InventoryCategory } from "@repo/types";
+import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import React from "react";
 import {
   DirectEmissionCategoryIcon,
@@ -25,7 +25,7 @@ const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
 };
 
 interface Props {
-  category: InventoryCategory;
+  category: GetCarbonInventoryMethodologyResponse["categories"][number];
 }
 
 export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {

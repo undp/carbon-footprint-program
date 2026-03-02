@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { MethodologyWithRelations as Methodology } from "@repo/types";
+import type { GetAllMethodologiesResponse } from "@repo/types";
 
 import {
   EditableTextCell,
@@ -9,6 +9,8 @@ import {
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
 import { FormMethodology } from "./useMethodologiesForm";
+
+type Methodology = GetAllMethodologiesResponse[number];
 
 interface UseMethodologyColumnsParams {
   editingRowId: string | null;

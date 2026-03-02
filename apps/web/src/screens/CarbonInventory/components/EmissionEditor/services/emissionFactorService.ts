@@ -1,5 +1,11 @@
-import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
+import {
+  GetAllRateMeasurementUnitsResponse,
+  GetCarbonInventoryMethodologyResponse,
+} from "@repo/types";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+
+type EmissionFactors =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["emissionFactors"];
 
 const isCustomFactorSource = (
   factorSource: string | null | undefined
@@ -16,7 +22,7 @@ export const isFactorValueEditable = (
 
 export const getCompatibleRateUnitId = (
   measurementUnitId: string | null,
-  rateMeasurementUnits: RateMeasurementUnit[]
+  rateMeasurementUnits: GetAllRateMeasurementUnitsResponse
 ): string | null => {
   if (!measurementUnitId) return null;
   return (
@@ -27,11 +33,11 @@ export const getCompatibleRateUnitId = (
 };
 
 export const getAvailableFactors = (
-  emissionFactors: EmissionFactor[],
+  emissionFactors: EmissionFactors,
   dimensionValue1Id: string | null,
   dimensionValue2Id: string | null,
   rateMeasurementUnitId: string | null
-): EmissionFactor[] => {
+): EmissionFactors => {
   if (!rateMeasurementUnitId) return [];
 
   return emissionFactors.filter(
@@ -45,7 +51,7 @@ export const getAvailableFactors = (
 };
 
 export const getAvailableSources = (
-  availableFactors: EmissionFactor[]
+  availableFactors: EmissionFactors
 ): string[] => {
   return [...new Set(availableFactors.map((f) => f.source))];
 };

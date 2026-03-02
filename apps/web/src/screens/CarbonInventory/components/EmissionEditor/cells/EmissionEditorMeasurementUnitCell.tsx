@@ -1,12 +1,12 @@
 import { FC } from "react";
 import { useWatch } from "react-hook-form";
 import { Select, MenuItem } from "@mui/material";
-import { MeasurementUnit } from "@repo/types";
+import { GetAllMeasurementUnitsResponse } from "@repo/types";
 
 interface EmissionEditorMeasurementUnitCellProps {
   subcategoryId: string;
   lineId: string;
-  measurementUnits: MeasurementUnit[];
+  measurementUnits: GetAllMeasurementUnitsResponse;
   onChange: (value: string) => void;
   disabled?: boolean;
 }

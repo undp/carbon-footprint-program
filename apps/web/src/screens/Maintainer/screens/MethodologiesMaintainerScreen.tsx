@@ -18,7 +18,10 @@ import {
   useMethodologiesForm,
 } from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
-import { type Methodology, MethodologyVersionStatus } from "@repo/types";
+import {
+  CreateMethodologyResponse,
+  MethodologyVersionStatus,
+} from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -384,7 +387,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
               columns={columns}
               rows={currentRows}
               rowHeight={60}
-              getRowId={(row: Methodology) => row.id}
+              getRowId={(row: CreateMethodologyResponse) => row.id}
               loading={isLoading}
             />
           </Box>
