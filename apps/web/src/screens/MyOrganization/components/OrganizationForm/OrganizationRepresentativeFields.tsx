@@ -73,8 +73,9 @@ export const OrganizationRepresentativeFields: FC<
             name="representativeEmail"
             control={control}
             label="Correo"
-            className="max-w-1/2"
+            className="flex-1"
           />
+          <Box className="flex-1" />
         </Box>
       </Box>
     </Box>

@@ -136,7 +136,9 @@ export const OrganizationFormFields: FC<OrganizationFormFieldsProps> = ({
             options={activityOptions}
             loading={activitiesLoading}
             disabled={activitiesLoading || activityOptions.length === 0}
+            className="flex-1"
           />
+          <Box className="flex-1" />
         </Box>
       </Box>
     </Box>
