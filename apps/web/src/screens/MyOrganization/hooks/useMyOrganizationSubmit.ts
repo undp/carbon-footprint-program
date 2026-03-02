@@ -1,11 +1,9 @@
 import { useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useSnackbar } from "notistack";
 import { CreateOrganizationBody } from "@repo/types";
 import {
   useCreateOrganization,
   useUpdateOrganization,
-  organizationKeys,
 } from "@/api/query/organizations";
 
 interface UseMyOrganizationSubmitProps {
@@ -21,7 +19,6 @@ export const useMyOrganizationSubmit = ({
   organizationId,
   onSuccess,
 }: UseMyOrganizationSubmitProps = {}) => {
-  const queryClient = useQueryClient();
   const { enqueueSnackbar } = useSnackbar();
   const createOrganization = useCreateOrganization();
   const updateOrganization = useUpdateOrganization(organizationId ?? "");
@@ -33,9 +30,6 @@ export const useMyOrganizationSubmit = ({
         enqueueSnackbar("Organización creada exitosamente", {
           variant: "success",
         });
-        void queryClient.invalidateQueries({
-          queryKey: organizationKeys.all,
-        });
         onSuccess?.();
       } catch (error) {
         enqueueSnackbar("No se pudo crear la organización", {
@@ -43,7 +37,7 @@ export const useMyOrganizationSubmit = ({
         });
       }
     },
-    [createOrganization, enqueueSnackbar, queryClient, onSuccess]
+    [createOrganization, enqueueSnackbar, onSuccess]
   );
 
   const handleOrganizationUpdate = useCallback(
@@ -55,9 +49,6 @@ export const useMyOrganizationSubmit = ({
         enqueueSnackbar("Organización actualizada exitosamente", {
           variant: "success",
         });
-        void queryClient.invalidateQueries({
-          queryKey: organizationKeys.detail(organizationId),
-        });
         onSuccess?.();
       } catch (error) {
         enqueueSnackbar("No se pudo actualizar la organización", {
@@ -65,13 +56,7 @@ export const useMyOrganizationSubmit = ({
         });
       }
     },
-    [
-      organizationId,
-      updateOrganization,
-      enqueueSnackbar,
-      queryClient,
-      onSuccess,
-    ]
+    [organizationId, updateOrganization, enqueueSnackbar, onSuccess]
   );
 
   return {
