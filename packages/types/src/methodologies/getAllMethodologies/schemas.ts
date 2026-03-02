@@ -3,15 +3,13 @@ import {
   CountryBaseSchema,
   MethodologyVersionBaseSchema,
 } from "../../baseSchemas/index.js";
-import { IdSchema } from "../../zod.js";
 
 const MethodologyWithCountsItemSchema = MethodologyVersionBaseSchema.extend({
-  country: z
-    .object({
-      id: IdSchema,
-      name: CountryBaseSchema.shape.name,
-      isoCode: CountryBaseSchema.shape.isoCode,
-    })
+  country: CountryBaseSchema.pick({
+    id: true,
+    name: true,
+    isoCode: true,
+  })
     .optional()
     .describe("The country this methodology belongs to"),
   categoryCount: z

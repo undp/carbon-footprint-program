@@ -36,40 +36,28 @@ export const GetOrganizationByIdResponseSchema =
     legalName: z.string().describe("Legal name of the organization"),
     tradeName: z.string().nullable().describe("Trade name of the organization"),
     isEditable: z.boolean().describe("Whether the organization is editable"),
-    sector: z
-      .object({
-        id: IdSchema.describe("ID of the organization sector"),
-        name: CountrySectorBaseSchema.shape.name.describe(
-          "Name of the organization sector"
-        ),
-      })
+    sector: CountrySectorBaseSchema.pick({
+      id: true,
+      name: true,
+    })
       .nullable()
       .describe("Organization sector"),
-    subsector: z
-      .object({
-        id: IdSchema.describe("ID of the organization subsector"),
-        name: CountrySubsectorBaseSchema.shape.name.describe(
-          "Name of the organization subsector"
-        ),
-      })
+    subsector: CountrySubsectorBaseSchema.pick({
+      id: true,
+      name: true,
+    })
       .nullable()
       .describe("Organization subsector"),
-    countryOrganizationSize: z
-      .object({
-        id: IdSchema.describe("ID of the organization size"),
-        name: CountryOrganizationSizeBaseSchema.shape.name.describe(
-          "Name of the organization size"
-        ),
-      })
+    countryOrganizationSize: CountryOrganizationSizeBaseSchema.pick({
+      id: true,
+      name: true,
+    })
       .nullable()
       .describe("Organization size classification"),
-    mainActivity: z
-      .object({
-        id: IdSchema.describe("ID of the main business activity"),
-        name: OrganizationMainActivityBaseSchema.shape.name.describe(
-          "Name of the main business activity"
-        ),
-      })
+    mainActivity: OrganizationMainActivityBaseSchema.pick({
+      id: true,
+      name: true,
+    })
       .nullable()
       .describe("Main business activity"),
     address: z.string().nullable().describe("Physical address"),
