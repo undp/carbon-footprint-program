@@ -21,10 +21,7 @@ const EmissionLineItemSchema = z
         "Resolved dimension value name(s) for display, e.g. 'Carbón industrial'"
       ),
     measurementUnitName: MeasurementUnitBaseSchema.shape.name.nullable(),
-    quantity:
-      CarbonInventoryLineInputBaseSchema.shape.quantity.describe(
-        "The input quantity"
-      ),
+    quantity: CarbonInventoryLineInputBaseSchema.shape.quantity,
     factorValue: z.number().nullable(),
     factorSource: EmissionFactorBaseSchema.shape.source.nullable(),
     emissions: z.number().nonnegative().describe("Line emissions in tCO2e"),

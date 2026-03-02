@@ -12,7 +12,7 @@ export const GetOrganizationUsersParamsSchema = z.object({
 const OrganizationUserSchema = z.object({
   userId: IdSchema.describe("The user ID"),
   name: z.string().describe("The user's full name or email"),
-  email: UserBaseSchema.shape.email.describe("The user's email address"),
+  email: UserBaseSchema.shape.email,
   organizationRole: z
     .enum(OrganizationRole)
     .describe("The user's role in the organization"),

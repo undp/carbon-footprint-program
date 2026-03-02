@@ -6,7 +6,9 @@ export const OrganizationMainActivityBaseSchema = z.object({
   id: IdSchema.describe(
     "The unique identifier for the organization main activity."
   ),
-  name: z.string().describe("The name of the organization main activity."),
+  name: z
+    .string()
+    .describe("The name of the organization main business activity."),
   countrySectorId: IdSchema.nullable().describe(
     "The ID of the associated country sector."
   ),

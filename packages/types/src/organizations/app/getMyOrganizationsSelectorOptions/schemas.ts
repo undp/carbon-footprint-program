@@ -6,9 +6,7 @@ import {
 
 export const GetMyOrganizationsSelectorOptionsResponseSchema = z.array(
   z.object({
-    id: OrganizationBaseSchema.shape.id.describe("The organization ID"),
-    name: OrganizationSummaryBaseSchema.shape.name.describe(
-      "The organization name"
-    ),
+    id: OrganizationBaseSchema.shape.id,
+    name: OrganizationSummaryBaseSchema.shape.name,
   })
 );

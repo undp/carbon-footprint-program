@@ -12,7 +12,7 @@ export const UserBaseSchema = z.object({
     .nullable()
     .describe("The ID of the user in the identity provider"),
   idpName: z.string().nullable().describe("The name of the identity provider"),
-  email: z.email().nullable().describe("The email of the user"),
+  email: z.email().nullable().describe("The email address of the user"),
   role: SystemRoleSchema.describe("The role of the user"),
   countryJobPositionId: IdSchema.nullable().describe(
     "The ID of the user's country job position"
