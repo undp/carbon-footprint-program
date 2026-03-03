@@ -21,7 +21,10 @@ export const EmissionFactorBaseSchema = z.object({
   ),
   source: z.string().describe("The source of the emission factor"),
   gasDetails: z.unknown().describe("The gas details as JSON"),
-  value: z.string().describe("The emission factor value as a decimal string"),
+  value: z
+    .string()
+    .regex(/^-?\d+(\.\d+)?$/, "Invalid decimal string")
+    .describe("The emission factor value as a decimal string"),
   status: EmissionFactorStatusSchema.describe(
     "The status of the emission factor"
   ),
