@@ -185,7 +185,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormSelectField
                   name="subsectorId"
                   control={control}
-                  label="Sub-rubro"
+                  label={selectedSectorId ? "Sub-rubro" : "Selecciona el rubro"}
                   options={subsectorSelectOptions}
                   disabled={
                     sectorsLoading ||
