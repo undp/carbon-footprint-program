@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { InputType } from "../enums.js";
-import { UserBaseSchema } from "./user.js";
 
 const InputTypeSchema = z.enum(InputType);
 
@@ -48,6 +47,6 @@ export const CarbonInventoryLineInputBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The date and time when this line input was last updated"),
-  createdById: UserBaseSchema.shape.id.nullable(),
-  updatedById: UserBaseSchema.shape.id.nullable(),
+  createdById: IdSchema.nullable(),
+  updatedById: IdSchema.nullable(),
 });

@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 
 export const OrganizationMainActivityBaseSchema = z.object({
   id: IdSchema.describe(
@@ -26,12 +25,10 @@ export const OrganizationMainActivityBaseSchema = z.object({
     .describe(
       "The date and time when the organization main activity was last updated."
     ),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the organization main activity."),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe(
-      "The ID of the user who last updated the organization main activity."
-    ),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the organization main activity."
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who last updated the organization main activity."
+  ),
 });

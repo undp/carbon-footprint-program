@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 import { SubmissionStatus } from "../enums.js";
 
 export const SubmissionStatusSchema = z.enum(SubmissionStatus);
@@ -25,10 +24,10 @@ export const SubmissionBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The date and time when the submission was last updated"),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the submission"),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who last updated the submission"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the submission"
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who last updated the submission"
+  ),
 });

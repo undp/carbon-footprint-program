@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 import { MethodologyVersionStatus } from "../enums.js";
 
 export const MethodologyVersionStatusSchema = z.enum(MethodologyVersionStatus);
@@ -32,10 +31,10 @@ export const MethodologyVersionBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The last update date of the methodology version"),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the methodology version"),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who last updated the methodology version"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the methodology version"
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who last updated the methodology version"
+  ),
 });

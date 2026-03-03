@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 
 export const EmissionFactorDimensionBaseSchema = z.object({
   id: IdSchema.describe("The ID of the dimension"),
@@ -16,10 +15,10 @@ export const EmissionFactorDimensionBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The last update date of the dimension"),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the dimension"),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who last updated the dimension"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the dimension"
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who last updated the dimension"
+  ),
 });

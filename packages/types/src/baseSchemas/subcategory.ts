@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 import { CategoryBaseSchema } from "./category.js";
 
 export const SubcategoryBaseSchema = z.object({
@@ -16,10 +15,10 @@ export const SubcategoryBaseSchema = z.object({
   examples: z.string().nullable().describe("Examples of the subcategory"),
   createdAt: z.iso.datetime().describe("The creation date"),
   updatedAt: z.iso.datetime().nullable().describe("The update date"),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the subcategory"),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who updated the subcategory"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the subcategory"
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who updated the subcategory"
+  ),
 });

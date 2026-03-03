@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 import { InventoryStatus, UsageMode } from "../enums.js";
 
 export const OrganizationDataFieldSchema = z
@@ -58,11 +57,11 @@ export const CarbonInventoryBaseSchema = z
       .datetime()
       .nullable()
       .describe("The last update date of the carbon inventory"),
-    createdById: UserBaseSchema.shape.id
-      .nullable()
-      .describe("The ID of the user who created the carbon inventory"),
-    updatedById: UserBaseSchema.shape.id
-      .nullable()
-      .describe("The ID of the user who last updated the carbon inventory"),
+    createdById: IdSchema.nullable().describe(
+      "The ID of the user who created the carbon inventory"
+    ),
+    updatedById: IdSchema.nullable().describe(
+      "The ID of the user who last updated the carbon inventory"
+    ),
   })
   .strict();

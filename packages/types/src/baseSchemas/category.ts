@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 import { CategoryStatus } from "../enums.js";
 
 export const CategoryStatusSchema = z.enum(CategoryStatus);
@@ -33,10 +32,10 @@ export const CategoryBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The last update date of the category"),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the category"),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who last updated the category"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the category"
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who last updated the category"
+  ),
 });

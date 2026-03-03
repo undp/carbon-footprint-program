@@ -1,6 +1,5 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { UserBaseSchema } from "./user.js";
 import { EmissionFactorStatus } from "../enums.js";
 
 // Supports decimal: 123, 12.34, -12, -12.34
@@ -44,10 +43,10 @@ export const EmissionFactorBaseSchema = z.object({
     .datetime()
     .nullable()
     .describe("The last update timestamp of the emission factor"),
-  createdById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who created the emission factor"),
-  updatedById: UserBaseSchema.shape.id
-    .nullable()
-    .describe("The ID of the user who last updated the emission factor"),
+  createdById: IdSchema.nullable().describe(
+    "The ID of the user who created the emission factor"
+  ),
+  updatedById: IdSchema.nullable().describe(
+    "The ID of the user who last updated the emission factor"
+  ),
 });
