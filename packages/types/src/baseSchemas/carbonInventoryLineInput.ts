@@ -41,11 +41,11 @@ export const CarbonInventoryLineInputBaseSchema = z.object({
     .nullable()
     .describe("Any additional comments for this line input"),
   isActive: z.boolean().describe("Whether this line input is active"),
-  createdAt: z
-    .date()
+  createdAt: z.iso
+    .datetime()
     .describe("The date and time when this line input was created"),
-  updatedAt: z
-    .date()
+  updatedAt: z.iso
+    .datetime()
     .nullable()
     .describe("The date and time when this line input was last updated"),
   createdById: UserBaseSchema.shape.id.nullable(),
