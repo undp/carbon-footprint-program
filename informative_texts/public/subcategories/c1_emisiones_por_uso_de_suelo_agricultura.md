@@ -74,9 +74,10 @@ Puedes obtener esta información desde:
 >**Hectáreas (ha)** = $\frac{Metros\ cuadrados}{10.000}$
 
 *Ejemplo:*  
+
 Si tu empresa cultiva **250.000 m²**:
 
-$\frac{250.000}{10.000}$ = **25 ha**
+**Hectáreas cultivadas** = $\frac{250.000}{10.000}$ = **25 ha**
 
 ---
 
@@ -87,7 +88,7 @@ $\frac{250.000}{10.000}$ = **25 ha**
 *Ejemplo:*  
 Si tienes **3 predios** de **15 ha cada uno**:
 
-$3 \times 15$ = **45 ha cultivadas**
+**Hectáreas cultivadas** = $3 \times 15$ = **45 ha cultivadas**
 
 ---
 

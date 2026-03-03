@@ -14,6 +14,9 @@ Las emisiones provienen principalmente del **nitrógeno (N)**, **fósforo (P)**,
 - ¿Realizas mejoras de suelo con insumos nitrogenados?
 
 💡 **Tip importante:**  
+Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
+
+💡 **Tip importante:**  
 Si **no aplicas fertilizantes que contengan N, P u otros nutrientes relevantes**, probablemente **no debes declarar emisiones en esta sección**.
 
 ---
@@ -72,7 +75,7 @@ Si el fertilizante indica el porcentaje del componente, debes multiplicarlo por 
 *Ejemplo:*  
 Si compraste **1.000 kg de urea (46% N)**:
 
-$1.000 \times 0,46$ = **460 kg de N**
+**Kg de urea aplicados** = $1.000 \times 0,46$ = **460 kg de N**
 
 Ese es el valor que debes declarar.
 

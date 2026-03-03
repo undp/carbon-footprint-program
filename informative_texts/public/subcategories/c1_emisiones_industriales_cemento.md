@@ -22,7 +22,7 @@ Aquí se reportan las emisiones que **provienen del proceso químico del clinker
 - ¿Tu proceso incluye la descarbonatación de carbonato de calcio (CaCO₃)?
 
 💡 **Tip importante:**  
-Si tu empresa **produce cemento o utiliza clinker en su proceso productivo**, entonces probablemente **debe declarar emisiones en esta sub-categoría**.
+Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
 
 ---
 
@@ -44,9 +44,7 @@ El cálculo se basa en la **cantidad de clinker utilizado** multiplicado por un 
 
 ### 1️⃣ Identifica el material utilizado
 
-Actualmente, el único material que debes declarar es:
-
-- **Clinker**
+Actualmente, el único material que debes declarar es: **Clinker**
 
 ⚠️ Si produces cemento con clinker propio o comprado, debes declarar el total utilizado en el año.
 
@@ -78,9 +76,10 @@ Si tienes reportes mensuales:
 >**Clinker anual** = Suma de producción mensual de los 12 meses
 
 *Ejemplo:*  
+
 Si produces en promedio **80.000 toneladas mensuales de clinker**:
 
-$80.000 \times 12 = 960.000$ toneladas/año
+**Toneladas de clinker anuales** = $80.000 \times 12$ = **960.000 toneladas/año**
 
 ---
 
@@ -88,14 +87,14 @@ $80.000 \times 12 = 960.000$ toneladas/año
 
 Si conoces la producción total de cemento y el porcentaje de clinker en la mezcla:
 
->**Clinker utilizado** = $Cemento\ producido \times \% \ de\ clinker$
+>**Clinker utilizado** = $Cemento\ producido \times contenido\ de\ clinker$
 
 *Ejemplo:*  
 
-- Producción anual de cemento: 1.200.000 toneladas  
-- Contenido promedio de clinker: 75%  
+- Producción anual de cemento: **1.200.000 toneladas**  
+- Contenido promedio de clinker: **75%**  
 
-$1.200.000 \times 0,75 = 900.000$ toneladas de clinker
+**Toneladas de clinker anuales** = $1.200.000 \times 0,75$ = **900.000 toneladas de clinker**
 
 ⚠️ Declara los supuestos utilizados si aplicas esta aproximación.
 
@@ -103,7 +102,7 @@ $1.200.000 \times 0,75 = 900.000$ toneladas de clinker
 
 ### 4️⃣ Ingreso de la información
 
-#### **Caso 1: Eres novato y solo quieres introducir la cantidad anual**
+**CASO 1:** Eres **novato y solo quieres introducir la cantidad anual**
 
 Debes rellenar los siguientes campos:
 
@@ -117,7 +116,7 @@ Debes rellenar los siguientes campos:
 
 ---
 
-#### **Caso 2: Eres experto y utilizas factores propios distintos a los de la plataforma**
+**CASO 2:** Eres **experto y utilizas factores propios** distintos a los de la plataforma  
 
 1.- Debes rellenar los campos igual que en el Caso 1.  
 
@@ -127,10 +126,10 @@ Debes rellenar los siguientes campos:
 
 ---
 
-#### **Caso 3: Ya tienes las emisiones totales calculadas externamente**
+**CASO 3:** Ya tienes las emisiones totales calculadas externamente  
 
 Debes ingresar a la calculadora en **modo experto**.  
-Luego, en el paso 3, seleccionar el checkbox **"Sólo quiero ingresar el total de emisiones"**, lo que habilitará el recuadro para ingresar las **emisiones totales del proceso**.
+Luego, en el paso 3, debes seleccionar el checkbox **"Sólo quiero ingresar el total de emisiones"**, lo que habilitará el recuadro para ingresar las **emisiones totales del proceso**.
 
 ---
 

@@ -67,9 +67,9 @@ Puedes obtener los datos desde:
 >**Cantidad estimada** = $\frac{Gasto\ anual}{Precio\ promedio\ por\ unidad}$
 
 *Ejemplo:*  
-Si tu empresa gastó **$5.000.000 CLP** en diésel para una caldera y el precio promedio fue **$1.250 CLP/L**:
+Si tu empresa gastó **5.000.000 CLP** en diésel para una caldera y el precio promedio fue **1.250 CLP/L**:
 
-$\frac{5.000.000}{1.250}$ = **4.000 L estimados en el año**
+**Litros consumidos al año** = $\frac{5.000.000\ CLP}{1.250\ CLP/L}$ = $4.000\ L/año$
 
 ---
 
@@ -80,22 +80,43 @@ $\frac{5.000.000}{1.250}$ = **4.000 L estimados en el año**
 *Ejemplo:*  
 Si un generador consume **15 L/hora** y operó **800 horas en el año**:
 
-$15 \times 800$ = **12.000 L anuales**
+**Litros consumidos al año** = $15 \times 800$ = **12.000 L anuales**
 
 ---
 
 ### 4️⃣ Ingreso de la información
 
-Debes completar los siguientes campos:
+**CASO 1:** Eres **novato y solo quieres introducir la cantidad** y la fuente de emisión  
+
+Debes rellenar los siguientes campos:
 
 | Campo | Qué debes ingresar | Ejemplo |
 |:------|:-------------------|--------:|
-| Tipo (Opcional) | Tipo de equipo fijo | Caldera, Generador, Horno, Cocina industrial |
-| Combustible | Tipo de combustible utilizado | Gas natural, Diésel, GLP, Carbón, Pellets |
-| Unidad | Unidad declarada | Litros, m³, kg, toneladas |
-| Cantidad | Consumo anual total | 25.000 m³ |
+| Tipo (Opcional) | Qué equipo fijo vas a declarar | Caldera, Generador, Horno, Cocina industrial |
+| Combustible | Combustible utilizado por el equipo | Gas natural, Diésel, GLP, Carbón, Pellets |
+| Unidad | Unidad en la que se declara el combustible | Litros, m³, kg, toneladas |
+| Cantidad | Total anual consumido por el equipo | 25.000 m³ |
 
-⚠️ El campo **"Fuente factor"** no debe modificarse salvo que utilices un **factor propio**
+⚠️ No siempre hay factor para todos los combustibles y unidades disponibles  
+
+⚠️ El campo **"Fuente factor" no debes modificarlo**
+
+---
+
+**CASO 2:** Eres **experto y utilizas factores propios** distintos a los de la plataforma  
+
+1.- Debes rellenar los campos igual que en el Caso 1.
+
+2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**. 
+
+3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.  
+
+---
+
+**CASO 3:** Hiciste el cálculo por fuera y **ya tienes las emisiones totales de la subcategoría**  
+
+Debes ingresar a la calculadora en **modo experto**.  
+Luego, en el paso 3, debes seleccionar el checkbox **"Sólo quiero ingresar el total de emisiones"**, lo que habilitará el recuadro para ingresar las **emisiones totales de la sub-categoría**.
 
 ---
 

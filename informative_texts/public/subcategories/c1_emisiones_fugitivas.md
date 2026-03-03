@@ -17,6 +17,9 @@ Estas emisiones suelen ser **invisibles**, pero pueden tener un **alto impacto c
 💡 **Tip importante:**
 Si **no utilizas gases refrigerantes**, **no tienes equipos de refrigeración**, **nunca has realizado mantenciones ni recargas de gas** o no sabes de este concepto, es probable que **no tengas emisiones fugitivas relevantes**.
 
+💡 **Tip importante:**  
+Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
+
 ---
 
 ## ¿Cómo es el cálculo de emisiones?
@@ -25,6 +28,8 @@ El cálculo de emisiones corresponde a la multiplicación de un **factor de emis
 Cada gas tiene un **potencial de calentamiento global (GWP)** distinto, por lo que el impacto varía según el tipo de gas.
 
 >$CO₂eq$ = $Cantidad\ de\ gas\ liberado \times Factor\ de\ emisión$
+
+💡 **Al final de la página hay un ejemplo ilustrativo** 
 
 ---
 
@@ -81,6 +86,8 @@ Si sabes que tus equipos requieren **recargas periódicas**, puedes estimar la c
 
 ### 4️⃣ Ingreso de la información
 
+**CASO 1:** Eres **novato y solo quieres introducir la cantidad** y el tipo de gas  
+
 Debes rellenar los siguientes campos:
 
 | Campo | Qué debes ingresar | Ejemplo |
@@ -89,10 +96,28 @@ Debes rellenar los siguientes campos:
 | Unidad | Unidad en la que se declara el gas | kg |
 | Cantidad | Total anual de gas liberado | 5 kg |
 
-
 ⚠️ Asegúrate de seleccionar correctamente el **tipo de gas**, ya que cada uno tiene un impacto climático distinto  
 
-⚠️ Para conocer el tipo de gas liberado, puedes consultar a tu servicio de mantención, revisar la etiqueta del equipo o buscar el modelo en internet
+⚠️ Para conocer el tipo de gas liberado, puedes consultar a tu servicio de mantención, revisar la etiqueta del equipo o buscar el modelo en internet  
+
+⚠️ El campo **"Fuente factor" no debes modificarlo**
+
+---
+
+**CASO 2:** Eres **experto y utilizas factores propios** distintos a los de la plataforma  
+
+1.- Debes rellenar los campos igual que en el Caso 1.  
+
+2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.  
+
+3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.  
+
+---
+
+**CASO 3:** Hiciste el cálculo por fuera y **ya tienes las emisiones totales de la subcategoría**  
+
+Debes ingresar a la calculadora en **modo experto**.  
+Luego, en el paso 3, debes seleccionar el checkbox **"Sólo quiero ingresar el total de emisiones"**, lo que habilitará el recuadro para ingresar las **emisiones totales de la sub-categoría**.
 
 ---
 

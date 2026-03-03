@@ -75,8 +75,9 @@ Si el número de animales cambia durante el año:
 
 >**Cantidad promedio anual** = $\frac{Animales\ al\ inicio + Animales\ al\ final}{2}$
 
-*Ejemplo:*  
-$\frac{80 + 100}{2}$ = **90 animales promedio**
+*Ejemplo:*
+
+**Animeles a declarar** = $\frac{80 + 100}{2}$ = **90 animales promedio**
 
 ---
 

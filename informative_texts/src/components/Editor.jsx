@@ -8,6 +8,13 @@ import "/src/styles/editor.css";
 
 import { files as mdFiles } from 'virtual:subcategory-files'
 
+// ─── DEV TOGGLE ──────────────────────────────────────────────────────────────
+// true  → carga directamente el archivo indicado (sin selector)
+// false → muestra el selector con todos los .md disponibles
+const HARDCODED_MODE = false
+const HARDCODED_FILE = 'c2_eletricidad.md'
+// ─────────────────────────────────────────────────────────────────────────────
+
 import {
   MDXEditor,
   headingsPlugin,
@@ -31,7 +38,7 @@ function formatLabel(filename) {
 export default function Editor() {
   const [content, setContent] = useState('Loading...')
   const [editorKey, setEditorKey] = useState(0)
-  const [selectedFile, setSelectedFile] = useState(mdFiles[0])
+  const [selectedFile, setSelectedFile] = useState(HARDCODED_MODE ? HARDCODED_FILE : mdFiles[0])
 
   function loadMarkdown(filename) {
     fetch(`/subcategories/${filename}`)
@@ -61,14 +68,16 @@ export default function Editor() {
           <h1>Editor con MDX package</h1>
         </header>
 
-        <div className="file-selector">
-          <label htmlFor="md-select">Archivo:</label>
-          <select id="md-select" value={selectedFile} onChange={handleFileChange}>
-            {mdFiles.map(file => (
-              <option key={file} value={file}>{formatLabel(file)}</option>
-            ))}
-          </select>
-        </div>
+        {!HARDCODED_MODE && (
+          <div className="file-selector">
+            <label htmlFor="md-select">Archivo:</label>
+            <select id="md-select" value={selectedFile} onChange={handleFileChange}>
+              {mdFiles.map(file => (
+                <option key={file} value={file}>{formatLabel(file)}</option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <div className="editor-split">
 

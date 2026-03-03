@@ -67,7 +67,8 @@ Si sabes cuánto pagas mensualmente por tipo de combustible, la fórmula es:
 >**Litros estimados al año** = $\frac{Gasto\ mensual\ en\ combustible \times 12}{Precio\ promedio\ por\ litro}$
 
 *Ejemplo:*  
-$\frac{600.000\ CLP}{1.400\ CLP/L} \times 12 \approx 5.140\ L/año$
+
+**Litros consumidos al año** = $\frac{600.000\ CLP}{1.400\ CLP/L} \times 12 \approx 5.140\ L/año$
 
 ---
 
@@ -78,13 +79,14 @@ Si sabes cuántos kilómetros recorrieron tus vehículos en el año:
 >**Litros estimados al año** = $\frac{Kilómetros\ recorridos\ al\ año}{Rendimiento\ promedio\ (km/L)}$
 
 *Ejemplo:*  
-$\frac{120.000\ km/año}{10\ km/L}$ = $12.000\ L/año$
+
+**Litros consumidos al año** = $\frac{120.000\ km/año}{10\ km/L}$ = $12.000\ L/año$
 
 ---
 
 ### 4️⃣ Ingreso de la información
 
-#### **Caso 1: Eres novato y solo quieres introducir la cantidad y la fuente de emisión**
+**CASO 1:** Eres **novato y solo quieres introducir la cantidad** y la fuente de emisión
 
 Debes rellenar los siguientes campos:
 
@@ -101,7 +103,7 @@ Debes rellenar los siguientes campos:
 
 ---
 
-#### **Caso 2: Eres experto y utilizas factores propios distintos a los de la plataforma**
+**CASO 2:** Eres **experto y utilizas factores propios** distintos a los de la plataforma
 
 1.- Debes rellenar los campos igual que en el Caso 1.
 
@@ -111,7 +113,7 @@ Debes rellenar los siguientes campos:
 
 ---
 
-#### **Caso 3: Hiciste el cálculo por fuera y ya tienes las emisiones totales**
+**CASO 3:** Hiciste el cálculo por fuera y **ya tienes las emisiones totales de la subcategoría**
 
 Debes ingresar a la calculadora en **modo experto**.  
 Luego, en el paso 3, debes seleccionar el checkbox **"Sólo quiero ingresar el total de emisiones"**, lo que habilitará el recuadro para ingresar las **emisiones totales de la sub-categoría**.

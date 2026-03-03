@@ -4,9 +4,9 @@ Esta categoría corresponde a **las emisiones generadas en procesos industriales
 
 Aquí se reportan las emisiones que **provienen de las reacciones químicas del proceso industrial en sí**.
 
-⚠️ No debes incluir aquí:
-- Combustión de calderas u hornos → se reporta en **Combustiones estacionarias**
-- Consumo eléctrico → se reporta en **Electricidad (Alcance 2)**
+⚠️ No debes incluir aquí:  
+- Combustión de calderas u hornos → se reporta en **Combustiones estacionarias**  
+- Consumo eléctrico → se reporta en **Electricidad (Alcance 2)**  
 
 ---
 
@@ -20,7 +20,7 @@ Aquí se reportan las emisiones que **provienen de las reacciones químicas del 
 - ¿Generas subproductos como escorias, polvos o concentrados derivados del proceso?
 
 💡 **Tip importante:**  
-Si tu empresa **transforma químicamente mineral o residuos para producir cinc**, entonces probablemente **debe declarar emisiones en esta sub-categoría**.
+Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
 
 ---
 
@@ -28,7 +28,7 @@ Si tu empresa **transforma químicamente mineral o residuos para producir cinc**
 
 El cálculo se basa en la **cantidad de cinc producido** multiplicado por un **factor de emisión específico del proceso industrial**.
 
->$CO₂eq$ = $Cantidad\ producida \times Factor\ de\ emisión\ del\ proceso$
+>**CO₂eq** = $Cantidad\ producida \times Factor\ de\ emisión\ del\ proceso$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -71,12 +71,11 @@ Puedes obtener esta información desde:
 
 Si tienes reportes mensuales:
 
->**Producción anual** = Suma de producción mensual de los 12 meses
+>**Producción anual** = $Producción\ mensual \times 12$
 
 *Ejemplo:*  
-Si produces en promedio **2.500 toneladas mensuales**:
 
-$2.500 \times 12 = 30.000$ toneladas/año
+**Toneladas producidas al año** = $2.500\ t/mes \times 12$ = **30.000 t/año**
 
 ---
 
@@ -88,11 +87,7 @@ Si conoces la cantidad de concentrado tratado y la recuperación promedio:
 
 *Ejemplo:*  
 
-- 100.000 toneladas de concentrado  
-- 55% ley de Zn  
-- 90% recuperación  
-
-$100.000 \times 0,55 \times 0,90 = 49.500$ toneladas de Zn
+**Toneladas producidas** = $100.000\ t \times 0,55 \times 0,90$ = **49.500 t**
 
 ⚠️ Declara los supuestos utilizados si aplicas esta aproximación.
 
@@ -120,7 +115,7 @@ Debes rellenar los siguientes campos:
 
 2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.  
 
-3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.  
+3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
 
 ---
 
@@ -143,7 +138,7 @@ Y el factor de emisión del proceso es (ejemplo referencial):
 
 Entonces el cálculo sería:
 
->$CO₂eq$ = $30.000\ t \times 0,25\ t\ CO₂eq/t$ = $7.500\ t\ CO₂eq$
+>**CO₂eq** = $30.000\ t \times 0,25\ t\ CO₂eq/t$ = **7.500 t CO₂eq**
 
 Es decir, tu proceso industrial habría generado:
 
@@ -159,4 +154,6 @@ Si el factor está en **t CO₂eq por tonelada**, la producción debe estar en *
 > - Incluye solo emisiones derivadas de **reacciones químicas del proceso**
 > - No incluyas combustibles ni electricidad en esta categoría  
 > - Declara procesos distintos por separado  
-> - Guarda reportes productivos y balances metalúrgicos como respaldo para auditorías o verificaciones externas
+> - Guarda reportes productivos y balances metalúrgicos como respaldo para auditorías o verificaciones externas  
+
+---
