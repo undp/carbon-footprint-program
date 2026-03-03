@@ -31,6 +31,7 @@ export const OrganizationDataBaseSchema = z.object({
   employeesCount: z
     .number()
     .int()
+    .min(0)
     .nullable()
     .describe("The number of employees in the organization."),
   representativeFullName: z
