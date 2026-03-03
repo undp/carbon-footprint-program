@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
+import { SubCategoryStatus } from "../enums.js";
 import { CategoryBaseSchema } from "./category.js";
 
 export const SubcategoryBaseSchema = z.object({
@@ -8,6 +9,7 @@ export const SubcategoryBaseSchema = z.object({
     "The ID of the category this subcategory belongs to"
   ),
   name: z.string().describe("The name of the subcategory"),
+  icon: z.string().describe("The icon identifier"),
   description: z
     .string()
     .nullable()
@@ -16,6 +18,7 @@ export const SubcategoryBaseSchema = z.object({
     "The ID of the explanation associated with this subcategory, if any"
   ),
   examples: z.string().nullable().describe("Examples of the subcategory"),
+  status: z.enum(SubCategoryStatus).describe("The status of the subcategory"),
   createdAt: z.iso.datetime().describe("The creation date"),
   updatedAt: z.iso.datetime().nullable().describe("The update date"),
   createdById: IdSchema.nullable().describe(
