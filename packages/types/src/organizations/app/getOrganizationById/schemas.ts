@@ -61,7 +61,12 @@ export const GetOrganizationByIdResponseSchema =
       .nullable()
       .describe("Main business activity"),
     address: z.string().nullable().describe("Physical address"),
-    employeesCount: z.number().int().nullable().describe("Number of employees"),
+    employeesCount: z
+      .number()
+      .int()
+      .min(0)
+      .nullable()
+      .describe("Number of employees"),
     representative: RepresentativeItemSchema.describe(
       "Organization representative details"
     ),
