@@ -46,8 +46,8 @@ const GetAllOrganizationsSortKeysSchema = z.enum([
 
 const StatusesQueryParamSchema = z
   .union([
-    z.string(), // ?statuses=BLOCKED,NOT_ACCREDITED
-    z.array(z.string()), // ?statuses=BLOCKED&statuses=NOT_ACCREDITED
+    z.string(), // ?statuses=ACTIVE,BLOCKED
+    z.array(z.string()), // ?statuses=ACTIVE&statuses=BLOCKED
   ])
   .transform((value) => {
     if (typeof value === "string") {
@@ -65,7 +65,7 @@ export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
   sortBy:
     GetAllOrganizationsSortKeysSchema.optional().describe("Field to sort by"),
   statuses: StatusesQueryParamSchema.optional().describe(
-    "Filter by organization statuses (comma-separated, e.g., 'BLOCKED,NOT_ACCREDITED') or array of statuses (e.g., ['BLOCKED', 'NOT_ACCREDITED'])"
+    "Filter by organization statuses (comma-separated, e.g., 'ACTIVE,BLOCKED') or array of statuses (e.g., ['ACTIVE', 'BLOCKED'])"
   ),
 });
 
