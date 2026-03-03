@@ -4,6 +4,7 @@ import { Add } from "@mui/icons-material";
 import { SectionCard } from "./SectionCard";
 import { OrganizationUserActionsCell } from "./OrganizationUserActionsCell";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
+import { ROLE_LABELS } from "../constants";
 
 type User = {
   userId: string;
@@ -19,15 +20,6 @@ type OrganizationUsersTableProps = {
   onEdit: (userId: string, userName: string, role: string) => void;
   onDelete: (userId: string, userName: string) => void;
   isLoading?: boolean;
-};
-
-// Map role enum values to Spanish labels
-const ROLE_LABELS: Record<string, string> = {
-  VIEWER: "Lector",
-  ORGANIZATION_CONTRIBUTOR: "Editor",
-  ORGANIZATION_ADMIN: "Admin",
-  EXTERNAL_VERIFIER: "Verificador Externo",
-  EXTERNAL_CONSULTANT: "Consultor Externo",
 };
 
 export const OrganizationUsersTable: FC<OrganizationUsersTableProps> = ({
@@ -100,7 +92,7 @@ export const OrganizationUsersTable: FC<OrganizationUsersTableProps> = ({
         rows={users}
         columns={columns}
         loading={isLoading}
-        getRowId={(row) => row.userId}
+        getRowId={(row: User) => row.userId}
         localeText={{
           noRowsLabel: "No hay usuarios registrados",
         }}

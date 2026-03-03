@@ -1,167 +1,119 @@
-import { useCallback, useState } from "react";
-import {
-  useAddOrganizationUser,
-  useUpdateOrganizationUserRole,
-  useRemoveOrganizationUser,
-} from "@/api/query/organizations";
-
-interface AddUserFormData {
-  email: string;
-  role: string;
-}
-
-interface EditUserRoleFormData {
-  role: string;
-}
+import { useCallback } from "react";
+import { useUserDialogsState } from "./useUserDialogsState";
+import { useUserMutations } from "./useUserMutations";
+import { AddUserFormData, EditUserRoleFormData } from "../types";
 
 /**
- * Manages organization users data and actions
+ * Orchestrates user management by combining dialog state and mutations
+ * Maintains backward compatibility with the original interface
+ *
+ * This hook follows the Single Responsibility Principle by delegating:
+ * - Dialog state management to useUserDialogsState
+ * - API mutations to useUserMutations
+ * - Coordination between the two (closing dialogs on success)
+ *
+ * Error Handling Pattern:
+ * - Mutations (POST/PUT/DELETE): Use try-catch in handlers with enqueueSnackbar
+ *   - Displays user-friendly Spanish error messages
+ *   - Does not prevent dialog from remaining open on error
+ * - Queries (GET): Use useEffect with error state (see useMyOrganizationData)
+ *
+ * @param {string | undefined} organizationId - The ID of the organization to manage users for (undefined when loading)
+ * @returns {Object} User management object
+ * @returns {boolean} addDialogOpen - Whether the add user dialog is open
+ * @returns {boolean} editDialogOpen - Whether the edit user role dialog is open
+ * @returns {boolean} deleteDialogOpen - Whether the delete user confirmation dialog is open
+ * @returns {string | null} selectedUserName - Name of the currently selected user
+ * @returns {string | null} selectedUserRole - Role of the currently selected user
+ * @returns {boolean} isAddingUser - Whether a user is currently being added
+ * @returns {boolean} isUpdatingUser - Whether a user role is currently being updated
+ * @returns {boolean} isDeletingUser - Whether a user is currently being deleted
+ * @returns {Function} openAddUserDialog - Opens the add user dialog
+ * @returns {Function} closeAddUserDialog - Closes the add user dialog
+ * @returns {Function} handleAddUser - Handles adding a new user to the organization
+ * @returns {Function} openEditUserDialog - Opens the edit user role dialog
+ * @returns {Function} closeEditUserDialog - Closes the edit user role dialog
+ * @returns {Function} handleUpdateUserRole - Handles updating a user's role
+ * @returns {Function} openDeleteUserDialog - Opens the delete user confirmation dialog
+ * @returns {Function} closeDeleteUserDialog - Closes the delete user confirmation dialog
+ * @returns {Function} handleDeleteUser - Handles deleting a user from the organization
  */
-export const useMyOrganizationUsers = (organizationId: string) => {
-  // Dialog state
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+export const useMyOrganizationUsers = (organizationId: string | undefined) => {
+  // Get dialog state management
+  const dialogsState = useUserDialogsState();
 
-  // Selected user info
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
-  const [selectedUserRole, setSelectedUserRole] = useState<string | null>(null);
+  // Get mutation handlers
+  const mutations = useUserMutations(organizationId);
 
-  // Mutations
-  const addUserMutation = useAddOrganizationUser();
-  const updateUserRoleMutation = useUpdateOrganizationUserRole();
-  const removeUserMutation = useRemoveOrganizationUser();
-
-  // Add user handlers
-  const openAddUserDialog = useCallback(() => {
-    setAddDialogOpen(true);
-  }, []);
-
-  const closeAddUserDialog = useCallback(() => {
-    setAddDialogOpen(false);
-  }, []);
-
+  // Connect mutations to dialog close callbacks
   const handleAddUser = useCallback(
     async (data: AddUserFormData) => {
       try {
-        await addUserMutation.mutateAsync({
-          organizationId,
-          data: {
-            email: data.email,
-            role: data.role,
-          },
-        });
-        closeAddUserDialog();
+        await mutations.handleAddUser(data);
+        dialogsState.closeAddUserDialog();
       } catch (error) {
-        console.error("Error adding user:", error);
+        // Error already handled in useUserMutations with snackbar
+        // Keep dialog open for user to retry or fix input
       }
     },
-    [organizationId, addUserMutation, closeAddUserDialog]
+    [mutations, dialogsState]
   );
-
-  // Edit user role handlers
-  const openEditUserDialog = useCallback(
-    (userId: string, userName: string, role: string) => {
-      setSelectedUserId(userId);
-      setSelectedUserName(userName);
-      setSelectedUserRole(role);
-      setEditDialogOpen(true);
-    },
-    []
-  );
-
-  const closeEditUserDialog = useCallback(() => {
-    setEditDialogOpen(false);
-    setSelectedUserId(null);
-    setSelectedUserName(null);
-    setSelectedUserRole(null);
-  }, []);
 
   const handleUpdateUserRole = useCallback(
     async (data: EditUserRoleFormData) => {
-      if (!selectedUserId) return;
+      if (!dialogsState.selectedUserId) return;
 
       try {
-        await updateUserRoleMutation.mutateAsync({
-          organizationId,
-          userId: selectedUserId,
-          data: {
-            role: data.role as any,
-          },
-        });
-        closeEditUserDialog();
+        await mutations.handleUpdateUserRole(dialogsState.selectedUserId, data);
+        dialogsState.closeEditUserDialog();
       } catch (error) {
-        console.error("Error updating user role:", error);
+        // Error already handled in useUserMutations with snackbar
+        // Keep dialog open for user to retry or fix input
       }
     },
-    [
-      organizationId,
-      selectedUserId,
-      updateUserRoleMutation,
-      closeEditUserDialog,
-    ]
+    [mutations, dialogsState]
   );
-
-  // Delete user handlers
-  const openDeleteUserDialog = useCallback(
-    (userId: string, userName: string) => {
-      setSelectedUserId(userId);
-      setSelectedUserName(userName);
-      setDeleteDialogOpen(true);
-    },
-    []
-  );
-
-  const closeDeleteUserDialog = useCallback(() => {
-    setDeleteDialogOpen(false);
-    setSelectedUserId(null);
-    setSelectedUserName(null);
-  }, []);
 
   const handleDeleteUser = useCallback(async () => {
-    if (!selectedUserId) return;
+    if (!dialogsState.selectedUserId) return;
 
     try {
-      await removeUserMutation.mutateAsync({
-        organizationId,
-        userId: selectedUserId,
-      });
-      closeDeleteUserDialog();
+      await mutations.handleDeleteUser(dialogsState.selectedUserId);
+      dialogsState.closeDeleteUserDialog();
     } catch (error) {
-      console.error("Error deleting user:", error);
+      // Error already handled in useUserMutations with snackbar
+      // Keep dialog open for user to retry
     }
-  }, [
-    organizationId,
-    selectedUserId,
-    removeUserMutation,
-    closeDeleteUserDialog,
-  ]);
+  }, [mutations, dialogsState]);
 
   return {
     // Dialog state
-    addDialogOpen,
-    editDialogOpen,
-    deleteDialogOpen,
+    addDialogOpen: dialogsState.addDialogOpen,
+    editDialogOpen: dialogsState.editDialogOpen,
+    deleteDialogOpen: dialogsState.deleteDialogOpen,
 
     // Selected user info
-    selectedUserName,
-    selectedUserRole,
+    selectedUserName: dialogsState.selectedUserName,
+    selectedUserRole: dialogsState.selectedUserRole,
 
     // Loading states
-    isAddingUser: addUserMutation.isPending,
-    isUpdatingUser: updateUserRoleMutation.isPending,
-    isDeletingUser: removeUserMutation.isPending,
+    isAddingUser: mutations.isAddingUser,
+    isUpdatingUser: mutations.isUpdatingUser,
+    isDeletingUser: mutations.isDeletingUser,
 
     // Handlers
-    openAddUserDialog,
-    closeAddUserDialog,
+    openAddUserDialog: dialogsState.openAddUserDialog,
+    closeAddUserDialog: dialogsState.closeAddUserDialog,
     handleAddUser,
-    openEditUserDialog,
-    closeEditUserDialog,
+    openEditUserDialog: dialogsState.openEditUserDialog,
+    closeEditUserDialog: dialogsState.closeEditUserDialog,
     handleUpdateUserRole,
-    openDeleteUserDialog,
-    closeDeleteUserDialog,
+    openDeleteUserDialog: dialogsState.openDeleteUserDialog,
+    closeDeleteUserDialog: dialogsState.closeDeleteUserDialog,
     handleDeleteUser,
   };
 };
+
+export type UseMyOrganizationUsersReturn = ReturnType<
+  typeof useMyOrganizationUsers
+>;

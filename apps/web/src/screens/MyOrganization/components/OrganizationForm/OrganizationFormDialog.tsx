@@ -20,8 +20,7 @@ import {
   useOrganizationFormDialogData,
   useOrganizationFormDialogForm,
 } from "./hooks";
-
-type DialogMode = "create" | "edit" | "accreditation";
+import { DialogMode } from "../../types";
 
 interface Props {
   open: boolean;
@@ -56,7 +55,17 @@ export const OrganizationFormDialog: FC<Props> = ({
   // Watch the selected sector to filter subsectors
   const selectedSectorId = watch("sectorId");
 
-  // Fetch organization data from API
+  /**
+   * Data Fetching Pattern:
+   * useOrganizationData is called here (in the component) rather than in the hook because:
+   * 1. The data (sectors, subsectors, company sizes, activities) is generic and shared across all organizations
+   * 2. It's needed for form field options, not organization-specific data
+   * 3. The selectedSectorId is a form field value that changes as the user types, requiring real-time filtering
+   * 4. This hook is also used in other contexts (e.g., OrganizationEmptyState) where form context doesn't exist
+   *
+   * This separation keeps useOrganizationFormDialogData focused on organization-specific initial values,
+   * while useOrganizationData handles shared dropdown options that don't change per-organization.
+   */
   const {
     sectorOptions,
     subsectorSelectOptions,

@@ -7,8 +7,7 @@ import {
   useUpdateOrganization,
 } from "@/api/query/organizations";
 import { mapFormValuesToRequest } from "../../../transformers";
-
-type DialogMode = "create" | "edit" | "accreditation";
+import { DialogMode } from "../../../types";
 
 interface UseOrganizationFormDialogFormProps {
   initialValues: CreateOrganizationBody;
@@ -17,6 +16,21 @@ interface UseOrganizationFormDialogFormProps {
   onSuccess?: () => void;
 }
 
+/**
+ * Manages form state and submission logic for the OrganizationFormDialog.
+ * Handles both organization creation and updates based on the dialog mode,
+ * with automatic success/error notifications via snackbar.
+ *
+ * @param {UseOrganizationFormDialogFormProps} params - Configuration object
+ * @param {CreateOrganizationBody} params.initialValues - Initial form values
+ * @param {DialogMode} params.mode - Dialog mode (create, edit, or accreditation)
+ * @param {string} params.organizationId - ID of organization to update (only for edit/accreditation modes)
+ * @param {Function} params.onSuccess - Callback function executed after successful form submission
+ * @returns {Object} Form management object
+ * @returns {UseFormReturn<CreateOrganizationBody>} form - React Hook Form instance
+ * @returns {Function} onSubmit - Form submission handler
+ * @returns {boolean} isSubmitting - Whether the form is currently being submitted
+ */
 export const useOrganizationFormDialogForm = ({
   initialValues,
   mode,
@@ -64,3 +78,7 @@ export const useOrganizationFormDialogForm = ({
     isSubmitting: createMutation.isPending || updateMutation.isPending,
   };
 };
+
+export type UseOrganizationFormDialogFormReturn = ReturnType<
+  typeof useOrganizationFormDialogForm
+>;

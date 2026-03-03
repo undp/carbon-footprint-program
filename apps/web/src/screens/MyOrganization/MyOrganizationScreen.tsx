@@ -20,9 +20,10 @@ import {
 } from "./hooks";
 
 export const MyOrganizationScreen: FC = () => {
-  // UI state management
+  // UI state management with explicit state tracking
   const {
     activeOrganizationId,
+    organizationStatus,
     formDialogMode,
     formDialogOpen,
     handleOrganizationChange,
@@ -30,11 +31,13 @@ export const MyOrganizationScreen: FC = () => {
     onEditOrganizationProfile,
   } = useMyOrganizationState();
 
-  // Data fetching
+  // Data fetching - only fetch when we have a valid organization ID
+  // Guards prevent premature fetching when activeOrganizationId is undefined
   const { organization, organizationUsers, isLoadingUsers } =
     useMyOrganizationData({ activeOrganizationId });
 
-  // User management
+  // User management - pass undefined instead of empty string when not loaded
+  // This prevents premature mutation attempts
   const {
     addDialogOpen,
     editDialogOpen,
@@ -53,10 +56,10 @@ export const MyOrganizationScreen: FC = () => {
     openDeleteUserDialog,
     closeDeleteUserDialog,
     handleDeleteUser,
-  } = useMyOrganizationUsers(organization?.id ?? "");
+  } = useMyOrganizationUsers(organization?.id);
 
-  // No organizations exist
-  if (activeOrganizationId === null) {
+  // No organizations exist - explicit state check
+  if (organizationStatus === "no_organizations") {
     return (
       <MainLayout>
         <OrganizationEmptyState onSuccess={closeFormDialog} />
@@ -73,12 +76,11 @@ export const MyOrganizationScreen: FC = () => {
           <>
             <OrganizationProfileSection
               profile={organization}
-              representative={organization.representative}
               onEdit={onEditOrganizationProfile}
             />
 
             <OrganizationUsersTable
-              users={organizationUsers}
+              users={organizationUsers ?? []}
               onAdd={openAddUserDialog}
               onEdit={openEditUserDialog}
               onDelete={openDeleteUserDialog}

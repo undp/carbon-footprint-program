@@ -8,13 +8,13 @@ import { GetOrganizationByIdResponse } from "@repo/types";
 
 type OrganizationProfileSectionProps = {
   profile: GetOrganizationByIdResponse;
-  representative: GetOrganizationByIdResponse["representative"];
   onEdit: () => void;
 };
 
 export const OrganizationProfileSection: FC<
   OrganizationProfileSectionProps
-> = ({ profile, representative, onEdit }) => {
+> = ({ profile, onEdit }) => {
+  const representative = profile.representative;
   return (
     <SectionCard
       title="Perfil empresa"

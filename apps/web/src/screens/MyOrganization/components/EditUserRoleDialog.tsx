@@ -12,10 +12,7 @@ import {
 import { Close } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { FormSelectField } from "@/components/form/FormSelectField";
-
-interface EditUserRoleFormData {
-  role: string;
-}
+import { EditUserRoleFormData } from "../types";
 
 interface EditUserRoleDialogProps {
   open: boolean;

@@ -12,11 +12,7 @@ import { Close } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { FormTextField } from "@/components/form/FormTextField";
 import { FormSelectField } from "@/components/form/FormSelectField";
-
-interface AddUserFormData {
-  email: string;
-  role: string;
-}
+import { AddUserFormData } from "../types";
 
 interface AddUserDialogProps {
   open: boolean;
