@@ -1,6 +1,12 @@
 import { z } from "zod";
-import { EntityReferenceSchema } from "../../baseSchemas.js";
+import {
+  OrganizationBaseSchema,
+  OrganizationSummaryBaseSchema,
+} from "../../../baseSchemas/index.js";
 
 export const GetMyOrganizationsSelectorOptionsResponseSchema = z.array(
-  EntityReferenceSchema
+  z.object({
+    id: OrganizationBaseSchema.shape.id,
+    name: OrganizationSummaryBaseSchema.shape.name,
+  })
 );

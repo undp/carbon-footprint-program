@@ -6,20 +6,20 @@ import {
   getAvailableFactors,
   getAvailableSources,
 } from "../services/emissionFactorService";
-import {
-  EmissionFactor,
-  RateMeasurementUnit,
-  EmissionFactorDimension,
-} from "@repo/types";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+import {
+  MethodologyEmissionFactor,
+  MethodologyEmissionFactorDimension,
+  RateMeasurementUnit,
+} from "../../../types";
 
 interface EmissionEditorFactorSourceCellProps {
   subcategoryId: string;
   lineId: string;
-  dimensions: EmissionFactorDimension[];
-  emissionFactors: EmissionFactor[];
-  rateMeasurementUnits: RateMeasurementUnit[];
+  dimensions: MethodologyEmissionFactorDimension[];
+  emissionFactors: MethodologyEmissionFactor[];
+  rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   onChange: (value: string) => void;
   disabled?: boolean;
 }

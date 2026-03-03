@@ -2,7 +2,9 @@ import { useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { type Category, CategorySchema } from "@repo/types";
+import { type GetAllCategoriesResponse, CategoryBaseSchema } from "@repo/types";
+
+type Category = GetAllCategoriesResponse[number];
 
 export type FormCategory = Pick<
   Category,
@@ -22,7 +24,7 @@ export interface CategoriesFormValues {
 
 const categoriesFormSchema = z.object({
   categories: z.array(
-    CategorySchema.pick({
+    CategoryBaseSchema.pick({
       id: true,
       name: true,
       icon: true,

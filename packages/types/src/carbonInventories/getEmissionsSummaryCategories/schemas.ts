@@ -1,16 +1,14 @@
 import { z } from "zod";
-import { IdSchema } from "../../zod.js";
+import { CategoryBaseSchema } from "../../baseSchemas/category.js";
+import { CarbonInventoryBaseSchema } from "../../baseSchemas/carbonInventory.js";
 
-const CategoryResultSchema = z
-  .object({
-    id: IdSchema.describe("The category ID"),
-    name: z.string().describe("The category name"),
-    synonyms: z.string().nullable().describe("Category synonyms"),
-    position: z
-      .number()
-      .int()
-      .positive()
-      .describe("The category position (1, 2, 3...)"),
+const CategoryItemSchema = CategoryBaseSchema.pick({
+  id: true,
+  name: true,
+  synonyms: true,
+  position: true,
+})
+  .extend({
     subtotal: z
       .number()
       .nonnegative()
@@ -27,18 +25,16 @@ const CategoryResultSchema = z
 
 export const GetEmissionsSummaryCategoriesResponseSchema = z
   .object({
-    carbonInventory: z
-      .object({
-        id: IdSchema,
-        name: z.string().nullable(),
-      })
-      .strict(),
+    carbonInventory: CarbonInventoryBaseSchema.pick({
+      id: true,
+      name: true,
+    }).strict(),
     totalEmissions: z
       .number()
       .nonnegative()
       .describe("Total emissions in tCO2e, rounded to 2 decimal places"),
     categories: z
-      .array(CategoryResultSchema)
+      .array(CategoryItemSchema)
       .describe(
         "All methodology categories with subtotals and percentages, ordered by position"
       ),

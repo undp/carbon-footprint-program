@@ -1,17 +1,21 @@
-import { CarbonInventorySchema } from "../baseSchemas.js";
+import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 
-export const UpdateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
-  name: true,
-  organizationId: true,
-  organizationBranchId: true,
-  organizationData: true,
-  year: true,
-  usageMode: true,
-  preselectedNodesId: true,
-  status: true,
-  isEditable: true,
-}).partial();
+export const UpdateCarbonInventoryRequestSchema =
+  CarbonInventoryBaseSchema.pick({
+    name: true,
+    organizationId: true,
+    organizationBranchId: true,
+    organizationData: true,
+    year: true,
+    usageMode: true,
+    preselectedNodesId: true,
+    status: true,
+    isEditable: true,
+  })
+    .partial()
+    .strict()
+    .refine((value) => Object.values(value).some((v) => v !== undefined), {
+      message: "At least one field must be provided with a defined value",
+    });
 
-export const UpdateCarbonInventoryResponseSchema = CarbonInventorySchema.omit({
-  subcategories: true,
-});
+export const UpdateCarbonInventoryResponseSchema = CarbonInventoryBaseSchema;

@@ -1,6 +1,9 @@
 import type { Prisma } from "@repo/database";
 import type { MethodologyVersion as PrismaMethodologyVersion } from "@repo/database";
-import type { Methodology, MethodologyWithRelations } from "@repo/types";
+import type {
+  CreateMethodologyResponse,
+  GetAllMethodologiesResponse,
+} from "@repo/types";
 
 // Prisma type for methodology with country and counts
 type MethodologyWithCountryAndCounts = Prisma.MethodologyVersionGetPayload<{
@@ -20,7 +23,7 @@ type MethodologyWithCountryAndCounts = Prisma.MethodologyVersionGetPayload<{
  */
 export function mapMethodologyToResponse(
   methodology: PrismaMethodologyVersion
-): Methodology {
+): CreateMethodologyResponse {
   return {
     id: methodology.id.toString(),
     countryId: methodology.countryId.toString(),
@@ -42,7 +45,7 @@ export function mapMethodologyToResponse(
  */
 export function mapMethodologyWithRelationsToResponse(
   methodology: MethodologyWithCountryAndCounts
-): MethodologyWithRelations {
+): GetAllMethodologiesResponse[number] {
   return {
     ...mapMethodologyToResponse(methodology),
     country: {

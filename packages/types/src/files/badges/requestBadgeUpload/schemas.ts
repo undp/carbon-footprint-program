@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { BadgeTypeSchema } from "../../baseSchemas.js";
+import { BadgeTypeSchema } from "../../../baseSchemas/index.js";
 
 export const RequestBadgeUploadParamsSchema = z.object({
   badgeType: BadgeTypeSchema.describe("The badge type"),

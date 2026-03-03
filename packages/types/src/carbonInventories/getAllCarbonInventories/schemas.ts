@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CarbonInventorySchema } from "../baseSchemas.js";
+import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 
 // Query schema
 export const GetAllCarbonInventoriesQuerySchema = z.object({
@@ -13,15 +13,12 @@ export const GetAllCarbonInventoriesQuerySchema = z.object({
 });
 
 // Response item schema with totalEmissions field added
-export const CarbonInventoryWithEmissionsSchema = CarbonInventorySchema.omit({
-  subcategories: true,
-}).extend({
+const CarbonInventoryItem = CarbonInventoryBaseSchema.extend({
   totalEmissions: z
     .number()
     .describe("The total calculated emissions for this inventory"),
 });
 
 // Response Schemas
-export const GetAllCarbonInventoriesResponseSchema = z.array(
-  CarbonInventoryWithEmissionsSchema
-);
+export const GetAllCarbonInventoriesResponseSchema =
+  z.array(CarbonInventoryItem);

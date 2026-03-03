@@ -1,12 +1,6 @@
 import { useMemo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import {
-  EmissionFactorDimension,
-  MeasurementUnit,
-  RateMeasurementUnit,
-  Subcategory,
-  UsageMode,
-} from "@repo/types";
+import { UsageMode } from "@repo/types";
 import {
   EmissionCaptureFormLine,
   LineId,
@@ -20,10 +14,16 @@ import {
   EmissionEditorEmissionsCell,
   EmissionEditorActionsCell,
 } from "../cells";
+import {
+  MeasurementUnit,
+  MethodologyEmissionFactorDimension,
+  MethodologySubcategory,
+  RateMeasurementUnit,
+} from "../../../types";
 
 interface UseEmissionEditorColumnsParams {
-  dimensions: EmissionFactorDimension[];
-  subcategory: Subcategory;
+  dimensions: MethodologyEmissionFactorDimension[];
+  subcategory: MethodologySubcategory;
   measurementUnits: MeasurementUnit[] | undefined;
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   categoryPosition: number;

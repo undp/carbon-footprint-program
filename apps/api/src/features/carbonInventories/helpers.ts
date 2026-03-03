@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import { type Category } from "@repo/types";
+import { type GetAllCategoriesResponse } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
@@ -14,14 +14,14 @@ export type InventoryBase = {
 };
 
 export type CategoryData = Pick<
-  Category,
+  GetAllCategoriesResponse[number],
   "id" | "name" | "synonyms" | "position"
 > & {
   subtotal: number;
   subcategories: { id: string; name: string; subtotal: number }[];
 };
 
-export type InventoryWithCategoryData = {
+type InventoryWithCategoryData = {
   inventory: InventoryBase;
   categoryData: CategoryData[];
   totalEmissions: number;

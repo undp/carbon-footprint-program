@@ -1,9 +1,9 @@
 import { z } from "zod";
-import {
-  MethodologySchema,
-  MethodologyVersionStatusSchema,
-} from "../baseSchemas.js";
 import { IdSchema } from "../../zod.js";
+import {
+  MethodologyVersionBaseSchema,
+  MethodologyVersionStatusSchema,
+} from "../../baseSchemas/index.js";
 
 // Params Schema
 export const UpdateMethodologyParamsSchema = z
@@ -29,7 +29,10 @@ export const UpdateMethodologyRequestSchema = z
     status: MethodologyVersionStatusSchema,
   })
   .partial()
-  .strict();
+  .strict()
+  .refine((value) => Object.values(value).some((v) => v !== undefined), {
+    message: "At least one field must be provided with a defined value",
+  });
 
 // Response Schema
-export const UpdateMethodologyResponseSchema = MethodologySchema;
+export const UpdateMethodologyResponseSchema = MethodologyVersionBaseSchema;

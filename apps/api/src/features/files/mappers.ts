@@ -1,7 +1,9 @@
 import type { File as PrismaFile } from "@repo/database";
-import type { File as ResponseFile } from "@repo/types";
+import type { GetBadgeFilesResponse } from "@repo/types";
 
-export const mapFileToResponse = (file: PrismaFile): ResponseFile => ({
+export const mapFileToResponse = (
+  file: PrismaFile
+): GetBadgeFilesResponse[number] => ({
   uuid: file.uuid,
   originalName: file.originalName,
   mimeType: file.mimeType,

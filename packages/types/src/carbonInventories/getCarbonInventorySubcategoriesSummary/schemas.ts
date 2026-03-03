@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
 
-const SubcategoryStatusSchema = z.object({
-  subcategoryId: z.string().describe("The ID of the subcategory"),
+const ItemSchema = z.object({
+  subcategoryId: SubcategoryBaseSchema.shape.id,
   included: z
     .boolean()
     .describe("Indicates if there is an active line for this subcategory"),
@@ -10,6 +11,5 @@ const SubcategoryStatusSchema = z.object({
     .describe("Indicates if the line has been edited (has data) or is empty"),
 });
 
-export const GetCarbonInventorySubcategoriesSummaryResponseSchema = z.array(
-  SubcategoryStatusSchema
-);
+export const GetCarbonInventorySubcategoriesSummaryResponseSchema =
+  z.array(ItemSchema);
