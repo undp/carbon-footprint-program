@@ -9,7 +9,7 @@ import {
 } from "@repo/types";
 import { validateSubmissionExists } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "../../../../services/blobService.js";
+import { generateWriteSasUrl } from "@/services/blobService.js";
 
 type SubmissionRequestUploadInput = RequestSubmissionUploadBody &
   RequestSubmissionUploadParams;

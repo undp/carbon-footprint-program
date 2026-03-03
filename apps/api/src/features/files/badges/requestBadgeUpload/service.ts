@@ -8,7 +8,7 @@ import {
   RequestBadgeUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "../../../../services/blobService.js";
+import { generateWriteSasUrl } from "@/services/blobService.js";
 
 type BadgeRequestUploadInput = RequestBadgeUploadBody &
   RequestBadgeUploadParams;

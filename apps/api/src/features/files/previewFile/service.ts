@@ -3,7 +3,7 @@ import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
 import type { PreviewFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
-import { generateReadSasUrl } from "../../../services/blobService.js";
+import { generateReadSasUrl } from "@/services/blobService.js";
 
 export const previewFileService = async (
   prisma: PrismaClient,
