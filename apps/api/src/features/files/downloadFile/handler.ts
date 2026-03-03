@@ -13,13 +13,8 @@ export const downloadFileHandler = async (
   const log = request.log.child({ module: "files" });
   const { uuid } = request.params;
 
-  const {
-    blobServiceClient,
-    storageAccountName,
-    storageContainerName,
-    prisma,
-  } = request.server;
-  if (!blobServiceClient || !storageAccountName || !storageContainerName) {
+  const { blobServiceClient, storageContainerName, prisma } = request.server;
+  if (!blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
   }
 
@@ -27,7 +22,6 @@ export const downloadFileHandler = async (
   const result = await downloadFileService(
     prisma,
     blobServiceClient,
-    storageAccountName,
     storageContainerName,
     uuid
   );

@@ -8,7 +8,7 @@ import {
   RequestBadgeUploadResponse,
 } from "@repo/types";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "../../helpers/sasHelper.js";
+import { generateWriteSasUrl } from "@/services/blobService.js";
 
 type BadgeRequestUploadInput = RequestBadgeUploadBody &
   RequestBadgeUploadParams;
@@ -16,7 +16,6 @@ type BadgeRequestUploadInput = RequestBadgeUploadBody &
 export const badgeRequestUploadService = async (
   _prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
-  accountName: string,
   containerName: string,
   input: BadgeRequestUploadInput
 ): Promise<RequestBadgeUploadResponse> => {
@@ -32,7 +31,6 @@ export const badgeRequestUploadService = async (
 
   const { url, expiresAt } = await generateWriteSasUrl(
     blobServiceClient,
-    accountName,
     containerName,
     blobPath
   );

@@ -3,12 +3,11 @@ import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
 import type { DownloadFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
-import { generateReadSasUrl } from "../helpers/sasHelper.js";
+import { generateReadSasUrl } from "../../../services/blobService.js";
 
 export const downloadFileService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
-  accountName: string,
   containerName: string,
   uuid: string
 ): Promise<DownloadFileResponse> => {
@@ -19,7 +18,6 @@ export const downloadFileService = async (
 
   const { url, expiresAt } = await generateReadSasUrl(
     blobServiceClient,
-    accountName,
     containerName,
     file.blobPath,
     {

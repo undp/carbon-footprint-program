@@ -19,7 +19,6 @@ export default fp(
       );
       fastify.decorate("blobServiceClient", undefined);
       fastify.decorate("blobStorage", undefined);
-      fastify.decorate("storageAccountName", undefined);
       fastify.decorate("storageContainerName", undefined);
       done();
       return;
@@ -35,19 +34,18 @@ export default fp(
 
     fastify.decorate("blobServiceClient", blobServiceClient);
     fastify.decorate("blobStorage", containerClient);
-    fastify.decorate("storageAccountName", AZURE_STORAGE_ACCOUNT_NAME);
-    fastify.decorate("storageContainerName", AZURE_STORAGE_CONTAINER_NAME);
+    fastify.decorate("storageContainerName", containerClient.containerName);
 
     // Verify container in background — don't block startup
     containerClient.exists().then(
       (exists) => {
         if (!exists) {
           fastify.log.warn(
-            `Blob container "${AZURE_STORAGE_CONTAINER_NAME}" does not exist in storage account "${AZURE_STORAGE_ACCOUNT_NAME}". File uploads will fail until the container is created.`
+            `Blob container "${containerClient.containerName}" does not exist in storage account "${blobServiceClient.accountName}". File uploads will fail until the container is created.`
           );
         } else {
           fastify.log.info(
-            `Blob storage connected: ${AZURE_STORAGE_ACCOUNT_NAME}/${AZURE_STORAGE_CONTAINER_NAME}`
+            `Blob storage connected: ${blobServiceClient.accountName}/${containerClient.containerName}`
           );
         }
       },
