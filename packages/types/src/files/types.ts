@@ -1,5 +1,6 @@
-import { FileTypeSchema } from "./schemas.js";
+import { z } from "zod";
+import { RouteFileTypeSchema } from "../baseSchemas/file.js";
 
-export const FileType = FileTypeSchema.enum;
+export const FileType = RouteFileTypeSchema.enum;
 
-export type FileType = (typeof FileType)[keyof typeof FileType];
+export type FileType = z.infer<typeof RouteFileTypeSchema>;

@@ -459,17 +459,17 @@ La infraestructura de Bicep maneja todo:
 
 ### Archivos Modificados
 
-| Archivo                                      | Cambio                                                                               |
-| -------------------------------------------- | ------------------------------------------------------------------------------------ |
-| `packages/database/src/prisma/schema.prisma` | Modelos `File`, `Badge`, `SubmissionFile` + enums                                    |
-| `infra/modules/storage.bicep`                | Blob service + contenedor `files`                                                    |
-| `infra/modules/appService.bicep`             | Parámetro `storageAccountName` + app settings                                        |
-| `infra/main.bicep`                           | Módulo `storageRoleAssignment` + storage name                                        |
-| `apps/api/src/config/environment.ts`         | Variables `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`               |
-| `apps/api/src/types/fastify.ts`              | Augment `FastifyInstance` con `blobStorage`, `blobServiceClient`                     |
-| `packages/types/src/files/baseSchemas.ts`    | `FileTypeSchema`, `BadgeTypeSchema`, `SubmissionFileTypeSchema`, `BadgeStatusSchema` |
-| `packages/types/src/files/index.ts`          | Re-exports de subdomains badges y submissions                                        |
-| `.envrc.template`                            | Variables de storage para desarrollo local                                           |
+| Archivo                                      | Cambio                                                                                    |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `packages/database/src/prisma/schema.prisma` | Modelos `File`, `Badge`, `SubmissionFile` + enums                                         |
+| `infra/modules/storage.bicep`                | Blob service + contenedor `files`                                                         |
+| `infra/modules/appService.bicep`             | Parámetro `storageAccountName` + app settings                                             |
+| `infra/main.bicep`                           | Módulo `storageRoleAssignment` + storage name                                             |
+| `apps/api/src/config/environment.ts`         | Variables `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_CONTAINER_NAME`                    |
+| `apps/api/src/types/fastify.ts`              | Augment `FastifyInstance` con `blobStorage`, `blobServiceClient`                          |
+| `packages/types/src/files/baseSchemas.ts`    | `RouteFileTypeSchema`, `BadgeTypeSchema`, `SubmissionFileTypeSchema`, `BadgeStatusSchema` |
+| `packages/types/src/files/index.ts`          | Re-exports de subdomains badges y submissions                                             |
+| `.envrc.template`                            | Variables de storage para desarrollo local                                                |
 
 ---
 
