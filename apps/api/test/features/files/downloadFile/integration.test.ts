@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
   vi,
 } from "vitest";
@@ -53,7 +53,7 @@ describe("GET /api/files/:uuid/download - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestFiles(prisma);
   });
 

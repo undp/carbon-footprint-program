@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -41,7 +41,7 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
   });

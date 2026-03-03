@@ -4,6 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
+  afterEach,
   beforeEach,
   inject,
 } from "vitest";
@@ -45,11 +46,13 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestMemberships(prisma);
     await cleanupTestOrganization(prisma);
     await cleanupTestUsers(prisma);
+  });
 
+  beforeEach(async () => {
     // Create a dummy admin user for each test
     adminUser = await createTestUser(prisma, {
       email: "admin@example.com",

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
   vi,
 } from "vitest";
@@ -49,7 +49,7 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestFiles(prisma);
   });
 

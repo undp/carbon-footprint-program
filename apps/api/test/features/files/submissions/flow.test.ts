@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
   vi,
 } from "vitest";
@@ -57,7 +57,7 @@ describe("Submission files — Full upload flow: request-upload → upload → c
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
   });
