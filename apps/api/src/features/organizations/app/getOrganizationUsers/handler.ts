@@ -23,7 +23,7 @@ export const getOrganizationUsersHandler = async (
   );
 
   log.info(
-    { organizationId, userCount: data.users.length },
+    { organizationId, userCount: data.length },
     "Organization users retrieved successfully"
   );
 

@@ -20,6 +20,6 @@ const OrganizationUserSchema = z.object({
 });
 
 // Response schema
-export const GetOrganizationUsersResponseSchema = z.object({
-  users: z.array(OrganizationUserSchema).describe("List of organization users"),
-});
+export const GetOrganizationUsersResponseSchema = z
+  .array(OrganizationUserSchema)
+  .describe("List of organization users");

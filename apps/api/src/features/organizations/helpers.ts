@@ -136,10 +136,12 @@ export const createOrganizationData = async (
       representativePhone: data.representativePhone,
       representativeEmail: data.representativeEmail,
 
-      countryOrganizationSizeId: BigInt(data.countryOrganizationSizeId),
-      sectorId: BigInt(data.sectorId),
-      subsectorId: BigInt(data.subsectorId),
-      mainActivityId: BigInt(data.mainActivityId),
+      countryOrganizationSizeId: data.countryOrganizationSizeId
+        ? BigInt(data.countryOrganizationSizeId)
+        : null,
+      sectorId: data.sectorId ? BigInt(data.sectorId) : null,
+      subsectorId: data.subsectorId ? BigInt(data.subsectorId) : null,
+      mainActivityId: data.mainActivityId ? BigInt(data.mainActivityId) : null,
       representativeCountryJobPositionId: BigInt(data.representativePositionId),
     },
   });
@@ -169,10 +171,12 @@ export const updateOrganizationData = async (
       representativePhone: data.representativePhone,
       representativeEmail: data.representativeEmail,
 
-      countryOrganizationSizeId: BigInt(data.countryOrganizationSizeId),
-      sectorId: BigInt(data.sectorId),
-      subsectorId: BigInt(data.subsectorId),
-      mainActivityId: BigInt(data.mainActivityId),
+      countryOrganizationSizeId: data.countryOrganizationSizeId
+        ? BigInt(data.countryOrganizationSizeId)
+        : null,
+      sectorId: data.sectorId ? BigInt(data.sectorId) : null,
+      subsectorId: data.subsectorId ? BigInt(data.subsectorId) : null,
+      mainActivityId: data.mainActivityId ? BigInt(data.mainActivityId) : null,
       representativeCountryJobPositionId: BigInt(data.representativePositionId),
     },
   });

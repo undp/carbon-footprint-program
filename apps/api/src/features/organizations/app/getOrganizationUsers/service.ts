@@ -79,7 +79,5 @@ export const getOrganizationUsersService = async (
       return a.name.localeCompare(b.name);
     });
 
-  return {
-    users,
-  };
+  return users;
 };
