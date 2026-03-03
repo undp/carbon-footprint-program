@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { UserBaseSchema } from "./user.js";
+import { EmissionFactorStatus } from "../enums.js";
 
 export const EmissionFactorStatusSchema = z
-  .enum(["ACTIVE", "DELETED"])
+  .enum(EmissionFactorStatus)
   .describe("The status of the emission factor");
 
 export const EmissionFactorBaseSchema = z.object({
