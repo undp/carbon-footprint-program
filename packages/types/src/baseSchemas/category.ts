@@ -5,15 +5,24 @@ import { CategoryStatus } from "../enums.js";
 
 export const CategoryStatusSchema = z.enum(CategoryStatus);
 
+const HEX_RGB_REGEX = /^#[0-9A-Fa-f]{3}$/;
+const HEX_RGBA_REGEX = /^#[0-9A-Fa-f]{4}$/;
+const HEX_RRGGBB_REGEX = /^#[0-9A-Fa-f]{6}$/;
+const HEX_RRGGBBAA_REGEX = /^#[0-9A-Fa-f]{8}$/;
+
 export const CategoryBaseSchema = z.object({
   id: IdSchema.describe("The ID of the category"),
   methodologyVersionId: IdSchema.describe("The ID of the methodology version"),
   name: z.string().min(1).max(255).describe("The name of the category"),
   icon: z.string().min(1).max(255).describe("The icon identifier"),
   color: z
-    .string()
-    .regex(/^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/)
-    .describe("The color code in HEX format"),
+    .union([
+      z.string().regex(HEX_RGB_REGEX),
+      z.string().regex(HEX_RGBA_REGEX),
+      z.string().regex(HEX_RRGGBB_REGEX),
+      z.string().regex(HEX_RRGGBBAA_REGEX),
+    ])
+    .describe("Hex color code in #RGB, #RGBA, #RRGGBB, or #RRGGBBAA format"),
   synonyms: z.string().min(1).describe("Comma-separated synonyms"),
   description: z.string().min(1).describe("The description of the category"),
   examples: z.string().nullable().describe("Example text"),
