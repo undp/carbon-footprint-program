@@ -16,10 +16,7 @@ import { IS_DEVELOPMENT } from "../../../../config/environment";
 import { GetOrganizationByIdResponse } from "@repo/types";
 import { OrganizationFormFields } from "./OrganizationFormFields";
 import { OrganizationRepresentativeFields } from "./OrganizationRepresentativeFields";
-import {
-  useOrganizationFormDialogData,
-  useOrganizationFormDialogForm,
-} from "./hooks";
+import { useOrganizationForm, useOrganizationSubmit } from "./hooks";
 import { DialogMode } from "../../types";
 
 interface Props {
@@ -41,18 +38,14 @@ export const OrganizationFormDialog: FC<Props> = ({
   organization,
   mode = "accreditation",
 }) => {
-  const { defaultValues } = useOrganizationFormDialogData({ organization });
+  const { control, handleSubmit, reset, selectedSectorId } =
+    useOrganizationForm({ organization });
 
-  const { form, onSubmit, isSubmitting } = useOrganizationFormDialogForm({
-    initialValues: defaultValues,
+  const { submit, isSubmitting } = useOrganizationSubmit({
     mode,
     organizationId: organization?.id,
     onSuccess: onClose,
   });
-
-  const { control, handleSubmit, reset, watch } = form;
-
-  const selectedSectorId = watch("sectorId");
 
   const {
     sectorOptions,
@@ -119,7 +112,7 @@ export const OrganizationFormDialog: FC<Props> = ({
         <Close />
       </IconButton>
 
-      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+      <form onSubmit={handleSubmit(submit)} noValidate>
         <DialogContent
           sx={{ pt: 0, overflow: "auto", maxHeight: "calc(90vh - 160px)" }}
         >

@@ -1,2 +1,2 @@
-export * from "./useOrganizationFormDialogData";
-export * from "./useOrganizationFormDialogForm";
+export { useOrganizationForm } from "./useOrganizationForm";
+export { useOrganizationSubmit } from "./useOrganizationSubmit";
