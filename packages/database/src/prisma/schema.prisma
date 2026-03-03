@@ -166,6 +166,13 @@ enum MembershipStatus {
   @@map("membership_status")
 }
 
+enum SubCategoryStatus {
+  ACTIVE
+  DELETED
+
+  @@map("subcategory_status")
+}
+
 model UserOrganizationMembership {
   id             BigInt           @id @default(autoincrement())
   userId         BigInt           @map("user_id")
@@ -393,8 +400,10 @@ model Subcategory {
   id                          BigInt                       @id @default(autoincrement())
   categoryId                  BigInt                       @map("category_id")
   name                        String
-  description                 String?
+  icon                        String
+  description                 String
   examples                    String?
+  status                      SubCategoryStatus            @default(ACTIVE)
   createdAt                   DateTime                     @default(now()) @map("created_at")
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
   createdById                 BigInt?                      @map("created_by_id")
