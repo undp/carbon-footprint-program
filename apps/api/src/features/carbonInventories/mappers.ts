@@ -102,8 +102,9 @@ function mapBaseCarbonInventory(
   item: PrismaCarbonInventory
 ): Omit<GetCarbonInventoryByIdResponse, "subcategories"> {
   // Validate organizationData with runtime type checking using Zod
-  const organizationDataResult =
-    OrganizationDataFieldSchema.nullable().safeParse(item.organizationData);
+  const organizationDataResult = OrganizationDataFieldSchema.safeParse(
+    item.organizationData
+  );
 
   if (!organizationDataResult.success)
     throw new DataIntegrityError(

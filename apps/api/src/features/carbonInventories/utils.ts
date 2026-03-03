@@ -113,8 +113,7 @@ export function safeParseCarbonInventoryOrganizationData(
   carbonInventoryId: string,
   data: unknown
 ): OrganizationDataField {
-  const organizationDataResult =
-    OrganizationDataFieldSchema.nullable().safeParse(data);
+  const organizationDataResult = OrganizationDataFieldSchema.safeParse(data);
 
   if (!organizationDataResult.success)
     throw new DataIntegrityError(

@@ -5,7 +5,6 @@ import { CountryBaseSchema } from "../../baseSchemas/country.js";
 import { CountrySectorBaseSchema } from "../../baseSchemas/countrySector.js";
 import { CountryOrganizationSizeBaseSchema } from "../../baseSchemas/organizationSize.js";
 import { OrganizationMainActivityBaseSchema } from "../../baseSchemas/organizationMainActivity.js";
-import { OrganizationDataFieldSchema } from "../../baseSchemas/carbonInventory.js";
 import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
 import { CategoryBaseSchema } from "../../baseSchemas/category.js";
 import { EmissionFactorBaseSchema } from "../../baseSchemas/emissionFactor.js";
@@ -109,8 +108,10 @@ const InventoryAttributesSchema = z
       .nullable()
       .describe("Number of branches/sedes"),
     mainActivityName: OrganizationMainActivityBaseSchema.shape.name.nullable(),
-    mainActivityQuantity:
-      OrganizationDataFieldSchema.shape.mainActivityQuantity.nullable(),
+    mainActivityQuantity: z
+      .int()
+      .nullable()
+      .describe("The quantity of the main activity"),
   })
   .strict();
 

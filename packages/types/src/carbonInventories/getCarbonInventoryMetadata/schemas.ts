@@ -4,7 +4,6 @@ import {
   CountryBaseSchema,
   CountryOrganizationSizeBaseSchema,
   CountrySectorBaseSchema,
-  OrganizationDataFieldSchema,
   OrganizationMainActivityBaseSchema,
   OrganizationSummaryBaseSchema,
 } from "../../baseSchemas/index.js";
@@ -15,8 +14,10 @@ export const GetCarbonInventoryMetadataResponseSchema = z
     name: CarbonInventoryBaseSchema.shape.name,
     country: CountryBaseSchema.shape.name.nullable(),
     organizationName: OrganizationSummaryBaseSchema.shape.name.nullable(),
-    organizationBranchesQuantity:
-      OrganizationDataFieldSchema.shape.mainActivityQuantity.nullable(),
+    organizationBranchesQuantity: z
+      .int()
+      .nullable()
+      .describe("The quantity of the organization's branches"),
     organizationSectorName: CountrySectorBaseSchema.shape.name.nullable(),
     organizationSizeName:
       CountryOrganizationSizeBaseSchema.shape.name.nullable(),

@@ -28,7 +28,7 @@ export const CarbonInventoryBaseSchema = z
     organizationBranchId: IdSchema.nullable().describe(
       "The ID of the organization branch"
     ),
-    organizationData: OrganizationDataFieldSchema.nullable().describe(
+    organizationData: OrganizationDataFieldSchema.describe(
       "The data of the organization"
     ),
     year: z
