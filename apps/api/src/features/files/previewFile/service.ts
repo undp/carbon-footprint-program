@@ -3,12 +3,12 @@ import type { BlobServiceClient } from "@azure/storage-blob";
 import { FileStatus } from "@repo/types";
 import type { PreviewFileResponse } from "@repo/types";
 import { FileNotFoundError } from "../errors.js";
-import { generateReadSasUrl } from "../helpers/sasHelper.js";
+import { generateReadSasUrl } from "../../../services/blobService.js";
 
 export const previewFileService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
-  accountName: string,
+
   containerName: string,
   uuid: string
 ): Promise<PreviewFileResponse> => {
@@ -21,7 +21,6 @@ export const previewFileService = async (
 
   const { url, expiresAt } = await generateReadSasUrl(
     blobServiceClient,
-    accountName,
     containerName,
     file.blobPath,
     { contentType: file.mimeType }
