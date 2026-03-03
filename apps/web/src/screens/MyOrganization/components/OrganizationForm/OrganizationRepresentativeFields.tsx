@@ -59,11 +59,13 @@ export const OrganizationRepresentativeFields: FC<
             label="Cargo"
             options={jobPositionOptions}
             disabled={isLoading}
+            required
           />
           <FormTextField
             name="representativePhone"
             control={control}
             label="Teléfono"
+            required
           />
         </Box>
 
@@ -74,6 +76,7 @@ export const OrganizationRepresentativeFields: FC<
             control={control}
             label="Correo"
             className="flex-1"
+            required
           />
           <Box className="flex-1" />
         </Box>
