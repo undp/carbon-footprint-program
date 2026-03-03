@@ -19,7 +19,6 @@ export default fp(
       );
       fastify.decorate("blobServiceClient", undefined);
       fastify.decorate("blobStorage", undefined);
-      fastify.decorate("storageAccountName", undefined);
       fastify.decorate("storageContainerName", undefined);
       done();
       return;
@@ -35,8 +34,6 @@ export default fp(
 
     fastify.decorate("blobServiceClient", blobServiceClient);
     fastify.decorate("blobStorage", containerClient);
-    fastify.decorate("storageAccountName", AZURE_STORAGE_ACCOUNT_NAME);
-    fastify.decorate("storageContainerName", AZURE_STORAGE_CONTAINER_NAME);
 
     // Verify container in background — don't block startup
     containerClient.exists().then(
