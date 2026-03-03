@@ -4,7 +4,7 @@ import {
   useCountrySectors,
   useOrganizationMainActivities,
 } from "@/api/query";
-import { useSelectorOptions } from "./useSelectorOptions";
+import { useSelectorOptions } from "@/hooks";
 
 type Params = {
   selectedSectorId?: string;
@@ -12,20 +12,11 @@ type Params = {
   selectedActivityId?: string;
 };
 
-/**
- * Hook for fetching organization-related data from the API.
- *
- * Provides:
- * - Sectors and subsectors
- * - Organization sizes
- * - Main activities (filtered by sector/subsector)
- * - Selector options formatted for form components
- */
-export const useOrganizationData = ({
+export const useBusinessProfilingData = ({
   selectedSectorId,
   selectedSubsectorId,
   selectedActivityId,
-}: Params = {}) => {
+}: Params) => {
   const { data: sectors = [], isLoading: sectorsLoading } = useCountrySectors();
   const { data: organizationSizes = [], isLoading: organizationSizesLoading } =
     useCountryOrganizationSizes();
@@ -71,20 +62,16 @@ export const useOrganizationData = ({
 
   const result = useMemo(
     () => ({
-      // Raw data
       sectors,
       organizationSizes,
       activities,
       subsectorOptions,
-      // Selected items
       selectedSector,
       selectedActivity,
-      // Formatted options for selectors
       sectorOptions,
       subsectorSelectOptions,
       companySizeOptions,
       activityOptions,
-      // Loading states
       sectorsLoading,
       organizationSizesLoading,
       activitiesLoading,

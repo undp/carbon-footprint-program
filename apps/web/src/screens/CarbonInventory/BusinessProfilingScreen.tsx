@@ -14,7 +14,6 @@ import {
 } from "@/components";
 import { StepHeader } from "./components/StepHeader";
 import { useCarbonInventory } from "@/api/query";
-import { useOrganizationData } from "@/hooks";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
@@ -23,6 +22,7 @@ import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -77,7 +77,7 @@ export const BusinessProfilingScreen: FC = () => {
     sectorsLoading,
     organizationSizesLoading,
     activitiesLoading,
-  } = useOrganizationData({
+  } = useBusinessProfilingData({
     selectedSectorId,
     selectedSubsectorId,
     selectedActivityId,

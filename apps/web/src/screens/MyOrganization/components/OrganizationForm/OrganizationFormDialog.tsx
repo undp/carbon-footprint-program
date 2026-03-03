@@ -12,11 +12,14 @@ import {
   Typography,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
-import { useOrganizationData } from "@/hooks";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "../../../../config/environment";
 import { GetOrganizationByIdResponse } from "@repo/types";
-import { useOrganizationForm, useOrganizationSubmit } from "./hooks";
+import {
+  useOrganizationForm,
+  useOrganizationSubmit,
+  useOrganizationData,
+} from "./hooks";
 import { DialogMode } from "../../types";
 import {
   FormTextField,
@@ -25,8 +28,6 @@ import {
   FormNumericField,
 } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
-import { useJobPositions } from "@/api/query/jobPositions/useJobPositions";
-import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 
 interface Props {
   open: boolean;
@@ -64,14 +65,11 @@ export const OrganizationFormDialog: FC<Props> = ({
     organizationSizesLoading,
     activityOptions,
     activitiesLoading,
+    jobPositionOptions,
+    jobPositionsLoading,
   } = useOrganizationData({
     selectedSectorId: selectedSectorId || undefined,
   });
-
-  const { data: jobPositions, isLoading: jobPositionsLoading } =
-    useJobPositions();
-
-  const jobPositionOptions = useSelectorOptions(jobPositions, "name", "id");
 
   const handleClose = useCallback(() => {
     reset();
