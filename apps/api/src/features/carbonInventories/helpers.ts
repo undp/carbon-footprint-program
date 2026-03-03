@@ -21,7 +21,7 @@ export type CategoryData = Pick<
   subcategories: { id: string; name: string; subtotal: number }[];
 };
 
-export type InventoryWithCategoryData = {
+type InventoryWithCategoryData = {
   inventory: InventoryBase;
   categoryData: CategoryData[];
   totalEmissions: number;
