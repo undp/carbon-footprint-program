@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 
