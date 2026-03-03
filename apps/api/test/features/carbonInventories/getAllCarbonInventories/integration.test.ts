@@ -5,6 +5,7 @@ import {
   beforeAll,
   afterAll,
   afterEach,
+  beforeEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
