@@ -1,6 +1,4 @@
 import { z } from "zod";
-import type { GetMeBodySchema, GetMeResponseSchema } from "./schemas.ts";
-
-export type GetMeBody = z.infer<typeof GetMeBodySchema>;
+import type { GetMeResponseSchema } from "./schemas.ts";
 
 export type GetMeResponse = z.infer<typeof GetMeResponseSchema>;
