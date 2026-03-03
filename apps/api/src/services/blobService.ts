@@ -22,7 +22,6 @@ export interface ReadSasOptions {
  */
 export async function generateReadSasUrl(
   blobServiceClient: BlobServiceClient,
-  accountName: string,
   containerName: string,
   blobPath: string,
   options?: ReadSasOptions,
@@ -30,6 +29,8 @@ export async function generateReadSasUrl(
 ): Promise<SasUrlResult> {
   const startsOn = new Date();
   const expiresAt = new Date(startsOn.getTime() + expiresInMinutes * 60 * 1000);
+
+  const { accountName } = blobServiceClient;
 
   const userDelegationKey = await blobServiceClient.getUserDelegationKey(
     startsOn,
@@ -65,13 +66,14 @@ export async function generateReadSasUrl(
  */
 export async function generateWriteSasUrl(
   blobServiceClient: BlobServiceClient,
-  accountName: string,
   containerName: string,
   blobPath: string,
   expiresInMinutes = SAS_URL_EXPIRY_MINUTES
 ): Promise<SasUrlResult> {
   const startsOn = new Date();
   const expiresAt = new Date(startsOn.getTime() + expiresInMinutes * 60 * 1000);
+
+  const { accountName } = blobServiceClient;
 
   const userDelegationKey = await blobServiceClient.getUserDelegationKey(
     startsOn,
