@@ -8,16 +8,25 @@ import {
   IconButton,
   Divider,
   CircularProgress,
+  Box,
+  Typography,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { useOrganizationData } from "@/hooks";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "../../../../config/environment";
 import { GetOrganizationByIdResponse } from "@repo/types";
-import { OrganizationFormFields } from "./OrganizationFormFields";
-import { OrganizationRepresentativeFields } from "./OrganizationRepresentativeFields";
 import { useOrganizationForm, useOrganizationSubmit } from "./hooks";
 import { DialogMode } from "../../types";
+import {
+  FormTextField,
+  FormSelectField,
+  FormAutocompleteField,
+  FormNumericField,
+} from "@/components";
+import { InfoButton } from "@/components/InfoButton";
+import { useJobPositions } from "@/api/query/jobPositions/useJobPositions";
+import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 
 interface Props {
   open: boolean;
@@ -58,6 +67,11 @@ export const OrganizationFormDialog: FC<Props> = ({
   } = useOrganizationData({
     selectedSectorId: selectedSectorId || undefined,
   });
+
+  const { data: jobPositions, isLoading: jobPositionsLoading } =
+    useJobPositions();
+
+  const jobPositionOptions = useSelectorOptions(jobPositions, "name", "id");
 
   const handleClose = useCallback(() => {
     reset();
@@ -116,21 +130,170 @@ export const OrganizationFormDialog: FC<Props> = ({
         <DialogContent
           sx={{ pt: 0, overflow: "auto", maxHeight: "calc(90vh - 160px)" }}
         >
-          <OrganizationFormFields
-            control={control}
-            sectorOptions={sectorOptions}
-            subsectorSelectOptions={subsectorSelectOptions}
-            companySizeOptions={companySizeOptions}
-            activityOptions={activityOptions}
-            sectorsLoading={sectorsLoading}
-            organizationSizesLoading={organizationSizesLoading}
-            activitiesLoading={activitiesLoading}
-            selectedSectorId={selectedSectorId || undefined}
-          />
+          {/* Organization Information Section */}
+          <Box className="mb-6">
+            <Box className="mb-4 flex items-center gap-2">
+              <Typography variant="body1" fontSize={18}>
+                Ingreso de datos de la organización
+              </Typography>
+              <InfoButton
+                label="Ingresa los datos de tu organización para la acreditación"
+                size="small"
+              />
+            </Box>
+
+            <Box className="flex flex-col gap-4">
+              {/* Row 1: Legal Name + Commercial Name */}
+              <Box className="flex gap-6">
+                <FormTextField
+                  name="legalName"
+                  control={control}
+                  label="Nombre legal de la entidad / Razón social"
+                  required
+                />
+                <FormTextField
+                  name="tradeName"
+                  control={control}
+                  label="Nombre comercial"
+                />
+              </Box>
+
+              {/* Row 2: Tax ID + Organization Type */}
+              <Box className="flex gap-6">
+                <FormTextField
+                  name="taxId"
+                  control={control}
+                  label="RUT / RUC / ID Tributario"
+                  required
+                />
+                <FormSelectField
+                  name="countryOrganizationSizeId"
+                  control={control}
+                  label="Tipo / Tamaño organización"
+                  options={companySizeOptions}
+                  disabled={organizationSizesLoading}
+                />
+              </Box>
+
+              {/* Row 3: Economic Sector + Sub-sector */}
+              <Box className="flex gap-6">
+                <FormSelectField
+                  name="sectorId"
+                  control={control}
+                  label="Rubro / Sector económico"
+                  options={sectorOptions}
+                  disabled={sectorsLoading}
+                />
+                <FormSelectField
+                  name="subsectorId"
+                  control={control}
+                  label="Sub-rubro"
+                  options={subsectorSelectOptions}
+                  disabled={
+                    sectorsLoading ||
+                    !selectedSectorId ||
+                    subsectorSelectOptions.length === 0
+                  }
+                />
+              </Box>
+
+              {/* Row 4: Employee Count + Address */}
+              <Box className="flex gap-6">
+                <FormNumericField
+                  name="employeesCount"
+                  control={control}
+                  label="Cantidad de trabajadores"
+                  disabled={organizationSizesLoading}
+                  min={0}
+                  minMessage="La cantidad no puede ser negativa"
+                />
+                <FormTextField
+                  name="address"
+                  control={control}
+                  label="Dirección / Región"
+                />
+              </Box>
+
+              {/* Row 5: Main Activity */}
+              <Box className="flex gap-6">
+                <FormAutocompleteField
+                  name="mainActivityId"
+                  control={control}
+                  label="Actividad principal del negocio"
+                  labelId="activity-label"
+                  options={activityOptions}
+                  loading={activitiesLoading}
+                  disabled={activitiesLoading || activityOptions.length === 0}
+                  className="flex-1"
+                />
+                <Box className="flex-1" />
+              </Box>
+            </Box>
+          </Box>
 
           <Divider sx={{ mb: 3, opacity: 0.2 }} />
 
-          <OrganizationRepresentativeFields control={control} />
+          {/* Representative Information Section */}
+          <Box>
+            <Box className="mb-4 flex items-center gap-2">
+              <Typography variant="body1" fontSize={18}>
+                Ingreso de datos del representante legal o responsable
+                institucional
+              </Typography>
+              <InfoButton
+                label="Ingresa los datos del representante legal de tu organización"
+                size="small"
+              />
+            </Box>
+
+            <Box className="flex flex-col gap-4">
+              {/* Row 1: Name + ID */}
+              <Box className="flex gap-6">
+                <FormTextField
+                  name="representativeFullName"
+                  control={control}
+                  label="Nombre completo"
+                  required
+                />
+                <FormTextField
+                  name="representativeTaxId"
+                  control={control}
+                  label="ID representante"
+                  required
+                />
+              </Box>
+
+              {/* Row 2: Position + Phone */}
+              <Box className="flex gap-6">
+                <FormSelectField
+                  name="representativePositionId"
+                  control={control}
+                  label="Cargo"
+                  options={jobPositionOptions}
+                  disabled={jobPositionsLoading}
+                  required
+                />
+                <FormTextField
+                  name="representativePhone"
+                  control={control}
+                  label="Teléfono"
+                  required
+                />
+              </Box>
+
+              {/* Row 3: Email */}
+              <Box className="flex gap-6">
+                <FormTextField
+                  name="representativeEmail"
+                  control={control}
+                  label="Correo"
+                  className="flex-1"
+                  required
+                />
+                <Box className="flex-1" />
+              </Box>
+            </Box>
+          </Box>
         </DialogContent>
 
         <DialogActions
