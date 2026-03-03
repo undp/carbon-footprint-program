@@ -21,6 +21,9 @@ export type MeasurementUnit = GetAllMeasurementUnitsResponse[number];
 
 export type RateMeasurementUnit = GetAllRateMeasurementUnitsResponse[number];
 
+export type CarbonInventorySubcategory =
+  GetCarbonInventoryByIdResponse["subcategories"][number];
+
 export type CarbonInventoryLine =
   GetCarbonInventoryByIdResponse["subcategories"][number]["lines"][number];
 
