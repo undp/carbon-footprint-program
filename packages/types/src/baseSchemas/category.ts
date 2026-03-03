@@ -10,7 +10,10 @@ export const CategoryBaseSchema = z.object({
   methodologyVersionId: IdSchema.describe("The ID of the methodology version"),
   name: z.string().min(1).max(255).describe("The name of the category"),
   icon: z.string().min(1).max(255).describe("The icon identifier"),
-  color: z.string().min(1).max(50).describe("The color code in HEX format"),
+  color: z
+    .string()
+    .regex(/^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/)
+    .describe("The color code in HEX format"),
   synonyms: z.string().min(1).describe("Comma-separated synonyms"),
   description: z.string().min(1).describe("The description of the category"),
   examples: z.string().nullable().describe("Example text"),

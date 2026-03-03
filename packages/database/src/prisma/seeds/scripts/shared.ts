@@ -23,7 +23,7 @@ export const FullMethodologyDataSchema = z.array(
         synonyms: z.string().min(1),
         description: z.string().min(1),
         icon: z.string().min(1),
-        color: z.string().min(1),
+        color: z.string().regex(/^#(?:[0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/),
         examples: z.string().nullable().optional(),
         position: z.int(),
         subcategories: z.array(
