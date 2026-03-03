@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { SubmissionStatusSchema } from "./submission.js";
+import { OrganizationSummaryDisplayStatus } from "../enums.js";
 
 export const OrganizationSummaryBaseSchema = z.object({
   organizationId: IdSchema.describe(
@@ -16,7 +17,9 @@ export const OrganizationSummaryBaseSchema = z.object({
   hasUnsubmittedChanges: z
     .boolean()
     .describe("Indicates if there are unsubmitted changes."),
-  displayStatus: z.string().describe("The display status of the organization."),
+  displayStatus: z
+    .enum(OrganizationSummaryDisplayStatus)
+    .describe("The display status of the organization."),
   isAccredited: z
     .boolean()
     .describe("Indicates if the organization is accredited."),

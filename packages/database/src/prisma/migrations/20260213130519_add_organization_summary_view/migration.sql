@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "organization_summary_display_status" AS ENUM ('NOT_ACCREDITED', 'ACCREDITED', 'BLOCKED');
+
 -- CreateView: organization_summary_view
 CREATE OR REPLACE VIEW "organization_summary_view" AS
 
