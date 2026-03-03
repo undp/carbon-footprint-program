@@ -17,10 +17,9 @@ export const badgeRequestUploadHandler = async (
   const { badgeType } = request.params;
   const { originalName } = request.body;
 
-  const { storageAccountName, storageContainerName, blobServiceClient } =
-    request.server;
+  const { storageContainerName, blobServiceClient } = request.server;
 
-  if (!blobServiceClient || !storageAccountName || !storageContainerName) {
+  if (!blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
   }
   log.info({ badgeType }, "Generating badge upload URL...");
@@ -29,7 +28,6 @@ export const badgeRequestUploadHandler = async (
   const result = await badgeRequestUploadService(
     prisma,
     blobServiceClient,
-    storageAccountName,
     storageContainerName,
     {
       badgeType,
