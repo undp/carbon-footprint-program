@@ -29,7 +29,6 @@ export const submissionRequestUploadHandler = async (
   const result = await submissionRequestUploadService(
     prisma,
     blobServiceClient,
-
     storageContainerName,
     { submissionId, originalName, submissionFileType }
   );
