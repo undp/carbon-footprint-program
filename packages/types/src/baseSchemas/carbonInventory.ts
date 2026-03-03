@@ -15,7 +15,8 @@ export const OrganizationDataFieldSchema = z
       .nullable()
       .describe("The quantity of the main activity"),
   })
-  .strict();
+  .strict()
+  .nullable();
 
 export type OrganizationDataField = z.infer<typeof OrganizationDataFieldSchema>;
 

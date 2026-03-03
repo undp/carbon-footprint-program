@@ -112,7 +112,7 @@ export function getRankingSeverity(percentage: number): RankingSeverity {
 export function safeParseCarbonInventoryOrganizationData(
   carbonInventoryId: string,
   data: unknown
-): OrganizationDataField | null {
+): OrganizationDataField {
   const organizationDataResult =
     OrganizationDataFieldSchema.nullable().safeParse(data);
 
