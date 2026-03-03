@@ -13,10 +13,15 @@ export const useUpdateOrganization = (id: string) => {
     {
       mutationFn: (data) =>
         apiClient.patch(`app/organizations/${id}`, { json: data }).json(),
-      onSuccess: () => {
-        void queryClient.invalidateQueries({
-          queryKey: organizationKeys.all,
-        });
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.all,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.detail(id),
+          }),
+        ]);
       },
     }
   );

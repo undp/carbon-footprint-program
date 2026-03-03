@@ -13,11 +13,17 @@ export const useCreateOrganization = () => {
     {
       mutationFn: (data) =>
         apiClient.post("app/organizations", { json: data }).json(),
-      onSuccess: () =>
-        void queryClient.invalidateQueries({
-          queryKey: organizationKeys.all,
-          exact: true,
-        }),
+      onSuccess: async (response) =>
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.all,
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.detail(response.id),
+            exact: true,
+          }),
+        ]),
     }
   );
 };
