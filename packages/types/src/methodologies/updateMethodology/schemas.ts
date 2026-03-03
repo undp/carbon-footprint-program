@@ -29,7 +29,10 @@ export const UpdateMethodologyRequestSchema = z
     status: MethodologyVersionStatusSchema,
   })
   .partial()
-  .strict();
+  .strict()
+  .refine((value) => Object.values(value).some((v) => v !== undefined), {
+    message: "At least one field must be provided with a defined value",
+  });
 
 // Response Schema
 export const UpdateMethodologyResponseSchema = MethodologyVersionBaseSchema;

@@ -21,8 +21,8 @@ export const UpdateCategoryRequestSchema = CategoryBaseSchema.pick({
 })
   .partial()
   .strict()
-  .refine((value) => Object.keys(value).length > 0, {
-    message: "At least one field must be provided",
+  .refine((value) => Object.values(value).some((v) => v !== undefined), {
+    message: "At least one field must be provided with a defined value",
   });
 
 // Response Schema

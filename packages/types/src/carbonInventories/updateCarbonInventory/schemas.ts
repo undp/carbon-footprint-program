@@ -11,6 +11,11 @@ export const UpdateCarbonInventoryRequestSchema =
     preselectedNodesId: true,
     status: true,
     isEditable: true,
-  }).partial();
+  })
+    .partial()
+    .strict()
+    .refine((value) => Object.values(value).some((v) => v !== undefined), {
+      message: "At least one field must be provided with a defined value",
+    });
 
 export const UpdateCarbonInventoryResponseSchema = CarbonInventoryBaseSchema;
