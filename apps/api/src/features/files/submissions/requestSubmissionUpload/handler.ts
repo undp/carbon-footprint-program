@@ -17,10 +17,9 @@ export const submissionRequestUploadHandler = async (
   const { submissionId } = request.params;
   const { originalName, submissionFileType } = request.body;
 
-  const { storageAccountName, storageContainerName, blobServiceClient } =
-    request.server;
+  const { storageContainerName, blobServiceClient } = request.server;
 
-  if (!blobServiceClient || !storageAccountName || !storageContainerName) {
+  if (!blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
   }
 
@@ -30,7 +29,7 @@ export const submissionRequestUploadHandler = async (
   const result = await submissionRequestUploadService(
     prisma,
     blobServiceClient,
-    storageAccountName,
+
     storageContainerName,
     { submissionId, originalName, submissionFileType }
   );

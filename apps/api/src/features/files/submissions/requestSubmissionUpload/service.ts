@@ -9,7 +9,7 @@ import {
 } from "@repo/types";
 import { validateSubmissionExists } from "../helpers.js";
 import { buildBlobPath } from "../../helpers/buildBlobPath.js";
-import { generateWriteSasUrl } from "../../helpers/sasHelper.js";
+import { generateWriteSasUrl } from "../../../../services/blobService.js";
 
 type SubmissionRequestUploadInput = RequestSubmissionUploadBody &
   RequestSubmissionUploadParams;
@@ -17,7 +17,7 @@ type SubmissionRequestUploadInput = RequestSubmissionUploadBody &
 export const submissionRequestUploadService = async (
   prisma: PrismaClient,
   blobServiceClient: BlobServiceClient,
-  accountName: string,
+
   containerName: string,
   input: SubmissionRequestUploadInput
 ): Promise<RequestSubmissionUploadResponse> => {
@@ -36,7 +36,6 @@ export const submissionRequestUploadService = async (
 
   const { url, expiresAt } = await generateWriteSasUrl(
     blobServiceClient,
-    accountName,
     containerName,
     blobPath
   );
