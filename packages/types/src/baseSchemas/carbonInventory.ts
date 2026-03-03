@@ -3,10 +3,6 @@ import { IdSchema } from "../zod.js";
 import { UserBaseSchema } from "./user.js";
 import { InventoryStatus, UsageMode } from "../enums.js";
 
-export const InventoryStatusSchema = z.enum(InventoryStatus);
-
-export const UsageModeSchema = z.enum(UsageMode);
-
 export const OrganizationDataFieldSchema = z
   .object({
     name: z.string().nullable().describe("The name of the organization"),
@@ -39,12 +35,12 @@ export const CarbonInventoryBaseSchema = z
       .int()
       .nullable()
       .describe("The year of the carbon inventory"),
-    status: InventoryStatusSchema.describe(
-      "The status of the carbon inventory"
-    ),
-    usageMode: UsageModeSchema.describe(
-      "The usage mode of the carbon inventory"
-    ),
+    status: z
+      .enum(InventoryStatus)
+      .describe("The status of the carbon inventory"),
+    usageMode: z
+      .enum(UsageMode)
+      .describe("The usage mode of the carbon inventory"),
     methodologyVersionId: IdSchema.nullable().describe(
       "The ID of the methodology version"
     ),
