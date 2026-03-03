@@ -6,25 +6,20 @@ import {
   getAvailableFactors,
   getAvailableSources,
 } from "../services/emissionFactorService";
-import {
-  GetCarbonInventoryMethodologyResponse,
-  GetAllRateMeasurementUnitsResponse,
-} from "@repo/types";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
-
-type EmissionFactors =
-  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["emissionFactors"];
-
-type EmissionFactorDimensions =
-  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"];
+import {
+  MethodologyEmissionFactor,
+  MethodologyEmissionFactorDimension,
+  RateMeasurementUnit,
+} from "../../../types";
 
 interface EmissionEditorFactorSourceCellProps {
   subcategoryId: string;
   lineId: string;
-  dimensions: EmissionFactorDimensions;
-  emissionFactors: EmissionFactors;
-  rateMeasurementUnits: GetAllRateMeasurementUnitsResponse;
+  dimensions: MethodologyEmissionFactorDimension[];
+  emissionFactors: MethodologyEmissionFactor[];
+  rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   onChange: (value: string) => void;
   disabled?: boolean;
 }

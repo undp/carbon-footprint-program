@@ -1,13 +1,10 @@
-import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionCaptureFormLine } from "../../../types/EmissionCaptureTypes";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
-
-type EmissionFactorDimensions =
-  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"];
+import { MethodologyEmissionFactorDimension } from "../../../types";
 
 const areRequiredDimensionsFilled = (
   line: EmissionCaptureFormLine,
-  dimensions: EmissionFactorDimensions
+  dimensions: MethodologyEmissionFactorDimension[]
 ): boolean => {
   // Check first dimension if it exists and is required
   const firstDimension = dimensions.find((d) => d.position === 1);
@@ -30,7 +27,7 @@ const isMeasurementUnitSelected = (line: EmissionCaptureFormLine): boolean => {
 
 export const canSelectFactorSource = (
   line: EmissionCaptureFormLine,
-  dimensions: EmissionFactorDimensions
+  dimensions: MethodologyEmissionFactorDimension[]
 ): boolean => {
   return (
     (!!line.factorSource &&
@@ -48,7 +45,7 @@ export const canEditFactorValue = (line: EmissionCaptureFormLine): boolean => {
 export const getDisabledReasonMessage = (
   fieldName: "factorSource" | "factorValue",
   line: EmissionCaptureFormLine,
-  dimensions: EmissionFactorDimensions
+  dimensions: MethodologyEmissionFactorDimension[]
 ): string | null => {
   if (fieldName === "factorSource") {
     if (

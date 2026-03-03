@@ -1,4 +1,6 @@
 import type {
+  GetAllMeasurementUnitsResponse,
+  GetAllRateMeasurementUnitsResponse,
   GetCarbonInventoryByIdResponse,
   GetCarbonInventoryMethodologyResponse,
 } from "@repo/types";
@@ -9,8 +11,15 @@ export type MethodologyCategory =
 export type MethodologySubcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
-export type CarbonInventorySubcategory =
-  GetCarbonInventoryByIdResponse["subcategories"][number];
+export type MethodologyEmissionFactor =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["emissionFactors"][number];
+
+export type MethodologyEmissionFactorDimension =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["dimensions"][number];
+
+export type MeasurementUnit = GetAllMeasurementUnitsResponse[number];
+
+export type RateMeasurementUnit = GetAllRateMeasurementUnitsResponse[number];
 
 export type CarbonInventoryLine =
   GetCarbonInventoryByIdResponse["subcategories"][number]["lines"][number];

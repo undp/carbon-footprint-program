@@ -2,10 +2,6 @@ import { useCallback, useMemo, useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
-import {
-  GetAllRateMeasurementUnitsResponse,
-  GetCarbonInventoryMethodologyResponse,
-} from "@repo/types";
 import { Routes } from "@/interfaces";
 import {
   EmissionCaptureFormValues,
@@ -23,14 +19,12 @@ import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/sub
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
 import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
-
-type EmissionFactors =
-  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number]["emissionFactors"];
+import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
 interface UseEmissionEditorFormParams {
   subcategory: SubcategoryWithLines;
-  emissionFactors: EmissionFactors;
-  rateMeasurementUnits: GetAllRateMeasurementUnitsResponse;
+  emissionFactors: MethodologyEmissionFactor[];
+  rateMeasurementUnits: RateMeasurementUnit[] | undefined;
 }
 
 interface UseEmssionEditorFormResults {
