@@ -33,7 +33,8 @@ export const FullMethodologyDataSchema = z.array(
         subcategories: z.array(
           z.object({
             name: z.string().min(1),
-            description: z.string().nullable().optional(),
+            description: z.string().min(1),
+            icon: z.string().min(1),
             examples: z.string().nullable().optional(),
             allowedMeasurementUnitsAbbreviations: z
               .array(z.string())
