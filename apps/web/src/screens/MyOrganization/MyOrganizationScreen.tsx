@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
 import { MainLayout } from "@/components/layout";
 import {
@@ -18,26 +18,35 @@ import {
   useMyOrganizationState,
   useMyOrganizationUsers,
 } from "./hooks";
+import { useOrganizations } from "@/api/query/organizations";
 
 export const MyOrganizationScreen: FC = () => {
-  // UI state management with explicit state tracking
+  // Fetch user's organizations list
+  const { data: organizations = [], isLoading: isLoadingOrganizations } =
+    useOrganizations();
+
+  // UI state management - simplified to just dialog state and selected org ID
   const {
-    activeOrganizationId,
-    organizationStatus,
+    selectedOrganizationId,
+    setSelectedOrganizationId,
     formDialogMode,
     formDialogOpen,
-    handleOrganizationChange,
     closeFormDialog,
     onEditOrganizationProfile,
   } = useMyOrganizationState();
 
-  // Data fetching - only fetch when we have a valid organization ID
-  // Guards prevent premature fetching when activeOrganizationId is undefined
-  const { organization, organizationUsers, isLoadingUsers } =
-    useMyOrganizationData({ activeOrganizationId });
+  // Set default organization (first one) when organizations load
+  useEffect(() => {
+    if (!isLoadingOrganizations && organizations.length > 0 && !selectedOrganizationId) {
+      setSelectedOrganizationId(organizations[0].id);
+    }
+  }, [organizations, isLoadingOrganizations, selectedOrganizationId, setSelectedOrganizationId]);
 
-  // User management - pass undefined instead of empty string when not loaded
-  // This prevents premature mutation attempts
+  // Data fetching - only fetch when we have a selected organization
+  const { organization, organizationUsers, isLoadingUsers } =
+    useMyOrganizationData({ activeOrganizationId: selectedOrganizationId });
+
+  // User management
   const {
     addDialogOpen,
     editDialogOpen,
@@ -58,8 +67,8 @@ export const MyOrganizationScreen: FC = () => {
     handleDeleteUser,
   } = useMyOrganizationUsers(organization?.id);
 
-  // No organizations exist - explicit state check
-  if (organizationStatus === "no_organizations") {
+  // No organizations exist - show empty state
+  if (!isLoadingOrganizations && organizations.length === 0) {
     return (
       <MainLayout>
         <OrganizationEmptyState onSuccess={closeFormDialog} />
@@ -70,7 +79,10 @@ export const MyOrganizationScreen: FC = () => {
   return (
     <MainLayout>
       <Box className="flex flex-1 flex-col gap-6 p-6">
-        <OrganizationHeader onOrganizationChange={handleOrganizationChange} />
+        <OrganizationHeader
+          selectedOrganizationId={selectedOrganizationId}
+          onOrganizationChange={setSelectedOrganizationId}
+        />
 
         {organization ? (
           <>

@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useEffect } from "react";
+import { FC, useMemo, useEffect } from "react";
 import {
   Box,
   FormControl,
@@ -12,17 +12,16 @@ import { useOrganizations } from "@/api/query/organizations";
 import { OrganizationHeaderSkeleton } from "./Skeletons";
 
 type OrganizationHeaderProps = {
-  onOrganizationChange: (organizationId: string | null) => void;
+  selectedOrganizationId?: string;
+  onOrganizationChange: (organizationId: string) => void;
 };
 
 export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
+  selectedOrganizationId,
   onOrganizationChange,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
   const { data: organizations, isLoading, error } = useOrganizations();
-
-  const [selectedOrganizationId, setSelectedOrganizationId] =
-    useState<string>();
 
   useEffect(() => {
     if (error) {
@@ -33,15 +32,8 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
   }, [error, enqueueSnackbar]);
 
   const activeOrganization = useMemo(() => {
-    const targetId = selectedOrganizationId ?? organizations?.[0]?.id;
-    return organizations?.find((org) => org.id === targetId);
+    return organizations?.find((org) => org.id === selectedOrganizationId);
   }, [organizations, selectedOrganizationId]);
-
-  useEffect(() => {
-    if (isLoading) return;
-    onOrganizationChange(activeOrganization?.id ?? null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeOrganization?.id, isLoading]);
 
   if (isLoading) return <OrganizationHeaderSkeleton />;
 
@@ -60,7 +52,7 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
           id="organization-select"
           value={activeOrganization.id}
           label="Organizaciones"
-          onChange={(e) => setSelectedOrganizationId(e.target.value)}
+          onChange={(e) => onOrganizationChange(e.target.value)}
         >
           {organizations.map((org) => (
             <MenuItem key={org.id} value={org.id}>
