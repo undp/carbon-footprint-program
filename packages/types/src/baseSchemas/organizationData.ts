@@ -47,7 +47,7 @@ export const OrganizationDataBaseSchema = z.object({
     .string()
     .describe("The phone number of the organization's representative."),
   representativeEmail: z
-    .string()
+    .email()
     .describe("The email address of the organization's representative."),
   createdAt: z.iso
     .datetime()
