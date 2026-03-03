@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -39,8 +39,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    // Clean up test users before each test
+  afterEach(async () => {
+    // Clean up test users after each test
     await prisma.user.deleteMany({
       where: {
         email: {

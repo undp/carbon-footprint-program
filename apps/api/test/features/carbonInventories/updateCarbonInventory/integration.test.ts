@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -43,7 +43,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
   });

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -28,12 +28,11 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await restoreMethodologies(prisma);
     await prisma.$disconnect();
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await restoreMethodologies(prisma);
   });
 
