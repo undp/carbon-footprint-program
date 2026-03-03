@@ -277,25 +277,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationBranchId).toBe("456");
     });
 
-    it("should update with empty payload (no changes)", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {},
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
-
-      expect(body.id).toBe(inventory.id.toString());
-      expect(body.year).toBeNull();
-      expect(body.usageMode).toBe("SIMPLIFIED");
-    });
-
     it("should set nullable fields to null", async () => {
       const organization = await createTestOrganization(prisma);
       const organizationId = organization.id;
@@ -578,6 +559,20 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
           year: 2024,
           extraField: "should not be here",
         },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when payload is empty", async () => {
+      const inventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${inventory.id}`,
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);
