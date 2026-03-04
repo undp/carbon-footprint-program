@@ -6,4 +6,8 @@ export const maintainerKeys = {
     all: (methodologyVersionId: string) =>
       ["maintainer", "categories", methodologyVersionId] as const,
   },
+  subcategories: {
+    all: (methodologyVersionId: string) =>
+      ["maintainer", "subcategories", methodologyVersionId] as const,
+  },
 };

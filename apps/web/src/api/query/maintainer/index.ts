@@ -13,3 +13,9 @@ export {
   useDeleteCategory,
   useSwapCategoryPositions,
 } from "./useCategories";
+export {
+  useSubcategories,
+  useAddSubcategory,
+  useUpdateSubcategory,
+  useDeleteSubcategory,
+} from "./useSubcategories";
