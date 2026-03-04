@@ -12,12 +12,11 @@ export const rejectRequestService = async (
   submissionId: string,
   body: RejectRequestBody,
   userId: User["id"]
-): Promise<RejectRequestResponse> => {
-  return await updatePendingSubmissionStatus(
+): Promise<RejectRequestResponse> =>
+  updatePendingSubmissionStatus(
     prismaClient,
     submissionId,
     SubmissionStatus.REJECTED,
     body,
     userId
   );
-};

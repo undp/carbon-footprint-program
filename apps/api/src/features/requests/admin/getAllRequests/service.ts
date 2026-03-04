@@ -7,11 +7,10 @@ import {
 
 export const getAllRequestsService = async (
   prismaClient: PrismaClient
-): Promise<GetAllAdminRequestsResponse> => {
-  const submissions = await prismaClient.submissionSummaryView.findMany({
-    select: adminSubmissionSummaryViewSelect,
-    orderBy: [{ requestedAt: "desc" }, { submissionId: "desc" }],
-  });
-
-  return submissions.map(mapAdminSubmissionSummaryToResponse);
-};
+): Promise<GetAllAdminRequestsResponse> =>
+  (
+    await prismaClient.submissionSummaryView.findMany({
+      select: adminSubmissionSummaryViewSelect,
+      orderBy: [{ requestedAt: "desc" }, { submissionId: "desc" }],
+    })
+  ).map(mapAdminSubmissionSummaryToResponse);

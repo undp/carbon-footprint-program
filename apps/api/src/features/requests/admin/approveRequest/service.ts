@@ -12,12 +12,11 @@ export const approveRequestService = async (
   submissionId: string,
   body: ApproveRequestBody,
   userId: User["id"]
-): Promise<ApproveRequestResponse> => {
-  return await updatePendingSubmissionStatus(
+): Promise<ApproveRequestResponse> =>
+  updatePendingSubmissionStatus(
     prismaClient,
     submissionId,
     SubmissionStatus.APPROVED,
     body,
     userId
   );
-};
