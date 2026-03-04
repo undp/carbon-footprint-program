@@ -35,14 +35,11 @@ import {
 } from "@/api/query/maintainer";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
-import {
-  FormCategory,
-  useCategoriesForm,
-  toFormCategory,
-} from "../hooks/useCategoriesForm";
+import { useCategoriesForm, toFormCategory } from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
 import {
   MethodologyVersionStatus,
+  CategoryForm,
   type GetAllCategoriesResponse,
 } from "@repo/types";
 import { StylizedDataGrid } from "@components";
@@ -173,7 +170,7 @@ interface CategoriesFormProps {
   targetMethodology: { id: string; name: string };
   methodologyVersionId: string;
   isViewOnly: boolean;
-  initialCategories: FormCategory[];
+  initialCategories: CategoryForm[];
   serverCategories: Category[];
   methodologySelector: ReactNode;
   onExitEditMode: () => void;
@@ -343,7 +340,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     const tempId = `temp_${Date.now()}`;
     const rows = form.getValues("categories");
     const maxPosition = rows.reduce((max, r) => Math.max(max, r.position), 0);
-    const newRow: FormCategory = {
+    const newRow: CategoryForm = {
       id: tempId,
       name: "",
       icon: "",
@@ -358,7 +355,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   }, [fieldArray, form]);
 
   const handleDelete = useCallback(
-    async (row: FormCategory) => {
+    async (row: CategoryForm) => {
       try {
         const rows = form.getValues("categories");
         const index = rows.findIndex((r) => r.id === row.id);
@@ -387,7 +384,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   );
 
   const handleMove = useCallback(
-    async (row: FormCategory, direction: "up" | "down") => {
+    async (row: CategoryForm, direction: "up" | "down") => {
       const rows = form.getValues("categories");
       const sorted = [...rows].sort((a, b) => a.position - b.position);
       const sortedIdx = sorted.findIndex((r) => r.id === row.id);
@@ -427,12 +424,12 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   );
 
   const handleMoveUp = useCallback(
-    (row: FormCategory) => handleMove(row, "up"),
+    (row: CategoryForm) => handleMove(row, "up"),
     [handleMove]
   );
 
   const handleMoveDown = useCallback(
-    (row: FormCategory) => handleMove(row, "down"),
+    (row: CategoryForm) => handleMove(row, "down"),
     [handleMove]
   );
 

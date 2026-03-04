@@ -2,11 +2,13 @@ import { useMemo, useCallback } from "react";
 import { Button } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { GetAllCategoriesResponse } from "@repo/types";
+import type {
+  GetAllCategoriesResponse,
+  CategoryForm,
+} from "@repo/types";
 
 import { EditableTextCell, IconPickerCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
-import type { FormCategory } from "./useCategoriesForm";
 
 type Category = GetAllCategoriesResponse[number];
 
@@ -15,17 +17,17 @@ interface UseCategoryColumnsParams {
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof FormCategory,
+    field: keyof CategoryForm,
     value: string
   ) => void;
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => void;
   onCancelEditRow: () => void;
-  onDelete: (row: FormCategory) => void;
+  onDelete: (row: CategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
-  onMoveUp: (row: FormCategory) => void;
-  onMoveDown: (row: FormCategory) => void;
-  rows: FormCategory[];
+  onMoveUp: (row: CategoryForm) => void;
+  onMoveDown: (row: CategoryForm) => void;
+  rows: CategoryForm[];
 }
 
 export const useCategoryColumns = ({
