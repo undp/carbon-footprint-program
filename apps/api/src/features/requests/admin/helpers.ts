@@ -6,7 +6,7 @@ import {
   SubmissionNotPendingError,
 } from "../errors.js";
 
-export const updateSubmissionStatus = async (
+export const updatePendingSubmissionStatus = async (
   prismaClient: PrismaClient,
   submissionId: string,
   targetStatus: SubmissionStatus,

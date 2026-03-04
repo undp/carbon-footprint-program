@@ -5,7 +5,7 @@ import type {
   RejectRequestResponse,
   User,
 } from "@repo/types";
-import { updateSubmissionStatus } from "../helpers.js";
+import { updatePendingSubmissionStatus } from "../helpers.js";
 
 export const rejectRequestService = async (
   prismaClient: PrismaClient,
@@ -13,7 +13,7 @@ export const rejectRequestService = async (
   body: RejectRequestBody,
   userId: User["id"]
 ): Promise<RejectRequestResponse> => {
-  return await updateSubmissionStatus(
+  return await updatePendingSubmissionStatus(
     prismaClient,
     submissionId,
     SubmissionStatus.REJECTED,
