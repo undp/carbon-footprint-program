@@ -13,8 +13,8 @@ export const updatePendingSubmissionStatus = async (
   targetStatus: SubmissionTargetStatus,
   userId: User["id"],
   reviewComments?: string
-): Promise<{ submissionId: string }> => {
-  const result = await prismaClient.submission.update({
+): Promise<void> => {
+  const result = await prismaClient.submission.updateMany({
     where: {
       id: BigInt(submissionId),
       status: SubmissionStatus.PENDING,
@@ -27,9 +27,7 @@ export const updatePendingSubmissionStatus = async (
     },
   });
 
-  if (!result) {
+  if (result.count === 0) {
     throw new SubmissionUpdateError(submissionId);
   }
-
-  return { submissionId };
 };

@@ -14,6 +14,4 @@ export const RejectRequestBodySchema = z.object({
     .describe("Optional reviewer comments"),
 });
 
-export const RejectRequestResponseSchema = z.object({
-  submissionId: IdSchema.describe("The ID of the rejected submission"),
-});
+export const RejectRequestResponseSchema = z.object({});

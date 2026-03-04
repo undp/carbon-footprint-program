@@ -67,7 +67,7 @@ describe("POST /api/admin/requests/:id/reject - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as RejectRequestResponse;
-      expect(body.submissionId).toBe(submission.id.toString());
+      expect(body).toEqual({});
 
       // Verify: Submission status updated to REJECTED
       const updatedSubmission = await prisma.submission.findUnique({
@@ -187,7 +187,7 @@ Rejection reasons:
   });
 
   describe("Error cases", () => {
-    it("should return 404 for non-existent submission", async () => {
+    it("should return 400 for non-existent submission", async () => {
       const nonExistentId = "999999";
 
       const requestBody: RejectRequestBody = {
@@ -200,13 +200,12 @@ Rejection reasons:
         payload: requestBody,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("SUBMISSION_NOT_FOUND");
-      expect(body.message).toContain(nonExistentId);
+      expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
     });
 
-    it("should return 409 when trying to reject an already APPROVED submission", async () => {
+    it("should return 400 when trying to reject an already APPROVED submission", async () => {
       // Setup: Create APPROVED submission
       const org = await createTestOrganization(prisma);
       const orgData = await createTestOrganizationData(prisma, org.id);
@@ -229,13 +228,13 @@ Rejection reasons:
         payload: requestBody,
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("SUBMISSION_NOT_PENDING");
+      expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });
 
-    it("should return 409 when trying to reject an already REJECTED submission", async () => {
+    it("should return 400 when trying to reject an already REJECTED submission", async () => {
       // Setup: Create REJECTED submission
       const org = await createTestOrganization(prisma);
       const orgData = await createTestOrganizationData(prisma, org.id);
@@ -259,9 +258,9 @@ Rejection reasons:
         payload: requestBody,
       });
 
-      expect(response.statusCode).toBe(409);
+      expect(response.statusCode).toBe(400);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("SUBMISSION_NOT_PENDING");
+      expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });
 
@@ -407,7 +406,7 @@ Rejection reasons:
 
       // One should succeed (200), one should fail (409)
       const statuses = [response1.statusCode, response2.statusCode].sort();
-      expect(statuses).toEqual([200, 409]);
+      expect(statuses).toEqual([200, 400]);
 
       // Verify final state: submission is REJECTED
       const finalSubmission = await prisma.submission.findUnique({

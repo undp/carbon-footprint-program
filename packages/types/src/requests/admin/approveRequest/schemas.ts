@@ -15,6 +15,4 @@ export const ApproveRequestBodySchema = z.object({
     .describe("Optional reviewer comments"),
 });
 
-export const ApproveRequestResponseSchema = z.object({
-  submissionId: IdSchema.describe("The ID of the approved submission"),
-});
+export const ApproveRequestResponseSchema = z.object({});
