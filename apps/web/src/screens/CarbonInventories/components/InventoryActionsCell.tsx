@@ -194,10 +194,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setVerifyDialogOpen(false);
   }, []);
 
-  // const onRewardsClick = useCallback((_inventoryId: string) => {
-  //   //TODO: Implement rewards functionality
-  // }, []);
-
   const onDownloadClick = useCallback((_inventoryId: string) => {
     //TODO: Implement download functionality
   }, []);
@@ -269,19 +265,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             </BaseIconButton>
           </span>
         </Tooltip>
-
-        {/* Rewards button
-        <Tooltip title="Postular a sello">
-          <span>
-            <BaseIconButton
-              disabled
-              onClick={() => onRewardsClick(inventoryId)}
-              aria-label="Postular a sello"
-            >
-              <EmojiEventsOutlined fontSize="small" />
-            </BaseIconButton>
-          </span>
-        </Tooltip> */}
 
         {/* Duplicate button */}
 
