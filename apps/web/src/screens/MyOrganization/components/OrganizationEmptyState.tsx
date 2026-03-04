@@ -3,17 +3,17 @@ import { Box, Button, Typography } from "@mui/material";
 import { OrganizationFormDialog } from "./OrganizationForm";
 
 interface OrganizationEmptyStateProps {
-  onSuccess: () => void;
+  onCloseFormDialog: () => void;
 }
 
 export const OrganizationEmptyState: FC<OrganizationEmptyStateProps> = ({
-  onSuccess,
+  onCloseFormDialog,
 }) => {
   const [openFormDialog, setOpenFormDialog] = useState(false);
 
   const handleClose = () => {
     setOpenFormDialog(false);
-    onSuccess();
+    onCloseFormDialog();
   };
 
   return (

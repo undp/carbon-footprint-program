@@ -79,7 +79,7 @@ export const MyOrganizationScreen: FC = () => {
   if (!isLoadingOrganizations && organizations.length === 0) {
     return (
       <MainLayout>
-        <OrganizationEmptyState onSuccess={closeFormDialog} />
+        <OrganizationEmptyState onCloseFormDialog={closeFormDialog} />
       </MainLayout>
     );
   }
