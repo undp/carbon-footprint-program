@@ -1,6 +1,7 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
 import { alpha, IconButton, Stack, useTheme, type Theme } from "@mui/material";
+import { useSnackbar } from "notistack";
 import {
   VisibilityOutlined,
   CheckOutlined,
@@ -61,22 +62,38 @@ export const useRequestColumns = (): GridColDef<
   GetAllAdminRequestsResponse[number]
 >[] => {
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const cellClassName = "content-center";
-  const { mutate: approveRequest, isPending: isApproving } =
+  const { mutateAsync: approveRequest, isPending: isApproving } =
     useApproveRequest();
-  const { mutate: rejectRequest, isPending: isRejecting } = useRejectRequest();
+  const { mutateAsync: rejectRequest, isPending: isRejecting } =
+    useRejectRequest();
 
   const handleApprove = useCallback(
-    (id: string) => {
-      approveRequest({ id });
+    async (id: string) => {
+      try {
+        await approveRequest({ id });
+        enqueueSnackbar("Solicitud aprobada correctamente", {
+          variant: "success",
+        });
+      } catch {
+        enqueueSnackbar("Error al aprobar la solicitud", { variant: "error" });
+      }
     },
-    [approveRequest]
+    [approveRequest, enqueueSnackbar]
   );
   const handleReject = useCallback(
-    (id: string) => {
-      rejectRequest({ id });
+    async (id: string) => {
+      try {
+        await rejectRequest({ id });
+        enqueueSnackbar("Solicitud rechazada correctamente", {
+          variant: "success",
+        });
+      } catch {
+        enqueueSnackbar("Error al rechazar la solicitud", { variant: "error" });
+      }
     },
-    [rejectRequest]
+    [rejectRequest, enqueueSnackbar]
   );
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
