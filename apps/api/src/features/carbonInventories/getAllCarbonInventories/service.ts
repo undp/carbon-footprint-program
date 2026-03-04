@@ -50,6 +50,15 @@ export const getAllCarbonInventoriesService = async (
     },
     include: {
       subtotals: true,
+      organization: {
+        include: {
+          summary: {
+            select: {
+              isAccredited: true,
+            },
+          },
+        },
+      },
       submission: {
         include: {
           subject: {
@@ -77,5 +86,7 @@ export const getAllCarbonInventoriesService = async (
     totalEmissions: kgToTon(
       sumBy(inventory.subtotals, ({ value }) => toNumberOrNull(value) ?? 0)
     ),
+    organizationIsAccredited:
+      inventory.organization?.summary?.isAccredited ?? false,
   }));
 };

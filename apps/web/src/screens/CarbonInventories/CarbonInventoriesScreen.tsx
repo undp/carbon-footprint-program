@@ -253,6 +253,7 @@ export const CarbonInventoriesScreen: FC = () => {
             <InventoryActionsCell
               inventoryId={params.row.id}
               organizationId={params.row.organizationId}
+              organizationIsAccredited={params.row.organizationIsAccredited}
               status={params.row.status}
               refetchInventories={refetchInventories}
             />

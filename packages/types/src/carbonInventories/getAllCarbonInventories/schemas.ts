@@ -21,6 +21,11 @@ const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
   totalEmissions: z
     .number()
     .describe("The total calculated emissions for this inventory"),
+  organizationIsAccredited: z
+    .boolean()
+    .describe(
+      "Whether the associated organization is accredited. False if no organization is associated."
+    ),
 });
 
 // Response Schemas

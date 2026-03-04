@@ -18,6 +18,7 @@ import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmation
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
 import { MissingOrganizationDialog } from "./Dialogs/MissingOrganizationDialog";
+import { UnaccreditedOrganizationDialog } from "./Dialogs/UnaccreditedOrganizationDialog";
 import { enqueueSnackbar } from "notistack";
 import {
   useUpdateCarbonInventory,
@@ -49,6 +50,7 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 interface InventoryActionsCellProps {
   inventoryId: string;
   organizationId: string | null;
+  organizationIsAccredited: boolean;
   status: CarbonInventoryDisplayStatus;
   refetchInventories: (
     options?: RefetchOptions
@@ -58,6 +60,7 @@ interface InventoryActionsCellProps {
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   inventoryId,
   organizationId,
+  organizationIsAccredited,
   status,
   refetchInventories,
 }) => {
@@ -66,6 +69,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [calculationDialogOpen, setCalculationDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [missingOrgDialogOpen, setMissingOrgDialogOpen] = useState(false);
+  const [unaccreditedOrgDialogOpen, setUnaccreditedOrgDialogOpen] =
+    useState(false);
 
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
@@ -142,8 +147,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       setMissingOrgDialogOpen(true);
       return;
     }
+    if (!organizationIsAccredited) {
+      setUnaccreditedOrgDialogOpen(true);
+      return;
+    }
     setCalculationDialogOpen(true);
-  }, [organizationId]);
+  }, [organizationId, organizationIsAccredited]);
 
   const onCalculationConfirm = useCallback(async () => {
     try {
@@ -328,6 +337,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       <MissingOrganizationDialog
         open={missingOrgDialogOpen}
         onClose={() => setMissingOrgDialogOpen(false)}
+      />
+
+      <UnaccreditedOrganizationDialog
+        open={unaccreditedOrgDialogOpen}
+        onClose={() => setUnaccreditedOrgDialogOpen(false)}
       />
     </>
   );
