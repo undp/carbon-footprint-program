@@ -4,3 +4,5 @@ export * from "./deleteSubcategory/schemas.js";
 export * from "./deleteSubcategory/types.js";
 export * from "./createSubcategory/schemas.js";
 export * from "./createSubcategory/types.js";
+export * from "./updateSubcategory/schemas.js";
+export * from "./updateSubcategory/types.js";
