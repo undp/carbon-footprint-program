@@ -1,16 +1,20 @@
-import type { PrismaClient } from "@repo/database";
 import { SubmissionStatus } from "@repo/database";
+import type { PrismaClient } from "@repo/database";
 import type { User } from "@repo/types";
 import {
   SubmissionNotFoundError,
   SubmissionNotPendingError,
 } from "../errors.js";
 
+type SubmissionTargetStatus =
+  | typeof SubmissionStatus.APPROVED
+  | typeof SubmissionStatus.REJECTED;
+
 export const updatePendingSubmissionStatus = async (
   prismaClient: PrismaClient,
   submissionId: string,
-  targetStatus: SubmissionStatus,
-  body: { reviewComments?: string },
+  targetStatus: SubmissionTargetStatus,
+  reviewComments: string,
   userId: User["id"]
 ): Promise<{ submissionId: string }> => {
   const result = await prismaClient.submission.updateMany({
@@ -21,7 +25,7 @@ export const updatePendingSubmissionStatus = async (
     data: {
       status: targetStatus,
       reviewerId: BigInt(userId),
-      reviewComments: body.reviewComments,
+      reviewComments,
       updatedById: BigInt(userId),
     },
   });
