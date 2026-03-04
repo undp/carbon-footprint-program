@@ -15,6 +15,7 @@ export const useRejectRequest = () => {
     mutationFn: ({ id, body }) =>
       apiClient
         // TODO: Remove temporary comment
+        // TODO: force 2000 character limit for review comments
         .post(`admin/requests/${id}/reject`, {
           json: body ?? { comments: "temporary comment" },
         })

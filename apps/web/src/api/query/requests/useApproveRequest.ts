@@ -13,6 +13,7 @@ export const useApproveRequest = () => {
     { id: string; body?: ApproveRequestBody }
   >({
     mutationFn: ({ id, body }) =>
+      // TODO: force 2000 character limit for review comments
       apiClient
         .post(`admin/requests/${id}/approve`, { json: body ?? {} })
         .json<ApproveRequestResponse>(),
