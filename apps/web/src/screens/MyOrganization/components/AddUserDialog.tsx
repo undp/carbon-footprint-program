@@ -53,10 +53,11 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
   useEffect(() => {
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement;
+      reset({ email: "", role: "" });
     } else if (previousFocusRef.current) {
       previousFocusRef.current.focus();
     }
-  }, [open]);
+  }, [open, reset]);
 
   return (
     <Dialog
