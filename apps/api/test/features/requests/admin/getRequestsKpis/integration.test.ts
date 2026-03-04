@@ -102,7 +102,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
-      expect(body.total).toBeGreaterThanOrEqual(3);
+      expect(body.total).toBe(3);
 
       const pendingOrgAccreditation = body.counts.find(
         (c) =>
@@ -110,7 +110,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
           c.status === SubmissionStatus.PENDING
       );
       expect(pendingOrgAccreditation).toBeDefined();
-      expect(pendingOrgAccreditation!.value).toBeGreaterThanOrEqual(3);
+      expect(pendingOrgAccreditation!.value).toBe(3);
     });
 
     it("should count APPROVED submissions correctly", async () => {
@@ -135,7 +135,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
-      expect(body.total).toBeGreaterThanOrEqual(2);
+      expect(body.total).toBe(2);
 
       const approvedOrgAccreditation = body.counts.find(
         (c) =>
@@ -143,7 +143,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
           c.status === SubmissionStatus.APPROVED
       );
       expect(approvedOrgAccreditation).toBeDefined();
-      expect(approvedOrgAccreditation!.value).toBeGreaterThanOrEqual(2);
+      expect(approvedOrgAccreditation!.value).toBe(2);
     });
 
     it("should count REJECTED submissions correctly", async () => {
@@ -167,7 +167,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
-      expect(body.total).toBeGreaterThanOrEqual(1);
+      expect(body.total).toBe(1);
 
       const rejectedOrgAccreditation = body.counts.find(
         (c) =>
@@ -175,7 +175,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
           c.status === SubmissionStatus.REJECTED
       );
       expect(rejectedOrgAccreditation).toBeDefined();
-      expect(rejectedOrgAccreditation!.value).toBeGreaterThanOrEqual(1);
+      expect(rejectedOrgAccreditation!.value).toBe(1);
     });
   });
 
@@ -227,7 +227,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
       // Total should be 2 + 3 + 1 = 6
-      expect(body.total).toBeGreaterThanOrEqual(6);
+      expect(body.total).toBe(6);
 
       const pendingCount = body.counts.find(
         (c) =>
@@ -245,9 +245,9 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
           c.status === SubmissionStatus.REJECTED
       )!.value;
 
-      expect(pendingCount).toBeGreaterThanOrEqual(2);
-      expect(approvedCount).toBeGreaterThanOrEqual(3);
-      expect(rejectedCount).toBeGreaterThanOrEqual(1);
+      expect(pendingCount).toBe(2);
+      expect(approvedCount).toBe(3);
+      expect(rejectedCount).toBe(1);
     });
 
     it("should return all type/status combinations even if some have zero counts", async () => {
@@ -315,7 +315,10 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
-      const sumOfCounts = body.counts.reduce((sum, count) => sum + count.value, 0);
+      const sumOfCounts = body.counts.reduce(
+        (sum, count) => sum + count.value,
+        0
+      );
       expect(body.total).toBe(sumOfCounts);
     });
   });
@@ -350,7 +353,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
         (c) => c.status === SubmissionStatus.PENDING
       );
       expect(pendingCount).toBeDefined();
-      expect(pendingCount!.value).toBeGreaterThan(0);
+      expect(pendingCount!.value).toBe(1);
     });
   });
 });
