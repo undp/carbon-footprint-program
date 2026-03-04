@@ -11,8 +11,9 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { restoreMethodologies } from "@test/factories/methodologyCleaner.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import type { DuplicateMethodologyResponse } from "@repo/types";
-import { CategoryStatus } from "@repo/types";
+import { CategoryStatus, SubCategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -179,6 +180,179 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       expect(duplicatedCategories[1].icon).toBe("icon-b");
       expect(duplicatedCategories[1].color).toBe("#BB0000");
       expect(duplicatedCategories[1].position).toBe(2);
+    });
+
+    it("should duplicate active subcategories from original methodology", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate With Subcategories",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Category With Subs",
+        position: 1,
+      });
+
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub A",
+        description: "Subcategory A",
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub B",
+        description: "Subcategory B",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const duplicatedCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      expect(duplicatedCategories).toHaveLength(1);
+
+      const duplicatedSubcategories = await prisma.subcategory.findMany({
+        where: { categoryId: duplicatedCategories[0].id },
+        orderBy: { name: "asc" },
+      });
+
+      expect(duplicatedSubcategories).toHaveLength(2);
+      expect(duplicatedSubcategories[0].name).toBe("Test - Sub A");
+      expect(duplicatedSubcategories[0].description).toBe("Subcategory A");
+      expect(duplicatedSubcategories[1].name).toBe("Test - Sub B");
+      expect(duplicatedSubcategories[1].description).toBe("Subcategory B");
+    });
+
+    it("should not duplicate deleted subcategories", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate Skip Deleted Subs",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Category Mixed Subs",
+        position: 1,
+      });
+
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Active Sub",
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Deleted Sub",
+        status: SubCategoryStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const duplicatedCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+
+      const duplicatedSubcategories = await prisma.subcategory.findMany({
+        where: { categoryId: duplicatedCategories[0].id },
+      });
+
+      expect(duplicatedSubcategories).toHaveLength(1);
+      expect(duplicatedSubcategories[0].name).toBe("Test - Active Sub");
+      expect(duplicatedSubcategories[0].status).toBe(SubCategoryStatus.ACTIVE);
+    });
+
+    it("should map subcategories to the correct duplicated category", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate Category Mapping",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const catA = await createTestCategory(prisma, original.id, {
+        name: "Test - Cat A",
+        position: 1,
+      });
+      const catB = await createTestCategory(prisma, original.id, {
+        name: "Test - Cat B",
+        position: 2,
+      });
+
+      await createTestSubcategory(prisma, catA.id, {
+        name: "Test - Sub in Cat A",
+      });
+      await createTestSubcategory(prisma, catB.id, {
+        name: "Test - Sub in Cat B",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const duplicatedCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+        orderBy: { position: "asc" },
+        include: { subcategories: true },
+      });
+
+      expect(duplicatedCategories).toHaveLength(2);
+      expect(duplicatedCategories[0].name).toBe("Test - Cat A");
+      expect(duplicatedCategories[0].subcategories).toHaveLength(1);
+      expect(duplicatedCategories[0].subcategories[0].name).toBe(
+        "Test - Sub in Cat A"
+      );
+      expect(duplicatedCategories[1].name).toBe("Test - Cat B");
+      expect(duplicatedCategories[1].subcategories).toHaveLength(1);
+      expect(duplicatedCategories[1].subcategories[0].name).toBe(
+        "Test - Sub in Cat B"
+      );
+    });
+
+    it("should not duplicate subcategories from deleted categories", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Deleted Cat No Subs",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const deletedCat = await createTestCategory(prisma, original.id, {
+        name: "Test - Deleted Cat With Sub",
+        position: 1,
+        status: CategoryStatus.DELETED,
+      });
+
+      await createTestSubcategory(prisma, deletedCat.id, {
+        name: "Test - Sub Under Deleted Cat",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const duplicatedCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      expect(duplicatedCategories).toHaveLength(0);
+
+      const duplicatedSubcategories = await prisma.subcategory.findMany({
+        where: {
+          categoryId: {
+            in: duplicatedCategories.map((c) => c.id),
+          },
+        },
+      });
+      expect(duplicatedSubcategories).toHaveLength(0);
     });
 
     it("should not duplicate deleted categories", async () => {
