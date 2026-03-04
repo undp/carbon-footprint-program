@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 
 type InfoRowProps = {
   label: string;
-  value: string;
+  value: React.ReactNode;
 };
 
 const InfoRowComponent: FC<InfoRowProps> = ({ label, value }) => {

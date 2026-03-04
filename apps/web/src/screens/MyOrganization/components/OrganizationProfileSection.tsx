@@ -90,24 +90,30 @@ const OrganizationProfileSectionComponent: FC<
   return (
     <>
       <SectionCard title="Perfil empresa" actions={actions}>
-        {/* Status Chips Row */}
-        <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
-          <RequestStatusChip
-            label={DISPLAY_STATUS_LABELS[profile.status]}
-            color={getDisplayStatusColor(profile.status, theme)}
+        <InfoCard title={profile.name}>
+          <InfoRow
+            label="Estado"
+            value={
+              <RequestStatusChip
+                label={DISPLAY_STATUS_LABELS[profile.status]}
+                color={getDisplayStatusColor(profile.status, theme)}
+              />
+            }
           />
           {profile.lastSubmissionStatus && (
-            <RequestStatusChip
-              label={SUBMISSION_STATUS_LABELS[profile.lastSubmissionStatus]}
-              color={getSubmissionStatusColor(
-                profile.lastSubmissionStatus,
-                theme
-              )}
+            <InfoRow
+              label="Última acreditación"
+              value={
+                <RequestStatusChip
+                  label={SUBMISSION_STATUS_LABELS[profile.lastSubmissionStatus]}
+                  color={getSubmissionStatusColor(
+                    profile.lastSubmissionStatus,
+                    theme
+                  )}
+                />
+              }
             />
           )}
-        </Box>
-
-        <InfoCard title={profile.name}>
           <InfoRow label="RUT / RUC" value={profile.taxId} />
           <InfoRow label="Razón social" value={profile.legalName} />
           <InfoRow
