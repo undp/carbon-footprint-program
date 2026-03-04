@@ -255,7 +255,6 @@ export const OrganizationFormDialog: FC<Props> = ({
                   loading={activitiesLoading}
                   disabled={activitiesLoading || activityOptions.length === 0}
                   className="flex-1"
-                  required
                 />
                 <Box className="flex-1" />
               </Box>

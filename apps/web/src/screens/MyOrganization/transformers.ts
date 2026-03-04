@@ -37,6 +37,7 @@ export const mapFormValuesToRequest = (
     sectorId: values.sectorId || null,
     subsectorId: values.subsectorId || null,
     countryOrganizationSizeId: values.countryOrganizationSizeId || null,
+    mainActivityId: values.mainActivityId || null,
     employeesCount:
       values.employeesCount !== null && values.employeesCount !== undefined
         ? Number(values.employeesCount)
