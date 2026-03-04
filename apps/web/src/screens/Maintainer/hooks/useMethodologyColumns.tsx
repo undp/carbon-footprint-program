@@ -1,6 +1,9 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { GetAllMethodologiesResponse } from "@repo/types";
+import type {
+  GetAllMethodologiesResponse,
+  MethodologyVersionForm,
+} from "@repo/types";
 
 import {
   EditableTextCell,
@@ -8,7 +11,6 @@ import {
 } from "../components/cells";
 import { ToggleCell } from "../components/ToggleCell";
 import { ActionButtons } from "../components/ActionButtons";
-import { FormMethodology } from "./useMethodologiesForm";
 
 type Methodology = GetAllMethodologiesResponse[number];
 
@@ -16,18 +18,18 @@ interface UseMethodologyColumnsParams {
   editingRowId: string | null;
   onCellChange: (
     rowIndex: number,
-    field: keyof FormMethodology,
+    field: keyof MethodologyVersionForm,
     value: string
   ) => void;
-  onToggle: (row: FormMethodology, checked: boolean) => void;
+  onToggle: (row: MethodologyVersionForm, checked: boolean) => void;
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => void;
   onCancelEditRow: () => void;
-  onEdit: (row: FormMethodology) => void;
-  onView: (row: FormMethodology) => void;
-  onDuplicate: (row: FormMethodology) => void;
-  onDelete: (row: FormMethodology) => void;
-  rows: FormMethodology[];
+  onEdit: (row: MethodologyVersionForm) => void;
+  onView: (row: MethodologyVersionForm) => void;
+  onDuplicate: (row: MethodologyVersionForm) => void;
+  onDelete: (row: MethodologyVersionForm) => void;
+  rows: MethodologyVersionForm[];
 }
 
 export const useMethodologyColumns = ({
