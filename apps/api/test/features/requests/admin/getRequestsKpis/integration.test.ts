@@ -354,6 +354,11 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       );
       expect(pendingCount).toBeDefined();
       expect(pendingCount!.value).toBe(1);
+
+      const nonOrgCounts = body.counts.filter(
+        (c) => c.type !== SubmissionSubjectType.ORGANIZATION_ACCREDITATION
+      );
+      expect(nonOrgCounts.every((c) => c.value === 0)).toBe(true);
     });
   });
 });

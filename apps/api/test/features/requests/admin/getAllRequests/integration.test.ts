@@ -309,17 +309,17 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllAdminRequestsResponse;
 
-      // Should include both submissions
-      const orgSubmissions = body.filter(
-        (r) =>
-          r.organizationName === "Test Org Version 1" ||
-          r.organizationName === "Test Org Version 2"
+      // Old submission name is not included
+      const oldOrgVersion1Submissions = body.filter(
+        (r) => r.organizationName === "Test Org Version 1"
       );
-      expect(orgSubmissions.length).toBe(2);
-      const names = new Set(orgSubmissions.map((r) => r.organizationName));
-      expect(names).toEqual(
-        new Set(["Test Org Version 1", "Test Org Version 2"])
+      expect(oldOrgVersion1Submissions.length).toBe(0);
+
+      // Old submission name is replaced by the new one while is pending
+      const newOrgVersion2Submissions = body.filter(
+        (r) => r.organizationName === "Test Org Version 2"
       );
+      expect(newOrgVersion2Submissions.length).toBe(2);
     });
   });
 });

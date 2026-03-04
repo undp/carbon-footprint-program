@@ -13,7 +13,7 @@ export const getAllRequestsService = async (
       period: true,
       requestedAt: true,
     },
-    orderBy: { requestedAt: "desc", submissionId: "desc" },
+    orderBy: [{ requestedAt: "desc" }, { submissionId: "desc" }],
   });
 
   return submissions.map((submission) => ({
