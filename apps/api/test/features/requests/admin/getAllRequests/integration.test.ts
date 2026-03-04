@@ -316,6 +316,10 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
           r.organizationName === "Test Org Version 2"
       );
       expect(orgSubmissions.length).toBe(2);
+      const names = new Set(orgSubmissions.map((r) => r.organizationName));
+      expect(names).toEqual(
+        new Set(["Test Org Version 1", "Test Org Version 2"])
+      );
     });
   });
 });
