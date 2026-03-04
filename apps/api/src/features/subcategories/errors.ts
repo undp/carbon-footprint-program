@@ -19,6 +19,12 @@ export const CategoryNotFoundForSubcategoryError = createError(
   404
 );
 
+export const CategoryFromDifferentMethodologyError = createError(
+  "CATEGORY_FROM_DIFFERENT_METHODOLOGY",
+  "Target category must belong to the same methodology version",
+  422
+);
+
 const normalizeP2002FieldName = (value: string): string =>
   value
     .trim()

@@ -261,6 +261,62 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(body.code).toBe("SUBCATEGORY_NAME_ALREADY_EXISTS");
     });
 
+    it("should return 404 when target category does not exist", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Non-existent Category",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: "999999999",
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("CATEGORY_NOT_FOUND_FOR_SUBCATEGORY");
+    });
+
+    it("should return 422 when target category belongs to a different methodology", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Cross Methodology",
+      });
+
+      // Create a second methodology with its own category
+      const otherMethodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Other Methodology",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const otherCategory = await createTestCategory(
+        prisma,
+        otherMethodology.id,
+        {
+          name: "Test - Other Category",
+          position: 1,
+        }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: otherCategory.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("CATEGORY_FROM_DIFFERENT_METHODOLOGY");
+    });
+
     it("should return 400 when no fields are provided", async () => {
       const subcategory = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Empty Update",

@@ -1,5 +1,6 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
+  CategoryStatus,
   SubCategoryStatus,
   User,
   type UpdateSubcategoryRequest,
@@ -8,6 +9,8 @@ import {
 import {
   SubcategoryNotFoundError,
   SubcategoryNameAlreadyExistsError,
+  CategoryNotFoundForSubcategoryError,
+  CategoryFromDifferentMethodologyError,
   getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
@@ -28,11 +31,36 @@ export const updateSubcategoryService = async (
       id: BigInt(id),
       status: { not: SubCategoryStatus.DELETED },
     },
-    select: { status: true },
+    select: {
+      status: true,
+      category: { select: { methodologyVersionId: true } },
+    },
   });
 
   if (!targetSubcategory) {
     throw new SubcategoryNotFoundError();
+  }
+
+  // Validate the target category belongs to the same methodology
+  if (data.categoryId !== undefined) {
+    const newCategory = await prismaClient.category.findFirst({
+      where: {
+        id: BigInt(data.categoryId),
+        status: { not: CategoryStatus.DELETED },
+      },
+      select: { methodologyVersionId: true },
+    });
+
+    if (!newCategory) {
+      throw new CategoryNotFoundForSubcategoryError();
+    }
+
+    if (
+      newCategory.methodologyVersionId !==
+      targetSubcategory.category.methodologyVersionId
+    ) {
+      throw new CategoryFromDifferentMethodologyError();
+    }
   }
 
   try {
@@ -43,6 +71,8 @@ export const updateSubcategoryService = async (
         updatedById: BigInt(user.id),
       };
 
+      if (data.categoryId !== undefined)
+        updateData.categoryId = BigInt(data.categoryId);
       if (data.name !== undefined) updateData.name = data.name;
       if (data.icon !== undefined) updateData.icon = data.icon;
       if (data.description !== undefined)
