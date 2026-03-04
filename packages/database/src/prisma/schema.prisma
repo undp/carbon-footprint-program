@@ -852,6 +852,7 @@ enum SubmissionStatus {
 model Submission {
   id             BigInt                 @id @default(autoincrement())
   subjectId      BigInt                 @map("subject_id")
+  badgeId        BigInt?                @map("badge_id")
   status         SubmissionStatus       @default(PENDING)
   reviewerId     BigInt?                @map("reviewer_id")
   reviewComments String?                @map("review_comments")
@@ -866,7 +867,6 @@ model Submission {
   badge          Badge?                 @relation(fields: [badgeId], references: [id])
   summary        SubmissionSummaryView?
   files          SubmissionFile[]
-
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
@@ -885,6 +885,8 @@ view SubmissionSummaryView {
   submission       Submission            @relation(fields: [submissionId], references: [id])
 
   @@map("submission_summary_view")
+}
+
 enum BadgeType {
   CARBON_INVENTORY
   ORGANIZATION_DATA
