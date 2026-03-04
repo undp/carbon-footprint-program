@@ -43,7 +43,6 @@ export const requestCalculationService = async (
 
   if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-  // TODO: Validate the carbon inventory does not have an APPROVED or REJECTED submission of type CALCULATION
   canSubmitToCalculation(inventory);
 
   validateOrganizationIsAccredited(
