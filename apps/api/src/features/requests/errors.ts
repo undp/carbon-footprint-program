@@ -1,13 +1,7 @@
 import createError from "@fastify/error";
 
-export const SubmissionNotFoundError = createError(
-  "SUBMISSION_NOT_FOUND",
-  "Submission with ID %s not found",
-  404
-);
-
-export const SubmissionNotPendingError = createError(
-  "SUBMISSION_NOT_PENDING",
-  "Submission with ID %s is not in PENDING status",
-  409
+export const SubmissionUpdateError = createError(
+  "SUBMISSION_UPDATE_ERROR",
+  "Failed to update submission with ID %s, status is not PENDING or submission not found",
+  400
 );
