@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import { BadgeBaseSchema } from "../../baseSchemas/index.js";
 
