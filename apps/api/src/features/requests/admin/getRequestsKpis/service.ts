@@ -11,26 +11,28 @@ export const getRequestsKpisService = async (
     _count: true,
   });
 
+  const bucket = new Map<string, number>();
+  for (const sub of submissionCounts) {
+    const key = `${sub.subjectType}:${sub.status}`;
+    bucket.set(key, sub._count);
+  }
+
   const types = Object.values(SubmissionSubjectType);
   const statuses = Object.values(SubmissionStatus);
 
   const counts = flatMap(types, (type) =>
     statuses.map((status) => {
-      const row = submissionCounts.find(
-        (r) => r.subjectType === type && r.status === status
-      );
+      const key = `${type}:${status}`;
       return {
         type,
         status,
-        value: row?._count ?? 0,
+        value: bucket.get(key) ?? 0,
       };
     })
   );
 
-  const total = sumBy(submissionCounts, "_count");
-
   return {
-    total,
+    total: sumBy(counts, "value"),
     counts,
   };
 };

@@ -1,52 +1,42 @@
 import type { PrismaClient } from "@repo/database";
 import { OrganizationStatus } from "@repo/database";
 import type { GetOrganizationKpisResponse } from "@repo/types";
-import { flatMap } from "lodash-es";
+import { flatMap, sumBy } from "lodash-es";
 
 export const getOrganizationKpisService = async (
   prismaClient: PrismaClient
 ): Promise<GetOrganizationKpisResponse> => {
   // Fetch all organizations from the summary view
-  const organizations = await prismaClient.organizationSummaryView.findMany({
-    select: {
-      organization: {
-        select: {
-          status: true,
-        },
-      },
-      isAccredited: true,
-      hasCarbonInventories: true,
-    },
+  const organizations = await prismaClient.organizationSummaryView.groupBy({
+    by: ["organizationStatus", "isAccredited", "hasCarbonInventories"],
+    _count: true,
   });
 
-  const statuses: Array<OrganizationStatus> = [
-    OrganizationStatus.ACTIVE,
-    OrganizationStatus.BLOCKED,
-  ];
+  const bucket = new Map<string, number>();
+  for (const org of organizations) {
+    const key = `${org.organizationStatus}:${org.isAccredited}:${org.hasCarbonInventories}`;
+    bucket.set(key, org._count);
+  }
+
+  const statuses = Object.values(OrganizationStatus);
   const booleanValues = [true, false];
 
   const counts = flatMap(statuses, (status) =>
     flatMap(booleanValues, (accredited) =>
       booleanValues.map((withInventories) => {
-        const count = organizations.filter(
-          (org) =>
-            org.organization.status === status &&
-            org.isAccredited === accredited &&
-            org.hasCarbonInventories === withInventories
-        ).length;
-
+        const key = `${status}:${accredited}:${withInventories}`;
         return {
           status,
           accredited,
           withInventories,
-          count,
+          count: bucket.get(key) ?? 0,
         };
       })
     )
   );
 
   return {
-    total: organizations.length,
+    total: sumBy(counts, "count"),
     counts,
   };
 };

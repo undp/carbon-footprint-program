@@ -666,6 +666,7 @@ enum OrganizationSummaryDisplayStatus {
 view OrganizationSummaryView {
   organizationId        BigInt                           @unique @map("organization_id")
   organizationDataId    BigInt                           @map("organization_data_id")
+  organizationStatus    OrganizationStatus               @map("organization_status")
   name                  String                           @map("name")
   lastSubmissionStatus  SubmissionStatus?                @map("last_submission_status")
   hasUnsubmittedChanges Boolean                          @map("has_unsubmitted_changes")

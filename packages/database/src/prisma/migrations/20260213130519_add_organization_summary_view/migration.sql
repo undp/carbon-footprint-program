@@ -88,6 +88,7 @@ organization_carbon_inventories_summary AS (
 SELECT
   o.id                                                     AS organization_id,
   odd.id                                                   AS organization_data_id,
+  o.status                                                 AS organization_status,
   COALESCE(odd.trade_name, odd.legal_name, odd.tax_id)     AS name,
   lss.submission_status::TEXT                              AS last_submission_status,
   (uioc.organization_id IS NOT NULL)                       AS has_unsubmitted_changes,
