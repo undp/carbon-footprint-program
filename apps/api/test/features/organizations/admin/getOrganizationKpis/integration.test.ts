@@ -490,7 +490,6 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
         data: {
           organizationId: org.id,
           year: new Date().getFullYear() - 2,
-          status: "VERIFIED", // TODO: may change when implementing carbon verification
           usageMode: "SIMPLIFIED",
           updatedAt: null,
         },

@@ -83,7 +83,8 @@ describe("DELETE /api/methodologies/:id - Integration Tests", () => {
       });
 
       await createCarbonInventory(prisma, {
-        ...carbonInventoryPatterns.deleted(),
+        ...carbonInventoryPatterns.simplifiedDraft(),
+        status: "DELETED",
         methodologyVersionId: methodology.id,
       });
 
