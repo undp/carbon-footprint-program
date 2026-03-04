@@ -61,7 +61,15 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_event, reason) => {
+        if (
+          isSubmitting &&
+          (reason === "backdropClick" || reason === "escapeKeyDown")
+        ) {
+          return;
+        }
+        handleClose();
+      }}
       maxWidth="sm"
       fullWidth
       slotProps={{
@@ -82,6 +90,7 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
       <IconButton
         aria-label="cerrar"
         onClick={handleClose}
+        disabled={isSubmitting}
         sx={(theme) => ({
           position: "absolute",
           right: 16,
