@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import {
   type GetCarbonInventoryByIdResponse,
+  CarbonInventoryDisplayStatusEnum,
   CarbonInventoryLineStatus,
   User,
 } from "@repo/types";
@@ -56,5 +57,9 @@ export const getCarbonInventoryByIdService = async (
     },
   });
 
-  return mapCarbonInventoryWithLinesToResponse(inventory, subcategories);
+  return {
+    ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
+    // TODO: use helper to calculate the display status based on the inventory status and associated submissions
+    status: CarbonInventoryDisplayStatusEnum.DRAFT, // Default to DRAFT for now, as status management is not implemented yet
+  };
 };

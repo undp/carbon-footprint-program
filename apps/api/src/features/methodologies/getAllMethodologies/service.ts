@@ -21,13 +21,7 @@ export const getAllMethodologiesService = async (
           categories: true,
           carbonInventories: {
             where: {
-              status: {
-                in: [
-                  InventoryStatus.DRAFT,
-                  InventoryStatus.SUBMITTED,
-                  InventoryStatus.VERIFIED,
-                ],
-              },
+              status: InventoryStatus.ACTIVE,
             },
           },
         },
