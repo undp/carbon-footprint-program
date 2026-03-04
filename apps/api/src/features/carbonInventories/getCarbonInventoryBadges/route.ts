@@ -4,6 +4,7 @@ import {
 } from "@repo/types";
 import { getCarbonInventoryBadgesHandler } from "./handler.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
   fastify,
@@ -20,6 +21,7 @@ export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
           "Get all badges associated with a carbon inventory. Only inventories with VERIFIED or SUBMITTED status will have badges.",
         response: {
           200: GetCarbonInventoryBadgesResponseSchema,
+          404: ApiErrorResponseSchema,
         },
       },
     },
