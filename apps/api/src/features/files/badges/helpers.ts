@@ -32,7 +32,7 @@ export async function persistBadgeFileRecord(
         mimeType,
         sizeBytes,
         blobPath: params.blobPath,
-        createdById: BigInt(params.userId),
+        createdById: params.userId ? BigInt(params.userId) : null,
         badge: {
           create: {
             type,

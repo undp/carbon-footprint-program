@@ -777,9 +777,9 @@ model File {
   status       FileStatus @default(ACTIVE)
   createdAt    DateTime   @default(now()) @map("created_at")
   deletedAt    DateTime?  @map("deleted_at")
-  createdById  BigInt     @map("created_by_id")
+  createdById  BigInt?    @map("created_by_id")
 
-  createdBy       User             @relation("file_created_by", fields: [createdById], references: [id])
+  createdBy       User?            @relation("file_created_by", fields: [createdById], references: [id])
   submissionFiles SubmissionFile[]
   badge           Badge?           @relation("badge_file")
 
@@ -875,8 +875,11 @@ model Submission {
 }
 
 enum BadgeType {
-  CARBON_INVENTORY
-  ORGANIZATION_DATA
+  ORGANIZATION_ACCREDITATION
+  CARBON_INVENTORY_CALCULATION
+  CARBON_INVENTORY_VERIFICATION
+  REDUCTION_PLAN_VERIFICATION
+  NEUTRALIZATION_PLAN_VERIFICATION
 
   @@map("badge_type")
 }

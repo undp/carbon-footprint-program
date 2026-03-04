@@ -45,7 +45,7 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
     it("should return an empty array when no active badges exist for the type", async () => {
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -56,12 +56,12 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       const { file } = await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.CARBON_INVENTORY
+        BadgeType.CARBON_INVENTORY_CALCULATION
       );
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -77,12 +77,12 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.ORGANIZATION_DATA
+        BadgeType.ORGANIZATION_ACCREDITATION
       );
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -95,13 +95,13 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.CARBON_INVENTORY,
+        BadgeType.CARBON_INVENTORY_CALCULATION,
         { badgeOverrides: { status: BadgeStatus.INACTIVE } }
       );
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -112,19 +112,19 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       const { file: activeFile } = await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.CARBON_INVENTORY,
+        BadgeType.CARBON_INVENTORY_CALCULATION,
         { badgeOverrides: { status: BadgeStatus.ACTIVE } }
       );
       await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.CARBON_INVENTORY,
+        BadgeType.CARBON_INVENTORY_CALCULATION,
         { badgeOverrides: { status: BadgeStatus.INACTIVE } }
       );
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -139,13 +139,13 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.CARBON_INVENTORY,
+        BadgeType.CARBON_INVENTORY_CALCULATION,
         { fileOverrides: { status: FileStatus.DELETED } }
       );
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -156,13 +156,13 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
       const { file: deletedFile } = await createTestFileForBadge(
         prisma,
         testUser.id,
-        BadgeType.CARBON_INVENTORY,
+        BadgeType.CARBON_INVENTORY_CALCULATION,
         { fileOverrides: { status: FileStatus.DELETED } }
       );
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}?status=DELETED`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}?status=DELETED`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -187,7 +187,7 @@ describe("GET /api/files/badge/:badgeType - Integration Tests", () => {
     it("should return 400 for an invalid status query parameter", async () => {
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}?status=INVALID`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}?status=INVALID`,
       });
 
       expect(response.statusCode).toBe(400);

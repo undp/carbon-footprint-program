@@ -12,11 +12,12 @@ import { buildBlobPath } from "../../helpers/buildBlobPath.js";
 type BadgeConfirmUploadInput = ConfirmBadgeUploadBody &
   ConfirmBadgeUploadParams;
 
+// TODO: Once a badge maintainer role is implemented, accept userId and pass it
+// to persistBadgeFileRecord so createdById is populated for auditing.
 export const badgeConfirmUploadService = async (
   prisma: PrismaClient,
   blobStorage: ContainerClient,
-  input: BadgeConfirmUploadInput,
-  userId: string
+  input: BadgeConfirmUploadInput
 ): Promise<ConfirmBadgeUploadResponse> => {
   const { badgeType, uuid, originalName } = input;
 
@@ -34,7 +35,6 @@ export const badgeConfirmUploadService = async (
       uuid,
       blobPath,
       originalName,
-      userId,
     },
     badgeType
   );

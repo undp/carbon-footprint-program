@@ -1,0 +1,6 @@
+@baseUrl = http://localhost:8080
+@id = 1
+
+### Get Badges for Carbon Inventory
+GET {{baseUrl}}/api/carbon-inventories/{{id}}/badges HTTP/1.1
+

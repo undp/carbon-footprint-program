@@ -39,7 +39,7 @@ export async function persistSubmissionFileRecord(
       mimeType,
       sizeBytes,
       blobPath: params.blobPath,
-      createdById: BigInt(params.userId),
+      createdById: params.userId ? BigInt(params.userId) : null,
       submissionFiles: {
         create: {
           submissionId: BigInt(submissionId),

@@ -15,7 +15,8 @@ CREATE TABLE "file" (
     "status" "file_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "deleted_at" TIMESTAMP(3),
-    "created_by_id" BIGINT NOT NULL,
+    --TODO: This should be not null once we don't have to backfill badges with null createdById
+    "created_by_id" BIGINT,
 
     CONSTRAINT "file_pkey" PRIMARY KEY ("id")
 );

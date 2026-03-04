@@ -9,7 +9,8 @@ import { badgeConfirmUploadHandler } from "./handler.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const badgeConfirmUploadRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance
+  fastify: FastifyZodInstance,
+  options
 ) => {
   fastify.post(
     "/:badgeType/confirm-upload",
@@ -25,6 +26,9 @@ export const badgeConfirmUploadRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     badgeConfirmUploadHandler

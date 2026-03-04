@@ -54,7 +54,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
 
   describe("Happy path", () => {
     it("should create file and badge DB records when blob exists", async () => {
-      const badgeType = BadgeType.CARBON_INVENTORY;
+      const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
       const uuid = "660e8400-e29b-41d4-a716-446655440000";
       const originalName = "badge.png";
 
@@ -79,7 +79,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
     });
 
     it("should persist the correct metadata in the database", async () => {
-      const badgeType = BadgeType.ORGANIZATION_DATA;
+      const badgeType = BadgeType.ORGANIZATION_ACCREDITATION;
       const uuid = "660e8400-e29b-41d4-a716-446655440001";
       const originalName = "org-badge.png";
 
@@ -109,7 +109,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
     });
 
     it("should deactivate the previous ACTIVE badge of the same type", async () => {
-      const badgeType = BadgeType.CARBON_INVENTORY;
+      const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
 
       // Seed an existing ACTIVE badge
       const { badge: existingBadge } = await createTestFileForBadge(
@@ -154,7 +154,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
     it("should return 404 when the blob does not exist in storage", async () => {
       const response = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/confirm-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/confirm-upload`,
         payload: {
           uuid: "660e8400-e29b-41d4-a716-446655440099",
           originalName: "ghost.png",
@@ -184,7 +184,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
     it("should return 400 when uuid is not a valid UUID", async () => {
       const response = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/confirm-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/confirm-upload`,
         payload: {
           uuid: "not-a-uuid",
           originalName: "badge.png",
@@ -199,7 +199,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
     it("should return 400 when required body fields are missing", async () => {
       const response = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/confirm-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/confirm-upload`,
         payload: {},
       });
 

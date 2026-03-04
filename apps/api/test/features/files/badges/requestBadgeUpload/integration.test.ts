@@ -54,10 +54,10 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
   });
 
   describe("Happy path", () => {
-    it("should return 200 with uuid, uploadUrl and expiresAt for CARBON_INVENTORY", async () => {
+    it("should return 200 with uuid, uploadUrl and expiresAt for CARBON_INVENTORY_CALCULATION", async () => {
       const response = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/request-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/request-upload`,
         payload: { originalName: "badge.png" },
       });
 
@@ -70,10 +70,10 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
       expect(body.expiresAt).toBeTruthy();
     });
 
-    it("should return 200 for ORGANIZATION_DATA badge type", async () => {
+    it("should return 200 for ORGANIZATION_ACCREDITATION badge type", async () => {
       const response = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.ORGANIZATION_DATA}/request-upload`,
+        url: `/api/files/badge/${BadgeType.ORGANIZATION_ACCREDITATION}/request-upload`,
         payload: { originalName: "org-badge.png" },
       });
 
@@ -85,12 +85,12 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
 
       const r1 = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/request-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/request-upload`,
         payload,
       });
       const r2 = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/request-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/request-upload`,
         payload,
       });
 
@@ -116,7 +116,7 @@ describe("POST /api/files/badge/:badgeType/request-upload - Integration Tests", 
     it("should return 400 when originalName is missing", async () => {
       const response = await app.inject({
         method: "POST",
-        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY}/request-upload`,
+        url: `/api/files/badge/${BadgeType.CARBON_INVENTORY_CALCULATION}/request-upload`,
         payload: {},
       });
 

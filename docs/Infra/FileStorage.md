@@ -77,7 +77,7 @@ La subida de archivos sigue un **flujo SAS de dos pasos**: el cliente solicita u
 ```
 FileType:            SUBMISSION | BADGE
 FileStatus:          ACTIVE | DELETED
-BadgeType:           CARBON_INVENTORY | ORGANIZATION_DATA
+BadgeType:           ORGANIZATION_ACCREDITATION | CARBON_INVENTORY_CALCULATION | CARBON_INVENTORY_VERIFICATION | REDUCTION_PLAN_VERIFICATION | NEUTRALIZATION_PLAN_VERIFICATION
 BadgeStatus:         ACTIVE | INACTIVE
 SubmissionFileType:  ATTACHMENT | RECOGNITION
 ```
@@ -105,12 +105,12 @@ Tabla principal que almacena los metadatos de cada archivo subido.
 
 Vincula un archivo a un tipo de badge. Solo un badge por tipo puede estar `ACTIVE` a la vez.
 
-| Columna   | Tipo        | Descripción                                             |
-| --------- | ----------- | ------------------------------------------------------- |
-| `id`      | BIGINT PK   | Autoincrement                                           |
-| `type`    | BadgeType   | Tipo de badge (`CARBON_INVENTORY`, `ORGANIZATION_DATA`) |
-| `file_id` | BIGINT FK   | FK → `file(id)`                                         |
-| `status`  | BadgeStatus | Estado (`ACTIVE` / `INACTIVE`)                          |
+| Columna   | Tipo        | Descripción                          |
+| --------- | ----------- | ------------------------------------ |
+| `id`      | BIGINT PK   | Autoincrement                        |
+| `type`    | BadgeType   | Tipo de badge (ver enum `BadgeType`) |
+| `file_id` | BIGINT FK   | FK → `file(id)`                      |
+| `status`  | BadgeStatus | Estado (`ACTIVE` / `INACTIVE`)       |
 
 #### `submission_file` (link table)
 
@@ -141,7 +141,7 @@ erDiagram
 
     badge {
         BIGINT id PK
-        enum type "CARBON_INVENTORY | ORGANIZATION_DATA"
+        enum type "ORGANIZATION_ACCREDITATION | CARBON_INVENTORY_CALCULATION | CARBON_INVENTORY_VERIFICATION | REDUCTION_PLAN_VERIFICATION | NEUTRALIZATION_PLAN_VERIFICATION"
         BIGINT file_id FK
         enum status "ACTIVE | INACTIVE"
     }
@@ -341,7 +341,7 @@ Todos los endpoints requieren autenticación.
 | `POST` | `/api/files/badge/:badgeType/request-upload` | Obtener URL SAS de escritura      | 200      |
 | `POST` | `/api/files/badge/:badgeType/confirm-upload` | Confirmar subida y crear registro | 201      |
 
-**`badgeType`**: `CARBON_INVENTORY` | `ORGANIZATION_DATA`
+**`badgeType`**: `ORGANIZATION_ACCREDITATION` | `CARBON_INVENTORY_CALCULATION` | `CARBON_INVENTORY_VERIFICATION` | `REDUCTION_PLAN_VERIFICATION` | `NEUTRALIZATION_PLAN_VERIFICATION`
 
 #### Submissions (`/api/files/submission`)
 
@@ -367,10 +367,10 @@ Body de `request-upload` y `confirm-upload` para submissions incluye `submission
 
 La ruta en Azure Blob Storage organiza los archivos por subdominio, propietario y tipo:
 
-| Subdominio | Formato                                                                 | Ejemplo                                     |
-| ---------- | ----------------------------------------------------------------------- | ------------------------------------------- |
-| Badge      | `BADGE/{badgeType}/{uuid}-{sanitizedName}`                              | `BADGE/CARBON_INVENTORY/a1b2-badge.svg`     |
-| Submission | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/ATTACHMENT/a1b2-reporte.pdf` |
+| Subdominio | Formato                                                                 | Ejemplo                                             |
+| ---------- | ----------------------------------------------------------------------- | --------------------------------------------------- |
+| Badge      | `BADGE/{badgeType}/{uuid}-{sanitizedName}`                              | `BADGE/CARBON_INVENTORY_CALCULATION/a1b2-badge.svg` |
+| Submission | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/ATTACHMENT/a1b2-reporte.pdf`         |
 
 - `{sanitizedName}`: nombre original con caracteres especiales reemplazados por `_`
 - El `blobPath` se guarda en la base de datos; la URL completa se reconstruye en runtime mediante SAS
