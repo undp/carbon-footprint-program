@@ -26,8 +26,10 @@ import {
   FormSelectField,
   FormAutocompleteField,
   FormNumericField,
+  ConfirmDialog,
 } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
+import { useConfirmDialog } from "@/hooks";
 
 interface Props {
   open: boolean;
@@ -71,16 +73,28 @@ export const OrganizationFormDialog: FC<Props> = ({
     selectedSectorId: selectedSectorId || undefined,
   });
 
+  const confirmDialog = useConfirmDialog();
+
   const handleClose = useCallback(() => {
     if (formState.isDirty) {
-      const confirmed = window.confirm(
-        "¿Descartar cambios? Los datos no guardados se perderán."
-      );
-      if (!confirmed) return;
+      confirmDialog.openConfirm({
+        title: "Cambios sin guardar",
+        message: "¿Descartar cambios? Los datos no guardados se perderán.",
+        variant: "warning",
+        confirmLabel: "Descartar",
+        cancelLabel: "Cancelar",
+      });
+      return;
     }
     reset();
     onClose();
-  }, [formState.isDirty, reset, onClose]);
+  }, [formState.isDirty, reset, onClose, confirmDialog]);
+
+  const handleConfirmDiscard = useCallback(() => {
+    confirmDialog.closeConfirm();
+    reset();
+    onClose();
+  }, [confirmDialog, reset, onClose]);
 
   // Focus management
   const previousFocusRef = useRef<HTMLElement | null>(null);
@@ -338,6 +352,17 @@ export const OrganizationFormDialog: FC<Props> = ({
         </DialogActions>
       </form>
       {IS_DEVELOPMENT && <DevTool control={control} />}
+      <ConfirmDialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.closeConfirm}
+        onConfirm={handleConfirmDiscard}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        description={confirmDialog.description}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+      />
     </Dialog>
   );
 };
