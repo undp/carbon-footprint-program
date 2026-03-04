@@ -17,7 +17,7 @@ export const useRejectRequest = () => {
         // TODO: Remove temporary comment
         // TODO: force 2000 character limit for review comments
         .post(`admin/requests/${id}/reject`, {
-          json: body ?? { comments: "temporary comment" },
+          json: body ?? { reviewComments: "temporary comment" },
         })
         .json<RejectRequestResponse>(),
     onSuccess: async () => {
