@@ -22,7 +22,7 @@ import {
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
 
-vi.mock("@/features/files/helpers/sasHelper.js", () => ({
+vi.mock("@/services/blobService.js", () => ({
   generateWriteSasUrl: vi.fn().mockResolvedValue({
     url: "https://mock.blob.core.windows.net/test/file?sig=mock",
     expiresAt: new Date("2099-12-31T23:59:59.000Z"),

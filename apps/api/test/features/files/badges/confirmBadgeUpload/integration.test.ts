@@ -24,7 +24,7 @@ import {
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
 
-vi.mock("@/features/files/helpers/sasHelper.js", () => ({
+vi.mock("@/services/blobService.js", () => ({
   generateWriteSasUrl: vi.fn(),
   generateReadSasUrl: vi.fn(),
 }));

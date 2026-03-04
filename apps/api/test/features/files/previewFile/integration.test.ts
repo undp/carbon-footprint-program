@@ -26,7 +26,7 @@ import {
 // generateReadSasUrl uses getUserDelegationKey which requires Azure AD auth —
 // not supported by Azurite's shared-key mode. Mock it so we can test the
 // handler logic end-to-end without real SAS generation.
-vi.mock("@/features/files/helpers/sasHelper.js", () => ({
+vi.mock("@/services/blobService.js", () => ({
   generateWriteSasUrl: vi.fn(),
   generateReadSasUrl: vi.fn().mockResolvedValue({
     url: "https://mock.blob.core.windows.net/test/file?sig=mock",
