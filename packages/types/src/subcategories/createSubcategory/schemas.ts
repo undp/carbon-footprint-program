@@ -19,6 +19,27 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
     .describe("Array of measurement unit IDs associated with the sub-category"),
 });
 
+// Form Schema
+export const SubcategoryFormSchema = SubcategoryBaseSchema.pick({
+  id: true,
+  categoryId: true,
+  name: true,
+  icon: true,
+  description: true,
+  examples: true,
+}).extend({
+  id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
+  categoryId: z.string().min(1, "Categoría es requerida"),
+  name: z
+    .string()
+    .min(1, "Nombre es requerido")
+    .max(255, "Nombre no puede exceder 255 caracteres"),
+  icon: z.string().min(1, "Ícono es requerido"),
+  description: z.string().min(1, "Descripción es requerida"),
+  examples: z.string().nullable(),
+  measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
+});
+
 // Response Schema
 export const CreateSubcategoryResponseSchema = SubcategoryBaseSchema.pick({
   id: true,

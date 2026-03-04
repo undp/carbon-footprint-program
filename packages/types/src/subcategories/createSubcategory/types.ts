@@ -2,6 +2,7 @@ import { z } from "zod";
 import type {
   CreateSubcategoryRequestSchema,
   CreateSubcategoryResponseSchema,
+  SubcategoryFormSchema,
 } from "./schemas.js";
 
 export type CreateSubcategoryRequest = z.infer<
@@ -10,3 +11,4 @@ export type CreateSubcategoryRequest = z.infer<
 export type CreateSubcategoryResponse = z.infer<
   typeof CreateSubcategoryResponseSchema
 >;
+export type SubcategoryForm = z.infer<typeof SubcategoryFormSchema>;
