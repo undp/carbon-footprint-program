@@ -2,3 +2,7 @@ export * from "./admin/getAllRequests/schemas.js";
 export * from "./admin/getAllRequests/types.js";
 export * from "./admin/getRequestsKpis/schemas.js";
 export * from "./admin/getRequestsKpis/types.js";
+export * from "./admin/approveRequest/schemas.js";
+export * from "./admin/approveRequest/types.js";
+export * from "./admin/rejectRequest/schemas.js";
+export * from "./admin/rejectRequest/types.js";

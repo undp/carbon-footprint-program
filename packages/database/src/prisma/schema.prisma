@@ -666,6 +666,7 @@ enum OrganizationSummaryDisplayStatus {
 view OrganizationSummaryView {
   organizationId        BigInt                           @unique @map("organization_id")
   organizationDataId    BigInt                           @map("organization_data_id")
+  organizationStatus    OrganizationStatus               @map("organization_status")
   name                  String                           @map("name")
   lastSubmissionStatus  SubmissionStatus?                @map("last_submission_status")
   hasUnsubmittedChanges Boolean                          @map("has_unsubmitted_changes")
@@ -850,28 +851,41 @@ enum SubmissionStatus {
 }
 
 model Submission {
-  id             BigInt           @id @default(autoincrement())
-  subjectId      BigInt           @map("subject_id")
-  status         SubmissionStatus @default(PENDING)
-  reviewerId     BigInt?          @map("reviewer_id")
-  reviewComments String?          @map("review_comments")
-  badgeId        BigInt?          @map("badge_id")
-  createdAt      DateTime         @default(now()) @map("created_at")
-  updatedAt      DateTime?        @updatedAt @map("updated_at")
-  createdById    BigInt?          @map("created_by_id")
-  updatedById    BigInt?          @map("updated_by_id")
-
-  subject  SubmissionSubject @relation(fields: [subjectId], references: [id])
-  reviewer User?             @relation("submission_reviewer", fields: [reviewerId], references: [id])
-  creator  User?             @relation("submission_created_by", fields: [createdById], references: [id])
-  updater  User?             @relation("submission_updated_by", fields: [updatedById], references: [id])
-  files    SubmissionFile[]
-  badge    Badge?            @relation(fields: [badgeId], references: [id])
+  id             BigInt                 @id @default(autoincrement())
+  subjectId      BigInt                 @map("subject_id")
+  badgeId        BigInt?                @map("badge_id")
+  status         SubmissionStatus       @default(PENDING)
+  reviewerId     BigInt?                @map("reviewer_id")
+  reviewComments String?                @map("review_comments")
+  createdAt      DateTime               @default(now()) @map("created_at")
+  updatedAt      DateTime?              @updatedAt @map("updated_at")
+  createdById    BigInt?                @map("created_by_id")
+  updatedById    BigInt?                @map("updated_by_id")
+  subject        SubmissionSubject      @relation(fields: [subjectId], references: [id])
+  reviewer       User?                  @relation("submission_reviewer", fields: [reviewerId], references: [id])
+  creator        User?                  @relation("submission_created_by", fields: [createdById], references: [id])
+  updater        User?                  @relation("submission_updated_by", fields: [updatedById], references: [id])
+  badge          Badge?                 @relation(fields: [badgeId], references: [id])
+  summary        SubmissionSummaryView?
+  files          SubmissionFile[]
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
   @@index([badgeId])
   @@map("submission")
+}
+
+view SubmissionSummaryView {
+  submissionId     BigInt                @unique @map("submission_id")
+  subjectType      SubmissionSubjectType @map("subject_type")
+  status           SubmissionStatus
+  organizationId   BigInt                @map("organization_id")
+  organizationName String                @map("organization_name")
+  period           Int?
+  requestedAt      DateTime              @map("requested_at")
+  submission       Submission            @relation(fields: [submissionId], references: [id])
+
+  @@map("submission_summary_view")
 }
 
 enum BadgeType {

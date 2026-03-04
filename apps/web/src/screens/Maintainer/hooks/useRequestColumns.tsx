@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
 import { alpha, IconButton, Stack, useTheme, type Theme } from "@mui/material";
+import { useSnackbar } from "notistack";
 import {
   VisibilityOutlined,
   CheckOutlined,
@@ -13,6 +14,8 @@ import {
   SubmissionStatus as RequestStatus,
   SubmissionSubjectType as RequestType,
 } from "@repo/types";
+import { useApproveRequest } from "@/api/query/requests/useApproveRequest";
+import { useRejectRequest } from "@/api/query/requests/useRejectRequest";
 
 // ASSETS FOR RENDERING THE STATUS COLUMN
 
@@ -59,7 +62,39 @@ export const useRequestColumns = (): GridColDef<
   GetAllAdminRequestsResponse[number]
 >[] => {
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const cellClassName = "content-center";
+  const { mutateAsync: approveRequest, isPending: isApproving } =
+    useApproveRequest();
+  const { mutateAsync: rejectRequest, isPending: isRejecting } =
+    useRejectRequest();
+
+  const handleApprove = useCallback(
+    async (id: string) => {
+      try {
+        await approveRequest({ id });
+        enqueueSnackbar("Solicitud aprobada correctamente", {
+          variant: "success",
+        });
+      } catch {
+        enqueueSnackbar("Error al aprobar la solicitud", { variant: "error" });
+      }
+    },
+    [approveRequest, enqueueSnackbar]
+  );
+  const handleReject = useCallback(
+    async (id: string) => {
+      try {
+        await rejectRequest({ id });
+        enqueueSnackbar("Solicitud rechazada correctamente", {
+          variant: "success",
+        });
+      } catch {
+        enqueueSnackbar("Error al rechazar la solicitud", { variant: "error" });
+      }
+    },
+    [rejectRequest, enqueueSnackbar]
+  );
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
     () => [
@@ -89,6 +124,7 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Periodo",
         cellClassName,
         flex: 0.8,
+        valueFormatter: (value: number | null) => value ?? "-",
       },
       {
         field: "status",
@@ -138,22 +174,24 @@ export const useRequestColumns = (): GridColDef<
               </IconButton>
               {showApproveReject && (
                 <>
-                  {/* TODO: implement callback for this button */}
                   <IconButton
                     size="small"
                     color="success"
                     aria-label="Aprobar solicitud"
+                    onClick={() => handleApprove(params.row.id)}
+                    disabled={isApproving || isRejecting}
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.success.light, 0.1),
                     })}
                   >
                     <CheckOutlined fontSize="small" />
                   </IconButton>
-                  {/* TODO: implement callback for this button */}
                   <IconButton
                     size="small"
                     color="error"
                     aria-label="Rechazar solicitud"
+                    onClick={() => handleReject(params.row.id)}
+                    disabled={isApproving || isRejecting}
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.error.light, 0.1),
                     })}
@@ -167,6 +205,6 @@ export const useRequestColumns = (): GridColDef<
         },
       },
     ],
-    [theme]
+    [theme, handleApprove, handleReject, isApproving, isRejecting]
   );
 };

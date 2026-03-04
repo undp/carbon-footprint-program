@@ -1,59 +1,42 @@
 import type { PrismaClient } from "@repo/database";
 import { OrganizationStatus } from "@repo/database";
 import type { GetOrganizationKpisResponse } from "@repo/types";
+import { flatMap, sumBy } from "lodash-es";
 
 export const getOrganizationKpisService = async (
   prismaClient: PrismaClient
 ): Promise<GetOrganizationKpisResponse> => {
   // Fetch all organizations from the summary view
-  const organizations = await prismaClient.organizationSummaryView.findMany({
-    select: {
-      organization: {
-        select: {
-          status: true,
-        },
-      },
-      isAccredited: true,
-      hasCarbonInventories: true,
-    },
+  const organizations = await prismaClient.organizationSummaryView.groupBy({
+    by: ["organizationStatus", "isAccredited", "hasCarbonInventories"],
+    _count: true,
   });
 
-  // Initialize all valid combinations with count 0
-  const countMap = new Map<string, number>();
-  const statuses: Array<OrganizationStatus> = [
-    OrganizationStatus.ACTIVE,
-    OrganizationStatus.BLOCKED,
-  ];
+  const bucket = new Map<string, number>();
+  for (const org of organizations) {
+    const key = `${org.organizationStatus}:${org.isAccredited}:${org.hasCarbonInventories}`;
+    bucket.set(key, org._count);
+  }
+
+  const statuses = Object.values(OrganizationStatus);
   const booleanValues = [true, false];
 
-  for (const status of statuses) {
-    for (const accredited of booleanValues) {
-      for (const withInventories of booleanValues) {
-        const key = `${status}-${accredited}-${withInventories}`;
-        countMap.set(key, 0);
-      }
-    }
-  }
-
-  // Count actual organizations
-  for (const org of organizations) {
-    const key = `${org.organization.status}-${org.isAccredited}-${org.hasCarbonInventories}`;
-    countMap.set(key, (countMap.get(key) || 0) + 1);
-  }
-
-  // Convert to response format
-  const counts = Array.from(countMap.entries()).map(([key, count]) => {
-    const [status, accredited, withInventories] = key.split("-");
-    return {
-      status: status as OrganizationStatus,
-      accredited: accredited === "true",
-      withInventories: withInventories === "true",
-      count,
-    };
-  });
+  const counts = flatMap(statuses, (status) =>
+    flatMap(booleanValues, (accredited) =>
+      booleanValues.map((withInventories) => {
+        const key = `${status}:${accredited}:${withInventories}`;
+        return {
+          status,
+          accredited,
+          withInventories,
+          count: bucket.get(key) ?? 0,
+        };
+      })
+    )
+  );
 
   return {
-    total: organizations.length,
+    total: sumBy(counts, "count"),
     counts,
   };
 };
