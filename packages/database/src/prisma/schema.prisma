@@ -488,9 +488,7 @@ model EmissionFactor {
 
 // TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
 enum InventoryStatus {
-  DRAFT
-  SUBMITTED
-  VERIFIED
+  ACTIVE
   DELETED
 
   @@map("inventory_status")
@@ -510,7 +508,7 @@ model CarbonInventory {
   organizationBranchId BigInt?                           @map("organization_branch_id")
   organizationData     Json?                             @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus                   @default(DRAFT)
+  status               InventoryStatus                   @default(ACTIVE)
   usageMode            UsageMode                         @map("usage_mode")
   methodologyVersionId BigInt?                           @map("methodology_version_id")
   preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
@@ -845,6 +843,7 @@ model SubmissionSubjectOrganizationData {
 enum SubmissionStatus {
   PENDING
   APPROVED
+  OBJECTED
   REJECTED
 
   @@map("submission_status")

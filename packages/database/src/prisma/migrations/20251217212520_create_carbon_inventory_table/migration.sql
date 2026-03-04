@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "inventory_status" AS ENUM ('DRAFT', 'SUBMITTED', 'VERIFIED', 'DELETED');
+CREATE TYPE "inventory_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateEnum
 CREATE TYPE "usage_mode" AS ENUM ('SIMPLIFIED', 'EXPERT');
@@ -12,7 +12,7 @@ CREATE TABLE "carbon_inventory" (
     "organization_branch_id" BIGINT,
     "organization_data" JSONB,
     "year" INTEGER,
-    "status" "inventory_status" NOT NULL DEFAULT 'DRAFT',
+    "status" "inventory_status" NOT NULL DEFAULT 'ACTIVE',
     "usage_mode" "usage_mode" NOT NULL,
     "methodology_version_id" BIGINT,
     "preselected_nodes_id" BIGINT,
