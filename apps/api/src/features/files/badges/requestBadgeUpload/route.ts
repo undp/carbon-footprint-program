@@ -9,7 +9,8 @@ import { badgeRequestUploadHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const badgeRequestUploadRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance
+  fastify: FastifyZodInstance,
+  options
 ) => {
   fastify.post(
     "/:badgeType/request-upload",
@@ -24,6 +25,9 @@ export const badgeRequestUploadRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     badgeRequestUploadHandler

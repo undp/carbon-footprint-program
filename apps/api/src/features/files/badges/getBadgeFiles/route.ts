@@ -8,7 +8,8 @@ import { badgeGetFilesHandler } from "./handler.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const badgeGetFilesRoute: StandardRouteSignature = (
-  fastify: FastifyZodInstance
+  fastify: FastifyZodInstance,
+  options
 ) => {
   fastify.get(
     "/:badgeType",
@@ -21,6 +22,9 @@ export const badgeGetFilesRoute: StandardRouteSignature = (
         response: {
           200: GetBadgeFilesResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
     },
     badgeGetFilesHandler
