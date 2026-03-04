@@ -16,3 +16,4 @@ export * from "./useEmissionFactors";
 export * from "./useCarbonInventoryMetadata";
 export * from "./useRequestCalculation";
 export * from "./useRequestVerification";
+export * from "./useCarbonInventoryBadges";
