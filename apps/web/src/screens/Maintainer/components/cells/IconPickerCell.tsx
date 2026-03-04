@@ -84,8 +84,10 @@ interface IconPickerCellProps {
   rowIndex: number;
   formArrayName: string;
   onChangeIcon: (iconName: string) => void;
-  onChangeColor: (color: string) => void;
+  onChangeColor?: (color: string) => void;
   onClick?: () => void;
+  /** When true, hides the color picker section and uses a neutral background */
+  hideColor?: boolean;
 }
 
 export const IconPickerCell: FC<IconPickerCellProps> = ({
@@ -97,6 +99,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
   onChangeIcon,
   onChangeColor,
   onClick,
+  hideColor = false,
 }) => {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const pendingAnchorRef = useRef<HTMLElement | null>(null);
@@ -120,16 +123,19 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
     rowIndex,
     "icon"
   );
-  const colorError = getNestedError(
-    errors as unknown as Record<string, unknown>,
-    formArrayName,
-    rowIndex,
-    "color"
-  );
+  const colorError = hideColor
+    ? undefined
+    : getNestedError(
+        errors as unknown as Record<string, unknown>,
+        formArrayName,
+        rowIndex,
+        "color"
+      );
   const hasError = isEditing && (!!iconError || !!colorError);
 
   const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
+  const effectiveColor = hideColor ? "#E8E8E8" : color;
 
   return (
     <>
@@ -148,16 +154,16 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
         sx={
           IconComponent
             ? {
-                backgroundColor: color || "transparent",
+                backgroundColor: effectiveColor || "transparent",
                 width: 40,
                 height: 40,
                 cursor: isInteractive ? "pointer" : "default",
                 "&:hover": {
-                  backgroundColor: color || "transparent",
+                  backgroundColor: effectiveColor || "transparent",
                   opacity: isInteractive ? 0.8 : 1,
                 },
                 "&.Mui-disabled": {
-                  backgroundColor: color || "transparent",
+                  backgroundColor: effectiveColor || "transparent",
                 },
                 ...(hasError && {
                   border: "2px dashed",
@@ -230,51 +236,57 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
             ))}
           </Box>
 
-          <Divider sx={{ my: 1 }} />
+          {!hideColor && (
+            <>
+              <Divider sx={{ my: 1 }} />
 
-          <Typography
-            variant="caption"
-            color={colorError ? "error" : "text.secondary"}
-            sx={{ mb: 0.5, display: "block" }}
-          >
-            Color de fondo{colorError ? ` — ${colorError.message}` : ""}
-          </Typography>
-          <Box
-            sx={{
-              display: "grid",
-              gridTemplateColumns: "repeat(6, 1fr)",
-              gap: 0.5,
-              p: 0.5,
-              borderRadius: 1,
-              border: colorError ? "1px solid" : "none",
-              borderColor: "error.main",
-            }}
-          >
-            {CATEGORY_COLORS.map((c) => (
-              <IconButton
-                size="small"
-                key={c}
-                disableRipple
-                onClick={() => onChangeColor(c)}
+              <Typography
+                variant="caption"
+                color={colorError ? "error" : "text.secondary"}
+                sx={{ mb: 0.5, display: "block" }}
+              >
+                Color de fondo{colorError ? ` — ${colorError.message}` : ""}
+              </Typography>
+              <Box
                 sx={{
-                  backgroundColor: c,
-                  width: 32,
-                  height: 32,
-                  border: c === color ? "2px solid" : "1px solid",
-                  borderColor: c === color ? "primary.main" : "grey.300",
-                  borderRadius: "50%",
-                  "&:hover": {
-                    backgroundColor: c,
-                    opacity: 0.8,
-                  },
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, 1fr)",
+                  gap: 0.5,
+                  p: 0.5,
+                  borderRadius: 1,
+                  border: colorError ? "1px solid" : "none",
+                  borderColor: "error.main",
                 }}
               >
-                {c === color && (
-                  <CheckOutlined sx={{ fontSize: 14, color: "primary.main" }} />
-                )}
-              </IconButton>
-            ))}
-          </Box>
+                {CATEGORY_COLORS.map((c) => (
+                  <IconButton
+                    size="small"
+                    key={c}
+                    disableRipple
+                    onClick={() => onChangeColor?.(c)}
+                    sx={{
+                      backgroundColor: c,
+                      width: 32,
+                      height: 32,
+                      border: c === color ? "2px solid" : "1px solid",
+                      borderColor: c === color ? "primary.main" : "grey.300",
+                      borderRadius: "50%",
+                      "&:hover": {
+                        backgroundColor: c,
+                        opacity: 0.8,
+                      },
+                    }}
+                  >
+                    {c === color && (
+                      <CheckOutlined
+                        sx={{ fontSize: 14, color: "primary.main" }}
+                      />
+                    )}
+                  </IconButton>
+                ))}
+              </Box>
+            </>
+          )}
         </Box>
       </Popover>
     </>
