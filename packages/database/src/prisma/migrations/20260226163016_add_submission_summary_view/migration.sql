@@ -13,7 +13,7 @@ WITH organization_data_submissions AS (
   INNER JOIN submission_subject ss ON s.subject_id = ss.id
   INNER JOIN submission_subject_organization_data ssod ON ss.id = ssod.subject_id
   INNER JOIN organization_data od ON ssod.organization_data_id = od.id
-  LEFT JOIN organization_summary_view osv ON od.organization_id = osv.organization_id
+  INNER JOIN organization_summary_view osv ON od.organization_id = osv.organization_id
 ),
 carbon_inventory_submissions AS (
   SELECT
@@ -22,13 +22,13 @@ carbon_inventory_submissions AS (
     s.status,
     ci.organization_id,
     osv.name AS organization_name,
-    COALESCE(ci.year, EXTRACT(YEAR FROM s.created_at)::INTEGER) AS period,
+    ci.year AS period,
     s.created_at AS requested_at
   FROM submission s
   INNER JOIN submission_subject ss ON s.subject_id = ss.id
   INNER JOIN submission_subject_carbon_inventory ssci ON ss.id = ssci.subject_id
   INNER JOIN carbon_inventory ci ON ssci.carbon_inventory_id = ci.id
-  LEFT JOIN organization_summary_view osv ON ci.organization_id = osv.organization_id
+  INNER JOIN organization_summary_view osv ON ci.organization_id = osv.organization_id
 )
 SELECT * FROM organization_data_submissions
 UNION ALL

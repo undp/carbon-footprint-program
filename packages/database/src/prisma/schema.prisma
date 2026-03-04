@@ -881,7 +881,7 @@ view SubmissionSummaryView {
   status           SubmissionStatus      @map("status")
   organizationId   BigInt                @map("organization_id")
   organizationName String                @map("organization_name")
-  period           Int
+  period           Int?
   requestedAt      DateTime              @map("requested_at")
   submission       Submission            @relation(fields: [submissionId], references: [id])
 

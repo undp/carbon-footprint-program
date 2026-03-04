@@ -106,6 +106,7 @@ export const useRequestColumns = (): GridColDef<
         headerName: "Periodo",
         cellClassName,
         flex: 0.8,
+        valueFormatter: (value: number | null) => value ?? "-",
       },
       {
         field: "status",
