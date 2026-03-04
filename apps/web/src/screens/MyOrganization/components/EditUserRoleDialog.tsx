@@ -33,17 +33,10 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
   isSubmitting = false,
 }) => {
   const { control, handleSubmit, reset } = useForm<EditUserRoleFormData>({
-    defaultValues: {
+    values: {
       role: currentRole ?? "",
     },
   });
-
-  // Update form when currentRole changes
-  useEffect(() => {
-    if (currentRole) {
-      reset({ role: currentRole });
-    }
-  }, [currentRole, reset]);
 
   const handleClose = useCallback(() => {
     reset();
