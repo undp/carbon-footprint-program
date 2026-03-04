@@ -91,9 +91,6 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
           testUser.id
         );
 
-      // Wait a bit to ensure different timestamps
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
       const org2 = await createTestOrganization(prisma);
       const orgData2 = await createTestOrganizationData(prisma, org2.id, {
         legalName: "Organization 2",
