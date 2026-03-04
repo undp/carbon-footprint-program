@@ -92,7 +92,7 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
         <Close />
       </IconButton>
 
-      <form onSubmit={handleSubmit(handleFormSubmit)}>
+      <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
         <DialogContent sx={{ pt: 0 }}>
           <FormTextField
             name="email"
