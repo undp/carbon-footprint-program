@@ -3,6 +3,7 @@ export * from "./useOrganization";
 export * from "./useOrganizations";
 export * from "./useCreateOrganization";
 export * from "./useUpdateOrganization";
+export * from "./useRequestOrganizationAccreditation";
 export * from "./useOrganizationUsers";
 export * from "./useAddOrganizationUser";
 export * from "./useUpdateOrganizationUserRole";

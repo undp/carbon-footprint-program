@@ -15,3 +15,4 @@ export { OrganizationFormDialog } from "./OrganizationForm";
 export { AddUserDialog } from "./AddUserDialog";
 export { EditUserRoleDialog } from "./EditUserRoleDialog";
 export { DeleteUserConfirmationDialog } from "./DeleteUserConfirmationDialog";
+export { AccreditationConfirmDialog } from "./AccreditationConfirmDialog";
