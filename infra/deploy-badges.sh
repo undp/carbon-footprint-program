@@ -123,38 +123,50 @@ upload_badge() {
 
   log "${YELLOW}[$badge_type] Uploading '$file'...${NC}"
 
+  # Common curl options: show errors, fail on HTTP errors, timeouts & retries
+  local curl_opts=(--fail -S --connect-timeout 10 --max-time 60 --retry 3 --retry-delay 2)
+
   # Step 1: Request upload URL
   local request_response
-  request_response=$(curl -sf -X POST \
+  if ! request_response=$(curl "${curl_opts[@]}" -X POST \
     -H "Content-Type: application/json" \
     -d "{\"originalName\": \"$file\"}" \
-    "$API_URL/files/badge/$badge_type/request-upload")
+    "$API_URL/files/badge/$badge_type/request-upload"); then
+    log "${RED}  ✗ [1/3] Request upload URL failed for $badge_type${NC}"
+    return 1
+  fi
 
   local uuid upload_url
   uuid=$(echo "$request_response" | jq -r '.uuid')
   upload_url=$(echo "$request_response" | jq -r '.uploadUrl')
 
   if [ -z "$uuid" ] || [ "$uuid" = "null" ]; then
-    log "${RED}  ✗ Failed to get upload URL for $badge_type${NC}"
+    log "${RED}  ✗ [1/3] Failed to get upload URL for $badge_type${NC}"
     return 1
   fi
 
   log "  [1/3] Upload URL obtained (uuid=$uuid)"
 
   # Step 2: Upload file directly to Azure Blob Storage via SAS URL
-  curl -sf -X PUT \
+  if ! curl "${curl_opts[@]}" -X PUT \
     -H "Content-Type: image/svg+xml" \
     -H "x-ms-blob-type: BlockBlob" \
     --data-binary "@$file_path" \
-    "$upload_url" >/dev/null
+    "$upload_url" >/dev/null; then
+    log "${RED}  ✗ [2/3] Blob upload failed for $badge_type${NC}"
+    return 1
+  fi
 
   log "  [2/3] File uploaded to Azure Blob"
 
   # Step 3: Confirm upload and persist DB record
-  curl -sf -X POST \
+  if ! curl "${curl_opts[@]}" -X POST \
     -H "Content-Type: application/json" \
     -d "{\"uuid\": \"$uuid\", \"originalName\": \"$file\"}" \
-    "$API_URL/files/badge/$badge_type/confirm-upload" >/dev/null
+    "$API_URL/files/badge/$badge_type/confirm-upload" >/dev/null; then
+    log "${RED}  ✗ [3/3] Confirm upload failed for $badge_type${NC}"
+    return 1
+  fi
 
   log "${GREEN}  [3/3] Upload confirmed${NC}"
   log "${GREEN}  ✓ $badge_type → $file${NC}"
