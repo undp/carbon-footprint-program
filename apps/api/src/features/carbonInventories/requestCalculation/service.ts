@@ -1,4 +1,8 @@
-import { SubmissionType, type PrismaClient } from "@repo/database";
+import {
+  InventoryStatus,
+  SubmissionType,
+  type PrismaClient,
+} from "@repo/database";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 import {
   validateOrganizationIsAccredited,
@@ -12,8 +16,8 @@ export const requestCalculationService = async (
   userId?: string | null
 ): Promise<void> => {
   await prismaClient.$transaction(async (tx) => {
-    const inventory = await tx.carbonInventory.findUnique({
-      where: { id: BigInt(carbonInventoryId) },
+    const inventory = await tx.carbonInventory.findFirst({
+      where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
         id: true,
         organizationId: true,
