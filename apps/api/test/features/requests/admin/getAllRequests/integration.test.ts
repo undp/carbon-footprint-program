@@ -116,6 +116,8 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
       const idx2 = body.findIndex((r) => r.id === submission2.id.toString());
 
       // submission2 was created later, so it should appear before submission1
+      expect(idx1).toBeGreaterThanOrEqual(0);
+      expect(idx2).toBeGreaterThanOrEqual(0);
       expect(idx1).toBeGreaterThan(idx2);
     });
 
