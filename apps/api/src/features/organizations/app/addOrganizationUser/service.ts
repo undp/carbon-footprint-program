@@ -45,12 +45,26 @@ export const addOrganizationUserService = async (
       where: {
         userId: targetUser.id,
         organizationId: organization.id,
-        status: MembershipStatus.ACTIVE,
       },
     });
 
   if (existingMembership) {
-    throw new MembershipAlreadyExistsError();
+    await prismaClient.userOrganizationMembership.update({
+      where: {
+        id: existingMembership.id,
+      },
+      data: {
+        role: data.role,
+        updatedById: user ? BigInt(user.id) : undefined,
+        status: MembershipStatus.ACTIVE,
+      },
+    });
+
+    return {
+      membershipId: existingMembership.id.toString(),
+      userId: targetUser.id.toString(),
+      role: existingMembership.role,
+    };
   }
 
   // Create membership with provided role
