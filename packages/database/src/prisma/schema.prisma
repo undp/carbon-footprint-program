@@ -777,9 +777,9 @@ model File {
   status       FileStatus @default(ACTIVE)
   createdAt    DateTime   @default(now()) @map("created_at")
   deletedAt    DateTime?  @map("deleted_at")
-  createdById  BigInt     @map("created_by_id")
+  createdById  BigInt?    @map("created_by_id")
 
-  createdBy       User             @relation("file_created_by", fields: [createdById], references: [id])
+  createdBy       User?            @relation("file_created_by", fields: [createdById], references: [id])
   submissionFiles SubmissionFile[]
   badge           Badge?           @relation("badge_file")
 

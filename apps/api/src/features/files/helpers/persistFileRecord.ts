@@ -5,7 +5,7 @@ export interface PersistFileRecordParams {
   uuid: string;
   blobPath: string;
   originalName: string;
-  userId: string;
+  userId?: string;
 }
 
 export async function checkFileRecordExists(
