@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
 import { alpha, IconButton, Stack, useTheme, type Theme } from "@mui/material";
 import {
@@ -65,6 +65,18 @@ export const useRequestColumns = (): GridColDef<
   const { mutate: approveRequest, isPending: isApproving } =
     useApproveRequest();
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectRequest();
+  const handleApprove = useCallback(
+    (id: string) => {
+      approveRequest({ id });
+    },
+    [approveRequest]
+  );
+  const handleReject = useCallback(
+    (id: string) => {
+      rejectRequest({ id });
+    },
+    [rejectRequest]
+  );
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
     () => [
@@ -135,14 +147,6 @@ export const useRequestColumns = (): GridColDef<
           const status = params.row.status;
           const showApproveReject = status === RequestStatus.PENDING;
 
-          const handleApprove = () => {
-            approveRequest({ id: params.row.id });
-          };
-
-          const handleReject = () => {
-            rejectRequest({ id: params.row.id });
-          };
-
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
               {/* TODO: implement callback for this button */}
@@ -155,7 +159,7 @@ export const useRequestColumns = (): GridColDef<
                     size="small"
                     color="success"
                     aria-label="Aprobar solicitud"
-                    onClick={handleApprove}
+                    onClick={() => handleApprove(params.row.id)}
                     disabled={isApproving || isRejecting}
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.success.light, 0.1),
@@ -167,7 +171,7 @@ export const useRequestColumns = (): GridColDef<
                     size="small"
                     color="error"
                     aria-label="Rechazar solicitud"
-                    onClick={handleReject}
+                    onClick={() => handleReject(params.row.id)}
                     disabled={isApproving || isRejecting}
                     sx={(theme) => ({
                       backgroundColor: alpha(theme.palette.error.light, 0.1),
@@ -182,6 +186,6 @@ export const useRequestColumns = (): GridColDef<
         },
       },
     ],
-    [theme, approveRequest, rejectRequest, isApproving, isRejecting]
+    [theme, handleApprove, handleReject, isApproving, isRejecting]
   );
 };
