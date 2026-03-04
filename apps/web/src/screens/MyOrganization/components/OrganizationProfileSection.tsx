@@ -62,11 +62,8 @@ const OrganizationProfileSectionComponent: FC<
   const theme = useTheme();
   const accreditationDialog = useAccreditationDialog(profile.id);
 
-  const actions = [];
-
-  // Add Edit action if not rejected
-  if (profile.lastSubmissionStatus !== SubmissionStatus.REJECTED) {
-    actions.push({
+  const actions = [
+    {
       label: "EDITAR",
       icon: <Edit />,
       onClick: onEdit,
@@ -74,8 +71,8 @@ const OrganizationProfileSectionComponent: FC<
       title: !profile.isEditable
         ? "La empresa tiene una postulación pendiente"
         : undefined,
-    });
-  }
+    },
+  ];
 
   // Add Accredit action if not accredited
   if (
@@ -87,6 +84,7 @@ const OrganizationProfileSectionComponent: FC<
       icon: <StarOutline />,
       onClick: accreditationDialog.openDialog,
       disabled: false,
+      title: "Solicitar acreditación de la empresa",
     });
   }
 
