@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../../zod.js";
-import { OrganizationMutationDataSchema } from "../../baseSchemas.js";
+import { OrganizationMutationDataSchema } from "../../schemas.js";
 
 export const CreateOrganizationBodySchema = OrganizationMutationDataSchema;
 

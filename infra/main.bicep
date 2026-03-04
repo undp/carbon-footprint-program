@@ -20,6 +20,13 @@ param keyVaultSkuName string
 ])
 param storageSkuName string
 
+@description('Storage Account network ACL default action. Use Allow for development, Deny for production.')
+@allowed([
+  'Allow'
+  'Deny'
+])
+param storageNetworkAclDefaultAction string = 'Deny'
+
 // --------- Database parameters ---------
 @description('Database user')
 param dbUser string
@@ -61,6 +68,9 @@ param dbPassword string
 
 @description('Object ID of the Azure AD group for Key Vault access (optional)')
 param devGroupObjectId string = ''
+
+@description('Grant Storage Blob Data Contributor to the dev group (for local development with az login)')
+param enableDevGroupStorageAccess bool = false
 
 @description('Allowed IP ranges for PostgreSQL firewall')
 param dbAllowedIpRanges array = []
@@ -196,11 +206,20 @@ module keyVault 'modules/keyVault.bicep' = {
 }
 
 // --------- Storage Account ---------
+// Compute the allowed origin for blob storage CORS (same origin used for App Service CORS)
+var allowedOrigin = enableFrontDoor
+  ? (frontDoorCustomDomain != ''
+    ? 'https://${frontDoorCustomDomain}'
+    : 'https://${frontDoor!.outputs.endpointHostname}')
+  : 'https://${staticWebApp.outputs.defaultHostname}'
+
 module storage 'modules/storage.bicep' = {
   name: 'storageDeployment'
   params: {
     skuName: storageSkuName
     location: location
+    networkAclDefaultAction: storageNetworkAclDefaultAction
+    allowedOrigin: allowedOrigin
     tags: tags
   }
 }
@@ -271,12 +290,9 @@ module appService 'modules/appService.bicep' = {
     databaseHost: postgres.outputs.hostOut
     databaseName: postgres.outputs.dbNameOut
     databaseUser: dbUser
-    allowedOrigin: enableFrontDoor
-      ? (frontDoorCustomDomain != ''
-        ? 'https://${frontDoorCustomDomain}'
-        : 'https://${frontDoor!.outputs.endpointHostname}')
-      : 'https://${staticWebApp.outputs.defaultHostname}'
+    allowedOrigin: allowedOrigin
     useAcrManagedIdentity: true
+    storageAccountName: storage.outputs.name
     enableAzureAuth: enableAzureAuth
     azureAuthExternalTenantId: azureAuthExternalTenantId
     azureAuthClientId: azureAuthApiAppId
@@ -296,6 +312,58 @@ module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = {
   params: {
     acrName: acr.outputs.name
     principalId: appService.outputs.principalId
+  }
+}
+
+// Role assignment to allow App Service to read/write blobs in Storage Account
+module appServiceStorageBlobContributor 'modules/storageRoleAssignment.bicep' = {
+  name: 'appServiceStorageBlobContributor'
+  scope: resourceGroup()
+  #disable-next-line no-unnecessary-dependson
+  dependsOn: [
+    appService
+    storage
+  ]
+  params: {
+    storageAccountName: storage.outputs.name
+    principalId: appService.outputs.principalId
+  }
+}
+
+// Role assignment to allow Dev Group members to read/write blobs (for local development)
+module devGroupStorageBlobContributor 'modules/storageRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
+  name: 'devGroupStorageBlobContributor'
+  scope: resourceGroup()
+  params: {
+    storageAccountName: storage.outputs.name
+    principalId: devGroupObjectId
+    principalType: 'Group'
+  }
+}
+
+// Role assignment to allow App Service to generate User Delegation SAS tokens
+module appServiceStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = {
+  name: 'appServiceStorageBlobDelegator'
+  scope: resourceGroup()
+  #disable-next-line no-unnecessary-dependson
+  dependsOn: [
+    appService
+    storage
+  ]
+  params: {
+    storageAccountName: storage.outputs.name
+    principalId: appService.outputs.principalId
+  }
+}
+
+// Role assignment to allow Dev Group members to generate User Delegation SAS tokens (for local development)
+module devGroupStorageBlobDelegator 'modules/storageDelegatorRoleAssignment.bicep' = if (enableDevGroupStorageAccess && devGroupObjectId != '') {
+  name: 'devGroupStorageBlobDelegator'
+  scope: resourceGroup()
+  params: {
+    storageAccountName: storage.outputs.name
+    principalId: devGroupObjectId
+    principalType: 'Group'
   }
 }
 

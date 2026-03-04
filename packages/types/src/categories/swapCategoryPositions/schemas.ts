@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import { CategorySchema } from "../baseSchemas.js";
+import { CategoryBaseSchema } from "../../baseSchemas/index.js";
 
 // Request Schema
 export const SwapCategoryPositionsRequestSchema = z
@@ -14,7 +14,7 @@ export const SwapCategoryPositionsRequestSchema = z
 export const SwapCategoryPositionsResponseSchema = z
   .object({
     categories: z
-      .tuple([CategorySchema, CategorySchema])
+      .tuple([CategoryBaseSchema, CategoryBaseSchema])
       .describe("Both updated categories after the swap"),
   })
   .strict();

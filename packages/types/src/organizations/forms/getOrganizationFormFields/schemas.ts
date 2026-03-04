@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OrganizationMutationDataSchema } from "../../baseSchemas.js";
+import { OrganizationMutationDataSchema } from "../../schemas.js";
 
 // Form field schema
 const BaseFormFieldSchema = z.object({

@@ -252,6 +252,7 @@ model User {
   memberships                          UserOrganizationMembership[]   @relation("user_memberships")
   membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
   membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
+  filesUploaded                        File[]                         @relation("file_created_by")
 
   @@map("user")
 }
@@ -654,19 +655,27 @@ view CarbonInventorySubtotalsView {
   @@map("carbon_inventory_subtotals_view")
 }
 
+enum OrganizationSummaryDisplayStatus {
+  NOT_ACCREDITED
+  ACCREDITED
+  BLOCKED
+
+  @@map("organization_summary_display_status")
+}
+
 view OrganizationSummaryView {
-  organizationId        BigInt            @unique @map("organization_id")
-  organizationDataId    BigInt            @map("organization_data_id")
-  name                  String            @map("name")
-  lastSubmissionStatus  SubmissionStatus? @map("last_submission_status")
-  hasUnsubmittedChanges Boolean           @map("has_unsubmitted_changes")
-  displayStatus         String            @map("display_status")
-  isAccredited          Boolean           @map("is_accredited")
-  hasCarbonInventories  Boolean           @map("has_carbon_inventories")
-  totalEmissions        Decimal           @map("total_emissions") @db.Decimal(28, 10)
-  lastMeasurement       DateTime?         @map("last_measurement")
-  organization          Organization      @relation(fields: [organizationId], references: [id])
-  organizationData      OrganizationData  @relation(fields: [organizationDataId], references: [id])
+  organizationId        BigInt                           @unique @map("organization_id")
+  organizationDataId    BigInt                           @map("organization_data_id")
+  name                  String                           @map("name")
+  lastSubmissionStatus  SubmissionStatus?                @map("last_submission_status")
+  hasUnsubmittedChanges Boolean                          @map("has_unsubmitted_changes")
+  displayStatus         OrganizationSummaryDisplayStatus @map("display_status")
+  isAccredited          Boolean                          @map("is_accredited")
+  hasCarbonInventories  Boolean                          @map("has_carbon_inventories")
+  totalEmissions        Decimal                          @map("total_emissions") @db.Decimal(28, 10)
+  lastMeasurement       DateTime?                        @map("last_measurement")
+  organization          Organization                     @relation(fields: [organizationId], references: [id])
+  organizationData      OrganizationData                 @relation(fields: [organizationDataId], references: [id])
 
   @@map("organization_summary_view")
 }
@@ -744,6 +753,52 @@ model OrganizationData {
   @@map("organization_data")
 }
 
+enum SubmissionFileType {
+  ATTACHMENT
+  RECOGNITION
+
+  @@map("submission_file_type")
+}
+
+enum FileStatus {
+  ACTIVE
+  DELETED
+
+  @@map("file_status")
+}
+
+model File {
+  id           BigInt     @id @default(autoincrement())
+  uuid         String     @unique @db.Uuid
+  originalName String     @map("original_name")
+  mimeType     String     @map("mime_type")
+  sizeBytes    Int        @map("size_bytes")
+  blobPath     String     @map("blob_path")
+  status       FileStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now()) @map("created_at")
+  deletedAt    DateTime?  @map("deleted_at")
+  createdById  BigInt     @map("created_by_id")
+
+  createdBy       User             @relation("file_created_by", fields: [createdById], references: [id])
+  submissionFiles SubmissionFile[]
+  badge           Badge?           @relation("badge_file")
+
+  @@map("file")
+}
+
+model SubmissionFile {
+  fileId       BigInt             @map("file_id")
+  submissionId BigInt             @map("submission_id")
+  type         SubmissionFileType @default(ATTACHMENT) @map("type")
+
+  file       File       @relation(fields: [fileId], references: [id])
+  submission Submission @relation(fields: [submissionId], references: [id])
+
+  @@id([fileId, submissionId])
+  @@index([submissionId])
+  @@map("submission_file")
+}
+
 enum SubmissionSubjectType {
   ORGANIZATION_ACCREDITATION
   CARBON_INVENTORY_CALCULATION
@@ -808,10 +863,14 @@ model Submission {
   reviewer       User?                  @relation("submission_reviewer", fields: [reviewerId], references: [id])
   creator        User?                  @relation("submission_created_by", fields: [createdById], references: [id])
   updater        User?                  @relation("submission_updated_by", fields: [updatedById], references: [id])
+  badge          Badge?                 @relation(fields: [badgeId], references: [id])
   summary        SubmissionSummaryView?
+  files          SubmissionFile[]
+
 
   // NOTE: The following constraints are implemented on the migrations:
   // - UNIQUE INDEX on subject_id WHERE status IN ('PENDING', 'APPROVED')
+  @@index([badgeId])
   @@map("submission")
 }
 
@@ -826,4 +885,31 @@ view SubmissionSummaryView {
   submission       Submission            @relation(fields: [submissionId], references: [id])
 
   @@map("submission_summary_view")
+enum BadgeType {
+  CARBON_INVENTORY
+  ORGANIZATION_DATA
+
+  @@map("badge_type")
+}
+
+enum BadgeStatus {
+  ACTIVE
+  INACTIVE
+
+  @@map("badge_status")
+}
+
+model Badge {
+  id        BigInt      @id @default(autoincrement())
+  type      BadgeType
+  status    BadgeStatus @default(ACTIVE)
+  fileId    BigInt      @unique @map("file_id")
+  createdAt DateTime    @default(now()) @map("created_at")
+
+  file        File         @relation("badge_file", fields: [fileId], references: [id])
+  submissions Submission[]
+
+  // Enforced by partial unique index in migration:
+  // UNIQUE (type) WHERE status = 'ACTIVE'
+  @@map("badge")
 }

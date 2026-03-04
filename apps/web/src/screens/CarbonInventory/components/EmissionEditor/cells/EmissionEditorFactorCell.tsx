@@ -2,16 +2,19 @@ import { FC } from "react";
 import { useWatch } from "react-hook-form";
 import { Typography, Tooltip } from "@mui/material";
 import { NumericInput } from "@/components";
-import { RateMeasurementUnit, EmissionFactorDimension } from "@repo/types";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { formatEmissionFactor } from "@/utils/formatting";
+import {
+  MethodologyEmissionFactorDimension,
+  RateMeasurementUnit,
+} from "../../../types";
 
 interface EmissionEditorFactorCellProps {
   subcategoryId: string;
   lineId: string;
-  dimensions: EmissionFactorDimension[];
-  rateMeasurementUnits: RateMeasurementUnit[];
+  dimensions: MethodologyEmissionFactorDimension[];
+  rateMeasurementUnits: RateMeasurementUnit[] | undefined;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   disabled?: boolean;
 }

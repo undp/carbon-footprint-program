@@ -7,9 +7,11 @@ import type {
   FastifyBaseLogger,
 } from "fastify";
 import type { ZodTypeProvider } from "fastify-type-provider-zod";
+import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { SystemRole } from "@repo/database/enums";
+import type { SystemRole, OrganizationRole } from "@repo/database/enums";
+import type { OrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -27,6 +29,30 @@ export type FastifyZodInstance = FastifyInstance<
 declare module "fastify" {
   interface FastifyInstance {
     prisma: PrismaClient;
+
+    /**
+     * Azure Blob Storage service client for SAS token generation.
+     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     */
+    blobServiceClient?: BlobServiceClient;
+
+    /**
+     * Azure Blob Storage container client for file uploads/downloads.
+     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     */
+    blobStorage?: ContainerClient;
+
+    /**
+     * Azure Storage Account name (validated at startup).
+     * Undefined when AZURE_STORAGE_ACCOUNT_NAME is not configured.
+     */
+    storageAccountName?: string;
+
+    /**
+     * Azure Blob Storage container name.
+     * Undefined when AZURE_STORAGE_CONTAINER_NAME is not configured.
+     */
+    storageContainerName?: string;
 
     /**
      * Authentication service for managing auth providers.
@@ -71,6 +97,35 @@ declare module "fastify" {
      */
     requireRoles: (
       allowedRoles: SystemRole[]
+    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+
+    /**
+     * Require user to have at least one of the specified roles within an organization.
+     * Must be used after requireAuth.
+     *
+     * @param organizationIdExtractor - Function to extract organization ID from request
+     * @param allowedRoles - Array of organization roles, user must have at least one
+     * @returns Hook function for organization role-based authorization
+     *
+     * @example
+     * // Define extractor
+     * const extractOrgId: OrganizationIdExtractor = async (request) =>
+     *   request.params.organizationId;
+     *
+     * // Use in route
+     * fastify.post("/organizations/:organizationId/users", {
+     *   onRequest: [fastify.requireAuth],
+     *   preHandler: [
+     *     fastify.requireOrganizationRole(
+     *       extractOrgId,
+     *       [OrganizationRole.ORGANIZATION_ADMIN]
+     *     )
+     *   ]
+     * }, handler);
+     */
+    requireOrganizationRole: (
+      organizationIdExtractor: OrganizationIdExtractor,
+      allowedRoles: OrganizationRole[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 

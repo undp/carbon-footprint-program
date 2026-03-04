@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -42,7 +42,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     // Carbon inventories must be deleted before organizations (no cascade)
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);

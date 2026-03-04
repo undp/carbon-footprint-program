@@ -2,11 +2,13 @@ import { useMemo, useCallback } from "react";
 import { Button } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { Category } from "@repo/types";
+import type { GetAllCategoriesResponse } from "@repo/types";
 
 import { EditableTextCell, IconPickerCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import type { FormCategory } from "./useCategoriesForm";
+
+type Category = GetAllCategoriesResponse[number];
 
 interface UseCategoryColumnsParams {
   editingRowId: string | null;

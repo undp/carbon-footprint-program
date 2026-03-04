@@ -7,7 +7,10 @@ export * from "./organizationMainActivities/index.js";
 export * from "./methodologies/index.js";
 export * from "./categories/index.js";
 export * from "./users/index.js";
+export * from "./files/index.js";
 export * from "./organizations/index.js";
 export * from "./enums.js";
 export * from "./zod.js";
 export * from "./requests/index.js";
+
+export * from "./baseSchemas/index.js";

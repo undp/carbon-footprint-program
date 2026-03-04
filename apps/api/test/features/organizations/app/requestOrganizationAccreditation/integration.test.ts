@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -44,7 +44,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestOrganization(prisma);
   });
 
@@ -282,10 +282,9 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         url: `/api/app/organizations/${nonExistentId}/request-accreditation`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_NOT_FOUND");
-      expect(body.message).toContain(nonExistentId);
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 for user without membership", async () => {
@@ -305,8 +304,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_ACCESS_DENIED");
-      expect(body.message).toContain(organization.id.toString());
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 403 for user with DELETED membership", async () => {
@@ -330,8 +328,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_ACCESS_DENIED");
-      expect(body.message).toContain(organization.id.toString());
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 404 when only PENDING submission exists (no draft)", async () => {

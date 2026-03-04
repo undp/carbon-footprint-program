@@ -1,7 +1,7 @@
 import type { Prisma } from "@repo/database";
 import type { CarbonInventory as PrismaCarbonInventory } from "@repo/database";
-import type { CarbonInventory as ResponseCarbonInventory } from "@repo/types";
-import { OrganizationDataSchema, UsageMode } from "@repo/types";
+import type { GetCarbonInventoryByIdResponse } from "@repo/types";
+import { OrganizationDataFieldSchema, UsageMode } from "@repo/types";
 import { DataIntegrityError } from "@/errors/index.js";
 import { groupBy } from "lodash-es";
 import { toNumberOrNull, kgToTon } from "@/utils/number.js";
@@ -39,7 +39,7 @@ export type LineWithInputs = NonNullable<
 >[number];
 
 type LineResponse =
-  ResponseCarbonInventory["subcategories"][number]["lines"][number];
+  GetCarbonInventoryByIdResponse["subcategories"][number]["lines"][number];
 
 export function mapLineToResponse(line: LineWithInputs): LineResponse {
   // Get the active input (should be at most one due to our query)
@@ -100,9 +100,9 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
 
 function mapBaseCarbonInventory(
   item: PrismaCarbonInventory
-): Omit<ResponseCarbonInventory, "subcategories"> {
+): Omit<GetCarbonInventoryByIdResponse, "subcategories"> {
   // Validate organizationData with runtime type checking using Zod
-  const organizationDataResult = OrganizationDataSchema.nullable().safeParse(
+  const organizationDataResult = OrganizationDataFieldSchema.safeParse(
     item.organizationData
   );
 
@@ -134,7 +134,7 @@ function mapBaseCarbonInventory(
 export function mapCarbonInventoryWithLinesToResponse(
   item: CarbonInventoryWithLines,
   subcategories: SubcategoryWithDimensions[]
-): ResponseCarbonInventory {
+): GetCarbonInventoryByIdResponse {
   const base = mapBaseCarbonInventory(item);
   const parsedLines: LineResponse[] = item.lines.map(mapLineToResponse);
 
@@ -174,6 +174,6 @@ export function mapCarbonInventoryWithLinesToResponse(
 // Map carbon inventory without subcategories to response (omits subcategories field)
 export function mapCarbonInventoryToResponse(
   item: PrismaCarbonInventory
-): Omit<ResponseCarbonInventory, "subcategories"> {
+): Omit<GetCarbonInventoryByIdResponse, "subcategories"> {
   return mapBaseCarbonInventory(item);
 }

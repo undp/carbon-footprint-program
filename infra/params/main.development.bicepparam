@@ -40,6 +40,17 @@ using '../main.bicep'
 // ============================================
 param storageSkuName = 'Standard_LRS'
 
+// Network ACL default action for Storage Account firewall
+// - 'Allow': All networks can access (recommended for development)
+// - 'Deny': Only Azure Services and explicitly allowed IPs/VNets (recommended for production)
+// In development we use 'Allow' so the Azure Portal, local `az login`, and the API can all reach the storage.
+param storageNetworkAclDefaultAction = 'Allow'
+
+// Grant Storage Blob Data Contributor to the dev group so developers can
+// upload/download blobs locally using `az login` without manual role assignment.
+// In production this should remain false — only the App Service managed identity needs access.
+param enableDevGroupStorageAccess = true
+
 // ============================================
 // Key Vault
 // ============================================

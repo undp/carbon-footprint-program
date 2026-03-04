@@ -1,9 +1,8 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getMeService } from "./service.js";
-import type { GetMeBody } from "@repo/types";
 
 export const getMeHandler = async (
-  request: FastifyRequest<{ Body: GetMeBody }>,
+  request: FastifyRequest,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "users" });

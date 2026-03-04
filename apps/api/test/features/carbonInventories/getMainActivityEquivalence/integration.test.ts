@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -35,7 +35,7 @@ describe("GET /api/carbon-inventories/:id/main-activity-equivalence - Integratio
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
   });
 

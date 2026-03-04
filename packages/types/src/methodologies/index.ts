@@ -1,5 +1,3 @@
-export * from "./baseSchemas.js";
-export * from "./baseTypes.js";
 export * from "./createMethodology/schemas.js";
 export * from "./createMethodology/types.js";
 export * from "./deleteMethodology/schemas.js";

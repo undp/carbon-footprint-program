@@ -1,5 +1,4 @@
 import { useWatch } from "react-hook-form";
-import { EmissionFactorDimension } from "@repo/types";
 import {
   LineValidationState,
   EmissionCaptureFormLine,
@@ -9,11 +8,12 @@ import {
   canEditFactorValue,
   getDisabledReasonMessage,
 } from "../services/fieldValidationService";
+import { MethodologyEmissionFactorDimension } from "../../../types";
 
 export const useLineValidation = (
   subcategoryId: string,
   lineId: string,
-  dimensions: EmissionFactorDimension[]
+  dimensions: MethodologyEmissionFactorDimension[]
 ): LineValidationState => {
   const line = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}`,

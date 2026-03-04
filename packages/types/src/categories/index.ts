@@ -1,5 +1,3 @@
-export * from "./baseSchemas.js";
-export * from "./baseTypes.js";
 export * from "./getAllCategories/schemas.js";
 export * from "./getAllCategories/types.js";
 export * from "./createCategory/schemas.js";

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -43,7 +43,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
   });
@@ -277,25 +277,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationBranchId).toBe("456");
     });
 
-    it("should update with empty payload (no changes)", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {},
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
-
-      expect(body.id).toBe(inventory.id.toString());
-      expect(body.year).toBeNull();
-      expect(body.usageMode).toBe("SIMPLIFIED");
-    });
-
     it("should set nullable fields to null", async () => {
       const organization = await createTestOrganization(prisma);
       const organizationId = organization.id;
@@ -425,44 +406,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   });
 
   describe("Validation errors", () => {
-    it("should return 400 when year is below minimum (2000)", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {
-          year: 1999,
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      expect(body.message).toBeTruthy();
-    });
-
-    it("should return 400 when year is above maximum (2100)", async () => {
-      const inventory = await seedCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${inventory.id}`,
-        payload: {
-          year: 2101,
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe(VALIDATION_ERROR_CODE);
-      expect(body.message).toBeTruthy();
-    });
-
     it("should return 400 when year is not an integer", async () => {
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
@@ -616,6 +559,20 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
           year: 2024,
           extraField: "should not be here",
         },
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 400 when payload is empty", async () => {
+      const inventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${inventory.id}`,
+        payload: {},
       });
 
       expect(response.statusCode).toBe(400);

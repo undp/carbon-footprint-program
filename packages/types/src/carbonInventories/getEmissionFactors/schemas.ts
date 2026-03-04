@@ -1,21 +1,15 @@
 import { z } from "zod";
+import { CategoryBaseSchema } from "../../baseSchemas/category.js";
+import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
+import { EmissionFactorBaseSchema } from "../../baseSchemas/emissionFactor.js";
 
-const EmissionFactorRowSchema = z
+const ItemSchema = z
   .object({
-    id: z.string().describe("Unique identifier for the row"),
-    categoryName: z.string().describe("The category name"),
-    categorySynonyms: z
-      .string()
-      .nullable()
-      .describe(
-        "A synonym for the category name, used for matching inventory items to emission factors"
-      ),
-    categoryPosition: z
-      .number()
-      .int()
-      .positive()
-      .describe("The category position for alcance badge coloring"),
-    subcategoryName: z.string().describe("The subcategory name"),
+    id: EmissionFactorBaseSchema.shape.id,
+    categoryName: CategoryBaseSchema.shape.name,
+    categorySynonyms: CategoryBaseSchema.shape.synonyms,
+    categoryPosition: CategoryBaseSchema.shape.position,
+    subcategoryName: SubcategoryBaseSchema.shape.name,
     activityParameter: z
       .string()
       .describe(
@@ -29,9 +23,7 @@ const EmissionFactorRowSchema = z
       .describe(
         "Individual gas breakdown strings, e.g. ['2.370 kg CO₂e of CO₂/ton', '0.63 kg CO₂e of CH4/ton']"
       ),
-    factorSource: z
-      .string()
-      .describe("The source of the emission factor, e.g. 'DEFRA 2025'"),
+    factorSource: EmissionFactorBaseSchema.shape.source,
     factorSourceDetail: z
       .string()
       .nullable()
@@ -42,7 +34,7 @@ const EmissionFactorRowSchema = z
   .strict();
 
 export const GetEmissionFactorsResponseSchema = z
-  .array(EmissionFactorRowSchema)
+  .array(ItemSchema)
   .describe(
     "All emission factors used in the inventory, ordered by category position then subcategory name"
   );

@@ -1,6 +1,9 @@
-import { Methodology } from "@repo/types";
+import { CreateMethodologyResponse } from "@repo/types";
 
-type MethodologyRef = Pick<Methodology, "id" | "name" | "regulation">;
+type MethodologyRef = Pick<
+  CreateMethodologyResponse,
+  "id" | "name" | "regulation"
+>;
 
 export interface MaintainerState {
   /** Methodology pre-selected via "Ver Alcances" (selector stays enabled). */

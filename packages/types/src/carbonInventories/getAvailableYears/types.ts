@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "zod";
 import type { CarbonInventoryAvailableYearsSchema } from "./schemas.js";
 
 // TypeScript Types

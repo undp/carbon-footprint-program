@@ -4,6 +4,14 @@ export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra 
 export AZURE_EXTERNAL_TENANT_SUBDOMAIN="" # External Tenant Subdomain  for Azure Entra External Authentication
 export AZURE_EXTERNAL_TENANT_ID=""   # External Tenant ID for Azure Entra External Authentication
 
+# Azure Blob Storage (local development only)
+# In production these are set automatically by the Bicep infrastructure (appService.bicep).
+# For local development, set AZURE_STORAGE_ACCOUNT_NAME to your Azure Storage account
+# and run `az login` so DefaultAzureCredential can authenticate.
+# Leave empty to disable file upload/download locally.
+export AZURE_STORAGE_ACCOUNT_NAME=""    # Storage account name (e.g., "stj7k8m9n0p1")
+export AZURE_STORAGE_CONTAINER_NAME=""  # Blob container name. Defaults to "files" if empty.
+
 # Database
 export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:password@localhost:5432/dbname
 

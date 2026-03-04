@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import { CategorySchema } from "../baseSchemas.js";
+import { CategoryBaseSchema } from "../../baseSchemas/index.js";
 
 // Query Schema — methodologyVersionId is required
 export const GetAllCategoriesQuerySchema = z
@@ -12,4 +12,4 @@ export const GetAllCategoriesQuerySchema = z
   .strict();
 
 // Response Schema
-export const GetAllCategoriesResponseSchema = z.array(CategorySchema);
+export const GetAllCategoriesResponseSchema = z.array(CategoryBaseSchema);
