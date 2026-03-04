@@ -1,12 +1,113 @@
-import { FC } from "react";
-import { MainLayout } from "@/components";
-import { UnderConstructionScreen } from "../UnderConstruction";
+import { FC, useEffect, useMemo, useState } from "react";
+import Box from "@mui/material/Box";
+import { useCarbonInventories } from "../../api/query";
+import { Header, NoneCarbonInventoriesSection } from "./components";
+import { filter, map, orderBy, uniq } from "lodash-es";
+import { InventoryStatus } from "@repo/types";
+import { EmissionResultsContent } from "@/components";
+import { NoneVerifyCarbonInventories } from "./components/NoneVerifyCarbonInventories";
 
 export const HomeScreen: FC = () => {
+  const [selectedYear, setSelectedYear] = useState<string>("");
+  const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] =
+    useState<string>("");
+
+  const {
+    data: inventories = [],
+    isLoading: isLoadingInventories,
+    refetch: refetchInventories,
+  } = useCarbonInventories();
+
+  const filteredByStatusInventories = useMemo(() => {
+    const statusOrder: Partial<Record<InventoryStatus, number>> = {
+      VERIFIED: 0,
+      SUBMITTED: 1,
+    };
+
+    const filtered = filter(inventories, ({ status }) =>
+      (
+        [
+          InventoryStatus.VERIFIED,
+          InventoryStatus.SUBMITTED,
+        ] as InventoryStatus[]
+      ).includes(status)
+    );
+
+    return orderBy(
+      filtered,
+      [({ status }) => statusOrder[status], ({ year }) => Number(year)],
+      ["asc", "desc"]
+    );
+  }, [inventories]);
+
+  const availableYears = useMemo(() => {
+    const years = map(
+      filter(filteredByStatusInventories, (inv) => inv.year != null),
+      (inv) => inv.year!.toString()
+    );
+    return orderBy(uniq(years), Number, "desc");
+  }, [filteredByStatusInventories]);
+
+  useEffect(() => {
+    void refetchInventories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
+      setSelectedYear(availableYears[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [availableYears]);
+
+  useEffect(() => {
+    if (
+      selectedYear &&
+      filteredByStatusInventories.length > 0 &&
+      !filteredByStatusInventories.some(
+        (inv) => inv.id === selectedCarbonInventoryId
+      )
+    ) {
+      setSelectedCarbonInventoryId(filteredByStatusInventories[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filteredByStatusInventories, selectedYear]);
+
+  if (!isLoadingInventories && filteredByStatusInventories.length === 0) {
+    return (
+      <Box className="flex flex-1 flex-col gap-6">
+        <NoneVerifyCarbonInventories />
+      </Box>
+    );
+  }
+
+  if (!isLoadingInventories && inventories.length == 0) {
+    return (
+      <Box className="flex flex-1 flex-col gap-6">
+        <NoneCarbonInventoriesSection />
+      </Box>
+    );
+  }
+
   return (
-    <MainLayout>
-      {/* TODO: Replace with real Home screen component */}
-      <UnderConstructionScreen />
-    </MainLayout>
+    <Box className="flex flex-1 flex-col gap-6">
+      <Header
+        availableYears={availableYears}
+        inventories={filteredByStatusInventories}
+        onYearChange={setSelectedYear}
+        onCarbonInventoryChange={setSelectedCarbonInventoryId}
+        isLoadingInventories={isLoadingInventories}
+        selectedYear={selectedYear}
+        selectedCarbonInventory={selectedCarbonInventoryId}
+      />
+      {selectedCarbonInventoryId && (
+        <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
+          <EmissionResultsContent
+            inventoryId={selectedCarbonInventoryId}
+            showBadges
+          />
+        </Box>
+      )}
+    </Box>
   );
 };
