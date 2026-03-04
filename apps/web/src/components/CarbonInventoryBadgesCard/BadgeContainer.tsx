@@ -1,0 +1,84 @@
+import { Box, Skeleton, Typography } from "@mui/material";
+import { GetCarbonInventoryBadgesResponse, BadgeType } from "@repo/types";
+import { FC } from "react";
+
+const subjectTypeToLabelMap: Record<BadgeType, string> = {
+  CARBON_INVENTORY_CALCULATION: "Huella Latam - Medición",
+  CARBON_INVENTORY_VERIFICATION: "Huella Latam - Verificación",
+  ORGANIZATION_ACCREDITATION: "Huella Latam - Acreditación",
+  REDUCTION_PLAN_VERIFICATION: "Huella Latam - Plan de Reducción",
+  NEUTRALIZATION_PLAN_VERIFICATION: "Huella Latam - Plan de Neutralización",
+};
+
+interface BadgeRowProps {
+  item: GetCarbonInventoryBadgesResponse[number];
+  isLoading: boolean;
+}
+
+const BadgeRow: FC<BadgeRowProps> = ({ item, isLoading }) => {
+  const { previewUrl, badgeType } = item;
+
+  return (
+    <>
+      <Box className="h-px w-full" sx={{ bgcolor: "#D9D9D9" }} />
+      <Box className="flex items-center gap-3 p-1">
+        {isLoading || !previewUrl ? (
+          <Skeleton
+            variant="circular"
+            width={32}
+            height={32}
+            className="shrink-0"
+          />
+        ) : (
+          <Box
+            component="img"
+            src={previewUrl}
+            alt={subjectTypeToLabelMap[badgeType]}
+            className="size-8 shrink-0 rounded-full object-cover"
+          />
+        )}
+        <Box className="flex flex-col">
+          <Typography fontSize="0.875rem" color="text.primary">
+            {subjectTypeToLabelMap[badgeType]}
+          </Typography>
+        </Box>
+      </Box>
+    </>
+  );
+};
+
+interface BadgeContainerProps {
+  isLoading: boolean;
+  badges: GetCarbonInventoryBadgesResponse;
+}
+
+export const BadgeContainer: FC<BadgeContainerProps> = ({
+  badges,
+  isLoading,
+}) => {
+  if (badges.length === 0) return null;
+
+  return (
+    <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border bg-white p-4">
+      <Typography
+        fontSize="1rem"
+        fontWeight="semiBold"
+        color="text.primary"
+        className="shrink-0"
+      >
+        Reconocimientos
+      </Typography>
+
+      <Box className="flex flex-col">
+        {badges.map((badge, i) => (
+          <BadgeRow
+            key={`${badge.badgeType}-${i}`}
+            item={badge}
+            isLoading={isLoading}
+          />
+        ))}
+        <Box className="h-px w-full" sx={{ bgcolor: "#D9D9D9" }} />
+      </Box>
+    </Box>
+  );
+};
