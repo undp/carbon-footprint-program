@@ -2,7 +2,7 @@ import type { PrismaClient, Prisma } from "@repo/database";
 import {
   OrganizationDataStatus,
   SubmissionStatus,
-  SubmissionSubjectType,
+  SubmissionType,
 } from "@repo/database";
 import type { OrganizationMutationData } from "@repo/types";
 
@@ -89,6 +89,7 @@ export const createOrganizationDataSubmission = (
 ) => {
   return prisma.submission.create({
     data: {
+      type: SubmissionType.ORGANIZATION_ACCREDITATION,
       status: SubmissionStatus.PENDING,
       creator: {
         connect: {
@@ -97,7 +98,6 @@ export const createOrganizationDataSubmission = (
       },
       subject: {
         create: {
-          subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
           creator: {
             connect: {
               id: BigInt(userId),

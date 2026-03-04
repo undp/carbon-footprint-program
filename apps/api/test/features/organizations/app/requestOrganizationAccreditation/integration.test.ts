@@ -19,7 +19,6 @@ import {
   OrganizationStatus,
   OrganizationDataStatus,
   SubmissionStatus,
-  SubmissionSubjectType,
   MembershipStatus,
 } from "@repo/database";
 import type { FastifyInstance } from "fastify";
@@ -139,9 +138,6 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       });
 
       expect(subject).toBeDefined();
-      expect(subject?.subjectType).toBe(
-        SubmissionSubjectType.ORGANIZATION_ACCREDITATION
-      );
       expect(subject?.createdById).toBe(testUserId);
     });
 
@@ -184,9 +180,6 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(link).toBeDefined();
       expect(link?.organizationDataId).toBe(organizationData.id);
       expect(link?.subject).toBeDefined();
-      expect(link?.subject.subjectType).toBe(
-        SubmissionSubjectType.ORGANIZATION_ACCREDITATION
-      );
     });
   });
 

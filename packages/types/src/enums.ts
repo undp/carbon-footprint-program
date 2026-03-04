@@ -11,7 +11,7 @@ export {
   FileStatus,
   BadgeType,
   BadgeStatus,
-  SubmissionSubjectType,
+  SubmissionType,
   InputType,
   OrganizationSummaryDisplayStatus,
 } from "@repo/database/enums";

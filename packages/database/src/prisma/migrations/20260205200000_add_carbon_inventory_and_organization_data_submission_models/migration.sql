@@ -2,7 +2,10 @@
 CREATE TYPE "submission_subject_type" AS ENUM ('ORGANIZATION_ACCREDITATION', 'CARBON_INVENTORY_CALCULATION', 'CARBON_INVENTORY_VERIFICATION', 'REDUCTION_PLAN_VERIFICATION', 'NEUTRALIZATION_PLAN_VERIFICATION');
 
 -- CreateEnum
-CREATE TYPE "submission_status" AS ENUM ('PENDING', 'APPROVED', 'REJECTED');
+CREATE TYPE "submission_type" AS ENUM ('ORGANIZATION_ACCREDITATION', 'CARBON_INVENTORY_CALCULATION', 'CARBON_INVENTORY_VERIFICATION', 'REDUCTION_PLAN_VERIFICATION', 'NEUTRALIZATION_PLAN_VERIFICATION');
+
+-- CreateEnum
+CREATE TYPE "submission_status" AS ENUM ('PENDING', 'APPROVED', 'OBJECTED', 'REJECTED');
 
 -- CreateTable
 CREATE TABLE "submission_subject" (
@@ -34,6 +37,7 @@ CREATE TABLE "submission_subject_organization_data" (
 CREATE TABLE "submission" (
     "id" BIGSERIAL NOT NULL,
     "subject_id" BIGINT NOT NULL,
+    "type" "submission_type" NOT NULL,
     "status" "submission_status" NOT NULL DEFAULT 'PENDING',
     "reviewer_id" BIGINT,
     "review_comments" TEXT,

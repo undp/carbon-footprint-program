@@ -6,7 +6,7 @@ import type {
 import {
   OrganizationDataStatus,
   SubmissionStatus,
-  SubmissionSubjectType,
+  SubmissionType,
 } from "@repo/database";
 import {
   OrganizationDataNotFoundError,
@@ -52,6 +52,7 @@ export const requestOrganizationAccreditationService = async (
     // Check if submission already exists for this org data (safety guard)
     const hasSubmission = await tx.submission.findFirst({
       where: {
+        type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subject: {
           organizationData: { organizationDataId: activeData.id },
         },
@@ -83,7 +84,6 @@ export const requestOrganizationAccreditationService = async (
     // 1. Create submission subject
     const subject = await tx.submissionSubject.create({
       data: {
-        subjectType: SubmissionSubjectType.ORGANIZATION_ACCREDITATION,
         createdById: BigInt(userId),
       },
     });
@@ -99,6 +99,7 @@ export const requestOrganizationAccreditationService = async (
     // 3. Create submission
     await tx.submission.create({
       data: {
+        type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subjectId: subject.id,
         status: SubmissionStatus.PENDING,
         createdById: BigInt(userId),
