@@ -7,16 +7,22 @@ import {
   DeleteOutlined,
   EmojiEventsOutlined,
   FileCopyOutlined,
+  SendOutlined,
 } from "@mui/icons-material";
 import {
   CarbonInventoryDisplayStatus,
   CarbonInventoryDisplayStatusEnum,
   InventoryStatus,
 } from "@repo/types";
+import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
 import { enqueueSnackbar } from "notistack";
-import { useUpdateCarbonInventory } from "@/api/query";
+import {
+  useUpdateCarbonInventory,
+  useRequestCalculation,
+  useRequestVerification,
+} from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
@@ -54,6 +60,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 }) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [calculationDialogOpen, setCalculationDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
 
   // TODO: improve the status management and permissions logic to determine the allowed actions based on the inventory status and associated submissions, instead of hardcoding based on display status
@@ -61,12 +68,18 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
   const canEdit = !isVerified;
-  const canVerify =
-    status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED;
+  const canRequestCalculation =
+    status === CarbonInventoryDisplayStatusEnum.DRAFT ||
+    status === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+  const canRequestVerification =
+    status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
+    status === CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
   const canDelete = !isVerified;
   const canView = !isDraft;
 
   const { mutateAsync: updateInventory } = useUpdateCarbonInventory();
+  const { mutateAsync: requestCalculation } = useRequestCalculation();
+  const { mutateAsync: requestVerification } = useRequestVerification();
 
   const onEditClick = useCallback(
     (inventoryId: string) => {
@@ -114,14 +127,45 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setDeleteDialogOpen(false);
   }, []);
 
+  const onCalculationClick = useCallback(() => {
+    setCalculationDialogOpen(true);
+  }, []);
+
+  const onCalculationConfirm = useCallback(async () => {
+    try {
+      await requestCalculation(inventoryId);
+      setCalculationDialogOpen(false);
+      void refetchInventories();
+      enqueueSnackbar("Solicitud de cálculo enviada", { variant: "success" });
+    } catch {
+      enqueueSnackbar("No se pudo enviar la solicitud de cálculo", {
+        variant: "error",
+      });
+    }
+  }, [inventoryId, requestCalculation, refetchInventories]);
+
+  const onCalculationCancel = useCallback(() => {
+    setCalculationDialogOpen(false);
+  }, []);
+
   const onVerifyClick = useCallback(() => {
     setVerifyDialogOpen(true);
   }, []);
 
-  const onVerifyConfirm = useCallback(() => {
-    //TODO: Implement with actual verify functionality
-    setVerifyDialogOpen(false);
-  }, []);
+  const onVerifyConfirm = useCallback(async () => {
+    try {
+      await requestVerification(inventoryId);
+      setVerifyDialogOpen(false);
+      void refetchInventories();
+      enqueueSnackbar("Solicitud de verificación enviada", {
+        variant: "success",
+      });
+    } catch {
+      enqueueSnackbar("No se pudo enviar la solicitud de verificación", {
+        variant: "error",
+      });
+    }
+  }, [inventoryId, requestVerification, refetchInventories]);
 
   const onVerifyCancel = useCallback(() => {
     setVerifyDialogOpen(false);
@@ -164,6 +208,32 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
+        {/* Request Calculation button */}
+        <Tooltip title="Enviar a cálculo">
+          <span>
+            <BaseIconButton
+              onClick={onCalculationClick}
+              disabled={!canRequestCalculation}
+              aria-label="Enviar a cálculo"
+            >
+              <SendOutlined fontSize="small" />
+            </BaseIconButton>
+          </span>
+        </Tooltip>
+
+        {/* Request Verification button */}
+        <Tooltip title="Enviar a verificación">
+          <span>
+            <BaseIconButton
+              onClick={onVerifyClick}
+              disabled={!canRequestVerification}
+              aria-label="Enviar a verificación"
+            >
+              <VerifiedOutlined fontSize="small" />
+            </BaseIconButton>
+          </span>
+        </Tooltip>
+
         {/* Download button */}
         <Tooltip title="Descargar">
           <span>
@@ -173,19 +243,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               aria-label="Descargar"
             >
               <FileDownloadOutlined fontSize="small" />
-            </BaseIconButton>
-          </span>
-        </Tooltip>
-
-        {/* Verify button */}
-        <Tooltip title={"Ver Diploma o sello"}>
-          <span>
-            <BaseIconButton
-              onClick={onVerifyClick}
-              disabled={!canVerify}
-              aria-label="Ver Diploma o sello"
-            >
-              <VerifiedOutlined fontSize="small" />
             </BaseIconButton>
           </span>
         </Tooltip>
@@ -222,6 +279,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
       </Box>
+
+      <CalculationConfirmationDialog
+        open={calculationDialogOpen}
+        onClose={onCalculationCancel}
+        onConfirm={onCalculationConfirm}
+      />
 
       <VerifyConfirmationDialog
         open={verifyDialogOpen}
