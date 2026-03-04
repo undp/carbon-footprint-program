@@ -101,8 +101,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const onViewClick = useCallback(
     (inventoryId: string) => {
       void navigate({
-        //TODO: Replace with view route of summary when available
-        to: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
+        to: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
         params: { inventoryId },
       });
     },
