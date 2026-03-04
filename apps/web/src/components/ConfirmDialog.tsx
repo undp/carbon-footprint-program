@@ -67,8 +67,6 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
           },
         },
       }}
-      aria-labelledby="confirm-dialog-title"
-      aria-describedby="confirm-dialog-description"
     >
       <DialogTitle
         id="confirm-dialog-title"
