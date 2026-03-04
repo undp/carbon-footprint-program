@@ -194,7 +194,7 @@ export const CarbonInventoriesScreen: FC = () => {
           headerAlign: "center",
           align: "center",
           minWidth: 190,
-          flex: 1,
+          flex: 1.5,
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
