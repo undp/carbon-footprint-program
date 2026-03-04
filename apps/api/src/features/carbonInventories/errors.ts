@@ -56,12 +56,12 @@ export const OrganizationNotAccreditedError = createError(
 
 export const CarbonInventoryCannotRequestCalculationError = createError(
   "CARBON_INVENTORY_CANNOT_REQUEST_CALCULATION",
-  "The carbon inventory with ID %s cannot request calculation because it does not have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
+  "Carbon inventory %s cannot request calculation: must be in DRAFT status or have an OBJECTED CALCULATION submission",
   422
 );
 
 export const CarbonInventoryCannotRequestVerificationError = createError(
   "CARBON_INVENTORY_CANNOT_REQUEST_VERIFICATION",
-  "The carbon inventory with ID %s cannot request verification because it does not have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
+  "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
   422
 );
