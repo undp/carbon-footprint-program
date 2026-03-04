@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import { OrganizationStatus } from "@repo/database";
 import type { GetOrganizationKpisResponse } from "@repo/types";
+import { flatMap } from "lodash-es";
 
 export const getOrganizationKpisService = async (
   prismaClient: PrismaClient
@@ -18,39 +19,31 @@ export const getOrganizationKpisService = async (
     },
   });
 
-  // Initialize all valid combinations with count 0
-  const countMap = new Map<string, number>();
   const statuses: Array<OrganizationStatus> = [
     OrganizationStatus.ACTIVE,
     OrganizationStatus.BLOCKED,
   ];
   const booleanValues = [true, false];
 
-  for (const status of statuses) {
-    for (const accredited of booleanValues) {
-      for (const withInventories of booleanValues) {
-        const key = `${status}-${accredited}-${withInventories}`;
-        countMap.set(key, 0);
-      }
-    }
-  }
+  const counts = flatMap(statuses, (status) =>
+    flatMap(booleanValues, (accredited) =>
+      booleanValues.map((withInventories) => {
+        const count = organizations.filter(
+          (org) =>
+            org.organization.status === status &&
+            org.isAccredited === accredited &&
+            org.hasCarbonInventories === withInventories
+        ).length;
 
-  // Count actual organizations
-  for (const org of organizations) {
-    const key = `${org.organization.status}-${org.isAccredited}-${org.hasCarbonInventories}`;
-    countMap.set(key, (countMap.get(key) || 0) + 1);
-  }
-
-  // Convert to response format
-  const counts = Array.from(countMap.entries()).map(([key, count]) => {
-    const [status, accredited, withInventories] = key.split("-");
-    return {
-      status: status as OrganizationStatus,
-      accredited: accredited === "true",
-      withInventories: withInventories === "true",
-      count,
-    };
-  });
+        return {
+          status,
+          accredited,
+          withInventories,
+          count,
+        };
+      })
+    )
+  );
 
   return {
     total: organizations.length,
