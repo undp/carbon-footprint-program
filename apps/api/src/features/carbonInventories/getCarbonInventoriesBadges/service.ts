@@ -1,12 +1,21 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { PrismaClient, Prisma } from "@repo/database";
 import {
   GetCarbonInventoryBadgesResponse,
   SubmissionStatus,
   InventoryStatus,
+  BadgeType,
 } from "@repo/types";
-
+import { sortBy } from "lodash-es";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { generateReadSasUrl } from "../../../services/index.js";
+
+const BADGE_SORT_ORDER: Record<BadgeType, number> = {
+  [BadgeType.CARBON_INVENTORY_CALCULATION]: 1,
+  [BadgeType.CARBON_INVENTORY_VERIFICATION]: 2,
+  [BadgeType.REDUCTION_PLAN_VERIFICATION]: 3,
+  [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: 4,
+  [BadgeType.ORGANIZATION_ACCREDITATION]: 999,
+};
 
 export const getCarbonInventoryBadgesService = async (
   prismaClient: PrismaClient,
@@ -14,7 +23,7 @@ export const getCarbonInventoryBadgesService = async (
   containerName: string,
   id: string
 ): Promise<GetCarbonInventoryBadgesResponse> => {
-  const whereClause: Prisma.CarbonInventoryWhereInput = {
+  const whereClause: Prisma.CarbonInventoryWhereUniqueInput = {
     id: BigInt(id),
     status: {
       in: [InventoryStatus.VERIFIED, InventoryStatus.SUBMITTED],
@@ -25,13 +34,18 @@ export const getCarbonInventoryBadgesService = async (
         submissions: {
           some: {
             status: SubmissionStatus.APPROVED,
+            badge: {
+              type: {
+                not: BadgeType.ORGANIZATION_ACCREDITATION, // Exclude organization data badges
+              },
+            },
           },
         },
       },
     },
   };
 
-  const data = await prismaClient.carbonInventory.findMany({
+  const carbonInventory = await prismaClient.carbonInventory.findUnique({
     include: {
       // THIS IS A SUBMISSION SUBJECT LINK, NOT A SUBMISSION
       submission: {
@@ -43,12 +57,11 @@ export const getCarbonInventoryBadgesService = async (
             select: {
               subjectType: true,
               submissions: {
-                orderBy: {
-                  createdAt: "desc",
-                },
-                take: 1,
                 include: {
                   badge: {
+                    select: {
+                      type: true,
+                    },
                     include: {
                       file: {
                         select: {
@@ -68,25 +81,19 @@ export const getCarbonInventoryBadgesService = async (
     where: whereClause,
   });
 
-  const response = await Promise.all(
-    data.map(async ({ submission: submissionLink }) => {
-      if (!submissionLink?.subject) {
-        // console.warn(
-        //   `No submissionLink found for carbon inventory with id ${id}`
-        // );
-        return null;
-      }
+  if (!carbonInventory) throw new Error();
 
-      const subjectType = submissionLink.subject.subjectType;
+  const badges = carbonInventory.submission?.subject.submissions
+    .map((s) => s.badge)
+    .filter((b) => b !== null);
 
-      const file = submissionLink.subject.submissions[0].badge?.file;
+  if (!badges || badges.length === 0) return [];
 
-      if (!file) {
-        // console.warn(
-        //   `No badge file found for carbon inventory with id ${id} and submission id ${submissionLink?.subjectId}`
-        // );
-        return null;
-      }
+  const sortedBadged = sortBy(badges, ({ type }) => BADGE_SORT_ORDER[type]);
+
+  return Promise.all(
+    sortedBadged.map(async (badge) => {
+      const file = badge.file;
 
       const { url: previewUrl } = await generateReadSasUrl(
         blobServiceClient,
@@ -96,13 +103,9 @@ export const getCarbonInventoryBadgesService = async (
       );
 
       return {
-        subjectType,
+        badgeType: badge.type,
         previewUrl,
       };
     })
-  );
-
-  return response.filter(
-    (item): item is NonNullable<typeof item> => item !== null
   );
 };
