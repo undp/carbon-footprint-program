@@ -75,7 +75,6 @@ export const getCarbonInventoryByIdService = async (
 
   return {
     ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
-    // TODO: use helper to calculate the display status based on the inventory status and associated submissions
     status: calculateDisplayStatus(inventory),
   };
 };
