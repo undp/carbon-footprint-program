@@ -1,4 +1,4 @@
-import { FC, useEffect, useRef } from "react";
+import { FC, useEffect, useRef, useId } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -54,6 +54,10 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
     }
   }, [open]);
 
+  const baseId = useId();
+  const titleId = `${baseId}-title`;
+  const descriptionId = `${baseId}-description`;
+
   return (
     <Dialog
       open={open}
@@ -67,11 +71,10 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
           },
         },
       }}
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
     >
-      <DialogTitle
-        id="confirm-dialog-title"
-        sx={{ pr: 6, fontWeight: 600, fontSize: 24 }}
-      >
+      <DialogTitle id={titleId} sx={{ pr: 6, fontWeight: 600, fontSize: 24 }}>
         {title}
       </DialogTitle>
       <IconButton
@@ -88,7 +91,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
       </IconButton>
 
       <DialogContent>
-        <Typography variant="body1" id="confirm-dialog-description">
+        <Typography variant="body1" id={descriptionId}>
           {message}
         </Typography>
         {description && (
