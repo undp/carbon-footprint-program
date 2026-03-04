@@ -29,3 +29,9 @@ export const OrganizationDataNotFoundError = createError(
   "Organization data with ID %s not found",
   404
 );
+
+export const OrganizationDataAlreadyRejectedError = createError(
+  "ORGANIZATION_DATA_ALREADY_REJECTED",
+  "Organization data with ID %s is already rejected",
+  409
+);

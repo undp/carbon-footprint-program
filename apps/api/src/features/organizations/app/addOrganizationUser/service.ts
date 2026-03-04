@@ -6,10 +6,7 @@ import type {
 } from "@repo/types";
 import { MembershipStatus } from "@repo/database/enums";
 import { OrganizationNotFoundError } from "../../errors.js";
-import {
-  UserNotFoundByEmailError,
-  MembershipAlreadyExistsError,
-} from "../errors.js";
+import { UserNotFoundByEmailError } from "../errors.js";
 
 export const addOrganizationUserService = async (
   prismaClient: PrismaClient,
