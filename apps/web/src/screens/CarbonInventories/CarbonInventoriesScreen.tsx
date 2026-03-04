@@ -25,7 +25,7 @@ import {
   UsageMode,
   CarbonInventoryDisplayStatus,
 } from "@repo/types";
-import { NewInventoryDialog } from "./components/Dialogs";
+import { NewInventoryDialog } from "@/components/dialogs";
 
 const getUsageModeLabel = (mode: UsageMode) =>
   mode === UsageMode.SIMPLIFIED ? "Asistido" : "Experto";
