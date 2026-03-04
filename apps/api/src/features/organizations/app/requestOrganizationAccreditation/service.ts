@@ -37,15 +37,6 @@ export const requestOrganizationAccreditationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
-  const rejectedData = await getRejectedOrganizationData(
-    prismaClient,
-    organizationId
-  );
-
-  if (rejectedData) {
-    throw new OrganizationDataAlreadyRejectedError(organizationId);
-  }
-
   return await prismaClient.$transaction(async (tx) => {
     // Find ACTIVE organization data that is a Draft (no submission linked)
     const activeData = await tx.organizationData.findFirst({
@@ -55,6 +46,15 @@ export const requestOrganizationAccreditationService = async (
         submission: null,
       },
     });
+
+    const rejectedData = await getRejectedOrganizationData(
+      prismaClient,
+      organizationId
+    );
+
+    if (!activeData && rejectedData) {
+      throw new OrganizationDataAlreadyRejectedError(organizationId);
+    }
 
     if (!activeData) {
       throw new OrganizationDataNotFoundError(organizationId);
