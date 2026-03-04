@@ -1,3 +1,5 @@
+export * from "./schemas.js";
+export * from "./types.js";
 export * from "./addSubcategoriesToCarbonInventory/schemas.js";
 export * from "./addSubcategoriesToCarbonInventory/types.js";
 export * from "./createCarbonInventory/schemas.js";

@@ -18,4 +18,5 @@ export const UpdateCarbonInventoryRequestSchema =
       message: "At least one field must be provided with a defined value",
     });
 
-export const UpdateCarbonInventoryResponseSchema = CarbonInventoryBaseSchema;
+export const UpdateCarbonInventoryResponseSchema =
+  CarbonInventoryBaseSchema.omit({ status: true });

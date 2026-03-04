@@ -5,4 +5,7 @@ export const CreateCarbonInventoryRequestSchema =
     usageMode: true,
   });
 
-export const CreateCarbonInventoryResponseSchema = CarbonInventoryBaseSchema;
+export const CreateCarbonInventoryResponseSchema =
+  CarbonInventoryBaseSchema.omit({
+    status: true,
+  });
