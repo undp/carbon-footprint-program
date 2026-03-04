@@ -48,7 +48,7 @@ export const requestCalculationService = async (
     await prismaClient.submission.create({
       data: {
         subjectId: existingSubject.subjectId,
-        type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
+        type: SubmissionType.CARBON_INVENTORY_CALCULATION,
         createdById,
         updatedAt: null,
       },
@@ -59,7 +59,7 @@ export const requestCalculationService = async (
         createdById,
         submissions: {
           create: {
-            type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
+            type: SubmissionType.CARBON_INVENTORY_CALCULATION,
             createdById,
             updatedAt: null,
           },
