@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Tooltip, Typography } from "@mui/material";
 
 type ActionConfig = {
   label: string;
@@ -33,18 +33,22 @@ export const SectionCard: FC<SectionCardProps> = ({
         {actionsToRender.length > 0 && (
           <Box className="flex gap-2">
             {actionsToRender.map((actionItem, index) => (
-              <Button
-                key={index}
-                variant="outlined"
-                color="primary"
-                startIcon={actionItem.icon}
-                onClick={actionItem.onClick}
-                sx={{ minWidth: 100, height: 40 }}
-                disabled={actionItem.disabled}
-                title={actionItem.title}
-              >
-                {actionItem.label}
-              </Button>
+              <Tooltip key={index} title={actionItem.title}>
+                <span>
+                  <Button
+                    key={index}
+                    variant="outlined"
+                    color="primary"
+                    startIcon={actionItem.icon}
+                    onClick={actionItem.onClick}
+                    sx={{ minWidth: 100, height: 40 }}
+                    disabled={actionItem.disabled}
+                    title={actionItem.title}
+                  >
+                    {actionItem.label}
+                  </Button>
+                </span>
+              </Tooltip>
             ))}
           </Box>
         )}

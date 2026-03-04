@@ -1,6 +1,6 @@
 import { FC, memo } from "react";
-import { Edit, VerifiedUser } from "@mui/icons-material";
-import { Box, Typography, useTheme, Theme } from "@mui/material";
+import { Edit, StarOutline } from "@mui/icons-material";
+import { Typography, useTheme, Theme } from "@mui/material";
 import { SectionCard } from "./SectionCard";
 import { InfoCard } from "./InfoCard";
 import { InfoRow } from "./InfoRow";
@@ -78,10 +78,13 @@ const OrganizationProfileSectionComponent: FC<
   }
 
   // Add Accredit action if not accredited
-  if (profile.status === OrganizationDisplayStatusValues.NOT_ACCREDITED) {
+  if (
+    profile.status === OrganizationDisplayStatusValues.NOT_ACCREDITED &&
+    profile.lastSubmissionStatus !== SubmissionStatus.PENDING
+  ) {
     actions.push({
       label: "ACREDITAR",
-      icon: <VerifiedUser />,
+      icon: <StarOutline />,
       onClick: accreditationDialog.openDialog,
       disabled: false,
     });
