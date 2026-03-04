@@ -17,7 +17,7 @@ export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
         summary: "Get carbon inventory badges",
         params: GetCarbonInventoryBadgesParamsSchema,
         description:
-          "Get all badges associated with a specific carbon inventory ordered by creation date (newest first).",
+          "Get all badges associated with a carbon inventory. Only inventories with VERIFIED or SUBMITTED status will have badges.",
         response: {
           200: GetCarbonInventoryBadgesResponseSchema,
         },
