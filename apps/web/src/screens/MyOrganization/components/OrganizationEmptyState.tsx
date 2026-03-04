@@ -1,21 +1,13 @@
-import { FC, useState } from "react";
+import { FC } from "react";
 import { Box, Button, Typography } from "@mui/material";
-import { OrganizationFormDialog } from "./OrganizationForm";
 
 interface OrganizationEmptyStateProps {
-  onCloseFormDialog: () => void;
+  onOpenFormDialog: () => void;
 }
 
 export const OrganizationEmptyState: FC<OrganizationEmptyStateProps> = ({
-  onCloseFormDialog,
+  onOpenFormDialog,
 }) => {
-  const [openFormDialog, setOpenFormDialog] = useState(false);
-
-  const handleClose = () => {
-    setOpenFormDialog(false);
-    onCloseFormDialog();
-  };
-
   return (
     <Box className="flex flex-1 flex-col gap-6 p-6">
       <Box className="flex h-[calc(100vh-48px)] items-center justify-center">
@@ -31,17 +23,11 @@ export const OrganizationEmptyState: FC<OrganizationEmptyStateProps> = ({
           <Button
             variant="contained"
             color="primary"
-            onClick={() => setOpenFormDialog(true)}
+            onClick={onOpenFormDialog}
           >
             Crear Organización
           </Button>
         </Box>
-
-        <OrganizationFormDialog
-          open={openFormDialog}
-          onClose={handleClose}
-          mode="create"
-        />
       </Box>
     </Box>
   );

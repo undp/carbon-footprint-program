@@ -37,8 +37,8 @@ export const useMyOrganizationState = () => {
   }, []);
 
   const onEditOrganizationProfile = useCallback(() => {
-    openFormDialog("edit");
-  }, [openFormDialog]);
+    openFormDialog(selectedOrganizationId ? "edit" : "create");
+  }, [openFormDialog, selectedOrganizationId]);
 
   return {
     selectedOrganizationId,

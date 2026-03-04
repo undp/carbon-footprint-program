@@ -79,7 +79,15 @@ export const MyOrganizationScreen: FC = () => {
   if (!isLoadingOrganizations && organizations.length === 0) {
     return (
       <MainLayout>
-        <OrganizationEmptyState onCloseFormDialog={closeFormDialog} />
+        <OrganizationEmptyState
+          onOpenFormDialog={() => onEditOrganizationProfile()}
+        />
+
+        <OrganizationFormDialog
+          open={formDialogOpen}
+          onClose={closeFormDialog}
+          mode="create"
+        />
       </MainLayout>
     );
   }
