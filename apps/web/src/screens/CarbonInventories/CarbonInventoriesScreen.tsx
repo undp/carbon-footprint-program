@@ -147,7 +147,7 @@ export const CarbonInventoriesScreen: FC = () => {
           headerAlign: "center",
           cellClassName: "content-center",
           minWidth: 100,
-          flex: 1,
+          flex: 0.6,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
@@ -175,7 +175,7 @@ export const CarbonInventoriesScreen: FC = () => {
           headerAlign: "left",
           cellClassName: "content-center",
           minWidth: 100,
-          flex: 1,
+          flex: 0.6,
           valueGetter: (value: UsageMode) => getUsageModeLabel(value),
         },
         {
@@ -183,8 +183,8 @@ export const CarbonInventoriesScreen: FC = () => {
           headerName: "Emisiones tCO₂e",
           align: "center",
           headerAlign: "center",
-          minWidth: 190,
-          flex: 1,
+          minWidth: 120,
+          flex: 0.6,
           cellClassName: "content-center",
           valueFormatter: (value: number) => formatEmissions(value),
         },
