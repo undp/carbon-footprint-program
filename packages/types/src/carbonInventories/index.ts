@@ -40,3 +40,5 @@ export * from "./getCarbonInventoryMetadata/schemas.js";
 export * from "./getCarbonInventoryMetadata/types.js";
 export * from "./getCarbonInventoryBadges/schemas.js";
 export * from "./getCarbonInventoryBadges/types.js";
+export * from "./requestCalculation/schemas.js";
+export * from "./requestCalculation/types.js";

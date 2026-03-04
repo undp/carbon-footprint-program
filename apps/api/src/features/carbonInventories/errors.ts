@@ -41,3 +41,15 @@ export const LineNotInCarbonInventoryError = createError(
   "Line %s does not belong to carbon inventory %s (found in inventory %s)",
   422
 );
+
+export const OrganizationNotAssociatedError = createError(
+  "ORGANIZATION_NOT_ASSOCIATED",
+  "Carbon inventory with ID %s does not have an associated organization",
+  422
+);
+
+export const OrganizationNotAccreditedError = createError(
+  "ORGANIZATION_NOT_ACCREDITED",
+  "The organization associated with carbon inventory %s is not accredited",
+  422
+);
