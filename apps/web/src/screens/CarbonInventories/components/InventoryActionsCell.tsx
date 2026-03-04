@@ -5,9 +5,9 @@ import {
   FileDownloadOutlined,
   VerifiedOutlined,
   DeleteOutlined,
-  EmojiEventsOutlined,
   FileCopyOutlined,
   SendOutlined,
+  VisibilityOutlined,
 } from "@mui/icons-material";
 import {
   CarbonInventoryDisplayStatus,
@@ -63,19 +63,26 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [calculationDialogOpen, setCalculationDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
 
-  // TODO: improve the status management and permissions logic to determine the allowed actions based on the inventory status and associated submissions, instead of hardcoding based on display status
-  const isDraft = status === CarbonInventoryDisplayStatusEnum.DRAFT;
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
-  const canEdit = !isVerified;
+
+  const canEdit =
+    status === CarbonInventoryDisplayStatusEnum.DRAFT ||
+    status === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+
   const canRequestCalculation =
     status === CarbonInventoryDisplayStatusEnum.DRAFT ||
     status === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+
   const canRequestVerification =
     status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
-  const canDelete = !isVerified;
-  const canView = !isDraft;
+
+  const canDelete = !(
+    status === CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION ||
+    status === CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION ||
+    isVerified
+  );
 
   const { mutateAsync: updateInventory } = useUpdateCarbonInventory();
   const { mutateAsync: requestCalculation } = useRequestCalculation();
@@ -171,9 +178,9 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setVerifyDialogOpen(false);
   }, []);
 
-  const onRewardsClick = useCallback((_inventoryId: string) => {
-    //TODO: Implement rewards functionality
-  }, []);
+  // const onRewardsClick = useCallback((_inventoryId: string) => {
+  //   //TODO: Implement rewards functionality
+  // }, []);
 
   const onDownloadClick = useCallback((_inventoryId: string) => {
     //TODO: Implement download functionality
@@ -183,20 +190,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     <>
       <Box className="flex gap-1">
         {/* Edit / View button */}
-        {canView ? (
-          <Tooltip title="Revisar huella">
-            <span>
-              <BaseIconButton
-                onClick={() => onViewClick(inventoryId)}
-                color="primary"
-                size="small"
-                aria-label="Revisar huella"
-              >
-                <FileCopyOutlined fontSize="small" />
-              </BaseIconButton>
-            </span>
-          </Tooltip>
-        ) : (
+        {canEdit ? (
           <Tooltip title="Editar huella">
             <BaseIconButton
               onClick={() => onEditClick(inventoryId)}
@@ -205,6 +199,19 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
             >
               <EditOutlined fontSize="small" />
             </BaseIconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="Revisar huella">
+            <span>
+              <BaseIconButton
+                onClick={() => onViewClick(inventoryId)}
+                color="primary"
+                size="small"
+                aria-label="Revisar huella"
+              >
+                <VisibilityOutlined fontSize="small" />
+              </BaseIconButton>
+            </span>
           </Tooltip>
         )}
 
@@ -247,7 +254,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
 
-        {/* Rewards button */}
+        {/* Rewards button
         <Tooltip title="Postular a sello">
           <span>
             <BaseIconButton
@@ -258,14 +265,27 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               <EmojiEventsOutlined fontSize="small" />
             </BaseIconButton>
           </span>
+        </Tooltip> */}
+
+        {/* Duplicate button */}
+
+        <Tooltip title="Duplicar huella">
+          <span>
+            <BaseIconButton
+              onClick={() => null}
+              color="primary"
+              size="small"
+              aria-label="Duplicar huella"
+            >
+              <FileCopyOutlined fontSize="small" />
+            </BaseIconButton>
+          </span>
         </Tooltip>
 
         {/* Delete button */}
         <Tooltip
           title={
-            canDelete
-              ? "Eliminar"
-              : "No se puede eliminar un inventario verificado"
+            canDelete ? "Eliminar" : "No se puede eliminar este inventario"
           }
         >
           <span>
