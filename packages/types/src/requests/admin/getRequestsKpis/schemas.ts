@@ -78,6 +78,9 @@ const RequestKpiCountSchema = z.union([
   }),
 ]);
 
+// expectedKpiCount = Object.keys(SubmissionType).length * Object.keys(SubmissionStatus).length.
+// If a new SubmissionType or SubmissionStatus is added, the RequestKpiCountSchema union entries
+// above must be updated to include all new combinations, otherwise runtime validation will fail.
 const expectedKpiCount =
   Object.keys(SubmissionType).length * Object.keys(SubmissionStatus).length;
 
