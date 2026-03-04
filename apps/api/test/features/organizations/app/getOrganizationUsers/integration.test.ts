@@ -82,17 +82,13 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
-      expect(body.users).toBeDefined();
-      expect(Array.isArray(body.users)).toBe(true);
-      expect(body.users.length).toBe(2);
+      expect(body).toBeDefined();
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.length).toBe(2);
 
       // Check isCurrentUser
-      const currentUser = body.users.find(
-        (u) => u.userId === testUser.id.toString()
-      );
-      const otherUser = body.users.find(
-        (u) => u.userId === adminUser.id.toString()
-      );
+      const currentUser = body.find((u) => u.userId === testUser.id.toString());
+      const otherUser = body.find((u) => u.userId === adminUser.id.toString());
 
       expect(currentUser?.isCurrentUser).toBe(true);
       expect(otherUser?.isCurrentUser).toBe(false);
@@ -206,9 +202,9 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      expect(body.users.length).toBe(3);
+      expect(body.length).toBe(3);
 
-      const userIds = body.users.map((u) => u.userId);
+      const userIds = body.map((u) => u.userId);
       expect(userIds).toContain(testUser.id.toString());
       expect(userIds).toContain(user1.id.toString());
       expect(userIds).toContain(user2.id.toString());
@@ -233,7 +229,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      const adminUserData = body.users.find(
+      const adminUserData = body.find(
         (u) => u.userId === adminUser.id.toString()
       );
       expect(adminUserData).toBeDefined();
@@ -244,7 +240,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       );
       expect(adminUserData!.isCurrentUser).toBe(false);
 
-      const currentUserData = body.users.find(
+      const currentUserData = body.find(
         (u) => u.userId === testUser.id.toString()
       );
       expect(currentUserData).toBeDefined();
@@ -272,8 +268,8 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      expect(body.users.length).toBe(1);
-      expect(body.users[0].userId).toBe(testUser.id.toString());
+      expect(body.length).toBe(1);
+      expect(body[0].userId).toBe(testUser.id.toString());
     });
 
     it("should return one user in the array when organization has only one member", async () => {
@@ -291,7 +287,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      expect(body.users.length).toBe(1);
+      expect(body.length).toBe(1);
     });
   });
 

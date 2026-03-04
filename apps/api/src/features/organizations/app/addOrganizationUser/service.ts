@@ -6,7 +6,10 @@ import type {
 } from "@repo/types";
 import { MembershipStatus } from "@repo/database/enums";
 import { OrganizationNotFoundError } from "../../errors.js";
-import { UserNotFoundByEmailError } from "../errors.js";
+import {
+  MembershipAlreadyExistsError,
+  UserNotFoundByEmailError,
+} from "../errors.js";
 
 export const addOrganizationUserService = async (
   prismaClient: PrismaClient,
@@ -45,7 +48,17 @@ export const addOrganizationUserService = async (
       },
     });
 
-  if (existingMembership) {
+  if (
+    existingMembership &&
+    existingMembership.status === MembershipStatus.ACTIVE
+  ) {
+    throw new MembershipAlreadyExistsError();
+  }
+
+  if (
+    existingMembership &&
+    existingMembership.status === MembershipStatus.DELETED
+  ) {
     await prismaClient.userOrganizationMembership.update({
       where: {
         id: existingMembership.id,
