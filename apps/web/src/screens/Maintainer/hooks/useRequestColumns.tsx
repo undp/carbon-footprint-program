@@ -65,6 +65,7 @@ export const useRequestColumns = (): GridColDef<
   const { mutate: approveRequest, isPending: isApproving } =
     useApproveRequest();
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectRequest();
+
   const handleApprove = useCallback(
     (id: string) => {
       approveRequest({ id });
