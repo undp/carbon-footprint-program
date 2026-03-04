@@ -878,7 +878,7 @@ model Submission {
 view SubmissionSummaryView {
   submissionId     BigInt                @unique @map("submission_id")
   subjectType      SubmissionSubjectType @map("subject_type")
-  status           SubmissionStatus      @map("status")
+  status           SubmissionStatus
   organizationId   BigInt                @map("organization_id")
   organizationName String                @map("organization_name")
   period           Int?
