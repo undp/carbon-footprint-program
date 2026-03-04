@@ -20,6 +20,10 @@ export const useRequestVerification = () => {
           queryKey: carbonInventoryKeys.all,
           exact: true,
         }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.metadata(carbonInventoryId),
+          exact: true,
+        }),
       ]);
     },
   });
