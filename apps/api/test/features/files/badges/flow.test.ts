@@ -58,8 +58,8 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
     await cleanupTestFiles(prisma);
   });
 
-  it("should complete the full lifecycle for a CARBON_INVENTORY badge", async () => {
-    const badgeType = BadgeType.CARBON_INVENTORY;
+  it("should complete the full lifecycle for a CARBON_INVENTORY_CALCULATION badge", async () => {
+    const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
     const originalName = "badge.png";
 
     // Step 1 – Request an upload URL
@@ -127,8 +127,8 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
     expect(badgeRecord?.status).toBe(BadgeStatus.ACTIVE);
   });
 
-  it("should complete the full lifecycle for an ORGANIZATION_DATA badge", async () => {
-    const badgeType = BadgeType.ORGANIZATION_DATA;
+  it("should complete the full lifecycle for an ORGANIZATION_ACCREDITATION badge", async () => {
+    const badgeType = BadgeType.ORGANIZATION_ACCREDITATION;
     const originalName = "org-badge.png";
 
     const { body: reqBody } = await app.inject({
@@ -164,7 +164,7 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
   });
 
   it("should deactivate the previous badge when a new one is confirmed", async () => {
-    const badgeType = BadgeType.CARBON_INVENTORY;
+    const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
 
     // Upload first badge
     const { file: firstFile } = await createTestFileForBadge(
