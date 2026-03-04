@@ -874,14 +874,14 @@ model Submission {
 }
 
 view SubmissionSummaryView {
-  submissionId     BigInt                @unique @map("submission_id")
-  subjectType      SubmissionSubjectType @map("subject_type")
+  submissionId     BigInt           @unique @map("submission_id")
+  type             SubmissionType
   status           SubmissionStatus
-  organizationId   BigInt                @map("organization_id")
-  organizationName String                @map("organization_name")
+  organizationId   BigInt           @map("organization_id")
+  organizationName String           @map("organization_name")
   period           Int?
-  requestedAt      DateTime              @map("requested_at")
-  submission       Submission            @relation(fields: [submissionId], references: [id])
+  requestedAt      DateTime         @map("requested_at")
+  submission       Submission       @relation(fields: [submissionId], references: [id])
 
   @@map("submission_summary_view")
 }

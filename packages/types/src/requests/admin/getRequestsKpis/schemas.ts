@@ -22,6 +22,10 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // CARBON_INVENTORY_CALCULATION
@@ -32,6 +36,10 @@ const RequestKpiCountSchema = z.union([
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
     status: z.literal(SubmissionStatus.APPROVED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
@@ -48,6 +56,10 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // REDUCTION_PLAN_VERIFICATION
@@ -61,6 +73,10 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // NEUTRALIZATION_PLAN_VERIFICATION
@@ -71,6 +87,10 @@ const RequestKpiCountSchema = z.union([
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.APPROVED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),

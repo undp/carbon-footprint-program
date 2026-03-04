@@ -11,7 +11,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { GetAdminRequestsKpisResponse } from "@repo/types";
-import { SubmissionStatus, SubmissionSubjectType } from "@repo/database";
+import { SubmissionStatus, SubmissionType } from "@repo/database";
 import {
   createTestOrganization,
   cleanupTestOrganization,
@@ -69,7 +69,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(body.total).toBe(0);
 
       // Should still have entries for all types and statuses, but with zero values
-      const allTypes = Object.values(SubmissionSubjectType);
+      const allTypes = Object.values(SubmissionType);
       const allStatuses = Object.values(SubmissionStatus);
 
       expect(body.counts.length).toBe(allTypes.length * allStatuses.length);
@@ -106,7 +106,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
 
       const pendingOrgAccreditation = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.PENDING
       );
       expect(pendingOrgAccreditation).toBeDefined();
@@ -139,7 +139,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
 
       const approvedOrgAccreditation = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.APPROVED
       );
       expect(approvedOrgAccreditation).toBeDefined();
@@ -171,7 +171,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
 
       const rejectedOrgAccreditation = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.REJECTED
       );
       expect(rejectedOrgAccreditation).toBeDefined();
@@ -231,17 +231,17 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
 
       const pendingCount = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.PENDING
       )!.value;
       const approvedCount = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.APPROVED
       )!.value;
       const rejectedCount = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.REJECTED
       )!.value;
 
@@ -270,7 +270,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetAdminRequestsKpisResponse;
 
       // Should have entries for all types and statuses
-      const allTypes = Object.values(SubmissionSubjectType);
+      const allTypes = Object.values(SubmissionType);
       const allStatuses = Object.values(SubmissionStatus);
 
       expect(body.counts.length).toBe(allTypes.length * allStatuses.length);
@@ -278,12 +278,12 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       // APPROVED and REJECTED should have zero counts
       const approvedOrgAccreditation = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.APPROVED
       );
       const rejectedOrgAccreditation = body.counts.find(
         (c) =>
-          c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION &&
+          c.type === SubmissionType.ORGANIZATION_ACCREDITATION &&
           c.status === SubmissionStatus.REJECTED
       );
 
@@ -345,7 +345,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
 
       // All counts should be for ORGANIZATION_ACCREDITATION type
       const orgAccreditationCounts = body.counts.filter(
-        (c) => c.type === SubmissionSubjectType.ORGANIZATION_ACCREDITATION
+        (c) => c.type === SubmissionType.ORGANIZATION_ACCREDITATION
       );
 
       // Verify that organization accreditation has non-zero pending count
@@ -356,7 +356,7 @@ describe("GET /api/admin/requests/kpis - Integration Tests", () => {
       expect(pendingCount!.value).toBe(1);
 
       const nonOrgCounts = body.counts.filter(
-        (c) => c.type !== SubmissionSubjectType.ORGANIZATION_ACCREDITATION
+        (c) => c.type !== SubmissionType.ORGANIZATION_ACCREDITATION
       );
       expect(nonOrgCounts.every((c) => c.value === 0)).toBe(true);
     });
