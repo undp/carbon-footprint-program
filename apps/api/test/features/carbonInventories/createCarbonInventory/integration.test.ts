@@ -99,7 +99,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
     });
 
     it("should set isEditable to true by default", async () => {

@@ -27,6 +27,7 @@ import {
   OrganizationDataStatus,
   SubmissionType,
 } from "@repo/database";
+import { ApiErrorResponse } from "../../../src/commonSchemas/errors.js";
 
 describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tests", () => {
   let app: FastifyInstance;
@@ -113,7 +114,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
     });
 
@@ -130,7 +131,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("ORGANIZATION_NOT_ASSOCIATED");
     });
 
@@ -161,7 +162,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       });
 
       expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("ORGANIZATION_NOT_ACCREDITED");
     });
   });
