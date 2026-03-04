@@ -292,6 +292,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               color="primary"
               size="small"
               aria-label="Duplicar huella"
+              disabled
             >
               <FileCopyOutlined fontSize="small" />
             </BaseIconButton>
