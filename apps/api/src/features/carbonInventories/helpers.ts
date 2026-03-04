@@ -1,5 +1,6 @@
 import {
   SubmissionStatus,
+  type SubmissionType,
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
@@ -167,6 +168,51 @@ export function validateOrganizationIsAccredited(
 
   if (!isAccredited) {
     throw new OrganizationNotAccreditedError(carbonInventoryId);
+  }
+}
+
+/**
+ * Creates a submission for a carbon inventory, reusing an existing subject if one exists.
+ */
+export async function createCarbonInventorySubmission(
+  prismaClient: PrismaClient,
+  carbonInventoryId: bigint,
+  type: SubmissionType,
+  createdById: bigint | null
+): Promise<void> {
+  const existingSubject =
+    await prismaClient.submissionSubjectCarbonInventory.findUnique({
+      where: { carbonInventoryId },
+      select: { subjectId: true },
+    });
+
+  if (existingSubject) {
+    await prismaClient.submission.create({
+      data: {
+        subjectId: existingSubject.subjectId,
+        type,
+        createdById,
+        updatedAt: null,
+      },
+    });
+  } else {
+    await prismaClient.submissionSubject.create({
+      data: {
+        createdById,
+        submissions: {
+          create: {
+            type,
+            createdById,
+            updatedAt: null,
+          },
+        },
+        carbonInventory: {
+          create: {
+            carbonInventoryId,
+          },
+        },
+      },
+    });
   }
 }
 

@@ -1,6 +1,9 @@
 import { SubmissionType, type PrismaClient } from "@repo/database";
 import { CarbonInventoryNotFoundError } from "../errors.js";
-import { validateOrganizationIsAccredited } from "../helpers.js";
+import {
+  validateOrganizationIsAccredited,
+  createCarbonInventorySubmission,
+} from "../helpers.js";
 import { validateNoExistingCalculationSubmission } from "./helpers.js";
 
 export const requestCalculationService = async (
@@ -36,38 +39,10 @@ export const requestCalculationService = async (
 
   const createdById = userId ? BigInt(userId) : null;
 
-  const existingSubject =
-    await prismaClient.submissionSubjectCarbonInventory.findUnique({
-      where: { carbonInventoryId: inventory.id },
-      select: { subjectId: true },
-    });
-
-  if (existingSubject) {
-    await prismaClient.submission.create({
-      data: {
-        subjectId: existingSubject.subjectId,
-        type: SubmissionType.CARBON_INVENTORY_CALCULATION,
-        createdById,
-        updatedAt: null,
-      },
-    });
-  } else {
-    await prismaClient.submissionSubject.create({
-      data: {
-        createdById,
-        submissions: {
-          create: {
-            type: SubmissionType.CARBON_INVENTORY_CALCULATION,
-            createdById,
-            updatedAt: null,
-          },
-        },
-        carbonInventory: {
-          create: {
-            carbonInventoryId: inventory.id,
-          },
-        },
-      },
-    });
-  }
+  await createCarbonInventorySubmission(
+    prismaClient,
+    inventory.id,
+    SubmissionType.CARBON_INVENTORY_CALCULATION,
+    createdById
+  );
 };
