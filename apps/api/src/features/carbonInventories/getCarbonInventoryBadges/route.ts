@@ -6,7 +6,8 @@ import { getCarbonInventoryBadgesHandler } from "./handler.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
-  fastify
+  fastify,
+  _options
 ) => {
   fastify.get(
     "/:id/badges",
