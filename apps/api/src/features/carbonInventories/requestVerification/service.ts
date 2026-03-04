@@ -1,9 +1,7 @@
 import { SubmissionType, type PrismaClient } from "@repo/database";
 import { CarbonInventoryNotFoundError } from "../errors.js";
-import {
-  validateOrganizationIsAccredited,
-  validateNoExistingVerificationSubmission,
-} from "./helpers.js";
+import { validateOrganizationIsAccredited } from "../helpers.js";
+import { validateNoExistingVerificationSubmission } from "./helpers.js";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
