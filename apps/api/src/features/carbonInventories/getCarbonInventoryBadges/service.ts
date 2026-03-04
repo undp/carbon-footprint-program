@@ -8,6 +8,7 @@ import {
 import { sortBy } from "lodash-es";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { generateReadSasUrl } from "../../../services/index.js";
+import { CarbonInventoryNotFoundError } from "../errors.js";
 
 const BADGE_SORT_ORDER: Record<BadgeType, number> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: 1,
@@ -50,19 +51,13 @@ export const getCarbonInventoryBadgesService = async (
       // THIS IS A SUBMISSION SUBJECT LINK, NOT A SUBMISSION
       submission: {
         select: {
-          subjectId: true,
-        },
-        include: {
           subject: {
             select: {
-              subjectType: true,
               submissions: {
-                include: {
+                select: {
                   badge: {
                     select: {
                       type: true,
-                    },
-                    include: {
                       file: {
                         select: {
                           blobPath: true,
@@ -81,7 +76,7 @@ export const getCarbonInventoryBadgesService = async (
     where: whereClause,
   });
 
-  if (!carbonInventory) throw new Error();
+  if (!carbonInventory) throw new CarbonInventoryNotFoundError(id);
 
   const badges = carbonInventory.submission?.subject.submissions
     .map((s) => s.badge)
