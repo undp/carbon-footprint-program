@@ -25,7 +25,7 @@ import {
 
 // sasHelper is mocked so the confirm handler can reach the actual blob-check
 // logic without triggering getUserDelegationKey calls.
-vi.mock("@/features/files/helpers/sasHelper.js", () => ({
+vi.mock("@/services/blobService.js", () => ({
   generateWriteSasUrl: vi.fn(),
   generateReadSasUrl: vi.fn(),
 }));
