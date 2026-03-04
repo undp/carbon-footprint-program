@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo } from "react";
+import { FC, useCallback, useMemo, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -48,7 +48,7 @@ export const OrganizationFormDialog: FC<Props> = ({
   organization,
   mode = "accreditation",
 }) => {
-  const { control, handleSubmit, reset, selectedSectorId } =
+  const { control, handleSubmit, reset, selectedSectorId, formState } =
     useOrganizationForm({ organization });
 
   const { submit, isSubmitting } = useOrganizationSubmit({
@@ -72,9 +72,26 @@ export const OrganizationFormDialog: FC<Props> = ({
   });
 
   const handleClose = useCallback(() => {
+    if (formState.isDirty) {
+      const confirmed = window.confirm(
+        "¿Descartar cambios? Los datos no guardados se perderán."
+      );
+      if (!confirmed) return;
+    }
     reset();
     onClose();
-  }, [reset, onClose]);
+  }, [formState.isDirty, reset, onClose]);
+
+  // Focus management
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
+  }, [open]);
 
   const buttonActionLabel = useMemo(() => {
     switch (mode) {
@@ -148,6 +165,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   control={control}
                   label="Nombre legal de la entidad / Razón social"
                   required
+                  autoFocus
                 />
                 <FormTextField
                   name="tradeName"
@@ -223,6 +241,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   loading={activitiesLoading}
                   disabled={activitiesLoading || activityOptions.length === 0}
                   className="flex-1"
+                  required
                 />
                 <Box className="flex-1" />
               </Box>

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, memo } from "react";
 import { Box, Typography } from "@mui/material";
 
 type InfoRowProps = {
@@ -6,7 +6,7 @@ type InfoRowProps = {
   value: string;
 };
 
-export const InfoRow: FC<InfoRowProps> = ({ label, value }) => {
+const InfoRowComponent: FC<InfoRowProps> = ({ label, value }) => {
   return (
     <Box className="flex gap-6 px-0 py-2">
       <Typography
@@ -22,3 +22,5 @@ export const InfoRow: FC<InfoRowProps> = ({ label, value }) => {
     </Box>
   );
 };
+
+export const InfoRow = memo(InfoRowComponent);

@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useRef } from "react";
 import { Box } from "@mui/material";
 import { MainLayout } from "@/components/layout";
 import {
@@ -36,11 +36,19 @@ export const MyOrganizationScreen: FC = () => {
   } = useMyOrganizationState();
 
   // Set default organization (first one) when organizations load
+  // Use ref to prevent race condition when organizations array reference changes
+  const hasSetInitialOrg = useRef(false);
+
   useEffect(() => {
-    if (!isLoadingOrganizations && organizations.length > 0 && !selectedOrganizationId) {
+    if (
+      !isLoadingOrganizations &&
+      organizations.length > 0 &&
+      !hasSetInitialOrg.current
+    ) {
       setSelectedOrganizationId(organizations[0].id);
+      hasSetInitialOrg.current = true;
     }
-  }, [organizations, isLoadingOrganizations, selectedOrganizationId, setSelectedOrganizationId]);
+  }, [organizations, isLoadingOrganizations, setSelectedOrganizationId]);
 
   // Data fetching - only fetch when we have a selected organization
   const { organization, organizationUsers, isLoadingUsers } =

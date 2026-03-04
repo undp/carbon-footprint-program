@@ -68,6 +68,9 @@ export const useUserMutations = (
             role: data.role as OrganizationRole,
           },
         });
+        enqueueSnackbar("Usuario agregado exitosamente", {
+          variant: "success",
+        });
       } catch (error) {
         enqueueSnackbar("No se pudo agregar el usuario a la organización", {
           variant: "error",
@@ -97,6 +100,9 @@ export const useUserMutations = (
             role: data.role as OrganizationRole,
           },
         });
+        enqueueSnackbar("Rol actualizado correctamente", {
+          variant: "success",
+        });
       } catch (error) {
         enqueueSnackbar("No se pudo actualizar el rol del usuario", {
           variant: "error",
@@ -125,6 +131,9 @@ export const useUserMutations = (
         await removeUserMutation.mutateAsync({
           organizationId,
           userId,
+        });
+        enqueueSnackbar("Usuario eliminado", {
+          variant: "success",
         });
       } catch (error) {
         enqueueSnackbar("No se pudo eliminar el usuario de la organización", {

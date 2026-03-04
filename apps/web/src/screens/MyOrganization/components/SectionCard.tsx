@@ -7,6 +7,8 @@ type SectionCardProps = {
     label: string;
     icon?: ReactNode;
     onClick: () => void;
+    disabled?: boolean;
+    title?: string;
   };
   children: ReactNode;
 };
@@ -29,6 +31,8 @@ export const SectionCard: FC<SectionCardProps> = ({
             startIcon={action.icon}
             onClick={action.onClick}
             sx={{ minWidth: 100, height: 40 }}
+            disabled={action.disabled}
+            title={action.title}
           >
             {action.label}
           </Button>

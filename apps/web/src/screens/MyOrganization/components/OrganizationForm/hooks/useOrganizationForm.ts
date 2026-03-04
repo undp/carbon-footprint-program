@@ -68,15 +68,21 @@ export const useOrganizationForm = ({ organization }: Params = {}) => {
 
   useEffect(() => {
     if (organization) {
+      // Step 1: Set flag to prevent reset effects from firing during initialization
       isSettingFormDataRef.current = true;
       const mappedOrganization = mapOrganizationToFormValues(organization);
       reset(mappedOrganization);
 
-      // Keeps refs aligned with initial values before enabling effects
+      // Step 2: Align refs with the initial form values
       prevSectorIdRef.current = mappedOrganization.sectorId || undefined;
       prevSubsectorIdRef.current = mappedOrganization.subsectorId || undefined;
 
-      // Releases effects after React Hook Form propagates the values
+      // Step 3: Use queueMicrotask to defer flag release until after React Hook Form
+      // has propagated the reset values to all watched fields. This prevents the
+      // useResetOnChange effects from triggering during form initialization, which
+      // would incorrectly clear subsector/activity fields when editing an organization.
+      // The microtask executes after the current call stack but before the next render,
+      // ensuring form values are fully synchronized before user interactions are tracked.
       queueMicrotask(() => {
         isSettingFormDataRef.current = false;
       });

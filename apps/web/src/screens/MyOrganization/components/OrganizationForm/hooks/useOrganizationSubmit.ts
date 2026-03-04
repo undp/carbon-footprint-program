@@ -37,11 +37,19 @@ export const useOrganizationSubmit = ({
           }
         );
         onSuccess?.();
-      } catch {
-        enqueueSnackbar(
-          `No se pudo ${mode === "create" ? "crear" : "actualizar"} la organización`,
-          { variant: "error" }
+      } catch (error) {
+        // Log error for debugging
+        // eslint-disable-next-line no-console
+        console.error(
+          `Error ${mode === "create" ? "creating" : "updating"} organization:`,
+          error
         );
+
+        // Extract error message from backend response if available
+        const errorMessage = `No se pudo ${mode === "create" ? "crear" : "actualizar"} la organización`;
+        // TODO: Add error message from backend response if available
+
+        enqueueSnackbar(errorMessage, { variant: "error" });
       }
     },
     [mode, createMutation, updateMutation, enqueueSnackbar, onSuccess]

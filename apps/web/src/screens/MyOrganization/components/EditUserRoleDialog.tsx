@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect } from "react";
+import { FC, useCallback, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -13,6 +13,7 @@ import { Close } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { FormSelectField } from "@/components/form/FormSelectField";
 import { EditUserRoleFormData } from "../types";
+import { ROLE_OPTIONS } from "../constants";
 
 interface EditUserRoleDialogProps {
   open: boolean;
@@ -22,14 +23,6 @@ interface EditUserRoleDialogProps {
   userName?: string;
   isSubmitting?: boolean;
 }
-
-const ROLE_OPTIONS = [
-  { label: "Lector", value: "VIEWER" },
-  { label: "Editor", value: "ORGANIZATION_CONTRIBUTOR" },
-  { label: "Admin", value: "ORGANIZATION_ADMIN" },
-  { label: "Verificador Externo", value: "EXTERNAL_VERIFIER" },
-  { label: "Consultor Externo", value: "EXTERNAL_CONSULTANT" },
-];
 
 export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
   open,
@@ -63,6 +56,17 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
     },
     [onSubmit]
   );
+
+  // Focus management
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
+  }, [open]);
 
   return (
     <Dialog
@@ -112,6 +116,7 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
             label="Rol"
             options={ROLE_OPTIONS}
             required
+            autoFocus
           />
         </DialogContent>
 

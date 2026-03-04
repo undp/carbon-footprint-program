@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useMemo, memo } from "react";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { Add } from "@mui/icons-material";
 import { SectionCard } from "./SectionCard";
@@ -22,7 +22,7 @@ type OrganizationUsersTableProps = {
   isLoading?: boolean;
 };
 
-export const OrganizationUsersTable: FC<OrganizationUsersTableProps> = ({
+const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
   users,
   onAdd,
   onEdit,
@@ -109,3 +109,5 @@ export const OrganizationUsersTable: FC<OrganizationUsersTableProps> = ({
     </SectionCard>
   );
 };
+
+export const OrganizationUsersTable = memo(OrganizationUsersTableComponent);

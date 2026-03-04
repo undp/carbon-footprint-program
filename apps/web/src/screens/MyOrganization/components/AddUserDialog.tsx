@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -13,6 +13,7 @@ import { useForm } from "react-hook-form";
 import { FormTextField } from "@/components/form/FormTextField";
 import { FormSelectField } from "@/components/form/FormSelectField";
 import { AddUserFormData } from "../types";
+import { ROLE_OPTIONS } from "../constants";
 
 interface AddUserDialogProps {
   open: boolean;
@@ -20,14 +21,6 @@ interface AddUserDialogProps {
   onSubmit: (data: AddUserFormData) => void;
   isSubmitting?: boolean;
 }
-
-const ROLE_OPTIONS = [
-  { label: "Lector", value: "VIEWER" },
-  { label: "Editor", value: "ORGANIZATION_CONTRIBUTOR" },
-  { label: "Admin", value: "ORGANIZATION_ADMIN" },
-  { label: "Verificador Externo", value: "EXTERNAL_VERIFIER" },
-  { label: "Consultor Externo", value: "EXTERNAL_CONSULTANT" },
-];
 
 export const AddUserDialog: FC<AddUserDialogProps> = ({
   open,
@@ -53,6 +46,17 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
     },
     [onSubmit]
   );
+
+  // Focus management
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
+  }, [open]);
 
   return (
     <Dialog
@@ -97,6 +101,7 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
             type="email"
             required
             requiredMessage="El correo electrónico es obligatorio"
+            autoFocus
           />
 
           <FormSelectField

@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -22,6 +22,17 @@ interface DeleteUserConfirmationDialogProps {
 export const DeleteUserConfirmationDialog: FC<
   DeleteUserConfirmationDialogProps
 > = ({ open, onClose, onConfirm, userName, isDeleting = false }) => {
+  // Focus management
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (open) {
+      previousFocusRef.current = document.activeElement as HTMLElement;
+    } else if (previousFocusRef.current) {
+      previousFocusRef.current.focus();
+    }
+  }, [open]);
+
   return (
     <Dialog
       open={open}
@@ -75,7 +86,12 @@ export const DeleteUserConfirmationDialog: FC<
           backgroundColor: "background.paper",
         }}
       >
-        <Button onClick={onClose} variant="outlined" disabled={isDeleting}>
+        <Button
+          onClick={onClose}
+          variant="outlined"
+          disabled={isDeleting}
+          autoFocus
+        >
           Cancelar
         </Button>
         <Button

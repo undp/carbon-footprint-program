@@ -1,28 +1,36 @@
-import { FC } from "react";
+import { FC, memo } from "react";
 import { Edit } from "@mui/icons-material";
 import { SectionCard } from "./SectionCard";
 import { InfoCard } from "./InfoCard";
 import { InfoRow } from "./InfoRow";
 import Typography from "@mui/material/Typography";
-import { GetOrganizationByIdResponse } from "@repo/types";
+import { GetOrganizationByIdResponse, SubmissionStatus } from "@repo/types";
 
 type OrganizationProfileSectionProps = {
   profile: GetOrganizationByIdResponse;
   onEdit: () => void;
 };
 
-export const OrganizationProfileSection: FC<
+const OrganizationProfileSectionComponent: FC<
   OrganizationProfileSectionProps
 > = ({ profile, onEdit }) => {
   const representative = profile.representative;
   return (
     <SectionCard
       title="Perfil empresa"
-      action={{
-        label: "EDITAR",
-        icon: <Edit />,
-        onClick: onEdit,
-      }}
+      action={
+        profile.lastSubmissionStatus !== SubmissionStatus.REJECTED
+          ? {
+              label: "EDITAR",
+              icon: <Edit />,
+              onClick: onEdit,
+              disabled: !profile.isEditable,
+              title: !profile.isEditable
+                ? "La empresa tiene una postulación pendiente"
+                : undefined,
+            }
+          : undefined
+      }
     >
       <InfoCard title={profile.name}>
         <InfoRow label="RUT / RUC" value={profile.taxId} />
@@ -59,3 +67,7 @@ export const OrganizationProfileSection: FC<
     </SectionCard>
   );
 };
+
+export const OrganizationProfileSection = memo(
+  OrganizationProfileSectionComponent
+);
