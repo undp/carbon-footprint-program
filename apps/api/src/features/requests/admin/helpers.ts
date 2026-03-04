@@ -14,8 +14,8 @@ export const updatePendingSubmissionStatus = async (
   prismaClient: PrismaClient,
   submissionId: string,
   targetStatus: SubmissionTargetStatus,
-  reviewComments: string,
-  userId: User["id"]
+  userId: User["id"],
+  reviewComments?: string
 ): Promise<{ submissionId: string }> => {
   const result = await prismaClient.submission.updateMany({
     where: {

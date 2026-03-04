@@ -17,6 +17,6 @@ export const rejectRequestService = async (
     prismaClient,
     submissionId,
     SubmissionStatus.REJECTED,
-    body,
-    userId
+    userId,
+    body.reviewComments
   );

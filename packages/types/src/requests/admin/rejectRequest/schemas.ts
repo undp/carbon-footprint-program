@@ -11,7 +11,6 @@ export const RejectRequestBodySchema = z.object({
     .trim()
     .min(1)
     .max(2000)
-    .optional()
     .describe("Optional reviewer comments"),
 });
 

@@ -14,7 +14,10 @@ export const useRejectRequest = () => {
   >({
     mutationFn: ({ id, body }) =>
       apiClient
-        .post(`admin/requests/${id}/reject`, { json: body ?? {} })
+        // TODO: Remove temporary comment
+        .post(`admin/requests/${id}/reject`, {
+          json: body ?? { comments: "temporary comment" },
+        })
         .json<RejectRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([

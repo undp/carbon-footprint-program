@@ -17,6 +17,6 @@ export const approveRequestService = async (
     prismaClient,
     submissionId,
     SubmissionStatus.APPROVED,
-    body,
-    userId
+    userId,
+    body.reviewComments
   );
