@@ -1,13 +1,13 @@
 import type { PrismaClient } from "@repo/database";
 import {
   type GetCarbonInventoryByIdResponse,
-  CarbonInventoryDisplayStatusEnum,
   CarbonInventoryLineStatus,
   User,
 } from "@repo/types";
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 import { map, uniq } from "lodash-es";
 import { CarbonInventoryNotFoundError } from "../errors.js";
+import { calculateDisplayStatus } from "../helpers.js";
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
@@ -36,6 +36,22 @@ export const getCarbonInventoryByIdService = async (
           },
         },
       },
+      subtotals: true,
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: {
+                  id: true,
+                  status: true,
+                  type: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -60,6 +76,6 @@ export const getCarbonInventoryByIdService = async (
   return {
     ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
     // TODO: use helper to calculate the display status based on the inventory status and associated submissions
-    status: CarbonInventoryDisplayStatusEnum.DRAFT, // Default to DRAFT for now, as status management is not implemented yet
+    status: calculateDisplayStatus(inventory),
   };
 };

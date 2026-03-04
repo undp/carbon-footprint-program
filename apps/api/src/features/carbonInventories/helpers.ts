@@ -1,10 +1,18 @@
-import type { PrismaClient } from "@repo/database";
+import {
+  SubmissionStatus,
+  type Prisma,
+  type PrismaClient,
+} from "@repo/database";
 import { type GetAllCategoriesResponse } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
 } from "./errors.js";
 import { kgToTon } from "@/utils/number.js";
+import {
+  CarbonInventoryDisplayStatus,
+  CarbonInventoryDisplayStatusEnum,
+} from "@repo/types";
 
 export type InventoryBase = {
   id: bigint;
@@ -141,3 +149,66 @@ export async function fetchInventoryWithCategoryData(
   );
   return { inventory, categoryData, totalEmissions };
 }
+
+export type CarbonInventoryWithSubmissions = Prisma.CarbonInventoryGetPayload<{
+  include: {
+    subtotals: true;
+    submission: {
+      include: {
+        subject: {
+          include: {
+            submissions: {
+              select: {
+                id: true;
+                status: true;
+                type: true;
+              };
+            };
+          };
+        };
+      };
+    };
+  };
+}>;
+
+export const calculateDisplayStatus = (
+  carbonInventory: CarbonInventoryWithSubmissions
+): CarbonInventoryDisplayStatus => {
+  const submissions = carbonInventory.submission?.subject.submissions || [];
+
+  if (!submissions.length) return CarbonInventoryDisplayStatusEnum.DRAFT;
+
+  const verifSubs = submissions.filter(
+    (s) => s.type === "CARBON_INVENTORY_VERIFICATION"
+  );
+
+  const calcSubs = submissions.filter(
+    (s) => s.type === "CARBON_INVENTORY_CALCULATION"
+  );
+
+  if (verifSubs.some((s) => s.status === SubmissionStatus.APPROVED))
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
+
+  if (verifSubs.some((s) => s.status === SubmissionStatus.PENDING))
+    return CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION;
+
+  if (verifSubs.some((s) => s.status === SubmissionStatus.REJECTED))
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED;
+
+  if (verifSubs.some((s) => s.status === SubmissionStatus.OBJECTED))
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
+
+  if (calcSubs.some((s) => s.status === SubmissionStatus.APPROVED))
+    return CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED;
+
+  if (calcSubs.some((s) => s.status === SubmissionStatus.REJECTED))
+    return CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED;
+
+  if (calcSubs.some((s) => s.status === SubmissionStatus.PENDING))
+    return CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION;
+
+  if (calcSubs.some((s) => s.status === SubmissionStatus.OBJECTED))
+    return CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+
+  return CarbonInventoryDisplayStatusEnum.DRAFT;
+};
