@@ -1,12 +1,18 @@
 import type { PrismaClient } from "@repo/database";
 import { SubCategoryStatus, User } from "@repo/types";
 import { SubcategoryNotFoundError } from "../errors.js";
+import { UserNotFoundError } from "../../users/errors.js";
 
 export const deleteSubcategoryService = async (
   prismaClient: PrismaClient,
   id: string,
   user: User | null
 ): Promise<void> => {
+  // TODO: remove this if when handlerFactory folder is improved
+  if (!user) {
+    throw new UserNotFoundError();
+  }
+
   const subcategoryId = BigInt(id);
 
   const subcategory = await prismaClient.subcategory.findFirst({
@@ -25,7 +31,7 @@ export const deleteSubcategoryService = async (
     where: { id: subcategoryId },
     data: {
       status: SubCategoryStatus.DELETED,
-      updatedById: user ? BigInt(user.id) : undefined,
+      updatedById: BigInt(user.id),
     },
   });
 };
