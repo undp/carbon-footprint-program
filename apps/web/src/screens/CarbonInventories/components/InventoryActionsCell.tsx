@@ -8,7 +8,11 @@ import {
   EmojiEventsOutlined,
   FileCopyOutlined,
 } from "@mui/icons-material";
-import { InventoryStatus } from "@repo/types";
+import {
+  CarbonInventoryDisplayStatus,
+  CarbonInventoryDisplayStatusEnum,
+  InventoryStatus,
+} from "@repo/types";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
 import { enqueueSnackbar } from "notistack";
@@ -37,7 +41,7 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 
 interface InventoryActionsCellProps {
   inventoryId: string;
-  status: InventoryStatus;
+  status: CarbonInventoryDisplayStatus;
   refetchInventories: (
     options?: RefetchOptions
   ) => Promise<QueryObserverResult>;
@@ -52,10 +56,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
 
-  const isDraft = status === InventoryStatus.DRAFT;
-  const isVerified = status === InventoryStatus.VERIFIED;
+  // TODO: improve the status management and permissions logic to determine the allowed actions based on the inventory status and associated submissions, instead of hardcoding based on display status
+  const isDraft = status === CarbonInventoryDisplayStatusEnum.DRAFT;
+  const isVerified =
+    status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
   const canEdit = !isVerified;
-  const canVerify = status === InventoryStatus.SUBMITTED;
+  const canVerify =
+    status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED;
   const canDelete = !isVerified;
   const canView = !isDraft;
 
@@ -88,6 +95,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   const onDeleteConfirm = useCallback(async () => {
     try {
+      // TODO: we should create a DELETE endpoint for carbon inventories instead of updating the status to DELETED
       await updateInventory({
         id: inventoryId,
         data: { status: InventoryStatus.DELETED },
