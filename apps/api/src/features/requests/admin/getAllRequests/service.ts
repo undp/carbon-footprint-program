@@ -1,9 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetAllAdminRequestsResponse, User } from "@repo/types";
-import {
-  adminSubmissionSummaryViewSelect,
-  mapAdminSubmissionSummaryToResponse,
-} from "../mappers.js";
+import { mapAdminSubmissionSummaryToResponse } from "../mappers.js";
 
 export const getAllRequestsService = async (
   prismaClient: PrismaClient,
@@ -11,7 +8,6 @@ export const getAllRequestsService = async (
   _user: User | null
 ): Promise<GetAllAdminRequestsResponse> => {
   const submissions = await prismaClient.submissionSummaryView.findMany({
-    select: adminSubmissionSummaryViewSelect,
     orderBy: [{ requestedAt: "desc" }, { submissionId: "desc" }],
   });
 
