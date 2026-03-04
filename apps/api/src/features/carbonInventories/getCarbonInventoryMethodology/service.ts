@@ -1,5 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
+import {
+  GetCarbonInventoryMethodologyResponse,
+  CategoryStatus,
+  SubCategoryStatus,
+} from "@repo/types";
 import { z } from "zod";
 import {
   buildRateUnitsByMagnitudeMap,
@@ -48,6 +52,9 @@ export const getCarbonInventoryMethodologyService = async (
       name: true,
       description: true,
       categories: {
+        where: {
+          status: CategoryStatus.ACTIVE,
+        },
         select: {
           id: true,
           name: true,
@@ -59,6 +66,9 @@ export const getCarbonInventoryMethodologyService = async (
           examples: true,
           position: true,
           subcategories: {
+            where: {
+              status: SubCategoryStatus.ACTIVE,
+            },
             select: {
               id: true,
               name: true,
