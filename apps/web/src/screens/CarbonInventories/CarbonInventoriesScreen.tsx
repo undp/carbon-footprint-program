@@ -15,9 +15,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { useNavigate } from "@tanstack/react-router";
 import { MainLayout } from "@/components/layout";
-import { Routes } from "@/interfaces";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
 import {
@@ -67,7 +65,6 @@ const getStatusLabel = (status: InventoryStatus) => {
 
 export const CarbonInventoriesScreen: FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
 
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
@@ -239,24 +236,6 @@ export const CarbonInventoriesScreen: FC = () => {
     [inventories]
   );
 
-  const hasDraftInventory = useMemo(
-    () =>
-      filteredInventories.some((inv) => inv.status === InventoryStatus.DRAFT),
-    [filteredInventories]
-  );
-
-  const navigateToDraftInventory = useCallback(() => {
-    const draftInventory = inventories.find(
-      (inv) => inv.status === InventoryStatus.DRAFT
-    );
-    if (draftInventory) {
-      void navigate({
-        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
-        params: { inventoryId: draftInventory.id },
-      });
-    }
-  }, [inventories, navigate]);
-
   useEffect(() => {
     void refetchInventories();
     void refetchAvailableYears();
@@ -298,8 +277,6 @@ export const CarbonInventoriesScreen: FC = () => {
         <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
           {/* Section Header */}
           <CarbonInventoryActions
-            hasDraftInventory={hasDraftInventory}
-            onContinueDraft={navigateToDraftInventory}
             onNewInventory={() => setNewInventoryDialogOpen(true)}
           />
 
