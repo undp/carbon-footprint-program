@@ -5,11 +5,10 @@ import type { GetAdminRequestsKpisResponse } from "@repo/types";
 export const getRequestsKpisService = async (
   prismaClient: PrismaClient
 ): Promise<GetAdminRequestsKpisResponse> => {
-  const submissionCounts =
-    await prismaClient.submissionSummaryView.groupBy({
-      by: ["subjectType", "status"],
-      _count: true,
-    });
+  const submissionCounts = await prismaClient.submissionSummaryView.groupBy({
+    by: ["subjectType", "status"],
+    _count: true,
+  });
 
   const countMap = new Map<
     SubmissionSubjectType,

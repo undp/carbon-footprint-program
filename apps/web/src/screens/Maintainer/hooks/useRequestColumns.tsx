@@ -62,7 +62,8 @@ export const useRequestColumns = (): GridColDef<
 >[] => {
   const theme = useTheme();
   const cellClassName = "content-center";
-  const { mutate: approveRequest, isPending: isApproving } = useApproveRequest();
+  const { mutate: approveRequest, isPending: isApproving } =
+    useApproveRequest();
   const { mutate: rejectRequest, isPending: isRejecting } = useRejectRequest();
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
