@@ -11,52 +11,54 @@ export const requestCalculationService = async (
   carbonInventoryId: string,
   userId?: string | null
 ): Promise<void> => {
-  const inventory = await prismaClient.carbonInventory.findUnique({
-    where: { id: BigInt(carbonInventoryId) },
-    select: {
-      id: true,
-      organizationId: true,
-      organization: {
-        select: {
-          summary: {
-            select: { isAccredited: true },
+  await prismaClient.$transaction(async (tx) => {
+    const inventory = await tx.carbonInventory.findUnique({
+      where: { id: BigInt(carbonInventoryId) },
+      select: {
+        id: true,
+        organizationId: true,
+        organization: {
+          select: {
+            summary: {
+              select: { isAccredited: true },
+            },
           },
         },
-      },
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: {
-                  id: true,
-                  status: true,
-                  type: true,
+        submission: {
+          include: {
+            subject: {
+              include: {
+                submissions: {
+                  select: {
+                    id: true,
+                    status: true,
+                    type: true,
+                  },
                 },
               },
             },
           },
         },
       },
-    },
+    });
+
+    if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
+
+    canSubmitToCalculation(inventory);
+
+    validateOrganizationIsAccredited(
+      carbonInventoryId,
+      inventory.organizationId,
+      inventory.organization?.summary?.isAccredited
+    );
+
+    const createdById = userId ? BigInt(userId) : null;
+
+    await createCarbonInventorySubmission(
+      tx,
+      inventory.id,
+      SubmissionType.CARBON_INVENTORY_CALCULATION,
+      createdById
+    );
   });
-
-  if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
-
-  canSubmitToCalculation(inventory);
-
-  validateOrganizationIsAccredited(
-    carbonInventoryId,
-    inventory.organizationId,
-    inventory.organization?.summary?.isAccredited
-  );
-
-  const createdById = userId ? BigInt(userId) : null;
-
-  await createCarbonInventorySubmission(
-    prismaClient,
-    inventory.id,
-    SubmissionType.CARBON_INVENTORY_CALCULATION,
-    createdById
-  );
 };

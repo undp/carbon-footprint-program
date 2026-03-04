@@ -175,7 +175,7 @@ export function validateOrganizationIsAccredited(
  * Creates a submission for a carbon inventory, reusing an existing subject if one exists.
  */
 export async function createCarbonInventorySubmission(
-  prismaClient: PrismaClient,
+  prismaClient: PrismaClient | Prisma.TransactionClient,
   carbonInventoryId: bigint,
   type: SubmissionType,
   createdById: bigint | null
