@@ -10,7 +10,7 @@ export const getCarbonInventoryBadgesHandler = async (
   const log = request.log.child({ module: "carbonInventories" });
 
   const { id } = request.params;
-  log.info(`Getting Carbon inventory badges with ID: ${id}...`);
+  log.info({ carbonInventoryId: id }, "Getting Carbon inventory badges");
 
   const blobServiceClient = request.server.blobServiceClient;
 
