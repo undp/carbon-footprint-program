@@ -15,7 +15,7 @@ const BADGE_SORT_ORDER: Record<BadgeType, number> = {
   [BadgeType.CARBON_INVENTORY_VERIFICATION]: 2,
   [BadgeType.REDUCTION_PLAN_VERIFICATION]: 3,
   [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: 4,
-  [BadgeType.ORGANIZATION_ACCREDITATION]: 999,
+  [BadgeType.ORGANIZATION_ACCREDITATION]: 5,
 };
 
 export const getCarbonInventoryBadgesService = async (
