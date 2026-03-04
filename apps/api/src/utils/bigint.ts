@@ -1,3 +1,5 @@
+import { _function } from "zod/mini";
+
 /**
  * Helper to map optional string ID fields to BigInt or null.
  * - Returns undefined if value is undefined (field not provided)
@@ -48,3 +50,6 @@ export function bigIntEquals(
   }
   return a === b;
 }
+
+export const toNullableBigInt = (value: string | null | undefined) =>
+  value ? BigInt(value) : null;

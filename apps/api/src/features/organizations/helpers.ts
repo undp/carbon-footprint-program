@@ -5,6 +5,7 @@ import {
   SubmissionType,
 } from "@repo/database";
 import type { OrganizationMutationData } from "@repo/types";
+import { toNullableBigInt } from "@/utils/bigint.js";
 
 export const getPendingOrganizationData = (
   prisma: PrismaClient | Prisma.TransactionClient,
@@ -136,12 +137,12 @@ export const createOrganizationData = async (
       representativePhone: data.representativePhone,
       representativeEmail: data.representativeEmail,
 
-      countryOrganizationSizeId: data.countryOrganizationSizeId
-        ? BigInt(data.countryOrganizationSizeId)
-        : null,
-      sectorId: data.sectorId ? BigInt(data.sectorId) : null,
-      subsectorId: data.subsectorId ? BigInt(data.subsectorId) : null,
-      mainActivityId: data.mainActivityId ? BigInt(data.mainActivityId) : null,
+      countryOrganizationSizeId: toNullableBigInt(
+        data.countryOrganizationSizeId
+      ),
+      sectorId: toNullableBigInt(data.sectorId),
+      subsectorId: toNullableBigInt(data.subsectorId),
+      mainActivityId: toNullableBigInt(data.mainActivityId),
       representativeCountryJobPositionId: BigInt(data.representativePositionId),
     },
   });
@@ -171,12 +172,12 @@ export const updateOrganizationData = async (
       representativePhone: data.representativePhone,
       representativeEmail: data.representativeEmail,
 
-      countryOrganizationSizeId: data.countryOrganizationSizeId
-        ? BigInt(data.countryOrganizationSizeId)
-        : null,
-      sectorId: data.sectorId ? BigInt(data.sectorId) : null,
-      subsectorId: data.subsectorId ? BigInt(data.subsectorId) : null,
-      mainActivityId: data.mainActivityId ? BigInt(data.mainActivityId) : null,
+      countryOrganizationSizeId: toNullableBigInt(
+        data.countryOrganizationSizeId
+      ),
+      sectorId: toNullableBigInt(data.sectorId),
+      subsectorId: toNullableBigInt(data.subsectorId),
+      mainActivityId: toNullableBigInt(data.mainActivityId),
       representativeCountryJobPositionId: BigInt(data.representativePositionId),
     },
   });
