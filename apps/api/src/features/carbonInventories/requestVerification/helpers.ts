@@ -1,8 +1,24 @@
+import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import {
+  calculateDisplayStatus,
+  CarbonInventoryWithOrganizationSummaryAndSubmissions,
+} from "../helpers.js";
+import { CarbonInventoryCannotRequestVerificationError } from "../errors.js";
+
 /**
  * TODO: Validate the carbon inventory does not have an APPROVED or REJECTED
  * submission of type VERIFICATION. This is a placeholder for future implementation.
  */
-export function validateNoExistingVerificationSubmission(): void {
-  // TODO: Implement validation that the carbon inventory does not have
-  // an APPROVED or REJECTED submission of type VERIFICATION
+export function canSubmitToVerification(
+  inventory: CarbonInventoryWithOrganizationSummaryAndSubmissions
+): void {
+  const displayStatus = calculateDisplayStatus(inventory);
+  const can =
+    displayStatus === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
+    displayStatus === CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
+
+  if (!can)
+    throw new CarbonInventoryCannotRequestVerificationError(
+      inventory.id.toString()
+    );
 }

@@ -8,10 +8,7 @@ import {
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { toNumberOrNull, kgToTon } from "@/utils/number.js";
-import {
-  calculateDisplayStatus,
-  CarbonInventoryWithSubmissions,
-} from "../helpers.js";
+import { calculateDisplayStatus } from "../helpers.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
@@ -28,52 +25,51 @@ export const getAllCarbonInventoriesService = async (
   whereClause.year = query?.year ? parseInt(query.year, 10) : undefined;
   whereClause.createdById = user ? BigInt(user.id) : undefined;
 
-  const data: CarbonInventoryWithSubmissions[] =
-    await prismaClient.carbonInventory.findMany({
-      where: {
-        ...whereClause,
-        OR: [
-          { submission: { is: null } },
-          {
-            submission: {
-              subject: {
-                submissions: {
-                  some: {
-                    type: {
-                      in: [
-                        SubmissionType.CARBON_INVENTORY_CALCULATION,
-                        SubmissionType.CARBON_INVENTORY_VERIFICATION,
-                      ],
-                    },
-                  },
-                },
-              },
-            },
-          },
-        ],
-      },
-      include: {
-        subtotals: true,
-        submission: {
-          include: {
+  const data = await prismaClient.carbonInventory.findMany({
+    where: {
+      ...whereClause,
+      OR: [
+        { submission: { is: null } },
+        {
+          submission: {
             subject: {
-              include: {
-                submissions: {
-                  select: {
-                    id: true,
-                    status: true,
-                    type: true,
+              submissions: {
+                some: {
+                  type: {
+                    in: [
+                      SubmissionType.CARBON_INVENTORY_CALCULATION,
+                      SubmissionType.CARBON_INVENTORY_VERIFICATION,
+                    ],
                   },
                 },
               },
             },
           },
         },
+      ],
+    },
+    include: {
+      subtotals: true,
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: {
+                  id: true,
+                  status: true,
+                  type: true,
+                },
+              },
+            },
+          },
+        },
       },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
   return data.map((inventory) => ({
     ...mapCarbonInventoryToResponse(inventory),

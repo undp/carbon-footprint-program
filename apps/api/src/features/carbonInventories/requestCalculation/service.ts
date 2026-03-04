@@ -4,7 +4,7 @@ import {
   validateOrganizationIsAccredited,
   createCarbonInventorySubmission,
 } from "../helpers.js";
-import { validateNoExistingCalculationSubmission } from "./helpers.js";
+import { canSubmitToCalculation } from "./helpers.js";
 
 export const requestCalculationService = async (
   prismaClient: PrismaClient,
@@ -23,13 +23,28 @@ export const requestCalculationService = async (
           },
         },
       },
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: {
+                  id: true,
+                  status: true,
+                  type: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
   if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
   // TODO: Validate the carbon inventory does not have an APPROVED or REJECTED submission of type CALCULATION
-  validateNoExistingCalculationSubmission();
+  canSubmitToCalculation(inventory);
 
   validateOrganizationIsAccredited(
     carbonInventoryId,

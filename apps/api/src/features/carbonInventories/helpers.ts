@@ -1,6 +1,6 @@
 import {
   SubmissionStatus,
-  type SubmissionType,
+  SubmissionType,
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
@@ -216,9 +216,38 @@ export async function createCarbonInventorySubmission(
   }
 }
 
+export type CarbonInventoryWithOrganizationSummaryAndSubmissions =
+  Prisma.CarbonInventoryGetPayload<{
+    select: {
+      id: true;
+      organizationId: true;
+      organization: {
+        select: {
+          summary: {
+            select: { isAccredited: true };
+          };
+        };
+      };
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: {
+                  id: true;
+                  status: true;
+                  type: true;
+                };
+              };
+            };
+          };
+        };
+      };
+    };
+  }>;
+
 export type CarbonInventoryWithSubmissions = Prisma.CarbonInventoryGetPayload<{
   include: {
-    subtotals: true;
     submission: {
       include: {
         subject: {
@@ -238,18 +267,20 @@ export type CarbonInventoryWithSubmissions = Prisma.CarbonInventoryGetPayload<{
 }>;
 
 export const calculateDisplayStatus = (
-  carbonInventory: CarbonInventoryWithSubmissions
+  carbonInventory:
+    | CarbonInventoryWithOrganizationSummaryAndSubmissions
+    | CarbonInventoryWithSubmissions
 ): CarbonInventoryDisplayStatus => {
   const submissions = carbonInventory.submission?.subject.submissions || [];
 
   if (!submissions.length) return CarbonInventoryDisplayStatusEnum.DRAFT;
 
   const verifSubs = submissions.filter(
-    (s) => s.type === "CARBON_INVENTORY_VERIFICATION"
+    (s) => s.type === SubmissionType.CARBON_INVENTORY_VERIFICATION
   );
 
   const calcSubs = submissions.filter(
-    (s) => s.type === "CARBON_INVENTORY_CALCULATION"
+    (s) => s.type === SubmissionType.CARBON_INVENTORY_CALCULATION
   );
 
   if (verifSubs.some((s) => s.status === SubmissionStatus.APPROVED))

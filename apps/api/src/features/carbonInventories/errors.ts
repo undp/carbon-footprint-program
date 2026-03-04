@@ -53,3 +53,15 @@ export const OrganizationNotAccreditedError = createError(
   "The organization associated with carbon inventory %s is not accredited",
   422
 );
+
+export const CarbonInventoryCannotRequestCalculationError = createError(
+  "CARBON_INVENTORY_CANNOT_REQUEST_CALCULATION",
+  "The carbon inventory with ID %s cannot request calculation because it does not have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
+  422
+);
+
+export const CarbonInventoryCannotRequestVerificationError = createError(
+  "CARBON_INVENTORY_CANNOT_REQUEST_VERIFICATION",
+  "The carbon inventory with ID %s cannot request verification because it does not have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
+  422
+);
