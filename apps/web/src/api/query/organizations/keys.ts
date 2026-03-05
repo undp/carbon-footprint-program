@@ -1,9 +1,6 @@
-export const organizationsKeys = {
+export const organizationKeys = {
   adminAll: ["admin", "organizations", "all"] as const,
   adminKpis: ["admin", "organizations", "kpis"] as const,
-};
-
-export const organizationKeys = {
   all: ["organizations"] as const,
   detail: (id: string) => ["organization", id] as const,
   create: ["createOrganization"] as const,

@@ -51,7 +51,7 @@ export const useMyOrganizationUsers = (organizationId: string | undefined) => {
       try {
         await mutations.handleAddUser(data);
         dialogsState.closeAddUserDialog();
-      } catch (error) {
+      } catch {
         // Error already handled in useUserMutations with snackbar
         // Keep dialog open for user to retry or fix input
       }
@@ -66,7 +66,7 @@ export const useMyOrganizationUsers = (organizationId: string | undefined) => {
       try {
         await mutations.handleUpdateUserRole(dialogsState.selectedUserId, data);
         dialogsState.closeEditUserDialog();
-      } catch (error) {
+      } catch {
         // Error already handled in useUserMutations with snackbar
         // Keep dialog open for user to retry or fix input
       }
@@ -80,7 +80,7 @@ export const useMyOrganizationUsers = (organizationId: string | undefined) => {
     try {
       await mutations.handleDeleteUser(dialogsState.selectedUserId);
       dialogsState.closeDeleteUserDialog();
-    } catch (error) {
+    } catch {
       // Error already handled in useUserMutations with snackbar
       // Keep dialog open for user to retry
     }

@@ -9,7 +9,7 @@ import { ROLE_LABELS } from "../constants";
 type User = {
   userId: string;
   name: string;
-  email: string;
+  email: string | null;
   organizationRole: string;
   isCurrentUser: boolean;
 };
