@@ -5,10 +5,11 @@ import { HuellaLatamLogo } from "@/icons";
 import {
   LandingHeaderRoutes,
   LandingHeaderRoutesTranslations,
+  Routes,
 } from "@/interfaces";
-import { Route as HomeRoute } from "@/routes/app/home";
 import { IS_DEMO } from "@/config/environment";
 import { useAuth } from "../../../contexts";
+import { SystemRole } from "@repo/types";
 
 const pages = Object.values(LandingHeaderRoutes).map((route) => ({
   text: LandingHeaderRoutesTranslations[route],
@@ -20,8 +21,15 @@ export const Header: FC = () => {
   const navigate = useNavigate();
   const { signInRedirect, user } = useAuth();
 
-  const handleHomeClick = useCallback(() => {
-    void navigate({ to: HomeRoute.to });
+  const imAdmin =
+    user?.role === SystemRole.ADMIN || user?.role === SystemRole.SUPERADMIN;
+
+  const navigateToHome = useCallback(() => {
+    void navigate({ to: Routes.HOME });
+  }, [navigate]);
+
+  const navigateToAdmin = useCallback(() => {
+    void navigate({ to: Routes.ADMIN });
   }, [navigate]);
 
   const handleSignInClick = useCallback(() => {
@@ -53,20 +61,24 @@ export const Header: FC = () => {
         </Box>
         {user ? (
           <Box className="flex gap-4">
-            <Button
-              sx={{ backgroundColor: theme.palette.common.deepForest }}
-              variant="contained"
-              onClick={handleHomeClick}
-            >
-              IR AL ADMIN
-            </Button>
-            <Button
-              sx={{ backgroundColor: theme.palette.common.deepForest }}
-              variant="contained"
-              onClick={handleHomeClick}
-            >
-              IR AL HOME
-            </Button>
+            {imAdmin && (
+              <Button
+                sx={{ backgroundColor: theme.palette.common.deepForest }}
+                variant="contained"
+                onClick={navigateToAdmin}
+              >
+                IR AL ADMIN
+              </Button>
+            )}
+            {!imAdmin && (
+              <Button
+                sx={{ backgroundColor: theme.palette.common.deepForest }}
+                variant="contained"
+                onClick={navigateToHome}
+              >
+                IR AL HOME
+              </Button>
+            )}
           </Box>
         ) : (
           <Button
