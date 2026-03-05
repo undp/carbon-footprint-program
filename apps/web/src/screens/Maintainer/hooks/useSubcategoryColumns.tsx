@@ -1,0 +1,279 @@
+import { useMemo, useCallback } from "react";
+import { Button } from "@mui/material";
+import { InfoOutlined } from "@mui/icons-material";
+import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import type { GetAllSubcategoriesResponse, SubcategoryForm } from "@repo/types";
+
+import {
+  EditableTextCell,
+  IconPickerCell,
+  CategorySelectCell,
+  MeasurementUnitsCell,
+} from "../components/cells";
+import { ActionButtons } from "../components/ActionButtons";
+
+type Subcategory = GetAllSubcategoriesResponse[number];
+
+interface MeasurementUnit {
+  id: string;
+  name: string;
+  abbreviation: string;
+}
+
+interface UseSubcategoryColumnsParams {
+  editingRowId: string | null;
+  viewOnly: boolean;
+  onCellChange: (
+    rowIndex: number,
+    field: keyof SubcategoryForm,
+    value: string | string[] | null
+  ) => void;
+  onStartEditRow: (rowId: string) => void;
+  onStopEditRow: () => void;
+  onCancelEditRow: () => void;
+  onDelete: (row: SubcategoryForm) => void;
+  onOpenExplanation: (rowIndex: number) => void;
+  rows: SubcategoryForm[];
+  categories: Array<{ id: string; name: string; color: string }>;
+  allMeasurementUnits: MeasurementUnit[];
+}
+
+export const useSubcategoryColumns = ({
+  editingRowId,
+  viewOnly,
+  onCellChange,
+  onStartEditRow,
+  onStopEditRow,
+  onCancelEditRow,
+  onDelete,
+  onOpenExplanation,
+  rows,
+  categories,
+  allMeasurementUnits,
+}: UseSubcategoryColumnsParams): GridColDef<Subcategory>[] => {
+  const getRowIndex = useCallback(
+    (rowId: string) => rows.findIndex((r) => r.id === rowId),
+    [rows]
+  );
+  const isEditing = useCallback(
+    (rowId: string) => editingRowId === rowId,
+    [editingRowId]
+  );
+
+  return useMemo<GridColDef<Subcategory>[]>(
+    () => [
+      {
+        field: "icon",
+        headerName: "Ícono",
+        width: 60,
+        headerAlign: "center",
+        align: "center",
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const formRow = rows[rowIndex];
+          const categoryColor =
+            categories.find((c) => c.id === formRow?.categoryId)?.color ?? "";
+          return (
+            <IconPickerCell
+              iconName={params.row.icon}
+              color={categoryColor}
+              isEditing={editing}
+              rowIndex={rowIndex}
+              formArrayName="subcategories"
+              hideColor
+              onChangeIcon={(iconName) =>
+                onCellChange(rowIndex, "icon", iconName)
+              }
+              onClick={
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+            />
+          );
+        },
+      },
+      {
+        field: "categoryId",
+        headerName: "Categoría / Alcance",
+        flex: 0.22,
+        minWidth: 135,
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          return (
+            <CategorySelectCell
+              formArrayName="subcategories"
+              rowIndex={rowIndex}
+              isEditing={editing}
+              categories={categories}
+              onChange={(categoryId) =>
+                onCellChange(rowIndex, "categoryId", categoryId)
+              }
+              onClick={
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+            />
+          );
+        },
+      },
+      {
+        field: "name",
+        headerName: "Sub-categoría",
+        flex: 0.3,
+        minWidth: 200,
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          return (
+            <EditableTextCell
+              formArrayName="subcategories"
+              rowIndex={rowIndex}
+              fieldName="name"
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "name", value)}
+              onClick={
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+              truncateLines={1}
+            />
+          );
+        },
+      },
+      {
+        field: "description",
+        headerName: "Descripción",
+        flex: 0.5,
+        minWidth: 250,
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          return (
+            <EditableTextCell
+              formArrayName="subcategories"
+              rowIndex={rowIndex}
+              fieldName="description"
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "description", value)}
+              onClick={
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+              multiline
+              maxRows={3}
+              truncateLines={3}
+            />
+          );
+        },
+      },
+      {
+        field: "measurementUnitIds",
+        headerName: "Unidades aceptadas",
+        width: 250,
+        display: "flex",
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          return (
+            <MeasurementUnitsCell
+              formArrayName="subcategories"
+              rowIndex={rowIndex}
+              isEditing={editing}
+              allUnits={allMeasurementUnits}
+              onChange={(unitIds) =>
+                onCellChange(rowIndex, "measurementUnitIds", unitIds)
+              }
+              onClick={
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
+            />
+          );
+        },
+      },
+      {
+        field: "examples",
+        headerName: "Explicación",
+        width: 120,
+        headerAlign: "center",
+        align: "center",
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const hasContent = !!params.row.examples;
+          return (
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<InfoOutlined />}
+              onClick={() => onOpenExplanation(rowIndex)}
+              disabled={viewOnly && !hasContent}
+              sx={{
+                maxWidth: "100px",
+                borderColor: hasContent ? "success.main" : "grey.400",
+                color: hasContent ? "success.main" : "grey.600",
+                textTransform: "none",
+                "&:hover": {
+                  borderColor: hasContent ? "success.dark" : "grey.500",
+                  backgroundColor: hasContent ? undefined : "grey.50",
+                },
+              }}
+            >
+              {viewOnly ? "Ver" : hasContent ? "Editar" : "Agregar"}
+            </Button>
+          );
+        },
+      },
+      ...(!viewOnly
+        ? [
+            {
+              field: "actions",
+              headerName: "Acciones",
+              width: 100,
+              sortable: false,
+              filterable: false,
+              headerAlign: "center" as const,
+              align: "center" as const,
+              renderCell: (params: GridRenderCellParams<Subcategory>) => {
+                const anyEditing = editingRowId !== null;
+                const rowIndex = getRowIndex(params.row.id);
+                const formRow = rows[rowIndex];
+
+                return (
+                  <ActionButtons
+                    isActiveRow={anyEditing && !isEditing(params.row.id)}
+                    isEditing={isEditing(params.row.id)}
+                    onStopEditCells={onStopEditRow}
+                    onCancelEdit={onCancelEditRow}
+                    onDelete={formRow ? () => onDelete(formRow) : undefined}
+                    deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta subcategoría?"
+                  />
+                );
+              },
+            },
+          ]
+        : []),
+    ],
+    [
+      viewOnly,
+      getRowIndex,
+      isEditing,
+      onCellChange,
+      onStartEditRow,
+      categories,
+      allMeasurementUnits,
+      onOpenExplanation,
+      editingRowId,
+      rows,
+      onStopEditRow,
+      onCancelEditRow,
+      onDelete,
+    ]
+  );
+};
