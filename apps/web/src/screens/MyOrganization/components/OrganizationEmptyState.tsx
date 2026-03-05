@@ -15,9 +15,9 @@ export const OrganizationEmptyState: FC<OrganizationEmptyStateProps> = ({
           <Typography variant="h6" color="text.primary">
             Aún no tienes organizaciones creadas.
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography className="px-10" variant="body2" color="text.secondary">
             Haz clic en el botón para crear tu primera organización y comenzar a
-            gestionar tu perfil, sedes y usuarios.
+            gestionar tu perfil, usuarios y huellas de carbono.
           </Typography>
 
           <Button
