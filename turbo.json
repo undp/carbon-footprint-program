@@ -32,7 +32,7 @@
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^build"],
+      "dependsOn": ["clean", "^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
