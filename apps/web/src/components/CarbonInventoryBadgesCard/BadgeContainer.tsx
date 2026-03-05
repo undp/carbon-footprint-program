@@ -53,7 +53,7 @@ export const BadgeContainer: FC<BadgeContainerProps> = ({
       <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border bg-white p-4">
         <Typography
           fontSize="1rem"
-          fontWeight="semiBold"
+          fontWeight={600}
           color="text.primary"
           className="shrink-0"
         >
@@ -70,7 +70,7 @@ export const BadgeContainer: FC<BadgeContainerProps> = ({
     <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border bg-white p-4">
       <Typography
         fontSize="1rem"
-        fontWeight="semiBold"
+        fontWeight={600}
         color="text.primary"
         className="shrink-0"
       >
