@@ -42,6 +42,8 @@ export const getOrganizationUsersRoute: StandardRouteSignature = (
       preHandler: [
         fastify.requireOrganizationRole(extractOrganizationId, [
           OrganizationRole.ADMIN,
+          OrganizationRole.CONTRIBUTOR,
+          OrganizationRole.VIEWER,
         ]),
       ],
     },
