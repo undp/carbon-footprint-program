@@ -4,10 +4,6 @@ import {
   CarbonInventoryWithOrganizationSummaryAndSubmissions,
 } from "../helpers.js";
 
-/**
- * TODO: Validate the carbon inventory does not have an APPROVED or REJECTED
- * submission of type VERIFICATION. This is a placeholder for future implementation.
- */
 export function canSubmitToVerification(
   inventory: CarbonInventoryWithOrganizationSummaryAndSubmissions
 ): boolean {
