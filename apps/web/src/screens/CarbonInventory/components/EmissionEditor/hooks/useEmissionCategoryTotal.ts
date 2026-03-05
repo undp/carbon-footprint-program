@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useFormContext, useWatch, Control } from "react-hook-form";
 import { round } from "lodash-es";
 import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
+import { kgToTon } from "@/utils/number";
 
 export const useEmissionCategoryTotal = (
   categoryId: EmissionCaptureFormValues["subcategories"][number]["categoryId"]
@@ -43,7 +44,7 @@ export const useEmissionCategoryTotal = (
         row.factorValue !== null && row.factorValue !== undefined
           ? row.factorValue
           : 0;
-      return acc + round(quantity * factorValue, 2);
+      return acc + kgToTon(round(quantity * factorValue, 2));
     }, 0);
   }, [subcategories, categoryId]);
 

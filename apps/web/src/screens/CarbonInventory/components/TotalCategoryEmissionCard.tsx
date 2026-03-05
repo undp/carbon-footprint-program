@@ -16,7 +16,6 @@ import {
 } from "@/icons";
 import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
 import { formatEmissions } from "@/utils/formatting";
-import { kgToTon } from "@/utils/number";
 
 const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
   1: DirectEmissionCategoryIcon,
@@ -67,7 +66,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
         </Box>
         <Box className="justify-left flex flex-1 items-center">
           <Typography variant="subtitle1" fontWeight="bold">
-            {formatEmissions(kgToTon(totalEmissions ?? 0))}
+            {formatEmissions(totalEmissions ?? 0)}
           </Typography>
         </Box>
       </Card>
