@@ -3,7 +3,7 @@ CREATE VIEW submission_summary_view AS
 WITH organization_data_submissions AS (
   SELECT
     s.id AS submission_id,
-    ss.subject_type,
+    s.type,
     s.status,
     od.organization_id,
     osv.name AS organization_name,
@@ -18,7 +18,7 @@ WITH organization_data_submissions AS (
 carbon_inventory_submissions AS (
   SELECT
     s.id AS submission_id,
-    ss.subject_type,
+    s.type,
     s.status,
     ci.organization_id,
     osv.name AS organization_name,

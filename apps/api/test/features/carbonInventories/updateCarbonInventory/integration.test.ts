@@ -18,8 +18,8 @@ import {
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
 import {
-  type UpdateCarbonInventoryResponse,
   InventoryStatus,
+  type UpdateCarbonInventoryResponse,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -96,7 +96,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.year).toBeNull(); // Unchanged
     });
 
-    it("should update status", async () => {
+    it("should soft-delete an inventory by updating status to DELETED", async () => {
       const inventory = await seedCarbonInventory(prisma, {
         usageMode: "SIMPLIFIED",
       });
@@ -105,14 +105,18 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         method: "PATCH",
         url: `/api/carbon-inventories/${inventory.id}`,
         payload: {
-          status: "SUBMITTED",
+          status: InventoryStatus.DELETED,
         },
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
 
-      expect(body.status).toBe("SUBMITTED");
+      // Verify status change in database
+      const carbonInventory = await prisma.carbonInventory.findUnique({
+        where: { id: inventory.id },
+      });
+      expect(carbonInventory).toBeDefined();
+      expect(carbonInventory!.status).toBe(InventoryStatus.DELETED);
     });
 
     it("should update isEditable", async () => {
@@ -261,7 +265,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         payload: {
           year: 2024,
           usageMode: "EXPERT",
-          status: "SUBMITTED",
           organizationId: organizationId.toString(),
           organizationBranchId: "456",
         },
@@ -272,7 +275,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
 
       expect(body.year).toBe(2024);
       expect(body.usageMode).toBe("EXPERT");
-      expect(body.status).toBe("SUBMITTED");
       expect(body.organizationId).toBe(organizationId.toString());
       expect(body.organizationBranchId).toBe("456");
     });
@@ -332,7 +334,6 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
           organizationId: organizationId.toString(),
           organizationBranchId: "789",
           organizationData,
-          status: "VERIFIED",
           usageMode: "EXPERT",
           isEditable: false,
           preselectedNodesId: "999",
@@ -347,35 +348,9 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.organizationId).toBe(organizationId.toString());
       expect(body.organizationBranchId).toBe("789");
       expect(body.organizationData).toEqual(organizationData);
-      expect(body.status).toBe("VERIFIED");
       expect(body.usageMode).toBe("EXPERT");
       expect(body.isEditable).toBe(false);
       expect(body.preselectedNodesId).toBe("999");
-    });
-
-    it("should update all status values", async () => {
-      const statuses: InventoryStatus[] = [
-        InventoryStatus.DRAFT,
-        InventoryStatus.SUBMITTED,
-        InventoryStatus.VERIFIED,
-        InventoryStatus.DELETED,
-      ];
-
-      for (const status of statuses) {
-        const inventory = await seedCarbonInventory(prisma, {
-          usageMode: "SIMPLIFIED",
-        });
-
-        const response = await app.inject({
-          method: "PATCH",
-          url: `/api/carbon-inventories/${inventory.id}`,
-          payload: { status },
-        });
-
-        expect(response.statusCode).toBe(200);
-        const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
-        expect(body.status).toBe(status);
-      }
     });
   });
 

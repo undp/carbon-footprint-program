@@ -1,4 +1,4 @@
-import { SubmissionSubjectType, SubmissionStatus } from "@repo/database/enums";
+import { SubmissionType, SubmissionStatus } from "@repo/database/enums";
 import { z } from "zod";
 
 // Individual KPI count schema
@@ -13,74 +13,96 @@ const BaseCountSchema = z.object({
 const RequestKpiCountSchema = z.union([
   // ORGANIZATION_ACCREDITATION
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.ORGANIZATION_ACCREDITATION),
+    type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
     status: z.literal(SubmissionStatus.PENDING),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.ORGANIZATION_ACCREDITATION),
+    type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
     status: z.literal(SubmissionStatus.APPROVED),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.ORGANIZATION_ACCREDITATION),
+    type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // CARBON_INVENTORY_CALCULATION
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.CARBON_INVENTORY_CALCULATION),
+    type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
     status: z.literal(SubmissionStatus.PENDING),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.CARBON_INVENTORY_CALCULATION),
+    type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
     status: z.literal(SubmissionStatus.APPROVED),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.CARBON_INVENTORY_CALCULATION),
+    type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // CARBON_INVENTORY_VERIFICATION
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.CARBON_INVENTORY_VERIFICATION),
+    type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.PENDING),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.CARBON_INVENTORY_VERIFICATION),
+    type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.APPROVED),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.CARBON_INVENTORY_VERIFICATION),
+    type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // REDUCTION_PLAN_VERIFICATION
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.REDUCTION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.PENDING),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.REDUCTION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.APPROVED),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.REDUCTION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
   // NEUTRALIZATION_PLAN_VERIFICATION
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.NEUTRALIZATION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.PENDING),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.NEUTRALIZATION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.APPROVED),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionSubjectType.NEUTRALIZATION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
+    status: z.literal(SubmissionStatus.OBJECTED),
+  }),
+  BaseCountSchema.extend({
+    type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
 ]);
 
+// expectedKpiCount = Object.keys(SubmissionType).length * Object.keys(SubmissionStatus).length.
+// If a new SubmissionType or SubmissionStatus is added, the RequestKpiCountSchema union entries
+// above must be updated to include all new combinations, otherwise runtime validation will fail.
 const expectedKpiCount =
-  Object.keys(SubmissionSubjectType).length *
-  Object.keys(SubmissionStatus).length;
+  Object.keys(SubmissionType).length * Object.keys(SubmissionStatus).length;
 
 export const GetAdminRequestsKpisResponseSchema = z.object({
   total: z.number().nonnegative().describe("The total count of requests"),

@@ -24,67 +24,7 @@ export const carbonInventoryPatterns = {
   }),
 
   /**
-   * Returns a submitted carbon inventory input object with SIMPLIFIED mode.
-   *   - year: 2024
-   *   - status: "SUBMITTED"
-   *   - usageMode: "SIMPLIFIED"
-   *   - isEditable: false
-   */
-  submitted: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "SUBMITTED",
-    usageMode: "SIMPLIFIED",
-    isEditable: false,
-  }),
-
-  /**
-   * Returns a verified carbon inventory input object with EXPERT mode.
-   *   - year: 2024
-   *   - status: "VERIFIED"
-   *   - usageMode: "EXPERT"
-   *   - isEditable: false
-   */
-  verified: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "VERIFIED",
-    usageMode: "EXPERT",
-    isEditable: false,
-  }),
-
-  /**
-   * Returns a deleted carbon inventory input object with SIMPLIFIED mode.
-   *   - year: 2024
-   *   - status: "DELETED"
-   *   - usageMode: "SIMPLIFIED"
-   *   - isEditable: false
-   */
-  deleted: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
-    year: 2024,
-    status: "DELETED",
-    usageMode: "SIMPLIFIED",
-    isEditable: false,
-  }),
-
-  /**
    * Returns a complete carbon inventory input object with all fields populated.
-   *   - organizationId: {organizationId}
-   *   - organizationBranchId: {organizationBranchId}
-   *   - organizationData: {
-   *       - name: "Test Organization",
-   *       - sectorId: "10",
-   *       - subsectorId: "20",
-   *       - sizeId: "5",
-   *       - mainActivityId: "15",
-   *       - mainActivityQuantity: 250,
-   *     }
-   *   - year: 2023
-   *   - status: "VERIFIED"
-   *   - usageMode: "EXPERT"
-   *   - methodologyVersionId: {methodologyVersionId}
-   *   - preselectedNodesId: {preselectedNodesId}
-   *   - isEditable: false
-   *   - createdById: {createdById}
-   *   - updatedById: {updatedById}
    */
   complete: (
     organizationId: bigint,
@@ -104,7 +44,6 @@ export const carbonInventoryPatterns = {
       mainActivityQuantity: 250,
     },
     year: 2023,
-    status: "VERIFIED",
     usageMode: "EXPERT",
     methodologyVersionId: methodologyVersionId,
     preselectedNodesId: preselectedNodesId,
@@ -114,18 +53,6 @@ export const carbonInventoryPatterns = {
 
   /**
    * Returns a carbon inventory input object with organization data.
-   *   - organizationData: {
-   *       - name: "Acme Corp",
-   *       - sectorId: "5",
-   *       - subsectorId: "12",
-   *       - sizeId: "3",
-   *       - mainActivityId: "8",
-   *       - mainActivityQuantity: 500,
-   *     }
-   *   - year: 2024
-   *   - status: "DRAFT"
-   *   - usageMode: "SIMPLIFIED"
-   *   - isEditable: true
    */
   withOrganizationData: (
     overrides?: Partial<{
@@ -146,7 +73,6 @@ export const carbonInventoryPatterns = {
       mainActivityQuantity: overrides?.mainActivityQuantity ?? 500,
     },
     year: 2024,
-    status: "DRAFT",
     usageMode: "SIMPLIFIED",
     isEditable: true,
   }),

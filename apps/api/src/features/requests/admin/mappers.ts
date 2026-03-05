@@ -9,7 +9,7 @@ export const mapAdminSubmissionSummaryToResponse = (
 ): GetAllAdminRequestsResponse[number] => ({
   id: submission.submissionId.toString(),
   organizationName: submission.organizationName ?? "",
-  type: submission.subjectType,
+  type: submission.type,
   year: submission.period,
   status: submission.status,
   requestedAt: submission.requestedAt.toISOString(),

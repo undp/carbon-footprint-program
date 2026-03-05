@@ -5,7 +5,7 @@
 
 import { alpha } from "@mui/material/styles";
 import type { PaletteOptions } from "@mui/material/styles";
-import { SubmissionSubjectType as RequestType } from "@repo/types";
+import { SubmissionType as RequestType } from "@repo/types";
 
 const categoryStyle = {
   one: {

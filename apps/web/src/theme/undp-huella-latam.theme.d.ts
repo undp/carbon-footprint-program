@@ -1,5 +1,5 @@
 import "@mui/material/styles";
-import { SubmissionSubjectType as RequestType } from "@repo/types";
+import { SubmissionType as RequestType } from "@repo/types";
 
 declare module "@mui/material/styles" {
   interface TypeText {

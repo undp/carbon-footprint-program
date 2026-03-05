@@ -488,9 +488,7 @@ model EmissionFactor {
 
 // TODO: refactor statuses, use submission to infer statuses and leave only neccesary statuses here
 enum InventoryStatus {
-  DRAFT
-  SUBMITTED
-  VERIFIED
+  ACTIVE
   DELETED
 
   @@map("inventory_status")
@@ -510,7 +508,7 @@ model CarbonInventory {
   organizationBranchId BigInt?                           @map("organization_branch_id")
   organizationData     Json?                             @map("organization_data") @db.JsonB
   year                 Int?
-  status               InventoryStatus                   @default(DRAFT)
+  status               InventoryStatus                   @default(ACTIVE)
   usageMode            UsageMode                         @map("usage_mode")
   methodologyVersionId BigInt?                           @map("methodology_version_id")
   preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
@@ -800,23 +798,11 @@ model SubmissionFile {
   @@map("submission_file")
 }
 
-enum SubmissionSubjectType {
-  ORGANIZATION_ACCREDITATION
-  CARBON_INVENTORY_CALCULATION
-  CARBON_INVENTORY_VERIFICATION
-  REDUCTION_PLAN_VERIFICATION
-  NEUTRALIZATION_PLAN_VERIFICATION
-
-  @@map("submission_subject_type")
-}
-
 model SubmissionSubject {
-  id          BigInt                @id @default(autoincrement())
-  subjectType SubmissionSubjectType @map("subject_type")
-  createdAt   DateTime              @default(now()) @map("created_at")
-  createdById BigInt?               @map("created_by_id")
-  creator     User?                 @relation("submission_subject_created_by", fields: [createdById], references: [id])
-
+  id               BigInt                             @id @default(autoincrement())
+  createdAt        DateTime                           @default(now()) @map("created_at")
+  createdById      BigInt?                            @map("created_by_id")
+  creator          User?                              @relation("submission_subject_created_by", fields: [createdById], references: [id])
   submissions      Submission[]
   carbonInventory  SubmissionSubjectCarbonInventory?
   organizationData SubmissionSubjectOrganizationData?
@@ -845,14 +831,26 @@ model SubmissionSubjectOrganizationData {
 enum SubmissionStatus {
   PENDING
   APPROVED
+  OBJECTED
   REJECTED
 
   @@map("submission_status")
 }
 
+enum SubmissionType {
+  ORGANIZATION_ACCREDITATION
+  CARBON_INVENTORY_CALCULATION
+  CARBON_INVENTORY_VERIFICATION
+  REDUCTION_PLAN_VERIFICATION
+  NEUTRALIZATION_PLAN_VERIFICATION
+
+  @@map("submission_type")
+}
+
 model Submission {
   id             BigInt                 @id @default(autoincrement())
   subjectId      BigInt                 @map("subject_id")
+  type           SubmissionType
   badgeId        BigInt?                @map("badge_id")
   status         SubmissionStatus       @default(PENDING)
   reviewerId     BigInt?                @map("reviewer_id")
@@ -876,14 +874,14 @@ model Submission {
 }
 
 view SubmissionSummaryView {
-  submissionId     BigInt                @unique @map("submission_id")
-  subjectType      SubmissionSubjectType @map("subject_type")
+  submissionId     BigInt           @unique @map("submission_id")
+  type             SubmissionType
   status           SubmissionStatus
-  organizationId   BigInt                @map("organization_id")
-  organizationName String                @map("organization_name")
+  organizationId   BigInt           @map("organization_id")
+  organizationName String           @map("organization_name")
   period           Int?
-  requestedAt      DateTime              @map("requested_at")
-  submission       Submission            @relation(fields: [submissionId], references: [id])
+  requestedAt      DateTime         @map("requested_at")
+  submission       Submission       @relation(fields: [submissionId], references: [id])
 
   @@map("submission_summary_view")
 }

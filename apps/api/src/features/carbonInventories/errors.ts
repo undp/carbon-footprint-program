@@ -41,3 +41,27 @@ export const LineNotInCarbonInventoryError = createError(
   "Line %s does not belong to carbon inventory %s (found in inventory %s)",
   422
 );
+
+export const OrganizationNotAssociatedError = createError(
+  "ORGANIZATION_NOT_ASSOCIATED",
+  "Carbon inventory with ID %s does not have an associated organization",
+  422
+);
+
+export const OrganizationNotAccreditedError = createError(
+  "ORGANIZATION_NOT_ACCREDITED",
+  "The organization associated with carbon inventory %s is not accredited",
+  422
+);
+
+export const CarbonInventoryCannotRequestCalculationError = createError(
+  "CARBON_INVENTORY_CANNOT_REQUEST_CALCULATION",
+  "Carbon inventory %s cannot request calculation: must be in DRAFT status or have an OBJECTED CALCULATION submission",
+  422
+);
+
+export const CarbonInventoryCannotRequestVerificationError = createError(
+  "CARBON_INVENTORY_CANNOT_REQUEST_VERIFICATION",
+  "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
+  422
+);

@@ -100,7 +100,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
 
 function mapBaseCarbonInventory(
   item: PrismaCarbonInventory
-): Omit<GetCarbonInventoryByIdResponse, "subcategories"> {
+): Omit<GetCarbonInventoryByIdResponse, "status" | "subcategories"> {
   // Validate organizationData with runtime type checking using Zod
   const organizationDataResult = OrganizationDataFieldSchema.safeParse(
     item.organizationData
@@ -118,7 +118,6 @@ function mapBaseCarbonInventory(
     organizationBranchId: item.organizationBranchId?.toString() ?? null,
     organizationData: organizationDataResult.data,
     year: item.year,
-    status: item.status,
     usageMode: item.usageMode,
     methodologyVersionId: item.methodologyVersionId?.toString() ?? null,
     preselectedNodesId: item.preselectedNodesId?.toString() ?? null,
@@ -134,7 +133,7 @@ function mapBaseCarbonInventory(
 export function mapCarbonInventoryWithLinesToResponse(
   item: CarbonInventoryWithLines,
   subcategories: SubcategoryWithDimensions[]
-): GetCarbonInventoryByIdResponse {
+): Omit<GetCarbonInventoryByIdResponse, "status"> {
   const base = mapBaseCarbonInventory(item);
   const parsedLines: LineResponse[] = item.lines.map(mapLineToResponse);
 
@@ -174,6 +173,6 @@ export function mapCarbonInventoryWithLinesToResponse(
 // Map carbon inventory without subcategories to response (omits subcategories field)
 export function mapCarbonInventoryToResponse(
   item: PrismaCarbonInventory
-): Omit<GetCarbonInventoryByIdResponse, "subcategories"> {
+): Omit<GetCarbonInventoryByIdResponse, "status" | "subcategories"> {
   return mapBaseCarbonInventory(item);
 }

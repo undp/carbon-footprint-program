@@ -2,7 +2,6 @@ import { PrismaClient, Prisma } from "@repo/database";
 import {
   GetCarbonInventoryBadgesResponse,
   SubmissionStatus,
-  InventoryStatus,
   BadgeType,
 } from "@repo/types";
 import { sortBy } from "lodash-es";
@@ -26,9 +25,6 @@ export const getCarbonInventoryBadgesService = async (
 ): Promise<GetCarbonInventoryBadgesResponse> => {
   const whereClause: Prisma.CarbonInventoryWhereUniqueInput = {
     id: BigInt(id),
-    status: {
-      in: [InventoryStatus.VERIFIED, InventoryStatus.SUBMITTED],
-    },
     // THIS IS A SUBMISSION SUBJECT LINK, NOT A SUBMISSION
     submission: {
       subject: {

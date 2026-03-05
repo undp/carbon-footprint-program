@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
+import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 const LineItemSchema = z
   .object({
@@ -54,7 +55,8 @@ const SubcategoryItemSchema = z
   .strict();
 
 export const GetCarbonInventoryByIdResponseSchema =
-  CarbonInventoryBaseSchema.extend({
+  CarbonInventoryBaseSchema.omit({ status: true }).extend({
+    status: CarbonInventoryDisplayStatusSchema,
     subcategories: z
       .array(SubcategoryItemSchema)
       .describe("The subcategories associated with this inventory"),

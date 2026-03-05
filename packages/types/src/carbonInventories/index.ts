@@ -1,3 +1,5 @@
+export * from "./schemas.js";
+export * from "./types.js";
 export * from "./addSubcategoriesToCarbonInventory/schemas.js";
 export * from "./addSubcategoriesToCarbonInventory/types.js";
 export * from "./createCarbonInventory/schemas.js";
@@ -38,3 +40,7 @@ export * from "./getCarbonInventoryMetadata/schemas.js";
 export * from "./getCarbonInventoryMetadata/types.js";
 export * from "./getCarbonInventoryBadges/schemas.js";
 export * from "./getCarbonInventoryBadges/types.js";
+export * from "./requestCalculation/schemas.js";
+export * from "./requestCalculation/types.js";
+export * from "./requestVerification/schemas.js";
+export * from "./requestVerification/types.js";

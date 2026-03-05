@@ -11,7 +11,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { GetAllAdminRequestsResponse } from "@repo/types";
-import { SubmissionStatus, SubmissionSubjectType } from "@repo/database";
+import { SubmissionStatus, SubmissionType } from "@repo/database";
 import {
   createTestOrganization,
   cleanupTestOrganization,
@@ -70,9 +70,7 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
       const request = body.find((r) => r.organizationName === "Test Org");
       expect(request).toBeDefined();
       expect(request!.id).toBeDefined();
-      expect(request!.type).toBe(
-        SubmissionSubjectType.ORGANIZATION_ACCREDITATION
-      );
+      expect(request!.type).toBe(SubmissionType.ORGANIZATION_ACCREDITATION);
       expect(request!.status).toBe(SubmissionStatus.PENDING);
       expect(request!.requestedAt).toBeDefined();
     });
@@ -236,9 +234,7 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
 
       expect(body.length).toBeGreaterThan(0);
       body.forEach((request) => {
-        expect(request.type).toBe(
-          SubmissionSubjectType.ORGANIZATION_ACCREDITATION
-        );
+        expect(request.type).toBe(SubmissionType.ORGANIZATION_ACCREDITATION);
       });
     });
   });

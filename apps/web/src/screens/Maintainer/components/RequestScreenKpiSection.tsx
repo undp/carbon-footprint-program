@@ -7,6 +7,7 @@ import {
   AccessTimeOutlined,
   CheckCircleOutlined,
   CancelOutlined,
+  DisabledVisibleOutlined,
 } from "@mui/icons-material";
 import { SubmissionStatus as RequestStatus } from "@repo/types";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
@@ -15,18 +16,21 @@ import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 const ICON_BY_STATUS: Record<RequestStatus, SvgIconComponent> = {
   [RequestStatus.PENDING]: AccessTimeOutlined,
   [RequestStatus.APPROVED]: CheckCircleOutlined,
+  [RequestStatus.OBJECTED]: DisabledVisibleOutlined,
   [RequestStatus.REJECTED]: CancelOutlined,
 };
 
 const LABEL_BY_STATUS: Record<RequestStatus, string> = {
   [RequestStatus.PENDING]: "Pendientes",
   [RequestStatus.APPROVED]: "Aprobadas",
+  [RequestStatus.OBJECTED]: "Objetadas",
   [RequestStatus.REJECTED]: "Rechazadas",
 };
 
 const STATUS_ORDER: RequestStatus[] = [
   RequestStatus.PENDING,
   RequestStatus.APPROVED,
+  RequestStatus.OBJECTED,
   RequestStatus.REJECTED,
 ];
 
@@ -38,6 +42,7 @@ export const RequestScreenKpiSection: FC = () => {
     () => ({
       [RequestStatus.PENDING]: theme.palette.warning.dark,
       [RequestStatus.APPROVED]: theme.palette.success.dark,
+      [RequestStatus.OBJECTED]: theme.palette.error.dark,
       [RequestStatus.REJECTED]: theme.palette.error.dark,
     }),
     [theme]
@@ -50,6 +55,7 @@ export const RequestScreenKpiSection: FC = () => {
     const map: Record<RequestStatus, number> = {
       [RequestStatus.PENDING]: 0,
       [RequestStatus.APPROVED]: 0,
+      [RequestStatus.OBJECTED]: 0,
       [RequestStatus.REJECTED]: 0,
     };
     for (const kpi of counts) {
