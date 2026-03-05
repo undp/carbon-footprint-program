@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { OrganizationRole } from "../types";
 
 interface UserDialogsState {
   // Dialog state
@@ -9,14 +10,18 @@ interface UserDialogsState {
   // Selected user info
   selectedUserId: string | null;
   selectedUserName: string | null;
-  selectedUserRole: string | null;
+  selectedUserRole: OrganizationRole | null;
 
   // Add user handlers
   openAddUserDialog: () => void;
   closeAddUserDialog: () => void;
 
   // Edit user role handlers
-  openEditUserDialog: (userId: string, userName: string, role: string) => void;
+  openEditUserDialog: (
+    userId: string,
+    userName: string,
+    role: OrganizationRole
+  ) => void;
   closeEditUserDialog: () => void;
 
   // Delete user handlers
@@ -37,7 +42,8 @@ export const useUserDialogsState = (): UserDialogsState => {
   // Selected user info
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
-  const [selectedUserRole, setSelectedUserRole] = useState<string | null>(null);
+  const [selectedUserRole, setSelectedUserRole] =
+    useState<OrganizationRole | null>(null);
 
   // Add user handlers
   const openAddUserDialog = useCallback(() => {
@@ -50,7 +56,7 @@ export const useUserDialogsState = (): UserDialogsState => {
 
   // Edit user role handlers
   const openEditUserDialog = useCallback(
-    (userId: string, userName: string, role: string) => {
+    (userId: string, userName: string, role: OrganizationRole) => {
       setSelectedUserId(userId);
       setSelectedUserName(userName);
       setSelectedUserRole(role);

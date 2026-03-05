@@ -31,7 +31,7 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
   const { control, handleSubmit, reset } = useForm<AddUserFormData>({
     defaultValues: {
       email: "",
-      role: "",
+      role: undefined,
     },
   });
 
@@ -53,7 +53,7 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
   useEffect(() => {
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement;
-      reset({ email: "", role: "" });
+      reset({ email: "", role: undefined });
     } else if (previousFocusRef.current) {
       previousFocusRef.current.focus();
     }

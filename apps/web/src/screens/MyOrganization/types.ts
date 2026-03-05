@@ -43,12 +43,12 @@ export interface OrganizationFormValues {
  */
 export interface AddUserFormData {
   email: string;
-  role: string;
+  role: OrganizationRole;
 }
 
 /**
  * Form data for editing a user's role in an organization
  */
 export interface EditUserRoleFormData {
-  role: string;
+  role: OrganizationRole;
 }

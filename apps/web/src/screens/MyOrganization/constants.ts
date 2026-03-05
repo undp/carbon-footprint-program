@@ -1,4 +1,6 @@
-export const ROLE_LABELS: Record<string, string> = {
+import { OrganizationRole } from "./types";
+
+export const ROLE_LABELS: Record<OrganizationRole, string> = {
   VIEWER: "Lector",
   ORGANIZATION_CONTRIBUTOR: "Editor",
   ORGANIZATION_ADMIN: "Admin",
@@ -6,10 +8,6 @@ export const ROLE_LABELS: Record<string, string> = {
   EXTERNAL_CONSULTANT: "Consultor Externo",
 };
 
-export const ROLE_OPTIONS = [
-  { label: "Lector", value: "VIEWER" },
-  { label: "Editor", value: "ORGANIZATION_CONTRIBUTOR" },
-  { label: "Admin", value: "ORGANIZATION_ADMIN" },
-  { label: "Verificador Externo", value: "EXTERNAL_VERIFIER" },
-  { label: "Consultor Externo", value: "EXTERNAL_CONSULTANT" },
-];
+export const ROLE_OPTIONS = (
+  Object.entries(ROLE_LABELS) as [OrganizationRole, string][]
+).map(([value, label]) => ({ label, value }));

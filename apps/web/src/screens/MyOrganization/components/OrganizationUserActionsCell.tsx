@@ -1,13 +1,14 @@
 import { FC } from "react";
 import { Box, IconButton, Tooltip } from "@mui/material";
 import { EditOutlined, DeleteOutlined } from "@mui/icons-material";
+import { OrganizationRole } from "../types";
 
 interface OrganizationUserActionsCellProps {
   userId: string;
   userName?: string;
-  currentRole?: string;
+  currentRole?: OrganizationRole;
   isCurrentUser?: boolean;
-  onEdit: (userId: string, userName: string, role: string) => void;
+  onEdit: (userId: string, userName: string, role: OrganizationRole) => void;
   onDelete: (userId: string, userName: string) => void;
 }
 
@@ -16,7 +17,7 @@ export const OrganizationUserActionsCell: FC<
 > = ({
   userId,
   userName = "",
-  currentRole = "",
+  currentRole,
   isCurrentUser = false,
   onEdit,
   onDelete,
@@ -37,7 +38,7 @@ export const OrganizationUserActionsCell: FC<
         <span>
           <IconButton
             size="small"
-            onClick={() => onEdit(userId, userName, currentRole)}
+            onClick={() => currentRole && onEdit(userId, userName, currentRole)}
             disabled={editDisabled}
             sx={(theme) => ({
               border: `1px solid ${theme.palette.primary.main}`,

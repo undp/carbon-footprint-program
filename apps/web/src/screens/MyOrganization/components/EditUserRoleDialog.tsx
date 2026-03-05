@@ -12,14 +12,14 @@ import {
 import { Close } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { FormSelectField } from "@/components/form/FormSelectField";
-import { EditUserRoleFormData } from "../types";
+import { EditUserRoleFormData, OrganizationRole } from "../types";
 import { ROLE_OPTIONS } from "../constants";
 
 interface EditUserRoleDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: EditUserRoleFormData) => void;
-  currentRole?: string;
+  currentRole?: OrganizationRole;
   userName?: string;
   isSubmitting?: boolean;
 }
@@ -32,11 +32,7 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
   userName,
   isSubmitting = false,
 }) => {
-  const { control, handleSubmit, reset } = useForm<EditUserRoleFormData>({
-    values: {
-      role: currentRole ?? "",
-    },
-  });
+  const { control, handleSubmit, reset } = useForm<EditUserRoleFormData>();
 
   const handleClose = useCallback(() => {
     reset();
@@ -56,10 +52,11 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
   useEffect(() => {
     if (open) {
       previousFocusRef.current = document.activeElement as HTMLElement;
+      if (currentRole) reset({ role: currentRole });
     } else if (previousFocusRef.current) {
       previousFocusRef.current.focus();
     }
-  }, [open]);
+  }, [open, currentRole, reset]);
 
   return (
     <Dialog

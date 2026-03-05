@@ -5,19 +5,20 @@ import { SectionCard } from "./SectionCard";
 import { OrganizationUserActionsCell } from "./OrganizationUserActionsCell";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { ROLE_LABELS } from "../constants";
+import { OrganizationRole } from "../types";
 
 type User = {
   userId: string;
   name: string;
   email: string | null;
-  organizationRole: string;
+  organizationRole: OrganizationRole;
   isCurrentUser: boolean;
 };
 
 type OrganizationUsersTableProps = {
   users: User[];
   onAdd: () => void;
-  onEdit: (userId: string, userName: string, role: string) => void;
+  onEdit: (userId: string, userName: string, role: OrganizationRole) => void;
   onDelete: (userId: string, userName: string) => void;
   isLoading?: boolean;
 };
@@ -51,7 +52,7 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
         minWidth: 150,
         flex: 0.5,
         cellClassName: "content-center",
-        valueFormatter: (value: string) => ROLE_LABELS[value] || value,
+        valueFormatter: (value: OrganizationRole) => ROLE_LABELS[value],
       },
       {
         field: "actions",

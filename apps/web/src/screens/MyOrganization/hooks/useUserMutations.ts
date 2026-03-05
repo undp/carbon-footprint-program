@@ -5,7 +5,6 @@ import {
   useUpdateOrganizationUserRole,
   useRemoveOrganizationUser,
 } from "@/api/query/organizations";
-import { OrganizationRole } from "../types";
 import { AddUserFormData, EditUserRoleFormData } from "../types";
 
 interface UserMutations {
@@ -65,7 +64,7 @@ export const useUserMutations = (
           organizationId,
           data: {
             email: data.email,
-            role: data.role as OrganizationRole,
+            role: data.role,
           },
         });
         enqueueSnackbar("Usuario agregado exitosamente", {
@@ -97,7 +96,7 @@ export const useUserMutations = (
           organizationId,
           userId,
           data: {
-            role: data.role as OrganizationRole,
+            role: data.role,
           },
         });
         enqueueSnackbar("Rol actualizado correctamente", {
