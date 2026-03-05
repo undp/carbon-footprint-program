@@ -46,24 +46,28 @@ describe("GET /api/subcategories/?methodologyVersionId=X - Integration Tests", (
   });
 
   describe("Successful retrieval", () => {
-    it("should return subcategories for a methodology version ordered by name", async () => {
+    it("should return subcategories ordered by category position first, then by name", async () => {
       const methodology = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Subcategories Ordered",
         status: MethodologyVersionStatus.PUBLISHED,
       });
-      const category = await createTestCategory(prisma, methodology.id, {
-        name: "Test - Parent Category",
+      const categoryB = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Category B",
+        position: 2,
+      });
+      const categoryA = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Category A",
         position: 1,
       });
 
-      await createTestSubcategory(prisma, category.id, {
+      await createTestSubcategory(prisma, categoryB.id, {
+        name: "Test - Subcategory X",
+      });
+      await createTestSubcategory(prisma, categoryA.id, {
         name: "Test - Subcategory C",
       });
-      await createTestSubcategory(prisma, category.id, {
+      await createTestSubcategory(prisma, categoryA.id, {
         name: "Test - Subcategory A",
-      });
-      await createTestSubcategory(prisma, category.id, {
-        name: "Test - Subcategory B",
       });
 
       const response = await app.inject({
@@ -75,9 +79,11 @@ describe("GET /api/subcategories/?methodologyVersionId=X - Integration Tests", (
       const body = JSON.parse(response.body) as GetAllSubcategoriesResponse;
 
       expect(body).toHaveLength(3);
+      // Category A (position 1) subcategories first, sorted by name
       expect(body[0].name).toBe("Test - Subcategory A");
-      expect(body[1].name).toBe("Test - Subcategory B");
-      expect(body[2].name).toBe("Test - Subcategory C");
+      expect(body[1].name).toBe("Test - Subcategory C");
+      // Category B (position 2) subcategories last
+      expect(body[2].name).toBe("Test - Subcategory X");
     });
 
     it("should include measurement unit IDs in the response", async () => {

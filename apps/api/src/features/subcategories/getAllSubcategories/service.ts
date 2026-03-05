@@ -34,7 +34,7 @@ export const getAllSubcategoriesService = async (
         },
       },
     },
-    orderBy: { name: "asc" },
+    orderBy: [{ category: { position: "asc" } }, { name: "asc" }],
   });
 
   return subcategories.map(
