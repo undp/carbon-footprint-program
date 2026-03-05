@@ -141,7 +141,7 @@ upload_badge() {
   upload_url=$(echo "$request_response" | jq -r '.uploadUrl')
 
   if [ -z "$uuid" ] || [ "$uuid" = "null" ] || [ -z "$upload_url" ] || [ "$upload_url" = "null" ]; then
-    log "${RED}  ✗ [1/3] Failed to get upload URL for $badge_type (uuid=$uuid, uploadUrl=$upload_url)${NC}"
+    log "${RED}  ✗ [1/3] Failed to get upload URL for $badge_type (uuid=$uuid, uploadUrl=<redacted>)${NC}"
     return 1
   fi
 
