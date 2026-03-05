@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useFormContext, useWatch, Control } from "react-hook-form";
 import { round } from "lodash-es";
 import { EmissionCaptureFormValues } from "../../../types/EmissionCaptureTypes";
+import { tonToKg } from "@/utils/number";
 
 export const useEmissionCategoryTotal = (
   categoryId: EmissionCaptureFormValues["subcategories"][number]["categoryId"]
@@ -33,7 +34,7 @@ export const useEmissionCategoryTotal = (
         // Explicitly check for null/undefined, allowing 0 as valid value
         const emissions =
           manualValue !== null && manualValue !== undefined ? manualValue : 0;
-        return acc + emissions;
+        return acc + tonToKg(emissions);
       }
 
       // Explicitly check for null/undefined, allowing 0 as valid value

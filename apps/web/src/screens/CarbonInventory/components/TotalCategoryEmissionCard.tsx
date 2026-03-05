@@ -16,7 +16,7 @@ import {
 } from "@/icons";
 import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
 import { formatEmissions } from "@/utils/formatting";
-import { kgToTon } from "@/utils/number";
+import { kgToTon } from "@repo/utils";
 
 const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
   1: DirectEmissionCategoryIcon,
