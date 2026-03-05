@@ -59,21 +59,22 @@ export const addOrganizationUserService = async (
     existingMembership &&
     existingMembership.status === MembershipStatus.DELETED
   ) {
-    await prismaClient.userOrganizationMembership.update({
-      where: {
-        id: existingMembership.id,
-      },
-      data: {
-        role: data.role,
-        updatedById: user ? BigInt(user.id) : undefined,
-        status: MembershipStatus.ACTIVE,
-      },
-    });
+    const updatedMembership =
+      await prismaClient.userOrganizationMembership.update({
+        where: {
+          id: existingMembership.id,
+        },
+        data: {
+          role: data.role,
+          updatedById: user ? BigInt(user.id) : undefined,
+          status: MembershipStatus.ACTIVE,
+        },
+      });
 
     return {
-      membershipId: existingMembership.id.toString(),
-      userId: targetUser.id.toString(),
-      role: existingMembership.role,
+      membershipId: updatedMembership.id.toString(),
+      userId: updatedMembership.id.toString(),
+      role: updatedMembership.role,
     };
   }
 
@@ -90,7 +91,7 @@ export const addOrganizationUserService = async (
 
   return {
     membershipId: membership.id.toString(),
-    userId: targetUser.id.toString(),
+    userId: membership.id.toString(),
     role: membership.role,
   };
 };
