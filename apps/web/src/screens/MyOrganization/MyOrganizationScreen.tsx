@@ -159,6 +159,9 @@ export const MyOrganizationScreen: FC = () => {
             <OrganizationProfileSection
               profile={organization}
               onEdit={onEditOrganizationProfile}
+              canManageOrganization={
+                myOrganizationRole === OrganizationRole.ADMIN
+              }
             />
 
             <OrganizationUsersTable

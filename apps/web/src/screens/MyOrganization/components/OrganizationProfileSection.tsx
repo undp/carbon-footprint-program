@@ -53,29 +53,33 @@ const getSubmissionStatusColor = (
 type OrganizationProfileSectionProps = {
   profile: GetOrganizationByIdResponse;
   onEdit: () => void;
+  canManageOrganization: boolean;
 };
 
 const OrganizationProfileSectionComponent: FC<
   OrganizationProfileSectionProps
-> = ({ profile, onEdit }) => {
+> = ({ profile, onEdit, canManageOrganization }) => {
   const representative = profile.representative;
   const theme = useTheme();
   const accreditationDialog = useAccreditationDialog(profile.id);
 
-  const actions = [
-    {
-      label: "EDITAR",
-      icon: <Edit />,
-      onClick: onEdit,
-      disabled: !profile.isEditable,
-      title: !profile.isEditable
-        ? "La empresa tiene una postulación pendiente"
-        : undefined,
-    },
-  ];
+  const actions = canManageOrganization
+    ? [
+        {
+          label: "EDITAR",
+          icon: <Edit />,
+          onClick: onEdit,
+          disabled: !profile.isEditable,
+          title: !profile.isEditable
+            ? "La empresa tiene una postulación pendiente"
+            : undefined,
+        },
+      ]
+    : [];
 
   // Add Accredit action if not accredited
   if (
+    canManageOrganization &&
     profile.status === OrganizationDisplayStatusValues.NOT_ACCREDITED &&
     profile.lastSubmissionStatus !== SubmissionStatus.PENDING
   ) {

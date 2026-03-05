@@ -87,11 +87,15 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
   return (
     <SectionCard
       title="Usuarios"
-      action={{
-        label: "AGREGAR USUARIO",
-        icon: <Add />,
-        onClick: onAdd,
-      }}
+      action={
+        canManageUsers
+          ? {
+              label: "AGREGAR USUARIO",
+              icon: <Add />,
+              onClick: onAdd,
+            }
+          : undefined
+      }
     >
       <StylizedDataGrid
         autoHeight
