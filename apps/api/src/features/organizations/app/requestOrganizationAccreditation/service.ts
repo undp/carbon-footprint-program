@@ -12,8 +12,10 @@ import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
+  OrganizationDataAlreadyRejectedError,
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
+import { getRejectedOrganizationData } from "../../helpers.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -44,6 +46,12 @@ export const requestOrganizationAccreditationService = async (
         submission: null,
       },
     });
+
+    const rejectedData = await getRejectedOrganizationData(tx, organizationId);
+
+    if (!activeData && rejectedData) {
+      throw new OrganizationDataAlreadyRejectedError(organizationId);
+    }
 
     if (!activeData) {
       throw new OrganizationDataNotFoundError(organizationId);

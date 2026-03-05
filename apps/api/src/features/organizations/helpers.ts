@@ -5,6 +5,7 @@ import {
   SubmissionType,
 } from "@repo/database";
 import type { OrganizationMutationData } from "@repo/types";
+import { toNullableBigInt } from "@/utils/bigint.js";
 
 export const getPendingOrganizationData = (
   prisma: PrismaClient | Prisma.TransactionClient,
@@ -114,6 +115,27 @@ export const createOrganizationDataSubmission = (
   });
 };
 
+const mapOrganizationMutationData = (data: OrganizationMutationData) => {
+  return {
+    legalName: data.legalName,
+    tradeName: data.tradeName,
+    taxId: data.taxId,
+    address: data.address,
+    employeesCount: data.employeesCount,
+
+    representativeFullName: data.representativeFullName,
+    representativeTaxId: data.representativeTaxId,
+    representativePhone: data.representativePhone,
+    representativeEmail: data.representativeEmail,
+
+    countryOrganizationSizeId: toNullableBigInt(data.countryOrganizationSizeId),
+    sectorId: toNullableBigInt(data.sectorId),
+    subsectorId: toNullableBigInt(data.subsectorId),
+    mainActivityId: toNullableBigInt(data.mainActivityId),
+    representativeCountryJobPositionId: BigInt(data.representativePositionId),
+  };
+};
+
 export const createOrganizationData = async (
   prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string,
@@ -124,23 +146,7 @@ export const createOrganizationData = async (
     data: {
       organizationId: BigInt(organizationId),
       createdById: BigInt(userId),
-
-      legalName: data.legalName,
-      tradeName: data.tradeName,
-      taxId: data.taxId,
-      address: data.address,
-      employeesCount: data.employeesCount,
-
-      representativeFullName: data.representativeFullName,
-      representativeTaxId: data.representativeTaxId,
-      representativePhone: data.representativePhone,
-      representativeEmail: data.representativeEmail,
-
-      countryOrganizationSizeId: BigInt(data.countryOrganizationSizeId),
-      sectorId: BigInt(data.sectorId),
-      subsectorId: BigInt(data.subsectorId),
-      mainActivityId: BigInt(data.mainActivityId),
-      representativeCountryJobPositionId: BigInt(data.representativePositionId),
+      ...mapOrganizationMutationData(data),
     },
   });
 };
@@ -157,23 +163,7 @@ export const updateOrganizationData = async (
     },
     data: {
       updatedById: BigInt(userId),
-
-      legalName: data.legalName,
-      tradeName: data.tradeName,
-      taxId: data.taxId,
-      address: data.address,
-      employeesCount: data.employeesCount,
-
-      representativeFullName: data.representativeFullName,
-      representativeTaxId: data.representativeTaxId,
-      representativePhone: data.representativePhone,
-      representativeEmail: data.representativeEmail,
-
-      countryOrganizationSizeId: BigInt(data.countryOrganizationSizeId),
-      sectorId: BigInt(data.sectorId),
-      subsectorId: BigInt(data.subsectorId),
-      mainActivityId: BigInt(data.mainActivityId),
-      representativeCountryJobPositionId: BigInt(data.representativePositionId),
+      ...mapOrganizationMutationData(data),
     },
   });
 };

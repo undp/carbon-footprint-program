@@ -61,12 +61,12 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
   });
 
   describe("Authorization", () => {
-    it("should allow ORGANIZATION_ADMIN to remove users", async () => {
+    it("should allow ADMIN to remove users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make testUser an ORGANIZATION_ADMIN
+      // Make testUser an ADMIN
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Add adminUser as VIEWER
@@ -86,9 +86,9 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
     it("should reject VIEWER role from removing users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Make testUser a VIEWER
@@ -116,17 +116,17 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       );
     });
 
-    it("should reject ORGANIZATION_CONTRIBUTOR role from removing users", async () => {
+    it("should reject CONTRIBUTOR role from removing users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
-      // Make testUser an ORGANIZATION_CONTRIBUTOR
+      // Make testUser an CONTRIBUTOR
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const targetUser = await createTestUser(prisma, {
@@ -152,9 +152,9 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
     it("should reject non-members from removing users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // testUser is not a member
@@ -176,7 +176,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -203,15 +203,15 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       expect(membership!.updatedById).toBe(testUser.id);
     });
 
-    it("should remove ORGANIZATION_CONTRIBUTOR", async () => {
+    it("should remove CONTRIBUTOR", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const response = await app.inject({
@@ -231,15 +231,15 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       expect(membership!.updatedById).toBe(testUser.id);
     });
 
-    it("should remove ORGANIZATION_ADMIN when multiple admins exist", async () => {
+    it("should remove ADMIN when multiple admins exist", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -278,7 +278,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         email: "member@example.com",
       });
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -298,11 +298,11 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         email: "another-admin@example.com",
       });
       await createTestMembership(prisma, anotherAdmin.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -320,11 +320,11 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
 
       // Only one admin
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Remove adminUser first
@@ -338,7 +338,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         email: "another-admin@example.com",
       });
       await createTestMembership(prisma, anotherAdmin.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Switch to anotherAdmin context to remove testUser
@@ -367,7 +367,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({

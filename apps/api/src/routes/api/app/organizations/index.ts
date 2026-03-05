@@ -12,7 +12,7 @@ import { requestOrganizationAccreditationRoute } from "@/features/organizations/
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
 
-  // ORGANIZATION_ADMIN
+  // ADMIN
   addOrganizationUserRoute(fastify);
   getOrganizationUsersRoute(fastify);
   updateOrganizationUserRoleRoute(fastify);
@@ -20,7 +20,7 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   updateOrganizationRoute(fastify);
   requestOrganizationAccreditationRoute(fastify);
 
-  // ORGANIZATION_ADMIN, ORGANIZATION_CONTRIBUTOR, VIEWER
+  // ADMIN, CONTRIBUTOR, VIEWER
   getOrganizationByIdRoute(fastify);
 
   // AUTHENTICATED (No organization role required)

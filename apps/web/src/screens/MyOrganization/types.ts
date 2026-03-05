@@ -1,0 +1,50 @@
+/**
+ * Shared types for MyOrganization screen
+ * Centralizes type definitions to reduce duplication and improve type safety
+ */
+
+import { OrganizationRole } from "@repo/types";
+
+/**
+ * Dialog mode for organization form dialog
+ * - create: Creating a new organization
+ * - edit: Editing an existing organization
+ */
+export type DialogMode = "create" | "edit";
+
+/**
+ * Form state for the organization form.
+ * Uses empty strings for unset optional fields (HTML inputs can't hold null).
+ * Distinct from CreateOrganizationBody, which is the API request shape.
+ */
+export interface OrganizationFormValues {
+  legalName: string;
+  tradeName: string;
+  taxId: string;
+  address: string;
+  sectorId: string;
+  subsectorId: string;
+  countryOrganizationSizeId: string;
+  mainActivityId: string;
+  employeesCount: number | null;
+  representativeFullName: string;
+  representativeTaxId: string;
+  representativePositionId: string;
+  representativePhone: string;
+  representativeEmail: string;
+}
+
+/**
+ * Form data for adding a new user to an organization
+ */
+export interface AddUserFormData {
+  email: string;
+  role: OrganizationRole;
+}
+
+/**
+ * Form data for editing a user's role in an organization
+ */
+export interface EditUserRoleFormData {
+  role: OrganizationRole;
+}

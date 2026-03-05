@@ -49,15 +49,12 @@ export const removeOrganizationUserService = async (
     const adminCount = await tx.userOrganizationMembership.count({
       where: {
         organizationId: organization.id,
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
         status: MembershipStatus.ACTIVE,
       },
     });
 
-    if (
-      membership.role === OrganizationRole.ORGANIZATION_ADMIN &&
-      adminCount <= 1
-    ) {
+    if (membership.role === OrganizationRole.ADMIN && adminCount <= 1) {
       throw new CannotRemoveLastAdminError();
     }
 

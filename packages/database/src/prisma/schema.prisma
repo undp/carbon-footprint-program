@@ -153,10 +153,8 @@ enum SystemRole {
 
 enum OrganizationRole {
   VIEWER
-  ORGANIZATION_CONTRIBUTOR
-  ORGANIZATION_ADMIN
-  EXTERNAL_VERIFIER
-  EXTERNAL_CONSULTANT
+  CONTRIBUTOR
+  ADMIN
 
   @@map("organization_role")
 }

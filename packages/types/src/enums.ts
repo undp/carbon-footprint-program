@@ -1,6 +1,7 @@
 export {
   SubmissionStatus,
   OrganizationStatus,
+  OrganizationRole,
   OrganizationDataStatus,
   InventoryStatus,
   UsageMode,

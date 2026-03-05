@@ -7,8 +7,8 @@ import type {
 import { MembershipStatus } from "@repo/database/enums";
 import { OrganizationNotFoundError } from "../../errors.js";
 import {
-  UserNotFoundByEmailError,
   MembershipAlreadyExistsError,
+  UserNotFoundByEmailError,
 } from "../errors.js";
 
 export const addOrganizationUserService = async (
@@ -45,12 +45,37 @@ export const addOrganizationUserService = async (
       where: {
         userId: targetUser.id,
         organizationId: organization.id,
-        status: MembershipStatus.ACTIVE,
       },
     });
 
-  if (existingMembership) {
+  if (
+    existingMembership &&
+    existingMembership.status === MembershipStatus.ACTIVE
+  ) {
     throw new MembershipAlreadyExistsError();
+  }
+
+  if (
+    existingMembership &&
+    existingMembership.status === MembershipStatus.DELETED
+  ) {
+    const updatedMembership =
+      await prismaClient.userOrganizationMembership.update({
+        where: {
+          id: existingMembership.id,
+        },
+        data: {
+          role: data.role,
+          updatedById: user ? BigInt(user.id) : undefined,
+          status: MembershipStatus.ACTIVE,
+        },
+      });
+
+    return {
+      membershipId: updatedMembership.id.toString(),
+      userId: updatedMembership.userId.toString(),
+      role: updatedMembership.role,
+    };
   }
 
   // Create membership with provided role
@@ -66,7 +91,7 @@ export const addOrganizationUserService = async (
 
   return {
     membershipId: membership.id.toString(),
-    userId: targetUser.id.toString(),
+    userId: membership.userId.toString(),
     role: membership.role,
   };
 };

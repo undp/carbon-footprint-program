@@ -3,22 +3,12 @@ import {
   UpdateCarbonInventoryRequest,
 } from "@repo/types";
 import { BusinessProfilingFormValues } from "../hooks/useBusinessProfilingForm";
+import { toSafeString } from "@/utils/string";
 
 export const mapInventoryToFormValues = (
   inventory: GetCarbonInventoryByIdResponse
 ): BusinessProfilingFormValues => {
   const organizationData = inventory.organizationData;
-  const toSafeString = (value: unknown) => {
-    if (value === null || value === undefined) {
-      return "";
-    }
-
-    if (typeof value === "string" || typeof value === "number") {
-      return String(value);
-    }
-
-    return "";
-  };
 
   return {
     year: toSafeString(inventory.year),

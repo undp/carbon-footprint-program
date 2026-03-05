@@ -5,11 +5,9 @@ import { OrganizationNotFoundError } from "../../errors.js";
 
 // Role priority for sorting (lower number = higher priority)
 const ROLE_PRIORITY: Record<OrganizationRole, number> = {
-  [OrganizationRole.ORGANIZATION_ADMIN]: 1,
-  [OrganizationRole.EXTERNAL_VERIFIER]: 2,
-  [OrganizationRole.EXTERNAL_CONSULTANT]: 3,
-  [OrganizationRole.ORGANIZATION_CONTRIBUTOR]: 4,
-  [OrganizationRole.VIEWER]: 5,
+  [OrganizationRole.ADMIN]: 1,
+  [OrganizationRole.CONTRIBUTOR]: 2,
+  [OrganizationRole.VIEWER]: 3,
 };
 
 export const getOrganizationUsersService = async (
@@ -57,9 +55,6 @@ export const getOrganizationUsersService = async (
           .join(" ")
           .trim();
       }
-      if (!name) {
-        name = membership.user.email || "";
-      }
 
       return {
         userId: membership.user.id.toString(),
@@ -79,7 +74,5 @@ export const getOrganizationUsersService = async (
       return a.name.localeCompare(b.name);
     });
 
-  return {
-    users,
-  };
+  return users;
 };

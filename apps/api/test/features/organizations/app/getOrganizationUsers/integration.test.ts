@@ -62,12 +62,12 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
   });
 
   describe("Authorization", () => {
-    it("should allow ORGANIZATION_ADMIN to get users", async () => {
+    it("should allow ADMIN to get users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make testUser an ORGANIZATION_ADMIN
+      // Make testUser an ADMIN
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Add another member
@@ -82,17 +82,13 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
-      expect(body.users).toBeDefined();
-      expect(Array.isArray(body.users)).toBe(true);
-      expect(body.users.length).toBe(2);
+      expect(body).toBeDefined();
+      expect(Array.isArray(body)).toBe(true);
+      expect(body.length).toBe(2);
 
       // Check isCurrentUser
-      const currentUser = body.users.find(
-        (u) => u.userId === testUser.id.toString()
-      );
-      const otherUser = body.users.find(
-        (u) => u.userId === adminUser.id.toString()
-      );
+      const currentUser = body.find((u) => u.userId === testUser.id.toString());
+      const otherUser = body.find((u) => u.userId === adminUser.id.toString());
 
       expect(currentUser?.isCurrentUser).toBe(true);
       expect(otherUser?.isCurrentUser).toBe(false);
@@ -101,9 +97,9 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
     it("should reject VIEWER role from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Make testUser a VIEWER
@@ -124,17 +120,17 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       );
     });
 
-    it("should reject ORGANIZATION_CONTRIBUTOR role from getting users", async () => {
+    it("should reject CONTRIBUTOR role from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
-      // Make testUser an ORGANIZATION_CONTRIBUTOR
+      // Make testUser an CONTRIBUTOR
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const response = await app.inject({
@@ -153,9 +149,9 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
     it("should reject non-members from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // testUser is not a member
@@ -177,7 +173,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const user1 = await createTestUser(prisma, {
@@ -195,7 +191,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
         lastName: "Two",
       });
       await createTestMembership(prisma, user2.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const response = await app.inject({
@@ -206,9 +202,9 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      expect(body.users.length).toBe(3);
+      expect(body.length).toBe(3);
 
-      const userIds = body.users.map((u) => u.userId);
+      const userIds = body.map((u) => u.userId);
       expect(userIds).toContain(testUser.id.toString());
       expect(userIds).toContain(user1.id.toString());
       expect(userIds).toContain(user2.id.toString());
@@ -218,7 +214,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -233,7 +229,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      const adminUserData = body.users.find(
+      const adminUserData = body.find(
         (u) => u.userId === adminUser.id.toString()
       );
       expect(adminUserData).toBeDefined();
@@ -244,7 +240,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       );
       expect(adminUserData!.isCurrentUser).toBe(false);
 
-      const currentUserData = body.users.find(
+      const currentUserData = body.find(
         (u) => u.userId === testUser.id.toString()
       );
       expect(currentUserData).toBeDefined();
@@ -255,7 +251,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Create a deleted membership
@@ -272,15 +268,15 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      expect(body.users.length).toBe(1);
-      expect(body.users[0].userId).toBe(testUser.id.toString());
+      expect(body.length).toBe(1);
+      expect(body[0].userId).toBe(testUser.id.toString());
     });
 
     it("should return one user in the array when organization has only one member", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -291,7 +287,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationUsersResponse;
 
-      expect(body.users.length).toBe(1);
+      expect(body.length).toBe(1);
     });
   });
 

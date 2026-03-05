@@ -15,15 +15,25 @@ export const OrganizationDisplayStatusValues =
 export const OrganizationMutationDataSchema = z
   .object({
     legalName: z.string().min(1).describe("Legal name of the organization"),
-    tradeName: z.string().min(1).describe("Trade name of the organization"),
+    tradeName: z.string().nullable().describe("Trade name of the organization"),
     taxId: z.string().min(1).describe("Tax ID of the organization"),
-    countryOrganizationSizeId: IdSchema.describe(
+    countryOrganizationSizeId: IdSchema.nullable().describe(
       "ID of the organization size classification"
     ),
-    sectorId: IdSchema.describe("ID of the organization sector"),
-    subsectorId: IdSchema.describe("ID of the organization subsector"),
-    employeesCount: z.number().int().describe("Number of employees"),
-    address: z.string().min(1).describe("Physical address"),
+    sectorId: IdSchema.nullable().describe("ID of the organization sector"),
+    subsectorId: IdSchema.nullable().describe(
+      "ID of the organization subsector"
+    ),
+    employeesCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .nullable()
+      .describe("Number of employees"),
+    address: z.string().nullable().describe("Physical address"),
+    mainActivityId: IdSchema.nullable().describe(
+      "ID of the main business activity"
+    ),
     representativeFullName: z
       .string()
       .min(1)
@@ -34,7 +44,6 @@ export const OrganizationMutationDataSchema = z
     ),
     representativePhone: z.string().min(1).describe("Phone of representative"),
     representativeEmail: z.email().describe("Email of representative"),
-    mainActivityId: IdSchema.describe("ID of the main business activity"),
   })
   .strict(); // strict to disallow extra fields
 

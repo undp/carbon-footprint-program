@@ -4,3 +4,4 @@ export * from "./InfoButton";
 export * from "./NumericInput";
 export * from "./CreateInventoryCard";
 export * from "./StylizedDataGrid";
+export * from "./ConfirmDialog";
