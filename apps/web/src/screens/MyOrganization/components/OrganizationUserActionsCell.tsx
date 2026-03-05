@@ -22,13 +22,12 @@ export const OrganizationUserActionsCell: FC<
   onEdit,
   onDelete,
 }) => {
-  const editDisabled = isCurrentUser;
-  const deleteDisabled = isCurrentUser;
-
-  const editTooltip = editDisabled
+  // editDisabled and deleteDisabled are currently identical to isCurrentUser,
+  // but kept separate for future divergent logic (e.g., different permissions).
+  const editTooltip = isCurrentUser
     ? "No puedes editar tu propio rol"
     : "Editar usuario";
-  const deleteTooltip = deleteDisabled
+  const deleteTooltip = isCurrentUser
     ? "No puedes eliminarte a ti mismo"
     : "Eliminar usuario";
 
@@ -39,7 +38,7 @@ export const OrganizationUserActionsCell: FC<
           <IconButton
             size="small"
             onClick={() => currentRole && onEdit(userId, userName, currentRole)}
-            disabled={editDisabled}
+            disabled={isCurrentUser}
             sx={(theme) => ({
               border: `1px solid ${theme.palette.primary.main}`,
               borderRadius: "4px",
@@ -57,7 +56,7 @@ export const OrganizationUserActionsCell: FC<
           <IconButton
             size="small"
             onClick={() => onDelete(userId, userName)}
-            disabled={deleteDisabled}
+            disabled={isCurrentUser}
             sx={(theme) => ({
               border: `1px solid ${theme.palette.primary.main}`,
               borderRadius: "4px",
