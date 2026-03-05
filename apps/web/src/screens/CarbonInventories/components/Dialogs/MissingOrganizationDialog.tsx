@@ -29,7 +29,7 @@ export const MissingOrganizationDialog: FC<MissingOrganizationDialogProps> = ({
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="missing-organization-dialog-description">
-          No es posible enviar este inventario a cálculo porque no tiene una
+          No es posible enviar esta huella a cálculo porque no tiene una
           organización acreditada asociada. Por favor, asocie una organización
           antes de continuar.
         </DialogContentText>

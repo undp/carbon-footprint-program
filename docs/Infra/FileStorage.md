@@ -45,7 +45,7 @@ El sistema permite subir, listar, previsualizar, descargar y eliminar archivos a
 
 | Subdominio      | Entidad propietaria | Caso de uso                                              |
 | --------------- | ------------------- | -------------------------------------------------------- |
-| **Badges**      | `BadgeType` (enum)  | Imágenes SVG de insignias por tipo de inventario         |
+| **Badges**      | `BadgeType` (enum)  | Imágenes SVG de insignias por tipo de huella             |
 | **Submissions** | `submission.id`     | Adjuntos y certificados de reconocimiento de submissions |
 
 Los archivos se almacenan en **Azure Blob Storage** y los metadatos se persisten en **PostgreSQL** a través de Prisma. La autenticación contra Azure Storage se realiza mediante **Managed Identity** (sin claves ni connection strings).

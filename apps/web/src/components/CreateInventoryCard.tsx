@@ -53,7 +53,7 @@ export const CreateInventoryCard: FC<Props> = ({
 
       return created;
     } catch {
-      enqueueSnackbar("No se pudo crear el inventario", { variant: "error" });
+      enqueueSnackbar("No se pudo crear la huella", { variant: "error" });
       return null;
     }
   }, [createInventory, usageMode, enqueueSnackbar]);

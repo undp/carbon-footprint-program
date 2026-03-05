@@ -33,12 +33,9 @@ export const useBusinessProfilingSubmit = ({
 
       try {
         if (!inventoryId) {
-          enqueueSnackbar(
-            "No se encontró el inventario organizacional a editar",
-            {
-              variant: "error",
-            }
-          );
+          enqueueSnackbar("No se encontró la huella organizacional a editar", {
+            variant: "error",
+          });
           return;
         }
 
@@ -55,8 +52,8 @@ export const useBusinessProfilingSubmit = ({
         onSuccess?.();
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Error al guardar el inventario organizacional:", error);
-        enqueueSnackbar("Error al guardar el inventario organizacional", {
+        console.error("Error al guardar la huella organizacional:", error);
+        enqueueSnackbar("Error al guardar la huella organizacional", {
           variant: "error",
         });
       }

@@ -40,12 +40,9 @@ export const useEmissionCaptureSubmit = ({
     async (data: EmissionCaptureFormValues) => {
       try {
         if (!inventoryId) {
-          enqueueSnackbar(
-            "No se encontró el inventario organizacional a editar",
-            {
-              variant: "error",
-            }
-          );
+          enqueueSnackbar("No se encontró la huella organizacional a editar", {
+            variant: "error",
+          });
           return;
         }
 
@@ -102,7 +99,7 @@ export const useEmissionCaptureSubmit = ({
         // eslint-disable-next-line no-console
         console.error("Error al guardar las líneas de emisión:", error);
         if (resultFeedbackWithSnackbar)
-          enqueueSnackbar("Error al guardar el inventario", {
+          enqueueSnackbar("Error al guardar la huella", {
             variant: "error",
           });
         if (throwOnError) throw error;

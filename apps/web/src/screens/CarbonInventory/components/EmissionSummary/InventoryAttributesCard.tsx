@@ -32,7 +32,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   if (hasError) {
     return (
       <LoadingErrorStateMessage
-        message="Ocurrió un error al cargar los atributos del inventario"
+        message="Ocurrió un error al cargar la información de la huella"
         className="max-h-[120px]"
       />
     );
@@ -41,7 +41,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   if (!data) {
     return (
       <EmptyStateMessage
-        message="No se encontraron los atributos del inventario"
+        message="No se encontraron la información de la huella"
         className="max-h-[120px]"
       />
     );

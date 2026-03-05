@@ -33,7 +33,7 @@ const YEARS = Array.from(
 ).reverse();
 
 const ERROR_MESSAGE = {
-  title: "No se encontró el inventario",
+  title: "No se encontró la huella",
   description:
     "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
   retryButtonText: "Recargar Página",
@@ -108,7 +108,7 @@ export const BusinessProfilingScreen: FC = () => {
     isSubmitting || isInventoryLoading || hasInventoryError;
 
   if (!inventoryId) {
-    enqueueSnackbar("No se encontró el inventario", { variant: "error" });
+    enqueueSnackbar("No se encontró la huella", { variant: "error" });
     void navigate({ to: Routes.CARBON_INVENTORY });
     return null;
   }

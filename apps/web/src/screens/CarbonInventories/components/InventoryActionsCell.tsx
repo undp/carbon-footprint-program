@@ -130,9 +130,9 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       });
       setDeleteDialogOpen(false);
       void refetchInventories();
-      enqueueSnackbar("Inventario eliminado", { variant: "success" });
+      enqueueSnackbar("Huella eliminada", { variant: "success" });
     } catch {
-      enqueueSnackbar("No se pudo eliminar el inventario", {
+      enqueueSnackbar("No se pudo eliminar la huella", {
         variant: "error",
       });
     }
@@ -292,9 +292,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
         {/* Delete button */}
         <Tooltip
-          title={
-            canDelete ? "Eliminar" : "No se puede eliminar este inventario"
-          }
+          title={canDelete ? "Eliminar" : "No se puede eliminar esta huella"}
         >
           <span>
             <BaseIconButton

@@ -28,7 +28,7 @@ export const UnaccreditedOrganizationDialog: FC<
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="unaccredited-organization-dialog-description">
-          No es posible enviar este inventario a cálculo porque la organización
+          No es posible enviar esta huella a cálculo porque la organización
           asociada aún no se encuentra acreditada. Por favor, complete el
           proceso de acreditación de la organización antes de continuar.
         </DialogContentText>
