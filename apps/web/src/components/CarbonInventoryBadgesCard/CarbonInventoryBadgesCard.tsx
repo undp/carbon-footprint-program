@@ -10,7 +10,5 @@ export const CarbonInventoryBadgesCard: FC<Props> = ({ inventoryId }) => {
   const { data: badges = [], isLoading } =
     useCarbonInventoryBadges(inventoryId);
 
-  if (badges.length === 0 && !isLoading) return null;
-
   return <BadgeContainer badges={badges} isLoading={isLoading} />;
 };
