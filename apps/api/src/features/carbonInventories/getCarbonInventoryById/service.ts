@@ -36,7 +36,6 @@ export const getCarbonInventoryByIdService = async (
           },
         },
       },
-      subtotals: true,
       submission: {
         include: {
           subject: {
