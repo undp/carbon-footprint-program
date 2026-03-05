@@ -76,7 +76,7 @@ export const HomeScreen: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredByStatusInventories, selectedYear]);
 
-  if (!isLoadingInventories && inventories.length == 0) {
+  if (!isLoadingInventories && inventories.length === 0) {
     return (
       <Box className="flex flex-1 flex-col gap-6">
         <NoneCarbonInventoriesSection />
