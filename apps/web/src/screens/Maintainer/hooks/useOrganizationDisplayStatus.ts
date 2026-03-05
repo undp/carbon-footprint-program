@@ -3,7 +3,7 @@ import { OrganizationStatus } from "@repo/types";
 
 export enum AdminOrganizationDisplayStatus {
   WITH_MEASUREMENTS = "WITH_MEASUREMENTS",
-  REGISTERED = "REGISTERED",
+  ACCREDITED = "ACCREDITED",
   NOT_ACCREDITED = "NOT_ACCREDITED",
   BLOCKED = "BLOCKED",
 }
@@ -19,7 +19,7 @@ export const getDisplayStatus = (
   if (isAccredited) {
     if (hasCarbonInventories)
       return AdminOrganizationDisplayStatus.WITH_MEASUREMENTS;
-    return AdminOrganizationDisplayStatus.REGISTERED;
+    return AdminOrganizationDisplayStatus.ACCREDITED;
   }
 
   return AdminOrganizationDisplayStatus.NOT_ACCREDITED;
@@ -32,7 +32,7 @@ const getStatusColor = (
   const map: Record<AdminOrganizationDisplayStatus, string> = {
     [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]:
       theme.palette.success.light,
-    [AdminOrganizationDisplayStatus.REGISTERED]: theme.palette.info.light,
+    [AdminOrganizationDisplayStatus.ACCREDITED]: theme.palette.info.light,
     [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: theme.palette.grey[500],
     [AdminOrganizationDisplayStatus.BLOCKED]: theme.palette.error.main,
   };
@@ -41,14 +41,14 @@ const getStatusColor = (
 
 export const STATUS_LABEL: Record<AdminOrganizationDisplayStatus, string> = {
   [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: "con Mediciones",
-  [AdminOrganizationDisplayStatus.REGISTERED]: "Registrada",
+  [AdminOrganizationDisplayStatus.ACCREDITED]: "Acreditada",
   [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: "No acreditada",
   [AdminOrganizationDisplayStatus.BLOCKED]: "Bloqueada",
 };
 
 export const STATUS_SORT_ORDER: Record<string, number> = {
   [STATUS_LABEL[AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]]: 0,
-  [STATUS_LABEL[AdminOrganizationDisplayStatus.REGISTERED]]: 1,
+  [STATUS_LABEL[AdminOrganizationDisplayStatus.ACCREDITED]]: 1,
   [STATUS_LABEL[AdminOrganizationDisplayStatus.NOT_ACCREDITED]]: 2,
   [STATUS_LABEL[AdminOrganizationDisplayStatus.BLOCKED]]: 3,
 };
