@@ -128,9 +128,10 @@ upload_badge() {
 
   # Step 1: Request upload URL
   local request_response
-  if ! request_response=$(curl "${curl_opts[@]}" -X POST \
+  if ! request_response=$(jq -cn --arg originalName "$file" '{"originalName":$originalName}' \
+    | curl "${curl_opts[@]}" -X POST \
     -H "Content-Type: application/json" \
-    -d "{\"originalName\": \"$file\"}" \
+    --data-binary @- \
     "$API_URL/files/badge/$badge_type/request-upload"); then
     log "${RED}  ✗ [1/3] Request upload URL failed for $badge_type${NC}"
     return 1
