@@ -1,12 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
-import { RemoveOrganizationUserResponse } from "@repo/types";
-
-interface RemoveOrganizationUserParams {
-  organizationId: string;
-  userId: string;
-}
+import {
+  RemoveOrganizationUserResponse,
+  RemoveOrganizationUserParams,
+} from "@repo/types";
 
 export const useRemoveOrganizationUser = () => {
   const queryClient = useQueryClient();
@@ -16,9 +14,11 @@ export const useRemoveOrganizationUser = () => {
     Error,
     RemoveOrganizationUserParams
   >({
-    mutationFn: ({ organizationId, userId }) =>
+    mutationFn: ({ organizationId, organizationUserId }) =>
       apiClient
-        .delete(`app/organizations/${organizationId}/users/${userId}`)
+        .delete(
+          `app/organizations/${organizationId}/users/${organizationUserId}`
+        )
         .json<RemoveOrganizationUserResponse>(),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
