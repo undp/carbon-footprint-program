@@ -24,7 +24,12 @@ export const OrganizationMutationDataSchema = z
     subsectorId: IdSchema.nullable().describe(
       "ID of the organization subsector"
     ),
-    employeesCount: z.number().int().nullable().describe("Number of employees"),
+    employeesCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .nullable()
+      .describe("Number of employees"),
     address: z.string().nullable().describe("Physical address"),
     mainActivityId: IdSchema.nullable().describe(
       "ID of the main business activity"
