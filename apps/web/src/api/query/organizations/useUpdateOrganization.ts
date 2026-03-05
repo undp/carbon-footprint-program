@@ -6,7 +6,7 @@ import {
   UpdateOrganizationResponse,
 } from "@repo/types";
 
-export const useUpdateOrganization = (id: string) => {
+export const useUpdateOrganization = (id: string | undefined) => {
   const queryClient = useQueryClient();
 
   return useMutation<UpdateOrganizationResponse, Error, UpdateOrganizationBody>(
@@ -19,7 +19,7 @@ export const useUpdateOrganization = (id: string) => {
             queryKey: organizationKeys.all,
           }),
           queryClient.invalidateQueries({
-            queryKey: organizationKeys.detail(id),
+            queryKey: organizationKeys.detail(id ?? ""),
           }),
         ]);
       },
