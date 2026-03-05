@@ -52,7 +52,7 @@ done
 
 # ── Dependency checks ────────────────────────────────────────────────
 REQUIRED_CMDS=(curl jq)
-if [ "$LOCAL" = "false" ]; then
+if [ "$LOCAL" = "false" ] && [ -z "${API_URL:-}" ]; then
   REQUIRED_CMDS+=(az)
 fi
 
