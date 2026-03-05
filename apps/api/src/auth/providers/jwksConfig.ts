@@ -92,6 +92,9 @@ export function getJwksUri(): string | undefined {
  */
 export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
   ? {
+      // Decode with complete: true so the secret callback receives the full
+      // decoded token (including header.kid) instead of just the payload.
+      decode: { complete: true },
       // Use dynamic secret resolution via JWKS
       secret: async (_request: unknown, token: unknown) => {
         const decodedToken = token as { header?: { kid?: string } };
