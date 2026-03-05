@@ -40,6 +40,7 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
         minWidth: 250,
         flex: 1,
         cellClassName: "content-center",
+        valueFormatter: (value: string) => value || "-",
       },
       {
         field: "email",

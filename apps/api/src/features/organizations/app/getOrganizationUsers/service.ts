@@ -55,9 +55,6 @@ export const getOrganizationUsersService = async (
           .join(" ")
           .trim();
       }
-      if (!name) {
-        name = membership.user.email || "";
-      }
 
       return {
         userId: membership.user.id.toString(),
