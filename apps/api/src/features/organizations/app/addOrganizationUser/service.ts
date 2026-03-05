@@ -73,7 +73,7 @@ export const addOrganizationUserService = async (
 
     return {
       membershipId: updatedMembership.id.toString(),
-      userId: updatedMembership.id.toString(),
+      userId: updatedMembership.userId.toString(),
       role: updatedMembership.role,
     };
   }
@@ -91,7 +91,7 @@ export const addOrganizationUserService = async (
 
   return {
     membershipId: membership.id.toString(),
-    userId: membership.id.toString(),
+    userId: membership.userId.toString(),
     role: membership.role,
   };
 };
