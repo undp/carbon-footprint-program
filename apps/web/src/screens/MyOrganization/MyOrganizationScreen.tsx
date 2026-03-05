@@ -1,10 +1,11 @@
 import { FC, useEffect, useRef } from "react";
-import { Box } from "@mui/material";
+import { Box, Typography, Button } from "@mui/material";
 import { MainLayout } from "@/components/layout";
 import {
   OrganizationProfileSection,
   OrganizationProfileSectionSkeleton,
   OrganizationHeader,
+  OrganizationHeaderSkeleton,
   OrganizationUsersTable,
   OrganizationUsersTableSkeleton,
   OrganizationFormDialog,
@@ -22,8 +23,12 @@ import { useOrganizations } from "@/api/query/organizations";
 
 export const MyOrganizationScreen: FC = () => {
   // Fetch user's organizations list
-  const { data: organizations = [], isLoading: isLoadingOrganizations } =
-    useOrganizations();
+  const {
+    data: organizations,
+    isLoading: isLoadingOrganizations,
+    error: organizationsError,
+    refetch: refetchOrganizations,
+  } = useOrganizations();
 
   // UI state management - simplified to just dialog state and selected org ID
   const {
@@ -42,6 +47,7 @@ export const MyOrganizationScreen: FC = () => {
   useEffect(() => {
     if (
       !isLoadingOrganizations &&
+      organizations &&
       organizations.length > 0 &&
       !hasSetInitialOrg.current
     ) {
@@ -75,8 +81,51 @@ export const MyOrganizationScreen: FC = () => {
     handleDeleteUser,
   } = useMyOrganizationUsers(organization?.id);
 
+  // Loading state
+  if (isLoadingOrganizations) {
+    return (
+      <MainLayout>
+        <Box className="flex flex-1 flex-col gap-6 p-6">
+          <OrganizationHeaderSkeleton />
+          <OrganizationProfileSectionSkeleton />
+          <OrganizationUsersTableSkeleton />
+        </Box>
+      </MainLayout>
+    );
+  }
+
+  // Error state
+  if (organizationsError) {
+    return (
+      <MainLayout>
+        <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
+          <Typography variant="h5" color="text.primary" fontWeight="bold">
+            Hubo un error cargando tus organizaciones
+          </Typography>
+          <Typography
+            variant="body1"
+            color="text.secondary"
+            className="max-w-[600px]"
+          >
+            {organizationsError instanceof Error
+              ? organizationsError.message
+              : "Por favor, intente nuevamente más tarde."}
+          </Typography>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => refetchOrganizations()}
+            sx={{ mt: 2 }}
+          >
+            Reintentar
+          </Button>
+        </Box>
+      </MainLayout>
+    );
+  }
+
   // No organizations exist - show empty state
-  if (!isLoadingOrganizations && organizations.length === 0) {
+  if (!organizations || organizations.length === 0) {
     return (
       <MainLayout>
         <OrganizationEmptyState
