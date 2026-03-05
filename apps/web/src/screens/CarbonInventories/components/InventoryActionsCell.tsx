@@ -13,6 +13,8 @@ import {
   CarbonInventoryDisplayStatus,
   CarbonInventoryDisplayStatusEnum,
   InventoryStatus,
+  OrganizationDisplayStatus,
+  OrganizationDisplayStatusValues,
 } from "@repo/types";
 import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
@@ -50,7 +52,7 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 interface InventoryActionsCellProps {
   inventoryId: string;
   organizationId: string | null;
-  organizationIsAccredited: boolean;
+  organizationDisplayStatus: OrganizationDisplayStatus | null;
   status: CarbonInventoryDisplayStatus;
   refetchInventories: (
     options?: RefetchOptions
@@ -60,7 +62,7 @@ interface InventoryActionsCellProps {
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   inventoryId,
   organizationId,
-  organizationIsAccredited,
+  organizationDisplayStatus,
   status,
   refetchInventories,
 }) => {
@@ -147,12 +149,15 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       setMissingOrgDialogOpen(true);
       return;
     }
-    if (!organizationIsAccredited) {
+    if (
+      organizationDisplayStatus ===
+      OrganizationDisplayStatusValues.NOT_ACCREDITED
+    ) {
       setUnaccreditedOrgDialogOpen(true);
       return;
     }
     setCalculationDialogOpen(true);
-  }, [organizationId, organizationIsAccredited]);
+  }, [organizationId, organizationDisplayStatus]);
 
   const onCalculationConfirm = useCallback(async () => {
     try {
@@ -176,12 +181,15 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       setMissingOrgDialogOpen(true);
       return;
     }
-    if (!organizationIsAccredited) {
+    if (
+      organizationDisplayStatus ===
+      OrganizationDisplayStatusValues.NOT_ACCREDITED
+    ) {
       setUnaccreditedOrgDialogOpen(true);
       return;
     }
     setVerifyDialogOpen(true);
-  }, [organizationId, organizationIsAccredited]);
+  }, [organizationId, organizationDisplayStatus]);
 
   const onVerifyConfirm = useCallback(async () => {
     try {
