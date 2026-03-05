@@ -172,8 +172,16 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   }, []);
 
   const onVerifyClick = useCallback(() => {
+    if (organizationId === null) {
+      setMissingOrgDialogOpen(true);
+      return;
+    }
+    if (!organizationIsAccredited) {
+      setUnaccreditedOrgDialogOpen(true);
+      return;
+    }
     setVerifyDialogOpen(true);
-  }, []);
+  }, [organizationId, organizationIsAccredited]);
 
   const onVerifyConfirm = useCallback(async () => {
     try {
