@@ -68,48 +68,26 @@ export const useOrganizationData = ({
   const activityOptions = useSelectorOptions(activities, "name", "id");
   const jobPositionOptions = useSelectorOptions(jobPositions, "name", "id");
 
-  const result = useMemo(
-    () => ({
-      // Raw data
-      sectors,
-      organizationSizes,
-      activities,
-      jobPositions,
-      subsectorOptions,
-      // Selected items
-      selectedSector,
-      selectedActivity,
-      // Formatted options for selectors
-      sectorOptions,
-      subsectorSelectOptions,
-      companySizeOptions,
-      activityOptions,
-      jobPositionOptions,
-      // Loading states
-      sectorsLoading,
-      organizationSizesLoading,
-      activitiesLoading,
-      jobPositionsLoading,
-    }),
-    [
-      sectors,
-      organizationSizes,
-      activities,
-      jobPositions,
-      subsectorOptions,
-      selectedSector,
-      selectedActivity,
-      sectorOptions,
-      subsectorSelectOptions,
-      companySizeOptions,
-      activityOptions,
-      jobPositionOptions,
-      sectorsLoading,
-      organizationSizesLoading,
-      activitiesLoading,
-      jobPositionsLoading,
-    ]
-  );
-
-  return result;
+  return {
+    // Raw data
+    sectors,
+    organizationSizes,
+    activities,
+    jobPositions,
+    subsectorOptions,
+    // Selected items
+    selectedSector,
+    selectedActivity,
+    // Formatted options for selectors
+    sectorOptions,
+    subsectorSelectOptions,
+    companySizeOptions,
+    activityOptions,
+    jobPositionOptions,
+    // Loading states
+    sectorsLoading,
+    organizationSizesLoading,
+    activitiesLoading,
+    jobPositionsLoading,
+  };
 };
