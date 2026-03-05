@@ -27,7 +27,7 @@ export const DeleteConfirmationDialog: FC<DeleteConfirmationDialogProps> = ({
       aria-describedby="delete-dialog-description"
     >
       <DialogTitle id="delete-dialog-title">
-        Eliminar huella de Carbono
+        Eliminar Huella de Carbono
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="delete-dialog-description">
