@@ -47,10 +47,7 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    const rejectedData = await getRejectedOrganizationData(
-      prismaClient,
-      organizationId
-    );
+    const rejectedData = await getRejectedOrganizationData(tx, organizationId);
 
     if (!activeData && rejectedData) {
       throw new OrganizationDataAlreadyRejectedError(organizationId);
