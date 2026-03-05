@@ -20,6 +20,7 @@ import {
   useMyOrganizationUsers,
 } from "./hooks";
 import { useOrganizations } from "@/api/query/organizations";
+import { OrganizationRole } from "@repo/types";
 
 export const MyOrganizationScreen: FC = () => {
   // Fetch user's organizations list
@@ -59,6 +60,10 @@ export const MyOrganizationScreen: FC = () => {
   // Data fetching - only fetch when we have a selected organization
   const { organization, organizationUsers, isLoadingUsers } =
     useMyOrganizationData({ activeOrganizationId: selectedOrganizationId });
+
+  // TODO: in the future, fetch the current user's role in the organization directly from the API instead of deriving it from the users list
+  const myUser = organizationUsers?.find((user) => user.isCurrentUser);
+  const myOrganizationRole = myUser?.organizationRole;
 
   // User management
   const {
@@ -162,6 +167,7 @@ export const MyOrganizationScreen: FC = () => {
               onEdit={openEditUserDialog}
               onDelete={openDeleteUserDialog}
               isLoading={isLoadingUsers}
+              canManageUsers={myOrganizationRole === OrganizationRole.ADMIN}
             />
 
             <OrganizationFormDialog

@@ -21,6 +21,7 @@ type OrganizationUsersTableProps = {
   onEdit: (userId: string, userName: string, role: OrganizationRole) => void;
   onDelete: (userId: string, userName: string) => void;
   isLoading?: boolean;
+  canManageUsers: boolean;
 };
 
 const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
@@ -29,6 +30,7 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
   onEdit,
   onDelete,
   isLoading = false,
+  canManageUsers,
 }) => {
   const columns: GridColDef<User>[] = useMemo(
     () => [
@@ -54,28 +56,32 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
         cellClassName: "content-center",
         valueFormatter: (value: OrganizationRole) => ROLE_LABELS[value],
       },
-      {
-        field: "actions",
-        headerName: "Acciones",
-        headerAlign: "center",
-        align: "center",
-        minWidth: 120,
-        flex: 0.5,
-        sortable: false,
-        cellClassName: "content-center",
-        renderCell: (params: GridRenderCellParams<User>) => (
-          <OrganizationUserActionsCell
-            userId={params.row.userId}
-            userName={params.row.name}
-            currentRole={params.row.organizationRole}
-            isCurrentUser={params.row.isCurrentUser}
-            onEdit={onEdit}
-            onDelete={onDelete}
-          />
-        ),
-      },
+      ...(canManageUsers
+        ? [
+            {
+              field: "actions",
+              headerName: "Acciones",
+              headerAlign: "center" as const,
+              align: "center" as const,
+              minWidth: 120,
+              flex: 0.5,
+              sortable: false,
+              cellClassName: "content-center",
+              renderCell: (params: GridRenderCellParams<User>) => (
+                <OrganizationUserActionsCell
+                  userId={params.row.userId}
+                  userName={params.row.name}
+                  currentRole={params.row.organizationRole}
+                  isCurrentUser={params.row.isCurrentUser}
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ),
+            },
+          ]
+        : []),
     ],
-    [onEdit, onDelete]
+    [canManageUsers, onEdit, onDelete]
   );
 
   return (
