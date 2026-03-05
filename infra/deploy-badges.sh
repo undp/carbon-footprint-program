@@ -160,7 +160,8 @@ upload_badge() {
   log "  [2/3] File uploaded to Azure Blob"
 
   # Step 3: Confirm upload and persist DB record
-  if ! curl "${curl_opts[@]}" -X POST \
+  # No retries: confirm-upload is non-idempotent and must not be auto-retried
+  if ! curl --fail -S --connect-timeout 10 --max-time 60 --retry 0 -X POST \
     -H "Content-Type: application/json" \
     -d "{\"uuid\": \"$uuid\", \"originalName\": \"$file\"}" \
     "$API_URL/files/badge/$badge_type/confirm-upload" >/dev/null; then
