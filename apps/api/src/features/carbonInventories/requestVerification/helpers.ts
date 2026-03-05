@@ -3,7 +3,6 @@ import {
   calculateDisplayStatus,
   CarbonInventoryWithOrganizationSummaryAndSubmissions,
 } from "../helpers.js";
-import { CarbonInventoryCannotRequestVerificationError } from "../errors.js";
 
 /**
  * TODO: Validate the carbon inventory does not have an APPROVED or REJECTED
@@ -11,14 +10,10 @@ import { CarbonInventoryCannotRequestVerificationError } from "../errors.js";
  */
 export function canSubmitToVerification(
   inventory: CarbonInventoryWithOrganizationSummaryAndSubmissions
-): void {
+): boolean {
   const displayStatus = calculateDisplayStatus(inventory);
-  const can =
+  return (
     displayStatus === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
-    displayStatus === CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
-
-  if (!can)
-    throw new CarbonInventoryCannotRequestVerificationError(
-      inventory.id.toString()
-    );
+    displayStatus === CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED
+  );
 }

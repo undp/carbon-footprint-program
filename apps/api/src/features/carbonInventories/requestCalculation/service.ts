@@ -3,11 +3,13 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
-import { CarbonInventoryNotFoundError } from "../errors.js";
 import {
-  validateOrganizationIsAccredited,
-  createCarbonInventorySubmission,
-} from "../helpers.js";
+  CarbonInventoryCannotRequestCalculationError,
+  CarbonInventoryNotFoundError,
+  OrganizationNotAccreditedError,
+  OrganizationNotAssociatedError,
+} from "../errors.js";
+import { createCarbonInventorySubmission } from "../helpers.js";
 import { canSubmitToCalculation } from "./helpers.js";
 
 export const requestCalculationService = async (
@@ -48,13 +50,17 @@ export const requestCalculationService = async (
 
     if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-    canSubmitToCalculation(inventory);
+    if (!inventory.organizationId) {
+      throw new OrganizationNotAssociatedError(carbonInventoryId);
+    }
 
-    validateOrganizationIsAccredited(
-      carbonInventoryId,
-      inventory.organizationId,
-      inventory.organization?.summary?.isAccredited
-    );
+    if (!inventory.organization?.summary?.isAccredited) {
+      throw new OrganizationNotAccreditedError(carbonInventoryId);
+    }
+
+    const can = canSubmitToCalculation(inventory);
+    if (!can)
+      throw new CarbonInventoryCannotRequestCalculationError(inventory.id);
 
     const createdById = userId ? BigInt(userId) : null;
 

@@ -8,8 +8,6 @@ import { type GetAllCategoriesResponse } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
-  OrganizationNotAssociatedError,
-  OrganizationNotAccreditedError,
 } from "./errors.js";
 import { kgToTon } from "@/utils/number.js";
 import {
@@ -151,24 +149,6 @@ export async function fetchInventoryWithCategoryData(
     inventory
   );
   return { inventory, categoryData, totalEmissions };
-}
-
-/**
- * Validates that the carbon inventory has an associated organization
- * and that the organization is accredited.
- */
-export function validateOrganizationIsAccredited(
-  carbonInventoryId: string,
-  organizationId: bigint | null,
-  isAccredited: boolean | undefined | null
-): void {
-  if (!organizationId) {
-    throw new OrganizationNotAssociatedError(carbonInventoryId);
-  }
-
-  if (!isAccredited) {
-    throw new OrganizationNotAccreditedError(carbonInventoryId);
-  }
 }
 
 /**

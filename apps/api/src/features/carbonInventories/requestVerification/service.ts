@@ -3,11 +3,13 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
-import { CarbonInventoryNotFoundError } from "../errors.js";
 import {
-  validateOrganizationIsAccredited,
-  createCarbonInventorySubmission,
-} from "../helpers.js";
+  CarbonInventoryCannotRequestVerificationError,
+  CarbonInventoryNotFoundError,
+  OrganizationNotAccreditedError,
+  OrganizationNotAssociatedError,
+} from "../errors.js";
+import { createCarbonInventorySubmission } from "../helpers.js";
 import { canSubmitToVerification } from "./helpers.js";
 
 export const requestVerificationService = async (
@@ -48,13 +50,17 @@ export const requestVerificationService = async (
 
     if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-    validateOrganizationIsAccredited(
-      carbonInventoryId,
-      inventory.organizationId,
-      inventory.organization?.summary?.isAccredited
-    );
+    if (!inventory.organizationId) {
+      throw new OrganizationNotAssociatedError(carbonInventoryId);
+    }
 
-    canSubmitToVerification(inventory);
+    if (!inventory.organization?.summary?.isAccredited) {
+      throw new OrganizationNotAccreditedError(carbonInventoryId);
+    }
+
+    const can = canSubmitToVerification(inventory);
+    if (!can)
+      throw new CarbonInventoryCannotRequestVerificationError(inventory.id);
 
     const createdById = userId ? BigInt(userId) : null;
 

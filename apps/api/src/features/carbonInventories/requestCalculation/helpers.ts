@@ -1,5 +1,4 @@
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
-import { CarbonInventoryCannotRequestCalculationError } from "../errors.js";
 import {
   calculateDisplayStatus,
   CarbonInventoryWithOrganizationSummaryAndSubmissions,
@@ -11,14 +10,10 @@ import {
  */
 export function canSubmitToCalculation(
   inventory: CarbonInventoryWithOrganizationSummaryAndSubmissions
-): void {
+): boolean {
   const displayStatus = calculateDisplayStatus(inventory);
-  const can =
+  return (
     displayStatus === CarbonInventoryDisplayStatusEnum.DRAFT ||
-    displayStatus === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
-
-  if (!can)
-    throw new CarbonInventoryCannotRequestCalculationError(
-      inventory.id.toString()
-    );
+    displayStatus === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED
+  );
 }
