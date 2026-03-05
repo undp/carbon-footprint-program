@@ -19,7 +19,6 @@ export const useUnblockOrganization = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.all,
-          exact: true,
         }),
       ]);
     },
