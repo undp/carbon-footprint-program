@@ -288,9 +288,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
       return true;
     }
 
-    const serverRow = serverSubcategories.find(
-      ({ id }) => id === editingRowId
-    );
+    const serverRow = serverSubcategories.find(({ id }) => id === editingRowId);
     const original = serverRow ? toFormSubcategory(serverRow) : null;
     const hasRealChanges =
       row &&
@@ -501,7 +499,10 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
         addLabel="Agregar fila"
         extra={methodologySelector}
       />
-      <Box className="rounded-sm bg-white p-3" sx={!isViewOnly ? { pb: 8 } : undefined}>
+      <Box
+        className="rounded-sm bg-white p-3"
+        sx={!isViewOnly ? { pb: 8 } : undefined}
+      >
         {!isViewOnly && (
           <InfoBanner
             variant="success"

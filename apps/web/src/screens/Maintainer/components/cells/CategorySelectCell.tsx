@@ -1,15 +1,6 @@
 import { FC, useCallback, useRef, useState } from "react";
-import {
-  useWatch,
-  useFormState,
-  useFormContext,
-} from "react-hook-form";
-import {
-  Select,
-  MenuItem,
-  Typography,
-  Tooltip,
-} from "@mui/material";
+import { useWatch, useFormState, useFormContext } from "react-hook-form";
+import { Select, MenuItem, Typography, Tooltip } from "@mui/material";
 import { getNestedError } from "./cellUtils";
 
 interface CategorySelectCellProps {
@@ -40,8 +31,7 @@ export const CategorySelectCell: FC<CategorySelectCellProps> = ({
     "categoryId"
   );
 
-  const categoryName =
-    categories.find((c) => c.id === categoryId)?.name ?? "—";
+  const categoryName = categories.find((c) => c.id === categoryId)?.name ?? "—";
 
   const [isTruncated, setIsTruncated] = useState(false);
   const textRef = useRef<HTMLElement | null>(null);

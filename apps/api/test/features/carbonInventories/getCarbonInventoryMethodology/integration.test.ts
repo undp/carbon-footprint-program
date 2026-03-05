@@ -262,15 +262,11 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const methodologyId = await getTestMethodologyVersionId(prisma);
 
       // Create a deleted category on the seeded methodology
-      const deletedCategory = await createTestCategory(
-        prisma,
-        methodologyId,
-        {
-          name: "Test - Deleted Category",
-          position: 999,
-          status: CategoryStatus.DELETED,
-        }
-      );
+      const deletedCategory = await createTestCategory(prisma, methodologyId, {
+        name: "Test - Deleted Category",
+        position: 999,
+        status: CategoryStatus.DELETED,
+      });
 
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -335,9 +331,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const allSubcategoryIds = body.categories.flatMap((cat) =>
         cat.subcategories.map((sub) => sub.id)
       );
-      expect(allSubcategoryIds).not.toContain(
-        deletedSubcategory.id.toString()
-      );
+      expect(allSubcategoryIds).not.toContain(deletedSubcategory.id.toString());
 
       // Cleanup the deleted subcategory
       await prisma.subcategory.delete({
