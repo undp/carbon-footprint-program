@@ -84,7 +84,7 @@ export const OrganizationFormDialog: FC<Props> = ({
       confirmDialog.openConfirm({
         title: "Cambios sin guardar",
         message: "¿Descartar cambios? Los datos no guardados se perderán.",
-        variant: "warning",
+        variant: "error",
         confirmLabel: "Descartar",
         cancelLabel: "Cancelar",
       });
