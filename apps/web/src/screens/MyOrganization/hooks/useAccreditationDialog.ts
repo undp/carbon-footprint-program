@@ -7,7 +7,7 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
   const [isOpen, setIsOpen] = useState(false);
   const { enqueueSnackbar } = useSnackbar();
 
-  const mutation = useRequestOrganizationAccreditation(organizationId ?? "");
+  const mutation = useRequestOrganizationAccreditation(organizationId);
 
   const openDialog = () => setIsOpen(true);
   const closeDialog = () => setIsOpen(false);

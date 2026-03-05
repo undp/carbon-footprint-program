@@ -3,9 +3,9 @@ import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import { GetOrganizationUsersResponse } from "@repo/types";
 
-export const useOrganizationUsers = (organizationId: string) => {
+export const useOrganizationUsers = (organizationId: string | undefined) => {
   return useQuery<GetOrganizationUsersResponse>({
-    queryKey: [...organizationKeys.users, organizationId],
+    queryKey: [...organizationKeys.users, organizationId ?? ""],
     queryFn: () =>
       apiClient
         .get(`app/organizations/${organizationId}/users`)

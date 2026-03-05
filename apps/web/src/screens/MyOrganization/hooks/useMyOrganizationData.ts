@@ -40,23 +40,22 @@ export const useMyOrganizationData = ({
 
   // Only fetch organization if we have a valid ID
   // undefined = still initializing, null = no orgs exist, string = valid ID
-  const shouldFetchOrganization =
-    activeOrganizationId !== undefined && activeOrganizationId !== null;
+  const activeOrgId =
+    activeOrganizationId !== undefined && activeOrganizationId !== null
+      ? activeOrganizationId
+      : undefined;
 
   const {
     data: organization,
     error: organizationError,
     isLoading: isLoadingOrganization,
-  } = useOrganization(shouldFetchOrganization ? activeOrganizationId : "");
-
-  // Only fetch users if we have a valid organization
-  const shouldFetchUsers = !!organization?.id;
+  } = useOrganization(activeOrgId);
 
   const {
     data: usersData,
     error: usersError,
     isLoading: isLoadingUsers,
-  } = useOrganizationUsers(shouldFetchUsers ? organization.id : "");
+  } = useOrganizationUsers(organization?.id);
 
   useEffect(() => {
     if (organizationError) {

@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
 
-export const useRequestOrganizationAccreditation = (id: string) => {
+export const useRequestOrganizationAccreditation = (id: string | undefined) => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, void>({
@@ -14,7 +14,7 @@ export const useRequestOrganizationAccreditation = (id: string) => {
           queryKey: organizationKeys.all,
         }),
         queryClient.invalidateQueries({
-          queryKey: organizationKeys.detail(id),
+          queryKey: organizationKeys.detail(id ?? ""),
         }),
       ]);
     },
