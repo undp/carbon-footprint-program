@@ -104,6 +104,9 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const pendingAnchorRef = useRef<HTMLElement | null>(null);
   const theme = useTheme();
+  const popoverId = anchorEl ? `icon-picker-popover-${rowIndex}` : undefined;
+  const iconFieldName = `${formArrayName}.${rowIndex}.icon`;
+  const colorFieldName = `${formArrayName}.${rowIndex}.color`;
 
   // Defer popover open until isEditing is true; avoids opening before the row enters edit mode.
   useEffect(() => {
@@ -112,11 +115,15 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
       pendingAnchorRef.current = null;
     } else if (!isEditing) {
       pendingAnchorRef.current = null;
+      setAnchorEl(null);
     }
   }, [isEditing]);
 
   const { control } = useFormContext();
-  const { errors } = useFormState({ control });
+  const { errors } = useFormState({
+    control,
+    name: hideColor ? [iconFieldName] : [iconFieldName, colorFieldName],
+  });
   const iconError = getNestedError(
     errors as unknown as Record<string, unknown>,
     formArrayName,
@@ -135,7 +142,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
 
   const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
-  const effectiveColor = hideColor ? "#E8E8E8" : color;
+  const effectiveColor = hideColor ? color || "#E8E8E8" : color;
 
   return (
     <>
@@ -143,6 +150,10 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
         size="small"
         disableRipple
         disabled={!isInteractive}
+        aria-label={iconName ? `Editar ícono ${iconName}` : "Seleccionar ícono"}
+        aria-haspopup="dialog"
+        aria-controls={popoverId}
+        aria-expanded={Boolean(anchorEl)}
         onClick={(e) => {
           if (isEditing) {
             setAnchorEl(e.currentTarget);
@@ -190,6 +201,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
         )}
       </IconButton>
       <Popover
+        id={popoverId}
         open={Boolean(anchorEl)}
         anchorEl={anchorEl}
         onClose={() => setAnchorEl(null)}
@@ -221,7 +233,12 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
                 key={name}
                 size="small"
                 disableRipple
-                onClick={() => onChangeIcon(name)}
+                aria-label={`Seleccionar ícono ${name}`}
+                aria-pressed={name === iconName}
+                onClick={() => {
+                  onChangeIcon(name);
+                  setAnchorEl(null);
+                }}
                 sx={{
                   borderRadius: 1,
                   backgroundColor:
@@ -263,7 +280,12 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
                     size="small"
                     key={c}
                     disableRipple
-                    onClick={() => onChangeColor?.(c)}
+                    aria-label={`Seleccionar color ${c}`}
+                    aria-pressed={c === color}
+                    onClick={() => {
+                      onChangeColor?.(c);
+                      setAnchorEl(null);
+                    }}
                     sx={{
                       backgroundColor: c,
                       width: 32,
