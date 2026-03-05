@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -48,6 +48,12 @@ export const Header: FC<Props> = ({
     [onCarbonInventoryChange]
   );
 
+  const selectedInventoryName = useMemo(
+    () =>
+      inventories.find((inv) => inv.id === selectedCarbonInventory)?.name ?? "",
+    [inventories, selectedCarbonInventory]
+  );
+
   if (isLoadingInventories) {
     return (
       <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
@@ -64,7 +70,7 @@ export const Header: FC<Props> = ({
     <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
       <Typography variant="h5" fontWeight={600}>
         {selectedCarbonInventory
-          ? `Emisiones ${inventories.find((inv) => inv.id === selectedCarbonInventory)?.name || ""}`
+          ? `Emisiones ${selectedInventoryName}`
           : "Emisiones"}
       </Typography>
       <Box className="flex flex-row gap-4">
