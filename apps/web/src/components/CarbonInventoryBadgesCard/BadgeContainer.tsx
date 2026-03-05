@@ -93,10 +93,7 @@ export const BadgeContainer: FC<BadgeContainerProps> = ({
               </Box>
             ))
           : badges.map((badge, i) => (
-              <>
-                <BadgeRow key={`${badge.badgeType}-${i}`} item={badge} />
-                <Box className="h-px w-full" sx={{ bgcolor: "#D9D9D9" }} />
-              </>
+              <BadgeRow key={`${badge.badgeType}-${i}`} item={badge} />
             ))}
       </Box>
     </Box>
