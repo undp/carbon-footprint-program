@@ -56,25 +56,15 @@ export const HomeScreen: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    if (availableYears.length > 0 && !availableYears.includes(selectedYear)) {
-      setSelectedYear(availableYears[0]);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [availableYears]);
+  const effectiveYear = availableYears.includes(selectedYear)
+    ? selectedYear
+    : (availableYears[0] ?? "");
 
-  useEffect(() => {
-    if (
-      selectedYear &&
-      filteredByStatusInventories.length > 0 &&
-      !filteredByStatusInventories.some(
-        (inv) => inv.id === selectedCarbonInventoryId
-      )
-    ) {
-      setSelectedCarbonInventoryId(filteredByStatusInventories[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredByStatusInventories, selectedYear]);
+  const effectiveInventoryId = filteredByStatusInventories.some(
+    (inv) => inv.id === selectedCarbonInventoryId
+  )
+    ? selectedCarbonInventoryId
+    : (filteredByStatusInventories[0]?.id ?? "");
 
   if (!isLoadingInventories && inventories.length === 0) {
     return (
@@ -100,13 +90,13 @@ export const HomeScreen: FC = () => {
         onYearChange={setSelectedYear}
         onCarbonInventoryChange={setSelectedCarbonInventoryId}
         isLoadingInventories={isLoadingInventories}
-        selectedYear={selectedYear}
-        selectedCarbonInventory={selectedCarbonInventoryId}
+        selectedYear={effectiveYear}
+        selectedCarbonInventory={effectiveInventoryId}
       />
-      {selectedCarbonInventoryId && (
+      {effectiveInventoryId && (
         <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
           <EmissionResultsContent
-            inventoryId={selectedCarbonInventoryId}
+            inventoryId={effectiveInventoryId}
             showBadges
           />
         </Box>
