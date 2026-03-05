@@ -34,14 +34,15 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
 }) => {
   const columns: GridColDef<User>[] = useMemo(
     () => [
-      {
-        field: "name",
-        headerName: "Nombre",
-        minWidth: 250,
-        flex: 1,
-        cellClassName: "content-center",
-        valueFormatter: (value: string) => value || "-",
-      },
+      // Temporarily hiding name column until we capture them
+      // {
+      //   field: "name",
+      //   headerName: "Nombre",
+      //   minWidth: 250,
+      //   flex: 1,
+      //   cellClassName: "content-center",
+      //   valueFormatter: (value: string) => value || "-",
+      // },
       {
         field: "email",
         headerName: "Correo electrónico",
