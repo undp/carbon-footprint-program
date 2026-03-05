@@ -6,7 +6,7 @@ import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
 
 export const useAdminOrganizationsKpis = () => {
   return useQuery<GetOrganizationKpisResponse>({
-    queryKey: organizationKeys.adminKpis,
+    queryKey: organizationKeys.adminKpis(),
     queryFn: async () => apiClient.get("admin/organizations/kpis").json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,

@@ -21,9 +21,11 @@ export const useApproveRequest = () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: requestsKeys.adminAll }),
         queryClient.invalidateQueries({ queryKey: requestsKeys.adminKpis }),
-        queryClient.invalidateQueries({ queryKey: organizationKeys.adminAll }),
         queryClient.invalidateQueries({
-          queryKey: organizationKeys.adminKpis,
+          queryKey: organizationKeys.adminAll(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
         }),
       ]);
     },

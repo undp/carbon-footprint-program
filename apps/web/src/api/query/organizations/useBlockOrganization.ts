@@ -11,9 +11,11 @@ export const useBlockOrganization = () => {
       apiClient.post(`admin/organizations/${id}/block`).json(),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: organizationKeys.adminAll }),
         queryClient.invalidateQueries({
-          queryKey: organizationKeys.adminKpis,
+          queryKey: organizationKeys.adminAll(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
         }),
       ]);
     },

@@ -11,9 +11,11 @@ export const useUnblockOrganization = () => {
       apiClient.post(`admin/organizations/${id}/unblock`).json(),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: organizationKeys.adminAll }),
         queryClient.invalidateQueries({
-          queryKey: organizationKeys.adminKpis,
+          queryKey: organizationKeys.adminAll(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.adminKpis(),
         }),
       ]);
     },

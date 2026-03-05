@@ -129,7 +129,7 @@ export const useUserMutations = (
       try {
         await removeUserMutation.mutateAsync({
           organizationId,
-          userId,
+          organizationUserId: userId,
         });
         enqueueSnackbar("Usuario eliminado", {
           variant: "success",

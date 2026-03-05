@@ -25,7 +25,7 @@ export const useAddOrganizationUser = () => {
         .json<AddOrganizationUserResponse>(),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
-        queryKey: [...organizationKeys.users, variables.organizationId],
+        queryKey: organizationKeys.users(variables.organizationId),
       });
     },
   });
