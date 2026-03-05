@@ -15,15 +15,16 @@ import {
 import { useAccreditationDialog } from "../hooks";
 
 const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> = {
-  ACCREDITED: "Acreditada",
-  NOT_ACCREDITED: "No Acreditada",
-  BLOCKED: "Bloqueada",
+  [OrganizationDisplayStatusValues.ACCREDITED]: "Acreditada",
+  [OrganizationDisplayStatusValues.NOT_ACCREDITED]: "No Acreditada",
+  [OrganizationDisplayStatusValues.BLOCKED]: "Bloqueada",
 };
 
 const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
-  PENDING: "Pendiente",
-  APPROVED: "Aprobada",
-  REJECTED: "Rechazada",
+  [SubmissionStatus.PENDING]: "Pendiente",
+  [SubmissionStatus.APPROVED]: "Aprobada",
+  [SubmissionStatus.OBJECTED]: "Objetada",
+  [SubmissionStatus.REJECTED]: "Rechazada",
 };
 
 const getDisplayStatusColor = (
@@ -31,9 +32,9 @@ const getDisplayStatusColor = (
   theme: Theme
 ): string => {
   const colorMap = {
-    ACCREDITED: theme.palette.success.light,
-    NOT_ACCREDITED: theme.palette.grey[400],
-    BLOCKED: theme.palette.error.light,
+    [OrganizationDisplayStatusValues.ACCREDITED]: theme.palette.success.light,
+    [OrganizationDisplayStatusValues.NOT_ACCREDITED]: theme.palette.grey[400],
+    [OrganizationDisplayStatusValues.BLOCKED]: theme.palette.error.light,
   };
   return colorMap[status];
 };
@@ -43,9 +44,10 @@ const getSubmissionStatusColor = (
   theme: Theme
 ): string => {
   const colorMap = {
-    PENDING: theme.palette.warning.light,
-    APPROVED: theme.palette.success.light,
-    REJECTED: theme.palette.error.light,
+    [SubmissionStatus.PENDING]: theme.palette.info.light,
+    [SubmissionStatus.APPROVED]: theme.palette.success.light,
+    [SubmissionStatus.OBJECTED]: theme.palette.warning.light,
+    [SubmissionStatus.REJECTED]: theme.palette.error.light,
   };
   return colorMap[status];
 };
