@@ -10,7 +10,7 @@ import { DialogMode } from "../types";
  *
  * @returns {Object} State management object
  * @returns {string | undefined} selectedOrganizationId - The currently selected organization ID
- * @returns {DialogMode} formDialogMode - Current mode of the form dialog (create, edit, or accreditation)
+ * @returns {DialogMode} formDialogMode - Current mode of the form dialog (create or edit)
  * @returns {boolean} formDialogOpen - Whether the form dialog is open
  * @returns {Function} setSelectedOrganizationId - Sets the selected organization ID
  * @returns {Function} openFormDialog - Opens the form dialog with specified mode
