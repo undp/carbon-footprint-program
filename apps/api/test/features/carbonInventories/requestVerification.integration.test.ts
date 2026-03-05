@@ -30,7 +30,7 @@ import {
 import { ApiErrorResponse } from "../../../src/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "../../../src/features/carbonInventories/helpers.js";
 
-describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tests", () => {
+describe("POST /api/carbon-inventories/:id/request-verification - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
 
@@ -54,9 +54,10 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
   });
 
   /**
-   * Helper: creates an accredited organization and a carbon inventory in DRAFT state.
+   * Helper: creates an accredited organization and a carbon inventory
+   * with an APPROVED calculation submission (CALCULATION_APPROVED state).
    */
-  async function createAccreditedInventory() {
+  async function createInventoryWithApprovedCalculation() {
     const user = await getTestLoggedUser(prisma);
 
     const org = await createTestOrganization(prisma);
@@ -76,16 +77,32 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       { organizationId: org.id }
     );
 
+    // Create an APPROVED calculation submission
+    await createCarbonInventorySubmission(
+      prisma,
+      inventory.id,
+      SubmissionType.CARBON_INVENTORY_CALCULATION,
+      user.id
+    );
+    const subjectCI = await prisma.submissionSubjectCarbonInventory.findUnique({
+      where: { carbonInventoryId: inventory.id },
+      include: { subject: { include: { submissions: true } } },
+    });
+    await prisma.submission.update({
+      where: { id: subjectCI!.subject.submissions[0].id },
+      data: { status: SubmissionStatus.APPROVED },
+    });
+
     return { inventory, org, user };
   }
 
   describe("Successful request", () => {
-    it("should return 200 and create a calculation submission for an accredited organization", async () => {
-      const { inventory } = await createAccreditedInventory();
+    it("should return 200 and create a verification submission for an inventory with approved calculation", async () => {
+      const { inventory } = await createInventoryWithApprovedCalculation();
 
       const response = await app.inject({
         method: "POST",
-        url: `/api/carbon-inventories/${inventory.id}/request-calculation`,
+        url: `/api/carbon-inventories/${inventory.id}/request-verification`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -96,21 +113,24 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
           include: {
             subject: {
               include: {
-                submissions: true,
+                submissions: {
+                  orderBy: { id: "desc" },
+                },
               },
             },
           },
         });
 
       expect(submissionSubjectCI).not.toBeNull();
-      expect(submissionSubjectCI!.subject.submissions).toHaveLength(1);
+      // Should have 2 submissions: the original APPROVED calculation + new PENDING verification
+      expect(submissionSubjectCI!.subject.submissions).toHaveLength(2);
 
-      const calculationSubmission =
+      const verificationSubmission =
         submissionSubjectCI!.subject.submissions.find(
-          (s) => s.type === SubmissionType.CARBON_INVENTORY_CALCULATION
+          (s) => s.type === SubmissionType.CARBON_INVENTORY_VERIFICATION
         );
-      expect(calculationSubmission).toBeDefined();
-      expect(calculationSubmission!.status).toBe("PENDING");
+      expect(verificationSubmission).toBeDefined();
+      expect(verificationSubmission!.status).toBe("PENDING");
     });
   });
 
@@ -118,7 +138,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
     it("should return 404 when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
-        url: "/api/carbon-inventories/999999/request-calculation",
+        url: "/api/carbon-inventories/999999/request-verification",
       });
 
       expect(response.statusCode).toBe(404);
@@ -134,7 +154,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
 
       const response = await app.inject({
         method: "POST",
-        url: `/api/carbon-inventories/${inventory.id}/request-calculation`,
+        url: `/api/carbon-inventories/${inventory.id}/request-verification`,
       });
 
       expect(response.statusCode).toBe(422);
@@ -164,7 +184,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
 
       const response = await app.inject({
         method: "POST",
-        url: `/api/carbon-inventories/${inventory.id}/request-calculation`,
+        url: `/api/carbon-inventories/${inventory.id}/request-verification`,
       });
 
       expect(response.statusCode).toBe(422);
@@ -172,34 +192,34 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       expect(body.code).toBe("ORGANIZATION_NOT_ACCREDITED");
     });
 
-    it("should return 422 when inventory already has an approved calculation", async () => {
-      const { inventory, user } = await createAccreditedInventory();
+    it("should return 422 when inventory is in DRAFT state (no approved calculation)", async () => {
+      const user = await getTestLoggedUser(prisma);
 
-      // Create an APPROVED calculation submission
-      await createCarbonInventorySubmission(
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
+      await createTestOrganizationDataSubmission(
         prisma,
-        inventory.id,
-        SubmissionType.CARBON_INVENTORY_CALCULATION,
+        orgData.id,
+        SubmissionStatus.APPROVED,
         user.id
       );
-      const subjectCI =
-        await prisma.submissionSubjectCarbonInventory.findUnique({
-          where: { carbonInventoryId: inventory.id },
-          include: { subject: { include: { submissions: true } } },
-        });
-      await prisma.submission.update({
-        where: { id: subjectCI!.subject.submissions[0].id },
-        data: { status: SubmissionStatus.APPROVED },
-      });
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { organizationId: org.id }
+      );
 
       const response = await app.inject({
         method: "POST",
-        url: `/api/carbon-inventories/${inventory.id}/request-calculation`,
+        url: `/api/carbon-inventories/${inventory.id}/request-verification`,
       });
 
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_REQUEST_CALCULATION");
+      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_REQUEST_VERIFICATION");
     });
   });
 });
