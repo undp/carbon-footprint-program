@@ -25,7 +25,15 @@ export const DeleteUserConfirmationDialog: FC<
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={(_event, reason) => {
+        if (
+          isDeleting &&
+          (reason === "backdropClick" || reason === "escapeKeyDown")
+        ) {
+          return;
+        }
+        onClose();
+      }}
       maxWidth="sm"
       fullWidth
       slotProps={{
@@ -52,6 +60,7 @@ export const DeleteUserConfirmationDialog: FC<
           top: 16,
           color: theme.palette.grey[500],
         })}
+        disabled={isDeleting}
       >
         <Close />
       </IconButton>
