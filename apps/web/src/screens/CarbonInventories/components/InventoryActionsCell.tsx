@@ -208,7 +208,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   return (
     <>
-      <Box className="flex gap-1">
+      <Box className="flex justify-center gap-1">
         {/* Edit / View button */}
         {canEdit ? (
           <Tooltip title="Editar huella">
