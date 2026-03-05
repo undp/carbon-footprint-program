@@ -11,8 +11,8 @@ import { files as mdFiles } from 'virtual:subcategory-files'
 // ─── DEV TOGGLE ──────────────────────────────────────────────────────────────
 // true  → carga directamente el archivo indicado (sin selector)
 // false → muestra el selector con todos los .md disponibles
-const HARDCODED_MODE = false
-const HARDCODED_FILE = 'c2_eletricidad.md'
+const HARDCODED_MODE = true
+const HARDCODED_FILE = 'c3_disposición_de_residuos_solidos.md'
 // ─────────────────────────────────────────────────────────────────────────────
 
 import {

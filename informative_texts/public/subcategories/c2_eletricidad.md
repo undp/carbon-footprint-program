@@ -157,7 +157,7 @@ Entonces:
 
 Es decir:
 
-- **210 toneladas de CO₂eq en el año**
+- **Tu empresa generó 210 toneladas de CO₂eq en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en **kg CO₂eq por kWh**, el consumo debe estar en **kWh**.
