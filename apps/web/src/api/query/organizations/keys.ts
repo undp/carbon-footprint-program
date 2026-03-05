@@ -2,7 +2,7 @@ export const organizationKeys = {
   adminAll: ["admin", "organizations", "all"] as const,
   adminKpis: ["admin", "organizations", "kpis"] as const,
   all: ["organizations"] as const,
-  detail: (id: string) => ["organization", id] as const,
+  detail: (id: string) => [...organizationKeys.all, "detail", id] as const,
   create: ["createOrganization"] as const,
   update: ["updateOrganization"] as const,
   delete: ["deleteOrganization"] as const,
