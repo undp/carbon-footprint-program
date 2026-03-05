@@ -1,8 +1,9 @@
 import { z } from "zod";
+import { SubcategoryBaseSchema } from "../../baseSchemas/index.js";
 
 export const AddSubcategoriesToCarbonInventoryBodySchema = z.object({
   subcategoryIds: z
-    .array(z.string().regex(/^\d+$/))
+    .array(SubcategoryBaseSchema.shape.id)
     .min(1)
     .describe("Array of subcategory IDs to add (as strings)"),
 });

@@ -1,3 +1,4 @@
 export * from "./useFuzzySearch";
 export * from "./useSelectorOptions";
 export * from "./form";
+export * from "./useConfirmDialog";

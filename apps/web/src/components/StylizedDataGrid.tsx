@@ -24,12 +24,8 @@ export const StylizedDataGrid = ({
   disableRowSelectionOnClick = true,
   checkboxSelection = false,
   getRowHeight = () => "auto",
-  slotProps = {
-    loadingOverlay: {
-      variant: "skeleton",
-      noRowsVariant: "skeleton",
-    },
-  },
+  slotProps,
+  localeText,
   ...props
 }: StylizedDataGridProps) => {
   const baseStyles: SxProps<Theme> = {
@@ -74,7 +70,44 @@ export const StylizedDataGrid = ({
       disableRowSelectionOnClick={disableRowSelectionOnClick}
       checkboxSelection={checkboxSelection}
       getRowHeight={getRowHeight}
-      slotProps={slotProps}
+      slotProps={{
+        loadingOverlay: {
+          variant: "skeleton",
+          noRowsVariant: "skeleton",
+        },
+        ...(slotProps || {}),
+      }}
+      ignoreDiacritics
+      localeText={{
+        paginationRowsPerPage: "Filas por página",
+        paginationDisplayedRows: ({ from, to, count }) =>
+          `${from}-${to} de ${count}`,
+        columnMenuSortAsc: "Ordenar ascendente",
+        columnMenuSortDesc: "Ordenar descendente",
+        columnMenuFilter: "Filtrar",
+        columnMenuUnsort: "Quitar orden",
+        toolbarFilters: "Filtros",
+        toolbarExport: "Exportar",
+        toolbarExportPrint: "Imprimir",
+        toolbarExportCSV: "Descargar como CSV",
+        toolbarQuickFilterLabel: "Buscar",
+        toolbarQuickFilterPlaceholder: "Buscar...",
+        toolbarQuickFilterDeleteIconLabel: "Borrar",
+        filterPanelColumns: "Columnas",
+        filterPanelOperator: "Operadores",
+        filterPanelInputLabel: "Valor",
+        filterPanelInputPlaceholder: "Valor de filtro",
+        filterOperatorContains: "contiene",
+        filterOperatorEquals: "es igual a",
+        filterOperatorStartsWith: "empieza con",
+        filterOperatorEndsWith: "termina con",
+        filterOperatorIsEmpty: "está vacío",
+        filterOperatorIsNotEmpty: "no está vacío",
+        filterOperatorDoesNotContain: "no contiene",
+        filterOperatorDoesNotEqual: "no es igual a",
+        filterOperatorIsAnyOf: "es cualquiera de",
+        ...(localeText || {}),
+      }}
       {...props}
     />
   );

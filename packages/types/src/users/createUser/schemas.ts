@@ -1,6 +1,6 @@
-import { UserSchema } from "../baseSchemas.js";
+import { UserBaseSchema } from "../../baseSchemas/index.js";
 
-export const CreateUserBodySchema = UserSchema.pick({
+export const CreateUserBodySchema = UserBaseSchema.pick({
   email: true,
   countryJobPositionId: true,
   idpUserId: true,
@@ -9,4 +9,4 @@ export const CreateUserBodySchema = UserSchema.pick({
   lastName: true,
 }).strict();
 
-export const CreateUserResponseSchema = UserSchema;
+export const CreateUserResponseSchema = UserBaseSchema;

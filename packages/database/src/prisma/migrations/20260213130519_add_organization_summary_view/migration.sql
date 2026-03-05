@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "organization_summary_display_status" AS ENUM ('NOT_ACCREDITED', 'ACCREDITED', 'BLOCKED');
+
 -- CreateView: organization_summary_view
 CREATE OR REPLACE VIEW "organization_summary_view" AS
 
@@ -65,7 +68,7 @@ organization_displayed_data AS (
 ),
 
 -- 5. Organization carbon inventories summary
--- TODO: update this CTE to consider only COMPLETED and VERIFIED carbon inventories
+-- TODO: update this CTE to consider only CALCULATED and VERIFIED carbon inventories
 organization_carbon_inventories_summary AS (
   SELECT
     ci.organization_id,
@@ -76,15 +79,16 @@ organization_carbon_inventories_summary AS (
   LEFT JOIN carbon_inventory_subtotals_view csv
     ON csv.carbon_inventory_id = ci.id
   WHERE ci.organization_id IS NOT NULL
-  AND ci.status NOT IN ('DELETED', 'DRAFT')
-  AND (ci.organization_data->>'year') IS NOT NULL
-  AND (ci.organization_data->>'year')::int >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
+  AND ci.status NOT IN ('DELETED')
+  AND ci.year IS NOT NULL
+  AND ci.year >= EXTRACT(YEAR FROM CURRENT_DATE)::int - 2
   GROUP BY ci.organization_id
 )
 
 SELECT
   o.id                                                     AS organization_id,
   odd.id                                                   AS organization_data_id,
+  o.status                                                 AS organization_status,
   COALESCE(odd.trade_name, odd.legal_name, odd.tax_id)     AS name,
   lss.submission_status::TEXT                              AS last_submission_status,
   (uioc.organization_id IS NOT NULL)                       AS has_unsubmitted_changes,

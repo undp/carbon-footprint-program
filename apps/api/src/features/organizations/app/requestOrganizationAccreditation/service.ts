@@ -4,18 +4,18 @@ import type {
   User,
 } from "@repo/types";
 import {
-  MembershipStatus,
   OrganizationDataStatus,
   SubmissionStatus,
-  SubmissionSubjectType,
+  SubmissionType,
 } from "@repo/database";
 import {
-  OrganizationAccessDeniedError,
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
+  OrganizationDataAlreadyRejectedError,
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
+import { getRejectedOrganizationData } from "../../helpers.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -23,8 +23,6 @@ export const requestOrganizationAccreditationService = async (
   user: User | null
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
-    // TODO: The organizationAuthorizationPlugin should be used to check if the user is authenticated
-    // TODO: Check if this error can be shared and use in the authorization/authentication plugins.
     throw new UserNotFoundError();
   }
 
@@ -38,19 +36,6 @@ export const requestOrganizationAccreditationService = async (
   if (!organization) {
     throw new OrganizationNotFoundError(organizationId);
   }
-  // Verify user has ACTIVE membership
-  // TODO: The organizationAuthorizationPlugin should be used to check if the user has an active membership
-  const membership = await prismaClient.userOrganizationMembership.findFirst({
-    where: {
-      userId: BigInt(userId),
-      organizationId: BigInt(organizationId),
-      status: MembershipStatus.ACTIVE,
-    },
-  });
-
-  if (!membership) {
-    throw new OrganizationAccessDeniedError(organizationId);
-  }
 
   return await prismaClient.$transaction(async (tx) => {
     // Find ACTIVE organization data that is a Draft (no submission linked)
@@ -62,6 +47,12 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
+    const rejectedData = await getRejectedOrganizationData(tx, organizationId);
+
+    if (!activeData && rejectedData) {
+      throw new OrganizationDataAlreadyRejectedError(organizationId);
+    }
+
     if (!activeData) {
       throw new OrganizationDataNotFoundError(organizationId);
     }
@@ -69,6 +60,7 @@ export const requestOrganizationAccreditationService = async (
     // Check if submission already exists for this org data (safety guard)
     const hasSubmission = await tx.submission.findFirst({
       where: {
+        type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subject: {
           organizationData: { organizationDataId: activeData.id },
         },
@@ -100,7 +92,6 @@ export const requestOrganizationAccreditationService = async (
     // 1. Create submission subject
     const subject = await tx.submissionSubject.create({
       data: {
-        subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
         createdById: BigInt(userId),
       },
     });
@@ -116,6 +107,7 @@ export const requestOrganizationAccreditationService = async (
     // 3. Create submission
     await tx.submission.create({
       data: {
+        type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subjectId: subject.id,
         status: SubmissionStatus.PENDING,
         createdById: BigInt(userId),

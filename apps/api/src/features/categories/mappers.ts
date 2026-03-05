@@ -1,11 +1,13 @@
 import type { Category as PrismaCategory } from "@repo/database";
-import type { Category } from "@repo/types";
+import type { GetAllCategoriesResponse } from "@repo/types";
 
 /**
  * Maps a Prisma Category to the API response format.
  * Converts BigInt IDs to strings and dates to ISO strings.
  */
-export function mapCategoryToResponse(category: PrismaCategory): Category {
+export function mapCategoryToResponse(
+  category: PrismaCategory
+): GetAllCategoriesResponse[number] {
   return {
     id: category.id.toString(),
     methodologyVersionId: category.methodologyVersionId.toString(),

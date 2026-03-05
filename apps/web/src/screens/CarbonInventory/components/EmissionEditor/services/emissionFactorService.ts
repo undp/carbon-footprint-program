@@ -1,5 +1,5 @@
-import { EmissionFactor, RateMeasurementUnit } from "@repo/types";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
 const isCustomFactorSource = (
   factorSource: string | null | undefined
@@ -16,22 +16,22 @@ export const isFactorValueEditable = (
 
 export const getCompatibleRateUnitId = (
   measurementUnitId: string | null,
-  rateMeasurementUnits: RateMeasurementUnit[]
+  rateMeasurementUnits: RateMeasurementUnit[] | undefined
 ): string | null => {
   if (!measurementUnitId) return null;
   return (
-    rateMeasurementUnits.find(
+    rateMeasurementUnits?.find(
       (rmu) => rmu.denominatorUnit.id === measurementUnitId
     )?.id ?? null
   );
 };
 
 export const getAvailableFactors = (
-  emissionFactors: EmissionFactor[],
+  emissionFactors: MethodologyEmissionFactor[],
   dimensionValue1Id: string | null,
   dimensionValue2Id: string | null,
   rateMeasurementUnitId: string | null
-): EmissionFactor[] => {
+): MethodologyEmissionFactor[] => {
   if (!rateMeasurementUnitId) return [];
 
   return emissionFactors.filter(
@@ -45,7 +45,7 @@ export const getAvailableFactors = (
 };
 
 export const getAvailableSources = (
-  availableFactors: EmissionFactor[]
+  availableFactors: MethodologyEmissionFactor[]
 ): string[] => {
   return [...new Set(availableFactors.map((f) => f.source))];
 };

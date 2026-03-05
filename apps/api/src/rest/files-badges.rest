@@ -1,0 +1,94 @@
+@baseUrl = http://localhost:8080
+
+### ==========================================
+### Badge Upload — CARBON_INVENTORY_CALCULATION
+### ==========================================
+
+### Step 1: Request Upload URL
+# @name requestUploadCarbonInventoryCalculation
+POST {{baseUrl}}/api/files/badge/CARBON_INVENTORY_CALCULATION/request-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "originalName": "badge.svg",
+    "mimeType": "image/svg+xml"
+}
+
+
+### Step 2: Upload badge directly to Azure
+PUT {{requestUploadCarbonInventoryCalculation.response.body.uploadUrl}} HTTP/1.1
+x-ms-blob-type: BlockBlob
+Content-Type: image/svg+xml
+
+< ./test-files/badge.svg
+
+
+### Step 3: Confirm Upload
+POST {{baseUrl}}/api/files/badge/CARBON_INVENTORY_CALCULATION/confirm-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "uuid": "{{requestUploadCarbonInventoryCalculation.response.body.uuid}}",
+    "originalName": "badge.svg"
+}
+
+
+### ==========================================
+### Badge Upload — ORGANIZATION_ACCREDITATION
+### ==========================================
+
+### Step 1: Request Upload URL
+# @name requestUploadOrganizationAccreditation
+POST {{baseUrl}}/api/files/badge/ORGANIZATION_ACCREDITATION/request-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "originalName": "badge.svg",
+    "mimeType": "image/svg+xml"
+}
+
+
+### Step 2: Upload badge directly to Azure
+PUT {{requestUploadOrganizationAccreditation.response.body.uploadUrl}} HTTP/1.1
+x-ms-blob-type: BlockBlob
+Content-Type: image/svg+xml
+
+< ./test-files/badge.svg
+
+
+### Step 3: Confirm Upload
+POST {{baseUrl}}/api/files/badge/ORGANIZATION_ACCREDITATION/confirm-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "uuid": "{{requestUploadOrganizationAccreditation.response.body.uuid}}",
+    "originalName": "badge.svg"
+}
+
+
+### ==========================================
+### Query
+### ==========================================
+
+### Get Files - Badge (CARBON_INVENTORY_CALCULATION)
+GET {{baseUrl}}/api/files/badge/CARBON_INVENTORY_CALCULATION HTTP/1.1
+
+
+### Get Files - Badge (ORGANIZATION_ACCREDITATION)
+GET {{baseUrl}}/api/files/badge/ORGANIZATION_ACCREDITATION HTTP/1.1
+
+
+### ==========================================
+### File Access
+### ==========================================
+
+### Preview File (replace UUID with actual value)
+GET {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000/preview HTTP/1.1
+
+
+### Download File (replace UUID with actual value)
+GET {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000/download HTTP/1.1
+
+
+### Delete File (replace UUID with actual value)
+DELETE {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000 HTTP/1.1

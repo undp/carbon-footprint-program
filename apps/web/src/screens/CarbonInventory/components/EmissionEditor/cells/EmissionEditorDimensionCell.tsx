@@ -1,12 +1,12 @@
 import { FC, useMemo } from "react";
 import { useWatch } from "react-hook-form";
 import { Select, MenuItem } from "@mui/material";
-import { EmissionFactorDimension } from "@repo/types";
+import { MethodologyEmissionFactorDimension } from "../../../types";
 
 interface EmissionEditorDimensionCellProps {
   subcategoryId: string;
   lineId: string;
-  dimension: EmissionFactorDimension;
+  dimension: MethodologyEmissionFactorDimension;
   field: string;
   onChange: (value: string) => void;
   parentField?: string;

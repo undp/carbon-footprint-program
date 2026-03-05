@@ -5,6 +5,7 @@
 
 import { alpha } from "@mui/material/styles";
 import type { PaletteOptions } from "@mui/material/styles";
+import { SubmissionType as RequestType } from "@repo/types";
 
 const categoryStyle = {
   one: {
@@ -31,6 +32,13 @@ const categoryStyle = {
   // TODO: add two more categories
 };
 
+const requestTypeColors: Record<RequestType, string> = {
+  [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
+  [RequestType.CARBON_INVENTORY_CALCULATION]: "#1E8449",
+  [RequestType.CARBON_INVENTORY_VERIFICATION]: "#4A4A4A",
+  [RequestType.REDUCTION_PLAN_VERIFICATION]: "#B8860B",
+  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#117A65",
+};
 export const palette: PaletteOptions = {
   mode: "light",
   // Primary colors - Main brand colors (Green)
@@ -140,4 +148,5 @@ export const palette: PaletteOptions = {
     2: categoryStyle.two,
     3: categoryStyle.three,
   },
+  requestTypeColors,
 } as const;

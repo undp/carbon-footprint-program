@@ -1,5 +1,3 @@
-export * from "./baseSchemas.js";
-export * from "./baseTypes.js";
 export * from "./getAllCategories/schemas.js";
 export * from "./getAllCategories/types.js";
 export * from "./createCategory/schemas.js";
@@ -8,3 +6,5 @@ export * from "./updateCategory/schemas.js";
 export * from "./updateCategory/types.js";
 export * from "./deleteCategory/schemas.js";
 export * from "./deleteCategory/types.js";
+export * from "./swapCategoryPositions/schemas.js";
+export * from "./swapCategoryPositions/types.js";

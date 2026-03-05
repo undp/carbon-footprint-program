@@ -1,6 +1,9 @@
 import { useMemo } from "react";
-import { Subcategory } from "@repo/types";
+import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { useMeasurementUnits, useRateMeasurementUnits } from "@/api/query";
+
+type Subcategory =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
 interface UseEmissionEditorDataParams {
   subcategory: Subcategory;

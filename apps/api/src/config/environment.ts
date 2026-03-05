@@ -140,3 +140,25 @@ export const FORCED_USER_IDP_ID_WHEN_NO_PROVIDER =
   process.env.FORCED_USER_IDP_ID_WHEN_NO_PROVIDER;
 
 export const APP_VERSION = process.env.APP_VERSION || "unknown";
+
+// ============================================================================
+// Azure Blob Storage Configuration
+// ============================================================================
+// Used for file uploads (organization documents, carbon inventory certifications).
+// Authentication uses managed identity (DefaultAzureCredential) — no keys needed.
+// Locally, falls back to `az login` session or Azurite emulator.
+
+/**
+ * Azure Storage Account name.
+ * Found in Azure Portal > Storage Accounts > [Your Account] > Overview
+ * Format: lowercase alphanumeric, 3-24 characters (e.g., "stj7k8m9n0p1")
+ */
+export const AZURE_STORAGE_ACCOUNT_NAME =
+  process.env.AZURE_STORAGE_ACCOUNT_NAME;
+
+/**
+ * Blob container name where files are stored.
+ * Defaults to "files" — matches the container created in Bicep.
+ */
+export const AZURE_STORAGE_CONTAINER_NAME =
+  process.env.AZURE_STORAGE_CONTAINER_NAME ?? "files";

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -42,7 +42,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     // Carbon inventories must be deleted before organizations (no cascade)
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
@@ -489,10 +489,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
       await prisma.carbonInventory.create({
         data: {
           organizationId: org.id,
-          organizationData: {
-            year: new Date().getFullYear() - 2,
-          },
-          status: "VERIFIED", // TODO: may change when implementing carbon verification
+          year: new Date().getFullYear() - 2,
           usageMode: "SIMPLIFIED",
           updatedAt: null,
         },

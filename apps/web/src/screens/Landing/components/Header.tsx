@@ -52,13 +52,22 @@ export const Header: FC = () => {
             ))}
         </Box>
         {user ? (
-          <Button
-            sx={{ backgroundColor: theme.palette.common.deepForest }}
-            variant="contained"
-            onClick={handleHomeClick}
-          >
-            IR AL HOME
-          </Button>
+          <Box className="flex gap-4">
+            <Button
+              sx={{ backgroundColor: theme.palette.common.deepForest }}
+              variant="contained"
+              onClick={handleHomeClick}
+            >
+              IR AL ADMIN
+            </Button>
+            <Button
+              sx={{ backgroundColor: theme.palette.common.deepForest }}
+              variant="contained"
+              onClick={handleHomeClick}
+            >
+              IR AL HOME
+            </Button>
+          </Box>
         ) : (
           <Button
             sx={{ backgroundColor: theme.palette.common.deepForest }}

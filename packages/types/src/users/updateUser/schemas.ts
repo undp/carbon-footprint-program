@@ -1,6 +1,6 @@
-import { UserSchema } from "../baseSchemas.js";
+import { UserBaseSchema } from "../../baseSchemas/index.js";
 
-export const UpdateUserBodySchema = UserSchema.pick({
+export const UpdateUserBodySchema = UserBaseSchema.pick({
   email: true,
   countryJobPositionId: true,
   firstName: true,
@@ -10,10 +10,13 @@ export const UpdateUserBodySchema = UserSchema.pick({
   termsAccepted: true,
 })
   .partial()
-  .strict();
+  .strict()
+  .refine((value) => Object.values(value).some((v) => v !== undefined), {
+    message: "At least one field must be provided with a defined value",
+  });
 
-export const UpdateUserParamsSchema = UserSchema.pick({
+export const UpdateUserParamsSchema = UserBaseSchema.pick({
   id: true,
 }).strict();
 
-export const UpdateUserResponseSchema = UserSchema;
+export const UpdateUserResponseSchema = UserBaseSchema;

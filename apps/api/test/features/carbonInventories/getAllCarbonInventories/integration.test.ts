@@ -4,6 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
+  afterEach,
   beforeEach,
   inject,
 } from "vitest";
@@ -14,10 +15,7 @@ import {
   createCarbonInventories,
   cleanupCarbonInventoryTestData,
 } from "@test/factories/carbonInventorySeeder.js";
-import {
-  type GetAllCarbonInventoriesResponse,
-  InventoryStatus,
-} from "@repo/types";
+import { type GetAllCarbonInventoriesResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
@@ -42,7 +40,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
   });
@@ -101,7 +99,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
 
       const inventory3 = await createInventoryFromPattern(
         prisma,
-        carbonInventoryPatterns.submitted,
+        carbonInventoryPatterns.simplifiedDraft,
         { year: 2024 }
       );
 
@@ -134,8 +132,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       // Create multiple inventories
       await createCarbonInventories(prisma, [
         { ...carbonInventoryPatterns.simplifiedDraft(), year: 2022 },
-        { ...carbonInventoryPatterns.submitted(), year: 2023 },
-        { ...carbonInventoryPatterns.verified(), year: 2024 },
+        { ...carbonInventoryPatterns.expertDraft(), year: 2023 },
+        { ...carbonInventoryPatterns.simplifiedDraft(), year: 2024 },
       ]);
 
       const response = await app.inject({
@@ -173,7 +171,6 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
           mainActivityQuantity: 100,
         },
         year: 2024,
-        status: "DRAFT",
         usageMode: "EXPERT",
         methodologyVersionId: BigInt(methodologyVersionId),
         preselectedNodesId: BigInt(111),
@@ -244,32 +241,6 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
     });
   });
 
-  describe("Different inventory statuses", () => {
-    it("should return inventories with all different statuses", async () => {
-      await createCarbonInventories(prisma, [
-        carbonInventoryPatterns.simplifiedDraft(),
-        carbonInventoryPatterns.submitted(),
-        carbonInventoryPatterns.verified(),
-        carbonInventoryPatterns.deleted(),
-      ]);
-
-      const response = await app.inject({
-        method: "GET",
-        url: "/api/carbon-inventories",
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetAllCarbonInventoriesResponse;
-      expect(body.length).toBe(4);
-
-      const statuses = body.map((inv) => inv.status);
-      expect(statuses).toContain(InventoryStatus.DRAFT);
-      expect(statuses).toContain(InventoryStatus.SUBMITTED);
-      expect(statuses).toContain(InventoryStatus.VERIFIED);
-      expect(statuses).toContain(InventoryStatus.DELETED);
-    });
-  });
-
   describe("Different usage modes", () => {
     it("should return inventories with different usage modes", async () => {
       await createCarbonInventories(prisma, [
@@ -298,8 +269,8 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       await createCarbonInventories(prisma, [
         { ...carbonInventoryPatterns.simplifiedDraft(), year: 2022 },
         { ...carbonInventoryPatterns.expertDraft(), year: 2022 },
-        { ...carbonInventoryPatterns.submitted(), year: 2023 },
-        { ...carbonInventoryPatterns.verified(), year: 2024 },
+        { ...carbonInventoryPatterns.simplifiedDraft(), year: 2023 },
+        { ...carbonInventoryPatterns.expertDraft(), year: 2024 },
         { ...carbonInventoryPatterns.simplifiedDraft(), year: 2024 },
       ]);
     });

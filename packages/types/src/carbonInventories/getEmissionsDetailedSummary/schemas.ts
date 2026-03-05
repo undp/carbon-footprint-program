@@ -1,7 +1,17 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
+import { OrganizationSummaryBaseSchema } from "../../baseSchemas/organizationSummary.js";
+import { CountryBaseSchema } from "../../baseSchemas/country.js";
+import { CountrySectorBaseSchema } from "../../baseSchemas/countrySector.js";
+import { CountryOrganizationSizeBaseSchema } from "../../baseSchemas/organizationSize.js";
+import { OrganizationMainActivityBaseSchema } from "../../baseSchemas/organizationMainActivity.js";
+import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
+import { CategoryBaseSchema } from "../../baseSchemas/category.js";
+import { EmissionFactorBaseSchema } from "../../baseSchemas/emissionFactor.js";
+import { MeasurementUnitBaseSchema } from "../../baseSchemas/measurementUnit.js";
+import { CarbonInventoryLineInputBaseSchema } from "../../baseSchemas/carbonInventoryLineInput.js";
 
-const EmissionLineSchema = z
+const EmissionLineItemSchema = z
   .object({
     lineId: IdSchema.describe("The emission line ID"),
     emissionSource: z
@@ -9,35 +19,27 @@ const EmissionLineSchema = z
       .describe(
         "Resolved dimension value name(s) for display, e.g. 'Carbón industrial'"
       ),
-    measurementUnitName: z
-      .string()
-      .nullable()
-      .describe("The measurement unit display name, e.g. 'Toneladas'"),
-    quantity: z.number().nullable().describe("The input quantity"),
-    factorValue: z
-      .number()
-      .nullable()
-      .describe("The applied emission factor value in kgCO2e/unit"),
-    factorSource: z
-      .string()
-      .nullable()
-      .describe("The source of the emission factor, e.g. 'DEFRA 2025'"),
+    measurementUnitName: MeasurementUnitBaseSchema.shape.name.nullable(),
+    quantity: CarbonInventoryLineInputBaseSchema.shape.quantity,
+    factorValue: z.number().nullable(),
+    factorSource: EmissionFactorBaseSchema.shape.source.nullable(),
     emissions: z.number().nonnegative().describe("Line emissions in tCO2e"),
   })
   .strict();
 
-const SubcategorySummarySchema = z
-  .object({
-    id: IdSchema.describe("The subcategory ID"),
-    name: z.string().describe("The subcategory name"),
-    description: z.string().nullable().describe("The subcategory description"),
+const SubcategorySummaryItemSchema = SubcategoryBaseSchema.pick({
+  id: true,
+  name: true,
+  description: true,
+})
+  .extend({
     hasLines: z
       .boolean()
       .describe(
         "True if subcategory has factor-based lines (SIMPLIFIED/EXPERT); false for DIRECT-only"
       ),
     lines: z
-      .array(EmissionLineSchema)
+      .array(EmissionLineItemSchema)
       .describe("Emission lines, present only when hasLines=true"),
     subtotal: z.number().nonnegative().describe("Subtotal emissions in tCO2e"),
     percentage: z
@@ -50,7 +52,7 @@ const SubcategorySummarySchema = z
 
 const GHGGasBreakdownSchema = z
   .object({
-    subcategoryName: z.string().describe("The subcategory name"),
+    subcategoryName: SubcategoryBaseSchema.shape.name,
     totalTCO2e: z
       .number()
       .nonnegative()
@@ -65,18 +67,15 @@ const GHGGasBreakdownSchema = z
   })
   .strict();
 
-const CategorySummarySchema = z
-  .object({
-    id: IdSchema.describe("The category ID"),
-    name: z.string().describe("The category name"),
-    synonyms: z.string().nullable().describe("Category synonyms"),
-    position: z
-      .number()
-      .int()
-      .positive()
-      .describe("The category position (1, 2, 3...)"),
+const CategorySummaryItemSchema = CategoryBaseSchema.pick({
+  id: true,
+  name: true,
+  synonyms: true,
+  position: true,
+})
+  .extend({
     subcategories: z
-      .array(SubcategorySummarySchema)
+      .array(SubcategorySummaryItemSchema)
       .describe("Subcategories with emission details"),
     subtotal: z
       .number()
@@ -99,17 +98,20 @@ const CategorySummarySchema = z
 const InventoryAttributesSchema = z
   .object({
     name: z.string().nullable().describe("Inventory name/measurement label"),
-    companyName: z.string().nullable(),
-    countryName: z.string().nullable(),
-    sectorName: z.string().nullable(),
-    sizeName: z.string().nullable(),
+    companyName: OrganizationSummaryBaseSchema.shape.name.nullable(),
+    countryName: CountryBaseSchema.shape.name.nullable(),
+    sectorName: CountrySectorBaseSchema.shape.name.nullable(),
+    sizeName: CountryOrganizationSizeBaseSchema.shape.name.nullable(),
     branchCount: z
       .number()
       .int()
       .nullable()
       .describe("Number of branches/sedes"),
-    mainActivityName: z.string().nullable(),
-    mainActivityQuantity: z.number().nullable(),
+    mainActivityName: OrganizationMainActivityBaseSchema.shape.name.nullable(),
+    mainActivityQuantity: z
+      .int()
+      .nullable()
+      .describe("The quantity of the main activity"),
   })
   .strict();
 
@@ -131,7 +133,7 @@ export const GetEmissionsDetailedSummaryResponseSchema = z
       "Main activity equivalence, null if not applicable"
     ),
     categories: z
-      .array(CategorySummarySchema)
+      .array(CategorySummaryItemSchema)
       .describe("Categories with full emission breakdown"),
   })
   .strict();

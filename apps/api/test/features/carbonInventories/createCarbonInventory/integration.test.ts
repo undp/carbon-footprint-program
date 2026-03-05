@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -37,7 +37,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
   });
 
@@ -57,7 +57,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.id).toBeTruthy();
       expect(body.year).toBeNull(); // Defaults to null
       expect(body.usageMode).toBe("SIMPLIFIED");
-      expect(body.status).toBe("DRAFT"); // Default value
       expect(body.isEditable).toBe(true); // Default value
       expect(body.createdAt).toBeDefined();
       expect(body.updatedAt).toBeNull();
@@ -85,7 +84,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       expect(body.id).toBeTruthy();
       expect(body.year).toBeNull();
       expect(body.usageMode).toBe("EXPERT");
-      expect(body.status).toBe("DRAFT");
       expect(body.isEditable).toBe(true);
     });
   });
@@ -101,8 +99,6 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body = JSON.parse(response.body) as CreateCarbonInventoryResponse;
-      expect(body.status).toBe("DRAFT");
     });
 
     it("should set isEditable to true by default", async () => {

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -39,8 +39,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
-    // Clean up test users before each test
+  afterEach(async () => {
+    // Clean up test users after each test
     await prisma.user.deleteMany({
       where: {
         email: {
@@ -542,10 +542,8 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         "Invalid countryJobPositionId: the provided reference does not exist"
       );
     });
-  });
 
-  describe("Partial updates", () => {
-    it("should allow empty payload (no changes)", async () => {
+    it("should return 400 for empty payload (no changes)", async () => {
       const createdUser = await prisma.user.create({
         data: {
           email: "nochange@test.example.com",
@@ -564,12 +562,7 @@ describe("PATCH /api/users/:id - Integration Tests", () => {
         payload: {},
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UpdateUserResponse;
-
-      expect(body.email).toBe("nochange@test.example.com");
-      expect(body.firstName).toBe("No");
-      expect(body.lastName).toBe("Change");
+      expect(response.statusCode).toBe(400);
     });
   });
 });

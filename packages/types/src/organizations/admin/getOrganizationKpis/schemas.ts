@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { OrganizationStatus } from "@repo/database";
+import { OrganizationStatus } from "@repo/database/enums";
+
 // Individual KPI count schema
 const BaseCountSchema = z.object({
   count: z
@@ -54,6 +55,9 @@ const OrganizationKpiCountSchema = z.union([
   }),
 ]);
 
+const OrganizationKpiCountSchemaLength =
+  Object.values(OrganizationStatus).length * 2 * 2;
+
 // Response schema
 export const GetOrganizationKpisResponseSchema = z.object({
   total: z
@@ -63,7 +67,7 @@ export const GetOrganizationKpisResponseSchema = z.object({
     .describe("Total number of organizations"),
   counts: z
     .array(OrganizationKpiCountSchema)
-    .length(8)
+    .length(OrganizationKpiCountSchemaLength)
     .describe(
       "Breakdown of organizations by all possible combinations of status, accreditation, and inventories"
     )
@@ -72,11 +76,10 @@ export const GetOrganizationKpisResponseSchema = z.object({
         const unique = new Set(
           items.map((i) => `${i.status}-${i.accredited}-${i.withInventories}`)
         );
-        return unique.size === 8;
+        return unique.size === OrganizationKpiCountSchemaLength;
       },
       {
-        message:
-          "Must include all 8 unique combinations of status, accreditation, and inventories",
+        message: `Must include all ${OrganizationKpiCountSchemaLength} unique combinations of status, accreditation, and inventories`,
       }
     ),
 });

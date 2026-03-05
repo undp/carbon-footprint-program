@@ -1,9 +1,11 @@
-import { CarbonInventorySchema } from "../baseSchemas.js";
+import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 
-export const CreateCarbonInventoryRequestSchema = CarbonInventorySchema.pick({
-  usageMode: true,
-});
+export const CreateCarbonInventoryRequestSchema =
+  CarbonInventoryBaseSchema.pick({
+    usageMode: true,
+  });
 
-export const CreateCarbonInventoryResponseSchema = CarbonInventorySchema.omit({
-  subcategories: true,
-});
+export const CreateCarbonInventoryResponseSchema =
+  CarbonInventoryBaseSchema.omit({
+    status: true,
+  });

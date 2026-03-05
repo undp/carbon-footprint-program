@@ -1,0 +1,35 @@
+-- CreateView: submission_summary_view
+CREATE VIEW submission_summary_view AS
+WITH organization_data_submissions AS (
+  SELECT
+    s.id AS submission_id,
+    s.type,
+    s.status,
+    od.organization_id,
+    osv.name AS organization_name,
+    EXTRACT(YEAR FROM od.created_at)::INTEGER AS period,
+    od.created_at AS requested_at
+  FROM submission s
+  INNER JOIN submission_subject ss ON s.subject_id = ss.id
+  INNER JOIN submission_subject_organization_data ssod ON ss.id = ssod.subject_id
+  INNER JOIN organization_data od ON ssod.organization_data_id = od.id
+  INNER JOIN organization_summary_view osv ON od.organization_id = osv.organization_id
+),
+carbon_inventory_submissions AS (
+  SELECT
+    s.id AS submission_id,
+    s.type,
+    s.status,
+    ci.organization_id,
+    osv.name AS organization_name,
+    ci.year AS period,
+    s.created_at AS requested_at
+  FROM submission s
+  INNER JOIN submission_subject ss ON s.subject_id = ss.id
+  INNER JOIN submission_subject_carbon_inventory ssci ON ss.id = ssci.subject_id
+  INNER JOIN carbon_inventory ci ON ssci.carbon_inventory_id = ci.id
+  INNER JOIN organization_summary_view osv ON ci.organization_id = osv.organization_id
+)
+SELECT * FROM organization_data_submissions
+UNION ALL
+SELECT * FROM carbon_inventory_submissions;

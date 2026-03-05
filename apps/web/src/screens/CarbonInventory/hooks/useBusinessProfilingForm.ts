@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { CarbonInventory, UsageMode } from "@repo/types";
+import { GetCarbonInventoryByIdResponse, UsageMode } from "@repo/types";
 import { mapInventoryToFormValues } from "../utils/businessProfilingTransformers";
 import { useResetOnChange } from "@/hooks";
 
@@ -17,7 +17,7 @@ export type BusinessProfilingFormValues = {
 };
 
 type Params = {
-  existingInventory?: CarbonInventory;
+  existingInventory?: GetCarbonInventoryByIdResponse;
 };
 
 const defaultValues: BusinessProfilingFormValues = {

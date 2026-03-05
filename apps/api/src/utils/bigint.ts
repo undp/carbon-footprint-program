@@ -48,3 +48,6 @@ export function bigIntEquals(
   }
   return a === b;
 }
+
+export const toNullableBigInt = (value: string | null | undefined) =>
+  value ? BigInt(value) : null;

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -41,7 +41,7 @@ describe("POST /api/app/organizations - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupTestOrganization(prisma);
   });
 
@@ -187,7 +187,7 @@ describe("POST /api/app/organizations - Integration Tests", () => {
 
       expect(membership).toBeDefined();
       expect(membership?.status).toBe(MembershipStatus.ACTIVE);
-      expect(membership?.role).toBe(OrganizationRole.ORGANIZATION_ADMIN);
+      expect(membership?.role).toBe(OrganizationRole.ADMIN);
     });
 
     it("should set createdById to current user ID on organization", async () => {

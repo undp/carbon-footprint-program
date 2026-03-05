@@ -52,6 +52,9 @@ export const FormTextField = <T extends FieldValues>({
         <TextField
           {...field}
           {...props}
+          sx={{
+            minHeight: "5rem",
+          }}
           required={required}
           error={!!fieldState.error && !props.disabled}
           helperText={fieldState.error?.message ?? helperText}

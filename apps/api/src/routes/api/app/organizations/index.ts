@@ -1,18 +1,29 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
+import { addOrganizationUserRoute } from "@/features/organizations/app/addOrganizationUser/route.js";
+import { getOrganizationUsersRoute } from "@/features/organizations/app/getOrganizationUsers/route.js";
+import { updateOrganizationUserRoleRoute } from "@/features/organizations/app/updateOrganizationUserRole/route.js";
+import { removeOrganizationUserRoute } from "@/features/organizations/app/removeOrganizationUser/route.js";
 import { getMyOrganizationsRoute } from "@/features/organizations/app/getMyOrganizationsSelectorOptions/route.js";
 import { getOrganizationByIdRoute } from "@/features/organizations/app/getOrganizationById/route.js";
 import { createOrganizationRoute } from "@/features/organizations/app/createOrganization/route.js";
 import { updateOrganizationRoute } from "@/features/organizations/app/updateOrganization/route.js";
 import { requestOrganizationAccreditationRoute } from "@/features/organizations/app/requestOrganizationAccreditation/route.js";
 
-export default function organizationsRoutes(fastify: FastifyZodInstance) {
-  // Protect all routes with authentication
+export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
 
-  // Register routes
-  getMyOrganizationsRoute(fastify); // GET /me
-  getOrganizationByIdRoute(fastify); // GET /:id
-  createOrganizationRoute(fastify); // POST /
-  updateOrganizationRoute(fastify); // PATCH /:id
-  requestOrganizationAccreditationRoute(fastify); // POST /:id/accredit
+  // ADMIN
+  addOrganizationUserRoute(fastify);
+  getOrganizationUsersRoute(fastify);
+  updateOrganizationUserRoleRoute(fastify);
+  removeOrganizationUserRoute(fastify);
+  updateOrganizationRoute(fastify);
+  requestOrganizationAccreditationRoute(fastify);
+
+  // ADMIN, CONTRIBUTOR, VIEWER
+  getOrganizationByIdRoute(fastify);
+
+  // AUTHENTICATED (No organization role required)
+  getMyOrganizationsRoute(fastify);
+  createOrganizationRoute(fastify);
 }

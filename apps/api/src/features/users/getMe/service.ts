@@ -1,11 +1,19 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetMeBody, GetMeResponse } from "@repo/types";
+import type { GetMeResponse } from "@repo/types";
 import { mapUserToResponse } from "../mappers.js";
 
 export const getMeService = async (
   prismaClient: PrismaClient,
-  data: GetMeBody
+  data: {
+    idpUserId?: string;
+  }
 ): Promise<GetMeResponse> => {
+  if (!data.idpUserId) {
+    // TODO: For now, return null as per requirements
+    // In the future, this will create an anonymous user or session
+    return null;
+  }
+
   // Try to find user by idpUserId or email
   const user = await prismaClient.user.findFirst({
     where: {
@@ -14,7 +22,7 @@ export const getMeService = async (
   });
 
   if (!user) {
-    // For now, return null as per requirements
+    // TODO: For now, return null as per requirements
     // In the future, this will create an anonymous user or session
     return null;
   }

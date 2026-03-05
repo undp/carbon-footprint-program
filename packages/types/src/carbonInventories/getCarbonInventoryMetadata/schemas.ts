@@ -1,29 +1,28 @@
 import { z } from "zod";
-import { CarbonInventorySchema } from "../baseSchemas.js";
+import {
+  CarbonInventoryBaseSchema,
+  CountryBaseSchema,
+  CountryOrganizationSizeBaseSchema,
+  CountrySectorBaseSchema,
+  OrganizationMainActivityBaseSchema,
+  OrganizationSummaryBaseSchema,
+} from "../../baseSchemas/index.js";
 
 export const GetCarbonInventoryMetadataResponseSchema = z
   .object({
-    id: CarbonInventorySchema.shape.id,
-    name: CarbonInventorySchema.shape.name,
-    country: z.string().nullable().describe("The country name"),
-    organizationName: z.string().nullable().describe("The organization name"),
+    id: CarbonInventoryBaseSchema.shape.id,
+    name: CarbonInventoryBaseSchema.shape.name,
+    country: CountryBaseSchema.shape.name.nullable(),
+    organizationName: OrganizationSummaryBaseSchema.shape.name.nullable(),
     organizationBranchesQuantity: z
-      .number()
       .int()
       .nullable()
-      .describe("Number of organization branches"),
-    organizationSectorName: z
-      .string()
-      .nullable()
-      .describe("The organization sector name"),
-    organizationSizeName: z
-      .string()
-      .nullable()
-      .describe("The organization size name"),
-    organizationMainActivityName: z
-      .string()
-      .nullable()
-      .describe("The organization main activity name"),
+      .describe("The quantity of the organization's branches"),
+    organizationSectorName: CountrySectorBaseSchema.shape.name.nullable(),
+    organizationSizeName:
+      CountryOrganizationSizeBaseSchema.shape.name.nullable(),
+    organizationMainActivityName:
+      OrganizationMainActivityBaseSchema.shape.name.nullable(),
     organizationMainActivityQuantity: z
       .number()
       .nullable()

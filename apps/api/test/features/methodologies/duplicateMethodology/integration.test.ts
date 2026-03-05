@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -28,12 +28,11 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await restoreMethodologies(prisma);
     await prisma.$disconnect();
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await restoreMethodologies(prisma);
   });
 
@@ -57,7 +56,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
 
       expect(body.id).toBeTruthy();
       expect(body.id).not.toBe(original.id.toString());
-      expect(body.name).toContain("(copy)");
+      expect(body.name).toContain("(copia)");
       expect(body.status).toBe("UNPUBLISHED");
     });
 
@@ -105,7 +104,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       expect(dbRecord!.status).toBe(MethodologyVersionStatus.UNPUBLISHED);
     });
 
-    it("should append additional (copy) if name with (copy) already exists", async () => {
+    it("should append additional (copia) if name with (copia) already exists", async () => {
       const original = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Copy Naming",
         status: MethodologyVersionStatus.UNPUBLISHED,
@@ -118,7 +117,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       });
       expect(firstDuplicateResponse.statusCode).toBe(201);
 
-      // Second duplicate - should get "(copy) (copy)"
+      // Second duplicate - should get "(copia) (copia)"
       const secondDuplicateResponse = await app.inject({
         method: "POST",
         url: `/api/methodologies/${original.id}/duplicate`,
@@ -129,8 +128,8 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
         secondDuplicateResponse.body
       ) as DuplicateMethodologyResponse;
 
-      // The name should contain two "(copy)" suffixes
-      expect(secondBody.name).toContain("(copy) (copy)");
+      // The name should contain two "(copia)" suffixes
+      expect(secondBody.name).toContain("(copia) (copia)");
     });
 
     it("should duplicate active categories from original methodology", async () => {

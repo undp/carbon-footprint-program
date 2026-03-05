@@ -3,6 +3,7 @@ import { getAllCategoriesRoute } from "@/features/categories/getAllCategories/ro
 import { createCategoryRoute } from "@/features/categories/createCategory/route.js";
 import { updateCategoryRoute } from "@/features/categories/updateCategory/route.js";
 import { deleteCategoryRoute } from "@/features/categories/deleteCategory/route.js";
+import { swapCategoryPositionsRoute } from "@/features/categories/swapCategoryPositions/route.js";
 
 export default function categoriesRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
@@ -10,4 +11,5 @@ export default function categoriesRoutes(fastify: FastifyZodInstance) {
   createCategoryRoute(fastify);
   updateCategoryRoute(fastify);
   deleteCategoryRoute(fastify);
+  swapCategoryPositionsRoute(fastify);
 }

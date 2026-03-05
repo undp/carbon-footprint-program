@@ -15,9 +15,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { useNavigate } from "@tanstack/react-router";
 import { MainLayout } from "@/components/layout";
-import { Routes } from "@/interfaces";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
 import {
@@ -27,47 +25,67 @@ import {
 import { formatEmissions } from "@/utils/formatting";
 import {
   GetAllCarbonInventoriesResponse,
-  InventoryStatus,
+  CarbonInventoryDisplayStatusEnum,
   UsageMode,
+  CarbonInventoryDisplayStatus,
 } from "@repo/types";
 import { NewInventoryDialog } from "./components/Dialogs";
 
-const getStatusColor = (theme: Theme, status: InventoryStatus): string => {
+// TODO: improve colors for each status
+const getStatusColor = (
+  theme: Theme,
+  status: CarbonInventoryDisplayStatus
+): string => {
   switch (status) {
-    case InventoryStatus.DRAFT:
+    case CarbonInventoryDisplayStatusEnum.DRAFT:
       return theme.palette.grey[400];
-    case InventoryStatus.SUBMITTED:
+    case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION:
       return theme.palette.info.main;
-    case InventoryStatus.VERIFIED:
-      return theme.palette.category[1].main;
-    case InventoryStatus.DELETED:
+    case CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED:
+      return theme.palette.warning.main;
+    case CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED:
+      return theme.palette.error.main;
+    case CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED:
+      return theme.palette.success.main;
+    case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION:
+      return theme.palette.info.main;
+    case CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED:
+      return theme.palette.warning.main;
+    case CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED:
+      return theme.palette.error.main;
+    case CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED:
+      return theme.palette.success.main;
+    case CarbonInventoryDisplayStatusEnum.DELETED:
       return theme.palette.error.main;
     default:
-      return "default";
+      return theme.palette.grey[400];
   }
 };
 
 const getUsageModeLabel = (mode: UsageMode) =>
   mode === UsageMode.SIMPLIFIED ? "Asistido" : "Experto";
 
-const getStatusLabel = (status: InventoryStatus) => {
-  switch (status) {
-    case InventoryStatus.DRAFT:
-      return "Borrador";
-    case InventoryStatus.SUBMITTED:
-      return "Enviado";
-    case InventoryStatus.VERIFIED:
-      return "Verificado";
-    case InventoryStatus.DELETED:
-      return "Eliminado";
-    default:
-      return status;
-  }
+const STATUS_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
+  [CarbonInventoryDisplayStatusEnum.DRAFT]: "Borrador",
+  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
+    "Postulando a cálculo",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]:
+    "Objetado en cálculo",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
+    "Rechazado en cálculo",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: "Calculado",
+  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
+    "Postulando a verificación",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]:
+    "Objetado en verificación",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
+    "Rechazado en verificación",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: "Verificado",
+  [CarbonInventoryDisplayStatusEnum.DELETED]: "Eliminado",
 };
 
 export const CarbonInventoriesScreen: FC = () => {
   const theme = useTheme();
-  const navigate = useNavigate();
 
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
@@ -129,7 +147,7 @@ export const CarbonInventoriesScreen: FC = () => {
           headerAlign: "center",
           cellClassName: "content-center",
           minWidth: 100,
-          flex: 1,
+          flex: 0.6,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
@@ -157,7 +175,7 @@ export const CarbonInventoriesScreen: FC = () => {
           headerAlign: "left",
           cellClassName: "content-center",
           minWidth: 100,
-          flex: 1,
+          flex: 0.6,
           valueGetter: (value: UsageMode) => getUsageModeLabel(value),
         },
         {
@@ -165,8 +183,8 @@ export const CarbonInventoriesScreen: FC = () => {
           headerName: "Emisiones tCO₂e",
           align: "center",
           headerAlign: "center",
-          minWidth: 190,
-          flex: 1,
+          minWidth: 120,
+          flex: 0.6,
           cellClassName: "content-center",
           valueFormatter: (value: number) => formatEmissions(value),
         },
@@ -176,34 +194,43 @@ export const CarbonInventoriesScreen: FC = () => {
           headerAlign: "center",
           align: "center",
           minWidth: 190,
-          flex: 1,
+          flex: 1.5,
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
-              InventoryStatus
+              CarbonInventoryDisplayStatus
             >
           ) => (
             <Chip
               sx={{
                 padding: "6px 16px",
                 backgroundColor: alpha(
-                  getStatusColor(theme, params.value as InventoryStatus),
+                  getStatusColor(
+                    theme,
+                    params.value as CarbonInventoryDisplayStatus
+                  ),
                   0.3
                 ),
                 color: darken(
-                  getStatusColor(theme, params.value as InventoryStatus),
+                  getStatusColor(
+                    theme,
+                    params.value as CarbonInventoryDisplayStatus
+                  ),
                   0.5
                 ),
                 border: `1px solid ${alpha(
-                  getStatusColor(theme, params.value as InventoryStatus),
+                  getStatusColor(
+                    theme,
+                    params.value as CarbonInventoryDisplayStatus
+                  ),
                   0.3
                 )}`,
                 textTransform: "uppercase",
               }}
               label={
                 <Typography variant="subtitle2">
-                  {getStatusLabel(params.value as InventoryStatus)}
+                  {STATUS_LABELS[params.value as CarbonInventoryDisplayStatus]}
                 </Typography>
               }
               size="small"
@@ -225,6 +252,8 @@ export const CarbonInventoriesScreen: FC = () => {
           ) => (
             <InventoryActionsCell
               inventoryId={params.row.id}
+              organizationId={params.row.organizationId}
+              organizationIsAccredited={params.row.organizationIsAccredited}
               status={params.row.status}
               refetchInventories={refetchInventories}
             />
@@ -235,27 +264,12 @@ export const CarbonInventoriesScreen: FC = () => {
     );
 
   const filteredInventories = useMemo(
-    () => inventories.filter((inv) => inv.status !== InventoryStatus.DELETED),
+    () =>
+      inventories.filter(
+        (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
+      ),
     [inventories]
   );
-
-  const hasDraftInventory = useMemo(
-    () =>
-      filteredInventories.some((inv) => inv.status === InventoryStatus.DRAFT),
-    [filteredInventories]
-  );
-
-  const navigateToDraftInventory = useCallback(() => {
-    const draftInventory = inventories.find(
-      (inv) => inv.status === InventoryStatus.DRAFT
-    );
-    if (draftInventory) {
-      void navigate({
-        to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
-        params: { inventoryId: draftInventory.id },
-      });
-    }
-  }, [inventories, navigate]);
 
   useEffect(() => {
     void refetchInventories();
@@ -298,8 +312,6 @@ export const CarbonInventoriesScreen: FC = () => {
         <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
           {/* Section Header */}
           <CarbonInventoryActions
-            hasDraftInventory={hasDraftInventory}
-            onContinueDraft={navigateToDraftInventory}
             onNewInventory={() => setNewInventoryDialogOpen(true)}
           />
 

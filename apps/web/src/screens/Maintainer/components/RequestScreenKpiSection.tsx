@@ -1,0 +1,96 @@
+import { FC, useMemo } from "react";
+import { Stack, useTheme } from "@mui/material";
+import type { SvgIconComponent } from "@mui/icons-material";
+import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
+import {
+  TaskOutlined,
+  AccessTimeOutlined,
+  CheckCircleOutlined,
+  CancelOutlined,
+  DisabledVisibleOutlined,
+} from "@mui/icons-material";
+import { SubmissionStatus as RequestStatus } from "@repo/types";
+import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
+import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
+
+const ICON_BY_STATUS: Record<RequestStatus, SvgIconComponent> = {
+  [RequestStatus.PENDING]: AccessTimeOutlined,
+  [RequestStatus.APPROVED]: CheckCircleOutlined,
+  [RequestStatus.OBJECTED]: DisabledVisibleOutlined,
+  [RequestStatus.REJECTED]: CancelOutlined,
+};
+
+const LABEL_BY_STATUS: Record<RequestStatus, string> = {
+  [RequestStatus.PENDING]: "Pendientes",
+  [RequestStatus.APPROVED]: "Aprobadas",
+  [RequestStatus.OBJECTED]: "Objetadas",
+  [RequestStatus.REJECTED]: "Rechazadas",
+};
+
+const STATUS_ORDER: RequestStatus[] = [
+  RequestStatus.PENDING,
+  RequestStatus.APPROVED,
+  RequestStatus.OBJECTED,
+  RequestStatus.REJECTED,
+];
+
+export const RequestScreenKpiSection: FC = () => {
+  const { data: kpisData, isLoading } = useAdminRequestsKpis();
+  const theme = useTheme();
+
+  const REQUESTS_STATUS_COLORS = useMemo<Record<RequestStatus, string>>(
+    () => ({
+      [RequestStatus.PENDING]: theme.palette.warning.dark,
+      [RequestStatus.APPROVED]: theme.palette.success.dark,
+      [RequestStatus.OBJECTED]: theme.palette.error.dark,
+      [RequestStatus.REJECTED]: theme.palette.error.dark,
+    }),
+    [theme]
+  );
+
+  const REQUESTS_TOTAL_COLOR = theme.palette.secondary.dark;
+
+  const valueByStatus = useMemo(() => {
+    const counts = kpisData?.counts ?? [];
+    const map: Record<RequestStatus, number> = {
+      [RequestStatus.PENDING]: 0,
+      [RequestStatus.APPROVED]: 0,
+      [RequestStatus.OBJECTED]: 0,
+      [RequestStatus.REJECTED]: 0,
+    };
+    for (const kpi of counts) {
+      map[kpi.status] += kpi.value;
+    }
+    return map;
+  }, [kpisData]);
+
+  if (isLoading) {
+    return (
+      <Stack direction="row" spacing={2}>
+        {Array.from({ length: 4 }).map((_, i) => (
+          <RequestScreenKpiCardSkeleton key={i} />
+        ))}
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack direction="row" spacing={2}>
+      <RequestScreenKpiCard
+        label="Total"
+        color={REQUESTS_TOTAL_COLOR}
+        Icon={TaskOutlined}
+        value={kpisData?.total ?? 0}
+      />
+      {STATUS_ORDER.map((status) => (
+        <RequestScreenKpiCard
+          key={status}
+          label={LABEL_BY_STATUS[status]}
+          color={REQUESTS_STATUS_COLORS[status]}
+          Icon={ICON_BY_STATUS[status]}
+          value={valueByStatus[status]}
+        />
+      ))}
+    </Stack>
+  );
+};

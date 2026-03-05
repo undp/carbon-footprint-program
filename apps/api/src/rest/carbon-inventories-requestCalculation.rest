@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:8080
+
+### Request Calculation for Carbon Inventory
+POST {{baseUrl}}/api/carbon-inventories/1/request-calculation HTTP/1.1

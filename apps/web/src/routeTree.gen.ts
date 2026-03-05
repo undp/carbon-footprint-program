@@ -23,7 +23,9 @@ import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-in
 import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
+import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
+import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
 import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
 import { Route as AdminItemsRouteImport } from './routes/admin/items'
@@ -109,9 +111,19 @@ const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
   path: '/subcategories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminRequestsRoute = AdminRequestsRouteImport.update({
+  id: '/requests',
+  path: '/requests',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminParametersRoute = AdminParametersRouteImport.update({
   id: '/parameters',
   path: '/parameters',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminOrganizationsRoute = AdminOrganizationsRouteImport.update({
+  id: '/organizations',
+  path: '/organizations',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminMethodologiesRoute = AdminMethodologiesRouteImport.update({
@@ -202,7 +214,9 @@ export interface FileRoutesByFullPath {
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -233,7 +247,9 @@ export interface FileRoutesByTo {
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -263,7 +279,9 @@ export interface FileRoutesById {
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
   '/admin/methodologies': typeof AdminMethodologiesRoute
+  '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
   '/app/awards': typeof AppAwardsRoute
@@ -296,7 +314,9 @@ export interface FileRouteTypes {
     | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
+    | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -327,7 +347,9 @@ export interface FileRouteTypes {
     | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
+    | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -356,7 +378,9 @@ export interface FileRouteTypes {
     | '/admin/items'
     | '/admin/main-activities'
     | '/admin/methodologies'
+    | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
     | '/app/awards'
@@ -493,11 +517,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSubcategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/requests': {
+      id: '/admin/requests'
+      path: '/requests'
+      fullPath: '/admin/requests'
+      preLoaderRoute: typeof AdminRequestsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/parameters': {
       id: '/admin/parameters'
       path: '/parameters'
       fullPath: '/admin/parameters'
       preLoaderRoute: typeof AdminParametersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/organizations': {
+      id: '/admin/organizations'
+      path: '/organizations'
+      fullPath: '/admin/organizations'
+      preLoaderRoute: typeof AdminOrganizationsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/methodologies': {
@@ -607,7 +645,9 @@ interface AdminRouteChildren {
   AdminItemsRoute: typeof AdminItemsRoute
   AdminMainActivitiesRoute: typeof AdminMainActivitiesRoute
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
+  AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminParametersRoute: typeof AdminParametersRoute
+  AdminRequestsRoute: typeof AdminRequestsRoute
   AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
   AdminUnitsRoute: typeof AdminUnitsRoute
 }
@@ -618,7 +658,9 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminItemsRoute: AdminItemsRoute,
   AdminMainActivitiesRoute: AdminMainActivitiesRoute,
   AdminMethodologiesRoute: AdminMethodologiesRoute,
+  AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminParametersRoute: AdminParametersRoute,
+  AdminRequestsRoute: AdminRequestsRoute,
   AdminSubcategoriesRoute: AdminSubcategoriesRoute,
   AdminUnitsRoute: AdminUnitsRoute,
 }

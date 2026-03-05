@@ -7,6 +7,7 @@ import {
 import { mapCarbonInventoryWithLinesToResponse } from "../mappers.js";
 import { map, uniq } from "lodash-es";
 import { CarbonInventoryNotFoundError } from "../errors.js";
+import { calculateDisplayStatus } from "../helpers.js";
 
 export const getCarbonInventoryByIdService = async (
   prismaClient: PrismaClient,
@@ -35,6 +36,21 @@ export const getCarbonInventoryByIdService = async (
           },
         },
       },
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: {
+                  id: true,
+                  status: true,
+                  type: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -56,5 +72,8 @@ export const getCarbonInventoryByIdService = async (
     },
   });
 
-  return mapCarbonInventoryWithLinesToResponse(inventory, subcategories);
+  return {
+    ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
+    status: calculateDisplayStatus(inventory),
+  };
 };

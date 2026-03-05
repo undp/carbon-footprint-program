@@ -14,3 +14,5 @@ export * from "./useSuggestedReductionPlan";
 export * from "./useEmissionsDetailedSummary";
 export * from "./useEmissionFactors";
 export * from "./useCarbonInventoryMetadata";
+export * from "./useRequestCalculation";
+export * from "./useRequestVerification";

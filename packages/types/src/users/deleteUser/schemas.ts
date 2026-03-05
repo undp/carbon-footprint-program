@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { UserSchema } from "../baseSchemas.js";
 import { IdSchema } from "../../zod.js";
+import { UserBaseSchema } from "../../baseSchemas/index.js";
 
-export const DeleteUserParamsSchema = UserSchema.pick({
+export const DeleteUserParamsSchema = UserBaseSchema.pick({
   id: true,
 }).strict();
 

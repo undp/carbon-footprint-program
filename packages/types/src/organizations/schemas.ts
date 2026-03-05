@@ -1,0 +1,60 @@
+import { z } from "zod";
+import { IdSchema } from "../zod.js";
+import { SubmissionStatus } from "@repo/database/enums";
+
+export const OrganizationDisplayStatusSchema = z.enum([
+  "ACCREDITED",
+  "NOT_ACCREDITED",
+  "BLOCKED",
+]);
+
+export const OrganizationDisplayStatusValues =
+  OrganizationDisplayStatusSchema.enum;
+
+// Organization mutation data (for POST/PATCH endpoints)
+export const OrganizationMutationDataSchema = z
+  .object({
+    legalName: z.string().min(1).describe("Legal name of the organization"),
+    tradeName: z.string().nullable().describe("Trade name of the organization"),
+    taxId: z.string().min(1).describe("Tax ID of the organization"),
+    countryOrganizationSizeId: IdSchema.nullable().describe(
+      "ID of the organization size classification"
+    ),
+    sectorId: IdSchema.nullable().describe("ID of the organization sector"),
+    subsectorId: IdSchema.nullable().describe(
+      "ID of the organization subsector"
+    ),
+    employeesCount: z
+      .number()
+      .int()
+      .nonnegative()
+      .nullable()
+      .describe("Number of employees"),
+    address: z.string().nullable().describe("Physical address"),
+    mainActivityId: IdSchema.nullable().describe(
+      "ID of the main business activity"
+    ),
+    representativeFullName: z
+      .string()
+      .min(1)
+      .describe("Full name of representative"),
+    representativeTaxId: z.string().min(1).describe("Tax ID of representative"),
+    representativePositionId: IdSchema.describe(
+      "ID of representative's job position"
+    ),
+    representativePhone: z.string().min(1).describe("Phone of representative"),
+    representativeEmail: z.email().describe("Email of representative"),
+  })
+  .strict(); // strict to disallow extra fields
+
+export const CommonOrganizationFieldsSchema = z.object({
+  id: IdSchema.describe("The organization ID"),
+  name: z.string().describe("Display name of the organization"),
+  lastSubmissionStatus: z
+    .enum(SubmissionStatus)
+    .nullable()
+    .describe("Submission status: PENDING | APPROVED | REJECTED | null"),
+  hasUnsubmittedChanges: z
+    .boolean()
+    .describe("Whether the organization has any unsubmitted changes"),
+});

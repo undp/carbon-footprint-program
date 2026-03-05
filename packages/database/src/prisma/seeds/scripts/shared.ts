@@ -1,14 +1,9 @@
 import { z } from "zod";
-import { type Prisma } from "../../../index.js";
 
-type RoleData = Pick<Prisma.RoleCreateInput, "name" | "description">[];
-
-export const RoleDataSchema: z.ZodType<RoleData> = z.array(
-  z.object({
-    name: z.string().min(1),
-    description: z.string().min(1),
-  })
-);
+const HEX_RGB_REGEX = /^#[0-9A-Fa-f]{3}$/;
+const HEX_RGBA_REGEX = /^#[0-9A-Fa-f]{4}$/;
+const HEX_RRGGBB_REGEX = /^#[0-9A-Fa-f]{6}$/;
+const HEX_RRGGBBAA_REGEX = /^#[0-9A-Fa-f]{8}$/;
 
 export const FullMethodologyDataSchema = z.array(
   z.object({
@@ -23,7 +18,16 @@ export const FullMethodologyDataSchema = z.array(
         synonyms: z.string().min(1),
         description: z.string().min(1),
         icon: z.string().min(1),
-        color: z.string().min(1),
+        color: z
+          .union([
+            z.string().regex(HEX_RGB_REGEX),
+            z.string().regex(HEX_RGBA_REGEX),
+            z.string().regex(HEX_RRGGBB_REGEX),
+            z.string().regex(HEX_RRGGBBAA_REGEX),
+          ])
+          .describe(
+            "Hex color code in #RGB, #RGBA, #RRGGBB, or #RRGGBBAA format"
+          ),
         examples: z.string().nullable().optional(),
         position: z.int(),
         subcategories: z.array(

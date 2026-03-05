@@ -3,8 +3,37 @@ import {
   Submission,
   SubmissionStatus,
   SubmissionSubject,
-  SubmissionSubjectType,
+  OrganizationStatus,
+  OrganizationDataStatus,
+  SubmissionType,
 } from "@repo/database";
+import { createTestOrganization } from "./organizationFactory.js";
+import { createTestOrganizationData } from "./organizationDataFactory.js";
+
+/**
+ * Builds a complete organization → organization data → submission chain with
+ * sensible defaults (ACTIVE org, ACTIVE org data, PENDING submission).
+ * Use this in tests that need a valid submission without caring about the
+ * underlying org structure.
+ */
+export async function buildOrganizationDataSubmission(
+  prisma: PrismaClient,
+  userId: bigint
+): Promise<Submission> {
+  const org = await createTestOrganization(prisma, {
+    status: OrganizationStatus.ACTIVE,
+  });
+  const orgData = await createTestOrganizationData(prisma, org.id, {
+    status: OrganizationDataStatus.ACTIVE,
+  });
+  const { submission } = await createTestOrganizationDataSubmission(
+    prisma,
+    orgData.id,
+    SubmissionStatus.PENDING,
+    userId
+  );
+  return submission;
+}
 
 /**
  * Creates a submission subject for organization data
@@ -14,9 +43,7 @@ export async function createTestSubmissionSubjectForOrganizationData(
   organizationDataId: bigint
 ): Promise<SubmissionSubject> {
   const subject = await prisma.submissionSubject.create({
-    data: {
-      subjectType: SubmissionSubjectType.ORGANIZATION_DATA,
-    },
+    data: {},
   });
 
   await prisma.submissionSubjectOrganizationData.create({
@@ -35,11 +62,13 @@ export async function createTestSubmissionSubjectForOrganizationData(
 export async function createTestSubmission(
   prisma: PrismaClient,
   subjectId: bigint,
+  type: SubmissionType,
   overrides?: Partial<Submission>
 ): Promise<Submission> {
   return await prisma.submission.create({
     data: {
       subjectId,
+      type,
       status: SubmissionStatus.PENDING,
       updatedAt: null,
       ...overrides,
@@ -63,12 +92,17 @@ export async function createTestOrganizationDataSubmission(
     organizationDataId
   );
 
-  const submission = await createTestSubmission(prisma, subject.id, {
-    status,
-    reviewerId,
-    reviewComments,
-    createdById: userId,
-  });
+  const submission = await createTestSubmission(
+    prisma,
+    subject.id,
+    SubmissionType.ORGANIZATION_ACCREDITATION,
+    {
+      status,
+      reviewerId,
+      reviewComments,
+      createdById: userId,
+    }
+  );
 
   return { subject, submission };
 }

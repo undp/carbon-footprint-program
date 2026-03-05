@@ -1,4 +1,4 @@
 import { z } from "zod";
-import { UserSchema } from "../baseSchemas.js";
+import { UserBaseSchema } from "../../baseSchemas/index.js";
 
-export const GetAllUsersResponseSchema = z.array(UserSchema);
+export const GetAllUsersResponseSchema = z.array(UserBaseSchema);

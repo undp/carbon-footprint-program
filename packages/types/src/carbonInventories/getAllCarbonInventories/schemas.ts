@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { CarbonInventorySchema } from "../baseSchemas.js";
+import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
+import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 // Query schema
 export const GetAllCarbonInventoriesQuerySchema = z.object({
@@ -13,15 +14,20 @@ export const GetAllCarbonInventoriesQuerySchema = z.object({
 });
 
 // Response item schema with totalEmissions field added
-export const CarbonInventoryWithEmissionsSchema = CarbonInventorySchema.omit({
-  subcategories: true,
+const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
+  status: true,
 }).extend({
+  status: CarbonInventoryDisplayStatusSchema,
   totalEmissions: z
     .number()
     .describe("The total calculated emissions for this inventory"),
+  organizationIsAccredited: z
+    .boolean()
+    .describe(
+      "Whether the associated organization is accredited. False if no organization is associated."
+    ),
 });
 
 // Response Schemas
-export const GetAllCarbonInventoriesResponseSchema = z.array(
-  CarbonInventoryWithEmissionsSchema
-);
+export const GetAllCarbonInventoriesResponseSchema =
+  z.array(CarbonInventoryItem);

@@ -4,7 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
-  beforeEach,
+  afterEach,
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -17,8 +17,8 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import {
   type GetCarbonInventoryByIdResponse,
+  CarbonInventoryDisplayStatusEnum,
   CarbonInventoryLineStatus,
-  InventoryStatus,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -45,7 +45,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
     await cleanupTestOrganization(prisma);
   });
@@ -66,7 +66,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
       expect(body.id).toBe(testInventory.id.toString());
       expect(body.year).toBeNull();
-      expect(body.status).toBe(InventoryStatus.DRAFT);
+      expect(body.status).toBe(CarbonInventoryDisplayStatusEnum.DRAFT);
       expect(body.usageMode).toBe("SIMPLIFIED");
       expect(body.isEditable).toBe(true);
     });
@@ -109,7 +109,6 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
         mainActivityQuantity: 250,
       });
       expect(body.year).toBe(2023);
-      expect(body.status).toBe(InventoryStatus.VERIFIED);
       expect(body.usageMode).toBe("EXPERT");
       expect(body.methodologyVersionId).toBe(methodologyVersionId.toString());
       expect(body.preselectedNodesId).toBe("111");
@@ -183,72 +182,6 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-    });
-  });
-
-  describe("Different inventory statuses", () => {
-    it("should retrieve inventory with DRAFT status", async () => {
-      const inventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.simplifiedDraft
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${inventory.id}`,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe(InventoryStatus.DRAFT);
-    });
-
-    it("should retrieve inventory with SUBMITTED status", async () => {
-      const inventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.submitted
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${inventory.id}`,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe(InventoryStatus.SUBMITTED);
-    });
-
-    it("should retrieve inventory with VERIFIED status", async () => {
-      const inventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.verified
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${inventory.id}`,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe(InventoryStatus.VERIFIED);
-    });
-
-    it("should retrieve inventory with DELETED status", async () => {
-      const inventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.deleted
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${inventory.id}`,
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as GetCarbonInventoryByIdResponse;
-      expect(body.status).toBe(InventoryStatus.DELETED);
     });
   });
 
@@ -352,7 +285,8 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
     it("should retrieve non-editable inventory", async () => {
       const inventory = await createInventoryFromPattern(
         prisma,
-        carbonInventoryPatterns.submitted
+        carbonInventoryPatterns.simplifiedDraft,
+        { isEditable: false }
       );
 
       const response = await app.inject({

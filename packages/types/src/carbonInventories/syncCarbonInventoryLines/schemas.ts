@@ -1,6 +1,43 @@
 import { z } from "zod";
-import { CarbonInventoryLineSchema, InputTypeSchema } from "../baseSchemas.js";
 import { IdSchema } from "../../zod.js";
+
+import { InputType } from "../../enums.js";
+
+export const InputTypeSchema = z.enum(InputType);
+
+const LineItemSchema = z
+  .object({
+    id: IdSchema.describe("The ID of the line"),
+    subcategoryId: IdSchema.describe("The ID of the subcategory"),
+    isManualTotalEmissions: z
+      .boolean()
+      .describe("Whether manual total emissions are used"),
+    dimensionValue1Id: IdSchema.nullable().describe(
+      "The ID of the first dimension value (position 1)"
+    ),
+    dimensionValue2Id: IdSchema.nullable().describe(
+      "The ID of the second dimension value (position 2)"
+    ),
+    quantity: z
+      .number()
+      .nonnegative()
+      .nullable()
+      .describe("The quantity value"),
+    measurementUnitId: IdSchema.nullable().describe(
+      "The ID of the measurement unit"
+    ),
+    factorSource: z.string().nullable().describe("The source of the factor"),
+    factorValue: z.number().nullable().describe("The factor value"),
+    factorRateMeasurementUnitId: IdSchema.nullable().describe(
+      "The ID of the rate measurement unit of the factor"
+    ),
+    comment: z.string().nullable().describe("Comment for the line"),
+    manualTotalEmissions: z
+      .number()
+      .nullable()
+      .describe("Manual total emissions value"),
+  })
+  .strict();
 
 // Schema for creating a new line (no id required, subcategoryId is required)
 export const SyncCreateLineItemSchema = z
@@ -9,24 +46,24 @@ export const SyncCreateLineItemSchema = z
     inputType: InputTypeSchema.describe(
       "The input type: DIRECT for manual total emissions, SIMPLIFIED for factor-based, EXPERT for custom factors"
     ),
-    dimensionValue1Id: CarbonInventoryLineSchema.shape.dimensionValue1Id,
-    dimensionValue2Id: CarbonInventoryLineSchema.shape.dimensionValue2Id,
-    quantity: CarbonInventoryLineSchema.shape.quantity,
-    measurementUnitId: CarbonInventoryLineSchema.shape.measurementUnitId,
-    factorSource: CarbonInventoryLineSchema.shape.factorSource,
+    dimensionValue1Id: LineItemSchema.shape.dimensionValue1Id,
+    dimensionValue2Id: LineItemSchema.shape.dimensionValue2Id,
+    quantity: LineItemSchema.shape.quantity,
+    measurementUnitId: LineItemSchema.shape.measurementUnitId,
+    factorSource: LineItemSchema.shape.factorSource,
     baseFactorId: IdSchema.nullable().describe(
       "The ID of the base emission factor (null for manual factors)"
     ),
-    appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
+    appliedFactorValue: LineItemSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
-      CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,
-    manualTotalEmissions: CarbonInventoryLineSchema.shape.manualTotalEmissions,
-    comment: CarbonInventoryLineSchema.shape.comment,
+      LineItemSchema.shape.factorRateMeasurementUnitId,
+    manualTotalEmissions: LineItemSchema.shape.manualTotalEmissions,
+    comment: LineItemSchema.shape.comment,
   })
   .strict();
 
 // Schema for updating an existing line (id required)
-export const SyncUpdateLineItemSchema = CarbonInventoryLineSchema.pick({
+export const SyncUpdateLineItemSchema = LineItemSchema.pick({
   id: true,
   dimensionValue1Id: true,
   dimensionValue2Id: true,
@@ -43,9 +80,9 @@ export const SyncUpdateLineItemSchema = CarbonInventoryLineSchema.pick({
     baseFactorId: IdSchema.nullable().describe(
       "The ID of the base emission factor (null for manual factors)"
     ),
-    appliedFactorValue: CarbonInventoryLineSchema.shape.factorValue,
+    appliedFactorValue: LineItemSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
-      CarbonInventoryLineSchema.shape.factorRateMeasurementUnitId,
+      LineItemSchema.shape.factorRateMeasurementUnitId,
   })
   .strict();
 
@@ -109,11 +146,7 @@ export const SyncCarbonInventoryLinesRequestSchema = z
 
 // Response schema - returns all lines after sync
 export const SyncCarbonInventoryLinesResponseSchema = z.object({
-  created: z
-    .array(CarbonInventoryLineSchema)
-    .describe("Lines that were created"),
-  updated: z
-    .array(CarbonInventoryLineSchema)
-    .describe("Lines that were updated"),
+  created: z.array(LineItemSchema).describe("Lines that were created"),
+  updated: z.array(LineItemSchema).describe("Lines that were updated"),
   deleted: z.array(IdSchema).describe("IDs of lines that were deleted"),
 });

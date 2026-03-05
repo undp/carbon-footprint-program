@@ -1,0 +1,108 @@
+@baseUrl = http://localhost:8080
+@submissionId = 1
+@testFilePath = ./test-files/test-document.pdf
+
+### ==========================================
+### Submission Upload — ATTACHMENT
+### ==========================================
+
+### Step 1: Request Upload URL
+# @name requestUploadAttachment
+POST {{baseUrl}}/api/files/submission/{{submissionId}}/request-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "originalName": "test-document.pdf",
+    "mimeType": "application/pdf",
+    "submissionFileType": "ATTACHMENT"
+}
+
+
+### Step 2: Upload file directly to Azure
+PUT {{requestUploadAttachment.response.body.uploadUrl}} HTTP/1.1
+x-ms-blob-type: BlockBlob
+Content-Type: application/pdf
+
+< {{testFilePath}}
+
+
+### Step 3: Confirm Upload
+POST {{baseUrl}}/api/files/submission/{{submissionId}}/confirm-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "uuid": "{{requestUploadAttachment.response.body.uuid}}",
+    "originalName": "test-document.pdf",
+    "submissionFileType": "ATTACHMENT"
+}
+
+
+### ==========================================
+### Submission Upload — RECOGNITION
+### ==========================================
+
+### Step 1: Request Upload URL
+# @name requestUploadRecognition
+POST {{baseUrl}}/api/files/submission/{{submissionId}}/request-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "originalName": "recognition-cert.pdf",
+    "mimeType": "application/pdf",
+    "submissionFileType": "RECOGNITION"
+}
+
+
+### Step 2: Upload file directly to Azure
+PUT {{requestUploadRecognition.response.body.uploadUrl}} HTTP/1.1
+x-ms-blob-type: BlockBlob
+Content-Type: application/pdf
+
+< {{testFilePath}}
+
+
+### Step 3: Confirm Upload
+POST {{baseUrl}}/api/files/submission/{{submissionId}}/confirm-upload HTTP/1.1
+Content-Type: application/json
+
+{
+    "uuid": "{{requestUploadRecognition.response.body.uuid}}",
+    "originalName": "recognition-cert.pdf",
+    "submissionFileType": "RECOGNITION"
+}
+
+
+### ==========================================
+### Query
+### ==========================================
+
+### Get Files - Submission (all active)
+GET {{baseUrl}}/api/files/submission/{{submissionId}} HTTP/1.1
+
+
+### Get Files - Submission (filter by status)
+GET {{baseUrl}}/api/files/submission/{{submissionId}}?status=ACTIVE HTTP/1.1
+
+
+### Get Files - Submission (filter by attachment type)
+GET {{baseUrl}}/api/files/submission/{{submissionId}}?submissionFileType=ATTACHMENT HTTP/1.1
+
+
+### Get Files - Submission (filter by recognition type)
+GET {{baseUrl}}/api/files/submission/{{submissionId}}?submissionFileType=RECOGNITION HTTP/1.1
+
+
+### ==========================================
+### File Access
+### ==========================================
+
+### Preview File (replace UUID with actual value)
+GET {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000/preview HTTP/1.1
+
+
+### Download File (replace UUID with actual value)
+GET {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000/download HTTP/1.1
+
+
+### Delete File (replace UUID with actual value)
+DELETE {{baseUrl}}/api/files/00000000-0000-0000-0000-000000000000 HTTP/1.1

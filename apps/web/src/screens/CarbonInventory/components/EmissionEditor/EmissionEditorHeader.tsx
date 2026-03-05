@@ -13,8 +13,11 @@ import {
 import { NumericInput } from "@/components";
 import { formatEmissions } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
-import { Subcategory } from "@repo/types";
+import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
+
+type Subcategory =
+  GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
 interface EmissionEditorHeaderProps
   extends Pick<Subcategory, "name" | "description"> {

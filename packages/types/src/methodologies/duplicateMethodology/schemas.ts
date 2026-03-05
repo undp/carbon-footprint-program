@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import { MethodologySchema } from "../baseSchemas.js";
+import { MethodologyVersionBaseSchema } from "../../baseSchemas/index.js";
 
 // Request Schema - receives the ID as a path parameter
 export const DuplicateMethodologyParamsSchema = z
@@ -10,4 +10,4 @@ export const DuplicateMethodologyParamsSchema = z
   .strict();
 
 // Response Schema
-export const DuplicateMethodologyResponseSchema = MethodologySchema;
+export const DuplicateMethodologyResponseSchema = MethodologyVersionBaseSchema;

@@ -4,6 +4,7 @@ import {
   expect,
   beforeAll,
   afterAll,
+  afterEach,
   beforeEach,
   inject,
 } from "vitest";
@@ -28,18 +29,17 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
   });
 
   afterAll(async () => {
-    await prisma.methodologyVersion.deleteMany({
-      where: { name: { startsWith: "Test - " } },
-    });
     await prisma.$disconnect();
     await app.close();
   });
 
-  beforeEach(async () => {
+  afterEach(async () => {
     await prisma.methodologyVersion.deleteMany({
       where: { name: { startsWith: "Test - " } },
     });
+  });
 
+  beforeEach(async () => {
     const methodology = await createEmptyMethodologyVersion(prisma, {
       name: "Test - Update Category Methodology",
       status: MethodologyVersionStatus.UNPUBLISHED,
