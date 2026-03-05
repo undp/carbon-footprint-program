@@ -2,7 +2,7 @@
 CREATE TYPE "membership_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateEnum
-CREATE TYPE "organization_role" AS ENUM ('VIEWER', 'ORGANIZATION_CONTRIBUTOR', 'ORGANIZATION_ADMIN', 'EXTERNAL_VERIFIER', 'EXTERNAL_CONSULTANT');
+CREATE TYPE "organization_role" AS ENUM ('VIEWER', 'CONTRIBUTOR', 'ADMIN');
 
 -- CreateTable
 CREATE TABLE "user_organization_membership" (

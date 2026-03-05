@@ -62,12 +62,12 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
   });
 
   describe("Authorization", () => {
-    it("should allow ORGANIZATION_ADMIN to update user role", async () => {
+    it("should allow ADMIN to update user role", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make testUser an ORGANIZATION_ADMIN
+      // Make testUser an ADMIN
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Add adminUser as VIEWER
@@ -79,22 +79,22 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         method: "PATCH",
         url: `/api/app/organizations/${organization.id}/users/${adminUser.id}`,
         payload: {
-          role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+          role: OrganizationRole.CONTRIBUTOR,
         },
       });
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as UpdateOrganizationUserRoleResponse;
-      expect(body.role).toBe(OrganizationRole.ORGANIZATION_CONTRIBUTOR);
+      expect(body.role).toBe(OrganizationRole.CONTRIBUTOR);
     });
 
     it("should reject VIEWER role from updating user roles", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Make testUser a VIEWER
@@ -113,7 +113,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         method: "PATCH",
         url: `/api/app/organizations/${organization.id}/users/${targetUser.id}`,
         payload: {
-          role: OrganizationRole.ORGANIZATION_ADMIN,
+          role: OrganizationRole.ADMIN,
         },
       });
 
@@ -125,17 +125,17 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       );
     });
 
-    it("should reject ORGANIZATION_CONTRIBUTOR role from updating user roles", async () => {
+    it("should reject CONTRIBUTOR role from updating user roles", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
-      // Make testUser an ORGANIZATION_CONTRIBUTOR
+      // Make testUser an CONTRIBUTOR
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const targetUser = await createTestUser(prisma, {
@@ -149,7 +149,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         method: "PATCH",
         url: `/api/app/organizations/${organization.id}/users/${targetUser.id}`,
         payload: {
-          role: OrganizationRole.ORGANIZATION_ADMIN,
+          role: OrganizationRole.ADMIN,
         },
       });
 
@@ -164,9 +164,9 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
     it("should reject non-members from updating user roles", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // testUser is not a member
@@ -187,11 +187,11 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
   });
 
   describe("Successful role update", () => {
-    it("should update user role from VIEWER to ORGANIZATION_CONTRIBUTOR", async () => {
+    it("should update user role from VIEWER to CONTRIBUTOR", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -202,7 +202,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         method: "PATCH",
         url: `/api/app/organizations/${organization.id}/users/${adminUser.id}`,
         payload: {
-          role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+          role: OrganizationRole.CONTRIBUTOR,
         },
       });
 
@@ -211,7 +211,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         response.body
       ) as UpdateOrganizationUserRoleResponse;
 
-      expect(body.role).toBe(OrganizationRole.ORGANIZATION_CONTRIBUTOR);
+      expect(body.role).toBe(OrganizationRole.CONTRIBUTOR);
 
       // Verify in database
       const membership = await prisma.userOrganizationMembership.findFirst({
@@ -221,15 +221,15 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         },
       });
 
-      expect(membership!.role).toBe(OrganizationRole.ORGANIZATION_CONTRIBUTOR);
+      expect(membership!.role).toBe(OrganizationRole.CONTRIBUTOR);
       expect(membership!.updatedById).toBe(testUser.id);
     });
 
-    it("should update user role from VIEWER to ORGANIZATION_ADMIN", async () => {
+    it("should update user role from VIEWER to ADMIN", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -240,7 +240,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         method: "PATCH",
         url: `/api/app/organizations/${organization.id}/users/${adminUser.id}`,
         payload: {
-          role: OrganizationRole.ORGANIZATION_ADMIN,
+          role: OrganizationRole.ADMIN,
         },
       });
 
@@ -249,7 +249,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         response.body
       ) as UpdateOrganizationUserRoleResponse;
 
-      expect(body.role).toBe(OrganizationRole.ORGANIZATION_ADMIN);
+      expect(body.role).toBe(OrganizationRole.ADMIN);
 
       // Verify updatedById is set
       const membership = await prisma.userOrganizationMembership.findFirst({
@@ -261,15 +261,15 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       expect(membership!.updatedById).toBe(testUser.id);
     });
 
-    it("should update user role from ORGANIZATION_ADMIN to VIEWER", async () => {
+    it("should update user role from ADMIN to VIEWER", async () => {
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -306,7 +306,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const nonMember = await createTestUser(prisma, {
@@ -330,7 +330,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -350,7 +350,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -370,7 +370,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -404,7 +404,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({
@@ -423,11 +423,11 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
 
       // Create two admins
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Demote adminUser (testUser is still admin, so this should work)
@@ -435,7 +435,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         method: "PATCH",
         url: `/api/app/organizations/${organization.id}/users/${adminUser.id}`,
         payload: {
-          role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+          role: OrganizationRole.CONTRIBUTOR,
         },
       });
 
@@ -443,13 +443,13 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
       const body = JSON.parse(
         response.body
       ) as UpdateOrganizationUserRoleResponse;
-      expect(body.role).toBe(OrganizationRole.ORGANIZATION_CONTRIBUTOR);
+      expect(body.role).toBe(OrganizationRole.CONTRIBUTOR);
 
       // Verify there's still one admin in the database
       const adminCount = await prisma.userOrganizationMembership.count({
         where: {
           organizationId: organization.id,
-          role: OrganizationRole.ORGANIZATION_ADMIN,
+          role: OrganizationRole.ADMIN,
           status: "ACTIVE",
         },
       });

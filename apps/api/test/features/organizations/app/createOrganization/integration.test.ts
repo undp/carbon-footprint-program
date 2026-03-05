@@ -187,7 +187,7 @@ describe("POST /api/app/organizations - Integration Tests", () => {
 
       expect(membership).toBeDefined();
       expect(membership?.status).toBe(MembershipStatus.ACTIVE);
-      expect(membership?.role).toBe(OrganizationRole.ORGANIZATION_ADMIN);
+      expect(membership?.role).toBe(OrganizationRole.ADMIN);
     });
 
     it("should set createdById to current user ID on organization", async () => {

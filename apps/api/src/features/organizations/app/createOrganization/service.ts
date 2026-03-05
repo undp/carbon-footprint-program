@@ -49,7 +49,7 @@ export const createOrganizationService = async (
       data: {
         userId: BigInt(user.id),
         organizationId: organization.id,
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
         status: MembershipStatus.ACTIVE,
         createdById: BigInt(user.id),
       },

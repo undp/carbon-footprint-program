@@ -3,11 +3,7 @@
  * Centralizes type definitions to reduce duplication and improve type safety
  */
 
-import { GetOrganizationUsersResponse } from "@repo/types";
-
-// Re-export OrganizationRole from database for convenience
-export type OrganizationRole =
-  GetOrganizationUsersResponse[number]["organizationRole"];
+import { OrganizationRole } from "@repo/types";
 
 /**
  * Dialog mode for organization form dialog

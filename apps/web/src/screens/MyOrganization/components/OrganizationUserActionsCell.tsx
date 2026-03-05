@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import { EditOutlined, DeleteOutlined } from "@mui/icons-material";
-import { OrganizationRole } from "../types";
+import { OrganizationRole } from "@repo/types";
 
 interface OrganizationUserActionsCellProps {
   userId: string;

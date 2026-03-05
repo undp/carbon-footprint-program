@@ -12,8 +12,9 @@ import {
 import { Close } from "@mui/icons-material";
 import { useForm } from "react-hook-form";
 import { FormSelectField } from "@/components/form/FormSelectField";
-import { EditUserRoleFormData, OrganizationRole } from "../types";
+import { EditUserRoleFormData } from "../types";
 import { ROLE_OPTIONS } from "../constants";
+import { OrganizationRole } from "@repo/types";
 
 interface EditUserRoleDialogProps {
   open: boolean;

@@ -118,7 +118,7 @@ declare module "fastify" {
      *   preHandler: [
      *     fastify.requireOrganizationRole(
      *       extractOrgId,
-     *       [OrganizationRole.ORGANIZATION_ADMIN]
+     *       [OrganizationRole.ADMIN]
      *     )
      *   ]
      * }, handler);

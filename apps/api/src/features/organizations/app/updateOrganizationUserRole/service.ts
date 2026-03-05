@@ -52,14 +52,14 @@ export const updateOrganizationUserRoleService = async (
   // check if they're the last admin and perform update in a transaction
   // to prevent race conditions
   if (
-    membership.role === OrganizationRole.ORGANIZATION_ADMIN &&
-    data.role !== OrganizationRole.ORGANIZATION_ADMIN
+    membership.role === OrganizationRole.ADMIN &&
+    data.role !== OrganizationRole.ADMIN
   ) {
     const updatedMembership = await prismaClient.$transaction(async (tx) => {
       const adminCount = await tx.userOrganizationMembership.count({
         where: {
           organizationId: organization.id,
-          role: OrganizationRole.ORGANIZATION_ADMIN,
+          role: OrganizationRole.ADMIN,
           status: MembershipStatus.ACTIVE,
         },
       });

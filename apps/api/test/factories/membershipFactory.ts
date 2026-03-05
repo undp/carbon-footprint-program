@@ -19,7 +19,7 @@ export async function createTestMembership(
     data: {
       userId,
       organizationId,
-      role: OrganizationRole.ORGANIZATION_ADMIN,
+      role: OrganizationRole.ADMIN,
       status: MembershipStatus.ACTIVE,
       ...overrides,
     },

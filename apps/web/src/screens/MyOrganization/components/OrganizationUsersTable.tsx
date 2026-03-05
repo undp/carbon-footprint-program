@@ -5,7 +5,7 @@ import { SectionCard } from "./SectionCard";
 import { OrganizationUserActionsCell } from "./OrganizationUserActionsCell";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { ROLE_LABELS } from "../constants";
-import { OrganizationRole } from "../types";
+import { OrganizationRole } from "@repo/types";
 
 type User = {
   userId: string;

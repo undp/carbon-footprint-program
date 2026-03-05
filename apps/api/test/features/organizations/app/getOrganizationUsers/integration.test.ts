@@ -62,12 +62,12 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
   });
 
   describe("Authorization", () => {
-    it("should allow ORGANIZATION_ADMIN to get users", async () => {
+    it("should allow ADMIN to get users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make testUser an ORGANIZATION_ADMIN
+      // Make testUser an ADMIN
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Add another member
@@ -97,9 +97,9 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
     it("should reject VIEWER role from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Make testUser a VIEWER
@@ -120,17 +120,17 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       );
     });
 
-    it("should reject ORGANIZATION_CONTRIBUTOR role from getting users", async () => {
+    it("should reject CONTRIBUTOR role from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
-      // Make testUser an ORGANIZATION_CONTRIBUTOR
+      // Make testUser an CONTRIBUTOR
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const response = await app.inject({
@@ -149,9 +149,9 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
     it("should reject non-members from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
-      // Make adminUser an ORGANIZATION_ADMIN
+      // Make adminUser an ADMIN
       await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // testUser is not a member
@@ -173,7 +173,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const user1 = await createTestUser(prisma, {
@@ -191,7 +191,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
         lastName: "Two",
       });
       await createTestMembership(prisma, user2.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_CONTRIBUTOR,
+        role: OrganizationRole.CONTRIBUTOR,
       });
 
       const response = await app.inject({
@@ -214,7 +214,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       await createTestMembership(prisma, adminUser.id, organization.id, {
@@ -251,7 +251,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       // Create a deleted membership
@@ -276,7 +276,7 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       const organization = await createTestOrganization(prisma);
 
       await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.ORGANIZATION_ADMIN,
+        role: OrganizationRole.ADMIN,
       });
 
       const response = await app.inject({

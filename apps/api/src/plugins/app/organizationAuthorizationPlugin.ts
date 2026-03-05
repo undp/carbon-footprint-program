@@ -22,7 +22,7 @@
  *   preHandler: [
  *     fastify.requireOrganizationRole(
  *       extractOrganizationId,
- *       [OrganizationRole.ORGANIZATION_ADMIN]
+ *       [OrganizationRole.ADMIN]
  *     )
  *   ],
  * }, handler);
@@ -73,7 +73,7 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    *   preHandler: [
    *     fastify.requireOrganizationRole(
    *       extractOrgId,
-   *       [OrganizationRole.ORGANIZATION_ADMIN]
+   *       [OrganizationRole.ADMIN]
    *     )
    *   ]
    * }, handler);

@@ -1,5 +1,5 @@
+import { OrganizationRole } from "@repo/types";
 import { useCallback, useState } from "react";
-import { OrganizationRole } from "../types";
 
 interface UserDialogsState {
   // Dialog state
