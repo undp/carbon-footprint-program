@@ -17,7 +17,7 @@ export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
           "Creates a new submission of type CALCULATION for the specified carbon inventory",
         params: RequestCalculationParamsSchema,
         response: {
-          201: RequestCalculationResponseSchema,
+          200: RequestCalculationResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },

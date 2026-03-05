@@ -80,7 +80,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
         url: `/api/carbon-inventories/${inventory.id}/request-calculation`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
 
       // Verify submission records were created
       const submissionSubjectCI =

@@ -17,7 +17,7 @@ export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
           "Creates a new submission of type VERIFICATION for the specified carbon inventory",
         params: RequestVerificationParamsSchema,
         response: {
-          201: RequestVerificationResponseSchema,
+          200: RequestVerificationResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
