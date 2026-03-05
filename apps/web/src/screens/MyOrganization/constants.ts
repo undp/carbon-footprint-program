@@ -1,9 +1,9 @@
 import { OrganizationRole } from "@repo/types";
 
 export const ROLE_LABELS: Record<OrganizationRole, string> = {
+  [OrganizationRole.ADMIN]: "Administrador",
+  [OrganizationRole.CONTRIBUTOR]: "Colaborador",
   [OrganizationRole.VIEWER]: "Lector",
-  [OrganizationRole.CONTRIBUTOR]: "Editor",
-  [OrganizationRole.ADMIN]: "Admin",
 };
 
 export const ROLE_OPTIONS = (
