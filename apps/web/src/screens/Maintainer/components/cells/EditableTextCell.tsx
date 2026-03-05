@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useRef, useState } from "react";
 import {
   useWatch,
   useFormState,
@@ -90,6 +90,17 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
     fieldName
   );
 
+  const [isTruncated, setIsTruncated] = useState(false);
+  const textRef = useRef<HTMLElement | null>(null);
+
+  const measureTruncation = useCallback((el: HTMLElement | null) => {
+    textRef.current = el;
+    if (!el) return;
+    setIsTruncated(
+      el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth
+    );
+  }, []);
+
   if (!isEditing) {
     const truncateSx: SxProps<Theme> =
       truncateLines === 1
@@ -105,12 +116,20 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
             display: "-webkit-box",
             WebkitLineClamp: truncateLines,
             WebkitBoxOrient: "vertical",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
             width: "100%",
           };
 
     return (
-      <Tooltip title={formValue} arrow placement="top" enterDelay={500}>
+      <Tooltip
+        title={isTruncated ? formValue : ""}
+        arrow
+        placement="top"
+        enterDelay={500}
+      >
         <Typography
+          ref={measureTruncation}
           onClick={onClick}
           sx={{
             px: 1,

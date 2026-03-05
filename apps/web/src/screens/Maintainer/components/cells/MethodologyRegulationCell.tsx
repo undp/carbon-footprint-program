@@ -1,4 +1,4 @@
-import { FC, useState, useEffect } from "react";
+import { FC, useState, useEffect, useCallback, useRef } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { Autocomplete, TextField, Typography, Tooltip } from "@mui/material";
 import { NORMATIVA_OPTIONS } from "../../constants";
@@ -34,10 +34,27 @@ export const MethodologyRegulationCell: FC<MethodologyRegulationCellProps> = ({
     setLocalValue(formValue);
   }, [formValue]);
 
+  const [isTruncated, setIsTruncated] = useState(false);
+  const textRef = useRef<HTMLElement | null>(null);
+
+  const measureTruncation = useCallback((el: HTMLElement | null) => {
+    textRef.current = el;
+    if (!el) return;
+    setIsTruncated(
+      el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth
+    );
+  }, []);
+
   if (!isEditing) {
     return (
-      <Tooltip title={formValue} arrow placement="top" enterDelay={500}>
+      <Tooltip
+        title={isTruncated ? formValue : ""}
+        arrow
+        placement="top"
+        enterDelay={500}
+      >
         <Typography
+          ref={measureTruncation}
           onClick={onClick}
           sx={{
             px: 1,
