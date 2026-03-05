@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { FC, PropsWithChildren } from "react";
 import { SIDEBAR_WIDTH } from "@/config/constants";
 import {
@@ -15,8 +15,9 @@ import {
   BusinessOutlined,
 } from "@mui/icons-material";
 import { Routes } from "@/interfaces/routes";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { Sidebar, UserMenu } from "@/components/layout/Sidebar";
 import type { SidebarDef } from "@/components/layout/Sidebar";
+import { APP_VERSION } from "@/config/environment";
 
 const SIDEBAR_DEFS: SidebarDef[] = [
   {
@@ -92,7 +93,21 @@ const SIDEBAR_DEFS: SidebarDef[] = [
 
 export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => (
   <Box className="min-h-screen" style={{ paddingLeft: SIDEBAR_WIDTH }}>
-    <Sidebar items={SIDEBAR_DEFS} />
+    <Sidebar
+      items={SIDEBAR_DEFS}
+      footer={
+        <>
+          <Typography
+            variant="caption"
+            color="text.disabled"
+            sx={{ mt: "auto", px: 1, textAlign: "center" }}
+          >
+            {APP_VERSION}
+          </Typography>
+          <UserMenu />
+        </>
+      }
+    />
     <Box className="flex min-h-screen flex-col gap-3 bg-gray-50 px-6 py-6">
       {children}
     </Box>

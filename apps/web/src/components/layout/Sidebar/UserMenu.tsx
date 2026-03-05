@@ -11,9 +11,18 @@ import {
 } from "@mui/material";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCallback, useState } from "react";
+import { useLocation, useNavigate } from "@tanstack/react-router";
+import { Routes } from "@/interfaces";
+import { SystemRole } from "@repo/types";
 
 export const UserMenu = () => {
   const { signOut, user: me, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const isAdminRoute = location.pathname.startsWith(Routes.ADMIN);
+  const imAdmin =
+    me?.role === SystemRole.ADMIN || me?.role === SystemRole.SUPERADMIN;
 
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
@@ -25,6 +34,18 @@ export const UserMenu = () => {
   const handleClose = useCallback(() => {
     setAnchorEl(null);
   }, []);
+
+  const navigateToHome = useCallback(() => {
+    void navigate({
+      to: Routes.HOME,
+    });
+  }, [navigate]);
+
+  const navigateToAdmin = useCallback(() => {
+    void navigate({
+      to: Routes.ADMIN,
+    });
+  }, [navigate]);
 
   const name = me?.firstName ? `${me.firstName} ${me.lastName}` : null;
 
@@ -83,11 +104,18 @@ export const UserMenu = () => {
         transformOrigin={{ horizontal: "right", vertical: "top" }}
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
+        {imAdmin && !isAdminRoute && (
+          <MenuItem onClick={navigateToAdmin}>Ir a admin</MenuItem>
+        )}
+        {imAdmin && isAdminRoute && (
+          <MenuItem onClick={navigateToHome}>Ir a home</MenuItem>
+        )}
+
         <MenuItem onClick={signOut}>
           <ListItemIcon>
             <Logout fontSize="small" />
           </ListItemIcon>
-          Sign Out
+          Salir
         </MenuItem>
       </Menu>
 
