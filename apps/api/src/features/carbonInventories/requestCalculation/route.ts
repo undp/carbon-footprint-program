@@ -6,10 +6,7 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
-export const requestCalculationRoute: StandardRouteSignature = (
-  fastify,
-  options
-) => {
+export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
   fastify.post(
     "/:id/request-calculation",
     {
@@ -24,9 +21,6 @@ export const requestCalculationRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     requestCalculationHandler
