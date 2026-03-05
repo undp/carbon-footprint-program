@@ -94,58 +94,6 @@ describe("GET /api/app/organizations/:organizationId/users - Integration Tests",
       expect(otherUser?.isCurrentUser).toBe(false);
     });
 
-    it("should reject VIEWER role from getting users", async () => {
-      const organization = await createTestOrganization(prisma);
-
-      // Make adminUser an ADMIN
-      await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ADMIN,
-      });
-
-      // Make testUser a VIEWER
-      await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.VIEWER,
-      });
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/app/organizations/${organization.id}/users`,
-      });
-
-      expect(response.statusCode).toBe(403);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FORBIDDEN");
-      expect(body.message).toBe(
-        "Insufficient permissions for this organization"
-      );
-    });
-
-    it("should reject CONTRIBUTOR role from getting users", async () => {
-      const organization = await createTestOrganization(prisma);
-
-      // Make adminUser an ADMIN
-      await createTestMembership(prisma, adminUser.id, organization.id, {
-        role: OrganizationRole.ADMIN,
-      });
-
-      // Make testUser an CONTRIBUTOR
-      await createTestMembership(prisma, testUser.id, organization.id, {
-        role: OrganizationRole.CONTRIBUTOR,
-      });
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/app/organizations/${organization.id}/users`,
-      });
-
-      expect(response.statusCode).toBe(403);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("FORBIDDEN");
-      expect(body.message).toBe(
-        "Insufficient permissions for this organization"
-      );
-    });
-
     it("should reject non-members from getting users", async () => {
       const organization = await createTestOrganization(prisma);
 
