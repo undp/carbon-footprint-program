@@ -85,6 +85,7 @@ export const useOrganizationForm = ({ organization }: Params = {}) => {
         isSettingFormDataRef.current = false;
       });
     } else {
+      reset(defaultValues);
       prevSectorIdRef.current = undefined;
       prevSubsectorIdRef.current = undefined;
       isSettingFormDataRef.current = false;
