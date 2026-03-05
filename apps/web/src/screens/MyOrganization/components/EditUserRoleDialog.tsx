@@ -19,8 +19,8 @@ interface EditUserRoleDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (data: EditUserRoleFormData) => void;
-  currentRole?: OrganizationRole;
-  userName?: string;
+  currentRole?: OrganizationRole | null;
+  userName?: string | null;
   isSubmitting?: boolean;
 }
 

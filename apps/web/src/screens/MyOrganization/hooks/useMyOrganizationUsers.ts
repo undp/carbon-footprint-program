@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useUserDialogsState } from "./useUserDialogsState";
 import { useUserMutations } from "./useUserMutations";
 import { AddUserFormData, EditUserRoleFormData } from "../types";
@@ -44,6 +44,14 @@ export const useMyOrganizationUsers = (organizationId: string | undefined) => {
 
   // Get mutation handlers
   const mutations = useUserMutations(organizationId);
+
+  // Close all dialogs when the organization changes to prevent stale user data
+  useEffect(() => {
+    dialogsState.closeAddUserDialog();
+    dialogsState.closeEditUserDialog();
+    dialogsState.closeDeleteUserDialog();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [organizationId]);
 
   // Connect mutations to dialog close callbacks
   const handleAddUser = useCallback(

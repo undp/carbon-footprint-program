@@ -133,8 +133,8 @@ export const MyOrganizationScreen: FC = () => {
               open={editDialogOpen}
               onClose={closeEditUserDialog}
               onSubmit={handleUpdateUserRole}
-              currentRole={selectedUserRole ?? undefined}
-              userName={selectedUserName ?? undefined}
+              currentRole={selectedUserRole}
+              userName={selectedUserName}
               isSubmitting={isUpdatingUser}
             />
 
@@ -142,7 +142,7 @@ export const MyOrganizationScreen: FC = () => {
               open={deleteDialogOpen}
               onClose={closeDeleteUserDialog}
               onConfirm={handleDeleteUser}
-              userName={selectedUserName ?? undefined}
+              userName={selectedUserName}
               isDeleting={isDeletingUser}
             />
           </>

@@ -15,7 +15,7 @@ interface DeleteUserConfirmationDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  userName?: string;
+  userName?: string | null;
   isDeleting?: boolean;
 }
 
