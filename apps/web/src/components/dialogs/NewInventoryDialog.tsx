@@ -46,7 +46,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
       <DialogContent>
         <Box
           id="newInventoryDialog-description"
-          className="flex flex-row items-center justify-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <CreateInventoryCard
             AvatarIcon={CalculatorIcon}
