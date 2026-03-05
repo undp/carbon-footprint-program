@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useSnackbar } from "notistack";
 import { useRequestOrganizationAccreditation } from "@/api/query/organizations";
 import { AppHttpError } from "@/api/http/errors";
@@ -9,10 +9,10 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
 
   const mutation = useRequestOrganizationAccreditation(organizationId);
 
-  const openDialog = () => setIsOpen(true);
-  const closeDialog = () => setIsOpen(false);
+  const openDialog = useCallback(() => setIsOpen(true), []);
+  const closeDialog = useCallback(() => setIsOpen(false), []);
 
-  const handleConfirm = async () => {
+  const handleConfirm = useCallback(async () => {
     if (!organizationId) {
       enqueueSnackbar("Error: ID de organización no disponible", {
         variant: "error",
@@ -49,7 +49,7 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
       });
       // Keep dialog open on error for retry
     }
-  };
+  }, [organizationId, mutation, enqueueSnackbar, closeDialog]);
 
   return {
     isOpen,
