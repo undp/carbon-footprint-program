@@ -103,7 +103,7 @@ const OrganizationProfileSectionComponent: FC<
           />
           {profile.lastSubmissionStatus && (
             <InfoRow
-              label="Última acreditación"
+              label="Estado última solicitud"
               value={
                 <RequestStatusChip
                   label={SUBMISSION_STATUS_LABELS[profile.lastSubmissionStatus]}
