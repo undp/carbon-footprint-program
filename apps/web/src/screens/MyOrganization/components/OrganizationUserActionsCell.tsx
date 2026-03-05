@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, IconButton, Tooltip } from "@mui/material";
+import { Box, IconButton, Tooltip, useTheme } from "@mui/material";
 import { EditOutlined, DeleteOutlined } from "@mui/icons-material";
 import { OrganizationRole } from "../types";
 
@@ -22,14 +22,16 @@ export const OrganizationUserActionsCell: FC<
   onEdit,
   onDelete,
 }) => {
-  // editDisabled and deleteDisabled are currently identical to isCurrentUser,
-  // but kept separate for future divergent logic (e.g., different permissions).
   const editTooltip = isCurrentUser
     ? "No puedes editar tu propio rol"
     : "Editar usuario";
   const deleteTooltip = isCurrentUser
     ? "No puedes eliminarte a ti mismo"
     : "Eliminar usuario";
+  const theme = useTheme();
+  const iconBorder = isCurrentUser
+    ? theme.palette.grey[300]
+    : theme.palette.primary.main;
 
   return (
     <Box className="flex items-center justify-center gap-2">
@@ -39,8 +41,8 @@ export const OrganizationUserActionsCell: FC<
             size="small"
             onClick={() => currentRole && onEdit(userId, userName, currentRole)}
             disabled={isCurrentUser}
-            sx={(theme) => ({
-              border: `1px solid ${theme.palette.primary.main}`,
+            sx={() => ({
+              border: `1px solid ${iconBorder}`,
               borderRadius: "4px",
               padding: "4px",
             })}
@@ -57,8 +59,8 @@ export const OrganizationUserActionsCell: FC<
             size="small"
             onClick={() => onDelete(userId, userName)}
             disabled={isCurrentUser}
-            sx={(theme) => ({
-              border: `1px solid ${theme.palette.primary.main}`,
+            sx={() => ({
+              border: `1px solid ${iconBorder}`,
               borderRadius: "4px",
               padding: "4px",
             })}
