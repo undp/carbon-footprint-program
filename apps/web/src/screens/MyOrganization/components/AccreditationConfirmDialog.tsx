@@ -19,7 +19,6 @@ export const AccreditationConfirmDialog: FC<
       title="Solicitar acreditación"
       message="¿Está seguro de que desea solicitar la acreditación de su organización?"
       description="Esta acción enviará una solicitud al administrador para revisar y aprobar la acreditación."
-      variant="info"
       confirmLabel="Solicitar"
       cancelLabel="Cancelar"
       isLoading={isLoading}

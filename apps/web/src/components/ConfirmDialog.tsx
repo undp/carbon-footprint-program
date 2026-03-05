@@ -38,7 +38,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
   title,
   message,
   description,
-  variant = "warning",
+  variant = "success",
   confirmLabel = "Confirmar",
   cancelLabel = "Cancelar",
   isLoading = false,
@@ -95,7 +95,7 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
           {message}
         </Typography>
         {description && (
-          <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>
+          <Typography variant="body1" sx={{ mt: 2 }}>
             {description}
           </Typography>
         )}
@@ -105,8 +105,6 @@ export const ConfirmDialog: FC<ConfirmDialogProps> = ({
         sx={{
           px: 3,
           py: 2,
-          borderTop: 1,
-          borderColor: "divider",
           backgroundColor: "background.paper",
         }}
       >

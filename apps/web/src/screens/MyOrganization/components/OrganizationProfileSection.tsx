@@ -80,7 +80,7 @@ const OrganizationProfileSectionComponent: FC<
     profile.lastSubmissionStatus !== SubmissionStatus.PENDING
   ) {
     actions.push({
-      label: "ACREDITAR",
+      label: "SOLICITAR ACREDITACIÓN",
       icon: <StarOutline />,
       onClick: accreditationDialog.openDialog,
       disabled: false,
