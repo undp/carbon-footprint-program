@@ -24,7 +24,7 @@ export const getAllSubcategoriesService = async (
     },
     include: {
       category: {
-        select: { id: true, name: true },
+        select: { id: true, name: true, color: true },
       },
       subcategoryMeasurementUnits: {
         select: {
@@ -47,6 +47,7 @@ export const getAllSubcategoriesService = async (
       category: {
         id: category.id.toString(),
         name: category.name,
+        color: category.color,
       },
       measurementUnits: subcategoryMeasurementUnits.map(
         ({ measurementUnit }) => ({

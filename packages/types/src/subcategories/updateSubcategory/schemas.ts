@@ -38,7 +38,7 @@ export const UpdateSubcategoryResponseSchema = SubcategoryBaseSchema.pick({
   description: true,
   examples: true,
 }).extend({
-  category: CategoryBaseSchema.pick({ id: true, name: true }),
+  category: CategoryBaseSchema.pick({ id: true, name: true, color: true }),
   measurementUnits: z.array(
     MeasurementUnitBaseSchema.pick({ id: true, name: true })
   ),

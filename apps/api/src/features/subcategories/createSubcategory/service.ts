@@ -75,7 +75,7 @@ export const createSubcategoryService = async (
           description: true,
           examples: true,
           category: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, color: true },
           },
           subcategoryMeasurementUnits: {
             select: {
@@ -97,6 +97,7 @@ export const createSubcategoryService = async (
         category: {
           id: newSubCategory!.category.id.toString(),
           name: newSubCategory!.category.name,
+          color: newSubCategory!.category.color,
         },
         measurementUnits: newSubCategory!.subcategoryMeasurementUnits.map(
           (smu) => ({

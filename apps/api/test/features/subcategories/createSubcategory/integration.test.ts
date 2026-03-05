@@ -92,6 +92,7 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       expect(body.category).toEqual({
         id: category.id.toString(),
         name: category.name,
+        color: category.color,
       });
       expect(body.measurementUnits).toEqual([]);
     });
