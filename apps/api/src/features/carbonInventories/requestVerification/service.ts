@@ -3,6 +3,7 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
+import type { User } from "@repo/types";
 import {
   CarbonInventoryCannotRequestVerificationError,
   CarbonInventoryNotFoundError,
@@ -15,7 +16,7 @@ import { canSubmitToVerification } from "./helpers.js";
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: string,
-  userId?: string | null
+  user: User | null
 ): Promise<void> => {
   await prismaClient.$transaction(async (tx) => {
     const inventory = await tx.carbonInventory.findFirst({
@@ -62,7 +63,7 @@ export const requestVerificationService = async (
     if (!can)
       throw new CarbonInventoryCannotRequestVerificationError(inventory.id);
 
-    const createdById = userId ? BigInt(userId) : null;
+    const createdById = user ? BigInt(user.id) : null;
 
     await createCarbonInventorySubmission(
       tx,
