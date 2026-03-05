@@ -1,4 +1,4 @@
-import { FC, useCallback, useMemo, useEffect, useRef } from "react";
+import { FC, useCallback, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -41,14 +41,18 @@ interface Props {
 const DIALOG_TITLES: Record<DialogMode, string> = {
   create: "Crear perfil de empresa",
   edit: "Editar perfil de empresa",
-  accreditation: "Acreditación de la empresa",
+};
+
+const BUTTON_LABELS: Record<DialogMode, string> = {
+  create: "Crear",
+  edit: "Guardar cambios",
 };
 
 export const OrganizationFormDialog: FC<Props> = ({
   open,
   onClose,
   organization,
-  mode = "accreditation",
+  mode = "create",
 }) => {
   const { control, handleSubmit, reset, selectedSectorId, formState } =
     useOrganizationForm({ organization });
@@ -107,18 +111,7 @@ export const OrganizationFormDialog: FC<Props> = ({
     }
   }, [open]);
 
-  const buttonActionLabel = useMemo(() => {
-    switch (mode) {
-      case "create":
-        return "Crear";
-      case "edit":
-        return "Guardar cambios";
-      case "accreditation":
-        return "Enviar";
-      default:
-        return "Guardar";
-    }
-  }, [mode]);
+  const buttonActionLabel = BUTTON_LABELS[mode];
 
   return (
     <Dialog

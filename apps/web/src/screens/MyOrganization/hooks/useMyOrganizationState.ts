@@ -22,12 +22,11 @@ export const useMyOrganizationState = () => {
     string | undefined
   >(undefined);
 
-  const [formDialogMode, setFormDialogMode] =
-    useState<DialogMode>("accreditation");
+  const [formDialogMode, setFormDialogMode] = useState<DialogMode>("create");
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
 
-  const openFormDialog = useCallback((mode: DialogMode = "accreditation") => {
+  const openFormDialog = useCallback((mode: DialogMode = "create") => {
     setFormDialogMode(mode);
     setFormDialogOpen(true);
   }, []);

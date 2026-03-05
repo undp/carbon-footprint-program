@@ -13,9 +13,8 @@ export type OrganizationRole =
  * Dialog mode for organization form dialog
  * - create: Creating a new organization
  * - edit: Editing an existing organization
- * - accreditation: Accreditation flow for a new organization
  */
-export type DialogMode = "create" | "edit" | "accreditation";
+export type DialogMode = "create" | "edit";
 
 /**
  * Form data for adding a new user to an organization
