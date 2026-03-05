@@ -3,7 +3,10 @@ import Box from "@mui/material/Box";
 import { useCarbonInventories } from "../../api/query";
 import { Header, NoneCarbonInventoriesSection } from "./components";
 import { filter, map, orderBy, uniq } from "lodash-es";
-import { InventoryStatus } from "@repo/types";
+import {
+  CarbonInventoryDisplayStatus,
+  CarbonInventoryDisplayStatusEnum,
+} from "@repo/types";
 import { EmissionResultsContent } from "@/components";
 import { NoneVerifyCarbonInventories } from "./components/NoneVerifyCarbonInventories";
 
@@ -19,17 +22,17 @@ export const HomeScreen: FC = () => {
   } = useCarbonInventories();
 
   const filteredByStatusInventories = useMemo(() => {
-    const statusOrder: Partial<Record<InventoryStatus, number>> = {
-      VERIFIED: 0,
-      SUBMITTED: 1,
+    const statusOrder: Partial<Record<CarbonInventoryDisplayStatus, number>> = {
+      VERIFICATION_APPROVED: 0,
+      CALCULATION_APPROVED: 1,
     };
 
     const filtered = filter(inventories, ({ status }) =>
       (
         [
-          InventoryStatus.VERIFIED,
-          InventoryStatus.SUBMITTED,
-        ] as InventoryStatus[]
+          CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+          CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
+        ] as CarbonInventoryDisplayStatus[]
       ).includes(status)
     );
 
@@ -73,18 +76,18 @@ export const HomeScreen: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredByStatusInventories, selectedYear]);
 
-  if (!isLoadingInventories && filteredByStatusInventories.length === 0) {
-    return (
-      <Box className="flex flex-1 flex-col gap-6">
-        <NoneVerifyCarbonInventories />
-      </Box>
-    );
-  }
-
   if (!isLoadingInventories && inventories.length == 0) {
     return (
       <Box className="flex flex-1 flex-col gap-6">
         <NoneCarbonInventoriesSection />
+      </Box>
+    );
+  }
+
+  if (!isLoadingInventories && filteredByStatusInventories.length === 0) {
+    return (
+      <Box className="flex flex-1 flex-col gap-6">
+        <NoneVerifyCarbonInventories />
       </Box>
     );
   }
