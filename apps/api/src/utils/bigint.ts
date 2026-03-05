@@ -1,5 +1,3 @@
-import { _function } from "zod/mini";
-
 /**
  * Helper to map optional string ID fields to BigInt or null.
  * - Returns undefined if value is undefined (field not provided)
