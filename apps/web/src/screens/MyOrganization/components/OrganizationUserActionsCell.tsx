@@ -22,16 +22,24 @@ export const OrganizationUserActionsCell: FC<
   onEdit,
   onDelete,
 }) => {
+  const theme = useTheme();
+
   const editTooltip = isCurrentUser
     ? "No puedes editar tu propio rol"
     : "Editar usuario";
   const deleteTooltip = isCurrentUser
     ? "No puedes eliminarte a ti mismo"
     : "Eliminar usuario";
-  const theme = useTheme();
+
   const iconBorder = isCurrentUser
     ? theme.palette.grey[300]
     : theme.palette.primary.main;
+
+  const iconButtonStyles = () => ({
+    border: `1px solid ${iconBorder}`,
+    borderRadius: "4px",
+    padding: "4px",
+  });
 
   return (
     <Box className="flex items-center justify-center gap-2">
@@ -41,11 +49,7 @@ export const OrganizationUserActionsCell: FC<
             size="small"
             onClick={() => currentRole && onEdit(userId, userName, currentRole)}
             disabled={isCurrentUser}
-            sx={() => ({
-              border: `1px solid ${iconBorder}`,
-              borderRadius: "4px",
-              padding: "4px",
-            })}
+            sx={iconButtonStyles}
             color="primary"
             aria-label="Editar usuario"
           >
@@ -59,11 +63,7 @@ export const OrganizationUserActionsCell: FC<
             size="small"
             onClick={() => onDelete(userId, userName)}
             disabled={isCurrentUser}
-            sx={() => ({
-              border: `1px solid ${iconBorder}`,
-              borderRadius: "4px",
-              padding: "4px",
-            })}
+            sx={iconButtonStyles}
             color="primary"
             aria-label="Eliminar usuario"
           >
