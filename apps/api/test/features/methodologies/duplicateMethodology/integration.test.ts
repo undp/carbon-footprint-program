@@ -11,7 +11,11 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { restoreMethodologies } from "@test/factories/methodologyCleaner.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
-import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import {
+  createTestSubcategory,
+  createTestSubcategoryUnits,
+  getTestMeasurementUnitIds,
+} from "@test/factories/subcategoryFactory.js";
 import type { DuplicateMethodologyResponse } from "@repo/types";
 import { CategoryStatus, SubCategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -225,6 +229,66 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       expect(duplicatedSubcategories[0].description).toBe("Subcategory A");
       expect(duplicatedSubcategories[1].name).toBe("Test - Sub B");
       expect(duplicatedSubcategories[1].description).toBe("Subcategory B");
+    });
+
+    it("should duplicate measurement unit associations for subcategories", async () => {
+      const original = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Duplicate With Units",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+
+      const category = await createTestCategory(prisma, original.id, {
+        name: "Test - Category With Units",
+        position: 1,
+      });
+
+      const subA = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub With Units A",
+      });
+      const subB = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub With Units B",
+      });
+
+      const unitIds = await getTestMeasurementUnitIds(prisma, 3);
+      await createTestSubcategoryUnits(prisma, subA.id, unitIds.slice(0, 2));
+      await createTestSubcategoryUnits(prisma, subB.id, unitIds.slice(1, 3));
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/methodologies/${original.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+      const duplicatedCategories = await prisma.category.findMany({
+        where: { methodologyVersionId: BigInt(body.id) },
+      });
+      const duplicatedSubs = await prisma.subcategory.findMany({
+        where: { categoryId: duplicatedCategories[0].id },
+        orderBy: { name: "asc" },
+        include: {
+          subcategoryMeasurementUnits: {
+            select: { measurementUnitId: true },
+            orderBy: { measurementUnitId: "asc" },
+          },
+        },
+      });
+
+      expect(duplicatedSubs).toHaveLength(2);
+
+      const dupAUnits = duplicatedSubs[0].subcategoryMeasurementUnits.map(
+        (u) => u.measurementUnitId
+      );
+      const dupBUnits = duplicatedSubs[1].subcategoryMeasurementUnits.map(
+        (u) => u.measurementUnitId
+      );
+
+      const originalAUnits = unitIds.slice(0, 2).sort();
+      const originalBUnits = unitIds.slice(1, 3).sort();
+
+      expect(dupAUnits).toEqual(originalAUnits);
+      expect(dupBUnits).toEqual(originalBUnits);
     });
 
     it("should not duplicate deleted subcategories", async () => {

@@ -101,11 +101,22 @@ export const duplicateMethodologyService = async (
             categoryId: { in: activeCategories.map((cat) => cat.id) },
             status: SubCategoryStatus.ACTIVE,
           },
+          include: {
+            subcategoryMeasurementUnits: {
+              select: { measurementUnitId: true },
+            },
+          },
         });
 
-        if (activeSubcategories.length > 0) {
-          await tx.subcategory.createMany({
-            data: activeSubcategories.map((sub) => ({
+        // Create subcategories individually to capture old → new ID mapping
+        const measurementUnitLinks: {
+          subcategoryId: bigint;
+          measurementUnitId: bigint;
+        }[] = [];
+
+        for (const sub of activeSubcategories) {
+          const newSub = await tx.subcategory.create({
+            data: {
               categoryId: categoryIdMap.get(sub.categoryId)!,
               name: sub.name,
               icon: sub.icon,
@@ -114,7 +125,20 @@ export const duplicateMethodologyService = async (
               status: sub.status,
               createdById: userId,
               updatedAt: null,
-            })),
+            },
+          });
+
+          for (const link of sub.subcategoryMeasurementUnits) {
+            measurementUnitLinks.push({
+              subcategoryId: newSub.id,
+              measurementUnitId: link.measurementUnitId,
+            });
+          }
+        }
+
+        if (measurementUnitLinks.length > 0) {
+          await tx.subcategoryMeasurementUnit.createMany({
+            data: measurementUnitLinks,
           });
         }
       }
