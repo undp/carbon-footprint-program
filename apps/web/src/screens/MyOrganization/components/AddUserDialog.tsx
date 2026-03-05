@@ -103,7 +103,7 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
       </IconButton>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} noValidate>
-        <DialogContent sx={{ pt: 0 }}>
+        <DialogContent sx={{ pt: 1 }}>
           <FormTextField
             name="email"
             control={control}
@@ -127,8 +127,6 @@ export const AddUserDialog: FC<AddUserDialogProps> = ({
           sx={{
             px: 3,
             py: 2,
-            borderTop: 1,
-            borderColor: "divider",
             backgroundColor: "background.paper",
           }}
         >
