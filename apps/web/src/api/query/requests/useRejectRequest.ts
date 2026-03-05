@@ -30,6 +30,9 @@ export const useRejectRequest = () => {
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminKpis(),
         }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.all,
+        }),
       ]);
     },
   });

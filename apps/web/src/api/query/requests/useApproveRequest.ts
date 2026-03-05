@@ -27,6 +27,9 @@ export const useApproveRequest = () => {
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminKpis(),
         }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.all,
+        }),
       ]);
     },
   });

@@ -17,6 +17,10 @@ export const useBlockOrganization = () => {
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminKpis(),
         }),
+        queryClient.invalidateQueries({
+          queryKey: organizationKeys.all,
+          exact: true,
+        }),
       ]);
     },
   });
