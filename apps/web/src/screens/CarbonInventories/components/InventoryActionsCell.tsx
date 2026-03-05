@@ -21,6 +21,7 @@ import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
 import { MissingOrganizationDialog } from "./Dialogs/MissingOrganizationDialog";
 import { UnaccreditedOrganizationDialog } from "./Dialogs/UnaccreditedOrganizationDialog";
+import { BlockedOrganizationDialog } from "./Dialogs/BlockedOrganizationDialog";
 import { enqueueSnackbar } from "notistack";
 import {
   useUpdateCarbonInventory,
@@ -73,6 +74,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [missingOrgDialogOpen, setMissingOrgDialogOpen] = useState(false);
   const [unaccreditedOrgDialogOpen, setUnaccreditedOrgDialogOpen] =
     useState(false);
+  const [blockedOrgDialogOpen, setBlockedOrgDialogOpen] = useState(false);
 
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
@@ -149,6 +151,10 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       setMissingOrgDialogOpen(true);
       return;
     }
+    if (organizationDisplayStatus === OrganizationDisplayStatusValues.BLOCKED) {
+      setBlockedOrgDialogOpen(true);
+      return;
+    }
     if (
       organizationDisplayStatus ===
       OrganizationDisplayStatusValues.NOT_ACCREDITED
@@ -179,6 +185,10 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const onVerifyClick = useCallback(() => {
     if (organizationId === null) {
       setMissingOrgDialogOpen(true);
+      return;
+    }
+    if (organizationDisplayStatus === OrganizationDisplayStatusValues.BLOCKED) {
+      setBlockedOrgDialogOpen(true);
       return;
     }
     if (
@@ -340,6 +350,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       <UnaccreditedOrganizationDialog
         open={unaccreditedOrgDialogOpen}
         onClose={() => setUnaccreditedOrgDialogOpen(false)}
+      />
+
+      <BlockedOrganizationDialog
+        open={blockedOrgDialogOpen}
+        onClose={() => setBlockedOrgDialogOpen(false)}
       />
     </>
   );
