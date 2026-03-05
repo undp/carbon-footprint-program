@@ -515,7 +515,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
         addLabel="Agregar fila"
         extra={methodologySelector}
       />
-      <Box className="rounded-sm bg-white p-3">
+      <Box className="rounded-sm bg-white p-3" sx={!isViewOnly ? { pb: 8 } : undefined}>
         {!isViewOnly && (
           <InfoBanner
             variant="success"
