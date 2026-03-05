@@ -1,5 +1,5 @@
 import { FC, useEffect, useMemo, useState } from "react";
-import Box from "@mui/material/Box";
+import { Box, Skeleton } from "@mui/material";
 import { useCarbonInventories } from "../../api/query";
 import { Header, NoneCarbonInventoriesSection } from "./components";
 import { filter, map, orderBy, uniq } from "lodash-es";
@@ -93,14 +93,40 @@ export const HomeScreen: FC = () => {
         selectedYear={effectiveYear}
         selectedCarbonInventory={effectiveInventoryId}
       />
-      {effectiveInventoryId && (
-        <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
-          <EmissionResultsContent
-            inventoryId={effectiveInventoryId}
-            showBadges
-          />
-        </Box>
+      {isLoadingInventories ? (
+        <HomeScreenContentSkeleton />
+      ) : (
+        effectiveInventoryId && (
+          <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
+            <EmissionResultsContent
+              inventoryId={effectiveInventoryId}
+              showBadges
+            />
+          </Box>
+        )
       )}
     </Box>
   );
 };
+
+const HomeScreenContentSkeleton: FC = () => (
+  <Box className="flex min-h-0 flex-1 flex-row gap-4 rounded-lg bg-white p-6">
+    <Box className="flex min-h-0 flex-3 flex-col gap-4">
+      <Box className="flex min-h-0 flex-1 flex-row gap-4">
+        <Box className="flex min-h-0 flex-3 flex-col gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} variant="rounded" height={56} />
+          ))}
+        </Box>
+        <Box className="flex min-h-0 flex-1">
+          <Skeleton variant="rounded" width="100%" height="100%" />
+        </Box>
+      </Box>
+      <Box className="flex min-h-0 flex-1 flex-row gap-4">
+        <Skeleton variant="rounded" sx={{ flex: 1 }} height="100%" />
+        <Skeleton variant="rounded" sx={{ flex: 1 }} height="100%" />
+      </Box>
+    </Box>
+    <Skeleton variant="rounded" sx={{ flex: 1 }} height="100%" />
+  </Box>
+);
