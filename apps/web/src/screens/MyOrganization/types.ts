@@ -17,6 +17,28 @@ export type OrganizationRole =
 export type DialogMode = "create" | "edit";
 
 /**
+ * Form state for the organization form.
+ * Uses empty strings for unset optional fields (HTML inputs can't hold null).
+ * Distinct from CreateOrganizationBody, which is the API request shape.
+ */
+export interface OrganizationFormValues {
+  legalName: string;
+  tradeName: string;
+  taxId: string;
+  address: string;
+  sectorId: string;
+  subsectorId: string;
+  countryOrganizationSizeId: string;
+  mainActivityId: string;
+  employeesCount: number | null;
+  representativeFullName: string;
+  representativeTaxId: string;
+  representativePositionId: string;
+  representativePhone: string;
+  representativeEmail: string;
+}
+
+/**
  * Form data for adding a new user to an organization
  */
 export interface AddUserFormData {

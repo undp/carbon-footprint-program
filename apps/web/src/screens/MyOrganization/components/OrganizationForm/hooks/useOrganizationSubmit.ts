@@ -1,12 +1,11 @@
 import { useCallback } from "react";
-import { CreateOrganizationBody } from "@repo/types";
 import { useSnackbar } from "notistack";
 import {
   useCreateOrganization,
   useUpdateOrganization,
 } from "@/api/query/organizations";
-import { mapFormValuesToRequest } from "../../../transformers";
-import { DialogMode } from "../../../types";
+import { mapFormValuesToRequest } from "../../../mappers";
+import { DialogMode, OrganizationFormValues } from "../../../types";
 
 interface UseOrganizationSubmitProps {
   mode: DialogMode;
@@ -24,7 +23,7 @@ export const useOrganizationSubmit = ({
   const updateMutation = useUpdateOrganization(organizationId ?? "");
 
   const submit = useCallback(
-    async (data: CreateOrganizationBody) => {
+    async (data: OrganizationFormValues) => {
       try {
         const requestData = mapFormValuesToRequest(data);
         await (mode === "create"

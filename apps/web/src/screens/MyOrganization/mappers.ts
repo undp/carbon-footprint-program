@@ -3,10 +3,11 @@ import {
   GetOrganizationByIdResponse,
 } from "@repo/types";
 import { toSafeString } from "@/utils/string";
+import { OrganizationFormValues } from "./types";
 
 export const mapOrganizationToFormValues = (
   organization: GetOrganizationByIdResponse
-): CreateOrganizationBody => {
+): OrganizationFormValues => {
   return {
     legalName: organization.legalName,
     tradeName: toSafeString(organization.tradeName),
@@ -28,7 +29,7 @@ export const mapOrganizationToFormValues = (
 };
 
 export const mapFormValuesToRequest = (
-  values: CreateOrganizationBody
+  values: OrganizationFormValues
 ): CreateOrganizationBody => {
   return {
     ...values,

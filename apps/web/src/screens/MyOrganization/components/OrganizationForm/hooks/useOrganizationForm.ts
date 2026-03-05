@@ -1,13 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import {
-  CreateOrganizationBody,
-  GetOrganizationByIdResponse,
-} from "@repo/types";
+import { GetOrganizationByIdResponse } from "@repo/types";
 import { useResetOnChange } from "@/hooks";
-import { mapOrganizationToFormValues } from "../../../transformers";
+import { mapOrganizationToFormValues } from "../../../mappers";
+import { OrganizationFormValues } from "../../../types";
 
-const defaultValues: CreateOrganizationBody = {
+const defaultValues: OrganizationFormValues = {
   legalName: "",
   tradeName: "",
   taxId: "",
@@ -29,7 +27,7 @@ type Params = {
 };
 
 export const useOrganizationForm = ({ organization }: Params = {}) => {
-  const form = useForm<CreateOrganizationBody>({
+  const form = useForm<OrganizationFormValues>({
     defaultValues,
   });
 
