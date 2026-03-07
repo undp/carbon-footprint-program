@@ -10,7 +10,6 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "build-deps": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
     "test": "vitest run",
     "test:ui": "vitest --ui",
     "dev": "tsx watch src/server.ts",

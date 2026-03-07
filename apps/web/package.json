@@ -9,7 +9,6 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "build-deps": "pnpm --filter @repo/database run build && pnpm --filter @repo/types run build && pnpm --filter @repo/utils run build",
     "test": "echo 'Not implemented yet'",
     "dev": "vite",
     "build": "tsc -b && vite build",
