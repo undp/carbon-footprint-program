@@ -21,7 +21,7 @@
     "dev": "tsc -p tsconfig.build.json --watch",
     "prebuild": "prisma generate",
     "build": "tsc -p tsconfig.build.json && cpy \"src/generated/prisma/**\" dist/generated/prisma",
-    "clean": "rimraf dist",
+    "clean": "rimraf dist *.tsbuildinfo .turbo",
     "dev:generate": "prisma generate",
     "dev:migrate": "prisma migrate dev",
     "dev:seed": "prisma db seed",
@@ -36,6 +36,7 @@
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
     "prisma": "^7.0.1",
+    "rimraf": "catalog:shared",
     "tsx": "catalog:shared",
     "typescript": "catalog:shared"
   },

@@ -14,13 +14,14 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist *.tsbuildinfo .turbo"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "catalog:shared",
     "eslint": "catalog:shared",
+    "rimraf": "catalog:shared",
     "typescript": "catalog:shared"
   }
 }

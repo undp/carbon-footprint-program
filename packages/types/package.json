@@ -15,7 +15,7 @@
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
-    "clean": "rimraf dist"
+    "clean": "rimraf dist *.tsbuildinfo .turbo"
   },
   "dependencies": {
     "@repo/database": "workspace:*",
