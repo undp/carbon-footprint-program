@@ -9,12 +9,12 @@
     "node": ">=24.0.0"
   },
   "scripts": {
-    "test": "echo 'Not implemented yet'",
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "start": "vite preview",
+    "test": "echo 'Not implemented yet'",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "start": "vite preview",
     "clean": "rimraf dist *.tsbuildinfo .turbo"
   },
   "dependencies": {
