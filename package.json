@@ -21,7 +21,8 @@
     "type-check": "turbo run type-check",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
-    "clean": "turbo run clean"
+    "clean": "turbo run clean",
+    "db:reset": "pnpm --filter=@repo/database dev:reset --force && pnpm --filter=@repo/database dev:seed"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",
