@@ -196,17 +196,28 @@ export async function createCarbonInventorySubmission(
   }
 }
 
-export type CarbonInventoryWithSubmissionsMinimal = {
+export const carbonInventoryWithSubmissionsMinimalSelect = {
   submission: {
-    subject: {
-      submissions: {
-        id: bigint;
-        status: SubmissionStatus;
-        type: SubmissionType;
-      }[];
-    };
-  } | null;
-};
+    include: {
+      subject: {
+        include: {
+          submissions: {
+            select: {
+              id: true,
+              status: true,
+              type: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.CarbonInventorySelect;
+
+export type CarbonInventoryWithSubmissionsMinimal =
+  Prisma.CarbonInventoryGetPayload<{
+    select: typeof carbonInventoryWithSubmissionsMinimalSelect;
+  }>;
 
 export const calculateDisplayStatus = (
   carbonInventory: CarbonInventoryWithSubmissionsMinimal

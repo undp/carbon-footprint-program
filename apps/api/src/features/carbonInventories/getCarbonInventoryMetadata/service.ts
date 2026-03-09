@@ -2,7 +2,10 @@ import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 import { safeParseCarbonInventoryOrganizationData } from "../utils.js";
-import { calculateDisplayStatus } from "../helpers.js";
+import {
+  calculateDisplayStatus,
+  carbonInventoryWithSubmissionsMinimalSelect,
+} from "../helpers.js";
 
 export const getCarbonInventoryMetadataService = async (
   prismaClient: PrismaClient,
@@ -15,17 +18,7 @@ export const getCarbonInventoryMetadataService = async (
       name: true,
       organizationData: true,
       methodologyVersionId: true,
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: { id: true, status: true, type: true },
-              },
-            },
-          },
-        },
-      },
+      ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
 
