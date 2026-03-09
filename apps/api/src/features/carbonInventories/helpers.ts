@@ -196,60 +196,20 @@ export async function createCarbonInventorySubmission(
   }
 }
 
-export type CarbonInventoryWithOrganizationSummaryAndSubmissions =
-  Prisma.CarbonInventoryGetPayload<{
-    select: {
-      id: true;
-      organizationId: true;
-      organization: {
-        select: {
-          summary: {
-            select: { isAccredited: true };
-          };
-        };
-      };
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: {
-                  id: true;
-                  status: true;
-                  type: true;
-                };
-              };
-            };
-          };
-        };
-      };
+export type CarbonInventoryWithSubmissionsMinimal = {
+  submission: {
+    subject: {
+      submissions: {
+        id: bigint;
+        status: SubmissionStatus;
+        type: SubmissionType;
+      }[];
     };
-  }>;
-
-export type CarbonInventoryWithSubmissions = Prisma.CarbonInventoryGetPayload<{
-  include: {
-    submission: {
-      include: {
-        subject: {
-          include: {
-            submissions: {
-              select: {
-                id: true;
-                status: true;
-                type: true;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-}>;
+  } | null;
+};
 
 export const calculateDisplayStatus = (
-  carbonInventory:
-    | CarbonInventoryWithOrganizationSummaryAndSubmissions
-    | CarbonInventoryWithSubmissions
+  carbonInventory: CarbonInventoryWithSubmissionsMinimal
 ): CarbonInventoryDisplayStatus => {
   const submissions = carbonInventory.submission?.subject.submissions || [];
 

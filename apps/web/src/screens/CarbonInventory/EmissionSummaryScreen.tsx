@@ -17,6 +17,7 @@ import {
   useCarbonInventoryMetadata,
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
+import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 
 export const EmissionSummaryScreen: FC = () => {
@@ -48,6 +49,11 @@ export const EmissionSummaryScreen: FC = () => {
     isError: isMetadataError,
   } = useCarbonInventoryMetadata(inventoryId);
 
+  const { isGuarding } = useInventoryEditGuard(
+    inventoryId,
+    metadataData?.status
+  );
+
   const isError =
     isSummaryError || isEquivalenceError || isFactorsError || isMetadataError;
 
@@ -67,6 +73,7 @@ export const EmissionSummaryScreen: FC = () => {
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: goBack,
+      disabled: isGuarding,
     },
   };
 
