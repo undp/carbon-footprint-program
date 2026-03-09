@@ -28,7 +28,7 @@
       "cache": false,
       "dependsOn": ["^clean"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": ["dist/**", "*.tsbuildinfo", ".turbo/**"]
+      "outputs": ["dist/**", "tsconfig.build.tsbuildinfo", ".turbo/**"]
     },
     "dev": {
       "cache": false,

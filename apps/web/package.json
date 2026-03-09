@@ -15,7 +15,7 @@
     "test": "echo 'Not implemented yet'",
     "lint": "eslint .",
     "type-check": "tsc --noEmit",
-    "clean": "rimraf dist *.tsbuildinfo .turbo"
+    "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo"
   },
   "dependencies": {
     "@azure/msal-browser": "^4.27.0",

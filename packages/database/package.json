@@ -28,7 +28,7 @@
     "dev:studio": "prisma studio",
     "dev:reset": "prisma migrate reset",
     "prod:deploy": "prisma migrate deploy",
-    "clean": "rimraf dist *.tsbuildinfo .turbo",
+    "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo",
     "validate:version": "tsx scripts/validate-postgres-version.ts"
   },
   "devDependencies": {
