@@ -7,6 +7,7 @@ import {
 import { type GetAllCategoriesResponse } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
+  CarbonInventoryNotEditableError,
   MethodologyNotFoundError,
 } from "./errors.js";
 import { kgToTon } from "@/utils/number.js";
@@ -14,6 +15,7 @@ import {
   CarbonInventoryDisplayStatus,
   CarbonInventoryDisplayStatusEnum,
 } from "@repo/types";
+import { isCarbonInventoryEditable } from "@repo/utils";
 
 export type InventoryBase = {
   id: bigint;
@@ -21,6 +23,19 @@ export type InventoryBase = {
   organizationData: unknown;
   methodologyVersionId: bigint;
 };
+
+/**
+ * Validates that a carbon inventory is in an editable state.
+ * Throws CarbonInventoryNotEditableError if not editable.
+ */
+export function validateCarbonInventoryIsEditable(
+  inventory: CarbonInventoryWithSubmissionsMinimal
+): void {
+  const status = calculateDisplayStatus(inventory);
+  if (!isCarbonInventoryEditable(status)) {
+    throw new CarbonInventoryNotEditableError(inventory.id.toString(), status);
+  }
+}
 
 export type CategoryData = Pick<
   GetAllCategoriesResponse[number],

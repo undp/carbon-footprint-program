@@ -13,14 +13,12 @@ import {
 } from "./helper.js";
 import {
   CarbonInventoryNotFoundError,
-  CarbonInventoryNotEditableError,
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
   LineNotFoundError,
   LineNotInCarbonInventoryError,
 } from "../errors.js";
-import { calculateDisplayStatus } from "../helpers.js";
-import { isCarbonInventoryEditable } from "@repo/utils";
+import { validateCarbonInventoryIsEditable } from "../helpers.js";
 
 export const syncCarbonInventoryLinesService = async (
   prismaClient: PrismaClient,
@@ -51,13 +49,7 @@ export const syncCarbonInventoryLinesService = async (
   if (!carbonInventory)
     throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-  const status = calculateDisplayStatus(carbonInventory);
-  if (!isCarbonInventoryEditable(status)) {
-    throw new CarbonInventoryNotEditableError(
-      carbonInventoryId.toString(),
-      status
-    );
-  }
+  validateCarbonInventoryIsEditable(carbonInventory);
 
   // Validate subcategories for create operations
   if (request.create.length > 0) {

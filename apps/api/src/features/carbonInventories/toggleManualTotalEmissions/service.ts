@@ -4,12 +4,10 @@ import { cleanupDirectLines } from "./helper.js";
 import createError from "@fastify/error";
 import {
   CarbonInventoryNotFoundError,
-  CarbonInventoryNotEditableError,
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
 } from "../errors.js";
-import { calculateDisplayStatus } from "../helpers.js";
-import { isCarbonInventoryEditable } from "@repo/utils";
+import { validateCarbonInventoryIsEditable } from "../helpers.js";
 
 const NoActiveLinesToConvertError = createError(
   "NO_ACTIVE_LINES_TO_CONVERT",
@@ -65,13 +63,7 @@ export const toggleManualTotalEmissionsService = async (
   if (!carbonInventory)
     throw new CarbonInventoryNotFoundError(carbonInventoryId);
 
-  const status = calculateDisplayStatus(carbonInventory);
-  if (!isCarbonInventoryEditable(status)) {
-    throw new CarbonInventoryNotEditableError(
-      carbonInventoryId.toString(),
-      status
-    );
-  }
+  validateCarbonInventoryIsEditable(carbonInventory);
 
   // 2. Validate subcategory exists and belongs to the inventory methodology
   const subcategory = await prismaClient.subcategory.findUnique({

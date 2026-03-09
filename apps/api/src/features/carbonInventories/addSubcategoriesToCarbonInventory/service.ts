@@ -6,13 +6,11 @@ import {
 } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
-  CarbonInventoryNotEditableError,
   MethodologyNotFoundError,
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
 } from "../errors.js";
-import { calculateDisplayStatus } from "../helpers.js";
-import { isCarbonInventoryEditable } from "@repo/utils";
+import { validateCarbonInventoryIsEditable } from "../helpers.js";
 
 export const addSubcategoriesToCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -45,13 +43,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
     throw new CarbonInventoryNotFoundError(carbonInventoryId);
   }
 
-  const status = calculateDisplayStatus(carbonInventory);
-  if (!isCarbonInventoryEditable(status)) {
-    throw new CarbonInventoryNotEditableError(
-      carbonInventoryId.toString(),
-      status
-    );
-  }
+  validateCarbonInventoryIsEditable(carbonInventory);
 
   if (!carbonInventory.methodologyVersionId) {
     throw new MethodologyNotFoundError(carbonInventoryId);
