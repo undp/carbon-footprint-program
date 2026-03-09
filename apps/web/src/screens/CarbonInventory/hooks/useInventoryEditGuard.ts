@@ -26,8 +26,8 @@ export function useInventoryEditGuard(
     }
   }, [status, inventoryId, navigate, enqueueSnackbar]);
 
-  const isChecking = status === undefined;
-  const shouldRedirect = !isChecking && !isCarbonInventoryEditable(status);
+  const isReady = status !== undefined;
+  const shouldRedirect = isReady && !isCarbonInventoryEditable(status);
 
-  return { isChecking, shouldRedirect };
+  return { isReady, shouldRedirect };
 }

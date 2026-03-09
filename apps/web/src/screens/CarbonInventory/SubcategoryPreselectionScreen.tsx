@@ -32,7 +32,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   });
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
-  const { isChecking, shouldRedirect } = useInventoryEditGuard(
+  const { isReady, shouldRedirect } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -62,7 +62,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     { onSuccess: goNext }
   );
 
-  const isLoading = isSubcategoryPreselectionLoading || isChecking;
+  const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
   if (!isLoading && shouldRedirect) return null;
 
@@ -106,7 +106,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           footerProps={{
             buttons: [backButton, nextButton],
           }}
-          isLoading
+          isLoading={isLoading}
           hasError={hasError}
           errorMessage={ERROR_MESSAGE}
         >

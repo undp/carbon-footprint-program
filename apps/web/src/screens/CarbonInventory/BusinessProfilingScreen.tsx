@@ -59,7 +59,7 @@ export const BusinessProfilingScreen: FC = () => {
     isError: hasInventoryError,
   } = useCarbonInventory(inventoryId);
 
-  const { isChecking, shouldRedirect } = useInventoryEditGuard(
+  const { isReady, shouldRedirect } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -113,7 +113,7 @@ export const BusinessProfilingScreen: FC = () => {
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
 
-  const isLoading = isInventoryLoading || isChecking;
+  const isLoading = isInventoryLoading || !isReady;
 
   if (!isLoading && shouldRedirect) return null;
 
@@ -158,7 +158,7 @@ export const BusinessProfilingScreen: FC = () => {
           footerProps={{
             buttons: [backButton, nextButton],
           }}
-          isLoading
+          isLoading={isLoading}
           hasError={hasInventoryError}
           errorMessage={ERROR_MESSAGE}
         >

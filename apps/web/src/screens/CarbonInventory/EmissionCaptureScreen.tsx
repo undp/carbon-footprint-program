@@ -28,7 +28,7 @@ export const EmissionCaptureScreen: FC = () => {
   });
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
-  const { isChecking, shouldRedirect } = useInventoryEditGuard(
+  const { isReady, shouldRedirect } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -110,7 +110,7 @@ export const EmissionCaptureScreen: FC = () => {
     name: "subcategories",
   });
 
-  const isLoading = isEmissionCaptureLoading || isChecking;
+  const isLoading = isEmissionCaptureLoading || !isReady;
 
   if (!isLoading && shouldRedirect) return null;
 
@@ -165,7 +165,7 @@ export const EmissionCaptureScreen: FC = () => {
           footerProps={{
             buttons: [backButton, nextButton],
           }}
-          isLoading
+          isLoading={isLoading}
         >
           <Box className="flex min-h-0 flex-1 flex-col">
             <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
