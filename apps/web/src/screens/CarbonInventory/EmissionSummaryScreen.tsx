@@ -73,11 +73,12 @@ export const EmissionSummaryScreen: FC = () => {
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: goBack,
-      disabled: isGuarding,
+      disabled: !isSummaryLoading && isGuarding,
     },
-    tooltipTitle: isGuarding
-      ? "No se puede acceder a pasos editables del inventario en su estado actual"
-      : undefined,
+    tooltipTitle:
+      !isSummaryLoading && isGuarding
+        ? "No se puede acceder a pasos editables del inventario en su estado actual"
+        : undefined,
   };
 
   const nextButton: FooterButton = {
