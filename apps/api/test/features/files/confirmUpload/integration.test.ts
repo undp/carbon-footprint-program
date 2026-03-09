@@ -1,0 +1,168 @@
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  inject,
+  vi,
+} from "vitest";
+import { createTestApp } from "@test/factories/appFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { cleanupTestFiles } from "@test/factories/fileFactory.js";
+import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
+import type { FastifyInstance } from "fastify";
+import type { PrismaClient, User } from "@repo/database";
+import type { ConfirmUploadResponse } from "@repo/types";
+import {
+  type ApiErrorResponse,
+  VALIDATION_ERROR_CODE,
+} from "@/commonSchemas/errors.js";
+
+// SAS generation requires Azure AD auth, not supported by Azurite shared-key mode.
+vi.mock("@/services/blobService.js", () => ({
+  generateWriteSasUrl: vi.fn(),
+  generateReadSasUrl: vi.fn(),
+}));
+
+describe("POST /api/files/confirm-upload - Integration Tests", () => {
+  let app: FastifyInstance;
+  let prisma: PrismaClient;
+  let testUser: User;
+
+  beforeAll(async () => {
+    app = await createTestApp(inject("databaseUrl"), {
+      storageConnectionString: inject("storageConnectionString"),
+      storageContainerName: inject("storageContainerName"),
+    });
+    prisma = app.prisma;
+    testUser = await getTestLoggedUser(prisma);
+  });
+
+  afterAll(async () => {
+    await prisma.$disconnect();
+    await app.close();
+  });
+
+  afterEach(async () => {
+    await cleanupTestFiles(prisma);
+  });
+
+  describe("Happy path", () => {
+    it("should return 201 with uuid when the blob exists at the tmp path", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440000";
+      const originalName = "report.pdf";
+
+      // Blob lands at the tmp namespace: SUBMISSION/tmp/uuid-name
+      const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "application/pdf",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as ConfirmUploadResponse;
+      expect(body.uuid).toBe(uuid);
+    });
+
+    it("should create a File DB record with the tmp blobPath", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440001";
+      const originalName = "document.pdf";
+      const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
+
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "application/pdf",
+      });
+
+      await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+      expect(fileRecord).toBeDefined();
+      expect(fileRecord?.originalName).toBe(originalName);
+      expect(fileRecord?.blobPath).toBe(blobPath);
+      expect(fileRecord?.createdById).toBe(testUser.id);
+    });
+
+    it("should NOT create a SubmissionFile record (linking happens at submission creation)", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440002";
+      const originalName = "attachment.pdf";
+
+      await uploadBlobToAzurite(
+        app.blobStorage!,
+        `SUBMISSION/tmp/${uuid}-${originalName}`,
+        { contentType: "application/pdf" }
+      );
+
+      await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      const fileRecord = await prisma.file.findUnique({
+        where: { uuid },
+        include: { submissionFiles: true },
+      });
+      expect(fileRecord?.submissionFiles).toHaveLength(0);
+    });
+  });
+
+  describe("Error cases", () => {
+    it("should return 404 when the blob does not exist at the tmp path", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: {
+          uuid: "550e8400-e29b-41d4-a716-446655440003",
+          originalName: "ghost.pdf",
+          fileType: "SUBMISSION",
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        "FILE_NOT_FOUND"
+      );
+    });
+
+    it("should return 400 when uuid is not a valid UUID", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: {
+          uuid: "not-a-uuid",
+          originalName: "file.pdf",
+          fileType: "SUBMISSION",
+        },
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 400 when required body fields are missing", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: {},
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        VALIDATION_ERROR_CODE
+      );
+    });
+  });
+});
