@@ -12,8 +12,7 @@ export const updatePendingSubmissionStatus = async (
   submissionId: string,
   targetStatus: SubmissionTargetStatus,
   userId: User["id"],
-  reviewComments?: string,
-  badgeId?: bigint
+  additionalData: Prisma.SubmissionUncheckedUpdateInput = {}
 ): Promise<void> => {
   const result = await prismaClient.submission.updateMany({
     where: {
@@ -23,9 +22,8 @@ export const updatePendingSubmissionStatus = async (
     data: {
       status: targetStatus,
       reviewerId: BigInt(userId),
-      reviewComments,
       updatedById: BigInt(userId),
-      ...(badgeId && { badgeId }),
+      ...additionalData,
     },
   });
 

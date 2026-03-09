@@ -41,8 +41,10 @@ export const approveRequestService = async (
       submissionId,
       SubmissionStatus.APPROVED,
       userId,
-      body.reviewComments,
-      activeBadge?.id
+      {
+        reviewComments: body.reviewComments,
+        badgeId: activeBadge?.id,
+      }
     );
   });
 
