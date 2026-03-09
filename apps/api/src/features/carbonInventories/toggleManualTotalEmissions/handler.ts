@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { toggleManualTotalEmissionsService } from "./service.js";
 import type { ToggleManualTotalEmissionsRequest } from "@repo/types";
-import type { ToggleManualTotalEmissionsParams } from "./route.js";
+import type { ToggleManualTotalEmissionsParams } from "@repo/types";
 
 export const toggleManualTotalEmissionsHandler = async (
   request: FastifyRequest<{
