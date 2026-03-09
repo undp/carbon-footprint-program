@@ -1,4 +1,4 @@
-import type { PrismaClient, BadgeType } from "@repo/database";
+import type { PrismaClient } from "@repo/database";
 import { SubmissionStatus, BadgeStatus } from "@repo/database";
 import type {
   ApproveRequestBody,
@@ -6,6 +6,7 @@ import type {
   User,
 } from "@repo/types";
 import { SubmissionUpdateError } from "../../errors.js";
+import { updatePendingSubmissionStatus } from "../helpers.js";
 
 export const approveRequestService = async (
   prismaClient: PrismaClient,
@@ -28,23 +29,21 @@ export const approveRequestService = async (
     // BadgeType matches SubmissionType, so we can use the same value
     const activeBadge = await tx.badge.findFirst({
       where: {
-        type: submission.type as unknown as BadgeType,
+        type: submission.type,
         status: BadgeStatus.ACTIVE,
       },
       select: { id: true },
     });
 
-    // 3. Update submission with status and badgeId in a single operation
-    await tx.submission.update({
-      where: { id: BigInt(submissionId) },
-      data: {
-        status: SubmissionStatus.APPROVED,
-        reviewerId: BigInt(userId),
-        reviewComments: body.reviewComments,
-        updatedById: BigInt(userId),
-        badgeId: activeBadge?.id,
-      },
-    });
+    // 3. Update submission with status and badgeId
+    await updatePendingSubmissionStatus(
+      tx,
+      submissionId,
+      SubmissionStatus.APPROVED,
+      userId,
+      body.reviewComments,
+      activeBadge?.id
+    );
   });
 
   return {};

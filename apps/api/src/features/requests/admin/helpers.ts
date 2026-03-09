@@ -1,5 +1,5 @@
 import { SubmissionStatus } from "@repo/database";
-import type { PrismaClient } from "@repo/database";
+import type { PrismaClient, Prisma } from "@repo/database";
 import type { User } from "@repo/types";
 import { SubmissionUpdateError } from "../errors.js";
 
@@ -8,11 +8,12 @@ type SubmissionTargetStatus =
   | typeof SubmissionStatus.REJECTED;
 
 export const updatePendingSubmissionStatus = async (
-  prismaClient: PrismaClient,
+  prismaClient: PrismaClient | Prisma.TransactionClient,
   submissionId: string,
   targetStatus: SubmissionTargetStatus,
   userId: User["id"],
-  reviewComments?: string
+  reviewComments?: string,
+  badgeId?: bigint
 ): Promise<void> => {
   const result = await prismaClient.submission.updateMany({
     where: {
@@ -24,6 +25,7 @@ export const updatePendingSubmissionStatus = async (
       reviewerId: BigInt(userId),
       reviewComments,
       updatedById: BigInt(userId),
+      ...(badgeId && { badgeId }),
     },
   });
 
