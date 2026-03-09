@@ -7,7 +7,10 @@ import type {
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { CarbonInventoryNotFoundError } from "../errors.js";
-import { validateCarbonInventoryIsEditable } from "../helpers.js";
+import {
+  carbonInventoryWithSubmissionsMinimalSelect,
+  validateCarbonInventoryIsEditable,
+} from "../helpers.js";
 
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -19,18 +22,7 @@ export const updateCarbonInventoryService = async (
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(id) },
     select: {
-      id: true,
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: { id: true, status: true, type: true },
-              },
-            },
-          },
-        },
-      },
+      ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
 

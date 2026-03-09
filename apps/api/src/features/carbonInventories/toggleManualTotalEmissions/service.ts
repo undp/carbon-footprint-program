@@ -7,7 +7,10 @@ import {
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
 } from "../errors.js";
-import { validateCarbonInventoryIsEditable } from "../helpers.js";
+import {
+  carbonInventoryWithSubmissionsMinimalSelect,
+  validateCarbonInventoryIsEditable,
+} from "../helpers.js";
 
 const NoActiveLinesToConvertError = createError(
   "NO_ACTIVE_LINES_TO_CONVERT",
@@ -44,19 +47,8 @@ export const toggleManualTotalEmissionsService = async (
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: { id: carbonInventoryId },
     select: {
-      id: true,
       methodologyVersionId: true,
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: { id: true, status: true, type: true },
-              },
-            },
-          },
-        },
-      },
+      ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
 

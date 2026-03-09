@@ -10,7 +10,10 @@ import {
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
 } from "../errors.js";
-import { validateCarbonInventoryIsEditable } from "../helpers.js";
+import {
+  carbonInventoryWithSubmissionsMinimalSelect,
+  validateCarbonInventoryIsEditable,
+} from "../helpers.js";
 
 export const addSubcategoriesToCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -25,17 +28,7 @@ export const addSubcategoriesToCarbonInventoryService = async (
     },
     select: {
       methodologyVersionId: true,
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: { id: true, status: true, type: true },
-              },
-            },
-          },
-        },
-      },
+      ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
 
