@@ -26,13 +26,14 @@
   "tasks": {
     "clean": {
       "cache": false,
+      "dependsOn": ["^clean"],
       "inputs": ["$TURBO_DEFAULT$"],
-      "outputs": []
+      "outputs": ["dist/**", "tsconfig.build.tsbuildinfo", ".turbo/**"]
     },
     "dev": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^build"],
+      "dependsOn": ["^clean", "^build"],
       "inputs": ["$TURBO_DEFAULT$", "*.ts"],
       "outputs": []
     },
@@ -45,7 +46,7 @@
     "start": {
       "cache": false,
       "persistent": true,
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": []
     },

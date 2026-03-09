@@ -45,24 +45,9 @@ COPY packages/utils ./packages/utils
 COPY packages/typescript-config ./packages/typescript-config
 COPY apps/api ./apps/api
 
-# Generate Prisma Client
-WORKDIR /app/packages/database
-RUN pnpm exec prisma generate
-
-# Build database package (compiles TypeScript and copies generated client to dist)
-RUN pnpm build
-
-# Build types package
-WORKDIR /app/packages/types
-RUN pnpm build
-
-# Build utils package
-WORKDIR /app/packages/utils
-RUN pnpm build
-
-# Build the API application
+# Build using turbo (automatically handles dependency order and prisma generate via prebuild)
 WORKDIR /app
-RUN pnpm --filter api build
+RUN pnpm turbo build --filter=api...
 
 # Stage 4: Production image
 FROM node:24-alpine AS runner
