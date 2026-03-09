@@ -14,7 +14,6 @@ export const getCarbonInventoryMetadataService = async (
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(id) },
     select: {
-      id: true,
       name: true,
       organizationData: true,
       methodologyVersionId: true,

@@ -214,9 +214,9 @@ export async function createCarbonInventorySubmission(
 export const carbonInventoryWithSubmissionsMinimalSelect = {
   id: true,
   submission: {
-    include: {
+    select: {
       subject: {
-        include: {
+        select: {
           submissions: {
             select: {
               id: true,

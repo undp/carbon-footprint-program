@@ -25,7 +25,6 @@ export const requestVerificationService = async (
     const inventory = await tx.carbonInventory.findFirst({
       where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
-        id: true,
         organizationId: true,
         organization: {
           select: {
