@@ -1,8 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { UnblockOrganizationResponse } from "@repo/types";
-import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
-import { carbonInventoryKeys } from "../carbonInventories/keys";
 
 export const useUnblockOrganization = () => {
   const queryClient = useQueryClient();
@@ -11,21 +9,10 @@ export const useUnblockOrganization = () => {
     mutationFn: async (id) =>
       apiClient.post(`admin/organizations/${id}/unblock`).json(),
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: organizationKeys.adminAll(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: organizationKeys.adminKpis(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: organizationKeys.all,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.all,
-          exact: true,
-        }),
-      ]);
+      await queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes("organizationStatusDependency"),
+      });
     },
   });
 };
