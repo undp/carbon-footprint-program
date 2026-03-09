@@ -3,12 +3,14 @@ import { useNavigate } from "@tanstack/react-router";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { Routes } from "@/interfaces";
 import type { CarbonInventoryDisplayStatus } from "@repo/types";
+import { useSnackbar } from "notistack";
 
 export function useInventoryEditGuard(
   inventoryId: string,
   status: CarbonInventoryDisplayStatus | undefined
 ) {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
     if (status && !isCarbonInventoryEditable(status)) {
@@ -17,8 +19,12 @@ export function useInventoryEditGuard(
         params: { inventoryId },
         replace: true,
       });
+      enqueueSnackbar(
+        "No se puede acceder a pasos editables del inventario en su estado actual",
+        { variant: "info" }
+      );
     }
-  }, [status, inventoryId, navigate]);
+  }, [status, inventoryId, navigate, enqueueSnackbar]);
 
   const isChecking = status === undefined;
   const shouldRedirect = !isChecking && !isCarbonInventoryEditable(status);
