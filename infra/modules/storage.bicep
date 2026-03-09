@@ -10,6 +10,9 @@ param networkAclBypass string = 'AzureServices'
 @description('Allowed origin for blob storage CORS (e.g., https://app.example.com). Leave empty to disable CORS.')
 param allowedOrigin string = ''
 
+@description('Additional allowed origin for local development (e.g., http://localhost:5173). Leave empty to disable.')
+param devAllowedOrigin string = ''
+
 @description('Tags to apply to the Storage Account')
 param tags object = {}
 
@@ -46,7 +49,7 @@ resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2025-06-01'
     cors: {
       corsRules: allowedOrigin != '' ? [
         {
-          allowedOrigins: [ allowedOrigin ]
+          allowedOrigins: devAllowedOrigin != '' ? [ allowedOrigin, devAllowedOrigin ] : [ allowedOrigin ]
           allowedMethods: [ 'GET' , 'PUT', 'HEAD', 'OPTIONS' ]
           allowedHeaders: [ '*' ]
           exposedHeaders: [ '*' ]
