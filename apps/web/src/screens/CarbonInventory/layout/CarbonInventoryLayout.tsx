@@ -5,6 +5,7 @@ import {
   Button,
   CircularProgress,
   Toolbar,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import type { ButtonProps } from "@mui/material";
@@ -66,6 +67,7 @@ export interface FooterButton {
   align: "left" | "right";
   text: string;
   buttonProps: Partial<ButtonProps>;
+  tooltipTitle?: string;
 }
 
 interface CarbonInventoryFooterProps {
@@ -94,18 +96,30 @@ export const CarbonInventoryFooter: FC<CarbonInventoryFooterProps> = ({
         sx={{ boxShadow: "4px 0 8px 0 rgba(0, 0, 0, 0.04)" }}
       >
         <Box className="flex flex-row gap-6">
-          {leftAlignedButtons.map(({ text, buttonProps }, index) => (
-            <Button {...buttonProps} key={index}>
-              {text}
-            </Button>
-          ))}
+          {leftAlignedButtons.map(
+            ({ text, buttonProps, tooltipTitle }, index) => (
+              <Tooltip title={tooltipTitle} key={index}>
+                <span>
+                  <Button {...buttonProps} key={index}>
+                    {text}
+                  </Button>
+                </span>
+              </Tooltip>
+            )
+          )}
         </Box>
         <Box className="flex flex-row gap-6">
-          {rightAlignedButtons.map(({ text, buttonProps }, index) => (
-            <Button {...buttonProps} key={index}>
-              {text}
-            </Button>
-          ))}
+          {rightAlignedButtons.map(
+            ({ text, buttonProps, tooltipTitle }, index) => (
+              <Tooltip title={tooltipTitle} key={index}>
+                <span>
+                  <Button {...buttonProps} key={index}>
+                    {text}
+                  </Button>
+                </span>
+              </Tooltip>
+            )
+          )}
         </Box>
       </Toolbar>
     </AppBar>

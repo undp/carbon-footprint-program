@@ -75,6 +75,9 @@ export const EmissionSummaryScreen: FC = () => {
       onClick: goBack,
       disabled: isGuarding,
     },
+    tooltipTitle: isGuarding
+      ? "No se puede acceder a pasos editables del inventario en su estado actual"
+      : undefined,
   };
 
   const nextButton: FooterButton = {
