@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
+import { OrganizationDisplayStatusSchema } from "../../organizations/index.js";
 
 // Query schema
 export const GetAllCarbonInventoriesQuerySchema = z.object({
@@ -21,10 +22,9 @@ const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
   totalEmissions: z
     .number()
     .describe("The total calculated emissions for this inventory"),
-  organizationIsAccredited: z
-    .boolean()
-    .describe(
-      "Whether the associated organization is accredited. False if no organization is associated."
+  organizationDisplayStatus:
+    OrganizationDisplayStatusSchema.nullable().describe(
+      "The display status of the associated organization, or null if no organization is associated."
     ),
 });
 
