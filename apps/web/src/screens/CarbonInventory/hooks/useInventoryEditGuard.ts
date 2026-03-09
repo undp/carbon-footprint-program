@@ -26,7 +26,7 @@ export function useInventoryEditGuard(
   }, [status, inventoryId, navigate, enqueueSnackbar]);
 
   const isReady = status !== undefined;
-  const shouldRedirect = isReady && !isCarbonInventoryEditable(status);
+  const mustNavigateAway = isReady && !isCarbonInventoryEditable(status);
 
-  return { isReady, shouldRedirect };
+  return { isReady, mustNavigateAway };
 }

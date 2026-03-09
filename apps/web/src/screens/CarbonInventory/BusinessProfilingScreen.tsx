@@ -59,7 +59,7 @@ export const BusinessProfilingScreen: FC = () => {
     isError: hasInventoryError,
   } = useCarbonInventory(inventoryId);
 
-  const { isReady, shouldRedirect } = useInventoryEditGuard(
+  const { isReady, mustNavigateAway } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -115,7 +115,7 @@ export const BusinessProfilingScreen: FC = () => {
 
   const isLoading = isInventoryLoading || !isReady;
 
-  if (!isLoading && shouldRedirect) return null;
+  if (!isLoading && mustNavigateAway) return null;
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró la huella", { variant: "error" });

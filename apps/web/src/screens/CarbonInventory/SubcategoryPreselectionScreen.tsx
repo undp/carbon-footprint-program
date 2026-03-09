@@ -32,7 +32,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   });
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
-  const { isReady, shouldRedirect } = useInventoryEditGuard(
+  const { isReady, mustNavigateAway } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -64,7 +64,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
-  if (!isLoading && shouldRedirect) return null;
+  if (!isLoading && mustNavigateAway) return null;
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
 
