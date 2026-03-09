@@ -62,7 +62,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     { onSuccess: goNext }
   );
 
-  if (isGuarding) return null;
+  if (!isLoading && isGuarding) return null;
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
 

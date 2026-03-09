@@ -113,7 +113,7 @@ export const BusinessProfilingScreen: FC = () => {
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
 
-  if (isGuarding) return null;
+  if (!isInventoryLoading && isGuarding) return null;
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró la huella", { variant: "error" });

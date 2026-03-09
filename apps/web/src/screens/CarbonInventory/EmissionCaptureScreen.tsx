@@ -110,7 +110,7 @@ export const EmissionCaptureScreen: FC = () => {
     name: "subcategories",
   });
 
-  if (isGuarding) return null;
+  if (!isLoading && isGuarding) return null;
 
   const backButton: FooterButton = {
     text: "Volver",
