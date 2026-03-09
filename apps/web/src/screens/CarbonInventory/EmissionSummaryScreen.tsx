@@ -19,6 +19,7 @@ import {
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { isCarbonInventoryEditable } from "@repo/utils";
+import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -104,6 +105,12 @@ export const EmissionSummaryScreen: FC = () => {
             title="Paso 4: Resumen"
             description="Verifica tus datos antes de calcular"
           />
+          {metadataData?.status && (
+            <CarbonInventoryStatusChip
+              status={metadataData.status}
+              size="medium"
+            />
+          )}
         </Box>
 
         {/* Inventory attributes */}

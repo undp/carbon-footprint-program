@@ -1,12 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
-  Chip,
   Typography,
-  alpha,
-  Theme,
-  useTheme,
-  darken,
   MenuItem,
   Select,
   SelectChangeEvent,
@@ -18,6 +13,7 @@ import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
+import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import {
   useCarbonInventories,
   useCarbonInventoriesAvailableYears,
@@ -31,62 +27,10 @@ import {
 } from "@repo/types";
 import { NewInventoryDialog } from "./components/Dialogs";
 
-// TODO: improve colors for each status
-const getStatusColor = (
-  theme: Theme,
-  status: CarbonInventoryDisplayStatus
-): string => {
-  switch (status) {
-    case CarbonInventoryDisplayStatusEnum.DRAFT:
-      return theme.palette.grey[400];
-    case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION:
-      return theme.palette.info.main;
-    case CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED:
-      return theme.palette.warning.main;
-    case CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED:
-      return theme.palette.error.main;
-    case CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED:
-      return theme.palette.success.main;
-    case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION:
-      return theme.palette.info.main;
-    case CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED:
-      return theme.palette.warning.main;
-    case CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED:
-      return theme.palette.error.main;
-    case CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED:
-      return theme.palette.success.main;
-    case CarbonInventoryDisplayStatusEnum.DELETED:
-      return theme.palette.error.main;
-    default:
-      return theme.palette.grey[400];
-  }
-};
-
 const getUsageModeLabel = (mode: UsageMode) =>
   mode === UsageMode.SIMPLIFIED ? "Asistido" : "Experto";
 
-const STATUS_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
-  [CarbonInventoryDisplayStatusEnum.DRAFT]: "Borrador",
-  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
-    "Postulando a cálculo",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]:
-    "Objetado en cálculo",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
-    "Rechazado en cálculo",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: "Calculado",
-  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
-    "Postulando a verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]:
-    "Objetado en verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
-    "Rechazado en verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: "Verificado",
-  [CarbonInventoryDisplayStatusEnum.DELETED]: "Eliminado",
-};
-
 export const CarbonInventoriesScreen: FC = () => {
-  const theme = useTheme();
-
   const [selectedYear, setSelectedYear] = useState<string>("all");
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
@@ -201,41 +145,7 @@ export const CarbonInventoriesScreen: FC = () => {
               GetAllCarbonInventoriesResponse[number],
               CarbonInventoryDisplayStatus
             >
-          ) => (
-            <Chip
-              sx={{
-                padding: "6px 16px",
-                backgroundColor: alpha(
-                  getStatusColor(
-                    theme,
-                    params.value as CarbonInventoryDisplayStatus
-                  ),
-                  0.3
-                ),
-                color: darken(
-                  getStatusColor(
-                    theme,
-                    params.value as CarbonInventoryDisplayStatus
-                  ),
-                  0.5
-                ),
-                border: `1px solid ${alpha(
-                  getStatusColor(
-                    theme,
-                    params.value as CarbonInventoryDisplayStatus
-                  ),
-                  0.3
-                )}`,
-                textTransform: "uppercase",
-              }}
-              label={
-                <Typography variant="subtitle2">
-                  {STATUS_LABELS[params.value as CarbonInventoryDisplayStatus]}
-                </Typography>
-              }
-              size="small"
-            />
-          ),
+          ) => <CarbonInventoryStatusChip status={params.value!} />,
         },
         {
           field: "actions",
@@ -260,7 +170,7 @@ export const CarbonInventoriesScreen: FC = () => {
           ),
         },
       ],
-      [theme, refetchInventories]
+      [refetchInventories]
     );
 
   const filteredInventories = useMemo(
