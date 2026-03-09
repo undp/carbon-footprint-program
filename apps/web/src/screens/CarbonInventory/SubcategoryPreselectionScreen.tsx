@@ -15,6 +15,8 @@ import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
+import { useCarbonInventory } from "@/api/query";
+import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 
 const ERROR_MESSAGE = {
   title:
@@ -28,6 +30,12 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
+
+  const { data: existingInventory } = useCarbonInventory(inventoryId);
+  const { isGuarding } = useInventoryEditGuard(
+    inventoryId,
+    existingInventory?.status
+  );
 
   const { data } = useEmissionCaptureData({
     inventoryId,
@@ -53,6 +61,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
     inventoryId,
     { onSuccess: goNext }
   );
+
+  if (isGuarding) return null;
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
 

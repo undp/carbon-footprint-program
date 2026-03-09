@@ -19,11 +19,19 @@ import { IS_DEVELOPMENT } from "@/config/environment";
 import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
+import { useCarbonInventory } from "@/api/query";
+import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
+
+  const { data: existingInventory } = useCarbonInventory(inventoryId);
+  const { isGuarding } = useInventoryEditGuard(
+    inventoryId,
+    existingInventory?.status
+  );
 
   const { selectedCategory, handleCategoryChange } =
     useEmissionCaptureCategory();
@@ -101,6 +109,8 @@ export const EmissionCaptureScreen: FC = () => {
     control: methods.control,
     name: "subcategories",
   });
+
+  if (isGuarding) return null;
 
   const backButton: FooterButton = {
     text: "Volver",

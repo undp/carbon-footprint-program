@@ -23,6 +23,7 @@ import { IS_DEVELOPMENT } from "@/config/environment";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
+import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -57,6 +58,11 @@ export const BusinessProfilingScreen: FC = () => {
     isLoading: isInventoryLoading,
     isError: hasInventoryError,
   } = useCarbonInventory(inventoryId);
+
+  const { isGuarding } = useInventoryEditGuard(
+    inventoryId,
+    existingInventory?.status
+  );
 
   const {
     control,
@@ -106,6 +112,8 @@ export const BusinessProfilingScreen: FC = () => {
 
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
+
+  if (isGuarding) return null;
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró la huella", { variant: "error" });

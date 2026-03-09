@@ -16,6 +16,7 @@ import {
   OrganizationDisplayStatus,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
+import { isCarbonInventoryEditable } from "@repo/utils";
 import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
@@ -79,13 +80,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
 
-  const canEdit =
-    status === CarbonInventoryDisplayStatusEnum.DRAFT ||
-    status === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+  // for now, we can use the same method to check if the inventory is editable as the one to check if the inventory can request calculation
 
-  const canRequestCalculation =
-    status === CarbonInventoryDisplayStatusEnum.DRAFT ||
-    status === CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+  const canEdit = isCarbonInventoryEditable(status);
+
+  const canRequestCalculation = isCarbonInventoryEditable(status);
 
   const canRequestVerification =
     status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
