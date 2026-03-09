@@ -59,7 +59,7 @@ export const BusinessProfilingScreen: FC = () => {
     isError: hasInventoryError,
   } = useCarbonInventory(inventoryId);
 
-  const { isGuarding } = useInventoryEditGuard(
+  const { isChecking, shouldRedirect } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -113,7 +113,9 @@ export const BusinessProfilingScreen: FC = () => {
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
 
-  if (!isInventoryLoading && isGuarding) return null;
+  const isLoading = isInventoryLoading || isChecking;
+
+  if (!isLoading && shouldRedirect) return null;
 
   if (!inventoryId) {
     enqueueSnackbar("No se encontró la huella", { variant: "error" });
@@ -137,7 +139,7 @@ export const BusinessProfilingScreen: FC = () => {
       variant: "contained",
       type: "submit",
       form: "business-profiling-form",
-      loading: isSubmitting || isInventoryLoading,
+      loading: isSubmitting || isLoading,
       disabled: isFormDisabled,
     },
   };
@@ -156,7 +158,7 @@ export const BusinessProfilingScreen: FC = () => {
           footerProps={{
             buttons: [backButton, nextButton],
           }}
-          isLoading={isInventoryLoading}
+          isLoading
           hasError={hasInventoryError}
           errorMessage={ERROR_MESSAGE}
         >

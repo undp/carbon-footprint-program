@@ -17,8 +17,8 @@ import {
   useCarbonInventoryMetadata,
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
-import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
+import { isCarbonInventoryEditable } from "@repo/utils";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -49,11 +49,6 @@ export const EmissionSummaryScreen: FC = () => {
     isError: isMetadataError,
   } = useCarbonInventoryMetadata(inventoryId);
 
-  const { isGuarding } = useInventoryEditGuard(
-    inventoryId,
-    metadataData?.status
-  );
-
   const isError =
     isSummaryError || isEquivalenceError || isFactorsError || isMetadataError;
 
@@ -67,18 +62,20 @@ export const EmissionSummaryScreen: FC = () => {
       });
   }, [isError, enqueueSnackbar]);
 
+  const isEditBlocked =
+    metadataData?.status && !isCarbonInventoryEditable(metadataData.status);
+
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: goBack,
-      disabled: !isSummaryLoading && isGuarding,
+      disabled: isEditBlocked,
     },
-    tooltipTitle:
-      !isSummaryLoading && isGuarding
-        ? "No se puede acceder a pasos editables del inventario en su estado actual"
-        : undefined,
+    tooltipTitle: isEditBlocked
+      ? "No se puede acceder a pasos editables del inventario en su estado actual"
+      : undefined,
   };
 
   const nextButton: FooterButton = {

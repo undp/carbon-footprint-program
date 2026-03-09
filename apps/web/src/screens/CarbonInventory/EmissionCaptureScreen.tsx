@@ -28,7 +28,7 @@ export const EmissionCaptureScreen: FC = () => {
   });
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
-  const { isGuarding } = useInventoryEditGuard(
+  const { isChecking, shouldRedirect } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
   );
@@ -36,7 +36,7 @@ export const EmissionCaptureScreen: FC = () => {
   const { selectedCategory, handleCategoryChange } =
     useEmissionCaptureCategory();
 
-  const { data, isLoading } = useEmissionCaptureData({
+  const { data, isLoading: isEmissionCaptureLoading } = useEmissionCaptureData({
     inventoryId,
   });
 
@@ -110,7 +110,9 @@ export const EmissionCaptureScreen: FC = () => {
     name: "subcategories",
   });
 
-  if (!isLoading && isGuarding) return null;
+  const isLoading = isEmissionCaptureLoading || isChecking;
+
+  if (!isLoading && shouldRedirect) return null;
 
   const backButton: FooterButton = {
     text: "Volver",
@@ -163,7 +165,7 @@ export const EmissionCaptureScreen: FC = () => {
           footerProps={{
             buttons: [backButton, nextButton],
           }}
-          isLoading={isLoading}
+          isLoading
         >
           <Box className="flex min-h-0 flex-1 flex-col">
             <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-scroll rounded-lg bg-white p-6">
