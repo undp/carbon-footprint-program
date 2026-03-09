@@ -12,7 +12,6 @@ import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type { OrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
-import type { InventoryIdExtractor } from "@/plugins/app/inventoryAuthorizationPlugin.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -127,10 +126,6 @@ declare module "fastify" {
     requireOrganizationRole: (
       organizationIdExtractor: OrganizationIdExtractor,
       allowedRoles: OrganizationRole[]
-    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
-
-    requireEditableInventory: (
-      inventoryIdExtractor: InventoryIdExtractor
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 

@@ -4,14 +4,10 @@ import {
   UpdateCarbonInventoryRequestSchema,
   UpdateCarbonInventoryResponseSchema,
   type UpdateCarbonInventoryRequest,
+  type UpdateCarbonInventoryParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import type { FastifyRequest } from "fastify";
-import type { UpdateCarbonInventoryParams } from "@repo/types";
-
-const extractCarbonInventoryId = async (request: FastifyRequest) =>
-  Promise.resolve((request.params as UpdateCarbonInventoryParams).id);
 
 export const updateCarbonInventoryRoute: StandardRouteSignature = (
   fastify,
@@ -36,7 +32,6 @@ export const updateCarbonInventoryRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
-      preHandler: [fastify.requireEditableInventory(extractCarbonInventoryId)],
       config: {
         public: options?.public ?? false,
       },

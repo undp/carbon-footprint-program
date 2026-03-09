@@ -8,14 +8,6 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { FastifyRequest } from "fastify";
-
-const extractCarbonInventoryId = async (
-  request: FastifyRequest
-): Promise<string> =>
-  Promise.resolve(
-    (request.params as UpdateCarbonInventorySubcategoriesParams).id
-  );
 
 export const updateCarbonInventorySubcategoriesRoute: StandardRouteSignature = (
   fastify,
@@ -41,7 +33,6 @@ export const updateCarbonInventorySubcategoriesRoute: StandardRouteSignature = (
           422: ApiErrorResponseSchema,
         },
       },
-      preHandler: [fastify.requireEditableInventory(extractCarbonInventoryId)],
       config: {
         public: options?.public ?? false,
       },

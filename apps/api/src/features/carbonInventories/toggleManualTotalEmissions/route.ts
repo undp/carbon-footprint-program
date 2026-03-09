@@ -8,10 +8,6 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import type { FastifyRequest } from "fastify";
-
-const extractCarbonInventoryId = async (request: FastifyRequest) =>
-  Promise.resolve((request.params as ToggleManualTotalEmissionsParams).id);
 
 export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
   fastify,
@@ -37,7 +33,6 @@ export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
           422: ApiErrorResponseSchema,
         },
       },
-      preHandler: [fastify.requireEditableInventory(extractCarbonInventoryId)],
       config: {
         public: options?.public ?? false,
       },

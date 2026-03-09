@@ -6,7 +6,12 @@ import type {
 } from "@repo/types";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { mapBigIntField } from "@/utils/bigint.js";
-import { CarbonInventoryNotFoundError } from "../errors.js";
+import {
+  CarbonInventoryNotFoundError,
+  CarbonInventoryNotEditableError,
+} from "../errors.js";
+import { calculateDisplayStatus } from "../helpers.js";
+import { isCarbonInventoryEditable } from "@repo/utils";
 
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -14,6 +19,34 @@ export const updateCarbonInventoryService = async (
   data: UpdateCarbonInventoryRequest,
   user: User | null
 ): Promise<UpdateCarbonInventoryResponse> => {
+  // Fetch and validate inventory is editable
+  const inventory = await prismaClient.carbonInventory.findUnique({
+    where: { id: BigInt(id) },
+    select: {
+      id: true,
+      submission: {
+        include: {
+          subject: {
+            include: {
+              submissions: {
+                select: { id: true, status: true, type: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!inventory) {
+    throw new CarbonInventoryNotFoundError(id);
+  }
+
+  const status = calculateDisplayStatus(inventory);
+  if (!isCarbonInventoryEditable(status)) {
+    throw new CarbonInventoryNotEditableError(id, status);
+  }
+
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.CarbonInventoryUncheckedUpdateInput = {};
 
