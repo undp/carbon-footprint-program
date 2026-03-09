@@ -5,7 +5,7 @@ import { EmissionFactorBaseSchema } from "../../baseSchemas/emissionFactor.js";
 
 const ItemSchema = z
   .object({
-    id: EmissionFactorBaseSchema.shape.id,
+    id: z.string().describe("Emission factor ID"),
     categoryName: CategoryBaseSchema.shape.name,
     categorySynonyms: CategoryBaseSchema.shape.synonyms,
     categoryPosition: CategoryBaseSchema.shape.position,
