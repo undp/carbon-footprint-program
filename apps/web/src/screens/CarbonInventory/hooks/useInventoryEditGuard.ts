@@ -19,10 +19,9 @@ export function useInventoryEditGuard(
         params: { inventoryId },
         replace: true,
       });
-      enqueueSnackbar(
-        "No se puede acceder a pasos editables del inventario en su estado actual",
-        { variant: "info" }
-      );
+      enqueueSnackbar("La huella no es editable actualmente", {
+        variant: "info",
+      });
     }
   }, [status, inventoryId, navigate, enqueueSnackbar]);
 

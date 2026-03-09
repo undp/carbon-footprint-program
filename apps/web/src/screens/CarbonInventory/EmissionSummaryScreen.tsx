@@ -74,7 +74,7 @@ export const EmissionSummaryScreen: FC = () => {
       disabled: isEditBlocked,
     },
     tooltipTitle: isEditBlocked
-      ? "No se puede acceder a pasos editables del inventario en su estado actual"
+      ? "La huella no es editable actualmente"
       : undefined,
   };
 
