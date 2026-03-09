@@ -150,3 +150,7 @@ export const SyncCarbonInventoryLinesResponseSchema = z.object({
   updated: z.array(LineItemSchema).describe("Lines that were updated"),
   deleted: z.array(IdSchema).describe("IDs of lines that were deleted"),
 });
+
+export const SyncCarbonInventoryLinesParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});

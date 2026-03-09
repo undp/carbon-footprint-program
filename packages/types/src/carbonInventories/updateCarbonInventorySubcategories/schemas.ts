@@ -43,3 +43,7 @@ export const UpdateCarbonInventorySubcategoriesResponseSchema = z.object({
       "Number of subcategories that were skipped (already in desired state)"
     ),
 });
+
+export const UpdateCarbonInventorySubcategoriesParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});

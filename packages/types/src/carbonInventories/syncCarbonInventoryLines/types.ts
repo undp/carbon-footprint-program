@@ -5,6 +5,7 @@ import type {
   SyncDeleteLineItemSchema,
   SyncCarbonInventoryLinesRequestSchema,
   SyncCarbonInventoryLinesResponseSchema,
+  SyncCarbonInventoryLinesParamsSchema,
 } from "./schemas.js";
 
 // TypeScript types
@@ -20,4 +21,8 @@ export type SyncCarbonInventoryLinesRequest = z.infer<
 
 export type SyncCarbonInventoryLinesResponse = z.infer<
   typeof SyncCarbonInventoryLinesResponseSchema
+>;
+
+export type SyncCarbonInventoryLinesParams = z.infer<
+  typeof SyncCarbonInventoryLinesParamsSchema
 >;

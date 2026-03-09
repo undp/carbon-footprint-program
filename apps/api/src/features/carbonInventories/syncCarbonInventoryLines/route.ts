@@ -1,22 +1,26 @@
 import { syncCarbonInventoryLinesHandler } from "./handler.js";
 import {
-  IdSchema,
   SyncCarbonInventoryLinesRequestSchema,
   SyncCarbonInventoryLinesResponseSchema,
+  SyncCarbonInventoryLinesParamsSchema,
+  type SyncCarbonInventoryLinesRequest,
+  type SyncCarbonInventoryLinesParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import type { FastifyRequest } from "fastify";
 
-const SyncCarbonInventoryLinesParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+const extractCarbonInventoryId = async (request: FastifyRequest) =>
+  Promise.resolve((request.params as SyncCarbonInventoryLinesParams).id);
 
 export const syncCarbonInventoryLinesRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.post(
+  fastify.post<{
+    Params: SyncCarbonInventoryLinesParams;
+    Body: SyncCarbonInventoryLinesRequest;
+  }>(
     "/:id/lines/sync",
     {
       schema: {
@@ -33,6 +37,7 @@ export const syncCarbonInventoryLinesRoute: StandardRouteSignature = (
           422: ApiErrorResponseSchema,
         },
       },
+      preHandler: [fastify.requireEditableInventory(extractCarbonInventoryId)],
       config: {
         public: options?.public ?? false,
       },

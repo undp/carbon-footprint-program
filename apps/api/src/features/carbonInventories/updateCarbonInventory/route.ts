@@ -1,22 +1,26 @@
 import { updateCarbonInventoryHandler } from "./handler.js";
 import {
-  IdSchema,
+  UpdateCarbonInventoryParamsSchema,
   UpdateCarbonInventoryRequestSchema,
   UpdateCarbonInventoryResponseSchema,
+  type UpdateCarbonInventoryRequest,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import type { FastifyRequest } from "fastify";
+import type { UpdateCarbonInventoryParams } from "@repo/types";
 
-const UpdateCarbonInventoryParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+const extractCarbonInventoryId = async (request: FastifyRequest) =>
+  Promise.resolve((request.params as UpdateCarbonInventoryParams).id);
 
 export const updateCarbonInventoryRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.patch(
+  fastify.patch<{
+    Params: UpdateCarbonInventoryParams;
+    Body: UpdateCarbonInventoryRequest;
+  }>(
     "/:id",
     {
       schema: {
@@ -32,6 +36,7 @@ export const updateCarbonInventoryRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
+      preHandler: [fastify.requireEditableInventory(extractCarbonInventoryId)],
       config: {
         public: options?.public ?? false,
       },

@@ -1,4 +1,6 @@
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
+import { IdSchema } from "../../zod.js";
+import { z } from "zod";
 
 export const UpdateCarbonInventoryRequestSchema =
   CarbonInventoryBaseSchema.pick({
@@ -20,3 +22,7 @@ export const UpdateCarbonInventoryRequestSchema =
 
 export const UpdateCarbonInventoryResponseSchema =
   CarbonInventoryBaseSchema.omit({ status: true });
+
+export const UpdateCarbonInventoryParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});

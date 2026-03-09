@@ -1,23 +1,26 @@
 import { toggleManualTotalEmissionsHandler } from "./handler.js";
-import { IdSchema, ToggleManualTotalEmissionsRequestSchema } from "@repo/types";
+import {
+  ToggleManualTotalEmissionsRequestSchema,
+  ToggleManualTotalEmissionsParamsSchema,
+  type ToggleManualTotalEmissionsRequest,
+  type ToggleManualTotalEmissionsParams,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import type { FastifyRequest } from "fastify";
 
-const ToggleManualTotalEmissionsParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-  subcategoryId: IdSchema.describe("The subcategory ID"),
-});
-
-export type ToggleManualTotalEmissionsParams = z.infer<
-  typeof ToggleManualTotalEmissionsParamsSchema
->;
+const extractCarbonInventoryId = async (request: FastifyRequest) =>
+  Promise.resolve((request.params as ToggleManualTotalEmissionsParams).id);
 
 export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.post(
+  fastify.post<{
+    Params: ToggleManualTotalEmissionsParams;
+    Body: ToggleManualTotalEmissionsRequest;
+  }>(
     "/:id/subcategories/:subcategoryId/manual-total-emissions",
     {
       schema: {
@@ -34,6 +37,7 @@ export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
           422: ApiErrorResponseSchema,
         },
       },
+      preHandler: [fastify.requireEditableInventory(extractCarbonInventoryId)],
       config: {
         public: options?.public ?? false,
       },
