@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import { type PrismaClient, Prisma } from "@repo/database";
 import type { ContainerClient } from "@azure/storage-blob";
 import {
   type ConfirmUploadBody,
@@ -6,6 +6,7 @@ import {
 } from "@repo/types";
 import { buildBlobPath } from "../helpers/buildBlobPath.js";
 import { checkFileRecordExists } from "../helpers/persistFileRecord.js";
+import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 type ConfirmUploadInput = ConfirmUploadBody & { userId?: string };
 
@@ -29,16 +30,26 @@ export const confirmUploadService = async (
     uuid
   );
 
-  await prisma.file.create({
-    data: {
-      uuid,
-      originalName,
-      mimeType,
-      sizeBytes,
-      blobPath,
-      createdById: userId ? BigInt(userId) : null,
-    },
-  });
+  try {
+    await prisma.file.create({
+      data: {
+        uuid,
+        originalName,
+        mimeType,
+        sizeBytes,
+        blobPath,
+        createdById: userId ? BigInt(userId) : null,
+      },
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw new DatabaseUniqueConstraintViolationError();
+    }
+    throw error;
+  }
 
   return { uuid };
 };

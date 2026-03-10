@@ -19,6 +19,7 @@ import {
   type ApiErrorResponse,
   VALIDATION_ERROR_CODE,
 } from "@/commonSchemas/errors.js";
+import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
 
 // SAS generation requires Azure AD auth, not supported by Azurite shared-key mode.
 vi.mock("@/services/blobService.js", () => ({
@@ -162,6 +163,33 @@ describe("POST /api/files/confirm-upload - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
       expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
         VALIDATION_ERROR_CODE
+      );
+    });
+
+    it("should return 409 when the same uuid is confirmed twice", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440010";
+      const originalName = "duplicate.pdf";
+      const blobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
+
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "application/pdf",
+      });
+
+      await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect((JSON.parse(response.body) as ApiErrorResponse).code).toBe(
+        new DatabaseUniqueConstraintViolationError().code
       );
     });
   });
