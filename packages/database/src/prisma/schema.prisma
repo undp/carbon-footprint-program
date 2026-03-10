@@ -512,8 +512,6 @@ model EmissionFactor {
   updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
   lineFactors           CarbonInventoryLineFactor[]
 
-  // TODO: Enforce UNIQUE (subcategory_id, dimension_value_1_id, dimension_value_2_id) WHERE status = 'ACTIVE'
-
   @@unique([subcategoryId, dimensionValue1Id, dimensionValue2Id, source], map: "emission_factor_unique_subcategory_dims_source")
   @@map("emission_factor")
 }
