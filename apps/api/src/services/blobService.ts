@@ -122,7 +122,15 @@ export async function moveBlob(
   const containerClient = blobServiceClient.getContainerClient(containerName);
   const destBlob = containerClient.getBlockBlobClient(destPath);
   const copyPoller = await destBlob.beginCopyFromURL(sourceUrl);
-  await copyPoller.pollUntilDone();
+  const timeoutMs = 30000;
+  const timeout = new Promise<never>((_, reject) =>
+    setTimeout(
+      () => reject(new Error(`Blob copy timed out after ${timeoutMs}ms`)),
+      timeoutMs
+    )
+  );
+
+  await Promise.race([copyPoller.pollUntilDone(), timeout]);
 
   await containerClient.getBlockBlobClient(sourcePath).delete();
 }
