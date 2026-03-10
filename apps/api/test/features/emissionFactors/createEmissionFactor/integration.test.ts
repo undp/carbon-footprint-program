@@ -71,7 +71,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
           SF6: 0,
           NF3: 0,
         },
-        value: "1.5",
+        value: 1.5,
         ...overrides,
       },
       subcategory,
@@ -93,7 +93,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateEmissionFactorResponse;
 
       expect(body.id).toBeTruthy();
-      expect(body.value).toBe("1.5");
+      expect(body.value).toBe(1.5);
       expect(body.source).toBe("DEFRA 2025");
       expect(body.subcategoryId).toBe(payload.subcategoryId);
       expect(body.gasDetails.CO2_FOSSIL).toBe(1.5);
@@ -187,7 +187,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
             SF6: 0,
             NF3: 0,
           },
-          value: "1.0",
+          value: 1.0,
         },
       });
 
