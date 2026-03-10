@@ -66,12 +66,12 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     const response = await app.inject({
       method: "PATCH",
       url: `/api/emission-factors/${ef.id.toString()}`,
-      payload: { value: "2.75" },
+      payload: { value: 2.75 },
     });
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as UpdateEmissionFactorResponse;
-    expect(body.value).toBe("2.75");
+    expect(body.value).toBe(2.75);
   });
 
   it("should update the source field", async () => {
@@ -109,7 +109,7 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     const response = await app.inject({
       method: "PATCH",
       url: "/api/emission-factors/999999",
-      payload: { value: "2.0" },
+      payload: { value: 2.0 },
     });
 
     expect(response.statusCode).toBe(404);
