@@ -4,7 +4,7 @@ import { useCarbonInventoriesMinimalData } from "@/api/query";
 import { Header } from "./components";
 import { orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent } from "@/components";
-import { NoneVerifyCarbonInventories } from "./components/NoneVerifyCarbonInventories";
+import { UnverifiedCarbonInventoriesContent } from "./components/UnverifiedCarbonInventoriesContent";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 
@@ -67,7 +67,7 @@ export const HomeScreen: FC = () => {
             showBadges
           />
         )}
-        {!effectiveInventoryId && <NoneVerifyCarbonInventories />}
+        {!effectiveInventoryId && <UnverifiedCarbonInventoriesContent />}
       </Box>
     </Box>
   );

@@ -5,7 +5,7 @@ import { Routes } from "@/interfaces";
 
 import { useNavigate } from "@tanstack/react-router";
 
-export const NoneVerifyCarbonInventories: FC = () => {
+export const UnverifiedCarbonInventoriesContent: FC = () => {
   const navigate = useNavigate();
 
   const onClick = useCallback(() => {
