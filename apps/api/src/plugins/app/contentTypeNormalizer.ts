@@ -14,14 +14,20 @@ const contentTypeNormalizer = (
   _opts: unknown,
   done: () => void
 ) => {
-  fastify.addHook("onRequest", (request, _reply) => {
-    const contentType = request.headers["content-type"];
-
-    // If Content-Type is an empty string, remove it
-    if (typeof contentType === "string" && contentType.trim() === "") {
-      request.log.warn("Content-Type is empty; removing it");
-      delete request.headers["content-type"];
+  fastify.addContentTypeParser(
+    "*",
+    { parseAs: "buffer" },
+    (_req, _body, done) => {
+      done(null, null);
     }
+  );
+
+  fastify.addHook("onRequest", async (request, _reply) => {
+    fastify.log.info({
+      msg: "contentTypeNormalizer",
+      contentType: request.headers["content-type"],
+      transferEncoding: request.headers["transfer-encoding"],
+    });
   });
 
   done();
