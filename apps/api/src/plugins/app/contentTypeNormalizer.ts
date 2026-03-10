@@ -8,11 +8,12 @@ import fp from "fastify-plugin";
  * Fastify would otherwise throw a 415 error.
  *
  * Current behavior:
- * - For DELETE requests: It allows the request and returns null as the parsed body.
- *   This is specifically needed for certain proxies/gateways (like Azure) that
- *   may send DELETE requests with an empty string Content-Type header ('').
- * - For other methods: It throws an error indicating that a valid content type
- *   parser is missing, prompting a review of how to handle that specific request.
+ * - For DELETE requests with empty/missing Content-Type AND empty body:
+ *   Allows the request and returns null as the parsed body. This is specifically
+ *   needed for certain proxies/gateways (like Azure) that may send DELETE requests
+ *   with an empty string Content-Type header ('').
+ * - For all other cases (including DELETE with non-empty Content-Type or body):
+ *   Returns HTTP 415 (Unsupported Media Type) error.
  */
 const contentTypeNormalizer = (
   fastify: FastifyInstance,
@@ -22,17 +23,28 @@ const contentTypeNormalizer = (
   fastify.addContentTypeParser(
     "*",
     { parseAs: "buffer" },
-    (request, _body, done) => {
-      if (request.method === "DELETE") {
-        // DELETE requests are allowed to have an empty Content-Type header and no body
+    (request, body, done) => {
+      const contentType = request.headers["content-type"];
+      const normalizedContentType =
+        typeof contentType === "string" ? contentType.trim() : contentType;
+
+      if (
+        request.method === "DELETE" &&
+        (normalizedContentType == null || normalizedContentType === "") &&
+        body.length === 0
+      ) {
         return done(null, null);
       }
-      done(
-        new Error(
-          "Content-Type does not have a valid content type parser, review contentTypeNormalizer plugin and decide what to do with this request"
-        ),
-        null
-      );
+
+      const err = new Error(
+        `No content type parser registered for '${contentType || "(missing)"}'. ` +
+          `Request: ${request.method} ${request.url} | Body: ${body.length} bytes. ` +
+          `Only bodyless DELETE requests with empty Content-Type are handled by the fallback parser. ` +
+          `Fix: (1) Register a Fastify content type parser for '${contentType}', or ` +
+          `(2) Verify the client is sending a supported Content-Type header (e.g., application/json).`
+      ) as Error & { statusCode?: number };
+      err.statusCode = 415;
+      done(err, null);
     }
   );
 
