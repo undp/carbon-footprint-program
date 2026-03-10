@@ -1,5 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import { CategoryStatus, SubcategoryStatus, User } from "@repo/types";
+import {
+  CategoryStatus,
+  EmissionFactorStatus,
+  SubcategoryStatus,
+  User,
+} from "@repo/types";
 import { CategoryNotFoundError } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
@@ -31,6 +36,14 @@ export const deleteCategoryService = async (
         status: CategoryStatus.DELETED,
         updatedById: BigInt(user.id),
       },
+    });
+
+    await tx.emissionFactor.updateMany({
+      where: {
+        subcategory: { categoryId },
+        status: { not: EmissionFactorStatus.DELETED },
+      },
+      data: { status: EmissionFactorStatus.DELETED },
     });
 
     await tx.subcategory.updateMany({

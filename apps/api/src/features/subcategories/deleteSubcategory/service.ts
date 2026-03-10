@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import { SubcategoryStatus, User } from "@repo/types";
+import { EmissionFactorStatus, SubcategoryStatus, User } from "@repo/types";
 import { SubcategoryNotFoundError } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
@@ -13,18 +13,35 @@ export const deleteSubcategoryService = async (
     throw new UserNotFoundError();
   }
 
-  const { count } = await prismaClient.subcategory.updateMany({
+  const parsedSubcategoryId = BigInt(subcategoryId);
+
+  const subcategory = await prismaClient.subcategory.findFirst({
     where: {
-      id: BigInt(subcategoryId),
       status: SubcategoryStatus.ACTIVE,
+      id: parsedSubcategoryId,
     },
-    data: {
-      status: SubcategoryStatus.DELETED,
-      updatedById: BigInt(user.id),
-    },
+    select: { status: true },
   });
 
-  if (count === 0) {
+  if (!subcategory) {
     throw new SubcategoryNotFoundError();
   }
+
+  await prismaClient.$transaction(async (tx) => {
+    await tx.emissionFactor.updateMany({
+      where: {
+        subcategoryId: parsedSubcategoryId,
+        status: { not: EmissionFactorStatus.DELETED },
+      },
+      data: { status: EmissionFactorStatus.DELETED },
+    });
+
+    await tx.subcategory.update({
+      where: { id: parsedSubcategoryId },
+      data: {
+        status: SubcategoryStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
+  });
 };

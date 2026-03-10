@@ -1,7 +1,9 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
+  EmissionFactorStatus,
   MethodologyVersionStatus,
+  SubCategoryStatus,
   type User,
 } from "@repo/types";
 import {
@@ -46,28 +48,37 @@ export const deleteMethodologyService = async (
     throw new MethodologyHasActiveInventoriesError();
   }
 
-  // Use transaction to soft-delete methodology AND cascade to categories
+  // Use transaction to soft-delete methodology AND cascade to categories, subcategories, emission factors
   await prismaClient.$transaction(async (tx) => {
     const updatedById = user ? BigInt(user.id) : null;
-    // Soft delete all active categories for this methodology
+
+    await tx.emissionFactor.updateMany({
+      where: {
+        subcategory: { category: { methodologyVersionId: methodologyId } },
+        status: { not: EmissionFactorStatus.DELETED },
+      },
+      data: { status: EmissionFactorStatus.DELETED },
+    });
+
+    await tx.subcategory.updateMany({
+      where: {
+        category: { methodologyVersionId: methodologyId },
+        status: { not: SubCategoryStatus.DELETED },
+      },
+      data: { status: SubCategoryStatus.DELETED, updatedById },
+    });
+
     await tx.category.updateMany({
       where: {
         methodologyVersionId: methodologyId,
         status: { not: CategoryStatus.DELETED },
       },
-      data: {
-        status: CategoryStatus.DELETED,
-        updatedById,
-      },
+      data: { status: CategoryStatus.DELETED, updatedById },
     });
 
-    // Soft delete the methodology itself
     await tx.methodologyVersion.update({
       where: { id: methodologyId },
-      data: {
-        status: MethodologyVersionStatus.DELETED,
-        updatedById,
-      },
+      data: { status: MethodologyVersionStatus.DELETED, updatedById },
     });
   });
 };
