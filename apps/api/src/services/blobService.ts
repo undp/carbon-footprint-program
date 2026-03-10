@@ -109,6 +109,8 @@ export async function moveBlobPath(
   sourcePath: string,
   destPath: string
 ): Promise<void> {
+  if (sourcePath === destPath) return;
+
   const { url: sourceUrl } = await generateReadSasUrl(
     blobServiceClient,
     containerName,
