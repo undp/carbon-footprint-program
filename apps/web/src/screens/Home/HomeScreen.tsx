@@ -33,7 +33,7 @@ export const HomeScreen: FC = () => {
       : (availableYears[0] ?? "");
 
   const inventoriesForSelectedYear = useMemo(() => {
-    if (!effectiveYear) return inventories;
+    if (!effectiveYear) return [];
     return inventories.filter((inv) => inv.year?.toString() === effectiveYear);
   }, [inventories, effectiveYear]);
 
