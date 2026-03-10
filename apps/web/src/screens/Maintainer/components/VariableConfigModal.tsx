@@ -1,0 +1,334 @@
+import { FC, useState } from "react";
+import {
+  Box,
+  Button,
+  Checkbox,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
+import { Info as InfoIcon } from "@mui/icons-material";
+
+interface DimensionConfig {
+  code: string;
+  name: string;
+  position: number; // 1 or 2
+  isRequired: boolean;
+}
+
+interface VariableConfigModalProps {
+  open: boolean;
+  readOnly?: boolean;
+  subcategoryId: string;
+  subcategoryName: string;
+  currentDimensions: DimensionConfig[];
+  onSave: (subcategoryId: string, dimensions: DimensionConfig[]) => void;
+  onClose: () => void;
+}
+
+function getDim(
+  dims: DimensionConfig[],
+  pos: number
+): DimensionConfig | undefined {
+  return dims.find((d) => d.position === pos);
+}
+
+const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
+  readOnly = false,
+  subcategoryId,
+  subcategoryName,
+  currentDimensions,
+  onSave,
+  onClose,
+}) => {
+  const [dims, setDims] = useState<DimensionConfig[]>(() =>
+    currentDimensions.map((d) => ({ ...d }))
+  );
+
+  const updateDim = (
+    position: number,
+    field: "name" | "isRequired",
+    value: string | boolean
+  ) => {
+    setDims((prev) => {
+      if (field === "name" && (value as string).trim() === "") {
+        return prev.filter((d) => d.position < position);
+      }
+      const next = [...prev];
+      let dim = next.find((d) => d.position === position);
+      if (!dim) {
+        dim = {
+          code: `variable_${position}`,
+          name: "",
+          position,
+          isRequired: false,
+        };
+        next.push(dim);
+      }
+      const idx = next.indexOf(dim);
+      next[idx] = { ...dim, [field]: value };
+      return next;
+    });
+  };
+
+  const toggleDim = (position: number) => {
+    setDims((prev) => {
+      const exists = prev.find((d) => d.position === position);
+      if (exists) {
+        return prev.filter((d) => d.position < position);
+      }
+      return [
+        ...prev,
+        {
+          code: `variable_${position}`,
+          name: "",
+          position,
+          isRequired: false,
+        },
+      ];
+    });
+  };
+
+  const handleSave = () => {
+    const cleaned = dims.filter((d) => d.name.trim().length > 0);
+    onSave(subcategoryId, cleaned);
+    onClose();
+  };
+
+  const dim1 = getDim(dims, 1);
+  const dim2 = getDim(dims, 2);
+  const hasDim1 = !!dim1;
+  const hasDim2 = !!dim2;
+
+  return (
+    <>
+      <DialogTitle>{`Configurar variables - ${subcategoryName}`}</DialogTitle>
+      <DialogContent>
+        <Box
+          sx={{
+            mb: 2,
+            p: 1.5,
+            borderRadius: 1,
+            border: "1px solid",
+            borderColor: "info.main",
+            bgcolor: "info.lighter",
+            display: "flex",
+            gap: 1.5,
+            alignItems: "flex-start",
+          }}
+        >
+          <InfoIcon color="info" sx={{ mt: 0.25 }} />
+          <Box>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              <strong>Instrucciones:</strong> Define las variables de esta
+              sub-categor&iacute;a, su posici&oacute;n y si son requeridas.
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              component="ul"
+              sx={{ pl: 2 }}
+            >
+              <li>
+                Solo puedes asignar <strong>posici&oacute;n 2</strong> si ya
+                existe una variable en <strong>posici&oacute;n 1</strong>
+              </li>
+              <li>
+                Una variable <strong>requerida</strong> afecta el c&aacute;lculo
+                del factor de emisi&oacute;n
+              </li>
+            </Typography>
+          </Box>
+        </Box>
+
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow sx={{ bgcolor: "grey.100" }}>
+                <TableCell sx={{ fontWeight: 600, width: "15%" }}>
+                  Variable
+                </TableCell>
+                <TableCell sx={{ fontWeight: 600, width: "40%" }}>
+                  Nombre
+                </TableCell>
+                <TableCell
+                  sx={{ fontWeight: 600, width: "20%" }}
+                  align="center"
+                >
+                  Posición
+                </TableCell>
+                <TableCell
+                  sx={{ fontWeight: 600, width: "20%" }}
+                  align="center"
+                >
+                  Requerida
+                </TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {/* Variable 1 */}
+              <TableRow>
+                <TableCell>
+                  <Typography variant="caption" color="text.secondary">
+                    1
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="ej: Tipo de vehículo"
+                    value={dim1?.name ?? ""}
+                    onChange={(e) => updateDim(1, "name", e.target.value)}
+                    disabled={readOnly}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <RadioGroup
+                    row
+                    value={hasDim1 ? "1" : ""}
+                    onChange={(e) => {
+                      if (e.target.value === "1" && !hasDim1) toggleDim(1);
+                      else if (e.target.value === "" && hasDim1) toggleDim(1);
+                    }}
+                    sx={{ justifyContent: "center", flexWrap: "nowrap" }}
+                  >
+                    <FormControlLabel
+                      value="1"
+                      control={
+                        <Radio
+                          size="small"
+                          checked={hasDim1}
+                          onChange={() => toggleDim(1)}
+                          disabled={readOnly}
+                        />
+                      }
+                      label="1"
+                      sx={{ mr: 1 }}
+                    />
+                    <FormControlLabel
+                      value="2"
+                      control={
+                        <Radio size="small" checked={false} disabled />
+                      }
+                      label="2"
+                      sx={{ mr: 0 }}
+                    />
+                  </RadioGroup>
+                </TableCell>
+                <TableCell align="center">
+                  {hasDim1 ? (
+                    <Checkbox
+                      checked={dim1?.isRequired ?? false}
+                      onChange={(e) =>
+                        updateDim(1, "isRequired", e.target.checked)
+                      }
+                      disabled={readOnly}
+                      size="small"
+                    />
+                  ) : (
+                    <Typography variant="caption" color="text.disabled">
+                      &mdash;
+                    </Typography>
+                  )}
+                </TableCell>
+              </TableRow>
+
+              {/* Variable 2 */}
+              <TableRow>
+                <TableCell>
+                  <Typography variant="caption" color="text.secondary">
+                    2
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <TextField
+                    size="small"
+                    fullWidth
+                    placeholder="ej: Tipo de combustible"
+                    value={dim2?.name ?? ""}
+                    onChange={(e) => updateDim(2, "name", e.target.value)}
+                    disabled={readOnly || !hasDim1}
+                  />
+                </TableCell>
+                <TableCell align="center">
+                  <RadioGroup
+                    row
+                    sx={{ justifyContent: "center", flexWrap: "nowrap" }}
+                  >
+                    <FormControlLabel
+                      value="1"
+                      control={
+                        <Radio size="small" checked={false} disabled />
+                      }
+                      label="1"
+                      sx={{ mr: 1 }}
+                    />
+                    <FormControlLabel
+                      value="2"
+                      control={
+                        <Radio
+                          size="small"
+                          checked={hasDim2}
+                          onChange={() => toggleDim(2)}
+                          disabled={readOnly || !hasDim1}
+                        />
+                      }
+                      label="2"
+                      sx={{ mr: 0 }}
+                    />
+                  </RadioGroup>
+                </TableCell>
+                <TableCell align="center">
+                  {hasDim2 ? (
+                    <Checkbox
+                      checked={dim2?.isRequired ?? false}
+                      onChange={(e) =>
+                        updateDim(2, "isRequired", e.target.checked)
+                      }
+                      disabled={readOnly}
+                      size="small"
+                    />
+                  ) : (
+                    <Typography variant="caption" color="text.disabled">
+                      &mdash;
+                    </Typography>
+                  )}
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose}>Cancelar</Button>
+        {!readOnly && (
+          <Button variant="contained" color="primary" onClick={handleSave}>
+            Guardar configuraci&oacute;n
+          </Button>
+        )}
+      </DialogActions>
+    </>
+  );
+};
+
+export const VariableConfigModal: FC<VariableConfigModalProps> = ({
+  open,
+  ...contentProps
+}) => (
+  <Dialog open={open} onClose={contentProps.onClose} maxWidth="sm" fullWidth>
+    {open && <VariableConfigContent {...contentProps} />}
+  </Dialog>
+);
