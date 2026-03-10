@@ -530,7 +530,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
 
   const geiDeclaredValue =
     geiModal.rowIndex >= 0
-      ? form.getValues(`emissionFactors.${geiModal.rowIndex}.value`)
+      ? Number(form.getValues(`emissionFactors.${geiModal.rowIndex}.value`))
       : 0;
 
   return (
