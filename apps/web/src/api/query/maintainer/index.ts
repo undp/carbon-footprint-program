@@ -19,3 +19,13 @@ export {
   useUpdateSubcategory,
   useDeleteSubcategory,
 } from "./useSubcategories";
+export {
+  useEmissionFactors,
+  useAddEmissionFactor,
+  useUpdateEmissionFactor,
+  useDeleteEmissionFactor,
+} from "./useEmissionFactors";
+export {
+  useEmissionFactorDimensions,
+  useUpsertEmissionFactorDimensions,
+} from "./useEmissionFactorDimensions";
