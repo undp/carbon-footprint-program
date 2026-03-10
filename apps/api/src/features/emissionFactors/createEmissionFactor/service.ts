@@ -1,0 +1,228 @@
+import { type PrismaClient, Prisma } from "@repo/database";
+import {
+  EmissionFactorStatus,
+  SubCategoryStatus,
+  User,
+  type CreateEmissionFactorRequest,
+  type CreateEmissionFactorResponse,
+} from "@repo/types";
+import {
+  SubcategoryNotFoundForEmissionFactorError,
+  RateMeasurementUnitNotFoundError,
+  EmissionFactorDuplicateError,
+  EmissionFactorSourceConflictError,
+  EmissionFactorGasDetailsMismatchError,
+} from "../errors.js";
+import { parseGasDetails } from "../mappers.js";
+import { UserNotFoundError } from "../../users/errors.js";
+
+export const createEmissionFactorService = async (
+  prismaClient: PrismaClient,
+  data: CreateEmissionFactorRequest,
+  user: User | null
+): Promise<CreateEmissionFactorResponse> => {
+  if (!user) {
+    throw new UserNotFoundError();
+  }
+
+  // Validate subcategory exists and is not deleted
+  const subcategory = await prismaClient.subcategory.findFirst({
+    where: {
+      id: BigInt(data.subcategoryId),
+      status: { not: SubCategoryStatus.DELETED },
+    },
+    select: { id: true, name: true },
+  });
+
+  if (!subcategory) {
+    throw new SubcategoryNotFoundForEmissionFactorError();
+  }
+
+  // Validate rate measurement unit exists
+  const rateUnit = await prismaClient.rateMeasurementUnit.findUnique({
+    where: { id: BigInt(data.rateMeasurementUnitId) },
+    select: { id: true, name: true },
+  });
+
+  if (!rateUnit) {
+    throw new RateMeasurementUnitNotFoundError();
+  }
+
+  // Enforce: all active EFs for a subcategory must share the same source
+  const existingSource = await prismaClient.emissionFactor.findFirst({
+    where: {
+      subcategoryId: subcategory.id,
+      status: { not: EmissionFactorStatus.DELETED },
+    },
+    select: { source: true },
+  });
+
+  if (existingSource && existingSource.source !== data.source) {
+    throw new EmissionFactorSourceConflictError(existingSource.source);
+  }
+
+  // Validate gasDetails sum matches declared value (if breakdown is non-zero)
+  const gd = data.gasDetails;
+  const gasSum =
+    gd.CO2_FOSSIL + gd.CH4 + gd.N2O + gd.HFC + gd.PFC + gd.SF6 + gd.NF3;
+  if (gasSum > 0) {
+    const declaredValue = parseFloat(data.value);
+    if (Math.abs(gasSum - declaredValue) > 1e-4) {
+      throw new EmissionFactorGasDetailsMismatchError(
+        gasSum.toFixed(4),
+        declaredValue.toFixed(4)
+      );
+    }
+  }
+
+  try {
+    const result = await prismaClient.$transaction(async (tx) => {
+      // Find-or-create dimension values if provided
+      let dimensionValue1Id: bigint | null = null;
+      let dimensionValue2Id: bigint | null = null;
+
+      if (data.dimensionValue1Name) {
+        dimensionValue1Id = await findOrCreateDimensionValue(
+          tx,
+          subcategory.id,
+          1,
+          data.dimensionValue1Name,
+          BigInt(user.id)
+        );
+      }
+
+      if (data.dimensionValue2Name) {
+        dimensionValue2Id = await findOrCreateDimensionValue(
+          tx,
+          subcategory.id,
+          2,
+          data.dimensionValue2Name,
+          BigInt(user.id)
+        );
+      }
+
+      const emissionFactor = await tx.emissionFactor.create({
+        data: {
+          subcategoryId: subcategory.id,
+          dimensionValue1Id,
+          dimensionValue2Id,
+          rateMeasurementUnitId: rateUnit.id,
+          source: data.source,
+          gasDetails: data.gasDetails,
+          value: new Prisma.Decimal(data.value),
+          status: EmissionFactorStatus.ACTIVE,
+          createdById: BigInt(user.id),
+          updatedAt: null,
+        },
+        include: {
+          subcategory: { select: { id: true, name: true } },
+          dimensionValue1: { select: { id: true, value: true } },
+          dimensionValue2: { select: { id: true, value: true } },
+          rateMeasurementUnit: { select: { id: true, name: true } },
+        },
+      });
+
+      return {
+        id: emissionFactor.id.toString(),
+        value: emissionFactor.value.toString(),
+        source: emissionFactor.source,
+        subcategoryId: emissionFactor.subcategory.id.toString(),
+        subcategoryName: emissionFactor.subcategory.name,
+        dimensionValue1Id:
+          emissionFactor.dimensionValue1?.id.toString() ?? null,
+        dimensionValue1Name: emissionFactor.dimensionValue1?.value ?? null,
+        dimensionValue2Id:
+          emissionFactor.dimensionValue2?.id.toString() ?? null,
+        dimensionValue2Name: emissionFactor.dimensionValue2?.value ?? null,
+        rateMeasurementUnitId: emissionFactor.rateMeasurementUnit.id.toString(),
+        rateMeasurementUnitName: emissionFactor.rateMeasurementUnit.name,
+        gasDetails: parseGasDetails(
+          emissionFactor.gasDetails,
+          emissionFactor.id
+        ),
+      };
+    });
+
+    return result;
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        throw new EmissionFactorDuplicateError();
+      }
+    }
+    throw error;
+  }
+};
+
+/**
+ * Finds an existing dimension value or creates a new one for the given
+ * subcategory's dimension at the specified position.
+ */
+async function findOrCreateDimensionValue(
+  tx: Prisma.TransactionClient,
+  subcategoryId: bigint,
+  position: number,
+  valueName: string,
+  userId: bigint
+): Promise<bigint> {
+  // Find the dimension for this subcategory at the given position
+  const dimension = await tx.emissionFactorDimension.findFirst({
+    where: { subcategoryId, position },
+    select: { id: true },
+  });
+
+  if (!dimension) {
+    // No dimension configured at this position — skip
+    // This can happen if dimensions haven't been configured yet
+    // Create the dimension on-the-fly with sensible defaults
+    const newDimension = await tx.emissionFactorDimension.create({
+      data: {
+        subcategoryId,
+        code: `variable_${position}`,
+        name: `Variable ${position}`,
+        position,
+        isRequired: false,
+        createdById: userId,
+        updatedAt: null,
+      },
+      select: { id: true },
+    });
+
+    const newValue = await tx.emissionFactorDimensionValue.create({
+      data: {
+        dimensionId: newDimension.id,
+        value: valueName,
+        isActive: true,
+        createdById: userId,
+        updatedAt: null,
+      },
+      select: { id: true },
+    });
+
+    return newValue.id;
+  }
+
+  // Try to find an existing value
+  const existing = await tx.emissionFactorDimensionValue.findFirst({
+    where: { dimensionId: dimension.id, value: valueName },
+    select: { id: true },
+  });
+
+  if (existing) {
+    return existing.id;
+  }
+
+  // Create a new value
+  const newValue = await tx.emissionFactorDimensionValue.create({
+    data: {
+      dimensionId: dimension.id,
+      value: valueName,
+      isActive: true,
+      createdById: userId,
+      updatedAt: null,
+    },
+    select: { id: true },
+  });
+
+  return newValue.id;
+}
