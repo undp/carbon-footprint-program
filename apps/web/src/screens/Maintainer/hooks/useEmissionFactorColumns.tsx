@@ -266,9 +266,14 @@ export const useEmissionFactorColumns = ({
                 fullWidth
                 type="text"
                 value={formRow?.value ?? ""}
-                onChange={(e) =>
-                  onCellChange(rowIndex, "value", e.target.value)
-                }
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  onCellChange(
+                    rowIndex,
+                    "value",
+                    nextValue === "" ? 0 : Number(nextValue)
+                  );
+                }}
                 onKeyDown={(e) => e.stopPropagation()}
                 inputProps={{ style: { textAlign: "right" } }}
                 sx={{
@@ -308,6 +313,7 @@ export const useEmissionFactorColumns = ({
         align: "center",
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
           const formRow = rows[rowIndex];
           const gd = formRow?.gasDetails;
           const hasBreakdown =
@@ -319,6 +325,7 @@ export const useEmissionFactorColumns = ({
               gd.PFC > 0 ||
               gd.SF6 > 0 ||
               gd.NF3 > 0);
+          const blockedByOtherEditing = editingRowId !== null && !editing;
 
           return (
             <Button
@@ -326,7 +333,7 @@ export const useEmissionFactorColumns = ({
               variant="outlined"
               startIcon={<FlameIcon />}
               onClick={() => onOpenGEIBreakdown(rowIndex)}
-              disabled={viewOnly && !hasBreakdown}
+              disabled={(viewOnly && !hasBreakdown) || blockedByOtherEditing}
               sx={{
                 textTransform: "none",
                 borderColor: hasBreakdown ? "success.main" : "grey.400",

@@ -240,9 +240,9 @@ export const useEmissionEditorForm = ({
       }
 
       const factor = sourceFilteredFactors[0];
-      const factorValue = parseFloat(factor.value);
+      const factorValue = Number(factor.value);
 
-      if (isNaN(factorValue)) {
+      if (!Number.isFinite(factorValue)) {
         // eslint-disable-next-line no-console
         console.warn(
           "The available factor has an invalid value. Cannot auto-fill a factor value."

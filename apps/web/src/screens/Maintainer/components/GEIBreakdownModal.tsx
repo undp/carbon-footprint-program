@@ -139,9 +139,11 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
                     <TextField
                       size="small"
                       type="number"
-                      inputProps={{
-                        step: "0.0001",
-                        style: { textAlign: "right" },
+                      slotProps={{
+                        htmlInput: {
+                          step: "0.0001",
+                          style: { textAlign: "right" },
+                        },
                       }}
                       value={breakdown[key] ?? 0}
                       onChange={(e) => handleChange(key, e.target.value)}
