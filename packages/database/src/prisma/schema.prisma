@@ -473,7 +473,7 @@ model EmissionFactorDimensionValue {
   updatedAt                            DateTime?                      @updatedAt @map("updated_at")
   createdById                          BigInt?                        @map("created_by_id")
   updatedById                          BigInt?                        @map("updated_by_id")
-  dimension                            EmissionFactorDimension        @relation(fields: [dimensionId], references: [id])
+  dimension                            EmissionFactorDimension        @relation(fields: [dimensionId], references: [id], onDelete: Cascade)
   parentValue                          EmissionFactorDimensionValue?  @relation("dimension_value_hierarchy", fields: [parentValueId], references: [id])
   childValues                          EmissionFactorDimensionValue[] @relation("dimension_value_hierarchy")
   emissionFactorsAsDimension1          EmissionFactor[]               @relation("emission_factor_dimension_value_1")

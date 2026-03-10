@@ -191,7 +191,7 @@ ALTER TABLE "emission_factor_dimension" ADD CONSTRAINT "emission_factor_dimensio
 ALTER TABLE "emission_factor_dimension" ADD CONSTRAINT "emission_factor_dimension_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "emission_factor_dimension_value" ADD CONSTRAINT "emission_factor_dimension_value_dimension_id_fkey" FOREIGN KEY ("dimension_id") REFERENCES "emission_factor_dimension"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "emission_factor_dimension_value" ADD CONSTRAINT "emission_factor_dimension_value_dimension_id_fkey" FOREIGN KEY ("dimension_id") REFERENCES "emission_factor_dimension"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "emission_factor_dimension_value" ADD CONSTRAINT "emission_factor_dimension_value_parent_value_id_fkey" FOREIGN KEY ("parent_value_id") REFERENCES "emission_factor_dimension_value"("id") ON DELETE SET NULL ON UPDATE CASCADE;
