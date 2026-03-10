@@ -4,11 +4,12 @@ import { FC } from "react";
 import { EmptyStateMessage } from "../EmissionResults";
 
 const subjectTypeToLabelMap: Record<BadgeType, string> = {
-  CARBON_INVENTORY_CALCULATION: "Huella Latam - Medición",
-  CARBON_INVENTORY_VERIFICATION: "Huella Latam - Verificación",
-  ORGANIZATION_ACCREDITATION: "Huella Latam - Acreditación",
-  REDUCTION_PLAN_VERIFICATION: "Huella Latam - Plan de Reducción",
-  NEUTRALIZATION_PLAN_VERIFICATION: "Huella Latam - Plan de Neutralización",
+  [BadgeType.CARBON_INVENTORY_CALCULATION]: "Huella Latam - Medición",
+  [BadgeType.CARBON_INVENTORY_VERIFICATION]: "Huella Latam - Verificación",
+  [BadgeType.ORGANIZATION_ACCREDITATION]: "Huella Latam - Acreditación",
+  [BadgeType.REDUCTION_PLAN_VERIFICATION]: "Huella Latam - Plan de Reducción",
+  [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]:
+    "Huella Latam - Plan de Neutralización",
 };
 
 interface BadgeRowProps {
