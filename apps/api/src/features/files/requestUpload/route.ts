@@ -20,6 +20,7 @@ export const requestUploadRoute: StandardRouteSignature = (
         body: RequestUploadBodySchema,
         response: {
           200: RequestUploadResponseSchema,
+          400: ApiErrorResponseSchema,
           503: ApiErrorResponseSchema,
         },
       },
