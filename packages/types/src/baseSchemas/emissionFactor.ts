@@ -20,7 +20,7 @@ export const EmissionFactorBaseSchema = z.object({
   ),
   source: z.string().describe("The source of the emission factor"),
   gasDetails: z.unknown().describe("The gas details as JSON"),
-  value: z.number().describe("The emission factor value"),
+  value: z.string().describe("The emission factor value"),
   status: EmissionFactorStatusSchema.describe(
     "The status of the emission factor"
   ),

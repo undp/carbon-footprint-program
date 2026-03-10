@@ -124,7 +124,7 @@ export const createEmissionFactorService = async (
 
       return {
         id: emissionFactor.id.toString(),
-        value: emissionFactor.value.toNumber(),
+        value: emissionFactor.value.toString(),
         source: emissionFactor.source,
         subcategoryId: emissionFactor.subcategory.id.toString(),
         subcategoryName: emissionFactor.subcategory.name,

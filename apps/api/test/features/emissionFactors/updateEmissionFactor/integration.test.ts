@@ -71,7 +71,7 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
 
     expect(response.statusCode).toBe(200);
     const body = JSON.parse(response.body) as UpdateEmissionFactorResponse;
-    expect(body.value).toBe(2.75);
+    expect(body.value).toBe("2.75");
   });
 
   it("should update the source field", async () => {
