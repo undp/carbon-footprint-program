@@ -33,15 +33,13 @@ export async function createTestEmissionFactor(
     status: string;
   }>
 ): Promise<EmissionFactor> {
-  const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-
   return await prisma.emissionFactor.create({
     data: {
       subcategoryId,
       dimensionValue1Id: overrides?.dimensionValue1Id ?? null,
       dimensionValue2Id: overrides?.dimensionValue2Id ?? null,
       rateMeasurementUnitId,
-      source: overrides?.source ?? `Test Source ${randomSuffix}`,
+      source: overrides?.source ?? `Test Source`,
       gasDetails: overrides?.gasDetails ?? DEFAULT_GAS_DETAILS,
       value: new Prisma.Decimal(overrides?.value ?? "1.5"),
       status:

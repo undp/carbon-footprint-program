@@ -11,10 +11,14 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import {
+  createTestEmissionFactor,
+  getTestRateMeasurementUnitId,
+} from "@test/factories/emissionFactorFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
-import { SubcategoryStatus } from "@repo/types";
+import { EmissionFactorStatus, SubcategoryStatus } from "@repo/types";
 
 describe("DELETE /api/subcategories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -81,6 +85,45 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
       });
       expect(dbRecord).toBeDefined();
       expect(dbRecord!.status).toBe(SubcategoryStatus.DELETED);
+    });
+  });
+
+  describe("Emission factor cascade", () => {
+    it("should soft-delete associated emission factors when subcategory is deleted", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Cascade EFs Delete",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - EF Cascade Parent",
+        position: 1,
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const ef1 = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId
+      );
+      const ef2 = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId
+      );
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/subcategories/${subcategory.id}`,
+      });
+
+      const [dbEf1, dbEf2] = await Promise.all([
+        prisma.emissionFactor.findUnique({ where: { id: ef1.id } }),
+        prisma.emissionFactor.findUnique({ where: { id: ef2.id } }),
+      ]);
+
+      expect(dbEf1!.status).toBe(EmissionFactorStatus.DELETED);
+      expect(dbEf2!.status).toBe(EmissionFactorStatus.DELETED);
     });
   });
 
