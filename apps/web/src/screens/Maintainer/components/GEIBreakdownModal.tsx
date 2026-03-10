@@ -25,7 +25,7 @@ type GasDetails = z.infer<typeof GasDetailsSchema>;
 interface GEIBreakdownModalProps {
   open: boolean;
   gasDetails: GasDetails;
-  declaredValue: string;
+  declaredValue: number;
   readOnly?: boolean;
   onSave: (gasDetails: GasDetails) => void;
   onClose: () => void;
@@ -69,9 +69,10 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   const total = totalNum.toFixed(4);
 
   const hasBreakdown = totalNum > 0;
-  const declaredNum = parseFloat(declaredValue) || 0;
   const mismatch =
-    hasBreakdown && declaredNum > 0 && Math.abs(totalNum - declaredNum) > 1e-4;
+    hasBreakdown &&
+    declaredValue > 0 &&
+    Math.abs(totalNum - declaredValue) > 1e-4;
 
   const handleChange = (key: keyof GasDetails, raw: string) => {
     const value = parseFloat(raw) || 0;
@@ -157,10 +158,10 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
                   </Typography>
                 </TableCell>
                 <TableCell>
-                  {declaredNum > 0 && (
+                  {declaredValue > 0 && (
                     <Typography variant="body2" color="text.secondary">
                       Valor declarado:{" "}
-                      <strong>{parseFloat(declaredValue).toFixed(4)}</strong>
+                      <strong>{declaredValue.toFixed(4)}</strong>
                     </Typography>
                   )}
                 </TableCell>
@@ -188,8 +189,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
         {mismatch && (
           <Alert severity="error" icon={<WarningIcon />} sx={{ mt: 2 }}>
             La suma del desglose ({total}) no coincide con el valor declarado (
-            {parseFloat(declaredValue).toFixed(4)}). Ajusta los valores para
-            poder guardar.
+            {declaredValue.toFixed(4)}). Ajusta los valores para poder guardar.
           </Alert>
         )}
       </DialogContent>

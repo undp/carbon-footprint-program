@@ -8,8 +8,6 @@ import {
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
-const EMISSION_FACTOR_REGEX = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
-
 export const UpdateEmissionFactorParamsSchema = z
   .object({
     id: IdSchema.describe("The ID of the emission factor to update"),
@@ -24,7 +22,7 @@ export const UpdateEmissionFactorRequestSchema = z
     rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
     source: z.string().min(1),
     gasDetails: GasDetailsSchema,
-    value: z.string().regex(EMISSION_FACTOR_REGEX),
+    value: z.number(),
   })
   .partial()
   .refine((value) => Object.values(value).some((v) => v !== undefined), {

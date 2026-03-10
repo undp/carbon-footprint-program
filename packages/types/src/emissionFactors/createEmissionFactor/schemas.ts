@@ -7,8 +7,6 @@ import {
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
-const EMISSION_FACTOR_REGEX = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
-
 export const CreateEmissionFactorRequestSchema = z.strictObject({
   subcategoryId: SubcategoryBaseSchema.shape.id,
   dimensionValue1Name: z
@@ -22,12 +20,7 @@ export const CreateEmissionFactorRequestSchema = z.strictObject({
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
   source: z.string().min(1, "Fuente es requerida"),
   gasDetails: GasDetailsSchema,
-  value: z
-    .string()
-    .regex(
-      EMISSION_FACTOR_REGEX,
-      "Valor debe ser un número válido o notación científica"
-    ),
+  value: z.number(),
 });
 
 export const CreateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
@@ -56,9 +49,6 @@ export const EmissionFactorFormSchema = z.object({
   dimensionValue2Name: z.string().nullable(),
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
   source: z.string().min(1, "Fuente es requerida"),
-  value: z
-    .string()
-    .min(1, "Valor es requerido")
-    .regex(EMISSION_FACTOR_REGEX, "Valor debe ser un número válido"),
+  value: z.number({ error: "Valor es requerido" }),
   gasDetails: GasDetailsSchema,
 });

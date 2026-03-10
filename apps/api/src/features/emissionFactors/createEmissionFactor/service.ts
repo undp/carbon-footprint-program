@@ -66,7 +66,7 @@ export const createEmissionFactorService = async (
   const gasSum =
     gd.CO2_FOSSIL + gd.CH4 + gd.N2O + gd.HFC + gd.PFC + gd.SF6 + gd.NF3;
   if (gasSum > 0) {
-    const declaredValue = parseFloat(data.value);
+    const declaredValue = data.value;
     if (Math.abs(gasSum - declaredValue) > 1e-4) {
       throw new EmissionFactorGasDetailsMismatchError(
         gasSum.toFixed(4),
@@ -124,7 +124,7 @@ export const createEmissionFactorService = async (
 
       return {
         id: emissionFactor.id.toString(),
-        value: emissionFactor.value.toString(),
+        value: emissionFactor.value.toNumber(),
         source: emissionFactor.source,
         subcategoryId: emissionFactor.subcategory.id.toString(),
         subcategoryName: emissionFactor.subcategory.name,
