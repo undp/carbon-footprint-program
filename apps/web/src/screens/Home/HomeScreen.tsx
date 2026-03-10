@@ -75,37 +75,30 @@ export const HomeScreen: FC = () => {
     );
   }
 
-  if (!isLoadingInventories && filteredByStatusInventories.length === 0) {
-    return (
-      <Box className="flex flex-1 flex-col gap-6">
-        <NoneVerifyCarbonInventories />
-      </Box>
-    );
+  if (isLoadingInventories) {
+    return <HomeScreenSkeleton />;
   }
 
   return (
     <Box className="flex flex-1 flex-col gap-6">
       <Header
         availableYears={availableYears}
-        inventories={filteredByStatusInventories}
+        inventories={inventoriesForSelectedYear}
         onYearChange={setSelectedYear}
         onCarbonInventoryChange={setSelectedCarbonInventoryId}
-        isLoadingInventories={isLoadingInventories}
         selectedYear={effectiveYear}
         selectedCarbonInventory={effectiveInventoryId}
       />
-      {isLoadingInventories ? (
-        <HomeScreenContentSkeleton />
-      ) : (
-        effectiveInventoryId && (
+
           <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
+        {effectiveInventoryId && (
             <EmissionResultsContent
               inventoryId={effectiveInventoryId}
               showBadges
             />
+        )}
+        {!effectiveInventoryId && <NoneVerifyCarbonInventories />}
           </Box>
-        )
-      )}
     </Box>
   );
 };

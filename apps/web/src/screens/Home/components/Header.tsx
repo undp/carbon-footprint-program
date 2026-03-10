@@ -12,14 +12,12 @@ import {
   CarbonInventoryAvailableYearsResponse,
   GetAllCarbonInventoriesResponse,
 } from "@repo/types";
-import { HeaderSkeleton } from "./Skeletons/HeaderSkeleton";
 
 interface Props {
   availableYears: CarbonInventoryAvailableYearsResponse;
   onYearChange: (year: string) => void;
   inventories: GetAllCarbonInventoriesResponse;
   onCarbonInventoryChange: (inventoryId: string) => void;
-  isLoadingInventories: boolean;
   selectedYear: string;
   selectedCarbonInventory: string;
 }
@@ -54,10 +52,6 @@ export const Header: FC<Props> = ({
     [inventories, selectedCarbonInventory]
   );
 
-  if (isLoadingInventories) {
-    return <HeaderSkeleton />;
-  }
-
   return (
     <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
       <Typography variant="h5" fontWeight={600}>
@@ -73,7 +67,7 @@ export const Header: FC<Props> = ({
             label="Año"
             value={selectedYear}
             onChange={onYearSelectChange}
-            disabled={isLoadingInventories}
+            disabled={availableYears.length === 0}
           >
             {availableYears.map((year) => (
               <MenuItem key={year} value={`${year}`}>
@@ -83,15 +77,13 @@ export const Header: FC<Props> = ({
           </Select>
         </FormControl>
         <FormControl sx={{ minHeight: 40, minWidth: 216 }} size="small">
-          <InputLabel id="carbon-inventories-select-label">Huellas</InputLabel>
+          <InputLabel id="carbon-inventories-select-label">Huella</InputLabel>
           <Select
             labelId="carbon-inventories-select-label"
-            label="Huellas"
+            label="Huella"
             value={selectedCarbonInventory}
             onChange={onCarbonInventorySelectChange}
-            disabled={
-              isLoadingInventories || inventories.length === 0 || !selectedYear
-            }
+            disabled={inventories.length === 0 || !selectedYear}
           >
             {inventories.map(({ id, name }) => (
               <MenuItem key={id} value={`${id}`}>
