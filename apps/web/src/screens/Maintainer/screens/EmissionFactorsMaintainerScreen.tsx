@@ -577,6 +577,11 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
               }
+              hideFooter={false}
+              pageSizeOptions={[25, 50, 100]}
+              initialState={{
+                pagination: { paginationModel: { pageSize: 25 } },
+              }}
             />
           </Box>
         </form>
