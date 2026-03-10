@@ -1,8 +1,9 @@
 import { FC } from "react";
-import { Box, Skeleton, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { GetCarbonInventoryBadgesResponse } from "@repo/types";
 import { BadgeRow } from "./BadgeRow";
 import { NoneBadgesContainer } from "./NoneBadgesContainer";
+import { BadgeRowSkeleton } from "./BadgeRowSkeleton";
 
 interface BadgeContainerProps {
   isLoading: boolean;
@@ -28,19 +29,7 @@ export const BadgeContainer: FC<BadgeContainerProps> = ({
 
       <Box className="flex flex-col">
         {isLoading
-          ? [1, 2, 3].map((i) => (
-              <Box key={i} className="flex items-center gap-3 p-1">
-                <Skeleton
-                  variant="circular"
-                  width={32}
-                  height={32}
-                  className="shrink-0"
-                />
-                <Box className="flex flex-col">
-                  <Skeleton variant="rectangular" width={300} height={20} />
-                </Box>
-              </Box>
-            ))
+          ? [1, 2, 3].map((i) => <BadgeRowSkeleton key={i} />)
           : badges.map((badge, i) => (
               <BadgeRow key={`${badge.badgeType}-${i}`} item={badge} />
             ))}
