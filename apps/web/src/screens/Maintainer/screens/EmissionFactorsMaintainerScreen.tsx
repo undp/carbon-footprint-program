@@ -227,6 +227,10 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 25,
+  });
   const [geiModal, setGeiModal] = useState<{
     open: boolean;
     rowIndex: number;
@@ -388,6 +392,13 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
+    const currentCount = form.getValues("emissionFactors").length;
+    const totalAfterAppend = currentCount + 1;
+    const lastPage = Math.max(
+      0,
+      Math.ceil(totalAfterAppend / paginationModel.pageSize) - 1
+    );
+
     const newRow: EmissionFactorForm = {
       id: tempId,
       subcategoryId: "",
@@ -407,8 +418,9 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       },
     };
     fieldArray.append(newRow);
+    setPaginationModel((prev) => ({ ...prev, page: lastPage }));
     setEditingRowId(tempId);
-  }, [fieldArray]);
+  }, [fieldArray, form, paginationModel.pageSize]);
 
   const handleDelete = useCallback(
     async (row: EmissionFactorForm) => {
@@ -566,6 +578,12 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
                   display: "flex",
                   alignItems: "center",
                 },
+                "& .MuiDataGrid-cell .MuiOutlinedInput-root": {
+                  backgroundColor: theme.palette.common.white,
+                },
+                "& .MuiDataGrid-cell .MuiSelect-select": {
+                  backgroundColor: theme.palette.common.white,
+                },
                 "& .MuiDataGrid-row.row--editing": {
                   backgroundColor: theme.palette.grey[100],
                 },
@@ -579,9 +597,8 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
               }
               hideFooter={false}
               pageSizeOptions={[25, 50, 100]}
-              initialState={{
-                pagination: { paginationModel: { pageSize: 25 } },
-              }}
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
             />
           </Box>
         </form>
