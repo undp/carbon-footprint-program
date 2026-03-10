@@ -23,8 +23,8 @@ export const HomeScreen: FC = () => {
 
   const filteredByStatusInventories = useMemo(() => {
     const statusOrder: Partial<Record<CarbonInventoryDisplayStatus, number>> = {
-      VERIFICATION_APPROVED: 0,
-      CALCULATION_APPROVED: 1,
+      [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: 0,
+      [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: 1,
     };
 
     const filtered = filter(inventories, ({ status }) =>
