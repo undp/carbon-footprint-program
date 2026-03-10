@@ -8,6 +8,7 @@ import {
   type User,
   CategoryStatus,
   SubcategoryStatus,
+  EmissionFactorStatus,
 } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
@@ -95,6 +96,8 @@ export const duplicateMethodologyService = async (
       }
 
       // Duplicate all active subcategories from the original categories
+      const subcategoryIdMap = new Map<bigint, bigint>();
+
       if (activeCategories.length > 0) {
         const activeSubcategories = await tx.subcategory.findMany({
           where: {
@@ -108,7 +111,6 @@ export const duplicateMethodologyService = async (
           },
         });
 
-        // Create subcategories individually to capture old → new ID mapping
         const measurementUnitLinks: {
           subcategoryId: bigint;
           measurementUnitId: bigint;
@@ -127,6 +129,7 @@ export const duplicateMethodologyService = async (
               updatedAt: null,
             },
           });
+          subcategoryIdMap.set(sub.id, newSub.id);
 
           for (const link of sub.subcategoryMeasurementUnits) {
             measurementUnitLinks.push({
@@ -139,6 +142,105 @@ export const duplicateMethodologyService = async (
         await tx.subcategoryMeasurementUnit.createMany({
           data: measurementUnitLinks,
         });
+      }
+
+      // Duplicate emission factor dimensions, dimension values, and emission factors
+      if (subcategoryIdMap.size > 0) {
+        const oldSubcategoryIds = [...subcategoryIdMap.keys()];
+
+        // 1. Duplicate dimensions
+        const dimensionIdMap = new Map<bigint, bigint>();
+        const originalDimensions = await tx.emissionFactorDimension.findMany({
+          where: { subcategoryId: { in: oldSubcategoryIds } },
+        });
+
+        for (const dim of originalDimensions) {
+          const newDim = await tx.emissionFactorDimension.create({
+            data: {
+              subcategoryId: subcategoryIdMap.get(dim.subcategoryId)!,
+              code: dim.code,
+              name: dim.name,
+              position: dim.position,
+              isRequired: dim.isRequired,
+              createdById: userId,
+              updatedAt: null,
+            },
+          });
+          dimensionIdMap.set(dim.id, newDim.id);
+        }
+
+        // 2. Duplicate dimension values (two passes to handle parentValueId)
+        if (dimensionIdMap.size > 0) {
+          const dimensionValueIdMap = new Map<bigint, bigint>();
+          const originalValues = await tx.emissionFactorDimensionValue.findMany(
+            {
+              where: {
+                dimensionId: { in: [...dimensionIdMap.keys()] },
+              },
+            }
+          );
+
+          // Pass 1: create all values without parentValueId
+          for (const val of originalValues) {
+            const newVal = await tx.emissionFactorDimensionValue.create({
+              data: {
+                dimensionId: dimensionIdMap.get(val.dimensionId)!,
+                value: val.value,
+                isActive: val.isActive,
+                parentValueId: null,
+                createdById: userId,
+                updatedAt: null,
+              },
+            });
+            dimensionValueIdMap.set(val.id, newVal.id);
+          }
+
+          // Pass 2: set parentValueId for values that had one
+          const valuesWithParent = originalValues.filter(
+            (v) => v.parentValueId !== null
+          );
+          for (const val of valuesWithParent) {
+            const newValId = dimensionValueIdMap.get(val.id)!;
+            const newParentId = val.parentValueId
+              ? dimensionValueIdMap.get(val.parentValueId)
+              : null;
+            if (newParentId) {
+              await tx.emissionFactorDimensionValue.update({
+                where: { id: newValId },
+                data: { parentValueId: newParentId },
+              });
+            }
+          }
+
+          // 3. Duplicate active emission factors
+          const originalFactors = await tx.emissionFactor.findMany({
+            where: {
+              subcategoryId: { in: oldSubcategoryIds },
+              status: EmissionFactorStatus.ACTIVE,
+            },
+          });
+
+          for (const ef of originalFactors) {
+            await tx.emissionFactor.create({
+              data: {
+                subcategoryId: subcategoryIdMap.get(ef.subcategoryId)!,
+                dimensionValue1Id: ef.dimensionValue1Id
+                  ? (dimensionValueIdMap.get(ef.dimensionValue1Id) ?? null)
+                  : null,
+                dimensionValue2Id: ef.dimensionValue2Id
+                  ? (dimensionValueIdMap.get(ef.dimensionValue2Id) ?? null)
+                  : null,
+                rateMeasurementUnitId: ef.rateMeasurementUnitId,
+                source: ef.source,
+                gasDetails: ef.gasDetails ?? Prisma.JsonNull,
+                value: ef.value,
+                status: EmissionFactorStatus.ACTIVE,
+                createdById: userId,
+                updatedAt: null,
+              },
+            });
+          }
+        }
       }
 
       return newMethodology;
