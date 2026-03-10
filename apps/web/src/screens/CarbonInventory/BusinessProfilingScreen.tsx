@@ -23,6 +23,7 @@ import { IS_DEVELOPMENT } from "@/config/environment";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
+import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -57,6 +58,11 @@ export const BusinessProfilingScreen: FC = () => {
     isLoading: isInventoryLoading,
     isError: hasInventoryError,
   } = useCarbonInventory(inventoryId);
+
+  const { isReady, mustNavigateAway } = useInventoryEditGuard(
+    inventoryId,
+    existingInventory?.status
+  );
 
   const {
     control,
@@ -107,6 +113,10 @@ export const BusinessProfilingScreen: FC = () => {
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
 
+  const isLoading = isInventoryLoading || !isReady;
+
+  if (!isLoading && mustNavigateAway) return null;
+
   if (!inventoryId) {
     enqueueSnackbar("No se encontró la huella", { variant: "error" });
     void navigate({ to: Routes.CARBON_INVENTORY });
@@ -129,7 +139,7 @@ export const BusinessProfilingScreen: FC = () => {
       variant: "contained",
       type: "submit",
       form: "business-profiling-form",
-      loading: isSubmitting || isInventoryLoading,
+      loading: isSubmitting || isLoading,
       disabled: isFormDisabled,
     },
   };
@@ -148,7 +158,7 @@ export const BusinessProfilingScreen: FC = () => {
           footerProps={{
             buttons: [backButton, nextButton],
           }}
-          isLoading={isInventoryLoading}
+          isLoading={isLoading}
           hasError={hasInventoryError}
           errorMessage={ERROR_MESSAGE}
         >

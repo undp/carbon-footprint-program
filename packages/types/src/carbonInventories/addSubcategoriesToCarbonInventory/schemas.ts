@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { SubcategoryBaseSchema } from "../../baseSchemas/index.js";
+import { IdSchema } from "../../zod.js";
 
 export const AddSubcategoriesToCarbonInventoryBodySchema = z.object({
   subcategoryIds: z
@@ -21,4 +22,8 @@ export const AddSubcategoriesToCarbonInventoryResponseSchema = z.object({
     .describe(
       "Number of subcategories that were skipped because they already have ACTIVE lines"
     ),
+});
+
+export const AddSubcategoriesToCarbonInventoryParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
 });

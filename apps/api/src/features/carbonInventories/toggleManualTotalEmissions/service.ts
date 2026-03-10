@@ -7,6 +7,10 @@ import {
   SubcategoryNotFoundError,
   SubcategoryNotInMethodologyError,
 } from "../errors.js";
+import {
+  carbonInventoryWithSubmissionsMinimalSelect,
+  validateCarbonInventoryIsEditable,
+} from "../helpers.js";
 
 const NoActiveLinesToConvertError = createError(
   "NO_ACTIVE_LINES_TO_CONVERT",
@@ -39,14 +43,19 @@ export const toggleManualTotalEmissionsService = async (
   activated: boolean,
   user: User | null
 ): Promise<void> => {
-  // 1. Validate carbon inventory exists
+  // Fetch inventory with submission data for validation + fields for business logic
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: { id: carbonInventoryId },
-    select: { id: true, methodologyVersionId: true },
+    select: {
+      methodologyVersionId: true,
+      ...carbonInventoryWithSubmissionsMinimalSelect,
+    },
   });
 
   if (!carbonInventory)
     throw new CarbonInventoryNotFoundError(carbonInventoryId);
+
+  validateCarbonInventoryIsEditable(carbonInventory);
 
   // 2. Validate subcategory exists and belongs to the inventory methodology
   const subcategory = await prismaClient.subcategory.findUnique({

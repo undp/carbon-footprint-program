@@ -18,6 +18,10 @@ import {
   LineNotFoundError,
   LineNotInCarbonInventoryError,
 } from "../errors.js";
+import {
+  carbonInventoryWithSubmissionsMinimalSelect,
+  validateCarbonInventoryIsEditable,
+} from "../helpers.js";
 
 export const syncCarbonInventoryLinesService = async (
   prismaClient: PrismaClient,
@@ -25,14 +29,19 @@ export const syncCarbonInventoryLinesService = async (
   request: SyncCarbonInventoryLinesRequest,
   user: User | null
 ): Promise<SyncCarbonInventoryLinesResponse> => {
-  // Validate carbon inventory exists
+  // Fetch inventory with submission data for validation + fields for business logic
   const carbonInventory = await prismaClient.carbonInventory.findUnique({
     where: { id: carbonInventoryId },
-    select: { id: true, methodologyVersionId: true },
+    select: {
+      methodologyVersionId: true,
+      ...carbonInventoryWithSubmissionsMinimalSelect,
+    },
   });
 
   if (!carbonInventory)
     throw new CarbonInventoryNotFoundError(carbonInventoryId);
+
+  validateCarbonInventoryIsEditable(carbonInventory);
 
   // Validate subcategories for create operations
   if (request.create.length > 0) {

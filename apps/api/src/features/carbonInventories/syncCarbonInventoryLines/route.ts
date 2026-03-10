@@ -1,22 +1,22 @@
 import { syncCarbonInventoryLinesHandler } from "./handler.js";
 import {
-  IdSchema,
   SyncCarbonInventoryLinesRequestSchema,
   SyncCarbonInventoryLinesResponseSchema,
+  SyncCarbonInventoryLinesParamsSchema,
+  type SyncCarbonInventoryLinesRequest,
+  type SyncCarbonInventoryLinesParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const SyncCarbonInventoryLinesParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
 
 export const syncCarbonInventoryLinesRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.post(
+  fastify.post<{
+    Params: SyncCarbonInventoryLinesParams;
+    Body: SyncCarbonInventoryLinesRequest;
+  }>(
     "/:id/lines/sync",
     {
       schema: {

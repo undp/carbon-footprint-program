@@ -60,6 +60,12 @@ export const CarbonInventoryCannotRequestCalculationError = createError(
   422
 );
 
+export const CarbonInventoryNotEditableError = createError(
+  "CARBON_INVENTORY_NOT_EDITABLE",
+  "Carbon inventory %s is not editable in its current status (%s)",
+  403
+);
+
 export const CarbonInventoryCannotRequestVerificationError = createError(
   "CARBON_INVENTORY_CANNOT_REQUEST_VERIFICATION",
   "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",

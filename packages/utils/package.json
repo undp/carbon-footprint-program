@@ -16,6 +16,9 @@
     "type-check": "tsc --noEmit --project tsconfig.build.json",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo"
   },
+  "dependencies": {
+    "@repo/types": "workspace:*"
+  },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",

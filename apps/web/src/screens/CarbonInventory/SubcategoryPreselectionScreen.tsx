@@ -15,6 +15,8 @@ import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
+import { useCarbonInventory } from "@/api/query";
+import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 
 const ERROR_MESSAGE = {
   title:
@@ -29,13 +31,19 @@ export const SubcategoryPreselectionScreen: FC = () => {
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
 
+  const { data: existingInventory } = useCarbonInventory(inventoryId);
+  const { isReady, mustNavigateAway } = useInventoryEditGuard(
+    inventoryId,
+    existingInventory?.status
+  );
+
   const { data } = useEmissionCaptureData({
     inventoryId,
   });
 
   const {
     data: categories,
-    isLoading,
+    isLoading: isSubcategoryPreselectionLoading,
     hasError,
   } = useSubcategoryPreselectionData(inventoryId);
 
@@ -53,6 +61,10 @@ export const SubcategoryPreselectionScreen: FC = () => {
     inventoryId,
     { onSuccess: goNext }
   );
+
+  const isLoading = isSubcategoryPreselectionLoading || !isReady;
+
+  if (!isLoading && mustNavigateAway) return null;
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
 

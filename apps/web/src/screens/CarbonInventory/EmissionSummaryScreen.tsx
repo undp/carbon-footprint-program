@@ -18,6 +18,8 @@ import {
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
+import { isCarbonInventoryEditable } from "@repo/utils";
+import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -61,13 +63,20 @@ export const EmissionSummaryScreen: FC = () => {
       });
   }, [isError, enqueueSnackbar]);
 
+  const isEditBlocked =
+    metadataData?.status && !isCarbonInventoryEditable(metadataData.status);
+
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: goBack,
+      disabled: isEditBlocked,
     },
+    tooltipTitle: isEditBlocked
+      ? "La huella no es editable actualmente"
+      : undefined,
   };
 
   const nextButton: FooterButton = {
@@ -96,6 +105,12 @@ export const EmissionSummaryScreen: FC = () => {
             title="Paso 4: Resumen"
             description="Verifica tus datos antes de calcular"
           />
+          {metadataData?.status && (
+            <CarbonInventoryStatusChip
+              status={metadataData.status}
+              size="medium"
+            />
+          )}
         </Box>
 
         {/* Inventory attributes */}

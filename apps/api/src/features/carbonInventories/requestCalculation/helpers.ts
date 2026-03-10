@@ -1,11 +1,11 @@
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import {
   calculateDisplayStatus,
-  CarbonInventoryWithOrganizationSummaryAndSubmissions,
+  CarbonInventoryWithSubmissionsMinimal,
 } from "../helpers.js";
 
 export function canSubmitToCalculation(
-  inventory: CarbonInventoryWithOrganizationSummaryAndSubmissions
+  inventory: CarbonInventoryWithSubmissionsMinimal
 ): boolean {
   const displayStatus = calculateDisplayStatus(inventory);
   return (

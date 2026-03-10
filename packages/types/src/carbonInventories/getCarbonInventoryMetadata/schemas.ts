@@ -7,6 +7,7 @@ import {
   OrganizationMainActivityBaseSchema,
   OrganizationSummaryBaseSchema,
 } from "../../baseSchemas/index.js";
+import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 export const GetCarbonInventoryMetadataResponseSchema = z
   .object({
@@ -27,5 +28,6 @@ export const GetCarbonInventoryMetadataResponseSchema = z
       .number()
       .nullable()
       .describe("The quantity of the organization main activity"),
+    status: CarbonInventoryDisplayStatusSchema,
   })
   .strict();

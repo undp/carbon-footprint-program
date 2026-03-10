@@ -1,22 +1,22 @@
 import { updateCarbonInventoryHandler } from "./handler.js";
 import {
-  IdSchema,
+  UpdateCarbonInventoryParamsSchema,
   UpdateCarbonInventoryRequestSchema,
   UpdateCarbonInventoryResponseSchema,
+  type UpdateCarbonInventoryRequest,
+  type UpdateCarbonInventoryParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const UpdateCarbonInventoryParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
 
 export const updateCarbonInventoryRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.patch(
+  fastify.patch<{
+    Params: UpdateCarbonInventoryParams;
+    Body: UpdateCarbonInventoryRequest;
+  }>(
     "/:id",
     {
       schema: {

@@ -10,7 +10,10 @@ import {
   OrganizationNotAccreditedError,
   OrganizationNotAssociatedError,
 } from "../errors.js";
-import { createCarbonInventorySubmission } from "../helpers.js";
+import {
+  carbonInventoryWithSubmissionsMinimalSelect,
+  createCarbonInventorySubmission,
+} from "../helpers.js";
 import { canSubmitToVerification } from "./helpers.js";
 
 export const requestVerificationService = async (
@@ -22,7 +25,6 @@ export const requestVerificationService = async (
     const inventory = await tx.carbonInventory.findFirst({
       where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
-        id: true,
         organizationId: true,
         organization: {
           select: {
@@ -31,21 +33,7 @@ export const requestVerificationService = async (
             },
           },
         },
-        submission: {
-          include: {
-            subject: {
-              include: {
-                submissions: {
-                  select: {
-                    id: true,
-                    status: true,
-                    type: true,
-                  },
-                },
-              },
-            },
-          },
-        },
+        ...carbonInventoryWithSubmissionsMinimalSelect,
       },
     });
 

@@ -7,6 +7,7 @@ import {
 import { type GetAllCategoriesResponse } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
+  CarbonInventoryNotEditableError,
   MethodologyNotFoundError,
 } from "./errors.js";
 import { kgToTon } from "@/utils/number.js";
@@ -14,6 +15,7 @@ import {
   CarbonInventoryDisplayStatus,
   CarbonInventoryDisplayStatusEnum,
 } from "@repo/types";
+import { isCarbonInventoryEditable } from "@repo/utils";
 
 export type InventoryBase = {
   id: bigint;
@@ -21,6 +23,19 @@ export type InventoryBase = {
   organizationData: unknown;
   methodologyVersionId: bigint;
 };
+
+/**
+ * Validates that a carbon inventory is in an editable state.
+ * Throws CarbonInventoryNotEditableError if not editable.
+ */
+export function validateCarbonInventoryIsEditable(
+  inventory: CarbonInventoryWithSubmissionsMinimal
+): void {
+  const status = calculateDisplayStatus(inventory);
+  if (!isCarbonInventoryEditable(status)) {
+    throw new CarbonInventoryNotEditableError(inventory.id.toString(), status);
+  }
+}
 
 export type CategoryData = Pick<
   GetAllCategoriesResponse[number],
@@ -196,60 +211,32 @@ export async function createCarbonInventorySubmission(
   }
 }
 
-export type CarbonInventoryWithOrganizationSummaryAndSubmissions =
-  Prisma.CarbonInventoryGetPayload<{
+export const carbonInventoryWithSubmissionsMinimalSelect = {
+  id: true,
+  submission: {
     select: {
-      id: true;
-      organizationId: true;
-      organization: {
+      subject: {
         select: {
-          summary: {
-            select: { isAccredited: true };
-          };
-        };
-      };
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: {
-                  id: true;
-                  status: true;
-                  type: true;
-                };
-              };
-            };
-          };
-        };
-      };
-    };
+          submissions: {
+            select: {
+              id: true,
+              status: true,
+              type: true,
+            },
+          },
+        },
+      },
+    },
+  },
+} satisfies Prisma.CarbonInventorySelect;
+
+export type CarbonInventoryWithSubmissionsMinimal =
+  Prisma.CarbonInventoryGetPayload<{
+    select: typeof carbonInventoryWithSubmissionsMinimalSelect;
   }>;
 
-export type CarbonInventoryWithSubmissions = Prisma.CarbonInventoryGetPayload<{
-  include: {
-    submission: {
-      include: {
-        subject: {
-          include: {
-            submissions: {
-              select: {
-                id: true;
-                status: true;
-                type: true;
-              };
-            };
-          };
-        };
-      };
-    };
-  };
-}>;
-
 export const calculateDisplayStatus = (
-  carbonInventory:
-    | CarbonInventoryWithOrganizationSummaryAndSubmissions
-    | CarbonInventoryWithSubmissions
+  carbonInventory: CarbonInventoryWithSubmissionsMinimal
 ): CarbonInventoryDisplayStatus => {
   const submissions = carbonInventory.submission?.subject.submissions || [];
 

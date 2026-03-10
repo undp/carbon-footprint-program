@@ -1,22 +1,22 @@
 import { addSubcategoriesToCarbonInventoryHandler } from "./handler.js";
 import {
-  IdSchema,
   AddSubcategoriesToCarbonInventoryBodySchema,
   AddSubcategoriesToCarbonInventoryResponseSchema,
+  AddSubcategoriesToCarbonInventoryParamsSchema,
+  type AddSubcategoriesToCarbonInventoryBody,
+  type AddSubcategoriesToCarbonInventoryParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const AddSubcategoriesToCarbonInventoryParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
 
 export const addSubcategoriesToCarbonInventoryRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.post(
+  fastify.post<{
+    Params: AddSubcategoriesToCarbonInventoryParams;
+    Body: AddSubcategoriesToCarbonInventoryBody;
+  }>(
     "/:id/subcategories/add",
     {
       schema: {
