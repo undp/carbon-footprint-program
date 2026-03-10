@@ -18,3 +18,4 @@ export * from "./useRequestCalculation";
 export * from "./useRequestVerification";
 export * from "./useCarbonInventoryBadges";
 export * from "./useCarbonInventoriesMinimalData";
+export * from "./useDuplicateCarbonInventory";
