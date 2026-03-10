@@ -39,7 +39,8 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
       <Card
         className="flex h-16 w-full flex-row items-center justify-center p-2"
         sx={(theme) => ({
-          backgroundColor: theme.palette.category[Number(category.id)].light,
+          backgroundColor:
+            theme.palette.category[Number(category.position)].light,
         })}
         elevation={0}
       >
@@ -47,7 +48,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
           <Avatar
             sx={(theme) => ({
               backgroundColor: alpha(
-                theme.palette.category[Number(category.id)].main,
+                theme.palette.category[Number(category.position)].main,
                 0.3
               ),
             })}
@@ -55,7 +56,7 @@ export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
             <IconComponent
               sx={(theme) => ({
                 fill: darken(
-                  theme.palette.category[category.position].main,
+                  theme.palette.category[Number(category.position)].main,
                   0.6
                 ),
               })}

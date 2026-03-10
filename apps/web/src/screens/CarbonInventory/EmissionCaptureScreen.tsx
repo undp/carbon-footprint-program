@@ -264,7 +264,7 @@ export const EmissionCaptureScreen: FC = () => {
                   return (
                     <EmissionEditor
                       key={subcategory.id}
-                      categoryPosition={Number(selectedCategory)}
+                      categoryPosition={Number(selectedCategoryData?.position)}
                       subcategory={subcategory}
                       inventoryUsageMode={
                         data?.usageMode ?? UsageMode.SIMPLIFIED
