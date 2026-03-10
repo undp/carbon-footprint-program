@@ -48,7 +48,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   }));
 
   return (
-    <Box className="border-grey-300 flex h-full w-full flex-col gap-4 rounded-xl border p-4">
+    <Box className="flex h-full w-full flex-col gap-4 rounded-xl border border-gray-300 p-4">
       <Typography variant="body1" fontWeight="fontWeightMedium">
         Tus emisiones más importantes en tCO₂e
       </Typography>

@@ -4,7 +4,7 @@ import { EmptyStateMessage } from "../EmissionResults";
 
 export const NoneBadgesContainer: FC = () => {
   return (
-    <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border bg-white p-4">
+    <Box className="flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border border-gray-300 bg-white p-4">
       <Typography
         fontSize="1rem"
         fontWeight={600}

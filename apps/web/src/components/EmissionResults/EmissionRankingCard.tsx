@@ -24,7 +24,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
   const rankings = viewMode === "own" ? ownRankings : sectorRankings;
 
   return (
-    <Box className="border-grey-300 flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border bg-white p-4">
+    <Box className="flex h-full min-h-0 w-full flex-col gap-4 rounded-xl border border-gray-300 bg-white p-4">
       <Box className="flex items-center justify-between px-2">
         <Typography variant="body1" fontWeight="fontWeightMedium">
           Ranking emisiones
