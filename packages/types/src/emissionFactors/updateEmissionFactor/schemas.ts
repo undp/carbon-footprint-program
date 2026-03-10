@@ -1,0 +1,50 @@
+import { z } from "zod";
+import { IdSchema } from "../../zod.js";
+import {
+  SubcategoryBaseSchema,
+  EmissionFactorDimensionValueBaseSchema,
+  RateMeasurementUnitBaseSchema,
+  EmissionFactorBaseSchema,
+} from "../../baseSchemas/index.js";
+import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
+
+const EMISSION_FACTOR_REGEX = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
+
+export const UpdateEmissionFactorParamsSchema = z
+  .object({
+    id: IdSchema.describe("The ID of the emission factor to update"),
+  })
+  .strict();
+
+export const UpdateEmissionFactorRequestSchema = z
+  .object({
+    subcategoryId: SubcategoryBaseSchema.shape.id,
+    dimensionValue1Name: z.string().nullable(),
+    dimensionValue2Name: z.string().nullable(),
+    rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
+    source: z.string().min(1),
+    gasDetails: GasDetailsSchema,
+    value: z.string().regex(EMISSION_FACTOR_REGEX),
+  })
+  .partial()
+  .refine((value) => Object.values(value).some((v) => v !== undefined), {
+    message: "At least one field must be provided with a defined value",
+  });
+
+export const UpdateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
+  {
+    id: true,
+    value: true,
+    source: true,
+  }
+).extend({
+  subcategoryId: SubcategoryBaseSchema.shape.id,
+  subcategoryName: z.string(),
+  dimensionValue1Id: EmissionFactorDimensionValueBaseSchema.shape.id.nullable(),
+  dimensionValue1Name: z.string().nullable(),
+  dimensionValue2Id: EmissionFactorDimensionValueBaseSchema.shape.id.nullable(),
+  dimensionValue2Name: z.string().nullable(),
+  rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
+  rateMeasurementUnitName: z.string(),
+  gasDetails: GasDetailsSchema,
+});
