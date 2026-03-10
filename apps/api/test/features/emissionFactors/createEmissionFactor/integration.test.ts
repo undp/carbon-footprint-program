@@ -93,7 +93,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       const body = JSON.parse(response.body) as CreateEmissionFactorResponse;
 
       expect(body.id).toBeTruthy();
-      expect(body.value).toBe(1.5);
+      expect(body.value).toBe("1.5");
       expect(body.source).toBe("DEFRA 2025");
       expect(body.subcategoryId).toBe(payload.subcategoryId);
       expect(body.gasDetails.CO2_FOSSIL).toBe(1.5);
