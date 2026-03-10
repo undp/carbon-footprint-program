@@ -21,6 +21,7 @@ import { getCarbonInventoryMetadataRoute } from "@/features/carbonInventories/ge
 import { getCarbonInventoryBadgesRoute } from "@/features/carbonInventories/getCarbonInventoryBadges/route.js";
 import { requestCalculationRoute } from "@/features/carbonInventories/requestCalculation/route.js";
 import { requestVerificationRoute } from "@/features/carbonInventories/requestVerification/route.js";
+import { getCarbonInventoriesMinimalRoute } from "@/features/carbonInventories/getCarbonInventoriesMinimal/route.js";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
@@ -46,4 +47,5 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getCarbonInventoryMetadataRoute(fastify, { public: true });
   requestCalculationRoute(fastify);
   requestVerificationRoute(fastify);
+  getCarbonInventoriesMinimalRoute(fastify);
 }
