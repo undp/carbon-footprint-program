@@ -19,6 +19,7 @@ import {
   CloseOutlined,
   KeyboardArrowUpOutlined,
   KeyboardArrowDownOutlined,
+  TuneOutlined,
 } from "@mui/icons-material";
 
 interface ActionButtonProps {
@@ -32,6 +33,7 @@ interface ActionButtonProps {
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  onConfigureVariables?: () => void;
   moveUpDisabled?: boolean;
   moveDownDisabled?: boolean;
   deleteConfirmMessage?: string;
@@ -48,6 +50,7 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onConfigureVariables,
   moveUpDisabled = false,
   moveDownDisabled = false,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
@@ -120,6 +123,15 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             )}
           </Box>
         </>
+        {!isEditing && onConfigureVariables && !isActiveRow && (
+          <Tooltip title="Configurar variables">
+            <span className="content-center">
+              <IconButton size="small" onClick={onConfigureVariables}>
+                <TuneOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
         {!isEditing && onDuplicate && (
           <Tooltip title="Duplicar">
             <IconButton size="small" onClick={onDuplicate}>

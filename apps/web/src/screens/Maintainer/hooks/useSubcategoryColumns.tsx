@@ -26,6 +26,7 @@ interface UseSubcategoryColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
+  onConfigureVariables: (rowId: string) => void;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -40,6 +41,7 @@ export const useSubcategoryColumns = ({
   onCancelEditRow,
   onDelete,
   onOpenExplanation,
+  onConfigureVariables,
   rows,
   categories,
   allMeasurementUnits,
@@ -223,7 +225,7 @@ export const useSubcategoryColumns = ({
             {
               field: "actions",
               headerName: "Acciones",
-              width: 100,
+              width: 130,
               sortable: false,
               filterable: false,
               headerAlign: "center" as const,
@@ -235,6 +237,7 @@ export const useSubcategoryColumns = ({
                 const rowIndex = getRowIndex(rowId);
                 const formRow = rows[rowIndex];
 
+                const isNewRow = params.row.id.startsWith("temp_");
                 return (
                   <ActionButtons
                     isActiveRow={anyEditing && !editing}
@@ -242,6 +245,11 @@ export const useSubcategoryColumns = ({
                     onStopEditCells={onStopEditRow}
                     onCancelEdit={onCancelEditRow}
                     onDelete={formRow ? () => onDelete(formRow) : undefined}
+                    onConfigureVariables={
+                      !isNewRow
+                        ? () => onConfigureVariables(params.row.id)
+                        : undefined
+                    }
                     deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta subcategoría?"
                   />
                 );
@@ -264,6 +272,7 @@ export const useSubcategoryColumns = ({
       onStopEditRow,
       onCancelEditRow,
       onDelete,
+      onConfigureVariables,
     ]
   );
 };
