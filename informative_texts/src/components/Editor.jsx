@@ -20,7 +20,7 @@ import {
   headingsPlugin,
   listsPlugin,
   quotePlugin,
-  linkPlugin,
+  linkPlugin, // No me funcionó
   thematicBreakPlugin,
   markdownShortcutPlugin,
   toolbarPlugin,
@@ -28,7 +28,7 @@ import {
   BlockTypeSelect,
   ListsToggle,
   UndoRedo,
-  CreateLink
+  CreateLink // No me funcionó
 } from '@mdxeditor/editor'
 
 function formatLabel(filename) {
