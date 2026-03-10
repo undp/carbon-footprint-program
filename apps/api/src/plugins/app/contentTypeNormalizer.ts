@@ -2,12 +2,13 @@ import type { FastifyInstance } from "fastify";
 import fp from "fastify-plugin";
 
 /**
- * Plugin to normalize empty Content-Type headers.
+ * Plugin to allow all content types.
  *
- * Some proxies/gateways (like Azure) may send DELETE requests with an empty
- * string Content-Type header (''), which causes Fastify to throw a 415 error.
- * This plugin removes the Content-Type header when it's empty, allowing Fastify
- * to handle the request normally.
+ * This plugin adds a catch-all content type parser that accepts any content type
+ * and returns null as the parsed body. This is useful for handling requests with
+ * unexpected or missing Content-Type headers, such as DELETE requests from
+ * certain proxies/gateways (like Azure) that may send an empty string
+ * Content-Type header (''), which would otherwise cause Fastify to throw a 415 error.
  */
 const contentTypeNormalizer = (
   fastify: FastifyInstance,
