@@ -561,6 +561,12 @@ export const SubcategoriesMaintainerScreen: FC = () => {
                   maxHeight: 100,
                   alignItems: "center",
                 },
+                "& .MuiDataGrid-cell .MuiOutlinedInput-root": {
+                  backgroundColor: theme.palette.common.white,
+                },
+                "& .MuiDataGrid-cell .MuiSelect-select": {
+                  backgroundColor: theme.palette.common.white,
+                },
                 "& .MuiDataGrid-row.row--editing": {
                   backgroundColor: theme.palette.grey[100],
                 },
