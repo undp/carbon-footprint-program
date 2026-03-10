@@ -22,7 +22,7 @@ export const HomeScreen: FC = () => {
 
   const availableYears = useMemo(() => {
     const years = inventories
-      .filter((inv) => inv.year != null)
+      .filter((inv) => inv.year !== null && inv.year !== undefined)
       .map((inv) => inv.year!.toString());
     return orderBy(uniq(years), Number, "desc");
   }, [inventories]);
