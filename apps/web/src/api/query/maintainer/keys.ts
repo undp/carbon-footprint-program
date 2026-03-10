@@ -10,4 +10,12 @@ export const maintainerKeys = {
     all: (methodologyVersionId: string) =>
       ["maintainer", "subcategories", methodologyVersionId] as const,
   },
+  emissionFactors: {
+    all: (methodologyVersionId: string) =>
+      ["maintainer", "emissionFactors", methodologyVersionId] as const,
+  },
+  emissionFactorDimensions: {
+    all: (methodologyVersionId: string) =>
+      ["maintainer", "emissionFactorDimensions", methodologyVersionId] as const,
+  },
 };
