@@ -15,4 +15,7 @@ export * from "./zod.js";
 export * from "./requests/index.js";
 export * from "./subcategories/index.js";
 export * from "./systemParameters/index.js";
+export * from "./emissionFactors/index.js";
+export * from "./emissionFactorDimensions/index.js";
+
 export * from "./baseSchemas/index.js";

@@ -25,3 +25,4 @@ export * from "./submission.js";
 export * from "./submissionSubject.js";
 export * from "./systemParameter.js";
 export * from "./user.js";
+export * from "./gasDetails.js";
