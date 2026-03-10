@@ -1,4 +1,5 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
+import { useSnackbar } from "notistack";
 import { useCarbonInventoryBadges } from "@/api/query";
 import { BadgeContainer } from "./BadgeContainer";
 
@@ -7,8 +8,21 @@ interface Props {
 }
 
 export const CarbonInventoryBadgesCard: FC<Props> = ({ inventoryId }) => {
-  const { data: badges = [], isLoading } =
-    useCarbonInventoryBadges(inventoryId);
+  const { enqueueSnackbar } = useSnackbar();
+  const {
+    data: badges = [],
+    isLoading,
+    error,
+  } = useCarbonInventoryBadges(inventoryId);
+
+  useEffect(() => {
+    if (error) {
+      enqueueSnackbar("No se pudieron cargar los sellos del inventario", {
+        variant: "error",
+        preventDuplicate: true,
+      });
+    }
+  }, [error, enqueueSnackbar]);
 
   return <BadgeContainer badges={badges} isLoading={isLoading} />;
 };
