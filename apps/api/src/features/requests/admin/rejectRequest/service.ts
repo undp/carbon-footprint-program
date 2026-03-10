@@ -18,7 +18,7 @@ export const rejectRequestService = async (
     submissionId,
     SubmissionStatus.REJECTED,
     userId,
-    body.reviewComments
+    { reviewComments: body.reviewComments }
   );
   return {};
 };
