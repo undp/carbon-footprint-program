@@ -1,0 +1,1 @@
+export { CarbonInventoryBadgesCard } from "./CarbonInventoryBadgesCard";

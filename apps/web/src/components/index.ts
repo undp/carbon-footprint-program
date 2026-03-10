@@ -5,3 +5,5 @@ export * from "./NumericInput";
 export * from "./CreateInventoryCard";
 export * from "./StylizedDataGrid";
 export * from "./ConfirmDialog";
+export * from "./EmissionResults";
+export * from "./CarbonInventoryBadgesCard";

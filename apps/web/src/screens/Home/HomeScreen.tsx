@@ -1,12 +1,74 @@
-import { FC } from "react";
-import { MainLayout } from "@/components";
-import { UnderConstructionScreen } from "../UnderConstruction";
+import { FC, useMemo, useState } from "react";
+import { Box } from "@mui/material";
+import { useCarbonInventoriesMinimalData } from "@/api/query";
+import { Header } from "./components";
+import { orderBy, uniq } from "lodash-es";
+import { EmissionResultsContent } from "@/components";
+import { UnverifiedCarbonInventoriesContent } from "./components/UnverifiedCarbonInventoriesContent";
+import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
+import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 
 export const HomeScreen: FC = () => {
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] = useState<
+    string | null
+  >(null);
+
+  const { data: inventories = [], isLoading: isLoadingInventories } =
+    useCarbonInventoriesMinimalData([
+      CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+      CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
+    ]);
+
+  const availableYears = useMemo(() => {
+    const years = inventories
+      .filter((inv) => inv.year !== null && inv.year !== undefined)
+      .map((inv) => inv.year!.toString());
+    return orderBy(uniq(years), Number, "desc");
+  }, [inventories]);
+
+  const effectiveYear =
+    selectedYear && availableYears.includes(selectedYear)
+      ? selectedYear
+      : (availableYears[0] ?? "");
+
+  const inventoriesForSelectedYear = useMemo(() => {
+    if (!effectiveYear) return [];
+    return inventories.filter((inv) => inv.year?.toString() === effectiveYear);
+  }, [inventories, effectiveYear]);
+
+  const effectiveInventoryId =
+    selectedCarbonInventoryId &&
+    inventoriesForSelectedYear.some(
+      (inv) => inv.id === selectedCarbonInventoryId
+    )
+      ? selectedCarbonInventoryId
+      : (inventoriesForSelectedYear[0]?.id ?? "");
+
+  if (isLoadingInventories) {
+    return <HomeScreenSkeleton />;
+  }
+
   return (
-    <MainLayout>
-      {/* TODO: Replace with real Home screen component */}
-      <UnderConstructionScreen />
-    </MainLayout>
+    <Box className="flex flex-1 flex-col gap-6">
+      <Header
+        availableYears={availableYears}
+        inventories={inventoriesForSelectedYear}
+        onYearChange={setSelectedYear}
+        onCarbonInventoryChange={setSelectedCarbonInventoryId}
+        selectedYear={effectiveYear}
+        selectedCarbonInventory={effectiveInventoryId}
+      />
+
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
+        {effectiveInventoryId && (
+          <EmissionResultsContent
+            inventoryId={effectiveInventoryId}
+            showBadges
+          />
+        )}
+        {!effectiveInventoryId && <UnverifiedCarbonInventoriesContent />}
+      </Box>
+    </Box>
   );
 };

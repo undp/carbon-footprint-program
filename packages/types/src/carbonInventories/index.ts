@@ -44,3 +44,5 @@ export * from "./requestCalculation/schemas.js";
 export * from "./requestCalculation/types.js";
 export * from "./requestVerification/schemas.js";
 export * from "./requestVerification/types.js";
+export * from "./getCarbonInventoriesMinimal/schemas.js";
+export * from "./getCarbonInventoriesMinimal/types.js";
