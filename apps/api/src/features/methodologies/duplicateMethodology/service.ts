@@ -170,8 +170,9 @@ export const duplicateMethodologyService = async (
         }
 
         // 2. Duplicate dimension values (two passes to handle parentValueId)
+        const dimensionValueIdMap = new Map<bigint, bigint>();
+
         if (dimensionIdMap.size > 0) {
-          const dimensionValueIdMap = new Map<bigint, bigint>();
           const originalValues = await tx.emissionFactorDimensionValue.findMany(
             {
               where: {
@@ -211,35 +212,35 @@ export const duplicateMethodologyService = async (
               });
             }
           }
+        }
 
-          // 3. Duplicate active emission factors
-          const originalFactors = await tx.emissionFactor.findMany({
-            where: {
-              subcategoryId: { in: oldSubcategoryIds },
+        // 3. Duplicate active emission factors
+        const originalFactors = await tx.emissionFactor.findMany({
+          where: {
+            subcategoryId: { in: oldSubcategoryIds },
+            status: EmissionFactorStatus.ACTIVE,
+          },
+        });
+
+        for (const ef of originalFactors) {
+          await tx.emissionFactor.create({
+            data: {
+              subcategoryId: subcategoryIdMap.get(ef.subcategoryId)!,
+              dimensionValue1Id: ef.dimensionValue1Id
+                ? (dimensionValueIdMap.get(ef.dimensionValue1Id) ?? null)
+                : null,
+              dimensionValue2Id: ef.dimensionValue2Id
+                ? (dimensionValueIdMap.get(ef.dimensionValue2Id) ?? null)
+                : null,
+              rateMeasurementUnitId: ef.rateMeasurementUnitId,
+              source: ef.source,
+              gasDetails: ef.gasDetails ?? Prisma.JsonNull,
+              value: ef.value,
               status: EmissionFactorStatus.ACTIVE,
+              createdById: userId,
+              updatedAt: null,
             },
           });
-
-          for (const ef of originalFactors) {
-            await tx.emissionFactor.create({
-              data: {
-                subcategoryId: subcategoryIdMap.get(ef.subcategoryId)!,
-                dimensionValue1Id: ef.dimensionValue1Id
-                  ? (dimensionValueIdMap.get(ef.dimensionValue1Id) ?? null)
-                  : null,
-                dimensionValue2Id: ef.dimensionValue2Id
-                  ? (dimensionValueIdMap.get(ef.dimensionValue2Id) ?? null)
-                  : null,
-                rateMeasurementUnitId: ef.rateMeasurementUnitId,
-                source: ef.source,
-                gasDetails: ef.gasDetails ?? Prisma.JsonNull,
-                value: ef.value,
-                status: EmissionFactorStatus.ACTIVE,
-                createdById: userId,
-                updatedAt: null,
-              },
-            });
-          }
         }
       }
 
