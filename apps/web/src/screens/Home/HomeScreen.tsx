@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import { useCarbonInventoriesMinimalData } from "@/api/query";
 import { Header } from "./components";
@@ -14,14 +14,11 @@ export const HomeScreen: FC = () => {
     string | null
   >(null);
 
-  const {
-    data: inventories = [],
-    isLoading: isLoadingInventories,
-    refetch: refetchInventories,
-  } = useCarbonInventoriesMinimalData([
-    CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-    CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
-  ]);
+  const { data: inventories = [], isLoading: isLoadingInventories } =
+    useCarbonInventoriesMinimalData([
+      CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+      CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
+    ]);
 
   const availableYears = useMemo(() => {
     const years = inventories
@@ -47,11 +44,6 @@ export const HomeScreen: FC = () => {
     )
       ? selectedCarbonInventoryId
       : (inventoriesForSelectedYear[0]?.id ?? "");
-
-  useEffect(() => {
-    void refetchInventories();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   if (isLoadingInventories) {
     return <HomeScreenSkeleton />;
