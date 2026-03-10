@@ -43,6 +43,7 @@
     "pino": "catalog:shared",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-dropzone": "^15.0.0",
     "react-hook-form": "^7.66.1",
     "tailwindcss": "^4.1.17",
     "zod": "catalog:shared",
