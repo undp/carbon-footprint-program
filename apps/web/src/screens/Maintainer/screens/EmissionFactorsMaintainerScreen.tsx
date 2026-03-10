@@ -395,7 +395,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       dimensionValue2Name: null,
       rateMeasurementUnitId: "",
       source: "",
-      value: "",
+      value: 0,
       gasDetails: {
         CO2_FOSSIL: 0,
         CH4: 0,
@@ -519,7 +519,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
   const geiDeclaredValue =
     geiModal.rowIndex >= 0
       ? form.getValues(`emissionFactors.${geiModal.rowIndex}.value`)
-      : "";
+      : 0;
 
   return (
     <FormProvider {...form}>

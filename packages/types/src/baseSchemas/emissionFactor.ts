@@ -2,10 +2,6 @@ import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { EmissionFactorStatus } from "../enums.js";
 
-// Supports decimal: 123, 12.34, -12, -12.34
-// and scientific notation: 1e5, 1.23e-5, -4.3e-7, etc.
-const EMISSION_FACTOR_REGEX = /^-?\d+(\.\d+)?([eE][+-]?\d+)?$/;
-
 export const EmissionFactorStatusSchema = z
   .enum(EmissionFactorStatus)
   .describe("The status of the emission factor");
@@ -24,15 +20,7 @@ export const EmissionFactorBaseSchema = z.object({
   ),
   source: z.string().describe("The source of the emission factor"),
   gasDetails: z.unknown().describe("The gas details as JSON"),
-  value: z
-    .string()
-    .regex(
-      EMISSION_FACTOR_REGEX,
-      "Invalid decimal or scientific notation string"
-    )
-    .describe(
-      "The emission factor value as a decimal or scientific notation string"
-    ),
+  value: z.number().describe("The emission factor value"),
   status: EmissionFactorStatusSchema.describe(
     "The status of the emission factor"
   ),

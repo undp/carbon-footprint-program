@@ -47,7 +47,7 @@ export const getAllEmissionFactorsService = async (
 
   return emissionFactors.map((ef) => ({
     id: ef.id.toString(),
-    value: ef.value.toString(),
+    value: ef.value.toNumber(),
     source: ef.source,
     subcategoryId: ef.subcategory.id.toString(),
     subcategoryName: ef.subcategory.name,
