@@ -1,12 +1,7 @@
 import { z } from "zod";
-import { IdSchema } from "../../../zod.js";
-import { SubmissionFileTypeSchema } from "../../schemas.js";
+import { RouteFileTypeSchema } from "../../baseSchemas/file.js";
 
-export const RequestSubmissionUploadParamsSchema = z.object({
-  submissionId: IdSchema.describe("The submission ID"),
-});
-
-export const RequestSubmissionUploadBodySchema = z.object({
+export const RequestUploadBodySchema = z.object({
   originalName: z
     .string()
     .min(1)
@@ -18,12 +13,10 @@ export const RequestSubmissionUploadBodySchema = z.object({
       "File name must not contain path separators or colons"
     )
     .describe("The original file name"),
-  submissionFileType: SubmissionFileTypeSchema.describe(
-    "The submission file type (ATTACHMENT or RECOGNITION)"
-  ),
+  fileType: RouteFileTypeSchema.describe("The type of file being uploaded"),
 });
 
-export const RequestSubmissionUploadResponseSchema = z.object({
+export const RequestUploadResponseSchema = z.object({
   uuid: z.uuid().describe("The generated file UUID"),
   uploadUrl: z
     .httpUrl()

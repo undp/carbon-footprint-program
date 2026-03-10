@@ -98,3 +98,40 @@ export async function generateWriteSasUrl(
 
   return { url, expiresAt };
 }
+
+/**
+ * Moves a blob from sourcePath to destPath within the same container.
+ * Generates a short-lived read SAS for the source, copies to dest, then deletes source.
+ */
+export async function moveBlob(
+  blobServiceClient: BlobServiceClient,
+  containerName: string,
+  sourcePath: string,
+  destPath: string
+): Promise<void> {
+  if (sourcePath === destPath) return;
+
+  const { url: sourceUrl } = await generateReadSasUrl(
+    blobServiceClient,
+    containerName,
+    sourcePath,
+    {},
+    5
+  );
+
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+  const destBlob = containerClient.getBlockBlobClient(destPath);
+  const copyOperation = await destBlob.beginCopyFromURL(sourceUrl);
+  const timeoutMs = 30_000;
+  const timer = setTimeout(() => {
+    void copyOperation.cancelOperation();
+  }, timeoutMs);
+
+  try {
+    await copyOperation.pollUntilDone();
+  } finally {
+    clearTimeout(timer);
+  }
+
+  await containerClient.getBlockBlobClient(sourcePath).delete();
+}

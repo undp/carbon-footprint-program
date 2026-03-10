@@ -27,6 +27,9 @@ param storageSkuName string
 ])
 param storageNetworkAclDefaultAction string = 'Deny'
 
+@description('Additional allowed origin for blob storage CORS during local development (e.g., http://localhost:5173). Leave empty to disable.')
+param storageDevAllowedOrigin string = ''
+
 // --------- Database parameters ---------
 @description('Database user')
 param dbUser string
@@ -220,6 +223,7 @@ module storage 'modules/storage.bicep' = {
     location: location
     networkAclDefaultAction: storageNetworkAclDefaultAction
     allowedOrigin: allowedOrigin
+    devAllowedOrigin: storageDevAllowedOrigin
     tags: tags
   }
 }

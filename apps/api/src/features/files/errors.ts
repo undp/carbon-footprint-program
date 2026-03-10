@@ -17,3 +17,9 @@ export const StorageNotConfiguredError = createError(
   "Blob storage is not configured. Set AZURE_STORAGE_ACCOUNT_NAME to enable file uploads.",
   503
 );
+
+export const BlobMoveError = createError(
+  "BLOB_MOVE_ERROR",
+  "Failed to move blob",
+  500
+);
