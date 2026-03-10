@@ -8,10 +8,10 @@ import fp from "fastify-plugin";
  * Fastify would otherwise throw a 415 error.
  *
  * Current behavior:
- * - For DELETE requests with empty/missing Content-Type AND empty body:
+ * - For DELETE requests with undefined Content-Type AND empty body:
  *   Allows the request and returns null as the parsed body. This is specifically
  *   needed for certain proxies/gateways (like Azure) that may send DELETE requests
- *   with an empty string Content-Type header ('').
+ *   with an undefined Content-Type header.
  * - For all other cases (including DELETE with non-empty Content-Type or body):
  *   Returns HTTP 415 (Unsupported Media Type) error.
  */
@@ -25,12 +25,10 @@ const contentTypeNormalizer = (
     { parseAs: "buffer" },
     (request, body, done) => {
       const contentType = request.headers["content-type"];
-      const normalizedContentType =
-        typeof contentType === "string" ? contentType.trim() : contentType;
 
       if (
         request.method === "DELETE" &&
-        (normalizedContentType == null || normalizedContentType === "") &&
+        contentType == undefined &&
         body.length === 0
       ) {
         return done(null, null);
@@ -39,7 +37,7 @@ const contentTypeNormalizer = (
       const err = new Error(
         `No content type parser registered for '${contentType || "(missing)"}'. ` +
           `Request: ${request.method} ${request.url} | Body: ${body.length} bytes. ` +
-          `Only bodyless DELETE requests with empty Content-Type are handled by the fallback parser. ` +
+          `Only bodyless DELETE requests with undefined Content-Type are handled by the fallback parser. ` +
           `Fix: (1) Register a Fastify content type parser for '${contentType}', or ` +
           `(2) Verify the client is sending a supported Content-Type header (e.g., application/json).`
       ) as Error & { statusCode?: number };
