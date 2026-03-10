@@ -14,6 +14,8 @@ import {
   MethodologyNameVersionAlreadyExistsError,
   getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
+import { generateUniqueCopyName } from "@/helpers/generateUniqueCopyName.js";
+import map from "lodash-es/map.js";
 
 export const duplicateMethodologyService = async (
   prismaClient: PrismaClient,
@@ -37,11 +39,10 @@ export const duplicateMethodologyService = async (
     select: { name: true },
   });
 
-  const existingNameSet = new Set(existingNames.map((item) => item.name));
-  let duplicatedName = `${original.name} (copia)`;
-  while (existingNameSet.has(duplicatedName)) {
-    duplicatedName = `${duplicatedName} (copia)`;
-  }
+  const duplicatedName = generateUniqueCopyName(
+    original.name,
+    map(existingNames, "name")
+  );
 
   try {
     const userId = user ? BigInt(user.id) : null;
