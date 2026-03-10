@@ -103,7 +103,7 @@ export async function generateWriteSasUrl(
  * Moves a blob from sourcePath to destPath within the same container.
  * Generates a short-lived read SAS for the source, copies to dest, then deletes source.
  */
-export async function moveBlobPath(
+export async function moveBlob(
   blobServiceClient: BlobServiceClient,
   containerName: string,
   sourcePath: string,
