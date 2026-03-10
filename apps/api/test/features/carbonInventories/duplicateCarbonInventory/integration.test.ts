@@ -109,7 +109,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         where: { id: BigInt(body.id) },
       });
 
-      expect(newInventory?.name).toBe("Test Inventory");
+      expect(newInventory?.name).toBe("Test Inventory (copia)");
       expect(newInventory?.year).toBe(2024);
       expect(newInventory?.usageMode).toBe("SIMPLIFIED");
       expect(newInventory?.methodologyVersionId).toBe(methodologyVersionId);
