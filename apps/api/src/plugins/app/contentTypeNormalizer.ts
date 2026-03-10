@@ -31,6 +31,11 @@ const contentTypeNormalizer = (
         contentType == undefined &&
         body.length === 0
       ) {
+        fastify.log.info({
+          msg: "contentTypeNormalizer was used",
+          contentType: request.headers["content-type"],
+          transferEncoding: request.headers["transfer-encoding"],
+        });
         return done(null, null);
       }
 
@@ -45,14 +50,6 @@ const contentTypeNormalizer = (
       done(err, null);
     }
   );
-
-  fastify.addHook("onRequest", async (request, _reply) => {
-    fastify.log.info({
-      msg: "contentTypeNormalizer",
-      contentType: request.headers["content-type"],
-      transferEncoding: request.headers["transfer-encoding"],
-    });
-  });
 
   done();
 };
