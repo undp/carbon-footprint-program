@@ -10,13 +10,13 @@ import {
 } from "@mui/material";
 import {
   CarbonInventoryAvailableYearsResponse,
-  GetAllCarbonInventoriesResponse,
+  GetCarbonInventoriesMinimalResponse,
 } from "@repo/types";
 
 interface Props {
   availableYears: CarbonInventoryAvailableYearsResponse;
   onYearChange: (year: string) => void;
-  inventories: GetAllCarbonInventoriesResponse;
+  inventories: GetCarbonInventoriesMinimalResponse;
   onCarbonInventoryChange: (inventoryId: string) => void;
   selectedYear: string;
   selectedCarbonInventory: string;
@@ -24,11 +24,9 @@ interface Props {
 
 export const Header: FC<Props> = ({
   availableYears,
-
   onYearChange,
   inventories,
   onCarbonInventoryChange,
-  isLoadingInventories,
   selectedYear,
   selectedCarbonInventory,
 }) => {

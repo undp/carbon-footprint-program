@@ -1,79 +1,57 @@
 import { FC, useEffect, useMemo, useState } from "react";
 import { Box } from "@mui/material";
-import { useCarbonInventories } from "../../api/query";
-import { Header, NoneCarbonInventoriesSection } from "./components";
-import { filter, map, orderBy, uniq } from "lodash-es";
-import {
-  CarbonInventoryDisplayStatus,
-  CarbonInventoryDisplayStatusEnum,
-} from "@repo/types";
+import { useCarbonInventoriesMinimalData } from "@/api/query";
+import { Header } from "./components";
+import { orderBy, uniq } from "lodash-es";
 import { EmissionResultsContent } from "@/components";
 import { NoneVerifyCarbonInventories } from "./components/NoneVerifyCarbonInventories";
-import { HomeScreenContentSkeleton } from "./components/Skeletons/HomeContentSkeleton";
+import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
+import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 
 export const HomeScreen: FC = () => {
-  const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] =
-    useState<string>("");
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] = useState<
+    string | null
+  >(null);
 
   const {
     data: inventories = [],
     isLoading: isLoadingInventories,
     refetch: refetchInventories,
-  } = useCarbonInventories();
-
-  const filteredByStatusInventories = useMemo(() => {
-    const statusOrder: Partial<Record<CarbonInventoryDisplayStatus, number>> = {
-      [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: 0,
-      [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: 1,
-    };
-
-    const filtered = filter(inventories, ({ status }) =>
-      (
-        [
-          CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-          CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
-        ] as CarbonInventoryDisplayStatus[]
-      ).includes(status)
-    );
-
-    return orderBy(
-      filtered,
-      [({ status }) => statusOrder[status], ({ year }) => Number(year)],
-      ["asc", "desc"]
-    );
-  }, [inventories]);
+  } = useCarbonInventoriesMinimalData([
+    CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+    CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
+  ]);
 
   const availableYears = useMemo(() => {
-    const years = map(
-      filter(filteredByStatusInventories, (inv) => inv.year != null),
-      (inv) => inv.year!.toString()
-    );
+    const years = inventories
+      .filter((inv) => inv.year != null)
+      .map((inv) => inv.year!.toString());
     return orderBy(uniq(years), Number, "desc");
-  }, [filteredByStatusInventories]);
+  }, [inventories]);
+
+  const effectiveYear =
+    selectedYear && availableYears.includes(selectedYear)
+      ? selectedYear
+      : (availableYears[0] ?? "");
+
+  const inventoriesForSelectedYear = useMemo(() => {
+    if (!effectiveYear) return inventories;
+    return inventories.filter((inv) => inv.year?.toString() === effectiveYear);
+  }, [inventories, effectiveYear]);
+
+  const effectiveInventoryId =
+    selectedCarbonInventoryId &&
+    inventoriesForSelectedYear.some(
+      (inv) => inv.id === selectedCarbonInventoryId
+    )
+      ? selectedCarbonInventoryId
+      : (inventoriesForSelectedYear[0]?.id ?? "");
 
   useEffect(() => {
     void refetchInventories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const effectiveYear = availableYears.includes(selectedYear)
-    ? selectedYear
-    : (availableYears[0] ?? "");
-
-  const effectiveInventoryId = filteredByStatusInventories.some(
-    (inv) => inv.id === selectedCarbonInventoryId
-  )
-    ? selectedCarbonInventoryId
-    : (filteredByStatusInventories[0]?.id ?? "");
-
-  if (!isLoadingInventories && inventories.length === 0) {
-    return (
-      <Box className="flex flex-1 flex-col gap-6">
-        <NoneCarbonInventoriesSection />
-      </Box>
-    );
-  }
 
   if (isLoadingInventories) {
     return <HomeScreenSkeleton />;
@@ -90,15 +68,15 @@ export const HomeScreen: FC = () => {
         selectedCarbonInventory={effectiveInventoryId}
       />
 
-          <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
+      <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
         {effectiveInventoryId && (
-            <EmissionResultsContent
-              inventoryId={effectiveInventoryId}
-              showBadges
-            />
+          <EmissionResultsContent
+            inventoryId={effectiveInventoryId}
+            showBadges
+          />
         )}
         {!effectiveInventoryId && <NoneVerifyCarbonInventories />}
-          </Box>
+      </Box>
     </Box>
   );
 };
