@@ -185,6 +185,60 @@ export const useEmissionFactorColumns = ({
         },
       },
       {
+        field: "value",
+        headerName: "Valor",
+        width: 130,
+        renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
+          const rowIndex = getRowIndex(params.row.id);
+          const editing = isEditing(params.row.id);
+          const formRow = rows[rowIndex];
+
+          if (editing) {
+            return (
+              <TextField
+                size="small"
+                fullWidth
+                type="text"
+                value={formRow?.value ?? ""}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  onCellChange(
+                    rowIndex,
+                    "value",
+                    nextValue === "" ? 0 : Number(nextValue)
+                  );
+                }}
+                onKeyDown={(e) => e.stopPropagation()}
+                inputProps={{ style: { textAlign: "right" } }}
+                sx={{
+                  "& .MuiOutlinedInput-root": { backgroundColor: "white" },
+                }}
+              />
+            );
+          }
+
+          return (
+            <Typography
+              variant="body2"
+              onClick={
+                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+              }
+              sx={{
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                cursor: !viewOnly ? "pointer" : "default",
+                textAlign: "right",
+                width: "100%",
+                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+              }}
+            >
+              {params.row.value}
+            </Typography>
+          );
+        },
+      },
+      {
         field: "rateMeasurementUnitName",
         headerName: "Unidad",
         flex: 0.12,
@@ -246,61 +300,6 @@ export const useEmissionFactorColumns = ({
               }}
             >
               {unit?.abbreviation ?? params.row.rateMeasurementUnitName}
-            </Typography>
-          );
-        },
-      },
-      {
-        field: "value",
-        headerName: "Valor",
-        width: 130,
-        renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
-
-          if (editing) {
-            return (
-              <TextField
-                size="small"
-                fullWidth
-                type="text"
-                value={formRow?.value ?? ""}
-                onChange={(e) => {
-                  const nextValue = e.target.value;
-                  onCellChange(
-                    rowIndex,
-                    "value",
-                    nextValue === "" ? 0 : Number(nextValue)
-                  );
-                }}
-                onKeyDown={(e) => e.stopPropagation()}
-                inputProps={{ style: { textAlign: "right" } }}
-                sx={{
-                  "& .MuiOutlinedInput-root": { backgroundColor: "white" },
-                }}
-              />
-            );
-          }
-
-          return (
-            <Typography
-              variant="body2"
-              fontFamily="monospace"
-              onClick={
-                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
-              }
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                cursor: !viewOnly ? "pointer" : "default",
-                textAlign: "right",
-                width: "100%",
-                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
-              }}
-            >
-              {params.row.value}
             </Typography>
           );
         },
