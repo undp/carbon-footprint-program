@@ -2,7 +2,7 @@ import { useMemo, useCallback } from "react";
 import { Button } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { GetAllSubcategoriesResponse, SubcategoryForm } from "@repo/types";
+import type { SubcategoryForm } from "@repo/types";
 
 import {
   EditableTextCell,
@@ -11,9 +11,7 @@ import {
   MeasurementUnitsCell,
 } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
-import type { MeasurementUnit } from "../types";
-
-type Subcategory = GetAllSubcategoriesResponse[number];
+import type { MeasurementUnit, Subcategory } from "../types";
 
 interface UseSubcategoryColumnsParams {
   editingRowId: string | null;

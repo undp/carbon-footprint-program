@@ -44,7 +44,6 @@ import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
 import {
   MethodologyVersionStatus,
   SubcategoryForm,
-  type GetAllSubcategoriesResponse,
   type GetAllMeasurementUnitsResponse,
 } from "@repo/types";
 import { StylizedDataGrid } from "@components";
@@ -53,8 +52,7 @@ import { FormDebugPanel } from "@/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
-
-type Subcategory = GetAllSubcategoriesResponse[number];
+import { Subcategory } from "../types";
 
 /**
  * Outer wrapper that handles data fetching and defers form mount until data is
