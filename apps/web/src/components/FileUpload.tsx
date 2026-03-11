@@ -50,7 +50,14 @@ export const FileUpload = ({
     [value]
   );
 
-  const prevPreviewsRef = useRef(filesWithPreviews);
+  useEffect(
+    () => () => {
+      filesWithPreviews.forEach(({ previewUrl }) => {
+        if (previewUrl) URL.revokeObjectURL(previewUrl);
+      });
+    },
+    [filesWithPreviews]
+  );
 
   const addFiles = useCallback(
     (incoming: File[]) => {
@@ -127,31 +134,6 @@ export const FileUpload = ({
       setDropError("");
     },
     [value, onChange]
-  );
-
-  // Revoke stale blob URLs when previews change
-  useEffect(() => {
-    const prev = prevPreviewsRef.current;
-    prevPreviewsRef.current = filesWithPreviews;
-
-    const currentUrls = new Set(
-      filesWithPreviews.map(({ previewUrl }) => previewUrl)
-    );
-    prev.forEach(({ previewUrl }) => {
-      if (previewUrl && !currentUrls.has(previewUrl)) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    });
-  }, [filesWithPreviews]);
-
-  // Revoke all remaining blob URLs on unmount
-  useEffect(
-    () => () => {
-      prevPreviewsRef.current.forEach(({ previewUrl }) => {
-        if (previewUrl) URL.revokeObjectURL(previewUrl);
-      });
-    },
-    []
   );
 
   useEffect(() => {
