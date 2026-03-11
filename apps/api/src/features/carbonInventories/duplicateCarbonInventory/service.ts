@@ -43,6 +43,7 @@ export const duplicateCarbonInventoryService = async (
     // Generate unique copy name inside the transaction to minimize race window
     let duplicatedName = source.name;
     if (source.name) {
+      // TODO (Mati); you should use the same filter strategy as the one used at getCarbonInventories (by my orgs.)
       const existingNames = await tx.carbonInventory.findMany({
         where: { status: { not: InventoryStatus.DELETED } },
         select: { name: true },
