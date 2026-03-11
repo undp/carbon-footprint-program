@@ -1,4 +1,8 @@
-import { type PrismaClient } from "@repo/database";
+import {
+  CarbonInventoryLineStatus,
+  InventoryStatus,
+  type PrismaClient,
+} from "@repo/database";
 import type { DuplicateCarbonInventoryResponse, User } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 import { generateUniqueCopyName } from "@/helpers/generateUniqueCopyName.js";
@@ -16,7 +20,7 @@ export const duplicateCarbonInventoryService = async (
     where: { id: BigInt(id) },
     include: {
       lines: {
-        where: { status: "ACTIVE" },
+        where: { status: CarbonInventoryLineStatus.ACTIVE },
         include: {
           inputs: {
             where: { isActive: true },
@@ -37,7 +41,7 @@ export const duplicateCarbonInventoryService = async (
   let duplicatedName = source.name;
   if (source.name) {
     const existingNames = await prismaClient.carbonInventory.findMany({
-      where: { status: { not: "DELETED" } },
+      where: { status: { not: InventoryStatus.DELETED } },
       select: { name: true },
     });
     const names = map(existingNames, "name").filter((n) => n !== null);
@@ -54,7 +58,7 @@ export const duplicateCarbonInventoryService = async (
         organizationBranchId: source.organizationBranchId,
         organizationData: source.organizationData ?? undefined,
         year: source.year,
-        status: "ACTIVE",
+        status: InventoryStatus.ACTIVE,
         usageMode: source.usageMode,
         methodologyVersionId: source.methodologyVersionId,
         preselectedNodesId: source.preselectedNodesId,
@@ -71,7 +75,7 @@ export const duplicateCarbonInventoryService = async (
         data: {
           carbonInventoryId: inventory.id,
           subcategoryId: line.subcategoryId,
-          status: "ACTIVE",
+          status: CarbonInventoryLineStatus.ACTIVE,
           createdById: userId,
           updatedAt: null,
           updatedById: null,
