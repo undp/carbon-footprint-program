@@ -66,7 +66,6 @@ function readExplanationFilesFromDir(
       content,
     };
   });
-  // .filter((f) => f.content.trim().length > 0);
 }
 
 async function seedCategoryExplanations(
