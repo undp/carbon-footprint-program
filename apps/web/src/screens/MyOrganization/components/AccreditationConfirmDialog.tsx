@@ -2,7 +2,6 @@ import { FC, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Button,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
@@ -116,12 +115,7 @@ export const AccreditationConfirmDialog: FC<
             type="submit"
             variant="contained"
             color="primary"
-            disabled={isLoading}
-            startIcon={
-              isLoading ? (
-                <CircularProgress size={16} color="inherit" />
-              ) : undefined
-            }
+            loading={isLoading}
           >
             Solicitar
           </Button>
