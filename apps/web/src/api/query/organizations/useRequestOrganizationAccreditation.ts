@@ -18,18 +18,18 @@ export const useRequestOrganizationAccreditation = (id: string | undefined) => {
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: organizationKeys.all,
-            exact: true
-          }),
-          queryClient.invalidateQueries({
-            queryKey: organizationKeys.detail(id ?? ""),
-            exact: true
-          }),
-          queryClient.invalidateQueries({
-            queryKey: requestsKeys.adminAll,
             exact: true,
           }),
           queryClient.invalidateQueries({
-            queryKey: requestsKeys.adminKpis,
+            queryKey: organizationKeys.detail(id ?? ""),
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.adminAll(),
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.adminKpis(),
             exact: true,
           }),
         ]);
