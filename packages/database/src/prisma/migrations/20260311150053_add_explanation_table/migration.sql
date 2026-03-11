@@ -17,9 +17,6 @@ CREATE TABLE "explanation" (
     CONSTRAINT "explanation_pkey" PRIMARY KEY ("id")
 );
 
--- CreateIndex
-CREATE UNIQUE INDEX "explanation_name_key" ON "explanation"("name");
-
 -- AddForeignKey
 ALTER TABLE "category" ADD CONSTRAINT "category_explanation_id_fkey" FOREIGN KEY ("explanation_id") REFERENCES "explanation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
