@@ -12,8 +12,14 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
     name: true,
     icon: true,
     description: true,
-    examples: true,
   }).shape,
+  examples: z
+    .union([
+      z.string().min(1),
+      z.null(),
+      z.literal("").transform(() => null),
+    ])
+    .describe("Examples of the subcategory"),
   measurementUnitIds: z
     .array(MeasurementUnitBaseSchema.shape.id)
     .describe("Array of measurement unit IDs associated with the sub-category"),
@@ -36,7 +42,7 @@ export const SubcategoryFormSchema = SubcategoryBaseSchema.pick({
     .max(255, "Nombre no puede exceder 255 caracteres"),
   icon: z.string().min(1, "Ícono es requerido"),
   description: z.string().min(1, "Descripción es requerida"),
-  examples: z.string().nullable(),
+  examples: z.string().nullable().transform((v) => (v === "" ? null : v)),
   measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
 });
 
