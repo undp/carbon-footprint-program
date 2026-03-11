@@ -23,6 +23,14 @@ export const useUpdateOrganization = (id: string | undefined) => {
             queryKey: organizationKeys.detail(id ?? ""),
             exact: true,
           }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.adminAll(),
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.adminKpis(),
+            exact: true,
+          }),
         ]);
       },
     }
