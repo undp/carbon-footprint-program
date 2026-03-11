@@ -23,66 +23,125 @@ function normalizeName(name: string): string {
 interface ExplanationFile {
   fileName: string;
   categoryPosition: number;
-  normalizedSubcategoryName: string;
+  normalizedName: string;
   content: string;
 }
 
-function readExplanationFiles(dataset: SeedsDataset): ExplanationFile[] {
-  const explanationsDir = join(__dirname, `../data/${dataset}/explanations`);
+function readExplanationFilesFromDir(
+  dataset: SeedsDataset,
+  subdir: "subcategories" | "categories"
+): ExplanationFile[] {
+  const explanationsDir = join(
+    __dirname,
+    `../data/${dataset}/explanations/${subdir}`
+  );
 
   let files: string[];
   try {
     files = readdirSync(explanationsDir).filter((f) => f.endsWith(".md"));
   } catch {
     console.log(
-      `   ⚠ No explanations directory found for dataset ${dataset}, skipping.`
+      `   ⚠ No explanations/${subdir} directory found for dataset ${dataset}, skipping.`
     );
     return [];
   }
 
-  return files.map((fileName) => {
-    // Parse filename: c{position}_{normalized_subcategory_name}.md
-    const match = fileName.match(/^c(\d+)_(.+)\.md$/);
-    if (!match) {
-      throw new Error(
-        `Invalid explanation filename format: '${fileName}'. Expected c{position}_{name}.md`
-      );
-    }
+  return files
+    .map((fileName) => {
+      // Parse filename: c{position}_{normalized_name}.md
+      const match = fileName.match(/^c(\d+)_(.+)\.md$/);
+      if (!match) {
+        throw new Error(
+          `Invalid explanation filename format: '${fileName}'. Expected c{position}_{name}.md`
+        );
+      }
 
-    const categoryPosition = parseInt(match[1]!, 10);
-    const normalizedSubcategoryName = normalizeName(match[2]!);
-    const content = readFileSync(join(explanationsDir, fileName), "utf-8");
+      const categoryPosition = parseInt(match[1]!, 10);
+      const normalizedName = normalizeName(match[2]!);
+      const content = readFileSync(join(explanationsDir, fileName), "utf-8");
 
-    return {
-      fileName,
-      categoryPosition,
-      normalizedSubcategoryName,
-      content,
-    };
-  });
+      return {
+        fileName,
+        categoryPosition,
+        normalizedName,
+        content,
+      };
+    })
+    .filter((f) => f.content.trim().length > 0);
 }
 
-export async function seedExplanations(
+async function seedCategoryExplanations(
   prisma: PrismaClient,
   dataset: SeedsDataset
 ) {
-  console.log("Seeding explanations...");
+  const categoryFiles = readExplanationFilesFromDir(dataset, "categories");
 
-  const explanationFiles = readExplanationFiles(dataset);
-
-  if (explanationFiles.length === 0) {
-    console.log("   ✓ No explanation files to seed.");
+  if (categoryFiles.length === 0) {
+    console.log("   ✓ No category explanation files to seed.");
     return;
   }
 
-  // Fetch all subcategories with their parent category (which has position)
+  const categories = await prisma.category.findMany();
+
+  const categoryLookup = new Map(
+    categories.map((cat) => [`${cat.position}:${normalizeName(cat.name)}`, cat])
+  );
+
+  let linkedCount = 0;
+
+  for (const file of categoryFiles) {
+    const lookupKey = `${file.categoryPosition}:${file.normalizedName}`;
+    const category = categoryLookup.get(lookupKey);
+
+    if (!category) {
+      console.warn(
+        `   ⚠ No category match for file '${file.fileName}' (lookup key: ${lookupKey})`
+      );
+      continue;
+    }
+
+    const explanationName = `Explicación de la categoría ${category.name}`;
+
+    const explanation = await prisma.explanation.create({
+      data: {
+        name: explanationName,
+        content: file.content,
+      },
+    });
+
+    await prisma.category.update({
+      where: { id: category.id },
+      data: { explanationId: explanation.id },
+    });
+
+    linkedCount++;
+  }
+
+  console.log(
+    `   ✓ Created ${linkedCount} explanations and linked to categories for dataset ${dataset}`
+  );
+}
+
+async function seedSubcategoryExplanations(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
+  const subcategoryFiles = readExplanationFilesFromDir(
+    dataset,
+    "subcategories"
+  );
+
+  if (subcategoryFiles.length === 0) {
+    console.log("   ✓ No subcategory explanation files to seed.");
+    return;
+  }
+
   const subcategories = await prisma.subcategory.findMany({
     include: {
       category: true,
     },
   });
 
-  // Build a lookup: "categoryPosition:normalizedSubcategoryName" → subcategory
   const subcategoryLookup = new Map(
     subcategories.map((sub) => [
       `${sub.category.position}:${normalizeName(sub.name)}`,
@@ -92,8 +151,8 @@ export async function seedExplanations(
 
   let linkedCount = 0;
 
-  for (const file of explanationFiles) {
-    const lookupKey = `${file.categoryPosition}:${file.normalizedSubcategoryName}`;
+  for (const file of subcategoryFiles) {
+    const lookupKey = `${file.categoryPosition}:${file.normalizedName}`;
     const subcategory = subcategoryLookup.get(lookupKey);
 
     if (!subcategory) {
@@ -103,10 +162,8 @@ export async function seedExplanations(
       continue;
     }
 
-    // Use the original subcategory name as the explanation name
     const explanationName = `Explicación de la subcategoría ${subcategory.name}`;
 
-    // Upsert: create explanation if it doesn't exist, then link to subcategory
     const explanation = await prisma.explanation.create({
       data: {
         name: explanationName,
@@ -114,7 +171,6 @@ export async function seedExplanations(
       },
     });
 
-    // Link subcategory to the explanation
     await prisma.subcategory.update({
       where: { id: subcategory.id },
       data: { explanationId: explanation.id },
@@ -126,4 +182,14 @@ export async function seedExplanations(
   console.log(
     `   ✓ Created ${linkedCount} explanations and linked to subcategories for dataset ${dataset}`
   );
+}
+
+export async function seedExplanations(
+  prisma: PrismaClient,
+  dataset: SeedsDataset
+) {
+  console.log("Seeding explanations...");
+
+  await seedCategoryExplanations(prisma, dataset);
+  await seedSubcategoryExplanations(prisma, dataset);
 }
