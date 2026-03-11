@@ -1,6 +1,7 @@
 export * from "./carbonInventories";
 export * from "./client";
 export * from "./countryOrganizationSizes";
+export * from "./explanations";
 export * from "./countrySectors";
 export * from "./organizationMainActivities";
 export * from "./users";

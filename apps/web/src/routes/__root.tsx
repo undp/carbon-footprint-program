@@ -7,7 +7,7 @@ import { initializeMsal, msalInstance } from "../auth/initializeMsal";
 import { MsalProvider } from "@azure/msal-react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
-import { AuthProvider } from "../contexts";
+import { AuthProvider, ExplanationProvider } from "../contexts";
 import { useEffect } from "react";
 
 function RootComponent() {
@@ -23,7 +23,9 @@ function RootComponent() {
         <MsalProvider instance={msalInstance}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <Outlet />
+              <ExplanationProvider>
+                <Outlet />
+              </ExplanationProvider>
             </AuthProvider>
           </QueryClientProvider>
         </MsalProvider>
