@@ -356,5 +356,35 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
     });
+
+    it("should return 400 for invalid ID format (non-numeric)", async () => {
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/carbon-inventories/abc/duplicate",
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+
+    it("should return 404 when inventory is DELETED", async () => {
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft
+      );
+
+      await prisma.carbonInventory.update({
+        where: { id: inventory.id },
+        data: { status: "DELETED" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${inventory.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+    });
   });
 });
