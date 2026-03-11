@@ -6,6 +6,7 @@ import {
   IndirectEmissionCategoryIcon,
   OthersCategoryIcon,
 } from "@/icons";
+import { useExplanationDialog } from "../../../contexts";
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
@@ -13,6 +14,7 @@ interface CategoryCardProps {
   title: string;
   subtitle: string | null;
   description: string | null;
+  explanationId: string | null;
   onClick?: () => void;
 }
 
@@ -22,9 +24,12 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   title,
   subtitle,
   description,
+  explanationId,
   onClick,
 }) => {
   const theme = useTheme();
+  const { openExplanation } = useExplanationDialog();
+
   const icons: Record<number, React.ReactNode> = useMemo(
     () => ({
       1: (
@@ -109,16 +114,10 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       </Box>
       <Box className="flex flex-col items-end justify-center">
         <InfoButton
-          sx={{
-            width: "24px",
-            height: "24px",
-            color: darken(theme.palette.category[safePosition].main, 0.6),
-          }}
           label="Más información de la categoría"
-          disabled={variant === "unfocused"}
           onClick={(e) => {
             e.stopPropagation();
-            //TODO: Open a modal with the information
+            if (explanationId) openExplanation(explanationId);
           }}
         />
       </Box>

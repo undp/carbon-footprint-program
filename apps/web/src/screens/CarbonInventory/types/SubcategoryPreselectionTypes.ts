@@ -12,7 +12,7 @@ type SubcategoryItem = Pick<
 
 type CategoryWithSubcategories = Pick<
   MethodologyCategory,
-  "id" | "name" | "description" | "synonyms" | "position"
+  "id" | "name" | "description" | "synonyms" | "position" | "explanationId"
 > & {
   subcategories: SubcategoryItem[];
 };

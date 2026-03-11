@@ -87,6 +87,7 @@ const InventoryCategorySchema = CategoryBaseSchema.pick({
   color: true,
   synonyms: true,
   description: true,
+  explanationId: true,
   examples: true,
   position: true,
 }).extend({
