@@ -12,7 +12,6 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -49,16 +48,14 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const { enqueueSnackbar } = useSnackbar();
-  const prevIsError = useRef(false);
 
   useEffect(() => {
-    if (isError && !prevIsError.current) {
+    if (isError) {
       enqueueSnackbar("No se pudo cargar la explicación", {
         variant: "error",
         preventDuplicate: true,
       });
     }
-    prevIsError.current = isError;
   }, [isError, enqueueSnackbar]);
 
   const value = useMemo(() => ({ openExplanation }), [openExplanation]);
@@ -72,6 +69,7 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
         scroll="body"
         open={explanationId !== undefined && !isError}
         onClose={handleClose}
+        slotProps={{ transition: { onExited: handleClose } }}
         aria-labelledby="explanation-dialog-title"
       >
         <DialogContent sx={{ p: 3 }}>
