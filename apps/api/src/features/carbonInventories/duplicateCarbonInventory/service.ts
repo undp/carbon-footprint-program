@@ -38,18 +38,19 @@ export const duplicateCarbonInventoryService = async (
     throw new CarbonInventoryNotFoundError(id);
   }
 
-  let duplicatedName = source.name;
-  if (source.name) {
-    const existingNames = await prismaClient.carbonInventory.findMany({
-      where: { status: { not: InventoryStatus.DELETED } },
-      select: { name: true },
-    });
-    const names = map(existingNames, "name").filter((n) => n !== null);
-    duplicatedName = generateUniqueCopyName(source.name, names);
-  }
-
   // Use a transaction to ensure atomicity
   const newInventory = await prismaClient.$transaction(async (tx) => {
+    // Generate unique copy name inside the transaction to minimize race window
+    let duplicatedName = source.name;
+    if (source.name) {
+      const existingNames = await tx.carbonInventory.findMany({
+        where: { status: { not: InventoryStatus.DELETED } },
+        select: { name: true },
+      });
+      const names = map(existingNames, "name").filter((n) => n !== null);
+      duplicatedName = generateUniqueCopyName(source.name, names);
+    }
+
     // 1. Duplicate the CarbonInventory
     const inventory = await tx.carbonInventory.create({
       data: {
