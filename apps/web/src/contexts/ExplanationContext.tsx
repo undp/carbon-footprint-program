@@ -10,6 +10,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
+  useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -46,23 +49,28 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const { enqueueSnackbar } = useSnackbar();
+  const prevIsError = useRef(false);
 
-  if (isError && explanationId !== undefined) {
-    enqueueSnackbar("No se pudo cargar la explicación", {
-      variant: "error",
-      preventDuplicate: true,
-    });
-    setExplanationId(undefined);
-  }
+  useEffect(() => {
+    if (isError && !prevIsError.current) {
+      enqueueSnackbar("No se pudo cargar la explicación", {
+        variant: "error",
+        preventDuplicate: true,
+      });
+    }
+    prevIsError.current = isError;
+  }, [isError, enqueueSnackbar]);
+
+  const value = useMemo(() => ({ openExplanation }), [openExplanation]);
 
   return (
-    <ExplanationContext.Provider value={{ openExplanation }}>
+    <ExplanationContext.Provider value={value}>
       {children}
       <Dialog
         maxWidth="md"
         fullWidth
         scroll="body"
-        open={explanationId !== undefined}
+        open={explanationId !== undefined && !isError}
         onClose={handleClose}
         aria-labelledby="explanation-dialog-title"
       >
