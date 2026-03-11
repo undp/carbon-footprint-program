@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from "react";
+import { FC, useState } from "react";
 import {
   useWatch,
   useFormState,
@@ -13,6 +13,7 @@ import {
   type Theme,
 } from "@mui/material";
 import { getNestedError } from "./cellUtils";
+import { useOverflowTooltip } from "./useOverflowTooltip";
 
 interface EditableTextCellProps {
   /** Name of the form array (e.g. "methodologies", "categories") */
@@ -90,16 +91,10 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
     fieldName
   );
 
-  const [isTruncated, setIsTruncated] = useState(false);
-  const textRef = useRef<HTMLElement | null>(null);
-
-  const measureTruncation = useCallback((el: HTMLElement | null) => {
-    textRef.current = el;
-    if (!el) return;
-    setIsTruncated(
-      el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth
-    );
-  }, []);
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
+    formValue,
+    truncateLines,
+  ]);
 
   if (!isEditing) {
     const truncateSx: SxProps<Theme> =
@@ -123,13 +118,13 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
 
     return (
       <Tooltip
-        title={isTruncated ? formValue : ""}
+        title={isOverflowed ? formValue : ""}
         arrow
         placement="top"
         enterDelay={500}
       >
         <Typography
-          ref={measureTruncation}
+          ref={overflowRef}
           onClick={onClick}
           sx={{
             px: 1,

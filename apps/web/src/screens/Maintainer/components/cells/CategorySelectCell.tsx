@@ -1,7 +1,8 @@
-import { FC, useCallback, useEffect, useRef, useState } from "react";
+import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { Select, MenuItem, Typography, Tooltip } from "@mui/material";
 import { getNestedError } from "./cellUtils";
+import { useOverflowTooltip } from "./useOverflowTooltip";
 
 interface CategorySelectCellProps {
   formArrayName: string;
@@ -33,31 +34,20 @@ export const CategorySelectCell: FC<CategorySelectCellProps> = ({
 
   const categoryName = categories.find((c) => c.id === categoryId)?.name ?? "—";
 
-  const [isTruncated, setIsTruncated] = useState(false);
-  const textRef = useRef<HTMLElement | null>(null);
-
-  const measureTruncation = useCallback((el: HTMLElement | null) => {
-    textRef.current = el;
-    if (!el) return;
-    setIsTruncated(
-      el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth
-    );
-  }, []);
-
-  useEffect(() => {
-    measureTruncation(textRef.current);
-  }, [categoryName, measureTruncation]);
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
+    categoryName,
+  ]);
 
   if (!isEditing) {
     return (
       <Tooltip
-        title={isTruncated ? categoryName : ""}
+        title={isOverflowed ? categoryName : ""}
         arrow
         placement="top"
         enterDelay={500}
       >
         <Typography
-          ref={measureTruncation}
+          ref={overflowRef}
           onClick={onClick}
           sx={{
             px: 1,

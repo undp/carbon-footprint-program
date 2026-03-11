@@ -1,8 +1,9 @@
-import { FC, useState, useEffect, useCallback, useRef } from "react";
+import { FC, useState, useEffect } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { Autocomplete, TextField, Typography, Tooltip } from "@mui/material";
 import { NORMATIVA_OPTIONS } from "../../constants";
 import type { MethodologiesFormValues } from "../../hooks/useMethodologiesForm";
+import { useOverflowTooltip } from "./useOverflowTooltip";
 
 interface MethodologyRegulationCellProps {
   rowIndex: number;
@@ -34,27 +35,20 @@ export const MethodologyRegulationCell: FC<MethodologyRegulationCellProps> = ({
     setLocalValue(formValue);
   }, [formValue]);
 
-  const [isTruncated, setIsTruncated] = useState(false);
-  const textRef = useRef<HTMLElement | null>(null);
-
-  const measureTruncation = useCallback((el: HTMLElement | null) => {
-    textRef.current = el;
-    if (!el) return;
-    setIsTruncated(
-      el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth
-    );
-  }, []);
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
+    formValue,
+  ]);
 
   if (!isEditing) {
     return (
       <Tooltip
-        title={isTruncated ? formValue : ""}
+        title={isOverflowed ? formValue : ""}
         arrow
         placement="top"
         enterDelay={500}
       >
         <Typography
-          ref={measureTruncation}
+          ref={overflowRef}
           onClick={onClick}
           sx={{
             px: 1,
