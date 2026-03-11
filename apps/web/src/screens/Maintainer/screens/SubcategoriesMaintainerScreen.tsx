@@ -531,7 +531,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
               columns={columns}
               rows={currentRows}
               getRowHeight={() => 100}
-              getRowId={(row: Subcategory) => row.id}
+              getRowId={(row: SubcategoryForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
               }
