@@ -12,7 +12,7 @@ import {
   FormTextField,
   FormNumericField,
 } from "@/components";
-import { StepHeader } from "./components/StepHeader";
+import { StepHeader, CarbonInventoryNavigationButton } from "./components";
 import { useCarbonInventory } from "@/api/query";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
@@ -154,6 +154,7 @@ export const BusinessProfilingScreen: FC = () => {
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
+            action: <CarbonInventoryNavigationButton />,
           }}
           footerProps={{
             buttons: [backButton, nextButton],

@@ -4,7 +4,7 @@ import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
-import { StepHeader } from "./components";
+import { StepHeader, CarbonInventoryNavigationButton } from "./components";
 import {
   InventoryAttributesCard,
   EmissionFactorsTable,
@@ -93,6 +93,7 @@ export const EmissionSummaryScreen: FC = () => {
     <CarbonInventoryLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
+        action: <CarbonInventoryNavigationButton />,
       }}
       footerProps={{
         buttons: [backButton, nextButton],

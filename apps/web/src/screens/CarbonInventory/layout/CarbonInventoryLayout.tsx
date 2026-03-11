@@ -17,11 +17,13 @@ import { BaseHeader } from "../../../components";
 interface CarbonInventoryHeaderProps {
   title?: string;
   subtitle?: string;
+  action?: ReactNode;
 }
 
 export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
   title = "Inventario Organizacional",
   subtitle,
+  action,
 }) => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -59,7 +61,9 @@ export const CarbonInventoryHeader: FC<CarbonInventoryHeaderProps> = ({
         </Box>
       }
       onLogoClick={onLogoClick}
-    />
+    >
+      {action}
+    </BaseHeader>
   );
 };
 

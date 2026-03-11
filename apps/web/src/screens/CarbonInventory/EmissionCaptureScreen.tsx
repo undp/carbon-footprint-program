@@ -4,7 +4,7 @@ import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
-import { StepHeader } from "./components/StepHeader";
+import { StepHeader, CarbonInventoryNavigationButton } from "./components";
 import { CategoryCard } from "./components/CategoryCard";
 import { EmissionEditor } from "./components/EmissionEditor";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
@@ -161,6 +161,7 @@ export const EmissionCaptureScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
+            action: <CarbonInventoryNavigationButton />,
           }}
           footerProps={{
             buttons: [backButton, nextButton],
