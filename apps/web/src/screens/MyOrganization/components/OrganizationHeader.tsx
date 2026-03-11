@@ -8,7 +8,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
-import { useOrganizations } from "@/api/query/organizations";
+import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationHeaderSkeleton } from "./Skeletons";
 
 type OrganizationHeaderProps = {
@@ -21,7 +21,7 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
   onOrganizationChange,
 }) => {
   const { enqueueSnackbar } = useSnackbar();
-  const { data: organizations, isLoading, error } = useOrganizations();
+  const { data: organizations, isLoading, error } = useMyOrganizations();
 
   useEffect(() => {
     if (error) {

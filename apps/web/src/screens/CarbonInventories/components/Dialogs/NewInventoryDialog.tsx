@@ -15,9 +15,14 @@ import { UsageMode } from "@repo/types";
 interface Props {
   open: boolean;
   onClose: () => void;
+  selectedOrganizationId?: string;
 }
 
-export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
+export const NewInventoryDialog: FC<Props> = ({
+  open,
+  onClose,
+  selectedOrganizationId,
+}) => {
   return (
     <Dialog
       maxWidth="md"
@@ -54,6 +59,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
             description="Simula calculando tus emisiones con fuentes relevantes de tu rubro, sin guardar datos."
             buttonText="USAR CALCULADORA"
             usageMode={UsageMode.SIMPLIFIED}
+            organizationId={selectedOrganizationId}
             textColor="text.primary"
             iconColor="text.primary"
             backgroundColor={grey[400]}
@@ -64,6 +70,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
             description="Sube tus datos y genera reportes en segundos."
             buttonText="SUBIR EMISIONES"
             usageMode={UsageMode.EXPERT}
+            organizationId={selectedOrganizationId}
             textColor="text.primary"
             iconColor="text.primary"
             backgroundColor={grey[400]}

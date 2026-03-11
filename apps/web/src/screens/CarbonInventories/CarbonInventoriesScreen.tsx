@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
+  Button,
   Typography,
   MenuItem,
   Select,
@@ -12,11 +13,11 @@ import {
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
-import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import {
   useCarbonInventories,
   useCarbonInventoriesAvailableYears,
+  useMyOrganizations,
 } from "@/api/query";
 import { formatEmissions } from "@/utils/formatting";
 import {
@@ -33,16 +34,25 @@ const getUsageModeLabel = (mode: UsageMode) =>
 
 export const CarbonInventoriesScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedOrganizationId, setSelectedOrganizationId] =
+    useState<string>("all");
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
   }, []);
 
+  const onOrganizationSelectChange = useCallback((event: SelectChangeEvent) => {
+    setSelectedOrganizationId(event.target.value);
+  }, []);
+
+  const { data: organizations = [], isLoading: isLoadingOrganizations } =
+    useMyOrganizations();
+
   const {
     data: inventories = [],
     isLoading: isLoadingInventories,
     refetch: refetchInventories,
-  } = useCarbonInventories(selectedYear);
+  } = useCarbonInventories(selectedYear, selectedOrganizationId);
 
   const {
     data: availableYears = [],
@@ -194,37 +204,72 @@ export const CarbonInventoriesScreen: FC = () => {
         {/* Header */}
         <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
           <Typography variant="h5" fontWeight={600}>
-            {/* TODO: Replace with organization name */}
             Huella Organizacional
           </Typography>
-          <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
-            <InputLabel id="year-select-label">Año</InputLabel>
-            <Select
-              labelId="year-select-label"
-              label="Año"
-              value={selectedYear}
-              onChange={onYearSelectChange}
-              disabled={isLoadingYears}
-            >
-              <MenuItem key="all" value="all">
-                Todos
-              </MenuItem>
 
-              {availableYears.map((year) => (
-                <MenuItem key={year} value={`${year}`}>
-                  {year}
+          {/* Container for selectors and button */}
+          <Box className="flex gap-2">
+            {/* Nueva Huella Button */}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setNewInventoryDialogOpen(true)}
+            >
+              Nueva Huella
+            </Button>
+
+            {/* Organization Selector */}
+            <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
+              <InputLabel id="organization-select-label">
+                Organización
+              </InputLabel>
+              <Select
+                labelId="organization-select-label"
+                label="Organización"
+                value={selectedOrganizationId}
+                onChange={onOrganizationSelectChange}
+                disabled={isLoadingOrganizations}
+              >
+                <MenuItem key="all" value="all">
+                  Todas las organizaciones
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                {organizations.map((org) => (
+                  <MenuItem key={org.id} value={org.id}>
+                    {org.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            {/* Year Selector */}
+            <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
+              <InputLabel id="year-select-label">Año</InputLabel>
+              <Select
+                labelId="year-select-label"
+                label="Año"
+                value={selectedYear}
+                onChange={onYearSelectChange}
+                disabled={isLoadingYears}
+              >
+                <MenuItem key="all" value="all">
+                  Todos
+                </MenuItem>
+                {availableYears.map((year) => (
+                  <MenuItem key={year} value={`${year}`}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
 
         {/* My Footprints Section */}
         <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
           {/* Section Header */}
-          <CarbonInventoryActions
-            onNewInventory={() => setNewInventoryDialogOpen(true)}
-          />
+          <Typography variant="h6" fontWeight={600}>
+            Mis Huellas
+          </Typography>
 
           <StylizedDataGrid
             autoHeight
@@ -251,6 +296,9 @@ export const CarbonInventoriesScreen: FC = () => {
       <NewInventoryDialog
         open={newInventoryDialogOpen}
         onClose={() => setNewInventoryDialogOpen(false)}
+        selectedOrganizationId={
+          selectedOrganizationId === "all" ? undefined : selectedOrganizationId
+        }
       />
     </MainLayout>
   );

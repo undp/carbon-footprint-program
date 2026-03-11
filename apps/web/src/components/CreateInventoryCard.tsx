@@ -23,6 +23,7 @@ interface Props {
   description: string;
   buttonText: string;
   usageMode: "SIMPLIFIED" | "EXPERT";
+  organizationId?: string;
   backgroundColor?: string;
   textColor?: string;
   iconColor?: string;
@@ -34,6 +35,7 @@ export const CreateInventoryCard: FC<Props> = ({
   description,
   buttonText,
   usageMode,
+  organizationId,
   backgroundColor,
   textColor,
   iconColor,
@@ -49,6 +51,7 @@ export const CreateInventoryCard: FC<Props> = ({
     try {
       const created = await createInventory.mutateAsync({
         usageMode,
+        organizationId: organizationId ?? null,
       });
 
       return created;
@@ -56,7 +59,7 @@ export const CreateInventoryCard: FC<Props> = ({
       enqueueSnackbar("No se pudo crear la huella", { variant: "error" });
       return null;
     }
-  }, [createInventory, usageMode, enqueueSnackbar]);
+  }, [createInventory, usageMode, organizationId, enqueueSnackbar]);
 
   const handleNavigate = useCallback(async () => {
     const created = await handleCreateInventory();
