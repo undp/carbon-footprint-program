@@ -549,7 +549,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
               columns={columns}
               rows={currentRows}
               getRowHeight={() => 70}
-              getRowId={(row: Category) => row.id}
+              getRowId={(row: CategoryForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
               }
