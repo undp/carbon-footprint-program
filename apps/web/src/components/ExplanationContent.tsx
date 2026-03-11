@@ -7,7 +7,7 @@ import remarkGfm from "remark-gfm";
 import "katex/dist/katex.min.css";
 
 interface ExplanationContentProps {
-  content: string | null | undefined;
+  content?: string | null;
 }
 
 export function ExplanationContent({ content }: ExplanationContentProps) {
