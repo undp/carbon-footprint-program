@@ -70,7 +70,6 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
         open={explanationId !== undefined && !isError}
         onClose={handleClose}
         slotProps={{ transition: { onExited: handleClose } }}
-        aria-labelledby="explanation-dialog-title"
       >
         <DialogContent sx={{ p: 3 }}>
           {isLoading ? (
