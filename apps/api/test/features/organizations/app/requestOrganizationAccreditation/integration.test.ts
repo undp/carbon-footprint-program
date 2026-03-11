@@ -28,7 +28,7 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
-import { copyBlob, deleteBlob } from "@/services/blobService.js";
+import { copyBlob } from "@/services/blobService.js";
 
 // SAS generation and blob move require Azure AD auth / server-side copy not available
 // in Azurite shared-key mode. Mock all blob service operations.
