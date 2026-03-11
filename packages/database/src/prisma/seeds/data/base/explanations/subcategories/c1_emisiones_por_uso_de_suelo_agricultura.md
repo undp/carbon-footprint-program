@@ -63,7 +63,7 @@ Puedes obtener esta información desde:
 - Inventarios de superficie sembrada
 - Sistemas de mapas satelitales (Google Maps)
 
-⚠️ Si la superficie varía durante el año, puedes declarar un **la mayor cantidad que se tuvo durante el año**
+⚠️ Si la superficie varía durante el año, puedes declarar **la mayor cantidad que se tuvo durante el año**
 
 ---
 
