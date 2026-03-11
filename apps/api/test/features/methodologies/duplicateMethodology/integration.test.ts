@@ -128,7 +128,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
         secondDuplicateResponse.body
       ) as DuplicateMethodologyResponse;
 
-      expect(secondBody.name).toBe("Test - Copy Naming (2)");
+      expect(secondBody.name).toBe(`${original.name} (2)`);
     });
 
     it("should duplicate active categories from original methodology", async () => {
