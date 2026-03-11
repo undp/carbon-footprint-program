@@ -1,3 +1,11 @@
+/**
+ * ExplanationContext manages the explanation dialog state.
+ *
+ * State semantics for `explanationId`:
+ *  - `undefined` → dialog is closed
+ *  - `null`      → dialog is open, but there is no explanation to fetch (shows empty content)
+ *  - `string`    → dialog is open and fetches the explanation by id
+ */
 import {
   createContext,
   useCallback,
@@ -12,7 +20,7 @@ import { useSnackbar } from "notistack";
 import { useExplanation } from "@/api/query/explanations";
 
 interface ExplanationContextType {
-  openExplanation: (id: string) => void;
+  openExplanation: (id: string | null) => void;
 }
 
 const ExplanationContext = createContext<ExplanationContextType | undefined>(
@@ -20,29 +28,31 @@ const ExplanationContext = createContext<ExplanationContextType | undefined>(
 );
 
 export function ExplanationProvider({ children }: { children: ReactNode }) {
-  const [explanationId, setExplanationId] = useState<string | null>(null);
+  const [explanationId, setExplanationId] = useState<string | null | undefined>(
+    undefined
+  );
   const {
     data: explanation,
     isLoading,
     isError,
-  } = useExplanation(explanationId);
+  } = useExplanation(explanationId ?? null);
 
-  const openExplanation = useCallback((id: string) => {
+  const openExplanation = useCallback((id: string | null) => {
     setExplanationId(id);
   }, []);
 
   const handleClose = useCallback(() => {
-    setExplanationId(null);
+    setExplanationId(undefined);
   }, []);
 
   const { enqueueSnackbar } = useSnackbar();
 
-  if (isError && explanationId !== null) {
+  if (isError && explanationId !== undefined) {
     enqueueSnackbar("No se pudo cargar la explicación", {
       variant: "error",
       preventDuplicate: true,
     });
-    setExplanationId(null);
+    setExplanationId(undefined);
   }
 
   return (
@@ -52,7 +62,7 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
         maxWidth="md"
         fullWidth
         scroll="body"
-        open={explanationId !== null}
+        open={explanationId !== undefined}
         onClose={handleClose}
         aria-labelledby="explanation-dialog-title"
       >

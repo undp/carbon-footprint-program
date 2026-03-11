@@ -82,7 +82,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
               label="Más información de la subcategoría"
               onClick={(e) => {
                 e.stopPropagation();
-                if (explanationId) openExplanation(explanationId);
+                openExplanation(explanationId);
               }}
             />
           </Box>

@@ -117,7 +117,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           label="Más información de la categoría"
           onClick={(e) => {
             e.stopPropagation();
-            if (explanationId) openExplanation(explanationId);
+            openExplanation(explanationId);
           }}
         />
       </Box>
