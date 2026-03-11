@@ -166,7 +166,3 @@ Si el factor está en **kg CO₂eq por kWh**, el consumo debe estar en **kWh**.
 > - No incluyas autogeneración
 > - La energía renovable comprada también debe declararse
 > - Guarda facturas y certificados como respaldo para auditorías o verificaciones externas
-
-```
-
-```
