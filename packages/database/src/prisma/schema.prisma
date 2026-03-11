@@ -166,7 +166,7 @@ enum MembershipStatus {
   @@map("membership_status")
 }
 
-enum SubCategoryStatus {
+enum SubcategoryStatus {
   ACTIVE
   DELETED
 
@@ -403,7 +403,7 @@ model Subcategory {
   icon                        String
   description                 String
   examples                    String?
-  status                      SubCategoryStatus            @default(ACTIVE)
+  status                      SubcategoryStatus            @default(ACTIVE)
   createdAt                   DateTime                     @default(now()) @map("created_at")
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
   createdById                 BigInt?                      @map("created_by_id")

@@ -3,7 +3,7 @@ import { omit } from "lodash-es";
 
 import {
   CategoryStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
   User,
   type CreateSubcategoryRequest,
   type CreateSubcategoryResponse,
@@ -47,7 +47,7 @@ export const createSubcategoryService = async (
           icon: data.icon,
           description: data.description,
           examples: data.examples,
-          status: SubCategoryStatus.ACTIVE,
+          status: SubcategoryStatus.ACTIVE,
           createdById: BigInt(user.id),
           updatedAt: null,
         },

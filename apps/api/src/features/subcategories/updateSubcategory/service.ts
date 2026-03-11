@@ -1,7 +1,7 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
   CategoryStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
   User,
   type UpdateSubcategoryRequest,
   type UpdateSubcategoryResponse,
@@ -29,7 +29,7 @@ export const updateSubcategoryService = async (
   const targetSubcategory = await prismaClient.subcategory.findFirst({
     where: {
       id: BigInt(id),
-      status: { not: SubCategoryStatus.DELETED },
+      status: { not: SubcategoryStatus.DELETED },
     },
     select: {
       status: true,

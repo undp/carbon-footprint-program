@@ -7,7 +7,7 @@ import {
   type DuplicateMethodologyResponse,
   type User,
   CategoryStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
 } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
@@ -99,7 +99,7 @@ export const duplicateMethodologyService = async (
         const activeSubcategories = await tx.subcategory.findMany({
           where: {
             categoryId: { in: activeCategories.map((cat) => cat.id) },
-            status: SubCategoryStatus.ACTIVE,
+            status: SubcategoryStatus.ACTIVE,
           },
           include: {
             subcategoryMeasurementUnits: {

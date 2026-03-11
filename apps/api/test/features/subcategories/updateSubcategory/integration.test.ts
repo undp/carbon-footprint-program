@@ -16,7 +16,7 @@ import {
   getTestMeasurementUnitIds,
 } from "@test/factories/subcategoryFactory.js";
 import type { UpdateSubcategoryResponse } from "@repo/types";
-import { SubCategoryStatus } from "@repo/types";
+import { SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -217,7 +217,7 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
     it("should return 404 when subcategory is deleted", async () => {
       const subcategory = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Deleted Subcategory",
-        status: SubCategoryStatus.DELETED,
+        status: SubcategoryStatus.DELETED,
       });
 
       const response = await app.inject({

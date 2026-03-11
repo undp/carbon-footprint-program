@@ -1,4 +1,4 @@
-import { SubCategoryStatus, type PrismaClient } from "@/index.js";
+import { SubcategoryStatus, type PrismaClient } from "@/index.js";
 import { z } from "zod";
 import {
   checkForDuplicates,
@@ -72,7 +72,7 @@ export async function seedSubcategories(
       categoryId: category.id,
       name: subcategory.name,
       icon: subcategory.icon,
-      status: SubCategoryStatus.ACTIVE,
+      status: SubcategoryStatus.ACTIVE,
       description: subcategory.description,
       examples: subcategory.examples || null,
     };

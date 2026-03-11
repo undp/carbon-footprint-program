@@ -17,7 +17,7 @@ import {
   getTestMeasurementUnitIds,
 } from "@test/factories/subcategoryFactory.js";
 import type { DuplicateMethodologyResponse } from "@repo/types";
-import { CategoryStatus, SubCategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -307,7 +307,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       });
       await createTestSubcategory(prisma, category.id, {
         name: "Test - Deleted Sub",
-        status: SubCategoryStatus.DELETED,
+        status: SubcategoryStatus.DELETED,
       });
 
       const response = await app.inject({
@@ -328,7 +328,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
 
       expect(duplicatedSubcategories).toHaveLength(1);
       expect(duplicatedSubcategories[0].name).toBe("Test - Active Sub");
-      expect(duplicatedSubcategories[0].status).toBe(SubCategoryStatus.ACTIVE);
+      expect(duplicatedSubcategories[0].status).toBe(SubcategoryStatus.ACTIVE);
     });
 
     it("should map subcategories to the correct duplicated category", async () => {

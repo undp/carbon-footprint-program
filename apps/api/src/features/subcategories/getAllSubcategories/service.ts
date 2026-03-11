@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
-  SubCategoryStatus,
+  SubcategoryStatus,
   User,
   type GetAllSubcategoriesResponse,
   type GetAllSubcategoriesQuery,
@@ -20,7 +20,7 @@ export const getAllSubcategoriesService = async (
             },
           }
         : {}),
-      status: { not: SubCategoryStatus.DELETED },
+      status: { not: SubcategoryStatus.DELETED },
     },
     include: {
       category: {

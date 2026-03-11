@@ -9,7 +9,7 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
-import { CategoryStatus, SubCategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
@@ -308,7 +308,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         activeCategory!.id,
         {
           name: "Test - Deleted Subcategory",
-          status: SubCategoryStatus.DELETED,
+          status: SubcategoryStatus.DELETED,
         }
       );
 

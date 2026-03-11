@@ -16,7 +16,7 @@ import {
   getTestMeasurementUnitIds,
 } from "@test/factories/subcategoryFactory.js";
 import type { GetAllSubcategoriesResponse } from "@repo/types";
-import { SubCategoryStatus } from "@repo/types";
+import { SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -127,11 +127,11 @@ describe("GET /api/subcategories/?methodologyVersionId=X - Integration Tests", (
 
       await createTestSubcategory(prisma, category.id, {
         name: "Test - Active Subcategory",
-        status: SubCategoryStatus.ACTIVE,
+        status: SubcategoryStatus.ACTIVE,
       });
       await createTestSubcategory(prisma, category.id, {
         name: "Test - Deleted Subcategory",
-        status: SubCategoryStatus.DELETED,
+        status: SubcategoryStatus.DELETED,
       });
 
       const response = await app.inject({

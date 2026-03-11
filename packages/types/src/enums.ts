@@ -16,5 +16,5 @@ export {
   SubmissionType,
   InputType,
   OrganizationSummaryDisplayStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
 } from "@repo/database/enums";

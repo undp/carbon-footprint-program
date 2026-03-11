@@ -14,7 +14,7 @@ import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
-import { CategoryStatus, SubCategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 
 describe("DELETE /api/categories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -214,8 +214,8 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
         prisma.subcategory.findUnique({ where: { id: sub2.id } }),
       ]);
 
-      expect(dbSub1!.status).toBe(SubCategoryStatus.DELETED);
-      expect(dbSub2!.status).toBe(SubCategoryStatus.DELETED);
+      expect(dbSub1!.status).toBe(SubcategoryStatus.DELETED);
+      expect(dbSub2!.status).toBe(SubcategoryStatus.DELETED);
     });
   });
 

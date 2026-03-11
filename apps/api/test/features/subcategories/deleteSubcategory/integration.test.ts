@@ -14,7 +14,7 @@ import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
-import { SubCategoryStatus } from "@repo/types";
+import { SubcategoryStatus } from "@repo/types";
 
 describe("DELETE /api/subcategories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -80,7 +80,7 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
         where: { id: subcategory.id },
       });
       expect(dbRecord).toBeDefined();
-      expect(dbRecord!.status).toBe(SubCategoryStatus.DELETED);
+      expect(dbRecord!.status).toBe(SubcategoryStatus.DELETED);
     });
   });
 
@@ -109,7 +109,7 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
         position: 1,
       });
       const subcategory = await createTestSubcategory(prisma, category.id, {
-        status: SubCategoryStatus.DELETED,
+        status: SubcategoryStatus.DELETED,
       });
 
       const response = await app.inject({

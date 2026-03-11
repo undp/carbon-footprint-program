@@ -1,5 +1,5 @@
 import { type PrismaClient, type Subcategory } from "@repo/database";
-import { SubCategoryStatus } from "@repo/types";
+import { SubcategoryStatus } from "@repo/types";
 
 /**
  * Creates a test subcategory with sensible defaults.
@@ -19,7 +19,7 @@ export async function createTestSubcategory(
       icon: overrides?.icon ?? "test-icon",
       description: overrides?.description ?? "Test subcategory description",
       examples: overrides?.examples ?? null,
-      status: overrides?.status ?? SubCategoryStatus.ACTIVE,
+      status: overrides?.status ?? SubcategoryStatus.ACTIVE,
       createdById: null,
       updatedById: null,
     },
