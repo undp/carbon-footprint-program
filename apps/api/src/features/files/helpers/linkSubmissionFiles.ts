@@ -22,10 +22,20 @@ export async function linkSubmissionFiles(
   fileUuids: string[],
   fileType: SubmissionFileType = SubmissionFileType.ATTACHMENT
 ): Promise<void> {
+  const uniqueUuids = [...new Set(fileUuids)];
+
   const files = await tx.file.findMany({
-    where: { uuid: { in: fileUuids } },
+    where: { uuid: { in: uniqueUuids } },
     select: { id: true, uuid: true, blobPath: true, originalName: true },
   });
+
+  if (files.length !== uniqueUuids.length) {
+    const foundUuids = new Set(files.map((f) => f.uuid));
+    const missing = uniqueUuids.filter((u) => !foundUuids.has(u));
+    throw new Error(
+      `Cannot link submission files: file UUIDs not found: ${missing.join(", ")}`
+    );
+  }
 
   if (blobServiceClient && containerName) {
     await Promise.all(
