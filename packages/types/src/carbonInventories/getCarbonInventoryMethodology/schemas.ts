@@ -67,6 +67,7 @@ const SubcategorySchema = SubcategoryBaseSchema.pick({
   name: true,
   description: true,
   examples: true,
+  explanationId: true,
 }).extend({
   dimensions: z
     .array(DimensionItemSchema)
