@@ -20,7 +20,5 @@ export const getExplanationByIdService = async (
     id: explanation.id.toString(),
     name: explanation.name,
     content: explanation.content,
-    createdAt: explanation.createdAt.toISOString(),
-    updatedAt: explanation.updatedAt?.toISOString() ?? null,
   };
 };
