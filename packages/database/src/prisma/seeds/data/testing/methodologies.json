@@ -2584,12 +2584,12 @@
             "allowedMeasurementUnitsAbbreviations": []
           },
           {
-            "name": "Viaje de negocios - Estadía",
+            "name": "Viajes de negocios - Estadía",
             "description": "Emisiones generadas durante la estadía en viajes laborales. Incluye emisiones asociadas a hoteles, alojamientos y servicios utilizados durante viajes de trabajo de acuerdo al país de residencia.",
             "examples": null,
             "emissionFactorDimensions": [
               {
-                "code": "Viaje de negocios - Estadía_País",
+                "code": "Viajes de negocios - Estadía_País",
                 "name": "País",
                 "position": 1,
                 "isRequired": true,
@@ -2684,7 +2684,7 @@
             "emissionFactors": [
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Alemania"
                 },
                 "dimensionValue2": null,
@@ -2694,7 +2694,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Australia"
                 },
                 "dimensionValue2": null,
@@ -2704,7 +2704,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Brazil"
                 },
                 "dimensionValue2": null,
@@ -2714,7 +2714,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Chile"
                 },
                 "dimensionValue2": null,
@@ -2724,7 +2724,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "China"
                 },
                 "dimensionValue2": null,
@@ -2734,7 +2734,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Colombia"
                 },
                 "dimensionValue2": null,
@@ -2744,7 +2744,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Costa Rica"
                 },
                 "dimensionValue2": null,
@@ -2754,7 +2754,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "EEUU"
                 },
                 "dimensionValue2": null,
@@ -2764,7 +2764,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "España"
                 },
                 "dimensionValue2": null,
@@ -2774,7 +2774,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Holanda"
                 },
                 "dimensionValue2": null,
@@ -2784,7 +2784,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Hong Kong"
                 },
                 "dimensionValue2": null,
@@ -2794,7 +2794,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "India"
                 },
                 "dimensionValue2": null,
@@ -2804,7 +2804,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Indonesia"
                 },
                 "dimensionValue2": null,
@@ -2814,7 +2814,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Italia"
                 },
                 "dimensionValue2": null,
@@ -2824,7 +2824,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Japón"
                 },
                 "dimensionValue2": null,
@@ -2834,7 +2834,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Mexico"
                 },
                 "dimensionValue2": null,
@@ -2844,7 +2844,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Otro país"
                 },
                 "dimensionValue2": null,
@@ -2854,7 +2854,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Otro país Latam"
                 },
                 "dimensionValue2": null,
@@ -2864,7 +2864,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Tailandia"
                 },
                 "dimensionValue2": null,
@@ -2874,7 +2874,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Turquia"
                 },
                 "dimensionValue2": null,
@@ -2884,7 +2884,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viaje de negocios - Estadía_País",
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
                   "valueName": "Vietnam"
                 },
                 "dimensionValue2": null,
@@ -2896,12 +2896,12 @@
             "allowedMeasurementUnitsAbbreviations": ["pieza arre"]
           },
           {
-            "name": "Viajes de negocio - Traslado",
+            "name": "Viajes de negocios - Traslado",
             "description": "Emisiones producidas por el traslado en y hacia los viajes laborales. Incluye traslados en avión, bus, tren, taxi, vehículos arrendados u otros medios utilizados para viajes de negocios.",
             "examples": null,
             "emissionFactorDimensions": [
               {
-                "code": "Viajes de negocio - Traslado_Transporte",
+                "code": "Viajes de negocios - Traslado_Transporte",
                 "name": "Transporte",
                 "position": 1,
                 "isRequired": true,
@@ -2952,7 +2952,7 @@
             "emissionFactors": [
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en auto"
                 },
                 "dimensionValue2": null,
@@ -2962,7 +2962,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en avión: Long haul (>6hrs) Business"
                 },
                 "dimensionValue2": null,
@@ -2972,7 +2972,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en avión: Long haul (>6hrs) Economy"
                 },
                 "dimensionValue2": null,
@@ -2982,7 +2982,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en avión: Medium haul (3-6hrs) Business"
                 },
                 "dimensionValue2": null,
@@ -2992,7 +2992,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en avión: Medium haul (3-6hrs) Economy"
                 },
                 "dimensionValue2": null,
@@ -3002,7 +3002,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en avión: Short haul (<3hrs) Business"
                 },
                 "dimensionValue2": null,
@@ -3012,7 +3012,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en avión: Short haul (<3hrs) Economy"
                 },
                 "dimensionValue2": null,
@@ -3022,7 +3022,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en Bus"
                 },
                 "dimensionValue2": null,
@@ -3032,7 +3032,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Transporte en Tren"
                 },
                 "dimensionValue2": null,
@@ -3042,7 +3042,7 @@
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Viajes de negocio - Traslado_Transporte",
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
                   "valueName": "Trasnporte en Taxi"
                 },
                 "dimensionValue2": null,

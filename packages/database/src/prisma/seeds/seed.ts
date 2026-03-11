@@ -8,6 +8,7 @@ import { seedCountryOrganizationSizes } from "./scripts/seedCountryOrganizationS
 import { seedOrganizationMainActivities } from "./scripts/seedOrganizationMainActivities.js";
 import { seedUsers } from "./scripts/seedUsers.js";
 import { seedMethodologyData } from "./scripts/seedMethodologyData/index.js";
+import { seedExplanations } from "./scripts/seedExplanations.js";
 
 const prisma = new PrismaClient({
   adapter: generatePrismaAdapter(),
@@ -23,6 +24,7 @@ async function main() {
   await seedOrganizationMainActivities(prisma, SEEDS_DATASET); // needs the countries and sectors to be seeded first
   await seedUsers(prisma, SEEDS_DATASET); // needs the countries and job positions to be seeded first
   await seedMethodologyData(prisma, SEEDS_DATASET); // needs countries and status_catalog to be seeded first
+  await seedExplanations(prisma, SEEDS_DATASET); // needs subcategories to be seeded first
 }
 
 main()
