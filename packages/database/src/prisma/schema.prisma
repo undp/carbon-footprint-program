@@ -418,7 +418,9 @@ model Subcategory {
   inventoryLines              CarbonInventoryLine[]
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
 
-  @@unique([categoryId, name])
+  // Partial unique index exists in SQL migration:
+  // ("category_id", "name") WHERE status <> 'DELETED'
+
   @@map("subcategory")
 }
 

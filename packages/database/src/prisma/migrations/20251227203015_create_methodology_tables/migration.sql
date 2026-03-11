@@ -134,8 +134,10 @@ CREATE UNIQUE INDEX "category_methodology_version_id_position_active_unique"
   ON "category" ("methodology_version_id", "position")
   WHERE "status" <> 'DELETED';
   
--- CreateIndex
-CREATE UNIQUE INDEX "subcategory_category_id_name_key" ON "subcategory"("category_id", "name");
+-- CreateIndex: Partial unique index excluding DELETED rows
+CREATE UNIQUE INDEX "subcategory_category_id_name_active_unique"
+  ON "subcategory" ("category_id", "name")
+  WHERE "status" <> 'DELETED';
 
 -- CreateIndex
 CREATE UNIQUE INDEX "emission_factor_dimension_subcategory_id_code_key" ON "emission_factor_dimension"("subcategory_id", "code");
