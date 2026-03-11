@@ -12,10 +12,16 @@ export const useDuplicateCarbonInventory = () => {
         .post(`carbon-inventories/${carbonInventoryId}/duplicate`)
         .json<DuplicateCarbonInventoryResponse>(),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.all,
-        exact: true,
-      });
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: carbonInventoryKeys.minimal,
+          exact: false,
+        }),
+      ]);
     },
   });
 };
