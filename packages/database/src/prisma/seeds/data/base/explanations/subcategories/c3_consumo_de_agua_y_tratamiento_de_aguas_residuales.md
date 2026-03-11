@@ -159,17 +159,21 @@ Si no existen registros de tratamiento o pérdidas, se asume que:
 
 ### Cálculo emisiones consumo de agua
 
-> $CO₂eq$ = $6.000\ m³ \times 0.1913$
+> $CO₂eq$ = $6.000\ m³ \times 0,1913\ kg\ CO₂eq/m³$
 
 $CO₂eq = 1.147,8\ kg\ CO₂eq$
+
+_(Factor 0,1913 kg CO₂eq/m³ — valor ilustrativo; el factor real es gestionado por la plataforma según la fuente de suministro seleccionada)_
 
 ---
 
 ### Cálculo emisiones aguas residuales
 
-> $CO₂eq$ = $6.000\ m³ \times 0.1708$
+> $CO₂eq$ = $6.000\ m³ \times 0,1708\ kg\ CO₂eq/m³$
 
 $CO₂eq = 1.024,8\ kg\ CO₂eq$
+
+_(Factor 0,1708 kg CO₂eq/m³ — valor ilustrativo; el factor real es gestionado por la plataforma según el tipo de descarga seleccionado)_
 
 ---
 
@@ -181,7 +185,3 @@ $CO₂eq = 1.024,8\ kg\ CO₂eq$
 > - En ese caso, debes declarar **la misma cantidad de agua consumida como agua dispuesta**
 > - Puedes obtener la información desde **medidores de agua o boletas del proveedor sanitario**
 > - Guarda facturas y registros como respaldo para auditorías o verificaciones
-
-```
-
-```
