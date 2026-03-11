@@ -11,6 +11,7 @@ import {
   Tooltip,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { OrganizationSelector } from "@/components";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
@@ -39,10 +40,6 @@ export const CarbonInventoriesScreen: FC = () => {
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
-  }, []);
-
-  const onOrganizationSelectChange = useCallback((event: SelectChangeEvent) => {
-    setSelectedOrganizationId(event.target.value);
   }, []);
 
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
@@ -219,27 +216,13 @@ export const CarbonInventoriesScreen: FC = () => {
             </Button>
 
             {/* Organization Selector */}
-            <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
-              <InputLabel id="organization-select-label">
-                Organización
-              </InputLabel>
-              <Select
-                labelId="organization-select-label"
-                label="Organización"
-                value={selectedOrganizationId}
-                onChange={onOrganizationSelectChange}
-                disabled={isLoadingOrganizations}
-              >
-                <MenuItem key="all" value="all">
-                  Todas las organizaciones
-                </MenuItem>
-                {organizations.map((org) => (
-                  <MenuItem key={org.id} value={org.id}>
-                    {org.name}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <OrganizationSelector
+              organizations={organizations}
+              value={selectedOrganizationId}
+              onChange={setSelectedOrganizationId}
+              isLoading={isLoadingOrganizations}
+              allowAll
+            />
 
             {/* Year Selector */}
             <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">

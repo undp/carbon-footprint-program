@@ -1,14 +1,8 @@
 import { FC, useMemo, useEffect } from "react";
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useMyOrganizations } from "@/api/query/organizations";
+import { OrganizationSelector } from "@/components";
 import { OrganizationHeaderSkeleton } from "./Skeletons";
 
 type OrganizationHeaderProps = {
@@ -45,22 +39,12 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
         {activeOrganization.name}
       </Typography>
 
-      <FormControl sx={{ minHeight: 40, minWidth: 240 }} size="small">
-        <InputLabel id="organization-select-label">Organizaciones</InputLabel>
-        <Select
-          labelId="organization-select-label"
-          id="organization-select"
-          value={activeOrganization.id}
-          label="Organizaciones"
-          onChange={(e) => onOrganizationChange(e.target.value)}
-        >
-          {organizations.map((org) => (
-            <MenuItem key={org.id} value={org.id}>
-              {org.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+      <OrganizationSelector
+        organizations={organizations}
+        value={activeOrganization.id}
+        onChange={onOrganizationChange}
+        label="Organizaciones"
+      />
     </Box>
   );
 };
