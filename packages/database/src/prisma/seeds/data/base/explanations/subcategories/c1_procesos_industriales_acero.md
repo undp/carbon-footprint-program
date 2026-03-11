@@ -29,11 +29,8 @@ Aquí se reportan las emisiones que **provienen del proceso químico del acero**
 - ¿Realizas procesos de refinación secundaria (metalurgia en cuchara)?
 - ¿Generas escoria, gases de proceso o subproductos metalúrgicos?
 
-💡 **Tip importante:**  
-Si tu empresa **transforma hierro, arrabio o chatarra en acero mediante procesos metalúrgicos**, entonces probablemente **debe declarar emisiones en esta sub-categoría**.
-
-💡 **Tip importante:**  
-Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
+💡 **Tip importante:**
+Si tu empresa **transforma hierro, arrabio o chatarra en acero mediante procesos metalúrgicos**, o si la respuesta a **una o más de estas preguntas es SÍ**, entonces probablemente **debe medir y declarar emisiones en esta sub-categoría**.
 
 ---
 
