@@ -14,11 +14,7 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
     description: true,
   }).shape,
   examples: z
-    .union([
-      z.string().min(1),
-      z.null(),
-      z.literal("").transform(() => null),
-    ])
+    .union([z.string().min(1), z.null(), z.literal("").transform(() => null)])
     .describe("Examples of the subcategory"),
   measurementUnitIds: z
     .array(MeasurementUnitBaseSchema.shape.id)
@@ -26,23 +22,23 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
 });
 
 // Form Schema
-export const SubcategoryFormSchema = SubcategoryBaseSchema.pick({
-  id: true,
-  categoryId: true,
-  name: true,
-  icon: true,
-  description: true,
-  examples: true,
-}).extend({
+export const SubcategoryFormSchema = z.strictObject({
   id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
-  categoryId: z.string().min(1, "Categoría es requerida"),
-  name: z
-    .string()
+  categoryId: SubcategoryBaseSchema.shape.categoryId.min(
+    1,
+    "Categoría es requerida"
+  ),
+  name: SubcategoryBaseSchema.shape.name
     .min(1, "Nombre es requerido")
     .max(255, "Nombre no puede exceder 255 caracteres"),
-  icon: z.string().min(1, "Ícono es requerido"),
-  description: z.string().min(1, "Descripción es requerida"),
-  examples: z.string().nullable().transform((v) => (v === "" ? null : v)),
+  icon: SubcategoryBaseSchema.shape.icon.min(1, "Ícono es requerido"),
+  description: SubcategoryBaseSchema.shape.description.min(
+    1,
+    "Descripción es requerida"
+  ),
+  examples: SubcategoryBaseSchema.shape.examples
+    .nullable()
+    .transform((v) => (v === "" ? null : v)),
   measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
 });
 
