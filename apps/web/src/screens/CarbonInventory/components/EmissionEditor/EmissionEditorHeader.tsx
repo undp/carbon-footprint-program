@@ -14,7 +14,7 @@ import { formatEmissions } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
-import { useExplanationDialog } from "../../../../contexts";
+import { useExplanationDialog } from "@/contexts";
 
 type Subcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
