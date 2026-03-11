@@ -6,13 +6,13 @@ type SubcategorySummaryItem =
 
 type SubcategoryItem = Pick<
   MethodologySubcategory,
-  "id" | "name" | "description"
+  "id" | "name" | "description" | "explanationId"
 > &
   Pick<SubcategorySummaryItem, "included" | "edited">;
 
 type CategoryWithSubcategories = Pick<
   MethodologyCategory,
-  "id" | "name" | "description" | "synonyms" | "position"
+  "id" | "name" | "description" | "synonyms" | "position" | "explanationId"
 > & {
   subcategories: SubcategoryItem[];
 };

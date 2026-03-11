@@ -131,6 +131,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
                     subtitle={category.synonyms || ""}
                     title={category.name}
                     description={category.description || ""}
+                    explanationId={category.explanationId}
                   />
                   {/*  Body */}
                   <Divider className="w-full pt-4" />

@@ -1,26 +1,26 @@
 import { FC, useCallback } from "react";
-import { Folder, InfoOutline, WarningRounded } from "@mui/icons-material";
+import { Folder, WarningRounded } from "@mui/icons-material";
 import {
   Box,
   Avatar,
   Typography,
-  IconButton,
   FormControlLabel,
   Checkbox,
   alpha,
   Skeleton,
 } from "@mui/material";
-import { NumericInput } from "@/components";
+import { InfoButton, NumericInput } from "@/components";
 import { formatEmissions } from "@/utils/formatting";
 import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
+import { useExplanationDialog } from "@/contexts";
 
 type Subcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
 interface EmissionEditorHeaderProps
-  extends Pick<Subcategory, "name" | "description"> {
+  extends Pick<Subcategory, "name" | "description" | "explanationId"> {
   isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;
   setTotalEmission: (value: number) => void;
@@ -39,6 +39,7 @@ interface EmissionEditorHeaderProps
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
   description,
+  explanationId,
   isTotalManualEmissionsModeAvailable,
   totalEmission,
   setTotalEmission,
@@ -52,6 +53,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   onManualModeLineComment,
   hasEmissionFactors,
 }) => {
+  const { openExplanation } = useExplanationDialog();
   const onChangeTotalEmission = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setTotalEmission(Number(e.target.value));
@@ -72,13 +74,17 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
           <Folder sx={{ color: "text.primary" }} />
         </Avatar>
         <Box className="flex flex-col">
-          <Box className="flex flex-row items-center">
+          <Box className="flex flex-row items-center gap-2">
             <Typography variant="subtitle1" fontWeight="medium">
               {name}
             </Typography>
-            <IconButton aria-label="source-info" size="small">
-              <InfoOutline fontSize="inherit" />
-            </IconButton>
+            <InfoButton
+              label="Más información de la subcategoría"
+              onClick={(e) => {
+                e.stopPropagation();
+                openExplanation(explanationId);
+              }}
+            />
           </Box>
           <Typography variant="caption" fontWeight="regular">
             {description}

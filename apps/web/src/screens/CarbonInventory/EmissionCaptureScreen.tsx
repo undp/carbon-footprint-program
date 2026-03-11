@@ -184,6 +184,7 @@ export const EmissionCaptureScreen: FC = () => {
                     title={category.name}
                     subtitle={category.synonyms}
                     description={category.description}
+                    explanationId={category.explanationId}
                     onClick={() => handleCategoryChangeWithSave(category.id)}
                   />
                 ))}
