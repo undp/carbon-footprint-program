@@ -16,6 +16,7 @@ import {
   createCarbonInventoryLine,
   createCarbonInventoryLineInput,
   createCarbonInventoryLineResult,
+  createCarbonInventoryLineFactor,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { DuplicateCarbonInventoryResponse } from "@repo/types";
 import { CarbonInventoryLineStatus } from "@repo/types";
@@ -230,6 +231,70 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
       expect(newLines).toHaveLength(1);
       expect(newLines[0].inputs[0].result).toBeDefined();
       expect(Number(newLines[0].inputs[0].result?.totalEmissions)).toBe(3000);
+    });
+
+    it("should duplicate line factors", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+
+      const rateMeasurementUnit =
+        await prisma.rateMeasurementUnit.findFirstOrThrow();
+
+      const inventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId }
+      );
+
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategoryIds[0]
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(2000),
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(1.5),
+        appliedFactorRateUnitId: rateMeasurementUnit.id,
+        appliedFactorSource: "Test source",
+      });
+      await createCarbonInventoryLineResult(prisma, input.id, 2000);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${inventory.id}/duplicate`,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(
+        response.body
+      ) as DuplicateCarbonInventoryResponse;
+
+      const newLines = await prisma.carbonInventoryLine.findMany({
+        where: { carbonInventoryId: BigInt(body.id) },
+        include: {
+          inputs: {
+            include: { result: true, factor: true },
+          },
+        },
+      });
+
+      expect(newLines).toHaveLength(1);
+      expect(newLines[0].inputs[0].factor).toBeDefined();
+      expect(Number(newLines[0].inputs[0].factor?.appliedFactorValue)).toBe(
+        1.5
+      );
+      expect(newLines[0].inputs[0].factor?.appliedFactorRateUnitId).toBe(
+        rateMeasurementUnit.id
+      );
+      expect(newLines[0].inputs[0].factor?.appliedFactorSource).toBe(
+        "Test source"
+      );
     });
 
     it("should NOT duplicate DELETED or OUTDATED lines", async () => {
