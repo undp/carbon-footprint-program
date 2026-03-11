@@ -9,12 +9,7 @@ import {
   alpha,
 } from "@mui/material";
 import { getNestedError } from "./cellUtils";
-
-interface MeasurementUnit {
-  id: string;
-  name: string;
-  abbreviation: string;
-}
+import type { MeasurementUnit } from "../../types";
 
 interface MeasurementUnitsCellProps {
   formArrayName: string;
@@ -96,7 +91,7 @@ export const MeasurementUnitsCell: FC<MeasurementUnitsCellProps> = ({
         {visibleChips.map((unit) => (
           <Chip
             key={unit.id}
-            label={unit.abbreviation || unit.name}
+            label={unit.name}
             size="small"
             variant="outlined"
             color="primary"
@@ -151,7 +146,7 @@ export const MeasurementUnitsCell: FC<MeasurementUnitsCellProps> = ({
       options={allUnits}
       value={selectedUnits}
       onChange={(_, newValue) => onChange(newValue.map((u) => u.id))}
-      getOptionLabel={(opt) => `${opt.name} (${opt.abbreviation})`}
+      getOptionLabel={(opt) => opt.name}
       isOptionEqualToValue={(opt, val) => opt.id === val.id}
       disableCloseOnSelect
       openOnFocus
@@ -165,7 +160,7 @@ export const MeasurementUnitsCell: FC<MeasurementUnitsCellProps> = ({
             return (
               <Chip
                 key={key}
-                label={unit.abbreviation || unit.name}
+                label={unit.name}
                 size="small"
                 variant="outlined"
                 color="primary"

@@ -1,4 +1,4 @@
-import { FC, useCallback, useRef, useState } from "react";
+import { FC, useCallback, useEffect, useRef, useState } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { Select, MenuItem, Typography, Tooltip } from "@mui/material";
 import { getNestedError } from "./cellUtils";
@@ -43,6 +43,10 @@ export const CategorySelectCell: FC<CategorySelectCellProps> = ({
       el.scrollHeight > el.clientHeight || el.scrollWidth > el.clientWidth
     );
   }, []);
+
+  useEffect(() => {
+    measureTruncation(textRef.current);
+  }, [categoryName, measureTruncation]);
 
   if (!isEditing) {
     return (
