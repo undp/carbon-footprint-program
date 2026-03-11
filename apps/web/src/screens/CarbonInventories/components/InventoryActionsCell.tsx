@@ -28,6 +28,7 @@ import {
   useUpdateCarbonInventory,
   useRequestCalculation,
   useRequestVerification,
+  useDuplicateCarbonInventory,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
@@ -99,6 +100,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const { mutateAsync: updateInventory } = useUpdateCarbonInventory();
   const { mutateAsync: requestCalculation } = useRequestCalculation();
   const { mutateAsync: requestVerification } = useRequestVerification();
+  const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
+    useDuplicateCarbonInventory();
 
   const onEditClick = useCallback(
     (inventoryId: string) => {
@@ -219,6 +222,18 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setVerifyDialogOpen(false);
   }, []);
 
+  const onDuplicateClick = useCallback(async () => {
+    try {
+      await duplicateInventory(inventoryId);
+      void refetchInventories();
+      enqueueSnackbar("Huella duplicada", { variant: "success" });
+    } catch {
+      enqueueSnackbar("No se pudo duplicar la huella", {
+        variant: "error",
+      });
+    }
+  }, [inventoryId, duplicateInventory, refetchInventories]);
+
   const onDownloadClick = useCallback((_inventoryId: string) => {
     //TODO: Implement download functionality
   }, []);
@@ -296,11 +311,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         <Tooltip title="Duplicar huella">
           <span>
             <BaseIconButton
-              onClick={() => null}
+              onClick={onDuplicateClick}
               color="primary"
               size="small"
               aria-label="Duplicar huella"
-              disabled
+              disabled={isDuplicating}
             >
               <FileCopyOutlined fontSize="small" />
             </BaseIconButton>
