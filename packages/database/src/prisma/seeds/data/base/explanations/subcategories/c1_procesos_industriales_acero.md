@@ -140,11 +140,14 @@ Debes rellenar los siguientes campos:
 
 3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
 
+⚠️ **Importante:** El campo espera el factor en **kgCO₂/unidad**. Si tu fuente expresa el factor en toneladas de CO₂eq, debes convertirlo multiplicando por 1.000.
+_Ejemplo:_ 1,8 t CO₂eq/tonelada = **1.800 kgCO₂/tonelada**.
+
 ---
 
 **CASO 3:** Ya tienes las emisiones totales calculadas externamente
 
-Debes ingresar a la calculadora en **modo experto**.  
+Debes ingresar a la calculadora en **modo experto**.
 Luego, en el paso 3, debes seleccionar el checkbox **"Sólo quiero ingresar el total de emisiones"**, lo que habilitará el recuadro para ingresar las **emisiones totales del proceso industrial del acero**.
 
 ---
@@ -158,18 +161,20 @@ Supongamos que durante el año tu planta produjo:
 
 Y el factor de emisión es (ejemplo referencial):
 
-- **1,8 t CO₂eq por tonelada de acero**
+- **1.800 kgCO₂eq por tonelada de acero** (equivalente a 1,8 t CO₂eq/tonelada)
+
+En la plataforma ingresarías **1800** en el campo **"Factor kgCO₂/unidad"**.
 
 Entonces:
 
-> $CO₂eq$ = $600.000\ t \times 1,8\ t\ CO₂eq/t$ = $1.080.000\ t\ CO₂eq$
+> $CO₂eq$ = $600.000\ t \times 1.800\ kgCO₂eq/t$ = $1.080.000.000\ kgCO₂eq$ = $1.080.000\ t\ CO₂eq$
 
 Es decir, el proceso productivo habría generado:
 
 - **1.080.000 toneladas de CO₂eq en el año**
 
-⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **t CO₂eq por tonelada**, la producción debe estar en **toneladas**.
+⚠️ Es importante que las **unidades coincidan**.
+Recuerda que el campo **"Factor kgCO₂/unidad"** espera el valor en **kilogramos**, no en toneladas. Si tu fuente indica el factor en toneladas, multiplica por 1.000 antes de ingresarlo.
 
 ---
 
