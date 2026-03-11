@@ -38,7 +38,7 @@ export const updateSubcategoryService = async (
   });
 
   if (!targetSubcategory) {
-    throw new SubcategoryNotFoundError();
+    throw new SubcategoryNotFoundError(id);
   }
 
   // Validate the target category belongs to the same methodology
