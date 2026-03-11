@@ -12,11 +12,6 @@ import { useBlocker } from "@tanstack/react-router";
 import {
   Box,
   Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
   MenuItem,
   Paper,
   Select,
@@ -50,6 +45,7 @@ import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
 import { Subcategory } from "../types";
@@ -573,39 +569,16 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
           </Button>
         </Paper>
       )}
-      <Dialog
+      <ExitEditModeDialog
         open={exitEditModeOpen}
+        methodologyName={targetMethodology.name}
+        hasUnsavedRow={editingRowId !== null}
         onClose={() => setExitEditModeOpen(false)}
-      >
-        <DialogTitle>Salir de modo edición</DialogTitle>
-        <DialogContent>
-          {editingRowId ? (
-            <DialogContentText>
-              Tienes cambios sin guardar en la fila que estás editando. Si sales
-              del modo edición, los cambios se perderán.
-            </DialogContentText>
-          ) : (
-            <DialogContentText>
-              Estás a punto de salir del modo edición de{" "}
-              <strong>{targetMethodology.name}</strong>. Podrás volver a
-              editarla desde la pantalla de Metodologías.
-            </DialogContentText>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => {
-              setExitEditModeOpen(false);
-              handleExitEditMode();
-            }}
-          >
-            {editingRowId ? "Salir sin guardar" : "Salir"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={() => {
+          setExitEditModeOpen(false);
+          handleExitEditMode();
+        }}
+      />
       {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
