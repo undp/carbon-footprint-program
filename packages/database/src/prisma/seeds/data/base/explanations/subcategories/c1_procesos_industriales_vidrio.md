@@ -132,7 +132,7 @@ Debes rellenar los siguientes campos:
 
 2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
 
-3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado.
+3.- Debes modificar el campo **"Factor kgCO₂/unidad"** con tu valor personalizado (recuerda ingresar el factor en **kilogramos** de CO₂eq por unidad).
 
 ---
 
@@ -156,18 +156,18 @@ Primero calculamos el vidrio nuevo:
 
 Si el factor de emisión es (ejemplo referencial):
 
-- **0,60 t CO₂eq por tonelada de vidrio nuevo**
+- **600 kg CO₂eq por tonelada de vidrio nuevo** (equivalente a 0,60 t CO₂eq/t)
 
 Entonces:
 
-> $CO₂eq$ = $70.000\ t \times 0,60\ t\ CO₂eq/t$ = $42.000\ t\ CO₂eq$
+> $CO₂eq$ = $70.000\ t \times 600\ kg\ CO₂eq/t$ = $42.000.000\ kg\ CO₂eq$ → **42.000 t CO₂eq**
 
 Es decir, el proceso productivo habría generado:
 
 - **42.000 toneladas de CO₂eq en el año**
 
-⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en **t CO₂eq por tonelada**, la cantidad debe estar en **toneladas**.
+⚠️ Es importante que las **unidades coincidan**.
+El campo "Factor kgCO₂/unidad" espera el factor en **kilogramos** de CO₂eq por unidad. Si tu fuente expresa el factor en toneladas, multiplícalo por 1.000 para convertirlo a kg.
 
 ---
 
@@ -177,7 +177,3 @@ Si el factor está en **t CO₂eq por tonelada**, la cantidad debe estar en **to
 > - Descuenta siempre el porcentaje de vidrio reciclado utilizado
 > - No incluyas combustibles ni electricidad aquí
 > - Guarda reportes productivos como respaldo para auditorías o verificaciones externas
-
-```
-
-```
