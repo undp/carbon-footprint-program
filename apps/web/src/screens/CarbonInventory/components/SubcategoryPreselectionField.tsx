@@ -1,12 +1,15 @@
 import { Box, Checkbox, Tooltip, Typography } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 import { SubcategoryPreselectionMergedData } from "../types";
+import { InfoButton } from "../../../components";
+import { useExplanationDialog } from "../../../contexts";
 
 export const SubcategoryPreselectionField = ({
   subcategory,
 }: {
   subcategory: SubcategoryPreselectionMergedData[number]["subcategories"][number];
 }) => {
+  const { openExplanation } = useExplanationDialog();
   const { control } = useFormContext();
   const disabled = subcategory.edited;
 
@@ -36,7 +39,7 @@ export const SubcategoryPreselectionField = ({
               onClick={handleClick}
             >
               <Box className="flex flex-row items-start justify-start gap-2">
-                <Box className="shrink-0">
+                <Box className="shrink-0" sx={{ pt: "3px" }}>
                   <Checkbox
                     size="small"
                     checked={Boolean(field.value)}
@@ -45,7 +48,17 @@ export const SubcategoryPreselectionField = ({
                   />
                 </Box>
                 <Box className="flex flex-col">
-                  <Typography variant="body1">{subcategory.name}</Typography>
+                  <Box className="flex flex-row items-center gap-2">
+                    <Typography variant="body1">{subcategory.name}</Typography>
+                    <InfoButton
+                      label="Más información de la subcategoría"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (subcategory.explanationId)
+                          openExplanation(subcategory.explanationId);
+                      }}
+                    />
+                  </Box>
                   {subcategory.description && (
                     <Typography variant="body2" color="text.secondary">
                       {subcategory.description}

@@ -6,7 +6,7 @@ type SubcategorySummaryItem =
 
 type SubcategoryItem = Pick<
   MethodologySubcategory,
-  "id" | "name" | "description"
+  "id" | "name" | "description" | "explanationId"
 > &
   Pick<SubcategorySummaryItem, "included" | "edited">;
 

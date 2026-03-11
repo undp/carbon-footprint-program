@@ -45,6 +45,7 @@ export const useSubcategoryPreselectionData = (
           id: subcategory.id,
           name: subcategory.name,
           description: subcategory.description,
+          explanationId: subcategory.explanationId,
           included: !!summary?.included,
           edited: !!summary?.edited,
         };
