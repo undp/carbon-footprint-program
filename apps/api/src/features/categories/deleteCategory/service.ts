@@ -1,12 +1,18 @@
 import type { PrismaClient } from "@repo/database";
 import { CategoryStatus, SubCategoryStatus, User } from "@repo/types";
 import { CategoryNotFoundError } from "../errors.js";
+import { UserNotFoundError } from "../../users/errors.js";
 
 export const deleteCategoryService = async (
   prismaClient: PrismaClient,
   id: string,
   user: User | null
 ): Promise<void> => {
+  // TODO: remove this if when handlerFactory folder is improved
+  if (!user) {
+    throw new UserNotFoundError();
+  }
+
   const categoryId = BigInt(id);
 
   const category = await prismaClient.category.findUnique({
@@ -23,7 +29,7 @@ export const deleteCategoryService = async (
       where: { id: categoryId },
       data: {
         status: CategoryStatus.DELETED,
-        updatedById: user ? BigInt(user.id) : undefined,
+        updatedById: BigInt(user.id),
       },
     });
 
@@ -32,7 +38,10 @@ export const deleteCategoryService = async (
         categoryId,
         status: { not: SubCategoryStatus.DELETED },
       },
-      data: { status: SubCategoryStatus.DELETED },
+      data: {
+        status: SubCategoryStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
     });
 
     // Fetch affected categories sorted by position ASC so each row moves to a
@@ -52,7 +61,7 @@ export const deleteCategoryService = async (
     for (const cat of toShift) {
       await tx.category.update({
         where: { id: cat.id },
-        data: { position: { decrement: 1 } },
+        data: { position: { decrement: 1 }, updatedById: BigInt(user.id) },
       });
     }
   });
