@@ -19,28 +19,26 @@ export const FormFileUpload = <T extends FieldValues>({
   required,
   requiredMessage = "Este campo es obligatorio",
   ...props
-}: Props<T>) => {
-  return (
-    <Controller
-      name={name}
-      control={control}
-      rules={{
-        required: required ? requiredMessage : false,
-        validate: (files) => {
-          if (required && (!files || files.length === 0)) {
-            return requiredMessage;
-          }
-          return true;
-        },
-      }}
-      render={({ field, fieldState }) => (
-        <FileUpload
-          value={field.value}
-          onChange={field.onChange}
-          error={fieldState.error?.message}
-          {...props}
-        />
-      )}
-    />
-  );
-};
+}: Props<T>) => (
+  <Controller
+    name={name}
+    control={control}
+    rules={{
+      required: required ? requiredMessage : false,
+      validate: (files) => {
+        if (required && (!files || files.length === 0)) {
+          return requiredMessage;
+        }
+        return true;
+      },
+    }}
+    render={({ field, fieldState }) => (
+      <FileUpload
+        value={field.value ?? []}
+        onChange={field.onChange}
+        error={fieldState.error?.message}
+        {...props}
+      />
+    )}
+  />
+);
