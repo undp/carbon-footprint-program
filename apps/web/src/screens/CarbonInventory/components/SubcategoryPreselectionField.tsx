@@ -39,7 +39,7 @@ export const SubcategoryPreselectionField = ({
               onClick={handleClick}
             >
               <Box className="flex flex-row items-start justify-start gap-2">
-                <Box className="shrink-0" sx={{ pt: "3px" }}>
+                <Box className="shrink-0 pt-[3px]">
                   <Checkbox
                     size="small"
                     checked={Boolean(field.value)}
