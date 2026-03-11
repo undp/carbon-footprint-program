@@ -133,12 +133,12 @@ Y el potencial de calentamiento global (GWP) del HFC-32 es (ejemplo referencial)
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $5\ kg \times 677\ kg\ CO₂eq/kg$ = $4.062\ kg\ CO₂eq$
+> $CO₂eq$ = $5\ kg \times 677\ kg\ CO₂eq/kg$ = $3.385\ kg\ CO₂eq$
 
 Es decir, la recarga habría generado:
 
-- **4.062 kg CO₂eq en el año**
-- O lo mismo que **4,06 toneladas de CO₂eq**
+- **3.385 kg CO₂eq en el año**
+- O lo mismo que **3,385 toneladas de CO₂eq**
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en **kg CO₂eq por kg de gas**, la cantidad debe estar en **kg**.

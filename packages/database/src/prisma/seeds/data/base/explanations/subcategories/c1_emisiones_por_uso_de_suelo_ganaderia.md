@@ -85,10 +85,12 @@ _Ejemplo:_
 
 Debes rellenar los siguientes campos:
 
-| Campo          | Qué debes ingresar                |               Ejemplo |
-| :------------- | :-------------------------------- | --------------------: |
-| Tipo de animal | Especie o categoría del animal    | Vacas, ovejas, cerdos |
-| Cantidad       | Número promedio anual de animales |                    90 |
+| Campo          | Qué debes ingresar                          |           Ejemplo |
+| :------------- | :------------------------------------------ | ----------------: |
+| Tipo de animal | Selecciona el tipo de animal desde la lista | Vacas de pastoreo |
+| Cantidad       | Número promedio anual de animales           |                90 |
+
+Las opciones disponibles de tipo de animal son: **Vacas de pastoreo**, **Vacas lecheras**, **Ovejas**, **Porcinos**, **Buffalos**, **Cabras**, **Caballos**, **Mulas y burros**, **Camélidos**, **Ciervos** y **Crianza de aves**.
 
 ⚠️ Selecciona correctamente el **tipo de animal**, ya que los factores de emisión varían entre especies
 
@@ -98,15 +100,15 @@ Debes rellenar los siguientes campos:
 
 Supongamos que durante el año tu empresa tuvo en promedio:
 
-- **120 vacas**
+- **120 Vacas de pastoreo**
 
-Y el factor de emisión para vacas (ejemplo referencial) es:
+Y el factor de emisión para Vacas de pastoreo (ejemplo referencial) es:
 
-- **Por cada vaca que tienes en tu campo, se generan 1.500 kg CO₂eq al año**
+- **Por cada vaca de pastoreo que tienes en tu campo, se generan 1.500 kg CO₂eq al año**
 
 Entonces el cálculo sería:
 
-> $CO₂eq$ = $120\ vacas \times 1.500\ kg\ CO₂eq/vaca$ = $180.000\ kg\ CO₂eq$
+> $CO₂eq$ = $120\ Vacas\ de\ pastoreo \times 1.500\ kg\ CO₂eq/animal$ = $180.000\ kg\ CO₂eq$
 
 Es decir, la actividad ganadera habría generado:
 
