@@ -21,11 +21,8 @@ Incluye únicamente la **energía eléctrica adquirida desde el sistema eléctri
 - ¿Tienes medidores eléctricos asociados a tus instalaciones?
 - ¿Cuentas con contratos de suministro eléctrico con una comercializadora?
 
-💡 **Tip importante:**  
-Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
-
-💡 **Tip importante:**  
-Si recibes una **cuenta de luz de un proveedor externo**, debes declarar ese consumo aquí.
+💡 **Tip importante:**
+Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**. En particular, si recibes una **cuenta de luz de un proveedor externo**, debes declarar ese consumo aquí.
 
 ---
 
