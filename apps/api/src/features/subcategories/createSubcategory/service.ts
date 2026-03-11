@@ -57,9 +57,10 @@ export const createSubcategoryService = async (
       });
 
       // Create measurement unit associations
-      if (data.measurementUnitIds.length > 0) {
+      const uniqueMeasurementUnitIds = [...new Set(data.measurementUnitIds)];
+      if (uniqueMeasurementUnitIds.length > 0) {
         await tx.subcategoryMeasurementUnit.createMany({
-          data: data.measurementUnitIds.map((unitId) => ({
+          data: uniqueMeasurementUnitIds.map((unitId) => ({
             subcategoryId: newSubcategoryId.id,
             measurementUnitId: BigInt(unitId),
           })),
