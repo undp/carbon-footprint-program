@@ -39,11 +39,18 @@ function readExplanationFilesFromDir(
   let files: string[];
   try {
     files = readdirSync(explanationsDir).filter((f) => f.endsWith(".md"));
-  } catch {
-    console.log(
-      `   ⚠ No explanations/${subdir} directory found for dataset ${dataset}, skipping.`
-    );
-    return [];
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as NodeJS.ErrnoException).code === "ENOENT"
+    ) {
+      console.log(
+        `   ⚠ No explanations/${subdir} directory found for dataset ${dataset}, skipping.`
+      );
+      return [];
+    }
+    throw error;
   }
 
   return files.map((fileName) => {
