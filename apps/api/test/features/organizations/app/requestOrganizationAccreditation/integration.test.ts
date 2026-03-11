@@ -6,6 +6,7 @@ import {
   afterAll,
   afterEach,
   inject,
+  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createTestOrganization } from "@test/factories/organizationFactory.js";
@@ -13,6 +14,8 @@ import { createTestOrganizationData } from "@test/factories/organizationDataFact
 import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
+import { cleanupTestFiles } from "@test/factories/fileFactory.js";
+import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { RequestOrganizationAccreditationResponse } from "@repo/types";
 import {
@@ -20,10 +23,20 @@ import {
   OrganizationDataStatus,
   SubmissionStatus,
   MembershipStatus,
+  SubmissionFileType,
 } from "@repo/database";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import { moveBlob } from "@/services/blobService.js";
+
+// SAS generation and blob move require Azure AD auth / server-side copy not available
+// in Azurite shared-key mode. Mock all blob service operations.
+vi.mock("@/services/blobService.js", () => ({
+  generateWriteSasUrl: vi.fn(),
+  generateReadSasUrl: vi.fn(),
+  moveBlobPath: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe("POST /api/app/organizations/:id/request-accreditation - Integration Tests", () => {
   let app: FastifyInstance;
@@ -76,7 +89,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       const body = JSON.parse(
         response.body
       ) as RequestOrganizationAccreditationResponse;
-      expect(body).toEqual({});
+      expect(body.submissionId).toBeDefined();
 
       // Verify: Submission was created with PENDING status
       const submission = await prisma.submission.findFirst({
@@ -510,6 +523,205 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(submission1?.status).toBe(SubmissionStatus.PENDING);
       expect(submission2).toBeDefined();
       expect(submission2?.status).toBe(SubmissionStatus.PENDING);
+    });
+  });
+
+  describe("Happy path - with file attachments", () => {
+    let appWithStorage: FastifyInstance;
+    let prismaWithStorage: PrismaClient;
+    let userIdWithStorage: bigint;
+
+    beforeAll(async () => {
+      appWithStorage = await createTestApp(inject("databaseUrl"), {
+        storageConnectionString: inject("storageConnectionString"),
+        storageContainerName: inject("storageContainerName"),
+      });
+      prismaWithStorage = appWithStorage.prisma;
+      const user = await getTestLoggedUser(prismaWithStorage);
+      userIdWithStorage = user.id;
+    });
+
+    afterAll(async () => {
+      await prismaWithStorage.$disconnect();
+      await appWithStorage.close();
+    });
+
+    afterEach(async () => {
+      await cleanupTestFiles(prismaWithStorage);
+      await cleanupTestOrganization(prismaWithStorage);
+      vi.clearAllMocks();
+    });
+
+    it("should link pre-uploaded files to the submission and call moveBlobPath", async () => {
+      const uuid = "550e8400-e29b-41d4-a716-446655440020";
+      const originalName = "attachment.pdf";
+      const tmpBlobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
+
+      // Upload blob to tmp namespace in Azurite
+      await uploadBlobToAzurite(appWithStorage.blobStorage!, tmpBlobPath, {
+        contentType: "application/pdf",
+      });
+
+      // Confirm upload — creates File DB record at tmp path
+      await appWithStorage.inject({
+        method: "POST",
+        url: "/api/files/confirm-upload",
+        payload: { uuid, originalName, fileType: "SUBMISSION" },
+      });
+
+      // Setup organization
+      const organization = await createTestOrganization(prismaWithStorage, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const organizationData = await createTestOrganizationData(
+        prismaWithStorage,
+        organization.id,
+        { status: OrganizationDataStatus.ACTIVE }
+      );
+      await createTestMembership(
+        prismaWithStorage,
+        userIdWithStorage,
+        organization.id,
+        { status: MembershipStatus.ACTIVE }
+      );
+
+      // Request accreditation with the pre-uploaded file
+      const response = await appWithStorage.inject({
+        method: "POST",
+        url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [uuid] },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      // moveBlobPath should have been called to move the blob from tmp to final path
+      const submission = await prismaWithStorage.submission.findFirst({
+        where: {
+          subject: {
+            organizationData: { organizationDataId: organizationData.id },
+          },
+        },
+      });
+      expect(submission).toBeDefined();
+
+      const finalPath = `SUBMISSION/${submission!.id}/ATTACHMENT/${uuid}-${originalName}`;
+      expect(vi.mocked(moveBlob)).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.any(String),
+        tmpBlobPath,
+        finalPath
+      );
+
+      // SubmissionFile record should be created and File.blobPath updated to final path
+      const fileRecord = await prismaWithStorage.file.findUnique({
+        where: { uuid },
+        include: { submissionFiles: true },
+      });
+      expect(fileRecord?.blobPath).toBe(finalPath);
+      expect(fileRecord?.submissionFiles).toHaveLength(1);
+      expect(fileRecord?.submissionFiles[0]?.submissionId).toBe(submission!.id);
+      expect(fileRecord?.submissionFiles[0]?.type).toBe(
+        SubmissionFileType.ATTACHMENT
+      );
+    });
+
+    it("should link multiple pre-uploaded files to the submission", async () => {
+      const files = [
+        {
+          uuid: "550e8400-e29b-41d4-a716-446655440021",
+          name: "report-a.pdf",
+        },
+        {
+          uuid: "550e8400-e29b-41d4-a716-446655440022",
+          name: "report-b.pdf",
+        },
+      ];
+
+      for (const f of files) {
+        await uploadBlobToAzurite(
+          appWithStorage.blobStorage!,
+          `SUBMISSION/tmp/${f.uuid}-${f.name}`,
+          { contentType: "application/pdf" }
+        );
+        await appWithStorage.inject({
+          method: "POST",
+          url: "/api/files/confirm-upload",
+          payload: {
+            uuid: f.uuid,
+            originalName: f.name,
+            fileType: "SUBMISSION",
+          },
+        });
+      }
+
+      const organization = await createTestOrganization(prismaWithStorage, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      await createTestOrganizationData(prismaWithStorage, organization.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
+      await createTestMembership(
+        prismaWithStorage,
+        userIdWithStorage,
+        organization.id,
+        { status: MembershipStatus.ACTIVE }
+      );
+
+      const response = await appWithStorage.inject({
+        method: "POST",
+        url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: files.map((f) => f.uuid) },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(vi.mocked(moveBlob)).toHaveBeenCalledTimes(files.length);
+
+      for (const f of files) {
+        const fileRecord = await prismaWithStorage.file.findUnique({
+          where: { uuid: f.uuid },
+          include: { submissionFiles: true },
+        });
+        expect(fileRecord?.submissionFiles).toHaveLength(1);
+      }
+    });
+
+    it("should succeed and create submission without files when fileUuids is omitted", async () => {
+      const organization = await createTestOrganization(prismaWithStorage, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const organizationData = await createTestOrganizationData(
+        prismaWithStorage,
+        organization.id,
+        { status: OrganizationDataStatus.ACTIVE }
+      );
+      await createTestMembership(
+        prismaWithStorage,
+        userIdWithStorage,
+        organization.id,
+        { status: MembershipStatus.ACTIVE }
+      );
+
+      const response = await appWithStorage.inject({
+        method: "POST",
+        url: `/api/app/organizations/${organization.id}/request-accreditation`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(vi.mocked(moveBlob)).not.toHaveBeenCalled();
+
+      const submission = await prismaWithStorage.submission.findFirst({
+        where: {
+          subject: {
+            organizationData: { organizationDataId: organizationData.id },
+          },
+        },
+      });
+      expect(submission).toBeDefined();
+
+      const submissionFileCount = await prismaWithStorage.submissionFile.count({
+        where: { submissionId: submission!.id },
+      });
+      expect(submissionFileCount).toBe(0);
     });
   });
 });
