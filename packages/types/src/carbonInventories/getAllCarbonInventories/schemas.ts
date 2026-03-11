@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 import { OrganizationDisplayStatusSchema } from "../../organizations/index.js";
+import { IdSchema } from "../../zod.js";
 
 // Query schema
 export const GetAllCarbonInventoriesQuerySchema = z.object({
@@ -12,6 +13,9 @@ export const GetAllCarbonInventoriesQuerySchema = z.object({
     .describe(
       'Optional year filter. Must be a number (e.g., "2024"). Omit to get all years.'
     ),
+  organizationId: IdSchema.optional().describe(
+    "Optional organization ID filter. Omit to get all organizations."
+  ),
 });
 
 // Response item schema with totalEmissions field added

@@ -23,6 +23,9 @@ export const getAllCarbonInventoriesService = async (
   };
 
   whereClause.year = query?.year ? parseInt(query.year, 10) : undefined;
+  whereClause.organizationId = query?.organizationId
+    ? BigInt(query.organizationId)
+    : undefined;
   whereClause.createdById = user ? BigInt(user.id) : undefined;
 
   const data = await prismaClient.carbonInventory.findMany({
