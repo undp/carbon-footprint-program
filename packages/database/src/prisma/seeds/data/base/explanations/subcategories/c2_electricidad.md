@@ -50,7 +50,7 @@ Si no estás seguro, puedes:
 - Consultar a tu proveedor
 - Preguntar al área de mantenimiento o finanzas
 
-⚠️ Si no sabes cuál corresponde, puedes seleccionar cualquiera según indique la plataforma.
+⚠️ **No selecciones un sistema eléctrico al azar.** Es fundamental que confirmes a cuál estás conectado revisando tu factura eléctrica, consultando a tu proveedor o preguntando a tu equipo de instalaciones o finanzas. Si después de agotar estas opciones no logras determinarlo, utiliza únicamente el factor por defecto que la plataforma indique explícitamente para sistemas no identificados.
 
 ---
 
