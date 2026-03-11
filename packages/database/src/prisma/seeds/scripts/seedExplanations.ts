@@ -46,28 +46,27 @@ function readExplanationFilesFromDir(
     return [];
   }
 
-  return files
-    .map((fileName) => {
-      // Parse filename: c{position}_{normalized_name}.md
-      const match = fileName.match(/^c(\d+)_(.+)\.md$/);
-      if (!match) {
-        throw new Error(
-          `Invalid explanation filename format: '${fileName}'. Expected c{position}_{name}.md`
-        );
-      }
+  return files.map((fileName) => {
+    // Parse filename: c{position}_{normalized_name}.md
+    const match = fileName.match(/^c(\d+)_(.+)\.md$/);
+    if (!match) {
+      throw new Error(
+        `Invalid explanation filename format: '${fileName}'. Expected c{position}_{name}.md`
+      );
+    }
 
-      const categoryPosition = parseInt(match[1]!, 10);
-      const normalizedName = normalizeName(match[2]!);
-      const content = readFileSync(join(explanationsDir, fileName), "utf-8");
+    const categoryPosition = parseInt(match[1]!, 10);
+    const normalizedName = normalizeName(match[2]!);
+    const content = readFileSync(join(explanationsDir, fileName), "utf-8");
 
-      return {
-        fileName,
-        categoryPosition,
-        normalizedName,
-        content,
-      };
-    })
-    .filter((f) => f.content.trim().length > 0);
+    return {
+      fileName,
+      categoryPosition,
+      normalizedName,
+      content,
+    };
+  });
+  // .filter((f) => f.content.trim().length > 0);
 }
 
 async function seedCategoryExplanations(
