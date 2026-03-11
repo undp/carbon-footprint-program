@@ -7,8 +7,7 @@ import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 
 export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
-  fastify,
-  options
+  fastify
 ) => {
   fastify.post(
     "/:id/duplicate",
@@ -23,9 +22,6 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
           201: DuplicateCarbonInventoryResponseSchema,
           404: ApiErrorResponseSchema,
         },
-      },
-      config: {
-        public: options?.public ?? false,
       },
     },
     duplicateCarbonInventoryHandler
