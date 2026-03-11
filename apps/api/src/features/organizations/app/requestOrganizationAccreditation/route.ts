@@ -1,9 +1,11 @@
 import type { FastifyRequest } from "fastify";
 import { requestOrganizationAccreditationHandler } from "./handler.js";
 import {
+  RequestOrganizationAccreditationBodySchema,
   RequestOrganizationAccreditationParamsSchema,
   RequestOrganizationAccreditationResponseSchema,
   RequestOrganizationAccreditationParams,
+  RequestOrganizationAccreditationBody,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
@@ -21,6 +23,7 @@ export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
 ) => {
   fastify.post<{
     Params: RequestOrganizationAccreditationParams;
+    Body: RequestOrganizationAccreditationBody;
   }>(
     "/:id/request-accreditation",
     {
@@ -30,6 +33,7 @@ export const requestOrganizationAccreditationRoute: StandardRouteSignature = (
         description:
           "Submit organization for accreditation (requires active membership)",
         params: RequestOrganizationAccreditationParamsSchema,
+        body: RequestOrganizationAccreditationBodySchema,
         response: {
           200: RequestOrganizationAccreditationResponseSchema,
           403: ApiErrorResponseSchema,

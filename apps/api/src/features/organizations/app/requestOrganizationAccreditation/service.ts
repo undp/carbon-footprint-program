@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   RequestOrganizationAccreditationResponse,
   User,
@@ -8,6 +9,7 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/database";
+import { linkSubmissionFiles } from "@/features/files/helpers/linkSubmissionFiles.js";
 import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
@@ -20,7 +22,10 @@ import { getRejectedOrganizationData } from "../../helpers.js";
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
-  user: User | null
+  user: User | null,
+  fileUuids?: string[],
+  blobServiceClient?: BlobServiceClient,
+  containerName?: string
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
     throw new UserNotFoundError();
@@ -105,7 +110,7 @@ export const requestOrganizationAccreditationService = async (
     });
 
     // 3. Create submission
-    await tx.submission.create({
+    const submission = await tx.submission.create({
       data: {
         type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subjectId: subject.id,
@@ -115,6 +120,17 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    return {};
+    // 4. Move pre-uploaded files from tmp → final path and link to the submission
+    if (fileUuids?.length) {
+      await linkSubmissionFiles(
+        tx,
+        blobServiceClient,
+        containerName,
+        submission.id,
+        fileUuids
+      );
+    }
+
+    return { submissionId: submission.id.toString() };
   });
 };
