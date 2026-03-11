@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:8080
+
+### Get Explanation by ID
+GET {{baseUrl}}/api/explanations/1 HTTP/1.1
