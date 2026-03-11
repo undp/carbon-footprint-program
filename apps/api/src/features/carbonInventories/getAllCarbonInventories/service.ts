@@ -1,4 +1,9 @@
-import { SubmissionType, type Prisma, type PrismaClient } from "@repo/database";
+import {
+  SubmissionType,
+  type Prisma,
+  type PrismaClient,
+  MembershipStatus,
+} from "@repo/database";
 import {
   type GetAllCarbonInventoriesResponse,
   type GetAllCarbonInventoriesQuery,
@@ -15,41 +20,70 @@ export const getAllCarbonInventoriesService = async (
   query: GetAllCarbonInventoriesQuery | null,
   user: User | null
 ): Promise<GetAllCarbonInventoriesResponse> => {
-  // Build where clause for year filtering
-  const whereClause: Prisma.CarbonInventoryWhereInput = {
+  // Base filters
+  const baseFilters: Prisma.CarbonInventoryWhereInput = {
     status: {
-      not: InventoryStatus.DELETED, // Exclude deleted inventories
+      not: InventoryStatus.DELETED,
     },
   };
 
-  whereClause.year = query?.year ? parseInt(query.year, 10) : undefined;
-  whereClause.organizationId = query?.organizationId
-    ? BigInt(query.organizationId)
-    : undefined;
-  whereClause.createdById = user ? BigInt(user.id) : undefined;
+  if (query?.year) {
+    baseFilters.year = parseInt(query.year, 10);
+  }
 
-  const data = await prismaClient.carbonInventory.findMany({
-    where: {
-      ...whereClause,
-      OR: [
-        { submission: { is: null } },
-        {
-          submission: {
-            subject: {
-              submissions: {
+  if (query?.organizationId) {
+    baseFilters.organizationId = BigInt(query.organizationId);
+  }
+
+  // Access control: show inventories created by user OR belonging to orgs where user is a member
+  const accessControlFilter: Prisma.CarbonInventoryWhereInput = user
+    ? {
+        OR: [
+          // User created the inventory
+          {
+            createdById: BigInt(user.id),
+          },
+          // Inventory belongs to organization where user has active membership
+          {
+            organization: {
+              memberships: {
                 some: {
-                  type: {
-                    in: [
-                      SubmissionType.CARBON_INVENTORY_CALCULATION,
-                      SubmissionType.CARBON_INVENTORY_VERIFICATION,
-                    ],
-                  },
+                  userId: BigInt(user.id),
+                  status: MembershipStatus.ACTIVE,
+                },
+              },
+            },
+          },
+        ],
+      }
+    : {};
+
+  // Submission filtering (existing logic)
+  const submissionFilter: Prisma.CarbonInventoryWhereInput = {
+    OR: [
+      { submission: { is: null } },
+      {
+        submission: {
+          subject: {
+            submissions: {
+              some: {
+                type: {
+                  in: [
+                    SubmissionType.CARBON_INVENTORY_CALCULATION,
+                    SubmissionType.CARBON_INVENTORY_VERIFICATION,
+                  ],
                 },
               },
             },
           },
         },
-      ],
+      },
+    ],
+  };
+
+  const data = await prismaClient.carbonInventory.findMany({
+    where: {
+      AND: [baseFilters, accessControlFilter, submissionFilter],
     },
     include: {
       subtotals: true,
