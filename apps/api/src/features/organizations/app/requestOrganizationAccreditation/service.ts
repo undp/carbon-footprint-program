@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   RequestOrganizationAccreditationResponse,
   User,
@@ -8,6 +9,10 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/database";
+import {
+  linkSubmissionFiles,
+  cleanupSourceBlobs,
+} from "@/features/files/helpers/linkSubmissionFiles.js";
 import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
@@ -20,7 +25,10 @@ import { getRejectedOrganizationData } from "../../helpers.js";
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
-  user: User | null
+  user: User | null,
+  fileUuids?: string[],
+  blobServiceClient?: BlobServiceClient,
+  containerName?: string
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
     throw new UserNotFoundError();
@@ -37,7 +45,7 @@ export const requestOrganizationAccreditationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
-  return await prismaClient.$transaction(async (tx) => {
+  const result = await prismaClient.$transaction(async (tx) => {
     // Find ACTIVE organization data that is a Draft (no submission linked)
     const activeData = await tx.organizationData.findFirst({
       where: {
@@ -105,7 +113,7 @@ export const requestOrganizationAccreditationService = async (
     });
 
     // 3. Create submission
-    await tx.submission.create({
+    const submission = await tx.submission.create({
       data: {
         type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subjectId: subject.id,
@@ -115,6 +123,25 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    return {};
+    // 4. Copy pre-uploaded files from tmp → final path and link to the submission
+    //    (source blobs are deleted post-commit to avoid inconsistency on rollback)
+    let blobCleanup;
+    if (fileUuids?.length) {
+      blobCleanup = await linkSubmissionFiles(
+        tx,
+        blobServiceClient,
+        containerName,
+        submission.id,
+        fileUuids
+      );
+    }
+
+    return { submissionId: submission.id.toString(), blobCleanup };
   });
+
+  if (result.blobCleanup) {
+    await cleanupSourceBlobs(result.blobCleanup);
+  }
+
+  return { submissionId: result.submissionId };
 };

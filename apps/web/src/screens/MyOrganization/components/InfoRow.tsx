@@ -16,7 +16,7 @@ const InfoRowComponent: FC<InfoRowProps> = ({ label, value }) => {
       >
         {label}
       </Typography>
-      <Typography variant="body1" sx={{ flex: 1 }}>
+      <Typography variant="body1" component="div" sx={{ flex: 1 }}>
         {value}
       </Typography>
     </Box>

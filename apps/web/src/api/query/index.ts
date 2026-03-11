@@ -6,3 +6,4 @@ export * from "./organizationMainActivities";
 export * from "./users";
 export * from "./measurementUnits";
 export * from "./organizations";
+export * from "./submissions";
