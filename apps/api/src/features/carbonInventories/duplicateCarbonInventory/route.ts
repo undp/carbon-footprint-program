@@ -19,7 +19,7 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
           "Duplicates a carbon inventory and all its ACTIVE children (lines, inputs, factors, results). Submissions are not duplicated.",
         params: DuplicateCarbonInventoryParamsSchema,
         response: {
-          201: DuplicateCarbonInventoryResponseSchema,
+          200: DuplicateCarbonInventoryResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
