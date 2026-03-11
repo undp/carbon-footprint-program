@@ -1,20 +1,32 @@
 /**
- * Generates a unique name by appending "(copia)" suffixes.
- * If the resulting name already exists, it keeps appending "(copia)" until unique.
+ * Generates a unique copy name using numeric suffixes, similar to
+ * how Windows/Linux handle duplicate file names.
+ *
+ * Appends " (1)", " (2)", etc. to the original name until unique.
  *
  * @example
- * generateUniqueCopyName("Report", ["Report", "Report (copia)"])
- * // => "Report (copia) (copia)"
+ * generateUniqueCopyName("Report", ["Report"])
+ * // => "Report (1)"
+ *
+ * generateUniqueCopyName("Report", ["Report", "Report (1)"])
+ * // => "Report (2)"
+ *
+ * generateUniqueCopyName("Report (1)", ["Report", "Report (1)"])
+ * // => "Report (1) (1)"
  */
 export const generateUniqueCopyName = (
   name: string,
   existingNames: string[]
 ): string => {
   const existingNameSet = new Set(existingNames);
-  let candidateName = `${name} (copia)`;
+
+  let counter = 1;
+  let candidateName = `${name} (${counter})`;
 
   while (existingNameSet.has(candidateName)) {
-    candidateName = `${candidateName} (copia)`;
+    counter++;
+    candidateName = `${name} (${counter})`;
   }
+
   return candidateName;
 };
