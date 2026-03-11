@@ -235,13 +235,14 @@ export const useSubcategoryColumns = ({
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<Subcategory>) => {
                 const anyEditing = editingRowId !== null;
+                const editing = isEditing(params.row.id);
                 const rowIndex = getRowIndex(params.row.id);
                 const formRow = rows[rowIndex];
 
                 return (
                   <ActionButtons
-                    isActiveRow={anyEditing && !isEditing(params.row.id)}
-                    isEditing={isEditing(params.row.id)}
+                    isActiveRow={anyEditing && !editing}
+                    isEditing={editing}
                     onStopEditCells={onStopEditRow}
                     onCancelEdit={onCancelEditRow}
                     onDelete={formRow ? () => onDelete(formRow) : undefined}
