@@ -11,14 +11,9 @@ import {
   MeasurementUnitsCell,
 } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import type { MeasurementUnit } from "../types";
 
 type Subcategory = GetAllSubcategoriesResponse[number];
-
-interface MeasurementUnit {
-  id: string;
-  name: string;
-  abbreviation: string;
-}
 
 interface UseSubcategoryColumnsParams {
   editingRowId: string | null;
