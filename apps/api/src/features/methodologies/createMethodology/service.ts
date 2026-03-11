@@ -12,8 +12,8 @@ import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNameVersionAlreadyExistsError,
   NoCountryFoundError,
-  getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const createMethodologyService = async (
   prismaClient: PrismaClient,

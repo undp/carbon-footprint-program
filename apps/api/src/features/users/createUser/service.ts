@@ -5,9 +5,11 @@ import {
   EmailAlreadyInUseError,
   IdpUserIdAlreadyInUseError,
   InvalidCountryJobPositionIdError,
-  getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
-import { DatabaseUniqueConstraintViolationError } from "@/errors/index.js";
+import {
+  DatabaseUniqueConstraintViolationError,
+  getDuplicatedFieldsFromP2002Error,
+} from "@/errors/index.js";
 
 export const createUserService = async (
   prismaClient: PrismaClient,

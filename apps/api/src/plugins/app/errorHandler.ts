@@ -8,6 +8,7 @@ import fp from "fastify-plugin";
 import { Prisma } from "@repo/database";
 import { IS_PROD } from "@/config/environment.js";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 /**
  * Derives a fallback error code from the HTTP status code so that
@@ -35,15 +36,23 @@ function getDefaultCodeForStatus(statusCode: number): string {
  */
 function handlePrismaError(
   error: unknown
-): { statusCode: number; code: string; message: string } | null {
+): {
+  statusCode: number;
+  code: string;
+  message: string;
+  duplicatedFields?: string[];
+} | null {
   if (error instanceof Prisma.PrismaClientKnownRequestError) {
     switch (error.code) {
-      case "P2002":
+      case "P2002": {
+        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
         return {
           statusCode: 409,
           code: "DATABASE_UNIQUE_CONSTRAINT",
           message: "A record with this value already exists",
+          duplicatedFields,
         };
+      }
       case "P2025":
         return {
           statusCode: 404,
@@ -98,7 +107,11 @@ const errorHandler = (
       );
     } else {
       log.warn(
-        { code: prismaResult.code, statusCode: prismaResult.statusCode },
+        {
+          code: prismaResult.code,
+          statusCode: prismaResult.statusCode,
+          duplicatedFields: prismaResult.duplicatedFields,
+        },
         "Unhandled Prisma error"
       );
     }

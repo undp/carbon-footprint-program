@@ -11,8 +11,8 @@ import {
   SubcategoryNameAlreadyExistsError,
   CategoryNotFoundForSubcategoryError,
   CategoryFromDifferentMethodologyError,
-  getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
 export const updateSubcategoryService = async (

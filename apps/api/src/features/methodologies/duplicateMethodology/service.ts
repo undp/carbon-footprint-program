@@ -13,10 +13,10 @@ import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNotFoundError,
   MethodologyNameVersionAlreadyExistsError,
-  getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
 import { generateUniqueCopyName } from "@/helpers/generateUniqueCopyName.js";
 import map from "lodash-es/map.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const duplicateMethodologyService = async (
   prismaClient: PrismaClient,

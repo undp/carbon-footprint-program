@@ -11,8 +11,8 @@ import {
   CategoryNameAlreadyExistsError,
   CategoryPositionAlreadyExistsError,
   MethodologyVersionNotFoundForCategoryError,
-  getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const createCategoryService = async (
   prismaClient: PrismaClient,
