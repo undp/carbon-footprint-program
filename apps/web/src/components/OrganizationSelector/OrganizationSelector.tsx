@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useId } from "react";
 import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
 import type { SelectProps } from "@mui/material";
 import type { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
@@ -24,7 +24,7 @@ export const OrganizationSelector: FC<OrganizationSelectorProps> = ({
   minWidth = 240,
   label = "Organización",
 }) => {
-  const labelId = `${label.toLowerCase().replace(/\s+/g, "-")}-select-label`;
+  const labelId = `label-${useId()}`;
 
   return (
     <FormControl sx={{ minHeight: 40, minWidth }} size={size}>
