@@ -28,14 +28,16 @@ import {
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
-import { moveBlob } from "@/services/blobService.js";
+import { copyBlob, deleteBlob } from "@/services/blobService.js";
 
 // SAS generation and blob move require Azure AD auth / server-side copy not available
 // in Azurite shared-key mode. Mock all blob service operations.
 vi.mock("@/services/blobService.js", () => ({
   generateWriteSasUrl: vi.fn(),
   generateReadSasUrl: vi.fn(),
-  moveBlobPath: vi.fn().mockResolvedValue(undefined),
+  copyBlob: vi.fn().mockResolvedValue(undefined),
+  deleteBlob: vi.fn().mockResolvedValue(undefined),
+  moveBlob: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe("POST /api/app/organizations/:id/request-accreditation - Integration Tests", () => {
@@ -552,7 +554,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       vi.clearAllMocks();
     });
 
-    it("should link pre-uploaded files to the submission and call moveBlobPath", async () => {
+    it("should link pre-uploaded files to the submission and call copyBlob", async () => {
       const uuid = "550e8400-e29b-41d4-a716-446655440020";
       const originalName = "attachment.pdf";
       const tmpBlobPath = `SUBMISSION/tmp/${uuid}-${originalName}`;
@@ -594,7 +596,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
       expect(response.statusCode).toBe(200);
 
-      // moveBlobPath should have been called to move the blob from tmp to final path
+      // copyBlob should have been called to copy the blob from tmp to final path
       const submission = await prismaWithStorage.submission.findFirst({
         where: {
           subject: {
@@ -605,7 +607,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(submission).toBeDefined();
 
       const finalPath = `SUBMISSION/${submission!.id}/ATTACHMENT/${uuid}-${originalName}`;
-      expect(vi.mocked(moveBlob)).toHaveBeenCalledWith(
+      expect(vi.mocked(copyBlob)).toHaveBeenCalledWith(
         expect.anything(),
         expect.any(String),
         tmpBlobPath,
@@ -674,7 +676,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       });
 
       expect(response.statusCode).toBe(200);
-      expect(vi.mocked(moveBlob)).toHaveBeenCalledTimes(files.length);
+      expect(vi.mocked(copyBlob)).toHaveBeenCalledTimes(files.length);
 
       for (const f of files) {
         const fileRecord = await prismaWithStorage.file.findUnique({
@@ -707,7 +709,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       });
 
       expect(response.statusCode).toBe(200);
-      expect(vi.mocked(moveBlob)).not.toHaveBeenCalled();
+      expect(vi.mocked(copyBlob)).not.toHaveBeenCalled();
 
       const submission = await prismaWithStorage.submission.findFirst({
         where: {
