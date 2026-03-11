@@ -10,6 +10,7 @@ import {
 import { CloudUpload, DeleteOutlined } from "@mui/icons-material";
 import { useDropzone, ErrorCode } from "react-dropzone";
 import type { Accept } from "react-dropzone";
+import accepts from "attr-accept";
 
 interface FileWithPreview {
   file: File;
@@ -74,14 +75,15 @@ export const FileUpload = ({
         const file = item.getAsFile();
         if (!file) return;
 
-        if (
-          accept &&
-          !Object.entries(accept).some(([mimeType]) =>
-            new RegExp(mimeType.replaceAll("*", ".*")).test(file.type)
-          )
-        ) {
-          setDropError("Tipo de archivo no permitido.");
-          return;
+        if (accept) {
+          const acceptStr = Object.entries(accept)
+            .flatMap(([mime, exts]) => [mime, ...exts])
+            .join(",");
+
+          if (!accepts(file, acceptStr)) {
+            setDropError("Tipo de archivo no permitido.");
+            return;
+          }
         }
 
         if (maxSize && file.size > maxSize) {
