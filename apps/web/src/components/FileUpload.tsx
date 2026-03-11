@@ -60,9 +60,9 @@ export const FileUpload = ({
   );
 
   const addFiles = useCallback(
-    (incoming: File[]) => {
+    (incoming: File[], hadRejections = false) => {
       if (!incoming.length) return;
-      setDropError("");
+      if (!hadRejections) setDropError("");
       onChange([...value, ...incoming]);
     },
     [value, onChange]
@@ -77,6 +77,7 @@ export const FileUpload = ({
       if (!items) return;
 
       const pasted: File[] = [];
+      let hadRejections = false;
       Array.from(items).forEach((item) => {
         if (item.kind !== "file") return;
         const file = item.getAsFile();
@@ -89,6 +90,7 @@ export const FileUpload = ({
 
           if (!accepts(file, acceptStr)) {
             setDropError("Tipo de archivo no permitido.");
+            hadRejections = true;
             return;
           }
         }
@@ -97,19 +99,20 @@ export const FileUpload = ({
           setDropError(
             `El archivo es demasiado grande. Tamaño máximo: ${(maxSize / (1024 * 1024)).toFixed(0)} MB`
           );
+          hadRejections = true;
           return;
         }
 
         pasted.push(file);
       });
 
-      if (pasted.length) addFiles(pasted);
+      if (pasted.length) addFiles(pasted, hadRejections);
     },
     [disabled, accept, maxSize, addFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop: addFiles,
+    onDrop: (accepted, rejected) => addFiles(accepted, rejected.length > 0),
     accept,
     maxSize,
     multiple: true,
