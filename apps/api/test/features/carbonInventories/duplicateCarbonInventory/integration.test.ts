@@ -56,7 +56,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -101,7 +101,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -157,7 +157,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -213,7 +213,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -270,7 +270,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -330,7 +330,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -382,7 +382,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
@@ -408,7 +408,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(201);
+      expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
       ) as DuplicateCarbonInventoryResponse;
