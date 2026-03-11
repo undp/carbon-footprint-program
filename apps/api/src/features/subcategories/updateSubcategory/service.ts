@@ -90,14 +90,12 @@ export const updateSubcategoryService = async (
           where: { subcategoryId: BigInt(id) },
         });
 
-        if (data.measurementUnitIds.length > 0) {
-          await tx.subcategoryMeasurementUnit.createMany({
-            data: data.measurementUnitIds.map((unitId) => ({
-              subcategoryId: BigInt(id),
-              measurementUnitId: BigInt(unitId),
-            })),
-          });
-        }
+        await tx.subcategoryMeasurementUnit.createMany({
+          data: data.measurementUnitIds.map((unitId) => ({
+            subcategoryId: BigInt(id),
+            measurementUnitId: BigInt(unitId),
+          })),
+        });
       }
 
       const subcategory = await tx.subcategory.findUnique({
