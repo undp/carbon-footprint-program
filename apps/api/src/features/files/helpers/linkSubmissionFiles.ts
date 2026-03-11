@@ -3,16 +3,38 @@ import { Prisma, SubmissionFileType } from "@repo/database";
 import { FileType } from "@repo/types";
 import { map } from "lodash-es";
 import { buildBlobPath } from "./buildBlobPath.js";
-import { moveBlob } from "@/services/blobService.js";
+import { copyBlob, deleteBlob } from "@/services/blobService.js";
 import { BlobMoveError } from "../errors.js";
+
+export interface BlobCleanup {
+  sourcePaths: string[];
+  blobServiceClient: BlobServiceClient;
+  containerName: string;
+}
+
+/**
+ * Deletes source blobs that were copied during the transaction.
+ * Call this AFTER the transaction commits successfully.
+ * Failures are logged but not thrown — the copy already succeeded
+ * and source blobs in tmp are safe to leave as orphans.
+ */
+export async function cleanupSourceBlobs(cleanup: BlobCleanup): Promise<void> {
+  await Promise.allSettled(
+    cleanup.sourcePaths.map((sourcePath) =>
+      deleteBlob(cleanup.blobServiceClient, cleanup.containerName, sourcePath)
+    )
+  );
+}
 
 /**
  * Links pre-uploaded (tmp) files to a submission:
- * 1. Moves each blob from its tmp path to `SUBMISSION/:submissionId/:fileType/uuid-name`
+ * 1. Copies each blob from its tmp path to `SUBMISSION/:submissionId/:fileType/uuid-name`
  * 2. Updates `File.blobPath` in the DB
  * 3. Creates `SubmissionFile` records
  *
  * Must be called inside a Prisma transaction (`tx`).
+ * Returns a `BlobCleanup` (if blobs were copied) so the caller can delete
+ * source blobs **after** the transaction commits.
  */
 export async function linkSubmissionFiles(
   tx: Prisma.TransactionClient,
@@ -21,7 +43,7 @@ export async function linkSubmissionFiles(
   submissionId: bigint,
   fileUuids: string[],
   fileType: SubmissionFileType = SubmissionFileType.ATTACHMENT
-): Promise<void> {
+): Promise<BlobCleanup | undefined> {
   const uniqueUuids = [...new Set(fileUuids)];
 
   const files = await tx.file.findMany({
@@ -37,7 +59,11 @@ export async function linkSubmissionFiles(
     );
   }
 
+  let blobCleanup: BlobCleanup | undefined;
+
   if (blobServiceClient && containerName) {
+    const sourcePaths: string[] = [];
+
     await Promise.all(
       map(files, async (file) => {
         const finalPath = buildBlobPath({
@@ -48,7 +74,7 @@ export async function linkSubmissionFiles(
           name: file.originalName,
         });
         try {
-          await moveBlob(
+          await copyBlob(
             blobServiceClient,
             containerName,
             file.blobPath,
@@ -57,12 +83,15 @@ export async function linkSubmissionFiles(
         } catch {
           throw new BlobMoveError(file.blobPath, finalPath);
         }
+        sourcePaths.push(file.blobPath);
         await tx.file.update({
           where: { id: file.id },
           data: { blobPath: finalPath },
         });
       })
     );
+
+    blobCleanup = { sourcePaths, blobServiceClient, containerName };
   }
 
   await tx.submissionFile.createMany({
@@ -72,4 +101,6 @@ export async function linkSubmissionFiles(
       type: fileType,
     })),
   });
+
+  return blobCleanup;
 }

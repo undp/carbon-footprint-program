@@ -9,7 +9,10 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/database";
-import { linkSubmissionFiles } from "@/features/files/helpers/linkSubmissionFiles.js";
+import {
+  linkSubmissionFiles,
+  cleanupSourceBlobs,
+} from "@/features/files/helpers/linkSubmissionFiles.js";
 import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
@@ -42,7 +45,7 @@ export const requestOrganizationAccreditationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
-  return await prismaClient.$transaction(async (tx) => {
+  const result = await prismaClient.$transaction(async (tx) => {
     // Find ACTIVE organization data that is a Draft (no submission linked)
     const activeData = await tx.organizationData.findFirst({
       where: {
@@ -120,9 +123,11 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    // 4. Move pre-uploaded files from tmp → final path and link to the submission
+    // 4. Copy pre-uploaded files from tmp → final path and link to the submission
+    //    (source blobs are deleted post-commit to avoid inconsistency on rollback)
+    let blobCleanup;
     if (fileUuids?.length) {
-      await linkSubmissionFiles(
+      blobCleanup = await linkSubmissionFiles(
         tx,
         blobServiceClient,
         containerName,
@@ -131,6 +136,12 @@ export const requestOrganizationAccreditationService = async (
       );
     }
 
-    return { submissionId: submission.id.toString() };
+    return { submissionId: submission.id.toString(), blobCleanup };
   });
+
+  if (result.blobCleanup) {
+    await cleanupSourceBlobs(result.blobCleanup);
+  }
+
+  return { submissionId: result.submissionId };
 };
