@@ -13,7 +13,6 @@ export const deleteSubcategoryRoute = (fastify: FastifyZodInstance) => {
         description: "Soft-delete a subcategory by its ID",
         params: DeleteSubcategoryParamsSchema,
         response: {
-          200: null,
           404: ApiErrorResponseSchema,
         },
       },
