@@ -114,6 +114,16 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
       expect(newInventory?.usageMode).toBe("SIMPLIFIED");
       expect(newInventory?.methodologyVersionId).toBe(methodologyVersionId);
       expect(newInventory?.status).toBe("ACTIVE");
+
+      // Verify organizationData was copied
+      const orgData = newInventory?.organizationData as Record<string, unknown>;
+      expect(orgData).toBeDefined();
+      expect(orgData.name).toBe("Test Org");
+      expect(orgData.sectorId).toBe("1");
+      expect(orgData.subsectorId).toBe("2");
+      expect(orgData.sizeId).toBe("3");
+      expect(orgData.mainActivityId).toBe("4");
+      expect(orgData.mainActivityQuantity).toBe(100);
     });
 
     it("should duplicate ACTIVE lines and their inputs", async () => {
