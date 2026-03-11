@@ -1,3 +1,3 @@
 export const explanationKeys = {
-  explanation: (id: string) => ["explanations", id] as const,
+  explanation: (id: string | null) => ["explanations", id] as const,
 };
