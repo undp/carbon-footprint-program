@@ -17,9 +17,11 @@ export const useUpdateOrganization = (id: string | undefined) => {
         await Promise.all([
           queryClient.invalidateQueries({
             queryKey: organizationKeys.all,
+            exact: true,
           }),
           queryClient.invalidateQueries({
             queryKey: organizationKeys.detail(id ?? ""),
+            exact: true,
           }),
         ]);
       },

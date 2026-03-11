@@ -34,6 +34,7 @@ export const useAddCategory = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.categories.all(methodologyVersionId),
+          exact: true,
         });
       }
     },
@@ -54,6 +55,7 @@ export const useUpdateCategory = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.categories.all(methodologyVersionId),
+          exact: true,
         });
       }
     },
@@ -68,6 +70,7 @@ export const useDeleteCategory = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.categories.all(methodologyVersionId),
+          exact: true,
         });
       }
     },
@@ -87,6 +90,7 @@ export const useSwapCategoryPositions = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.categories.all(methodologyVersionId),
+          exact: true,
         });
       }
     },

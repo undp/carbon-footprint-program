@@ -24,8 +24,8 @@ export const useUpdateCarbonInventory = () => {
     onSuccess: async (_data, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.all,
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes("carbonInventoryUpdationDependency"),
         }),
         queryClient.invalidateQueries({
           queryKey: carbonInventoryKeys.detail(variables.id),
