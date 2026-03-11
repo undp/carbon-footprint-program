@@ -77,7 +77,7 @@ export const AccreditationConfirmDialog: FC<
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             ¿Está seguro de que desea solicitar la acreditación de su
             organización? Esta acción enviará una solicitud al administrador
-            para revisar y aprobar la acreditación.
+            para revisar la acreditación.
           </Typography>
 
           <Divider sx={{ mb: 2 }} />
