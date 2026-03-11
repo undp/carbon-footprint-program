@@ -148,7 +148,7 @@ export const MyOrganizationScreen: FC = () => {
 
   return (
     <MainLayout>
-      <Box className="flex flex-1 flex-col gap-6 p-6">
+      <Box className="flex flex-1 flex-col gap-6">
         <OrganizationHeader
           selectedOrganizationId={selectedOrganizationId}
           onOrganizationChange={setSelectedOrganizationId}

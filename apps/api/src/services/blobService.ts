@@ -100,10 +100,10 @@ export async function generateWriteSasUrl(
 }
 
 /**
- * Moves a blob from sourcePath to destPath within the same container.
- * Generates a short-lived read SAS for the source, copies to dest, then deletes source.
+ * Copies a blob from sourcePath to destPath within the same container.
+ * Does NOT delete the source blob.
  */
-export async function moveBlob(
+export async function copyBlob(
   blobServiceClient: BlobServiceClient,
   containerName: string,
   sourcePath: string,
@@ -132,6 +132,30 @@ export async function moveBlob(
   } finally {
     clearTimeout(timer);
   }
+}
 
-  await containerClient.getBlockBlobClient(sourcePath).delete();
+/**
+ * Deletes a blob. Ignores 404 (already deleted).
+ */
+export async function deleteBlob(
+  blobServiceClient: BlobServiceClient,
+  containerName: string,
+  blobPath: string
+): Promise<void> {
+  const containerClient = blobServiceClient.getContainerClient(containerName);
+  await containerClient.getBlockBlobClient(blobPath).deleteIfExists();
+}
+
+/**
+ * Moves a blob from sourcePath to destPath within the same container.
+ * Copies to dest, then deletes source.
+ */
+export async function moveBlob(
+  blobServiceClient: BlobServiceClient,
+  containerName: string,
+  sourcePath: string,
+  destPath: string
+): Promise<void> {
+  await copyBlob(blobServiceClient, containerName, sourcePath, destPath);
+  await deleteBlob(blobServiceClient, containerName, sourcePath);
 }

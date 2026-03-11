@@ -53,7 +53,7 @@ export async function createEmptyMethodologyVersion(
     version?: string;
     status?: MethodologyVersionStatus;
   }
-): Promise<{ id: bigint }> {
+): Promise<{ id: bigint; name: string }> {
   const countryId = await getTestCountryId(prisma);
 
   // Generate a unique name to avoid unique constraint violations on (country_id, name)
@@ -73,6 +73,6 @@ export async function createEmptyMethodologyVersion(
       status: options?.status ?? MethodologyVersionStatus.PUBLISHED,
       updatedAt: null,
     },
-    select: { id: true },
+    select: { id: true, name: true },
   });
 }

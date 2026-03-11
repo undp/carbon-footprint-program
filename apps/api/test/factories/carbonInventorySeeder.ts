@@ -279,6 +279,33 @@ export async function createCarbonInventoryLineResult(
 }
 
 /**
+ * Creates a carbon inventory line factor
+ */
+export async function createCarbonInventoryLineFactor(
+  prisma: PrismaClient,
+  lineInputId: bigint,
+  options: {
+    appliedFactorValue: Prisma.Decimal;
+    appliedFactorRateUnitId: bigint;
+    emissionFactorId?: bigint | null;
+    appliedFactorSource?: string | null;
+    derivationDetails?: Prisma.InputJsonValue;
+  }
+) {
+  return prisma.carbonInventoryLineFactor.create({
+    data: {
+      lineInputId,
+      appliedFactorValue: options.appliedFactorValue,
+      appliedFactorRateUnitId: options.appliedFactorRateUnitId,
+      emissionFactorId: options.emissionFactorId ?? null,
+      appliedFactorSource: options.appliedFactorSource ?? null,
+      derivationDetails: options.derivationDetails ?? undefined,
+      updatedAt: null,
+    },
+  });
+}
+
+/**
  * Creates a complete carbon inventory with lines, inputs, and results for testing
  * This creates a ready-to-use inventory with actual emissions data
  */

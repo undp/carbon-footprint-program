@@ -1,24 +1,39 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
+import type { RequestOrganizationAccreditationResponse } from "@repo/types";
 
 export const useRequestOrganizationAccreditation = (id: string | undefined) => {
   const queryClient = useQueryClient();
 
-  return useMutation<void, Error, void>({
-    mutationFn: () =>
-      apiClient.post(`app/organizations/${id}/request-accreditation`).json(),
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: organizationKeys.all,
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: organizationKeys.detail(id ?? ""),
-          exact: true,
-        }),
-      ]);
-    },
-  });
+  return useMutation<RequestOrganizationAccreditationResponse, Error, string[]>(
+    {
+      mutationFn: (fileUuids: string[]) =>
+        apiClient
+          .post(`app/organizations/${id}/request-accreditation`, {
+            json: { fileUuids },
+          })
+          .json<RequestOrganizationAccreditationResponse>(),
+      onSuccess: async () => {
+        await Promise.all([
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.all,
+            exact: true
+          }),
+          queryClient.invalidateQueries({
+            queryKey: organizationKeys.detail(id ?? ""),
+            exact: true
+          }),
+          queryClient.invalidateQueries({
+            queryKey: requestsKeys.adminAll,
+            exact: true,
+          }),
+          queryClient.invalidateQueries({
+            queryKey: requestsKeys.adminKpis,
+            exact: true,
+          }),
+        ]);
+      },
+    }
+  );
 };

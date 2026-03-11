@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:8080
+
+### Duplicate Carbon Inventory
+POST {{baseUrl}}/api/carbon-inventories/1/duplicate HTTP/1.1

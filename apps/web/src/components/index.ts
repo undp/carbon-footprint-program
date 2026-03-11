@@ -7,3 +7,4 @@ export * from "./StylizedDataGrid";
 export * from "./ConfirmDialog";
 export * from "./EmissionResults";
 export * from "./CarbonInventoryBadgesCard";
+export * from "./FileUpload";
