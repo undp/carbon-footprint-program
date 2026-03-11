@@ -11,7 +11,7 @@ interface ExplanationContentProps {
 }
 
 export function ExplanationContent({ content }: ExplanationContentProps) {
-  if (!content) {
+  if (!content || !content.trim()) {
     return (
       <Box
         display="flex"
