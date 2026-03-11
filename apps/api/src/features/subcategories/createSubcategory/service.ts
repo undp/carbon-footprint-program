@@ -1,6 +1,4 @@
 import { type PrismaClient, Prisma } from "@repo/database";
-import { omit } from "lodash-es";
-
 import {
   CategoryStatus,
   SubcategoryStatus,
@@ -40,7 +38,7 @@ export const createSubcategoryService = async (
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
-      const newSubcategoryId = await tx.subcategory.create({
+      const newSubcategory = await tx.subcategory.create({
         data: {
           categoryId: BigInt(data.categoryId),
           name: data.name,
@@ -53,24 +51,6 @@ export const createSubcategoryService = async (
         },
         select: {
           id: true,
-        },
-      });
-
-      // Create measurement unit associations
-      const uniqueMeasurementUnitIds = [...new Set(data.measurementUnitIds)];
-      if (uniqueMeasurementUnitIds.length > 0) {
-        await tx.subcategoryMeasurementUnit.createMany({
-          data: uniqueMeasurementUnitIds.map((unitId) => ({
-            subcategoryId: newSubcategoryId.id,
-            measurementUnitId: BigInt(unitId),
-          })),
-        });
-      }
-
-      const newSubCategory = await tx.subcategory.findUnique({
-        where: { id: newSubcategoryId.id },
-        select: {
-          id: true,
           name: true,
           icon: true,
           description: true,
@@ -78,37 +58,38 @@ export const createSubcategoryService = async (
           category: {
             select: { id: true, name: true, color: true },
           },
-          subcategoryMeasurementUnits: {
-            select: {
-              measurementUnit: {
-                select: { id: true, name: true },
-              },
-            },
-          },
         },
       });
 
+      // Create measurement unit associations
+      const uniqueMeasurementUnitIds = [...new Set(data.measurementUnitIds)];
+      const newSubcategoryMeasurementUnits =
+        await tx.subcategoryMeasurementUnit.createManyAndReturn({
+          data: uniqueMeasurementUnitIds.map((unitId) => ({
+            subcategoryId: newSubcategory.id,
+            measurementUnitId: BigInt(unitId),
+          })),
+          select: {
+            measurementUnit: {
+              select: { id: true, name: true },
+            },
+          },
+        });
+
       return {
-        ...omit(newSubCategory, [
-          "id",
-          "category",
-          "subcategoryMeasurementUnits",
-        ]),
-        id: newSubCategory!.id.toString(),
+        ...newSubcategory,
+        id: newSubcategory.id.toString(),
         category: {
-          id: newSubCategory!.category.id.toString(),
-          name: newSubCategory!.category.name,
-          color: newSubCategory!.category.color,
+          id: newSubcategory.category.id.toString(),
+          name: newSubcategory.category.name,
+          color: newSubcategory.category.color,
         },
-        measurementUnits: newSubCategory!.subcategoryMeasurementUnits.map(
-          (smu) => ({
-            id: smu.measurementUnit.id.toString(),
-            name: smu.measurementUnit.name,
-          })
-        ),
+        measurementUnits: newSubcategoryMeasurementUnits.map((smu) => ({
+          id: smu.measurementUnit.id.toString(),
+          name: smu.measurementUnit.name,
+        })),
       };
     });
-
     return result;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
