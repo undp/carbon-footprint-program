@@ -17,7 +17,7 @@ export const duplicateCarbonInventoryService = async (
 
   // Fetch the source inventory with all ACTIVE children
   const source = await prismaClient.carbonInventory.findUnique({
-    where: { id: BigInt(id) },
+    where: { id: BigInt(id), status: { not: InventoryStatus.DELETED } },
     include: {
       lines: {
         where: { status: CarbonInventoryLineStatus.ACTIVE },
