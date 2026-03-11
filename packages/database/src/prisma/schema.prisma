@@ -251,6 +251,8 @@ model User {
   membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
   membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
   filesUploaded                        File[]                         @relation("file_created_by")
+  explanationsCreated                  Explanation[]                  @relation("explanation_created_by")
+  explanationsUpdated                  Explanation[]                  @relation("explanation_updated_by")
 
   @@map("user")
 }
@@ -341,6 +343,22 @@ model MethodologyVersion {
   @@map("methodology_version")
 }
 
+model Explanation {
+  id            BigInt        @id @default(autoincrement())
+  name          String        @unique
+  content       String
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime?     @updatedAt @map("updated_at")
+  createdById   BigInt?       @map("created_by_id")
+  updatedById   BigInt?       @map("updated_by_id")
+  creator       User?         @relation("explanation_created_by", fields: [createdById], references: [id])
+  updater       User?         @relation("explanation_updated_by", fields: [updatedById], references: [id])
+  categories    Category[]
+  subcategories Subcategory[]
+
+  @@map("explanation")
+}
+
 model Category {
   id                   BigInt             @id @default(autoincrement())
   methodologyVersionId BigInt             @map("methodology_version_id")
@@ -357,9 +375,11 @@ model Category {
   updatedAt            DateTime?          @updatedAt @map("updated_at")
   createdById          BigInt?            @map("created_by_id")
   updatedById          BigInt?            @map("updated_by_id")
+  explanationId        BigInt?            @map("explanation_id")
   methodologyVersion   MethodologyVersion @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?              @relation("category_created_by", fields: [createdById], references: [id])
   updater              User?              @relation("category_updated_by", fields: [updatedById], references: [id])
+  explanation          Explanation?       @relation(fields: [explanationId], references: [id])
   subcategories        Subcategory[]
 
   // Partial unique indexes exist in SQL migrations:
@@ -379,9 +399,11 @@ model Subcategory {
   updatedAt                   DateTime?                    @updatedAt @map("updated_at")
   createdById                 BigInt?                      @map("created_by_id")
   updatedById                 BigInt?                      @map("updated_by_id")
+  explanationId               BigInt?                      @map("explanation_id")
   category                    Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   creator                     User?                        @relation("subcategory_created_by", fields: [createdById], references: [id])
   updater                     User?                        @relation("subcategory_updated_by", fields: [updatedById], references: [id])
+  explanation                 Explanation?                 @relation(fields: [explanationId], references: [id])
   dimensions                  EmissionFactorDimension[]
   emissionFactors             EmissionFactor[]
   inventoryLines              CarbonInventoryLine[]
