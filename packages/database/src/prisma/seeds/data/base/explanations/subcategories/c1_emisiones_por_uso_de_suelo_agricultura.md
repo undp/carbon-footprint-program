@@ -137,4 +137,4 @@ Si el factor está en **kg CO₂eq por hectárea**, la cantidad debe estar en **
 > - Incluye solo **superficies agrícolas bajo control directo**
 > - No incluyas actividades ganaderas (eso corresponde a **Ganadería**)
 > - Guarda **registros prediales y productivos** como respaldo ante auditorías o certificaciones
-> - Mejorar prácticas agrícolas puede reducir emisiones asociadas al suelo, como el buen maejo del agua
+> - Mejorar prácticas agrícolas puede reducir emisiones asociadas al suelo, como el buen manejo del agua
