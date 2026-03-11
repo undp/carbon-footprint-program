@@ -9,7 +9,7 @@ const preUploadOneFile = async (file: File): Promise<string> => {
     })
     .json<{ uuid: string; uploadUrl: string }>();
 
-  await fetch(uploadUrl, {
+  const response = await fetch(uploadUrl, {
     method: "PUT",
     body: file,
     headers: {
@@ -17,6 +17,12 @@ const preUploadOneFile = async (file: File): Promise<string> => {
       "Content-Type": file.type || "application/octet-stream",
     },
   });
+
+  if (!response.ok) {
+    throw new Error(
+      `File upload failed (${response.status}): ${await response.text()}`
+    );
+  }
 
   await apiClient
     .post("files/confirm-upload", {
