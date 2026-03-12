@@ -29,6 +29,7 @@ import {
   useRequestCalculation,
   useRequestVerification,
   useDuplicateCarbonInventory,
+  usePreUploadSubmissionFiles,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
@@ -102,6 +103,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const { mutateAsync: requestVerification } = useRequestVerification();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
     useDuplicateCarbonInventory();
+  const preUploadFiles = usePreUploadSubmissionFiles();
+  const [isVerifySubmitting, setIsVerifySubmitting] = useState(false);
 
   const onEditClick = useCallback(
     (inventoryId: string) => {
@@ -203,20 +206,40 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setVerifyDialogOpen(true);
   }, [organizationId, organizationDisplayStatus]);
 
-  const onVerifyConfirm = useCallback(async () => {
-    try {
-      await requestVerification(inventoryId);
-      setVerifyDialogOpen(false);
-      void refetchInventories();
-      enqueueSnackbar("Solicitud de verificación enviada", {
-        variant: "success",
-      });
-    } catch {
-      enqueueSnackbar("No se pudo enviar la solicitud de verificación", {
-        variant: "error",
-      });
-    }
-  }, [inventoryId, requestVerification, refetchInventories]);
+  const onVerifyConfirm = useCallback(
+    async (files: File[]) => {
+      setIsVerifySubmitting(true);
+      try {
+        let fileUuids: string[] | undefined;
+        if (files.length) {
+          try {
+            fileUuids = await preUploadFiles(files);
+          } catch {
+            enqueueSnackbar("No se pudieron subir los archivos adjuntos", {
+              variant: "error",
+            });
+            return;
+          }
+        }
+        await requestVerification({
+          carbonInventoryId: inventoryId,
+          body: { fileUuids },
+        });
+        setVerifyDialogOpen(false);
+        void refetchInventories();
+        enqueueSnackbar("Solicitud de verificación enviada", {
+          variant: "success",
+        });
+      } catch {
+        enqueueSnackbar("No se pudo enviar la solicitud de verificación", {
+          variant: "error",
+        });
+      } finally {
+        setIsVerifySubmitting(false);
+      }
+    },
+    [inventoryId, requestVerification, preUploadFiles, refetchInventories]
+  );
 
   const onVerifyCancel = useCallback(() => {
     setVerifyDialogOpen(false);
@@ -348,6 +371,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         open={verifyDialogOpen}
         onClose={onVerifyCancel}
         onConfirm={onVerifyConfirm}
+        isLoading={isVerifySubmitting}
       />
 
       <DeleteConfirmationDialog

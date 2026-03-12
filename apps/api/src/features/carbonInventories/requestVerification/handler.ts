@@ -1,8 +1,8 @@
 import type { RequestVerificationParams } from "@repo/types";
-import { createActionHandler } from "@/handlerFactory/index.js";
+import { createSubmissionRequestHandler } from "@/handlerFactory/index.js";
 import { requestVerificationService } from "./service.js";
 
-export const requestVerificationHandler = createActionHandler<
+export const requestVerificationHandler = createSubmissionRequestHandler<
   RequestVerificationParams,
   void
 >("carbonInventories", requestVerificationService, "CarbonInventory");

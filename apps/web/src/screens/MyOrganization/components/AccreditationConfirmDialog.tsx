@@ -91,7 +91,6 @@ export const AccreditationConfirmDialog: FC<
             disabled={isLoading}
             required
             requiredMessage="Al menos un archivo es requerido"
-            maxSize={21000000} // 20MB
             accept={{
               "image/png": [".png"],
               "image/jpeg": [".jpg", ".jpeg"],

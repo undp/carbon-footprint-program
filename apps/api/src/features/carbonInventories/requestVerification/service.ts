@@ -3,6 +3,7 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
+import type { BlobServiceClient } from "@azure/storage-blob";
 import type { User } from "@repo/types";
 import {
   CarbonInventoryCannotRequestVerificationError,
@@ -15,13 +16,20 @@ import {
   createCarbonInventorySubmission,
 } from "../helpers.js";
 import { canSubmitToVerification } from "./helpers.js";
+import {
+  linkSubmissionFiles,
+  cleanupSourceBlobs,
+} from "@/features/files/helpers/linkSubmissionFiles.js";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: string,
-  user: User | null
+  user: User | null,
+  fileUuids?: string[],
+  blobServiceClient?: BlobServiceClient,
+  containerName?: string
 ): Promise<void> => {
-  await prismaClient.$transaction(async (tx) => {
+  const result = await prismaClient.$transaction(async (tx) => {
     const inventory = await tx.carbonInventory.findFirst({
       where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
@@ -53,11 +61,28 @@ export const requestVerificationService = async (
 
     const createdById = user ? BigInt(user.id) : null;
 
-    await createCarbonInventorySubmission(
+    const submissionId = await createCarbonInventorySubmission(
       tx,
       inventory.id,
       SubmissionType.CARBON_INVENTORY_VERIFICATION,
       createdById
     );
+
+    let blobCleanup;
+    if (fileUuids?.length) {
+      blobCleanup = await linkSubmissionFiles(
+        tx,
+        blobServiceClient,
+        containerName,
+        submissionId,
+        fileUuids
+      );
+    }
+
+    return { blobCleanup };
   });
+
+  if (result.blobCleanup) {
+    await cleanupSourceBlobs(result.blobCleanup);
+  }
 };

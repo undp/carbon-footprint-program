@@ -2,16 +2,25 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http/client";
 import { requestsKeys } from "../requests/keys";
+import { RequestVerificationBody } from "@repo/types";
+
+interface RequestVerificationInput {
+  carbonInventoryId: string;
+  body?: RequestVerificationBody;
+}
 
 export const useRequestVerification = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (carbonInventoryId: string) =>
+    mutationFn: ({ carbonInventoryId, body }: RequestVerificationInput) =>
       apiClient
-        .post(`carbon-inventories/${carbonInventoryId}/request-verification`)
+        .post(
+          `carbon-inventories/${carbonInventoryId}/request-verification`,
+          body ? { json: body } : undefined
+        )
         .json(),
-    onSuccess: async (_data, carbonInventoryId) => {
+    onSuccess: async (_data, { carbonInventoryId }) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: carbonInventoryKeys.detail(carbonInventoryId),
