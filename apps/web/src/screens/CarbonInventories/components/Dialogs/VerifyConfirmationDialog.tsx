@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect } from "react";
-import { Controller, useForm, useWatch } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
   Button,
   Checkbox,
@@ -10,6 +10,7 @@ import {
   DialogTitle,
   Divider,
   FormControlLabel,
+  FormHelperText,
   IconButton,
   Typography,
 } from "@mui/material";
@@ -37,9 +38,6 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
   const { control, handleSubmit, reset } = useForm<VerifyFormValues>({
     defaultValues: { files: [], sworn: false },
   });
-
-  const sworn = useWatch({ control, name: "sworn" });
-  const files = useWatch({ control, name: "files" });
 
   useEffect(() => {
     if (!open) reset();
@@ -101,6 +99,7 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
             name="files"
             disabled={isLoading}
             required
+            requiredMessage="Debes adjuntar al menos un documento de respaldo"
             accept={{
               "image/png": [".png"],
               "image/jpeg": [".jpg", ".jpeg"],
@@ -108,31 +107,43 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
             }}
           />
 
-          <FormControlLabel
-            sx={{ mt: 2, alignItems: "flex-start" }}
-            control={
-              <Controller
-                name="sworn"
-                control={control}
-                render={({ field }) => (
-                  <Checkbox
-                    checked={field.value}
-                    onChange={field.onChange}
-                    disabled={isLoading}
-                    sx={{ mt: -0.5 }}
-                  />
+          <Controller
+            name="sworn"
+            control={control}
+            rules={{
+              validate: (val) =>
+                val || "Debes aceptar la declaración jurada para continuar",
+            }}
+            render={({ field, fieldState }) => (
+              <>
+                <FormControlLabel
+                  sx={{ mt: 2, alignItems: "flex-start" }}
+                  control={
+                    <Checkbox
+                      checked={field.value}
+                      onChange={field.onChange}
+                      disabled={isLoading}
+                      sx={{ mt: -0.5 }}
+                    />
+                  }
+                  label={
+                    <Typography variant="body2">
+                      Declaro bajo juramento que toda la información
+                      proporcionada en esta postulación es verídica y está
+                      respaldada por documentación oficial. Entiendo que
+                      cualquier falsedad puede resultar en sanciones
+                      administrativas y la anulación del proceso de
+                      verificación.
+                    </Typography>
+                  }
+                />
+                {fieldState.error && (
+                  <FormHelperText error role="alert" sx={{ mx: 0 }}>
+                    {fieldState.error.message}
+                  </FormHelperText>
                 )}
-              />
-            }
-            label={
-              <Typography variant="body2">
-                Declaro bajo juramento que toda la información proporcionada en
-                esta postulación es verídica y está respaldada por documentación
-                oficial. Entiendo que cualquier falsedad puede resultar en
-                sanciones administrativas y la anulación del proceso de
-                verificación.
-              </Typography>
-            }
+              </>
+            )}
           />
         </DialogContent>
 
@@ -151,7 +162,6 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
             type="submit"
             variant="contained"
             color="primary"
-            disabled={!sworn || files.length === 0 || isLoading}
             loading={isLoading}
           >
             Enviar

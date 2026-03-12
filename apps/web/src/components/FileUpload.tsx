@@ -144,7 +144,7 @@ export const FileUpload = ({
     return () => document.removeEventListener("paste", handlePaste);
   }, [handlePaste]);
 
-  const displayError = dropError ?? error;
+  const displayError = dropError || error;
 
   return (
     <div ref={containerRef} className="flex w-full flex-col gap-2">
