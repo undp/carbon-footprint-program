@@ -7,9 +7,6 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
   Table,
   TableBody,
   TableCell,
@@ -83,24 +80,6 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
     });
   };
 
-  const toggleDim = (position: number) => {
-    setDims((prev) => {
-      const exists = prev.find((d) => d.position === position);
-      if (exists) {
-        return prev.filter((d) => d.position < position);
-      }
-      return [
-        ...prev,
-        {
-          code: `variable_${position}`,
-          name: "",
-          position,
-          isRequired: false,
-        },
-      ];
-    });
-  };
-
   const handleSave = () => {
     const cleaned = dims.filter((d) => d.name.trim().length > 0);
     onSave(subcategoryId, cleaned);
@@ -133,7 +112,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
               <strong>Instrucciones:</strong> Define las variables de esta
-              sub-categor&iacute;a, su posici&oacute;n y si son requeridas.
+              sub-categor&iacute;a y si son requeridas.
             </Typography>
             <Typography
               variant="caption"
@@ -142,8 +121,8 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
               sx={{ pl: 2 }}
             >
               <li>
-                Solo puedes asignar <strong>posici&oacute;n 2</strong> si ya
-                existe una variable en <strong>posici&oacute;n 1</strong>
+                Solo puedes configurar la <strong>variable 2</strong> si ya
+                existe una <strong>variable 1</strong>
               </li>
               <li>
                 Una variable <strong>requerida</strong> afecta el c&aacute;lculo
@@ -160,14 +139,8 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                 <TableCell sx={{ fontWeight: 600, width: "15%" }}>
                   Variable
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600, width: "40%" }}>
+                <TableCell sx={{ fontWeight: 600 }}>
                   Nombre
-                </TableCell>
-                <TableCell
-                  sx={{ fontWeight: 600, width: "20%" }}
-                  align="center"
-                >
-                  Posición
                 </TableCell>
                 <TableCell
                   sx={{ fontWeight: 600, width: "20%" }}
@@ -194,39 +167,6 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                     onChange={(e) => updateDim(1, "name", e.target.value)}
                     disabled={readOnly}
                   />
-                </TableCell>
-                <TableCell align="center">
-                  <RadioGroup
-                    row
-                    value={hasDim1 ? "1" : ""}
-                    onChange={(e) => {
-                      if (e.target.value === "1" && !hasDim1) toggleDim(1);
-                      else if (e.target.value === "" && hasDim1) toggleDim(1);
-                    }}
-                    sx={{ justifyContent: "center", flexWrap: "nowrap" }}
-                  >
-                    <FormControlLabel
-                      value="1"
-                      control={
-                        <Radio
-                          size="small"
-                          checked={hasDim1}
-                          onChange={() => toggleDim(1)}
-                          disabled={readOnly}
-                        />
-                      }
-                      label="1"
-                      sx={{ mr: 1 }}
-                    />
-                    <FormControlLabel
-                      value="2"
-                      control={
-                        <Radio size="small" checked={false} disabled />
-                      }
-                      label="2"
-                      sx={{ mr: 0 }}
-                    />
-                  </RadioGroup>
                 </TableCell>
                 <TableCell align="center">
                   {hasDim1 ? (
@@ -262,34 +202,6 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                     onChange={(e) => updateDim(2, "name", e.target.value)}
                     disabled={readOnly || !hasDim1}
                   />
-                </TableCell>
-                <TableCell align="center">
-                  <RadioGroup
-                    row
-                    sx={{ justifyContent: "center", flexWrap: "nowrap" }}
-                  >
-                    <FormControlLabel
-                      value="1"
-                      control={
-                        <Radio size="small" checked={false} disabled />
-                      }
-                      label="1"
-                      sx={{ mr: 1 }}
-                    />
-                    <FormControlLabel
-                      value="2"
-                      control={
-                        <Radio
-                          size="small"
-                          checked={hasDim2}
-                          onChange={() => toggleDim(2)}
-                          disabled={readOnly || !hasDim1}
-                        />
-                      }
-                      label="2"
-                      sx={{ mr: 0 }}
-                    />
-                  </RadioGroup>
                 </TableCell>
                 <TableCell align="center">
                   {hasDim2 ? (
