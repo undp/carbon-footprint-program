@@ -6,8 +6,7 @@ export const useDeleteCarbonInventory = () => {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, string>({
-    mutationFn: (id) =>
-      apiClient.delete(`carbon-inventories/${id}`).then(() => undefined),
+    mutationFn: (id) => apiClient.delete(`carbon-inventories/${id}`).json(),
     onSuccess: async (_data, id) => {
       await Promise.all([
         queryClient.invalidateQueries({
