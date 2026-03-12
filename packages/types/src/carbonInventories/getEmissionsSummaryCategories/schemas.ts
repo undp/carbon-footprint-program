@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CategoryBaseSchema } from "../../baseSchemas/category.js";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/carbonInventory.js";
-import { CarbonInventoryDisplayStatusSchema } from "../../index.js";
+import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 const CategoryItemSchema = CategoryBaseSchema.pick({
   id: true,
