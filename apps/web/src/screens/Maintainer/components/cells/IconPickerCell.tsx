@@ -77,30 +77,40 @@ export const CATEGORY_COLORS = [
   "#F0D5E8", // rose
 ];
 
-interface IconPickerCellProps {
+interface IconPickerCellBaseProps {
   iconName: string;
   color: string;
   isEditing: boolean;
   rowIndex: number;
   formArrayName: string;
   onChangeIcon: (iconName: string) => void;
-  onChangeColor?: (color: string) => void;
   onClick?: () => void;
-  /** When true, hides the color picker section and uses a neutral background */
-  hideColor?: boolean;
 }
 
-export const IconPickerCell: FC<IconPickerCellProps> = ({
-  iconName,
-  color,
-  isEditing,
-  rowIndex,
-  formArrayName,
-  onChangeIcon,
-  onChangeColor,
-  onClick,
-  hideColor = false,
-}) => {
+type IconPickerCellProps =
+  | (IconPickerCellBaseProps & {
+      /** When false or omitted, the color picker remains visible and must be handled. */
+      hideColor?: false;
+      onChangeColor: (color: string) => void;
+    })
+  | (IconPickerCellBaseProps & {
+      /** When true, hides the color picker section and uses a neutral background. */
+      hideColor: true;
+      onChangeColor?: undefined;
+    });
+
+export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
+  const {
+    iconName,
+    color,
+    isEditing,
+    rowIndex,
+    formArrayName,
+    onChangeIcon,
+    onClick,
+  } = props;
+  /** When true, hides the color picker section and uses a neutral background */
+  const hideColor = props.hideColor ?? false;
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const pendingAnchorRef = useRef<HTMLElement | null>(null);
   const theme = useTheme();
@@ -253,7 +263,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
             ))}
           </Box>
 
-          {!hideColor && (
+          {!props.hideColor && (
             <>
               <Divider sx={{ my: 1 }} />
 
@@ -283,7 +293,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = ({
                     aria-label={`Seleccionar color ${c}`}
                     aria-pressed={c === color}
                     onClick={() => {
-                      onChangeColor?.(c);
+                      props.onChangeColor(c);
                       setAnchorEl(null);
                     }}
                     sx={{
