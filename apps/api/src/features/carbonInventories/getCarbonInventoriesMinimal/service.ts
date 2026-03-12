@@ -20,9 +20,11 @@ export const getCarbonInventoriesMinimalService = async (
   user: User | null
 ): Promise<GetCarbonInventoriesMinimalResponse> => {
   // TODO: refactor user usage when FastifyRequest is improved for authenticated users
-  const whereClause: Prisma.CarbonInventoryWhereInput = user
+  const baseFilters: Prisma.CarbonInventoryWhereInput = {
+    status: InventoryStatus.ACTIVE,
+  };
+  const accessControlFilter: Prisma.CarbonInventoryWhereInput = user
     ? {
-        status: InventoryStatus.ACTIVE,
         OR: [
           // User created the inventory
           {
@@ -44,7 +46,9 @@ export const getCarbonInventoriesMinimalService = async (
     : {};
 
   const data = await prismaClient.carbonInventory.findMany({
-    where: whereClause,
+    where: {
+      AND: [baseFilters, accessControlFilter],
+    },
     select: {
       ...carbonInventoryWithSubmissionsMinimalSelect,
       name: true,
