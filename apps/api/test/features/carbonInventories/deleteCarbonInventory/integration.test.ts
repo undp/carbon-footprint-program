@@ -72,10 +72,12 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
         carbonInventoryPatterns.simplifiedDraft
       );
 
-      await app.inject({
+      const response = await app.inject({
         method: "DELETE",
         url: `/api/carbon-inventories/${inventory.id}`,
       });
+
+      expect(response.statusCode).toBe(200);
 
       const dbInventory = await prisma.carbonInventory.findUnique({
         where: { id: inventory.id },
