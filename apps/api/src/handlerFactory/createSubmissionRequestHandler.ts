@@ -34,7 +34,7 @@ export const createSubmissionRequestHandler = <
   return async (
     request: FastifyRequest<{
       Params: TParams;
-      Body: { fileUuids?: string[] } | null;
+      Body: { fileUuids?: string[] } | null | undefined;
     }>,
     reply: FastifyReply
   ) => {
