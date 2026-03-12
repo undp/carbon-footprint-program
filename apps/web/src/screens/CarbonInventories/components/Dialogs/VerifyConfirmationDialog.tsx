@@ -84,7 +84,7 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
         <DialogContent sx={{ pt: 1 }}>
           <DialogContentText id="verify-dialog-description" sx={{ mb: 2 }}>
             ¿Estás seguro de que deseas enviar esta huella de carbono para
-            verificación? Una vez enviado, no podrás realizar más cambios hasta
+            verificación? Una vez enviada, no podrás realizar más cambios hasta
             que el proceso de verificación se complete.
           </DialogContentText>
 

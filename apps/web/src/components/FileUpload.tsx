@@ -186,11 +186,13 @@ export const FileUpload = ({
         <List dense disablePadding>
           {filesWithPreviews.map(({ file, previewUrl }, index) => (
             <ListItem
+              classes={{
+                secondaryAction: "right-[4px] !important",
+              }}
               key={`${file.name}-${index}`}
               disableGutters
               secondaryAction={
                 <IconButton
-                  edge="end"
                   size="small"
                   aria-label={`Eliminar ${file.name}`}
                   onClick={() => removeFile(index)}
