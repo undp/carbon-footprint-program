@@ -34,9 +34,7 @@ function getDefaultCodeForStatus(statusCode: number): string {
  * Safety net for Prisma errors that bubble up without being caught in service code.
  * Returns a normalized result or null if the error is not a Prisma error.
  */
-function handlePrismaError(
-  error: unknown
-): {
+function handlePrismaError(error: unknown): {
   statusCode: number;
   code: string;
   message: string;

@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState, type RefCallback } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type RefCallback,
+} from "react";
 
 type OverflowDependency = string | number | boolean | null | undefined;
 
