@@ -13,3 +13,24 @@ export function isCarbonInventoryEditable(
 ): boolean {
   return EDITABLE_STATUSES.includes(status);
 }
+
+const DELETABLE_STATUSES: CarbonInventoryDisplayStatus[] = [
+  CarbonInventoryDisplayStatusEnum.DRAFT,
+];
+
+export function isCarbonInventoryDeletable(
+  status: CarbonInventoryDisplayStatus
+): boolean {
+  return DELETABLE_STATUSES.includes(status);
+}
+
+const REQUEST_VERIFICATION_STATUSES: CarbonInventoryDisplayStatus[] = [
+  CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
+  CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED,
+];
+
+export function canSubmitToVerification(
+  status: CarbonInventoryDisplayStatus
+): boolean {
+  return REQUEST_VERIFICATION_STATUSES.includes(status);
+}
