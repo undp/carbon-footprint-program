@@ -174,7 +174,7 @@ export async function createCarbonInventorySubmission(
   carbonInventoryId: bigint,
   type: SubmissionType,
   createdById: bigint | null
-): Promise<void> {
+): Promise<bigint> {
   const existingSubject =
     await prismaClient.submissionSubjectCarbonInventory.findUnique({
       where: { carbonInventoryId },
@@ -182,7 +182,7 @@ export async function createCarbonInventorySubmission(
     });
 
   if (existingSubject) {
-    await prismaClient.submission.create({
+    const submission = await prismaClient.submission.create({
       data: {
         subjectId: existingSubject.subjectId,
         type,
@@ -190,8 +190,9 @@ export async function createCarbonInventorySubmission(
         updatedAt: null,
       },
     });
+    return submission.id;
   } else {
-    await prismaClient.submissionSubject.create({
+    const subject = await prismaClient.submissionSubject.create({
       data: {
         createdById,
         submissions: {
@@ -207,7 +208,9 @@ export async function createCarbonInventorySubmission(
           },
         },
       },
+      include: { submissions: { select: { id: true }, take: 1 } },
     });
+    return subject.submissions[0].id;
   }
 }
 
