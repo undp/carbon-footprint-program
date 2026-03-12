@@ -1,6 +1,7 @@
 import { deleteCarbonInventoryHandler } from "./handler.js";
 import {
   DeleteCarbonInventoryParamsSchema,
+  DeleteCarbonInventoryResponseSchema,
   type DeleteCarbonInventoryParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
@@ -22,7 +23,7 @@ export const deleteCarbonInventoryRoute: StandardRouteSignature = (
           "Soft-delete a carbon inventory by ID (sets status to DELETED)",
         params: DeleteCarbonInventoryParamsSchema,
         response: {
-          200: { type: "null", description: "Successfully deleted" },
+          200: DeleteCarbonInventoryResponseSchema,
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
