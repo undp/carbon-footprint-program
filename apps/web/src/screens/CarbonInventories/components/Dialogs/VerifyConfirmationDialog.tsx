@@ -1,5 +1,5 @@
 import { FC, useCallback, useEffect } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import {
   Button,
   Checkbox,
@@ -34,7 +34,7 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
   onConfirm,
   isLoading,
 }) => {
-  const { control, handleSubmit, reset, register } = useForm<VerifyFormValues>({
+  const { control, handleSubmit, reset } = useForm<VerifyFormValues>({
     defaultValues: { files: [], sworn: false },
   });
 
@@ -111,10 +111,17 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
           <FormControlLabel
             sx={{ mt: 2, alignItems: "flex-start" }}
             control={
-              <Checkbox
-                {...register("sworn")}
-                disabled={isLoading}
-                sx={{ mt: -0.5 }}
+              <Controller
+                name="sworn"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={field.value}
+                    onChange={field.onChange}
+                    disabled={isLoading}
+                    sx={{ mt: -0.5 }}
+                  />
+                )}
               />
             }
             label={
