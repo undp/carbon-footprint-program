@@ -12,10 +12,11 @@ import {
   OrganizationNotAssociatedError,
 } from "../errors.js";
 import {
+  calculateDisplayStatus,
   carbonInventoryWithSubmissionsMinimalSelect,
   createCarbonInventorySubmission,
 } from "../helpers.js";
-import { canSubmitToVerification } from "./helpers.js";
+import { canSubmitToVerification } from "@repo/utils";
 import {
   linkSubmissionFiles,
   cleanupSourceBlobs,
@@ -55,7 +56,9 @@ export const requestVerificationService = async (
       throw new OrganizationNotAccreditedError(carbonInventoryId);
     }
 
-    const can = canSubmitToVerification(inventory);
+    const displayStatus = calculateDisplayStatus(inventory);
+
+    const can = canSubmitToVerification(displayStatus);
     if (!can)
       throw new CarbonInventoryCannotRequestVerificationError(inventory.id);
 
