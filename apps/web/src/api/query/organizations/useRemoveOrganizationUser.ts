@@ -23,6 +23,7 @@ export const useRemoveOrganizationUser = () => {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: organizationKeys.users(variables.organizationId),
+        exact: true,
       });
     },
   });

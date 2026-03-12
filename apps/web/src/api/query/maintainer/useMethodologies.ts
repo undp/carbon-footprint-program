@@ -31,6 +31,7 @@ export const useAddMethodology = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.methodologies.all,
+        exact: true,
       });
     },
   });
@@ -53,6 +54,7 @@ export const useUpdateMethodology = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.methodologies.all,
+        exact: true,
       });
     },
   });
@@ -65,6 +67,7 @@ export const useDeleteMethodology = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.methodologies.all,
+        exact: true,
       });
     },
   });
@@ -77,6 +80,7 @@ export const useDuplicateMethodology = () => {
     onSuccess: () => {
       void queryClient.invalidateQueries({
         queryKey: maintainerKeys.methodologies.all,
+        exact: true,
       });
     },
   });

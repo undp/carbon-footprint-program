@@ -19,16 +19,25 @@ export const useApproveRequest = () => {
         .json<ApproveRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: requestsKeys.adminAll }),
-        queryClient.invalidateQueries({ queryKey: requestsKeys.adminKpis }),
+        queryClient.invalidateQueries({
+          queryKey: requestsKeys.adminAll,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: requestsKeys.adminKpis,
+          exact: true,
+        }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminAll(),
+          exact: true,
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.adminKpis(),
+          exact: true,
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.all,
+          exact: true,
         }),
       ]);
     },

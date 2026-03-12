@@ -1,7 +1,12 @@
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 
 export const carbonInventoryKeys = {
-  all: ["carbonInventories", "organizationStatusDependency"] as const,
+  all: [
+    "carbonInventories",
+    "carbonInventoryCreationDependency",
+    "carbonInventoryUpdationDependency",
+    "organizationStatusDependency",
+  ] as const,
   detail: (id: string) => ["carbonInventories", id] as const,
   methodology: (id: string) =>
     ["carbonInventories", id, "methodology"] as const,

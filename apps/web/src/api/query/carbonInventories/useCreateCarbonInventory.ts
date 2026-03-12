@@ -3,7 +3,6 @@ import {
   CreateCarbonInventoryRequest,
   CreateCarbonInventoryResponse,
 } from "@repo/types";
-import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http";
 
 export const useCreateCarbonInventory = () => {
@@ -18,8 +17,8 @@ export const useCreateCarbonInventory = () => {
       apiClient.post("carbon-inventories", { json: data }).json(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: carbonInventoryKeys.all,
-        exact: true,
+        predicate: (query) =>
+          query.queryKey.includes("carbonInventoryCreationDependency"),
       });
     },
   });

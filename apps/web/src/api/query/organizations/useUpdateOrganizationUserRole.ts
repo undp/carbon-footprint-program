@@ -29,6 +29,7 @@ export const useUpdateOrganizationUserRole = () => {
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
         queryKey: organizationKeys.users(variables.organizationId),
+        exact: true,
       });
     },
   });
