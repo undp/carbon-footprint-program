@@ -23,7 +23,12 @@ export const UpdateSubcategoryRequestSchema = SubcategoryBaseSchema.pick({
   examples: true,
 })
   .extend({
-    measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
+    measurementUnitIds: z
+      .array(MeasurementUnitBaseSchema.shape.id)
+      .refine(
+        (ids) => new Set(ids).size === ids.length,
+        { message: "measurementUnitIds must not contain duplicates" }
+      ),
   })
   .partial()
   .refine((value) => Object.values(value).some((v) => v !== undefined), {

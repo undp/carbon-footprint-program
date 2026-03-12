@@ -18,6 +18,10 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
     .describe("Examples of the subcategory"),
   measurementUnitIds: z
     .array(MeasurementUnitBaseSchema.shape.id)
+    .refine(
+      (ids) => new Set(ids).size === ids.length,
+      { message: "measurementUnitIds must not contain duplicates" }
+    )
     .describe("Array of measurement unit IDs associated with the sub-category"),
 });
 
