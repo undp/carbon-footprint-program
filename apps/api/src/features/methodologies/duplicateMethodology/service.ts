@@ -136,11 +136,9 @@ export const duplicateMethodologyService = async (
           }
         }
 
-        if (measurementUnitLinks.length > 0) {
-          await tx.subcategoryMeasurementUnit.createMany({
-            data: measurementUnitLinks,
-          });
-        }
+        await tx.subcategoryMeasurementUnit.createMany({
+          data: measurementUnitLinks,
+        });
       }
 
       return newMethodology;
