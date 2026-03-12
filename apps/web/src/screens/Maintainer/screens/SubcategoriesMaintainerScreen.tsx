@@ -61,7 +61,11 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
   const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
   const stopEditing = useMaintainerStore((s) => s.stopEditing);
-  const { data: methodologies = [] } = useMethodologies();
+  const {
+    data: methodologies = [],
+    isLoading: isLoadingMethodologies,
+    isError: isMethodologiesError,
+  } = useMethodologies();
 
   const activeMethodology = useMemo(
     () =>
@@ -132,7 +136,47 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   const { data: measurementUnits, isLoading: isLoadingUnits } =
     useMeasurementUnits();
 
-  if (!targetMethodology) return null;
+  if (isLoadingMethodologies) {
+    return (
+      <>
+        <MaintainerPageHeader
+          title="Sub-categorías"
+          addLabel="Agregar fila"
+          addDisabled
+          extra={methodologySelector}
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary">
+            Cargando sub-categorías…
+          </Typography>
+        </Box>
+      </>
+    );
+  }
+
+  if (methodologies.length === 0 || !targetMethodology) {
+    const emptyStateMessage = isMethodologiesError
+      ? "No fue posible cargar las metodologías."
+      : methodologies.length === 0
+        ? "No hay metodologías disponibles para mostrar sub-categorías."
+        : "La metodología seleccionada no está disponible.";
+
+    return (
+      <>
+        <MaintainerPageHeader
+          title="Sub-categorías"
+          addLabel="Agregar fila"
+          addDisabled
+          extra={methodologySelector}
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary">
+            {emptyStateMessage}
+          </Typography>
+        </Box>
+      </>
+    );
+  }
 
   // Defer form mount until all data is available.
   if (
@@ -424,6 +468,9 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
       const { rowIndex } = explanationModal;
       if (rowIndex < 0) return;
 
+      const previousExamples = form.getValues(
+        `subcategories.${rowIndex}.examples`
+      );
       handleCellChange(rowIndex, "examples", value);
 
       const row = form.getValues(`subcategories.${rowIndex}`);
@@ -439,6 +486,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
             variant: "success",
           });
         } catch {
+          handleCellChange(rowIndex, "examples", previousExamples ?? null);
           void enqueueSnackbar({
             message: "Error al guardar explicación",
             variant: "error",
