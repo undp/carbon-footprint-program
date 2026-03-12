@@ -197,18 +197,10 @@ export const CarbonInventoriesScreen: FC = () => {
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number]
             >
-          ) => (
-            <InventoryActionsCell
-              inventoryId={params.row.id}
-              organizationId={params.row.organizationId}
-              organizationDisplayStatus={params.row.organizationDisplayStatus}
-              status={params.row.status}
-              refetchInventories={refetchInventories}
-            />
-          ),
+          ) => <InventoryActionsCell carbonInventory={params.row} />,
         },
       ],
-      [refetchInventories]
+      []
     );
 
   const filteredInventories = useMemo(

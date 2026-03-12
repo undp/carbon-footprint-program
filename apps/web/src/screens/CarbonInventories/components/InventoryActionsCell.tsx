@@ -10,10 +10,9 @@ import {
   VisibilityOutlined,
 } from "@mui/icons-material";
 import {
-  CarbonInventoryDisplayStatus,
   CarbonInventoryDisplayStatusEnum,
+  GetAllCarbonInventoriesResponse,
   InventoryStatus,
-  OrganizationDisplayStatus,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
 import { isCarbonInventoryEditable } from "@repo/utils";
@@ -33,7 +32,6 @@ import {
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
-import { QueryObserverResult, RefetchOptions } from "@tanstack/react-query";
 
 const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
@@ -54,21 +52,11 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 );
 
 interface InventoryActionsCellProps {
-  inventoryId: string;
-  organizationId: string | null;
-  organizationDisplayStatus: OrganizationDisplayStatus | null;
-  status: CarbonInventoryDisplayStatus;
-  refetchInventories: (
-    options?: RefetchOptions
-  ) => Promise<QueryObserverResult>;
+  carbonInventory: GetAllCarbonInventoriesResponse[number];
 }
 
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
-  inventoryId,
-  organizationId,
-  organizationDisplayStatus,
-  status,
-  refetchInventories,
+  carbonInventory,
 }) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -84,9 +72,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   // for now, we can use the same method to check if the inventory is editable as the one to check if the inventory can request calculation
 
-  const canEdit = isCarbonInventoryEditable(status);
+  const canEdit = isCarbonInventoryEditable(carbonInventory.status);
 
-  const canRequestCalculation = isCarbonInventoryEditable(status);
+  const canRequestCalculation = isCarbonInventoryEditable(
+    carbonInventory.status
+  );
 
   const canRequestVerification =
     status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
@@ -134,77 +124,87 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     try {
       // TODO: we should create a DELETE endpoint for carbon inventories instead of updating the status to DELETED
       await updateInventory({
-        id: inventoryId,
+        id: carbonInventory.id,
         data: { status: InventoryStatus.DELETED },
       });
       setDeleteDialogOpen(false);
-      void refetchInventories();
       enqueueSnackbar("Huella eliminada", { variant: "success" });
     } catch {
       enqueueSnackbar("No se pudo eliminar la huella", {
         variant: "error",
       });
     }
-  }, [inventoryId, updateInventory, refetchInventories]);
+  }, [carbonInventory.id, updateInventory]);
 
   const onDeleteCancel = useCallback(() => {
     setDeleteDialogOpen(false);
   }, []);
 
   const onCalculationClick = useCallback(() => {
-    if (organizationId === null) {
+    if (carbonInventory.organizationId === null) {
       setMissingOrgDialogOpen(true);
       return;
     }
-    if (organizationDisplayStatus === OrganizationDisplayStatusValues.BLOCKED) {
+    if (
+      carbonInventory.organizationDisplayStatus ===
+      OrganizationDisplayStatusValues.BLOCKED
+    ) {
       setBlockedOrgDialogOpen(true);
       return;
     }
     if (
-      organizationDisplayStatus ===
+      carbonInventory.organizationDisplayStatus ===
       OrganizationDisplayStatusValues.NOT_ACCREDITED
     ) {
       setUnaccreditedOrgDialogOpen(true);
       return;
     }
     setCalculationDialogOpen(true);
-  }, [organizationId, organizationDisplayStatus]);
+  }, [
+    carbonInventory.organizationId,
+    carbonInventory.organizationDisplayStatus,
+  ]);
 
   const onCalculationConfirm = useCallback(async () => {
     try {
-      await requestCalculation(inventoryId);
+      await requestCalculation(carbonInventory.id);
       setCalculationDialogOpen(false);
-      void refetchInventories();
       enqueueSnackbar("Solicitud de cálculo enviada", { variant: "success" });
     } catch {
       enqueueSnackbar("No se pudo enviar la solicitud de cálculo", {
         variant: "error",
       });
     }
-  }, [inventoryId, requestCalculation, refetchInventories]);
+  }, [carbonInventory.id, requestCalculation]);
 
   const onCalculationCancel = useCallback(() => {
     setCalculationDialogOpen(false);
   }, []);
 
   const onVerifyClick = useCallback(() => {
-    if (organizationId === null) {
+    if (carbonInventory.organizationId === null) {
       setMissingOrgDialogOpen(true);
       return;
     }
-    if (organizationDisplayStatus === OrganizationDisplayStatusValues.BLOCKED) {
+    if (
+      carbonInventory.organizationDisplayStatus ===
+      OrganizationDisplayStatusValues.BLOCKED
+    ) {
       setBlockedOrgDialogOpen(true);
       return;
     }
     if (
-      organizationDisplayStatus ===
+      carbonInventory.organizationDisplayStatus ===
       OrganizationDisplayStatusValues.NOT_ACCREDITED
     ) {
       setUnaccreditedOrgDialogOpen(true);
       return;
     }
     setVerifyDialogOpen(true);
-  }, [organizationId, organizationDisplayStatus]);
+  }, [
+    carbonInventory.organizationId,
+    carbonInventory.organizationDisplayStatus,
+  ]);
 
   const onVerifyConfirm = useCallback(
     async (files: File[]) => {
@@ -222,11 +222,10 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           }
         }
         await requestVerification({
-          carbonInventoryId: inventoryId,
+          carbonInventoryId: carbonInventory.id,
           body: { fileUuids },
         });
         setVerifyDialogOpen(false);
-        void refetchInventories();
         enqueueSnackbar("Solicitud de verificación enviada", {
           variant: "success",
         });
@@ -238,7 +237,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         setIsVerifySubmitting(false);
       }
     },
-    [inventoryId, requestVerification, preUploadFiles, refetchInventories]
+    [carbonInventory.id, requestVerification, preUploadFiles]
   );
 
   const onVerifyCancel = useCallback(() => {
@@ -247,15 +246,14 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   const onDuplicateClick = useCallback(async () => {
     try {
-      await duplicateInventory(inventoryId);
-      void refetchInventories();
+      await duplicateInventory(carbonInventory.id);
       enqueueSnackbar("Huella duplicada", { variant: "success" });
     } catch {
       enqueueSnackbar("No se pudo duplicar la huella", {
         variant: "error",
       });
     }
-  }, [inventoryId, duplicateInventory, refetchInventories]);
+  }, [carbonInventory.id, duplicateInventory]);
 
   const onDownloadClick = useCallback((_inventoryId: string) => {
     //TODO: Implement download functionality
@@ -268,7 +266,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         {canEdit ? (
           <Tooltip title="Editar huella">
             <BaseIconButton
-              onClick={() => onEditClick(inventoryId)}
+              onClick={() => onEditClick(carbonInventory.id)}
               disabled={!canEdit}
               aria-label="Editar huella"
             >
@@ -279,7 +277,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           <Tooltip title="Revisar huella">
             <span>
               <BaseIconButton
-                onClick={() => onViewClick(inventoryId)}
+                onClick={() => onViewClick(carbonInventory.id)}
                 color="primary"
                 size="small"
                 aria-label="Revisar huella"
@@ -321,7 +319,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           <span>
             <BaseIconButton
               disabled
-              onClick={() => onDownloadClick(inventoryId)}
+              onClick={() => onDownloadClick(carbonInventory.id)}
               aria-label="Descargar"
             >
               <FileDownloadOutlined fontSize="small" />
