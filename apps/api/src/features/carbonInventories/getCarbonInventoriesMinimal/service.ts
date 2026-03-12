@@ -1,4 +1,8 @@
-import { type Prisma, type PrismaClient } from "@repo/database";
+import {
+  MembershipStatus,
+  type Prisma,
+  type PrismaClient,
+} from "@repo/database";
 import {
   type GetCarbonInventoriesMinimalResponse,
   type User,
@@ -15,10 +19,29 @@ export const getCarbonInventoriesMinimalService = async (
   query: Record<string, unknown> | null,
   user: User | null
 ): Promise<GetCarbonInventoriesMinimalResponse> => {
-  const whereClause: Prisma.CarbonInventoryWhereInput = {
-    status: { not: InventoryStatus.DELETED },
-    createdById: user ? BigInt(user.id) : undefined,
-  };
+  // TODO: refactor user usage when FastifyRequest is improved for authenticated users
+  const whereClause: Prisma.CarbonInventoryWhereInput = user
+    ? {
+        status: InventoryStatus.ACTIVE,
+        OR: [
+          // User created the inventory
+          {
+            createdById: BigInt(user.id),
+          },
+          // Inventory belongs to organization where user has active membership
+          {
+            organization: {
+              memberships: {
+                some: {
+                  userId: BigInt(user.id),
+                  status: MembershipStatus.ACTIVE,
+                },
+              },
+            },
+          },
+        ],
+      }
+    : {};
 
   const data = await prismaClient.carbonInventory.findMany({
     where: whereClause,
@@ -35,9 +58,7 @@ export const getCarbonInventoriesMinimalService = async (
       id: inv.id.toString(),
       name: inv.name,
       year: inv.year,
-      status: calculateDisplayStatus(
-        inv as unknown as Parameters<typeof calculateDisplayStatus>[0]
-      ),
+      status: calculateDisplayStatus(inv),
     }))
     .filter(
       ({ status }) =>
