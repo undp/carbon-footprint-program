@@ -62,8 +62,9 @@ export const useSubcategoryColumns = ({
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
           const formRow = rows[rowIndex];
           const categoryColor =
             categories.find((c) => c.id === formRow?.categoryId)?.color ?? "";
@@ -79,9 +80,7 @@ export const useSubcategoryColumns = ({
                 onCellChange(rowIndex, "icon", iconName)
               }
               onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !viewOnly && !editing ? () => onStartEditRow(rowId) : undefined
               }
             />
           );
@@ -93,8 +92,9 @@ export const useSubcategoryColumns = ({
         flex: 0.22,
         minWidth: 135,
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
           return (
             <CategorySelectCell
               formArrayName="subcategories"
@@ -105,9 +105,7 @@ export const useSubcategoryColumns = ({
                 onCellChange(rowIndex, "categoryId", categoryId)
               }
               onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !viewOnly && !editing ? () => onStartEditRow(rowId) : undefined
               }
             />
           );
@@ -119,8 +117,9 @@ export const useSubcategoryColumns = ({
         flex: 0.3,
         minWidth: 200,
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
           return (
             <EditableTextCell
               formArrayName="subcategories"
@@ -129,9 +128,7 @@ export const useSubcategoryColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "name", value)}
               onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !viewOnly && !editing ? () => onStartEditRow(rowId) : undefined
               }
               truncateLines={1}
             />
@@ -144,8 +141,9 @@ export const useSubcategoryColumns = ({
         flex: 0.5,
         minWidth: 250,
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
           return (
             <EditableTextCell
               formArrayName="subcategories"
@@ -154,9 +152,7 @@ export const useSubcategoryColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "description", value)}
               onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !viewOnly && !editing ? () => onStartEditRow(rowId) : undefined
               }
               multiline
               maxRows={3}
@@ -171,8 +167,9 @@ export const useSubcategoryColumns = ({
         width: 250,
         display: "flex",
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          const rowIndex = getRowIndex(params.row.id);
-          const editing = isEditing(params.row.id);
+          const rowId = params.row.id;
+          const rowIndex = getRowIndex(rowId);
+          const editing = isEditing(rowId);
           return (
             <MeasurementUnitsCell
               formArrayName="subcategories"
@@ -183,9 +180,7 @@ export const useSubcategoryColumns = ({
                 onCellChange(rowIndex, "measurementUnitIds", unitIds)
               }
               onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
+                !viewOnly && !editing ? () => onStartEditRow(rowId) : undefined
               }
             />
           );
@@ -235,8 +230,9 @@ export const useSubcategoryColumns = ({
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<Subcategory>) => {
                 const anyEditing = editingRowId !== null;
-                const editing = isEditing(params.row.id);
-                const rowIndex = getRowIndex(params.row.id);
+                const rowId = params.row.id;
+                const editing = isEditing(rowId);
+                const rowIndex = getRowIndex(rowId);
                 const formRow = rows[rowIndex];
 
                 return (
