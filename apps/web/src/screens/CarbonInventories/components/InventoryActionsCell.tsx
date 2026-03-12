@@ -70,6 +70,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
+  const status = carbonInventory.status;
+
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
 
