@@ -41,16 +41,20 @@ import { MembershipStatus } from "@repo/database/enums";
 /**
  * Function type that extracts the organization ID from a request.
  * Can extract from params, body, query, or nested resources.
+ *
+ * @typeParam P - The params type for the request (e.g. `{ organizationId: string }`)
  */
-export type OrganizationIdExtractor = (
-  request: FastifyRequest
-) => Promise<string | null | undefined>;
+export type OrganizationIdExtractor<
+  P extends Record<string, string> = Record<string, string>,
+> = (request: FastifyRequest<{ Params: P }>) => string | null | undefined;
 
 /**
  * Type for organization role checking function.
  */
-export type RequireOrganizationRoleFunction = (
-  organizationIdExtractor: OrganizationIdExtractor,
+export type RequireOrganizationRoleFunction = <
+  P extends Record<string, string>,
+>(
+  organizationIdExtractor: OrganizationIdExtractor<P>,
   allowedRoles: OrganizationRole[]
 ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
@@ -79,106 +83,104 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    * }, handler);
    * ```
    */
-  fastify.decorate(
-    "requireOrganizationRole",
-    function (
-      organizationIdExtractor: OrganizationIdExtractor,
-      allowedRoles: OrganizationRole[]
-    ) {
-      return async function (request: FastifyRequest, reply: FastifyReply) {
-        const log = request.log.child({ module: "organization-authorization" });
+  fastify.decorate("requireOrganizationRole", function <
+    P extends Record<string, string>,
+  >(organizationIdExtractor: OrganizationIdExtractor<P>, allowedRoles: OrganizationRole[]) {
+    return async function (request: FastifyRequest, reply: FastifyReply) {
+      const log = request.log.child({ module: "organization-authorization" });
 
-        // Ensure user is authenticated
-        if (!request.authUser) {
-          log.warn(
-            "Organization authorization check failed: user not authenticated"
-          );
-          return reply.status(401).send({
-            code: "UNAUTHORIZED",
-            message: "Authentication required",
-          });
-        }
+      // Ensure user is authenticated
+      if (!request.authUser) {
+        log.warn(
+          "Organization authorization check failed: user not authenticated"
+        );
+        return reply.status(401).send({
+          code: "UNAUTHORIZED",
+          message: "Authentication required",
+        });
+      }
 
-        // Ensure user is resolved from database
-        if (!request.currentUser) {
-          log.warn(
-            { idpUserId: request.authUser.idpUserId },
-            "Organization authorization check failed: user not resolved from database"
-          );
-          return reply.status(500).send({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "User resolution failed",
-          });
-        }
+      // Ensure user is resolved from database
+      if (!request.currentUser) {
+        log.warn(
+          { idpUserId: request.authUser.idpUserId },
+          "Organization authorization check failed: user not resolved from database"
+        );
+        return reply.status(500).send({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "User resolution failed",
+        });
+      }
 
-        // Extract organization ID from request
-        const organizationId = await organizationIdExtractor(request);
+      // Extract organization ID from request
+      const organizationId = organizationIdExtractor(
+        request as FastifyRequest<{ Params: P }>
+      );
 
-        if (!organizationId) {
-          log.warn(
-            "Organization authorization check failed: organization ID not found"
-          );
-          return reply.status(400).send({
-            code: "BAD_REQUEST",
-            message: "Organization ID is required",
-          });
-        }
+      if (!organizationId) {
+        log.warn(
+          "Organization authorization check failed: organization ID not found"
+        );
+        return reply.status(400).send({
+          code: "BAD_REQUEST",
+          message: "Organization ID is required",
+        });
+      }
 
-        // Query user's membership in the organization
-        const membership =
-          await fastify.prisma.userOrganizationMembership.findFirst({
-            where: {
-              userId: BigInt(request.currentUser.id),
-              organizationId: BigInt(organizationId),
-              status: MembershipStatus.ACTIVE,
-            },
-          });
+      // Query user's membership in the organization
+      const membership =
+        await fastify.prisma.userOrganizationMembership.findFirst({
+          where: {
+            userId: BigInt(request.currentUser.id),
+            organizationId: BigInt(organizationId),
+            status: MembershipStatus.ACTIVE,
+          },
+        });
 
-        // Check if membership exists
-        if (!membership) {
-          log.warn(
-            {
-              userId: request.currentUser.id,
-              organizationId,
-            },
-            "Organization authorization failed: user is not a member of this organization"
-          );
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "You do not have access to this organization",
-          });
-        }
+      // Check if membership exists
+      if (!membership) {
+        log.warn(
+          {
+            userId: request.currentUser.id,
+            organizationId,
+          },
+          "Organization authorization failed: user is not a member of this organization"
+        );
+        return reply.status(403).send({
+          code: "FORBIDDEN",
+          message: "You do not have access to this organization",
+        });
+      }
 
-        // Check if user has one of the required roles
-        const hasRequiredRole = allowedRoles.includes(membership.role);
+      // Check if user has one of the required roles
+      const hasRequiredRole = allowedRoles.includes(membership.role);
 
-        if (!hasRequiredRole) {
-          log.warn(
-            {
-              userId: request.currentUser.id,
-              organizationId,
-              userRole: membership.role,
-              requiredRoles: allowedRoles,
-            },
-            "Organization authorization failed: insufficient permissions"
-          );
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "Insufficient permissions for this organization",
-          });
-        }
-
-        log.debug(
+      if (!hasRequiredRole) {
+        log.warn(
           {
             userId: request.currentUser.id,
             organizationId,
             userRole: membership.role,
+            requiredRoles: allowedRoles,
           },
-          "Organization authorization successful"
+          "Organization authorization failed: insufficient permissions"
         );
-      };
-    }
-  );
+        return reply.status(403).send({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions for this organization",
+        });
+      }
+
+      log.debug(
+        {
+          userId: request.currentUser.id,
+          organizationId,
+          userRole: membership.role,
+        },
+        "Organization authorization successful"
+      );
+    };
+  });
 
   fastify.log.info("Organization authorization plugin registered");
 };

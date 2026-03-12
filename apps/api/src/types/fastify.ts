@@ -123,8 +123,8 @@ declare module "fastify" {
      *   ]
      * }, handler);
      */
-    requireOrganizationRole: (
-      organizationIdExtractor: OrganizationIdExtractor,
+    requireOrganizationRole: <P extends Record<string, string>>(
+      organizationIdExtractor: OrganizationIdExtractor<P>,
       allowedRoles: OrganizationRole[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
