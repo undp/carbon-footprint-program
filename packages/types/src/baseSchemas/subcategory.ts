@@ -10,10 +10,7 @@ export const SubcategoryBaseSchema = z.object({
   ),
   name: z.string().min(1).describe("The name of the subcategory"),
   icon: z.string().min(1).describe("The icon identifier"),
-  description: z
-    .string()
-    .nullable()
-    .describe("The description of the subcategory"),
+  description: z.string().min(1).describe("The description of the subcategory"),
   explanationId: IdSchema.nullable().describe(
     "The ID of the explanation associated with this subcategory, if any"
   ),
