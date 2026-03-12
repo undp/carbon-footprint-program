@@ -3,7 +3,7 @@ import {
   CategoryStatus,
   EmissionFactorStatus,
   MethodologyVersionStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
   type User,
 } from "@repo/types";
 import {
@@ -63,9 +63,9 @@ export const deleteMethodologyService = async (
     await tx.subcategory.updateMany({
       where: {
         category: { methodologyVersionId: methodologyId },
-        status: { not: SubCategoryStatus.DELETED },
+        status: { not: SubcategoryStatus.DELETED },
       },
-      data: { status: SubCategoryStatus.DELETED, updatedById },
+      data: { status: SubcategoryStatus.DELETED, updatedById },
     });
 
     await tx.category.updateMany({

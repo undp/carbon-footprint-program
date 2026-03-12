@@ -1,7 +1,7 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
   EmissionFactorStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
   User,
   type CreateEmissionFactorRequest,
   type CreateEmissionFactorResponse,
@@ -29,7 +29,7 @@ export const createEmissionFactorService = async (
   const subcategory = await prismaClient.subcategory.findFirst({
     where: {
       id: BigInt(data.subcategoryId),
-      status: { not: SubCategoryStatus.DELETED },
+      status: { not: SubcategoryStatus.DELETED },
     },
     select: { id: true, name: true },
   });
