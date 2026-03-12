@@ -1,8 +1,13 @@
 import { z } from "zod";
-import type { DeleteCarbonInventoryParamsSchema } from "./schemas.js";
+import type {
+  DeleteCarbonInventoryParamsSchema,
+  DeleteCarbonInventoryResponseSchema,
+} from "./schemas.js";
 
 export type DeleteCarbonInventoryParams = z.infer<
   typeof DeleteCarbonInventoryParamsSchema
 >;
 
-export type DeleteCarbonInventoryResponse = null;
+export type DeleteCarbonInventoryResponse = z.infer<
+  typeof DeleteCarbonInventoryResponseSchema
+>;
