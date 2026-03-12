@@ -22,7 +22,10 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/database";
-import { type ApiErrorResponse } from "@/commonSchemas/errors.js";
+import {
+  type ApiErrorResponse,
+  VALIDATION_ERROR_CODE,
+} from "@/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "@/features/carbonInventories/helpers.js";
 
 describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
@@ -119,7 +122,7 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
   });
 
   describe("Not deletable errors", () => {
-    it("should return 404 when inventory has a pending calculation submission", async () => {
+    it("should return 403 when inventory has a pending calculation submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
         prisma,
@@ -138,12 +141,12 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
         url: `/api/carbon-inventories/${inventory.id}`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
 
-    it("should return 404 when inventory has an approved calculation submission", async () => {
+    it("should return 403 when inventory has an approved calculation submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
         prisma,
@@ -167,12 +170,12 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
         url: `/api/carbon-inventories/${inventory.id}`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
 
-    it("should return 404 when inventory has a pending verification submission", async () => {
+    it("should return 403 when inventory has a pending verification submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
         prisma,
@@ -204,12 +207,12 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
         url: `/api/carbon-inventories/${inventory.id}`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
 
-    it("should return 404 when inventory has an approved verification submission", async () => {
+    it("should return 403 when inventory has an approved verification submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
         prisma,
@@ -243,7 +246,7 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
         url: `/api/carbon-inventories/${inventory.id}`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
@@ -282,6 +285,9 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe(VALIDATION_ERROR_CODE);
+      expect(body.message).toBeTruthy();
     });
   });
 });
