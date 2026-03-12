@@ -1,9 +1,6 @@
 import { createDeleteHandler } from "@/handlerFactory/index.js";
 import { deleteCarbonInventoryService } from "./service.js";
-
-interface DeleteCarbonInventoryParams {
-  id: string;
-}
+import { DeleteCarbonInventoryParams } from "@repo/types";
 
 export const deleteCarbonInventoryHandler =
   createDeleteHandler<DeleteCarbonInventoryParams>(

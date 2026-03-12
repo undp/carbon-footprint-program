@@ -6,6 +6,12 @@ export const CarbonInventoryNotFoundError = createError(
   404
 );
 
+export const CarbonInventoryNotDeletableError = createError(
+  "CARBON_INVENTORY_NOT_DELETABLE",
+  "Carbon inventory %s cannot be deleted in its current status (%s)",
+  404
+);
+
 export const MethodologyNotFoundError = createError(
   "METHODOLOGY_NOT_FOUND",
   "Methodology not found for carbon inventory with ID %s",

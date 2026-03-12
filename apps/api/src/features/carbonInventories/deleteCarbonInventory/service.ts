@@ -1,11 +1,14 @@
-import { type PrismaClient, InventoryStatus, Prisma } from "@repo/database";
+import { type PrismaClient, InventoryStatus } from "@repo/database";
 import type { User } from "@repo/types";
-import { CarbonInventoryNotFoundError } from "../errors.js";
+import {
+  CarbonInventoryNotDeletableError,
+  CarbonInventoryNotFoundError,
+} from "../errors.js";
 import {
   carbonInventoryWithSubmissionsMinimalSelect,
   calculateDisplayStatus,
 } from "../helpers.js";
-import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import { isCarbonInventoryDeletable } from "@repo/utils";
 
 export const deleteCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -25,39 +28,14 @@ export const deleteCarbonInventoryService = async (
 
   const displayStatus = calculateDisplayStatus(inventory);
 
-  const cannotDelete =
-    displayStatus ===
-      CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION ||
-    displayStatus ===
-      CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION ||
-    displayStatus === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
+  const canDelete = isCarbonInventoryDeletable(displayStatus);
+  if (!canDelete) throw new CarbonInventoryNotDeletableError(id, displayStatus);
 
-  if (cannotDelete) {
-    throw new CarbonInventoryNotDeletableError(id, displayStatus);
-  }
-
-  try {
-    await prismaClient.carbonInventory.update({
-      where: { id: BigInt(id) },
-      data: {
-        status: InventoryStatus.DELETED,
-        updatedById: user ? BigInt(user.id) : null,
-      },
-    });
-  } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2025") {
-        throw new CarbonInventoryNotFoundError(id);
-      }
-    }
-    throw error;
-  }
+  await prismaClient.carbonInventory.update({
+    where: { id: BigInt(id) },
+    data: {
+      status: InventoryStatus.DELETED,
+      updatedById: user ? BigInt(user.id) : null,
+    },
+  });
 };
-
-import createError from "@fastify/error";
-
-const CarbonInventoryNotDeletableError = createError(
-  "CARBON_INVENTORY_NOT_DELETABLE",
-  "Carbon inventory %s cannot be deleted in its current status (%s)",
-  403
-);
