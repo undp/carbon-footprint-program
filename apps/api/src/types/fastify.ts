@@ -12,6 +12,7 @@ import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type { OrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
+import type { CarbonInventoryIdExtractor } from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -127,6 +128,34 @@ declare module "fastify" {
       organizationIdExtractor: OrganizationIdExtractor<P>,
       allowedRoles: OrganizationRole[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+
+    /**
+     * Require user to have access to a specific carbon inventory.
+     * Access is granted if the user created the inventory or has an active
+     * membership in the inventory's organization.
+     * Must be used after requireAuth.
+     *
+     * @param carbonInventoryIdExtractor - Function to extract carbon inventory ID from request
+     * @returns Hook function for carbon inventory access authorization
+     *
+     * @example
+     * ```typescript
+     * import { extractCarbonInventoryIdFromParams } from "@/features/carbonInventories/carbonInventoryIdExtractors.js";
+     *
+     * fastify.get("/:id", {
+     *   onRequest: [fastify.requireAuth],
+     *   preHandler: [
+     *     fastify.requireCarbonInventoryAccess(extractCarbonInventoryIdFromParams)
+     *   ],
+     * }, handler);
+     * ```
+     */
+    requireCarbonInventoryAccess: <P extends Record<string, string>>(
+      carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>
+    ) => (
+      request: FastifyRequest<{ Params: P }>,
+      reply: FastifyReply
+    ) => Promise<void>;
   }
 
   interface FastifyRequest {
