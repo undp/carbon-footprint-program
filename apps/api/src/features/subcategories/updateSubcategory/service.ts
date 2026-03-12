@@ -26,45 +26,45 @@ export const updateSubcategoryService = async (
     throw new UserNotFoundError();
   }
 
-  const targetSubcategory = await prismaClient.subcategory.findFirst({
-    where: {
-      id: BigInt(id),
-      status: { not: SubcategoryStatus.DELETED },
-    },
-    select: {
-      status: true,
-      category: { select: { methodologyVersionId: true } },
-    },
-  });
-
-  if (!targetSubcategory) {
-    throw new SubcategoryNotFoundError(id);
-  }
-
-  // Validate the target category belongs to the same methodology
-  if (data.categoryId !== undefined) {
-    const newCategory = await prismaClient.category.findFirst({
-      where: {
-        id: BigInt(data.categoryId),
-        status: { not: CategoryStatus.DELETED },
-      },
-      select: { methodologyVersionId: true },
-    });
-
-    if (!newCategory) {
-      throw new CategoryNotFoundForSubcategoryError();
-    }
-
-    if (
-      newCategory.methodologyVersionId !==
-      targetSubcategory.category.methodologyVersionId
-    ) {
-      throw new CategoryFromDifferentMethodologyError();
-    }
-  }
-
   try {
     const result = await prismaClient.$transaction(async (tx) => {
+      const targetSubcategory = await tx.subcategory.findFirst({
+        where: {
+          id: BigInt(id),
+          status: { not: SubcategoryStatus.DELETED },
+        },
+        select: {
+          status: true,
+          category: { select: { methodologyVersionId: true } },
+        },
+      });
+
+      if (!targetSubcategory) {
+        throw new SubcategoryNotFoundError(id);
+      }
+
+      // Validate the target category belongs to the same methodology.
+      if (data.categoryId !== undefined) {
+        const newCategory = await tx.category.findFirst({
+          where: {
+            id: BigInt(data.categoryId),
+            status: { not: CategoryStatus.DELETED },
+          },
+          select: { methodologyVersionId: true },
+        });
+
+        if (!newCategory) {
+          throw new CategoryNotFoundForSubcategoryError();
+        }
+
+        if (
+          newCategory.methodologyVersionId !==
+          targetSubcategory.category.methodologyVersionId
+        ) {
+          throw new CategoryFromDifferentMethodologyError();
+        }
+      }
+
       // Build update data dynamically based on provided fields
       const updateData: Prisma.SubcategoryUncheckedUpdateInput = {
         // The schema validation enforced by the route ensures at least one of the update fields will be defined
