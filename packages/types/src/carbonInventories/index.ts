@@ -48,3 +48,5 @@ export * from "./getCarbonInventoriesMinimal/schemas.js";
 export * from "./getCarbonInventoriesMinimal/types.js";
 export * from "./duplicateCarbonInventory/schemas.js";
 export * from "./duplicateCarbonInventory/types.js";
+export * from "./deleteCarbonInventory/schemas.js";
+export * from "./deleteCarbonInventory/types.js";

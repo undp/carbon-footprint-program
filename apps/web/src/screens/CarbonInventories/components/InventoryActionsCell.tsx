@@ -10,12 +10,14 @@ import {
   VisibilityOutlined,
 } from "@mui/icons-material";
 import {
-  CarbonInventoryDisplayStatusEnum,
   GetAllCarbonInventoriesResponse,
-  InventoryStatus,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
-import { isCarbonInventoryEditable } from "@repo/utils";
+import {
+  isCarbonInventoryEditable,
+  isCarbonInventoryDeletable,
+  canSubmitToVerification,
+} from "@repo/utils";
 import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
@@ -25,7 +27,7 @@ import { UnaccreditedOrganizationDialog } from "./Dialogs/UnaccreditedOrganizati
 import { BlockedOrganizationDialog } from "./Dialogs/BlockedOrganizationDialog";
 import { enqueueSnackbar } from "notistack";
 import {
-  useUpdateCarbonInventory,
+  useDeleteCarbonInventory,
   useRequestCalculation,
   useRequestVerification,
   useDuplicateCarbonInventory,
@@ -70,11 +72,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
-  const status = carbonInventory.status;
-
-  const isVerified =
-    status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
-
   // for now, we can use the same method to check if the inventory is editable as the one to check if the inventory can request calculation
 
   const canEdit = isCarbonInventoryEditable(carbonInventory.status);
@@ -83,17 +80,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     carbonInventory.status
   );
 
-  const canRequestVerification =
-    status === CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED ||
-    status === CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
-
-  const canDelete = !(
-    status === CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION ||
-    status === CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION ||
-    isVerified
+  const canRequestVerification = canSubmitToVerification(
+    carbonInventory.status
   );
 
-  const { mutateAsync: updateInventory } = useUpdateCarbonInventory();
+  const canDelete = isCarbonInventoryDeletable(carbonInventory.status);
+
+  const { mutateAsync: deleteInventory } = useDeleteCarbonInventory();
   const { mutateAsync: requestCalculation } = useRequestCalculation();
   const { mutateAsync: requestVerification } = useRequestVerification();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
@@ -127,11 +120,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   const onDeleteConfirm = useCallback(async () => {
     try {
-      // TODO: we should create a DELETE endpoint for carbon inventories instead of updating the status to DELETED
-      await updateInventory({
-        id: carbonInventory.id,
-        data: { status: InventoryStatus.DELETED },
-      });
+      await deleteInventory(carbonInventory.id);
       setDeleteDialogOpen(false);
       enqueueSnackbar("Huella eliminada", { variant: "success" });
     } catch {
@@ -139,7 +128,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         variant: "error",
       });
     }
-  }, [carbonInventory.id, updateInventory]);
+  }, [carbonInventory.id, deleteInventory]);
 
   const onDeleteCancel = useCallback(() => {
     setDeleteDialogOpen(false);
