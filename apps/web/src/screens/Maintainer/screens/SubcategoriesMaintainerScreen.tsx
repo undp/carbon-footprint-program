@@ -504,6 +504,14 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
     ]
   );
 
+  // --- Scroll to bottom when a new row is added ---
+  useEffect(() => {
+    if (!editingRowId?.startsWith("temp_")) return;
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+    });
+  }, [editingRowId]);
+
   // --- Block navigation while editing ---
   const { proceed, reset, status } = useBlocker({
     shouldBlockFn: () => editingRowId !== null,
