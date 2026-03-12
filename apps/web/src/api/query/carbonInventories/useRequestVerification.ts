@@ -17,7 +17,7 @@ export const useRequestVerification = () => {
       apiClient
         .post(
           `carbon-inventories/${carbonInventoryId}/request-verification`,
-          body ? { json: { fileUuids: body.fileUuids } } : undefined
+          body ? { json: body } : undefined
         )
         .json(),
     onSuccess: async (_data, { carbonInventoryId }) => {
