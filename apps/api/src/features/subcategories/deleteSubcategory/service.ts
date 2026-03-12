@@ -16,7 +16,7 @@ export const deleteSubcategoryService = async (
   const { count } = await prismaClient.subcategory.updateMany({
     where: {
       id: BigInt(subcategoryId),
-      status: { not: SubcategoryStatus.DELETED },
+      status: SubcategoryStatus.ACTIVE,
     },
     data: {
       status: SubcategoryStatus.DELETED,

@@ -20,7 +20,7 @@ export const getAllSubcategoriesService = async (
             },
           }
         : {}),
-      status: { not: SubcategoryStatus.DELETED },
+      status: SubcategoryStatus.ACTIVE,
     },
     include: {
       category: {

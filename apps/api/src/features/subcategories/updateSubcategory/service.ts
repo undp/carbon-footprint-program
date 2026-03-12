@@ -31,7 +31,7 @@ export const updateSubcategoryService = async (
       const targetSubcategory = await tx.subcategory.findFirst({
         where: {
           id: BigInt(id),
-          status: { not: SubcategoryStatus.DELETED },
+          status: SubcategoryStatus.ACTIVE,
         },
         select: {
           status: true,
@@ -48,7 +48,7 @@ export const updateSubcategoryService = async (
         const newCategory = await tx.category.findFirst({
           where: {
             id: BigInt(data.categoryId),
-            status: { not: CategoryStatus.DELETED },
+            status: CategoryStatus.ACTIVE,
           },
           select: { methodologyVersionId: true },
         });

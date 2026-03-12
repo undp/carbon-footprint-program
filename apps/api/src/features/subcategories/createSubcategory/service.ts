@@ -28,7 +28,7 @@ export const createSubcategoryService = async (
       const category = await tx.category.findFirst({
         where: {
           id: BigInt(data.categoryId),
-          status: { not: CategoryStatus.DELETED },
+          status: CategoryStatus.ACTIVE,
         },
         select: { id: true },
       });
