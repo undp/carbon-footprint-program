@@ -284,8 +284,12 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
         (u) => u.measurementUnitId
       );
 
-      const originalAUnits = unitIds.slice(0, 2).sort();
-      const originalBUnits = unitIds.slice(1, 3).sort();
+      const originalAUnits = unitIds
+        .slice(0, 2)
+        .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+      const originalBUnits = unitIds
+        .slice(1, 3)
+        .sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
 
       expect(dupAUnits).toEqual(originalAUnits);
       expect(dupBUnits).toEqual(originalBUnits);
