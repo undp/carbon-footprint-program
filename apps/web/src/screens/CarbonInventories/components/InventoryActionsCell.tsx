@@ -20,6 +20,7 @@ import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmation
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
 import { MissingOrganizationDialog } from "./Dialogs/MissingOrganizationDialog";
+import { IncompleteInventoryDialog } from "./Dialogs/IncompleteInventoryDialog";
 import { UnaccreditedOrganizationDialog } from "./Dialogs/UnaccreditedOrganizationDialog";
 import { BlockedOrganizationDialog } from "./Dialogs/BlockedOrganizationDialog";
 import { enqueueSnackbar } from "notistack";
@@ -66,6 +67,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [unaccreditedOrgDialogOpen, setUnaccreditedOrgDialogOpen] =
     useState(false);
   const [blockedOrgDialogOpen, setBlockedOrgDialogOpen] = useState(false);
+  const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
 
   const isVerified =
     status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
@@ -140,7 +143,20 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     setDeleteDialogOpen(false);
   }, []);
 
+  const getInventoryMissingFields = useCallback(() => {
+    const fields: string[] = [];
+    if (!carbonInventory.name) fields.push("nombre");
+    if (carbonInventory.year == null) fields.push("año");
+    return fields;
+  }, [carbonInventory.name, carbonInventory.year]);
+
   const onCalculationClick = useCallback(() => {
+    const fields = getInventoryMissingFields();
+    if (fields.length > 0) {
+      setMissingFields(fields);
+      setIncompleteDialogOpen(true);
+      return;
+    }
     if (carbonInventory.organizationId === null) {
       setMissingOrgDialogOpen(true);
       return;
@@ -161,6 +177,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     }
     setCalculationDialogOpen(true);
   }, [
+    getInventoryMissingFields,
     carbonInventory.organizationId,
     carbonInventory.organizationDisplayStatus,
   ]);
@@ -182,6 +199,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   }, []);
 
   const onVerifyClick = useCallback(() => {
+    const fields = getInventoryMissingFields();
+    if (fields.length > 0) {
+      setMissingFields(fields);
+      setIncompleteDialogOpen(true);
+      return;
+    }
     if (carbonInventory.organizationId === null) {
       setMissingOrgDialogOpen(true);
       return;
@@ -202,6 +225,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     }
     setVerifyDialogOpen(true);
   }, [
+    getInventoryMissingFields,
     carbonInventory.organizationId,
     carbonInventory.organizationDisplayStatus,
   ]);
@@ -391,6 +415,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       <BlockedOrganizationDialog
         open={blockedOrgDialogOpen}
         onClose={() => setBlockedOrgDialogOpen(false)}
+      />
+
+      <IncompleteInventoryDialog
+        open={incompleteDialogOpen}
+        onClose={() => setIncompleteDialogOpen(false)}
+        missingFields={missingFields}
       />
     </>
   );
