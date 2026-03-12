@@ -100,7 +100,6 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
             control={control}
             name="files"
             disabled={isLoading}
-            maxSize={21000000}
             required
             accept={{
               "image/png": [".png"],

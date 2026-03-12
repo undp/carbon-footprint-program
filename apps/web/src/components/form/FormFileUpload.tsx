@@ -18,6 +18,7 @@ export const FormFileUpload = <T extends FieldValues>({
   control,
   required,
   requiredMessage = "Este campo es obligatorio",
+  maxSize = 20 * 1024 * 1024, // 20MB
   ...props
 }: Props<T>) => (
   <Controller
@@ -37,6 +38,7 @@ export const FormFileUpload = <T extends FieldValues>({
         value={field.value ?? []}
         onChange={field.onChange}
         error={fieldState.error?.message}
+        maxSize={maxSize}
         {...props}
       />
     )}
