@@ -1,6 +1,7 @@
 import { requestVerificationHandler } from "./handler.js";
 import {
   RequestVerificationParamsSchema,
+  RequestVerificationBodySchema,
   RequestVerificationResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
@@ -16,6 +17,7 @@ export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
         description:
           "Creates a new submission of type VERIFICATION for the specified carbon inventory",
         params: RequestVerificationParamsSchema,
+        body: RequestVerificationBodySchema,
         response: {
           200: RequestVerificationResponseSchema,
           404: ApiErrorResponseSchema,
