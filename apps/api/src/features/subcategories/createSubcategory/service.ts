@@ -23,24 +23,23 @@ export const createSubcategoryService = async (
     throw new UserNotFoundError();
   }
 
-  // Validate category exists and is not deleted
-  const category = await prismaClient.category.findFirst({
-    where: {
-      id: BigInt(data.categoryId),
-      status: { not: CategoryStatus.DELETED },
-    },
-    select: { id: true, methodologyVersionId: true },
-  });
-
-  if (!category) {
-    throw new CategoryNotFoundForSubcategoryError();
-  }
-
   try {
     const result = await prismaClient.$transaction(async (tx) => {
+      const category = await tx.category.findFirst({
+        where: {
+          id: BigInt(data.categoryId),
+          status: { not: CategoryStatus.DELETED },
+        },
+        select: { id: true },
+      });
+
+      if (!category) {
+        throw new CategoryNotFoundForSubcategoryError();
+      }
+
       const newSubcategory = await tx.subcategory.create({
         data: {
-          categoryId: BigInt(data.categoryId),
+          categoryId: category.id,
           name: data.name,
           icon: data.icon,
           description: data.description,
