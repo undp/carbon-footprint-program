@@ -9,7 +9,7 @@ import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtracto
 
 export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
   fastify,
-  _options
+  options
 ) => {
   fastify.get<{ Params: GetCarbonInventoryBadgesParams }>(
     "/:id/badges",
@@ -23,6 +23,9 @@ export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
         response: {
           200: GetCarbonInventoryBadgesResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
