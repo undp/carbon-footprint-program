@@ -63,6 +63,9 @@ export const createSubmissionRequestHandler = <
 
     log.info(`${resourceName} ${id} action completed successfully`);
 
-    return reply.status(200).send(data ?? null);
+    if (data === undefined) {
+      return reply.status(200).send();
+    }
+    return reply.status(200).send(data);
   };
 };
