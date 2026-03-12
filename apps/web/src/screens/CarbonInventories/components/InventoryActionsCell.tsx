@@ -223,7 +223,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         }
         await requestVerification({
           carbonInventoryId: inventoryId,
-          fileUuids,
+          body: { fileUuids },
         });
         setVerifyDialogOpen(false);
         void refetchInventories();
