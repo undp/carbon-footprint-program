@@ -24,7 +24,7 @@ import type { DeleteMethodologyResponse } from "@repo/types";
 import {
   CategoryStatus,
   EmissionFactorStatus,
-  SubCategoryStatus,
+  SubcategoryStatus,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -162,8 +162,8 @@ describe("DELETE /api/methodologies/:id - Integration Tests", () => {
         prisma.subcategory.findUnique({ where: { id: sub2.id } }),
       ]);
 
-      expect(dbSub1!.status).toBe(SubCategoryStatus.DELETED);
-      expect(dbSub2!.status).toBe(SubCategoryStatus.DELETED);
+      expect(dbSub1!.status).toBe(SubcategoryStatus.DELETED);
+      expect(dbSub2!.status).toBe(SubcategoryStatus.DELETED);
     });
 
     it("should cascade soft-delete emission factors when methodology is deleted", async () => {

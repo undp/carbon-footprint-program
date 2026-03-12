@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
-  SubCategoryStatus,
+  SubcategoryStatus,
   User,
   type GetEmissionFactorDimensionsQuery,
   type GetEmissionFactorDimensionsResponse,
@@ -20,7 +20,7 @@ export const getEmissionFactorDimensionsService = async (
             },
           }
         : {}),
-      status: { not: SubCategoryStatus.DELETED },
+      status: { not: SubcategoryStatus.DELETED },
     },
     select: {
       id: true,

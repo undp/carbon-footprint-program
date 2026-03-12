@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
-  SubCategoryStatus,
+  SubcategoryStatus,
   User,
   type UpsertEmissionFactorDimensionsRequest,
   type UpsertEmissionFactorDimensionsResponse,
@@ -26,7 +26,7 @@ export const upsertEmissionFactorDimensionsService = async (
       const subcategory = await tx.subcategory.findFirst({
         where: {
           id: subcategoryId,
-          status: { not: SubCategoryStatus.DELETED },
+          status: { not: SubcategoryStatus.DELETED },
         },
         select: { id: true },
       });
