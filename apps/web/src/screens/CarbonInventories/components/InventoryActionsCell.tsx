@@ -210,9 +210,17 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     async (files: File[]) => {
       setIsVerifySubmitting(true);
       try {
-        const fileUuids = files.length
-          ? await preUploadFiles(files)
-          : undefined;
+        let fileUuids: string[] | undefined;
+        if (files.length) {
+          try {
+            fileUuids = await preUploadFiles(files);
+          } catch {
+            enqueueSnackbar("No se pudieron subir los archivos adjuntos", {
+              variant: "error",
+            });
+            return;
+          }
+        }
         await requestVerification({
           carbonInventoryId: inventoryId,
           fileUuids,
