@@ -1,4 +1,3 @@
-import type { FastifyRequest } from "fastify";
 import { OrganizationRole } from "@repo/database/enums";
 import { addOrganizationUserHandler } from "./handler.js";
 import {
@@ -11,10 +10,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-// Extractor function for organization ID
-const extractOrganizationId = async (request: FastifyRequest) =>
-  Promise.resolve((request.params as AddOrganizationUserParams).organizationId);
+import { organizationIdRequestExtractor } from "../../helpers.js";
 
 export const addOrganizationUserRoute: StandardRouteSignature = (
   fastify,
@@ -43,7 +39,7 @@ export const addOrganizationUserRoute: StandardRouteSignature = (
         },
       },
       preHandler: [
-        fastify.requireOrganizationRole(extractOrganizationId, [
+        fastify.requireOrganizationRole(organizationIdRequestExtractor, [
           OrganizationRole.ADMIN,
         ]),
       ],

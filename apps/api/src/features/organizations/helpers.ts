@@ -6,6 +6,14 @@ import {
 } from "@repo/database";
 import type { OrganizationMutationData } from "@repo/types";
 import { toNullableBigInt } from "@/utils/bigint.js";
+import { OrganizationIdExtractor } from "../../plugins/app/organizationAuthorizationPlugin.js";
+
+export const organizationIdRequestExtractor: OrganizationIdExtractor = (
+  request
+) => request.params.organizationId;
+
+export const idRequestExtractor: OrganizationIdExtractor = (request) =>
+  request.params.id;
 
 export const getPendingOrganizationData = (
   prisma: PrismaClient | Prisma.TransactionClient,
