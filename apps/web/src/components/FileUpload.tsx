@@ -155,19 +155,13 @@ export const FileUpload = ({
         tabIndex={disabled ? -1 : 0}
         aria-label="Subir archivos: haz clic, arrastra o pega"
         aria-disabled={disabled}
-        className="flex cursor-pointer flex-col items-center gap-3 rounded-lg p-4"
-        style={{
-          border: "2px dashed",
-          borderColor: displayError
-            ? "#d32f2f"
+        className={`flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-gray-300 p-4 transition-all duration-200 ${
+          displayError
+            ? "border-red-600!"
             : isDragActive
-              ? "#3b82f6"
-              : "#d1d5db",
-          backgroundColor: isDragActive ? "#eff6ff" : "transparent",
-          transition: "all 0.2s ease-in-out",
-          opacity: disabled ? 0.5 : 1,
-          cursor: disabled ? "not-allowed" : "pointer",
-        }}
+              ? "border-primary! bg-primary/10"
+              : ""
+        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
       >
         <input {...getInputProps()} />
         <CloudUpload sx={{ color: "text.secondary", fontSize: 40 }} />
@@ -187,7 +181,7 @@ export const FileUpload = ({
           {filesWithPreviews.map(({ file, previewUrl }, index) => (
             <ListItem
               classes={{
-                secondaryAction: "right-[4px] !important",
+                secondaryAction: "right-[4px]!",
               }}
               key={`${file.name}-${index}`}
               disableGutters
