@@ -25,7 +25,11 @@ export const carbonInventoryKeys = {
   emissionFactors: (id: string) =>
     ["carbonInventories", id, "emission-factors"] as const,
   metadata: (id: string) => ["carbonInventories", id, "metadata"] as const,
-  availableYears: ["carbonInventories", "availableYears"] as const,
+  availableYears: [
+    "carbonInventories",
+    "availableYears",
+    "carbonInventoryUpdationDependency",
+  ] as const,
   minimal: ["carbonInventories", "minimal"] as const,
   badges: (id?: string) => ["carbonInventories", id, "badges"] as const,
 };

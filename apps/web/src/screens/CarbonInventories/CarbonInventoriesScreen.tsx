@@ -199,13 +199,13 @@ export const CarbonInventoriesScreen: FC = () => {
     <MainLayout>
       <Box className="flex flex-1 flex-col gap-6">
         {/* Header */}
-        <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
+        <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white px-6 py-4">
           <Typography variant="h5" fontWeight={600}>
             Huella Organizacional
           </Typography>
 
           {/* Container for selectors and button */}
-          <Box className="flex gap-2">
+          <Box className="flex gap-3">
             {/* Nueva Huella Button */}
             <Button
               variant="contained"
