@@ -60,6 +60,7 @@
     "@hookform/devtools": "^4.4.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
+    "@tanstack/react-query-devtools": "^5.91.3",
     "@tanstack/react-router-devtools": "^1.139.3",
     "@tanstack/router-plugin": "^1.139.3",
     "@types/lodash-es": "^4.17.12",

@@ -9,6 +9,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "../api/query";
 import { AuthProvider, ExplanationProvider } from "../contexts";
 import { useEffect } from "react";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { IS_DEVELOPMENT } from "../config/environment";
 
 function RootComponent() {
   useEffect(() => {
@@ -22,6 +24,7 @@ function RootComponent() {
       <SnackbarProvider preventDuplicate autoHideDuration={4000}>
         <MsalProvider instance={msalInstance}>
           <QueryClientProvider client={queryClient}>
+            {IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
             <AuthProvider>
               <ExplanationProvider>
                 <Outlet />
