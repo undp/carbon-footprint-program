@@ -9,19 +9,25 @@ export const useCarbonInventories = (
   organizationId?: string
 ) => {
   const normalizedYear = year === "all" ? undefined : year;
-  const normalizedOrgId = organizationId === "all" ? undefined : organizationId;
+  const organizationSearchParam =
+    organizationId === "all"
+      ? {}
+      : organizationId === "none"
+        ? { withoutOrganization: true }
+        : { organizationId };
 
   return useQuery<GetAllCarbonInventoriesResponse>({
     queryKey: [
       ...carbonInventoryKeys.all,
-      { year: normalizedYear, organizationId: normalizedOrgId },
+      { year: normalizedYear },
+      organizationSearchParam,
     ],
     queryFn: () =>
       apiClient
         .get("carbon-inventories", {
           searchParams: {
             ...(normalizedYear && { year: normalizedYear }),
-            ...(normalizedOrgId && { organizationId: normalizedOrgId }),
+            ...organizationSearchParam,
           },
         })
         .json(),

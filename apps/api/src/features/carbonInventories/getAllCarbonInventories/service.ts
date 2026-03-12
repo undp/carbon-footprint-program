@@ -22,9 +22,7 @@ export const getAllCarbonInventoriesService = async (
 ): Promise<GetAllCarbonInventoriesResponse> => {
   // Base filters
   const baseFilters: Prisma.CarbonInventoryWhereInput = {
-    status: {
-      not: InventoryStatus.DELETED,
-    },
+    status: InventoryStatus.ACTIVE,
   };
 
   if (query?.year) {
@@ -33,6 +31,10 @@ export const getAllCarbonInventoriesService = async (
 
   if (query?.organizationId) {
     baseFilters.organizationId = BigInt(query.organizationId);
+  }
+
+  if (query?.withoutOrganization) {
+    baseFilters.organizationId = null;
   }
 
   // Access control: show inventories created by user OR belonging to orgs where user is a member
@@ -91,6 +93,7 @@ export const getAllCarbonInventoriesService = async (
         include: {
           summary: {
             select: {
+              name: true,
               displayStatus: true,
             },
           },
@@ -123,6 +126,7 @@ export const getAllCarbonInventoriesService = async (
     totalEmissions: kgToTon(
       sumBy(inventory.subtotals, ({ value }) => toNumberOrNull(value) ?? 0)
     ),
+    organizationName: inventory.organization?.summary?.name ?? null,
     organizationDisplayStatus:
       inventory.organization?.summary?.displayStatus ?? null,
   }));

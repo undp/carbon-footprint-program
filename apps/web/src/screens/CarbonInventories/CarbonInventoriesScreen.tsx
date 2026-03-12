@@ -63,6 +63,36 @@ export const CarbonInventoriesScreen: FC = () => {
     useMemo(
       () => [
         {
+          field: "organizationName",
+          headerName: "Nombre Org.",
+          align: "center",
+          headerAlign: "center",
+          minWidth: 100,
+          flex: 1,
+          cellClassName: "content-center",
+          renderCell: (
+            params: GridRenderCellParams<
+              GetAllCarbonInventoriesResponse[number],
+              GetAllCarbonInventoriesResponse[number]["organizationName"]
+            >
+          ) =>
+            params.value ? (
+              <Tooltip title={params.value}>
+                <Typography variant="body2" noWrap>
+                  {params.value}
+                </Typography>
+              </Tooltip>
+            ) : (
+              <Typography
+                color="textDisabled"
+                className="italic"
+                variant="body2"
+              >
+                (sin organización)
+              </Typography>
+            ),
+        },
+        {
           field: "name",
           headerName: "Nombre",
           align: "center",
@@ -221,7 +251,8 @@ export const CarbonInventoriesScreen: FC = () => {
               value={selectedOrganizationId}
               onChange={setSelectedOrganizationId}
               isLoading={isLoadingOrganizations}
-              allowAll
+              showAllOption
+              showNoneOption
             />
 
             {/* Year Selector */}
@@ -280,7 +311,9 @@ export const CarbonInventoriesScreen: FC = () => {
         open={newInventoryDialogOpen}
         onClose={() => setNewInventoryDialogOpen(false)}
         selectedOrganizationId={
-          selectedOrganizationId === "all" ? undefined : selectedOrganizationId
+          selectedOrganizationId === "none" || selectedOrganizationId === "all"
+            ? undefined
+            : selectedOrganizationId
         }
       />
     </MainLayout>

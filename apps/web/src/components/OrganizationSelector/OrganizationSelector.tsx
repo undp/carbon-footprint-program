@@ -1,5 +1,11 @@
 import { FC, useId } from "react";
-import { FormControl, InputLabel, MenuItem, Select } from "@mui/material";
+import {
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  Typography,
+} from "@mui/material";
 import type { SelectProps } from "@mui/material";
 import type { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
 
@@ -8,7 +14,8 @@ export interface OrganizationSelectorProps {
   value: string;
   onChange: (value: string) => void;
   isLoading?: boolean;
-  allowAll?: boolean;
+  showNoneOption?: boolean;
+  showAllOption?: boolean;
   size?: SelectProps["size"];
   minWidth?: number;
   label?: string;
@@ -19,7 +26,8 @@ export const OrganizationSelector: FC<OrganizationSelectorProps> = ({
   value,
   onChange,
   isLoading = false,
-  allowAll = false,
+  showNoneOption = false,
+  showAllOption = false,
   size = "small",
   minWidth = 240,
   label = "Organización",
@@ -36,12 +44,19 @@ export const OrganizationSelector: FC<OrganizationSelectorProps> = ({
         onChange={(e) => onChange(e.target.value)}
         disabled={isLoading}
       >
-        {allowAll && <MenuItem value="all">Todas las organizaciones</MenuItem>}
+        {showAllOption && <MenuItem value="all">Todas</MenuItem>}
         {organizations.map((org) => (
           <MenuItem key={org.id} value={org.id}>
             {org.name}
           </MenuItem>
         ))}
+        {showNoneOption && (
+          <MenuItem value="none">
+            <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
+              sin organización
+            </Typography>
+          </MenuItem>
+        )}
       </Select>
     </FormControl>
   );
