@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import {
   Box,
   Button,
@@ -45,17 +45,11 @@ export const CarbonInventoriesScreen: FC = () => {
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
     useMyOrganizations();
 
-  const {
-    data: inventories = [],
-    isLoading: isLoadingInventories,
-    refetch: refetchInventories,
-  } = useCarbonInventories(selectedYear, selectedOrganizationId);
+  const { data: inventories = [], isLoading: isLoadingInventories } =
+    useCarbonInventories(selectedYear, selectedOrganizationId);
 
-  const {
-    data: availableYears = [],
-    isLoading: isLoadingYears,
-    refetch: refetchAvailableYears,
-  } = useCarbonInventoriesAvailableYears();
+  const { data: availableYears = [], isLoading: isLoadingYears } =
+    useCarbonInventoriesAvailableYears();
 
   const [newInventoryDialogOpen, setNewInventoryDialogOpen] = useState(false);
 
@@ -211,11 +205,11 @@ export const CarbonInventoriesScreen: FC = () => {
     [inventories]
   );
 
-  useEffect(() => {
-    void refetchInventories();
-    void refetchAvailableYears();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // useEffect(() => {
+  //   void refetchInventories();
+  //   void refetchAvailableYears();
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   return (
     <MainLayout>

@@ -19,7 +19,7 @@ export const useRequestCalculation = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: carbonInventoryKeys.all,
-          exact: true,
+          exact: false,
         }),
         queryClient.invalidateQueries({
           queryKey: carbonInventoryKeys.metadata(carbonInventoryId),
