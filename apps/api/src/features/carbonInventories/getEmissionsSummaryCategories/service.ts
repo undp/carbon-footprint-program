@@ -1,14 +1,45 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
 import { distributePercentages, roundEmissions } from "../utils.js";
-import { fetchInventoryWithCategoryData } from "../helpers.js";
+import {
+  fetchCategoryData,
+  carbonInventoryWithSubmissionsMinimalSelect,
+  calculateDisplayStatus,
+  type InventoryBase,
+} from "../helpers.js";
+import {
+  CarbonInventoryNotFoundError,
+  MethodologyNotFoundError,
+} from "../errors.js";
 
 export const getEmissionsSummaryCategoriesService = async (
   prismaClient: PrismaClient,
   id: string
 ): Promise<GetEmissionsSummaryCategoriesResponse> => {
-  const { inventory, categoryData, totalEmissions } =
-    await fetchInventoryWithCategoryData(prismaClient, id);
+  const inventory = await prismaClient.carbonInventory.findUnique({
+    where: { id: BigInt(id) },
+    select: {
+      name: true,
+      organizationData: true,
+      methodologyVersionId: true,
+      ...carbonInventoryWithSubmissionsMinimalSelect,
+    },
+  });
+
+  if (!inventory) {
+    throw new CarbonInventoryNotFoundError(id);
+  }
+
+  if (!inventory.methodologyVersionId) {
+    throw new MethodologyNotFoundError(id);
+  }
+
+  const { categoryData, totalEmissions } = await fetchCategoryData(
+    prismaClient,
+    inventory as InventoryBase
+  );
+
+  const displayStatus = calculateDisplayStatus(inventory);
 
   // Calculate category percentages (sum to 1 across the inventory)
   const categorySubtotals = categoryData.map((c) => c.subtotal);
@@ -30,6 +61,7 @@ export const getEmissionsSummaryCategoriesService = async (
     carbonInventory: {
       id: inventory.id.toString(),
       name: inventory.name,
+      status: displayStatus,
     },
     totalEmissions: roundEmissions(totalEmissions),
     categories,
