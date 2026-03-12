@@ -8,6 +8,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const updateCarbonInventoryRoute: StandardRouteSignature = (
   fastify,
@@ -35,6 +36,11 @@ export const updateCarbonInventoryRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     updateCarbonInventoryHandler
   );

@@ -8,6 +8,7 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
   fastify,
@@ -36,6 +37,11 @@ export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     toggleManualTotalEmissionsHandler
   );

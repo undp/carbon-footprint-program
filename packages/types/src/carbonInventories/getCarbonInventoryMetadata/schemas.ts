@@ -7,7 +7,12 @@ import {
   OrganizationMainActivityBaseSchema,
   OrganizationSummaryBaseSchema,
 } from "../../baseSchemas/index.js";
+import { IdSchema } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
+
+export const GetCarbonInventoryMetadataParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
 
 export const GetCarbonInventoryMetadataResponseSchema = z
   .object({

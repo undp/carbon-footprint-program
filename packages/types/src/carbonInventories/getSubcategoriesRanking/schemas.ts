@@ -3,6 +3,11 @@ import {
   CategoryBaseSchema,
   SubcategoryBaseSchema,
 } from "../../baseSchemas/index.js";
+import { IdSchema } from "../../zod.js";
+
+export const GetSubcategoriesRankingParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
 
 const RankingSeveritySchema = z.enum(["HIGH", "MEDIUM", "LOW"]);
 

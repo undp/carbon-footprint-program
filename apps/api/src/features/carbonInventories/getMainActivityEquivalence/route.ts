@@ -1,21 +1,18 @@
 import { getMainActivityEquivalenceHandler } from "./handler.js";
 import {
-  IdSchema,
+  GetMainActivityEquivalenceParams,
+  GetMainActivityEquivalenceParamsSchema,
   GetMainActivityEquivalenceResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getMainActivityEquivalenceRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetMainActivityEquivalenceParams }>(
     "/:id/main-activity-equivalence",
     {
       schema: {
@@ -23,7 +20,7 @@ export const getMainActivityEquivalenceRoute: StandardRouteSignature = (
         summary: "Get main activity equivalence",
         description:
           "Retrieves the emission rate per main activity unit for a carbon inventory. Returns null if main activity data is not defined.",
-        params: ParamsSchema,
+        params: GetMainActivityEquivalenceParamsSchema,
         response: {
           200: GetMainActivityEquivalenceResponseSchema,
           404: ApiErrorResponseSchema,
@@ -32,6 +29,11 @@ export const getMainActivityEquivalenceRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getMainActivityEquivalenceHandler
   );

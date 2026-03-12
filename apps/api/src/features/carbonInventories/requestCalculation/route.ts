@@ -2,12 +2,14 @@ import { requestCalculationHandler } from "./handler.js";
 import {
   RequestCalculationParamsSchema,
   RequestCalculationResponseSchema,
+  type RequestCalculationParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
-  fastify.post(
+  fastify.post<{ Params: RequestCalculationParams }>(
     "/:id/request-calculation",
     {
       schema: {
@@ -22,6 +24,11 @@ export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
           422: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     requestCalculationHandler
   );

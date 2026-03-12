@@ -1,4 +1,9 @@
 import { z } from "zod";
+import { IdSchema } from "../../zod.js";
+
+export const GetSuggestedReductionPlanParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
 
 export const GetSuggestedReductionPlanResponseSchema = z
   .object({

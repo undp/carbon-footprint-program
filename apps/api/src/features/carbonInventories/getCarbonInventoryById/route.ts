@@ -1,25 +1,25 @@
 import { getCarbonInventoryByIdHandler } from "./handler.js";
-import { IdSchema, GetCarbonInventoryByIdResponseSchema } from "@repo/types";
+import {
+  GetCarbonInventoryByIdParams,
+  GetCarbonInventoryByIdParamsSchema,
+  GetCarbonInventoryByIdResponseSchema,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getCarbonInventoryByIdRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetCarbonInventoryByIdParams }>(
     "/:id",
     {
       schema: {
         tags: ["carbon-inventories"],
         summary: "Get a carbon inventory by ID",
         description: "Get a single carbon inventory by its ID",
-        params: ParamsSchema,
+        params: GetCarbonInventoryByIdParamsSchema,
         response: {
           200: GetCarbonInventoryByIdResponseSchema,
           404: ApiErrorResponseSchema,
@@ -28,6 +28,11 @@ export const getCarbonInventoryByIdRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getCarbonInventoryByIdHandler
   );

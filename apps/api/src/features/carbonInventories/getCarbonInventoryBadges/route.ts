@@ -1,15 +1,17 @@
 import {
   GetCarbonInventoryBadgesParamsSchema,
   GetCarbonInventoryBadgesResponseSchema,
+  type GetCarbonInventoryBadgesParams,
 } from "@repo/types";
 import { getCarbonInventoryBadgesHandler } from "./handler.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
   fastify,
   _options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetCarbonInventoryBadgesParams }>(
     "/:id/badges",
     {
       schema: {
@@ -22,6 +24,11 @@ export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
           200: GetCarbonInventoryBadgesResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getCarbonInventoryBadgesHandler
   );

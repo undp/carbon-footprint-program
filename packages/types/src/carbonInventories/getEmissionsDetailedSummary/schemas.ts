@@ -11,6 +11,10 @@ import { EmissionFactorBaseSchema } from "../../baseSchemas/emissionFactor.js";
 import { MeasurementUnitBaseSchema } from "../../baseSchemas/measurementUnit.js";
 import { CarbonInventoryLineInputBaseSchema } from "../../baseSchemas/carbonInventoryLineInput.js";
 
+export const GetEmissionsDetailedSummaryParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
+
 const EmissionLineItemSchema = z
   .object({
     lineId: IdSchema.describe("The emission line ID"),

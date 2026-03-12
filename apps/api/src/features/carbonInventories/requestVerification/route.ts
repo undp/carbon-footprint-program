@@ -3,12 +3,18 @@ import {
   RequestVerificationParamsSchema,
   RequestVerificationBodySchema,
   RequestVerificationResponseSchema,
+  type RequestVerificationParams,
+  type RequestVerificationBody,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
-  fastify.post(
+  fastify.post<{
+    Params: RequestVerificationParams;
+    Body: RequestVerificationBody;
+  }>(
     "/:id/request-verification",
     {
       schema: {
@@ -24,6 +30,11 @@ export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
           422: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     requestVerificationHandler
   );

@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
+import { IdSchema } from "../../zod.js";
+
+export const GetCarbonInventorySubcategoriesSummaryParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
 
 const ItemSchema = z.object({
   subcategoryId: SubcategoryBaseSchema.shape.id,

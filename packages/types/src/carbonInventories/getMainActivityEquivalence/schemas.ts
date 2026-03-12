@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { OrganizationMainActivityBaseSchema } from "../../baseSchemas/organizationMainActivity.js";
+import { IdSchema } from "../../zod.js";
+
+export const GetMainActivityEquivalenceParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
 
 export const GetMainActivityEquivalenceResponseSchema = z
   .object({

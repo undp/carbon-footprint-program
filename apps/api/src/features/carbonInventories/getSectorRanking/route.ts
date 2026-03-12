@@ -1,18 +1,18 @@
 import { getSectorRankingHandler } from "./handler.js";
-import { IdSchema, GetSectorRankingResponseSchema } from "@repo/types";
+import {
+  GetSectorRankingParams,
+  GetSectorRankingParamsSchema,
+  GetSectorRankingResponseSchema,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getSectorRankingRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetSectorRankingParams }>(
     "/:id/sector-ranking",
     {
       schema: {
@@ -20,7 +20,7 @@ export const getSectorRankingRoute: StandardRouteSignature = (
         summary: "Get sector ranking",
         description:
           "Retrieves subcategories ranked by descending emissions for sector comparison.",
-        params: ParamsSchema,
+        params: GetSectorRankingParamsSchema,
         response: {
           200: GetSectorRankingResponseSchema,
           404: ApiErrorResponseSchema,
@@ -29,6 +29,11 @@ export const getSectorRankingRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getSectorRankingHandler
   );
