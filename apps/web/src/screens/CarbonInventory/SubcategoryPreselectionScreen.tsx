@@ -4,12 +4,15 @@ import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
-import { StepHeader } from "./components/StepHeader";
+import {
+  StepHeader,
+  CarbonInventoryNavigationButton,
+  SubcategoryPreselectionField,
+} from "./components";
 import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
-import { SubcategoryPreselectionField } from "./components";
 import { CategoryCard } from "./components/CategoryCard";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
@@ -102,6 +105,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
+            action: <CarbonInventoryNavigationButton />,
           }}
           footerProps={{
             buttons: [backButton, nextButton],

@@ -9,7 +9,7 @@ import {
   FormControl,
   Tooltip,
 } from "@mui/material";
-import { DataGrid, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
@@ -26,6 +26,7 @@ import {
   CarbonInventoryDisplayStatus,
 } from "@repo/types";
 import { NewInventoryDialog } from "@/components/dialogs";
+import { StylizedDataGrid } from "@/components";
 
 const getUsageModeLabel = (mode: UsageMode) =>
   mode === UsageMode.SIMPLIFIED ? "Asistido" : "Experto";
@@ -225,60 +226,24 @@ export const CarbonInventoriesScreen: FC = () => {
             onNewInventory={() => setNewInventoryDialogOpen(true)}
           />
 
-          {/* TODO: use StyledDataGrid once Chelo's branch is merged */}
-          <DataGrid
+          <StylizedDataGrid
             autoHeight
             columnHeaderHeight={40}
             rows={filteredInventories}
             columns={columns}
-            checkboxSelection={false}
-            disableColumnResize
-            disableColumnSorting
-            disableColumnMenu
-            disableColumnFilter
-            disableColumnSelector
-            disableRowSelectionOnClick
-            hideFooter
-            getRowHeight={() => "auto"}
             localeText={{
               noRowsLabel:
                 "No hay huellas disponibles. Crea tu primera huella para comenzar",
             }}
             loading={isLoadingInventories}
-            slotProps={{
-              loadingOverlay: {
-                variant: "skeleton",
-                noRowsVariant: "skeleton",
-              },
-            }}
             sx={(theme) => ({
-              borderRadius: "8px",
               "& .MuiDataGrid-columnHeader": {
                 backgroundColor: theme.palette.background.default,
                 padding: "10px 8px",
               },
-              "& .MuiDataGrid-columnHeader:focus": {
-                outline: "none",
-              },
-              "& .MuiDataGrid-columnHeader:focus-within": {
-                outline: "none",
-              },
-              "& .MuiDataGrid-columnSeparator": {
-                display: "none",
-              },
               "& .MuiDataGrid-cell": {
                 padding: "10px 8px",
               },
-              "& .MuiDataGrid-cell:focus": {
-                outline: "none",
-              },
-              "& .MuiDataGrid-cell:focus-within": {
-                outline: "none",
-              },
-              "& .MuiDataGrid-row:hover": {
-                backgroundColor: "transparent",
-              },
-              "--DataGrid-overlayHeight": "56px",
             })}
           />
         </Box>
