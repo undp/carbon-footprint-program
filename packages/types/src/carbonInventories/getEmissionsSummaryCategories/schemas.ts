@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CategoryBaseSchema } from "../../baseSchemas/category.js";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/carbonInventory.js";
+import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 const CategoryItemSchema = CategoryBaseSchema.pick({
   id: true,
@@ -28,7 +29,13 @@ export const GetEmissionsSummaryCategoriesResponseSchema = z
     carbonInventory: CarbonInventoryBaseSchema.pick({
       id: true,
       name: true,
-    }).strict(),
+    })
+      .strict()
+      .extend({
+        status: CarbonInventoryDisplayStatusSchema.describe(
+          "The display status of the carbon inventory, based on the submissions"
+        ),
+      }),
     totalEmissions: z
       .number()
       .nonnegative()
