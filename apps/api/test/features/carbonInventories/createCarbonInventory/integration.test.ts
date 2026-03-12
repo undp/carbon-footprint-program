@@ -48,6 +48,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -75,6 +76,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "EXPERT",
+          organizationId: null,
         },
       });
 
@@ -95,6 +97,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -107,6 +110,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -121,6 +125,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -138,6 +143,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -177,6 +183,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "INVALID",
+          organizationId: null,
         },
       });
 
@@ -192,20 +199,8 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
           year: 2024,
-        },
-      });
-
-      expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 400 when organizationId is provided", async () => {
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/carbon-inventories",
-        payload: {
-          usageMode: "SIMPLIFIED",
-          organizationId: "123",
         },
       });
 
@@ -218,6 +213,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
           organizationData: {
             name: "Test",
             sectorId: "10",
@@ -240,6 +236,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -248,6 +245,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "EXPERT",
+          organizationId: null,
         },
       });
 
@@ -256,6 +254,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -278,6 +277,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -286,6 +286,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -310,6 +311,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
         url: "/api/carbon-inventories",
         payload: {
           usageMode: "SIMPLIFIED",
+          organizationId: null,
         },
       });
 
@@ -358,6 +360,7 @@ describe("POST /api/carbon-inventories - Integration Tests", () => {
           url: "/api/carbon-inventories",
           payload: {
             usageMode: "SIMPLIFIED",
+            organizationId: null,
           },
         });
 
