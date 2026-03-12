@@ -15,9 +15,14 @@ import { UsageMode } from "@repo/types";
 interface Props {
   open: boolean;
   onClose: () => void;
+  selectedOrganizationId?: string;
 }
 
-export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
+export const NewInventoryDialog: FC<Props> = ({
+  open,
+  onClose,
+  selectedOrganizationId,
+}) => {
   return (
     <Dialog
       maxWidth="md"
@@ -57,6 +62,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
             textColor="text.primary"
             iconColor="text.primary"
             backgroundColor={grey[400]}
+            organizationId={selectedOrganizationId}
           />
           <CreateInventoryCard
             AvatarIcon={ApplicationFormIcon}
@@ -67,6 +73,7 @@ export const NewInventoryDialog: FC<Props> = ({ open, onClose }) => {
             textColor="text.primary"
             iconColor="text.primary"
             backgroundColor={grey[400]}
+            organizationId={selectedOrganizationId}
           />
         </Box>
       </DialogContent>

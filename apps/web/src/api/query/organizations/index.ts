@@ -1,6 +1,6 @@
 export * from "./keys";
 export * from "./useOrganization";
-export * from "./useOrganizations";
+export * from "./useMyOrganizations";
 export * from "./useCreateOrganization";
 export * from "./useUpdateOrganization";
 export * from "./useRequestOrganizationAccreditation";

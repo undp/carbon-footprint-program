@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
 
-export const useOrganizations = () =>
+export const useMyOrganizations = () =>
   useQuery<GetMyOrganizationsSelectorOptionsResponse>({
     queryKey: organizationKeys.all,
     queryFn: async () => apiClient.get("app/organizations/me").json(),

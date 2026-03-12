@@ -19,7 +19,7 @@ import {
   useMyOrganizationState,
   useMyOrganizationUsers,
 } from "./hooks";
-import { useOrganizations } from "@/api/query/organizations";
+import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationRole } from "@repo/types";
 
 export const MyOrganizationScreen: FC = () => {
@@ -29,7 +29,7 @@ export const MyOrganizationScreen: FC = () => {
     isLoading: isLoadingOrganizations,
     error: organizationsError,
     refetch: refetchOrganizations,
-  } = useOrganizations();
+  } = useMyOrganizations();
 
   // UI state management - simplified to just dialog state and selected org ID
   const {

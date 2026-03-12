@@ -30,23 +30,13 @@ export const createCarbonInventoryService = async (
     throw new NoActiveMethodologyError();
   }
 
-  // TODO: we should associate the new inventory to the right organization instead of just taking the first one, but since we don't have the organization management and user-organization association implemented yet, we'll just take the first organization for now. --- IGNORE ---
-  const organization = await prismaClient.organization.findFirst({
-    orderBy: {
-      id: "asc",
-    },
-    select: {
-      id: true,
-    },
-  });
-
   const userId = user?.id ?? null;
 
   const item = await prismaClient.carbonInventory.create({
     data: {
       usageMode: data.usageMode,
       methodologyVersionId: availableMethodology.id,
-      organizationId: organization?.id ?? null,
+      organizationId: data.organizationId ? BigInt(data.organizationId) : null,
       createdById: userId ? BigInt(userId) : null,
       updatedAt: null,
     },

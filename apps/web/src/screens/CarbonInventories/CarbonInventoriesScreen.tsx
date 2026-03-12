@@ -1,6 +1,7 @@
 import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import {
   Box,
+  Button,
   Typography,
   MenuItem,
   Select,
@@ -10,13 +11,14 @@ import {
   Tooltip,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { OrganizationSelector } from "@/components";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
-import { CarbonInventoryActions } from "./components/CarbonInventoryActions";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import {
   useCarbonInventories,
   useCarbonInventoriesAvailableYears,
+  useMyOrganizations,
 } from "@/api/query";
 import { formatEmissions } from "@/utils/formatting";
 import {
@@ -33,16 +35,21 @@ const getUsageModeLabel = (mode: UsageMode) =>
 
 export const CarbonInventoriesScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
+  const [selectedOrganizationId, setSelectedOrganizationId] =
+    useState<string>("all");
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
   }, []);
 
+  const { data: organizations = [], isLoading: isLoadingOrganizations } =
+    useMyOrganizations();
+
   const {
     data: inventories = [],
     isLoading: isLoadingInventories,
     refetch: refetchInventories,
-  } = useCarbonInventories(selectedYear);
+  } = useCarbonInventories(selectedYear, selectedOrganizationId);
 
   const {
     data: availableYears = [],
@@ -55,6 +62,36 @@ export const CarbonInventoriesScreen: FC = () => {
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
       () => [
+        {
+          field: "organizationName",
+          headerName: "Nombre Org.",
+          align: "center",
+          headerAlign: "center",
+          minWidth: 100,
+          flex: 1,
+          cellClassName: "content-center",
+          renderCell: (
+            params: GridRenderCellParams<
+              GetAllCarbonInventoriesResponse[number],
+              GetAllCarbonInventoriesResponse[number]["organizationName"]
+            >
+          ) =>
+            params.value ? (
+              <Tooltip title={params.value}>
+                <Typography variant="body2" noWrap>
+                  {params.value}
+                </Typography>
+              </Tooltip>
+            ) : (
+              <Typography
+                color="textDisabled"
+                className="italic"
+                variant="body2"
+              >
+                (sin organización)
+              </Typography>
+            ),
+        },
         {
           field: "name",
           headerName: "Nombre",
@@ -192,39 +229,61 @@ export const CarbonInventoriesScreen: FC = () => {
     <MainLayout>
       <Box className="flex flex-1 flex-col gap-6">
         {/* Header */}
-        <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
+        <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white px-6 py-4">
           <Typography variant="h5" fontWeight={600}>
-            {/* TODO: Replace with organization name */}
             Huella Organizacional
           </Typography>
-          <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
-            <InputLabel id="year-select-label">Año</InputLabel>
-            <Select
-              labelId="year-select-label"
-              label="Año"
-              value={selectedYear}
-              onChange={onYearSelectChange}
-              disabled={isLoadingYears}
-            >
-              <MenuItem key="all" value="all">
-                Todos
-              </MenuItem>
 
-              {availableYears.map((year) => (
-                <MenuItem key={year} value={`${year}`}>
-                  {year}
+          {/* Container for selectors and button */}
+          <Box className="flex gap-3">
+            {/* Nueva Huella Button */}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => setNewInventoryDialogOpen(true)}
+            >
+              Nueva Huella
+            </Button>
+
+            {/* Organization Selector */}
+            <OrganizationSelector
+              organizations={organizations}
+              value={selectedOrganizationId}
+              onChange={setSelectedOrganizationId}
+              isLoading={isLoadingOrganizations}
+              showAllOption
+              showNoneOption
+            />
+
+            {/* Year Selector */}
+            <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
+              <InputLabel id="year-select-label">Año</InputLabel>
+              <Select
+                labelId="year-select-label"
+                label="Año"
+                value={selectedYear}
+                onChange={onYearSelectChange}
+                disabled={isLoadingYears}
+              >
+                <MenuItem key="all" value="all">
+                  Todos
                 </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+                {availableYears.map((year) => (
+                  <MenuItem key={year} value={`${year}`}>
+                    {year}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
         </Box>
 
         {/* My Footprints Section */}
         <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
           {/* Section Header */}
-          <CarbonInventoryActions
-            onNewInventory={() => setNewInventoryDialogOpen(true)}
-          />
+          <Typography variant="h6" fontWeight={600}>
+            Mis Huellas
+          </Typography>
 
           <StylizedDataGrid
             autoHeight
@@ -251,6 +310,11 @@ export const CarbonInventoriesScreen: FC = () => {
       <NewInventoryDialog
         open={newInventoryDialogOpen}
         onClose={() => setNewInventoryDialogOpen(false)}
+        selectedOrganizationId={
+          selectedOrganizationId === "none" || selectedOrganizationId === "all"
+            ? undefined
+            : selectedOrganizationId
+        }
       />
     </MainLayout>
   );
