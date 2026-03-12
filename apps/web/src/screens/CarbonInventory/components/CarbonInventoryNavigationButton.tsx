@@ -9,21 +9,34 @@ export const CarbonInventoryNavigationButton: FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    if (user) {
-      void navigate({ to: Routes.CARBON_INVENTORIES });
-    } else {
-      void navigate({ to: Routes.LANDING });
-    }
+  const handleGoToInventories = () => {
+    void navigate({ to: Routes.CARBON_INVENTORIES });
+  };
+
+  const handleGoToLanding = () => {
+    void navigate({ to: Routes.LANDING });
   };
 
   return (
-    <Button
-      variant="outlined"
-      startIcon={user ? <ArrowForwardRounded /> : <HomeOutlined />}
-      onClick={handleClick}
-    >
-      {user ? "Ir a mis huellas" : "Ir al inicio"}
-    </Button>
+    <>
+      {user && (
+        <Button
+          variant="outlined"
+          startIcon={<ArrowForwardRounded />}
+          onClick={handleGoToInventories}
+        >
+          Ir a mis huellas
+        </Button>
+      )}
+      {!user && (
+        <Button
+          variant="outlined"
+          startIcon={<HomeOutlined />}
+          onClick={handleGoToLanding}
+        >
+          Ir al inicio
+        </Button>
+      )}
+    </>
   );
 };
