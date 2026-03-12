@@ -19,7 +19,7 @@ export const getCarbonInventoriesMinimalService = async (
   query: Record<string, unknown> | null,
   user: User | null
 ): Promise<GetCarbonInventoriesMinimalResponse> => {
-  // TODO: refactor user usage when FastifyRequest is improved for authenticated users
+  // TODO: refactor user usage when FastifyRequest is improved for authenticated requests
   const baseFilters: Prisma.CarbonInventoryWhereInput = {
     status: InventoryStatus.ACTIVE,
   };

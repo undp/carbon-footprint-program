@@ -38,7 +38,7 @@ export const getAllCarbonInventoriesService = async (
   }
 
   // Access control: show inventories created by user OR belonging to orgs where user is a member
-  // TODO: refactor user usage when FastifyRequest is improved for authenticated users
+  // TODO: refactor user usage when FastifyRequest is improved for authenticated requests
   const accessControlFilter: Prisma.CarbonInventoryWhereInput = user
     ? {
         OR: [
