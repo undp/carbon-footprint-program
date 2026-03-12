@@ -10,6 +10,7 @@ import { useAuth } from "../../contexts";
 import { EmissionResultsContent } from "@/components";
 import { useEmissionsSummaryCategories } from "@/api/query";
 import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatusChip";
+import { isCarbonInventoryEditable } from "@repo/utils";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -32,6 +33,10 @@ export const EmissionResultsScreen: FC = () => {
     },
   };
 
+  const isEditable =
+    summaryData?.carbonInventory.status &&
+    isCarbonInventoryEditable(summaryData.carbonInventory.status);
+
   const nextButton: FooterButton = user
     ? {
         text: "Guardar Borrador",
@@ -52,7 +57,7 @@ export const EmissionResultsScreen: FC = () => {
         action: <CarbonInventoryNavigationButton />,
       }}
       footerProps={{
-        buttons: [backButton, nextButton],
+        buttons: isEditable ? [backButton, nextButton] : [backButton],
       }}
     >
       <Box className="flex min-h-0 flex-1 flex-col gap-4 rounded-lg bg-white p-6">
