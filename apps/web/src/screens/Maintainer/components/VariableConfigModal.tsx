@@ -7,6 +7,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  IconButton,
   Table,
   TableBody,
   TableCell,
@@ -14,9 +15,10 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
-import { Info as InfoIcon } from "@mui/icons-material";
+import { Info, ClearOutlined } from "@mui/icons-material";
 
 interface DimensionConfig {
   code: string;
@@ -86,10 +88,15 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
     onClose();
   };
 
+  const clearDim = (position: number) => {
+    setDims((prev) => prev.filter((d) => d.position !== position));
+  };
+
   const dim1 = getDim(dims, 1);
   const dim2 = getDim(dims, 2);
   const hasDim1 = !!dim1;
   const hasDim2 = !!dim2;
+  const canClearDim1 = hasDim1 && !hasDim2;
 
   return (
     <>
@@ -108,7 +115,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
             alignItems: "flex-start",
           }}
         >
-          <InfoIcon color="info" sx={{ mt: 0.25 }} />
+          <Info color="info" sx={{ mt: 0.25 }} />
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
               <strong>Instrucciones:</strong> Define las variables de esta
@@ -139,15 +146,19 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                 <TableCell sx={{ fontWeight: 600, width: "15%" }}>
                   Variable
                 </TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>
-                  Nombre
-                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Nombre</TableCell>
                 <TableCell
                   sx={{ fontWeight: 600, width: "20%" }}
                   align="center"
                 >
                   Requerida
                 </TableCell>
+                {!readOnly && (
+                  <TableCell
+                    sx={{ fontWeight: 600, width: "10%" }}
+                    align="center"
+                  />
+                )}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -184,6 +195,29 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                     </Typography>
                   )}
                 </TableCell>
+                {!readOnly && (
+                  <TableCell align="center">
+                    {hasDim1 && (
+                      <Tooltip
+                        title={
+                          !canClearDim1
+                            ? "Primero debes limpiar la variable 2"
+                            : "Limpiar variable"
+                        }
+                      >
+                        <span>
+                          <IconButton
+                            size="small"
+                            onClick={() => clearDim(1)}
+                            disabled={!canClearDim1}
+                          >
+                            <ClearOutlined fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
 
               {/* Variable 2 */}
@@ -219,6 +253,19 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                     </Typography>
                   )}
                 </TableCell>
+                {!readOnly && (
+                  <TableCell align="center">
+                    {hasDim2 && (
+                      <Tooltip title="Limpiar variable">
+                        <span>
+                          <IconButton size="small" onClick={() => clearDim(2)}>
+                            <ClearOutlined fontSize="small" />
+                          </IconButton>
+                        </span>
+                      </Tooltip>
+                    )}
+                  </TableCell>
+                )}
               </TableRow>
             </TableBody>
           </Table>
