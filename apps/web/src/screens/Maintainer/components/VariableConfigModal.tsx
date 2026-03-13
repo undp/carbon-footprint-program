@@ -30,6 +30,7 @@ interface DimensionConfig {
 interface VariableConfigModalProps {
   open: boolean;
   readOnly?: boolean;
+  hasEmissionFactors?: boolean;
   subcategoryId: string;
   subcategoryName: string;
   currentDimensions: DimensionConfig[];
@@ -46,6 +47,7 @@ function getDim(
 
 const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
   readOnly = false,
+  hasEmissionFactors = false,
   subcategoryId,
   subcategoryName,
   currentDimensions,
@@ -63,11 +65,15 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
   ) => {
     setDims((prev) => {
       if (field === "name" && (value as string).trim() === "") {
+        // When there are EFs, don't allow removing a dimension by clearing its name
+        if (hasEmissionFactors) return prev;
         return prev.filter((d) => d.position < position);
       }
       const next = [...prev];
       let dim = next.find((d) => d.position === position);
       if (!dim) {
+        // When there are EFs, don't allow creating new dimensions
+        if (hasEmissionFactors) return prev;
         dim = {
           code: `variable_${position}`,
           name: "",
@@ -119,7 +125,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
           <Box>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
               <strong>Instrucciones:</strong> Define las variables de esta
-              sub-categor&iacute;a y si son requeridas.
+              sub-categoría y si son requeridas.
             </Typography>
             <Typography
               variant="caption"
@@ -132,9 +138,16 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                 existe una <strong>variable 1</strong>
               </li>
               <li>
-                Una variable <strong>requerida</strong> afecta el c&aacute;lculo
-                del factor de emisi&oacute;n
+                Una variable <strong>requerida</strong> afecta el cálculo del
+                factor de emisión
               </li>
+              {hasEmissionFactors && (
+                <li>
+                  Esta sub-categoría tiene factores de emisión asociados, solo
+                  se puede modificar el <strong>nombre</strong> de las variables
+                  existentes
+                </li>
+              )}
             </Typography>
           </Box>
         </Box>
@@ -176,7 +189,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                     placeholder="ej: Tipo de vehículo"
                     value={dim1?.name ?? ""}
                     onChange={(e) => updateDim(1, "name", e.target.value)}
-                    disabled={readOnly}
+                    disabled={readOnly || (!hasDim1 && hasEmissionFactors)}
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -186,7 +199,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                       onChange={(e) =>
                         updateDim(1, "isRequired", e.target.checked)
                       }
-                      disabled={readOnly}
+                      disabled={readOnly || hasEmissionFactors}
                       size="small"
                     />
                   ) : (
@@ -197,7 +210,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                 </TableCell>
                 {!readOnly && (
                   <TableCell align="center">
-                    {hasDim1 && (
+                    {hasDim1 && !hasEmissionFactors && (
                       <Tooltip
                         title={
                           !canClearDim1
@@ -234,7 +247,11 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                     placeholder="ej: Tipo de combustible"
                     value={dim2?.name ?? ""}
                     onChange={(e) => updateDim(2, "name", e.target.value)}
-                    disabled={readOnly || !hasDim1}
+                    disabled={
+                      readOnly ||
+                      (!hasDim1 && !hasEmissionFactors) ||
+                      (!hasDim2 && hasEmissionFactors)
+                    }
                   />
                 </TableCell>
                 <TableCell align="center">
@@ -244,7 +261,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                       onChange={(e) =>
                         updateDim(2, "isRequired", e.target.checked)
                       }
-                      disabled={readOnly}
+                      disabled={readOnly || hasEmissionFactors}
                       size="small"
                     />
                   ) : (
@@ -255,7 +272,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                 </TableCell>
                 {!readOnly && (
                   <TableCell align="center">
-                    {hasDim2 && (
+                    {hasDim2 && !hasEmissionFactors && (
                       <Tooltip title="Limpiar variable">
                         <span>
                           <IconButton size="small" onClick={() => clearDim(2)}>
