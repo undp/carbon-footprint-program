@@ -67,7 +67,7 @@ export const DeleteUserConfirmationDialog: FC<
 
       <DialogContent>
         <Typography variant="body1">
-          ¿Estás seguro de que deseas eliminar al usuario{" "}
+          ¿Estás seguro de que deseas eliminar a{" "}
           {userEmail ? <strong>{userEmail}</strong> : "este usuario"}?
         </Typography>
         <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>

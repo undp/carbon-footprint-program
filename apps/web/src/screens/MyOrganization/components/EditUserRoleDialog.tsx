@@ -97,7 +97,7 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
         <DialogContent sx={{ pt: 0 }}>
           {userEmail && (
             <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-              Usuario: <strong>{userEmail}</strong>
+              Editando rol de: <strong>{userEmail}</strong>
             </Typography>
           )}
 
