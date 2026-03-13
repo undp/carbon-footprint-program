@@ -23,7 +23,7 @@ import { AddUserFormData, EditUserRoleFormData } from "../types";
  * @returns {boolean} addDialogOpen - Whether the add user dialog is open
  * @returns {boolean} editDialogOpen - Whether the edit user role dialog is open
  * @returns {boolean} deleteDialogOpen - Whether the delete user confirmation dialog is open
- * @returns {string | null} selectedUserName - Name of the currently selected user
+ * @returns {string | null} selectedUserEmail - Email of the currently selected user
  * @returns {string | null} selectedUserRole - Role of the currently selected user
  * @returns {boolean} isAddingUser - Whether a user is currently being added
  * @returns {boolean} isUpdatingUser - Whether a user role is currently being updated
@@ -101,7 +101,7 @@ export const useMyOrganizationUsers = (organizationId: string | undefined) => {
     deleteDialogOpen: dialogsState.deleteDialogOpen,
 
     // Selected user info
-    selectedUserName: dialogsState.selectedUserName,
+    selectedUserEmail: dialogsState.selectedUserEmail,
     selectedUserRole: dialogsState.selectedUserRole,
 
     // Loading states

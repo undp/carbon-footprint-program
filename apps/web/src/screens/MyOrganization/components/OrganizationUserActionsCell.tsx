@@ -5,18 +5,18 @@ import { OrganizationRole } from "@repo/types";
 
 interface OrganizationUserActionsCellProps {
   userId: string;
-  userName?: string;
+  userEmail?: string | null;
   currentRole?: OrganizationRole;
   isCurrentUser?: boolean;
-  onEdit: (userId: string, userName: string, role: OrganizationRole) => void;
-  onDelete: (userId: string, userName: string) => void;
+  onEdit: (userId: string, userEmail: string, role: OrganizationRole) => void;
+  onDelete: (userId: string, userEmail: string) => void;
 }
 
 export const OrganizationUserActionsCell: FC<
   OrganizationUserActionsCellProps
 > = ({
   userId,
-  userName = "",
+  userEmail = "",
   currentRole,
   isCurrentUser = false,
   onEdit,
@@ -47,7 +47,9 @@ export const OrganizationUserActionsCell: FC<
         <span>
           <IconButton
             size="small"
-            onClick={() => currentRole && onEdit(userId, userName, currentRole)}
+            onClick={() =>
+              currentRole && onEdit(userId, userEmail ?? "", currentRole)
+            }
             disabled={isCurrentUser}
             sx={iconButtonStyles}
             color="primary"
@@ -61,7 +63,7 @@ export const OrganizationUserActionsCell: FC<
         <span>
           <IconButton
             size="small"
-            onClick={() => onDelete(userId, userName)}
+            onClick={() => onDelete(userId, userEmail ?? "")}
             disabled={isCurrentUser}
             sx={iconButtonStyles}
             color="primary"

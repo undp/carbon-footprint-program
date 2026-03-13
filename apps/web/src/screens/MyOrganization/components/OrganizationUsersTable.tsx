@@ -18,8 +18,8 @@ type User = {
 type OrganizationUsersTableProps = {
   users: User[];
   onAdd: () => void;
-  onEdit: (userId: string, userName: string, role: OrganizationRole) => void;
-  onDelete: (userId: string, userName: string) => void;
+  onEdit: (userId: string, userEmail: string, role: OrganizationRole) => void;
+  onDelete: (userId: string, userEmail: string) => void;
   isLoading?: boolean;
   canManageUsers: boolean;
 };
@@ -72,7 +72,7 @@ const OrganizationUsersTableComponent: FC<OrganizationUsersTableProps> = ({
               renderCell: (params: GridRenderCellParams<User>) => (
                 <OrganizationUserActionsCell
                   userId={params.row.userId}
-                  userName={params.row.name}
+                  userEmail={params.row.email}
                   currentRole={params.row.organizationRole}
                   isCurrentUser={params.row.isCurrentUser}
                   onEdit={onEdit}

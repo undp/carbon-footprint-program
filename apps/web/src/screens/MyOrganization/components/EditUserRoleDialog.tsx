@@ -21,7 +21,7 @@ interface EditUserRoleDialogProps {
   onClose: () => void;
   onSubmit: (data: EditUserRoleFormData) => void;
   currentRole?: OrganizationRole | null;
-  userName?: string | null;
+  userEmail?: string | null;
   isSubmitting?: boolean;
 }
 
@@ -30,7 +30,7 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
   onClose,
   onSubmit,
   currentRole,
-  userName,
+  userEmail,
   isSubmitting = false,
 }) => {
   const { control, handleSubmit, reset } = useForm<EditUserRoleFormData>();
@@ -95,9 +95,9 @@ export const EditUserRoleDialog: FC<EditUserRoleDialogProps> = ({
 
       <form onSubmit={handleSubmit(handleFormSubmit)}>
         <DialogContent sx={{ pt: 0 }}>
-          {userName && (
+          {userEmail && (
             <Typography variant="body2" sx={{ mb: 2, color: "text.secondary" }}>
-              Usuario: <strong>{userName}</strong>
+              Usuario: <strong>{userEmail}</strong>
             </Typography>
           )}
 
