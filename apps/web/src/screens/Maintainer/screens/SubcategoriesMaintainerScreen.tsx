@@ -644,9 +644,16 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         subcategoryId={variableConfigRow?.subcategoryId ?? ""}
         subcategoryName={variableConfigRow?.subcategoryName ?? ""}
         currentDimensions={
-          serverDimensions.find(
-            (d) => d.subcategoryId === variableConfigRow?.subcategoryId
-          )?.dimensions ?? []
+          serverDimensions
+            .find(
+              (d) => d.subcategoryId === variableConfigRow?.subcategoryId
+            )
+            ?.dimensions.map(({ code, name, position, isRequired }) => ({
+              code,
+              name,
+              position,
+              isRequired,
+            })) ?? []
         }
         onSave={handleSaveVariableConfig}
         onClose={() => setVariableConfigRow(null)}
