@@ -20,6 +20,7 @@ import {
   useDeleteSubcategory,
   useEmissionFactorDimensions,
   useUpsertEmissionFactorDimensions,
+  useEmissionFactors,
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
@@ -67,15 +68,25 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     useCategories(methodologyVersionId);
   const { data: measurementUnits, isLoading: isLoadingUnits } =
     useMeasurementUnits();
-  // Dimensions are loaded in the background — they don't block the form mount.
+  // Dimensions and emission factors are loaded in the background — they don't block the form mount.
   const { data: dimensions = [] } =
     useEmissionFactorDimensions(methodologyVersionId);
+  const { data: emissionFactors = [] } =
+    useEmissionFactors(methodologyVersionId);
 
   const categoryOptions = useMemo(
     () =>
       categories?.map((c) => ({ id: c.id, name: c.name, color: c.color })) ??
       [],
     [categories]
+  );
+
+  const subcategoryIdsWithEFs = useMemo(
+    () =>
+      new Set(
+        emissionFactors.map((emissionFactor) => emissionFactor.subcategoryId)
+      ),
+    [emissionFactors]
   );
 
   // --- Form & editing state ---
@@ -642,13 +653,14 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       <VariableConfigModal
         open={variableConfigRow !== null}
         readOnly={isViewOnly}
+        hasEmissionFactors={subcategoryIdsWithEFs.has(
+          variableConfigRow?.subcategoryId ?? ""
+        )}
         subcategoryId={variableConfigRow?.subcategoryId ?? ""}
         subcategoryName={variableConfigRow?.subcategoryName ?? ""}
         currentDimensions={
           serverDimensions
-            .find(
-              (d) => d.subcategoryId === variableConfigRow?.subcategoryId
-            )
+            .find((d) => d.subcategoryId === variableConfigRow?.subcategoryId)
             ?.dimensions.map(({ code, name, position, isRequired }) => ({
               code,
               name,
