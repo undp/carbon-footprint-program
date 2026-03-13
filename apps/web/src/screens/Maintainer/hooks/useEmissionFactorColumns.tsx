@@ -22,6 +22,7 @@ interface RateMeasurementUnit {
 interface SubcategoryOption {
   id: string;
   name: string;
+  categoryName: string;
   measurementUnitIds: string[];
 }
 
@@ -95,11 +96,26 @@ export const useEmissionFactorColumns = ({
                   onCellChange(rowIndex, "subcategoryId", e.target.value)
                 }
               >
-                {subcategories.map((sc) => (
-                  <MenuItem key={sc.id} value={sc.id}>
-                    {sc.name}
-                  </MenuItem>
-                ))}
+                {(() => {
+                  const items: React.ReactNode[] = [];
+                  let lastCategory = "";
+                  for (const sc of subcategories) {
+                    if (sc.categoryName !== lastCategory) {
+                      lastCategory = sc.categoryName;
+                      items.push(
+                        <ListSubheader key={`header-${sc.categoryName}`}>
+                          {sc.categoryName}
+                        </ListSubheader>
+                      );
+                    }
+                    items.push(
+                      <MenuItem key={sc.id} value={sc.id}>
+                        {sc.name}
+                      </MenuItem>
+                    );
+                  }
+                  return items;
+                })()}
               </Select>
             );
           }

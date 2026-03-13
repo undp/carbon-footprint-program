@@ -163,6 +163,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   const subcategoryOptions = subcategories.map((s) => ({
     id: s.id,
     name: s.name,
+    categoryName: s.category.name,
     measurementUnitIds: s.measurementUnits.map((mu) => mu.id),
   }));
 
@@ -200,6 +201,7 @@ interface EmissionFactorsFormProps {
   subcategories: Array<{
     id: string;
     name: string;
+    categoryName: string;
     measurementUnitIds: string[];
   }>;
   rateUnits: Array<{
