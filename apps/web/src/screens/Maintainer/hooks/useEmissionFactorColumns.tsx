@@ -1,5 +1,5 @@
 import { useMemo, useCallback } from "react";
-import { Button, MenuItem, Select, TextField, Typography } from "@mui/material";
+import { Button, ListSubheader, MenuItem, Select, Typography } from "@mui/material";
 import { LocalFireDepartment as FlameIcon } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type {
@@ -7,7 +7,7 @@ import type {
   EmissionFactorForm,
 } from "@repo/types";
 
-import { EditableTextCell } from "../components/cells";
+import { EditableTextCell, EditableNumberCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
@@ -191,50 +191,19 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
-
-          if (editing) {
-            return (
-              <TextField
-                size="small"
-                fullWidth
-                type="text"
-                value={formRow?.value ?? ""}
-                onChange={(e) => {
-                  const nextValue = e.target.value;
-                  onCellChange(
-                    rowIndex,
-                    "value",
-                    nextValue === "" ? 0 : Number(nextValue)
-                  );
-                }}
-                onKeyDown={(e) => e.stopPropagation()}
-                inputProps={{ style: { textAlign: "right" } }}
-                sx={{
-                  "& .MuiOutlinedInput-root": { backgroundColor: "white" },
-                }}
-              />
-            );
-          }
-
           return (
-            <Typography
-              variant="body2"
+            <EditableNumberCell
+              formArrayName="emissionFactors"
+              rowIndex={rowIndex}
+              fieldName="value"
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "value", value)}
               onClick={
-                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
               }
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                cursor: !viewOnly ? "pointer" : "default",
-                textAlign: "right",
-                width: "100%",
-                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
-              }}
-            >
-              {params.row.value}
-            </Typography>
+            />
           );
         },
       },
