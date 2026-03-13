@@ -1,33 +1,33 @@
 import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { NORMATIVA_OPTIONS } from "../../constants";
-import type { MethodologiesFormValues } from "../../hooks/useMethodologiesForm";
+import { SOURCE_OPTIONS } from "../../constants";
+import type { EmissionFactorsFormValues } from "../../hooks/useEmissionFactorsForm";
 import { FreeSoloAutocompleteCell } from "./FreeSoloAutocompleteCell";
 
-const options = NORMATIVA_OPTIONS.map((o) => o.value);
+const options = SOURCE_OPTIONS.map((o) => o.value);
 
-interface MethodologyRegulationCellProps {
+interface EmissionFactorSourceCellProps {
   rowIndex: number;
   isEditing: boolean;
   onChange: (value: string) => void;
   onClick?: () => void;
 }
 
-export const MethodologyRegulationCell: FC<MethodologyRegulationCellProps> = ({
+export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
   rowIndex,
   isEditing,
   onChange,
   onClick,
 }) => {
-  const { control } = useFormContext<MethodologiesFormValues>();
-  const formValue = useWatch<MethodologiesFormValues>({
-    name: `methodologies.${rowIndex}.regulation`,
+  const { control } = useFormContext<EmissionFactorsFormValues>();
+  const formValue = useWatch<EmissionFactorsFormValues>({
+    name: `emissionFactors.${rowIndex}.source`,
   }) as string;
   const { errors } = useFormState({
     control,
-    name: `methodologies.${rowIndex}.regulation`,
+    name: `emissionFactors.${rowIndex}.source`,
   });
-  const fieldError = errors.methodologies?.[rowIndex]?.regulation;
+  const fieldError = errors.emissionFactors?.[rowIndex]?.source;
 
   return (
     <FreeSoloAutocompleteCell

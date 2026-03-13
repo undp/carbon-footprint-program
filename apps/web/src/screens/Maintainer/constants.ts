@@ -6,3 +6,11 @@ export const NORMATIVA_OPTIONS: SelectOption[] = [
   { label: "ISO 14067", value: "ISO 14067" },
   { label: "PAS 2050", value: "PAS 2050" },
 ];
+
+export const SOURCE_OPTIONS: SelectOption[] = [
+  { label: "DEFRA 2025", value: "DEFRA 2025" },
+  { label: "HuellaChile", value: "HuellaChile" },
+  { label: "EPA", value: "EPA" },
+  { label: "IPCC", value: "IPCC" },
+  { label: "GHG Protocol", value: "GHG Protocol" },
+];

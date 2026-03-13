@@ -7,7 +7,7 @@ import type {
   EmissionFactorForm,
 } from "@repo/types";
 
-import { EditableTextCell, EditableNumberCell } from "../components/cells";
+import { EditableTextCell, EditableNumberCell, EmissionFactorSourceCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
@@ -25,14 +25,6 @@ interface SubcategoryOption {
   categoryName: string;
   measurementUnitIds: string[];
 }
-
-const SOURCE_OPTIONS = [
-  { value: "DEFRA 2025", label: "DEFRA 2025" },
-  { value: "HuellaChile", label: "HuellaChile" },
-  { value: "EPA", label: "EPA" },
-  { value: "IPCC", label: "IPCC" },
-  { value: "GHG Protocol", label: "GHG Protocol" },
-];
 
 interface UseEmissionFactorColumnsParams {
   editingRowId: string | null;
@@ -347,47 +339,17 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
-
-          if (editing) {
-            return (
-              <Select
-                size="small"
-                fullWidth
-                value={formRow?.source ?? ""}
-                onChange={(e) =>
-                  onCellChange(rowIndex, "source", e.target.value)
-                }
-              >
-                {SOURCE_OPTIONS.map((s) => (
-                  <MenuItem key={s.value} value={s.value}>
-                    {s.label}
-                  </MenuItem>
-                ))}
-              </Select>
-            );
-          }
-
           return (
-            <Typography
-              variant="body2"
+            <EmissionFactorSourceCell
+              rowIndex={rowIndex}
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "source", value)}
               onClick={
-                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
               }
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                cursor: !viewOnly ? "pointer" : "default",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                width: "100%",
-                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
-              }}
-            >
-              {params.row.source}
-            </Typography>
+            />
           );
         },
       },
