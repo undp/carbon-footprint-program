@@ -99,7 +99,10 @@ export const EmissionCaptureScreen: FC = () => {
     () => void navigate({ to: Routes.CARBON_INVENTORIES }),
     [navigate]
   );
-  const { submit: submitAndGoToList } = useEmissionCaptureSubmit({
+  const {
+    submit: submitAndGoToList,
+    isSubmitting: isSubmittingAndGoingToList,
+  } = useEmissionCaptureSubmit({
     inventoryId,
     onSuccess: goToList,
     isDirty: formState.isDirty,
@@ -191,7 +194,11 @@ export const EmissionCaptureScreen: FC = () => {
             action: (
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}
-                buttonProps={{ onClick: handleExitClick }}
+                buttonProps={{
+                  onClick: handleExitClick,
+                  disabled: isSubmittingAndGoingToList,
+                  loading: isSubmittingAndGoingToList,
+                }}
               />
             ),
           }}
