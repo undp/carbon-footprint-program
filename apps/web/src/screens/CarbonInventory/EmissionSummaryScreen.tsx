@@ -1,11 +1,15 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useState } from "react";
 import { Box } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useAuth } from "@/contexts";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
-import { StepHeader, CarbonInventoryNavigationButton } from "./components";
+import {
+  StepHeader,
+  CarbonInventoryNavigationButton,
+  ExitInventoryDialog,
+} from "./components";
 import {
   InventoryAttributesCard,
   EmissionFactorsTable,
@@ -21,6 +25,7 @@ import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigati
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
+import { EXIT_DIALOG_CONTENT } from "./constants";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -28,9 +33,10 @@ export const EmissionSummaryScreen: FC = () => {
   });
 
   const { enqueueSnackbar } = useSnackbar();
-  const navigate = useNavigate();
   const { user } = useAuth();
-  const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
+  const { goBack, goNext, goToList, goToLanding } =
+    useEmissionSummaryNavigation(inventoryId);
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
 
   const { data: equivalence, isError: isEquivalenceError } =
     useMainActivityEquivalence(inventoryId);
@@ -92,6 +98,14 @@ export const EmissionSummaryScreen: FC = () => {
     },
   };
 
+  const handleExitClick = () => {
+    if (user) {
+      goToList();
+    } else {
+      setIsExitDialogOpen(true);
+    }
+  };
+
   return (
     <CarbonInventoryLayout
       headerProps={{
@@ -100,10 +114,7 @@ export const EmissionSummaryScreen: FC = () => {
           <CarbonInventoryNavigationButton
             type={user ? "inventories" : "landing"}
             buttonProps={{
-              onClick: () =>
-                void navigate({
-                  to: user ? Routes.CARBON_INVENTORIES : Routes.LANDING,
-                }),
+              onClick: handleExitClick,
             }}
           />
         ),
@@ -152,6 +163,12 @@ export const EmissionSummaryScreen: FC = () => {
           hasError={isFactorsError}
         />
       </Box>
+      <ExitInventoryDialog
+        open={isExitDialogOpen}
+        onClose={() => setIsExitDialogOpen(false)}
+        onConfirm={goToLanding}
+        {...EXIT_DIALOG_CONTENT.GUEST}
+      />
     </CarbonInventoryLayout>
   );
 };
