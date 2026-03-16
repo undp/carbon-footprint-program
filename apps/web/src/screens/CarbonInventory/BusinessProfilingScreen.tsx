@@ -14,6 +14,7 @@ import {
 } from "@/components";
 import { StepHeader, ExitInventoryDialog } from "./components";
 import { useCarbonInventory } from "@/api/query";
+import { EXIT_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
@@ -141,17 +142,8 @@ export const BusinessProfilingScreen: FC = () => {
   };
 
   const exitDialogProps = user
-    ? {
-        title: "¿Salir sin guardar?",
-        description: "Los cambios realizados no serán guardados.",
-        confirmLabel: "Salir sin guardar",
-      }
-    : {
-        title: "¿Quieres salir?",
-        description:
-          "Si sales ahora perderás todos tus datos. Continúa hasta el paso final y regístrate para guardar tu inventario de carbono.",
-        confirmLabel: "Salir",
-      };
+    ? EXIT_DIALOG_CONTENT.LOGGED_IN
+    : EXIT_DIALOG_CONTENT.GUEST;
 
   const backButton: FooterButton = {
     text: "Volver",

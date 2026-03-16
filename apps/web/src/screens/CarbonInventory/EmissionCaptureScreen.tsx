@@ -27,6 +27,7 @@ import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { EXIT_DIALOG_CONTENT } from "./constants";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -282,9 +283,7 @@ export const EmissionCaptureScreen: FC = () => {
         open={isExitDialogOpen}
         onClose={() => setIsExitDialogOpen(false)}
         onConfirm={() => void navigate({ to: Routes.LANDING })}
-        title="¿Quieres salir?"
-        description="Si sales ahora perderás todos tus datos. Continúa hasta el paso final y regístrate para guardar tu inventario de carbono."
-        confirmLabel="Salir"
+        {...EXIT_DIALOG_CONTENT.GUEST}
       />
     </FormProvider>
   );

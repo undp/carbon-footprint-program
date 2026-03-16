@@ -25,6 +25,7 @@ import { IS_DEVELOPMENT } from "@/config/environment";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { EXIT_DIALOG_CONTENT } from "./constants";
 
 const ERROR_MESSAGE = {
   title:
@@ -199,9 +200,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
         open={isExitDialogOpen}
         onClose={() => setIsExitDialogOpen(false)}
         onConfirm={() => void navigate({ to: Routes.LANDING })}
-        title="¿Quieres salir?"
-        description="Si sales ahora perderás todos tus datos. Continúa hasta el paso final y regístrate para guardar tu inventario de carbono."
-        confirmLabel="Salir"
+        {...EXIT_DIALOG_CONTENT.GUEST}
       />
     </FormProvider>
   );
