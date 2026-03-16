@@ -1,6 +1,6 @@
 import { FC, useMemo, useCallback } from "react";
 import { Box } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
