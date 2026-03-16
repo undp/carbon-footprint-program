@@ -55,8 +55,11 @@ export const EmissionResultsScreen: FC = () => {
         title: "Simulador de Inventario Organizacional",
         subtitle: summaryData?.carbonInventory.name ?? undefined,
         action: isEditable ? undefined : (
+          // If the inventory is locked (non-editable), we assume a registered user session.
+          // Otherwise, we default to the guest flow, where the footer button handles
+          // registration or temporary data persistence.
           <CarbonInventoryNavigationButton
-            type={user ? "inventories" : "landing"}
+            type="inventories"
             buttonProps={{ onClick: goToList }}
           />
         ),
