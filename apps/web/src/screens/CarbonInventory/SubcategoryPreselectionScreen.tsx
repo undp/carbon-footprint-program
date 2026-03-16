@@ -71,10 +71,12 @@ export const SubcategoryPreselectionScreen: FC = () => {
     { onSuccess: goNext }
   );
 
-  const { submit: submitAndGoToList } = useSubcategoryPreselectionSubmit(
-    inventoryId,
-    { onSuccess: goToList }
-  );
+  const {
+    submit: submitAndGoToList,
+    isSubmitting: isSubmittingAndGoingToList,
+  } = useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goToList });
+
+  const isBusy = isSubmitting || isSubmittingAndGoingToList;
 
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
@@ -87,14 +89,14 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   if (!isLoading && mustNavigateAway) return null;
 
-  const isFormDisabled = isSubmitting || hasError || isLoading;
+  const isFormDisabled = isBusy || hasError || isLoading;
 
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      disabled: isSubmitting,
+      disabled: isBusy,
       onClick: goBack,
     },
   };
@@ -107,7 +109,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
       variant: "contained",
       type: "submit",
       form: "subcategory-preselection-form",
-      loading: isSubmitting,
+      loading: isBusy,
       disabled: isFormDisabled,
     },
   };
@@ -126,7 +128,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
             action: (
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}
-                buttonProps={{ onClick: handleExitClick }}
+                buttonProps={{ onClick: handleExitClick, disabled: isBusy }}
               />
             ),
           }}
