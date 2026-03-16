@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from "react";
 import { Box } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useAuth } from "@/contexts";
