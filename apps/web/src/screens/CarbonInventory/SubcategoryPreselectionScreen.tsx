@@ -1,20 +1,25 @@
-import { FC, Fragment } from "react";
-import { Box, Divider } from "@mui/material";
-import { useParams } from "@tanstack/react-router";
+import { FC, Fragment, useState } from "react";
+import { Box, Button, Divider } from "@mui/material";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import {
   StepHeader,
-  CarbonInventoryNavigationButton,
   SubcategoryPreselectionField,
+  ExitInventoryDialog,
 } from "./components";
+import { useAuth } from "@/contexts";
 import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
 import { CategoryCard } from "./components/CategoryCard";
-import { ArrowRightAltRounded } from "@mui/icons-material";
+import {
+  ArrowForwardRounded,
+  ArrowRightAltRounded,
+  HomeOutlined,
+} from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -33,6 +38,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
@@ -65,11 +73,25 @@ export const SubcategoryPreselectionScreen: FC = () => {
     { onSuccess: goNext }
   );
 
+  const goToList = () => void navigate({ to: Routes.CARBON_INVENTORIES });
+  const { submit: submitAndGoToList } = useSubcategoryPreselectionSubmit(
+    inventoryId,
+    { onSuccess: goToList }
+  );
+
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
   if (!isLoading && mustNavigateAway) return null;
 
   const isFormDisabled = isSubmitting || hasError || isLoading;
+
+  const handleExitClick = () => {
+    if (user) {
+      void handleSubmit((values) => submitAndGoToList(values, isDirty))();
+    } else {
+      setIsExitDialogOpen(true);
+    }
+  };
 
   const backButton: FooterButton = {
     text: "Volver",
@@ -105,7 +127,23 @@ export const SubcategoryPreselectionScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
-            action: <CarbonInventoryNavigationButton />,
+            action: user ? (
+              <Button
+                variant="outlined"
+                startIcon={<ArrowForwardRounded />}
+                onClick={handleExitClick}
+              >
+                Ir a mis huellas
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                startIcon={<HomeOutlined />}
+                onClick={handleExitClick}
+              >
+                Ir al inicio
+              </Button>
+            ),
           }}
           footerProps={{
             buttons: [backButton, nextButton],
@@ -157,6 +195,14 @@ export const SubcategoryPreselectionScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
+      <ExitInventoryDialog
+        open={isExitDialogOpen}
+        onClose={() => setIsExitDialogOpen(false)}
+        onConfirm={() => void navigate({ to: Routes.LANDING })}
+        title="¿Quieres salir?"
+        description="Si sales ahora perderás todos tus datos. Continúa hasta el paso final y regístrate para guardar tu inventario de carbono."
+        confirmLabel="Salir"
+      />
     </FormProvider>
   );
 };

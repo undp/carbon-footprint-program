@@ -1,10 +1,11 @@
-import { FC, useMemo, useCallback } from "react";
-import { Box } from "@mui/material";
-import { useParams } from "@tanstack/react-router";
+import { FC, useMemo, useCallback, useState } from "react";
+import { Box, Button } from "@mui/material";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
-import { StepHeader, CarbonInventoryNavigationButton } from "./components";
+import { StepHeader, ExitInventoryDialog } from "./components";
+import { useAuth } from "@/contexts";
 import { CategoryCard } from "./components/CategoryCard";
 import { EmissionEditor } from "./components/EmissionEditor";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
@@ -16,7 +17,12 @@ import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
+import {
+  ArrowForwardRounded,
+  ArrowRightAltRounded,
+  HomeOutlined,
+  SaveRounded,
+} from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
@@ -26,6 +32,9 @@ export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
@@ -87,6 +96,19 @@ export const EmissionCaptureScreen: FC = () => {
     resultFeedbackWithSnackbar: true,
   });
 
+  const goToList = useCallback(
+    () => void navigate({ to: Routes.CARBON_INVENTORIES }),
+    [navigate]
+  );
+  const { submit: submitAndGoToList } = useEmissionCaptureSubmit({
+    inventoryId,
+    onSuccess: goToList,
+    isDirty: formState.isDirty,
+    getDirtyLineIds,
+    resetAfterSave,
+    showNoChangesMessage: false,
+  });
+
   const selectedCategoryData = useMemo(
     () => data?.categories.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
@@ -113,6 +135,14 @@ export const EmissionCaptureScreen: FC = () => {
   const isLoading = isEmissionCaptureLoading || !isReady;
 
   if (!isLoading && mustNavigateAway) return null;
+
+  const handleExitClick = () => {
+    if (user) {
+      void handleSubmit(submitAndGoToList)();
+    } else {
+      setIsExitDialogOpen(true);
+    }
+  };
 
   const backButton: FooterButton = {
     text: "Volver",
@@ -161,7 +191,23 @@ export const EmissionCaptureScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
-            action: <CarbonInventoryNavigationButton />,
+            action: user ? (
+              <Button
+                variant="outlined"
+                startIcon={<ArrowForwardRounded />}
+                onClick={handleExitClick}
+              >
+                Ir a mis huellas
+              </Button>
+            ) : (
+              <Button
+                variant="outlined"
+                startIcon={<HomeOutlined />}
+                onClick={handleExitClick}
+              >
+                Ir al inicio
+              </Button>
+            ),
           }}
           footerProps={{
             buttons: [backButton, nextButton],
@@ -232,6 +278,14 @@ export const EmissionCaptureScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
+      <ExitInventoryDialog
+        open={isExitDialogOpen}
+        onClose={() => setIsExitDialogOpen(false)}
+        onConfirm={() => void navigate({ to: Routes.LANDING })}
+        title="¿Quieres salir?"
+        description="Si sales ahora perderás todos tus datos. Continúa hasta el paso final y regístrate para guardar tu inventario de carbono."
+        confirmLabel="Salir"
+      />
     </FormProvider>
   );
 };
