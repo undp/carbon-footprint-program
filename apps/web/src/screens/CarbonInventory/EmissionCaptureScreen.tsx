@@ -1,4 +1,4 @@
-import { FC, useMemo, useCallback, useState } from "react";
+import { FC, useMemo, useCallback } from "react";
 import { Box } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
@@ -26,7 +26,7 @@ import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
-import { EXIT_DIALOG_CONTENT } from "./constants";
+import { useExitDialog } from "./hooks/useExitDialog";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -34,7 +34,6 @@ export const EmissionCaptureScreen: FC = () => {
   });
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
@@ -134,15 +133,13 @@ export const EmissionCaptureScreen: FC = () => {
 
   const isLoading = isEmissionCaptureLoading || !isReady;
 
-  if (!isLoading && mustNavigateAway) return null;
+  const { handleExitClick, dialogProps } = useExitDialog({
+    user,
+    onUserExit: () => void handleSubmit(submitAndGoToList)(),
+    onGuestConfirm: () => void navigate({ to: Routes.LANDING }),
+  });
 
-  const handleExitClick = () => {
-    if (user) {
-      void handleSubmit(submitAndGoToList)();
-    } else {
-      setIsExitDialogOpen(true);
-    }
-  };
+  if (!isLoading && mustNavigateAway) return null;
 
   const backButton: FooterButton = {
     text: "Volver",
@@ -267,12 +264,7 @@ export const EmissionCaptureScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
-      <ExitInventoryDialog
-        open={isExitDialogOpen}
-        onClose={() => setIsExitDialogOpen(false)}
-        onConfirm={() => void navigate({ to: Routes.LANDING })}
-        {...EXIT_DIALOG_CONTENT.GUEST}
-      />
+      <ExitInventoryDialog {...dialogProps} />
     </FormProvider>
   );
 };

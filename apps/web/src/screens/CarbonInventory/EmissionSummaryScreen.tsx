@@ -1,4 +1,4 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
@@ -22,10 +22,10 @@ import {
   useCarbonInventoryMetadata,
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
+import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
-import { EXIT_DIALOG_CONTENT } from "./constants";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -36,7 +36,11 @@ export const EmissionSummaryScreen: FC = () => {
   const { user } = useAuth();
   const { goBack, goNext, goToList, goToLanding } =
     useEmissionSummaryNavigation(inventoryId);
-  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
+  const { handleExitClick, dialogProps } = useExitDialog({
+    user,
+    onUserExit: goToList,
+    onGuestConfirm: goToLanding,
+  });
 
   const { data: equivalence, isError: isEquivalenceError } =
     useMainActivityEquivalence(inventoryId);
@@ -98,14 +102,6 @@ export const EmissionSummaryScreen: FC = () => {
     },
   };
 
-  const handleExitClick = () => {
-    if (user) {
-      goToList();
-    } else {
-      setIsExitDialogOpen(true);
-    }
-  };
-
   return (
     <CarbonInventoryLayout
       headerProps={{
@@ -163,12 +159,7 @@ export const EmissionSummaryScreen: FC = () => {
           hasError={isFactorsError}
         />
       </Box>
-      <ExitInventoryDialog
-        open={isExitDialogOpen}
-        onClose={() => setIsExitDialogOpen(false)}
-        onConfirm={goToLanding}
-        {...EXIT_DIALOG_CONTENT.GUEST}
-      />
+      <ExitInventoryDialog {...dialogProps} />
     </CarbonInventoryLayout>
   );
 };
