@@ -1,5 +1,12 @@
-import { FC, useRef, useMemo, useLayoutEffect, useCallback } from "react";
-import { Box, Chip, Typography, alpha } from "@mui/material";
+import {
+  FC,
+  useRef,
+  useMemo,
+  useState,
+  useLayoutEffect,
+  useCallback,
+} from "react";
+import { Box, Chip, Tooltip, Typography, alpha } from "@mui/material";
 import type { MeasurementUnit } from "../../../types";
 
 interface ReadMeasurementUnitsCellProps {
@@ -18,15 +25,22 @@ export const ReadMeasurementUnitsCell: FC<ReadMeasurementUnitsCellProps> = ({
   onOpenAndEdit,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sortedUnitsRef = useRef<MeasurementUnit[]>([]);
+  const [overflowTooltip, setOverflowTooltip] = useState("");
 
   const sortedUnits = useMemo(
     () => [...selectedUnits].sort((a, b) => a.name.length - b.name.length),
     [selectedUnits]
   );
 
-  const recalculate = useCallback(() => {
+  useLayoutEffect(() => {
+    sortedUnitsRef.current = sortedUnits;
+  }, [sortedUnits]);
+
+  /** Pure DOM manipulation — returns the number of visible chips. */
+  const recalculateLayout = useCallback((): number | undefined => {
     const container = containerRef.current;
-    if (!container) return;
+    if (!container) return undefined;
 
     const dataChips = Array.from(
       container.querySelectorAll<HTMLElement>("[data-unit-chip]")
@@ -45,7 +59,7 @@ export const ReadMeasurementUnitsCell: FC<ReadMeasurementUnitsCellProps> = ({
 
     if (dataChips.length === 0) {
       container.style.alignContent = "center";
-      return;
+      return 0;
     }
 
     const containerHeight = container.clientHeight;
@@ -56,7 +70,7 @@ export const ReadMeasurementUnitsCell: FC<ReadMeasurementUnitsCellProps> = ({
     // All content fits — nothing to do
     if (tailElement.offsetTop + tailElement.offsetHeight <= containerHeight) {
       container.style.alignContent = "center";
-      return;
+      return dataChips.length;
     }
 
     // Not all fit — show overflow chip, then hide data chips from the end
@@ -87,18 +101,30 @@ export const ReadMeasurementUnitsCell: FC<ReadMeasurementUnitsCellProps> = ({
 
     // Center vertically now that the final layout is determined
     container.style.alignContent = "center";
+    return visibleCount;
   }, []);
 
   useLayoutEffect(() => {
-    recalculate();
+    // Synchronous call to avoid layout flash (no setState here)
+    recalculateLayout();
 
     const container = containerRef.current;
     if (!container) return;
 
-    const observer = new ResizeObserver(recalculate);
+    // ResizeObserver callback is a subscription — setState is allowed here
+    const observer = new ResizeObserver(() => {
+      const count = recalculateLayout();
+      if (count !== undefined) {
+        const tooltip = sortedUnitsRef.current
+          .slice(count)
+          .map((u) => u.name)
+          .join(", ");
+        setOverflowTooltip(tooltip);
+      }
+    });
     observer.observe(container);
     return () => observer.disconnect();
-  }, [recalculate, sortedUnits]);
+  }, [recalculateLayout, sortedUnits]);
 
   return (
     <Box
@@ -138,18 +164,20 @@ export const ReadMeasurementUnitsCell: FC<ReadMeasurementUnitsCellProps> = ({
           }
         />
       ))}
-      <Chip
-        data-overflow-chip=""
-        label=""
-        size="small"
-        variant="outlined"
-        color="primary"
-        onClick={onOpenAndEdit}
-        sx={{
-          backgroundColor: (t) => alpha(t.palette.primary.main, 0.1),
-          cursor: onClick ? "pointer" : "default",
-        }}
-      />
+      <Tooltip title={overflowTooltip} arrow>
+        <Chip
+          data-overflow-chip=""
+          label=""
+          size="small"
+          variant="outlined"
+          color="primary"
+          onClick={onOpenAndEdit}
+          sx={{
+            backgroundColor: (t) => alpha(t.palette.primary.main, 0.1),
+            cursor: onClick ? "pointer" : "default",
+          }}
+        />
+      </Tooltip>
       {sortedUnits.length === 0 && !onClick && (
         <Typography variant="body2" color="text.secondary">
           —
