@@ -311,6 +311,10 @@ export const BusinessProfilingScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={control} />}
+      {/* In this screen we do not use the useExitDialog hook because this form has required fields
+      , so the user cannot exit the screen without filling them. and allowing partial filling
+      could be problematic programmatically and not intuitive for the user.
+      */}
       <ExitInventoryDialog
         open={isExitDialogOpen}
         onClose={() => setIsExitDialogOpen(false)}
