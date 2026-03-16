@@ -173,7 +173,10 @@ export const BusinessProfilingScreen: FC = () => {
             action: (
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}
-                buttonProps={{ onClick: handleExitClick }}
+                buttonProps={{
+                  onClick: handleExitClick,
+                  disabled: isSubmitting,
+                }}
               />
             ),
           }}
