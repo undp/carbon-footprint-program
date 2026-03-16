@@ -489,7 +489,8 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
 
   // --- Block navigation while editing ---
   const { proceed, reset, status } = useBlocker({
-    shouldBlockFn: () => editingRowId !== null,
+    shouldBlockFn: () => form.formState.isDirty,
+    enableBeforeUnload: form.formState.isDirty,
     withResolver: true,
   });
 
