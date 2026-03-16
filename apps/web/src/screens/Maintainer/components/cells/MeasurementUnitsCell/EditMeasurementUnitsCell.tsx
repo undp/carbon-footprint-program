@@ -99,6 +99,9 @@ export const EditMeasurementUnitsCell: FC<EditMeasurementUnitsCellProps> = ({
         width: "100%",
         "& .MuiAutocomplete-inputRoot": {
           py: 0,
+          maxHeight: 88,
+          overflowY: "auto",
+          flexWrap: "wrap",
         },
       }}
     />
