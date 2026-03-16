@@ -15,6 +15,7 @@ interface Props {
   title: string;
   description: string;
   confirmLabel: string;
+  cancelLabel?: string;
 }
 
 export const ExitInventoryDialog: FC<Props> = ({
@@ -24,6 +25,7 @@ export const ExitInventoryDialog: FC<Props> = ({
   title,
   description,
   confirmLabel,
+  cancelLabel = "Cancelar",
 }) => (
   <Dialog open={open} onClose={onClose}>
     <DialogTitle>{title}</DialogTitle>
@@ -31,7 +33,7 @@ export const ExitInventoryDialog: FC<Props> = ({
       <DialogContentText>{description}</DialogContentText>
     </DialogContent>
     <DialogActions>
-      <Button onClick={onClose}>Cancelar</Button>
+      <Button onClick={onClose}>{cancelLabel}</Button>
       <Button onClick={onConfirm} color="primary" variant="contained">
         {confirmLabel}
       </Button>
