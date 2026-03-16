@@ -87,7 +87,10 @@ export const EmissionCaptureScreen: FC = () => {
       showNoChangesMessage: false,
     });
 
-  const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
+  const {
+    submit: submitOnCategoryChange,
+    isSubmitting: isSubmittingOnCategoryChange,
+  } = useEmissionCaptureSubmit({
     inventoryId,
     isDirty: formState.isDirty,
     getDirtyLineIds,
@@ -114,6 +117,13 @@ export const EmissionCaptureScreen: FC = () => {
   );
 
   const isBusy = activeActionsCount > 0;
+
+  const globalSubmitting =
+    isSubmittingAndNavigating ||
+    isSubmittingAndGoingToList ||
+    isSubmittingAndGoingBack ||
+    isSubmittingNoNavigating ||
+    isSubmittingOnCategoryChange;
 
   const handleCategoryChangeWithSave = useCallback(
     (categoryId: string) => {
@@ -148,7 +158,7 @@ export const EmissionCaptureScreen: FC = () => {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: handleSubmit(submitAndGoBack),
       loading: isSubmittingAndGoingBack,
-      disabled: isSubmittingAndGoingBack || isBusy,
+      disabled: globalSubmitting || isBusy,
     },
   };
 
@@ -161,7 +171,7 @@ export const EmissionCaptureScreen: FC = () => {
           variant: "contained",
           onClick: handleSubmit(submitNoNavigate),
           loading: isSubmittingNoNavigating,
-          disabled: isSubmittingNoNavigating || isBusy,
+          disabled: globalSubmitting || isBusy,
         },
       }
     : {
@@ -173,7 +183,7 @@ export const EmissionCaptureScreen: FC = () => {
           type: "submit",
           form: "emission-capture-form",
           loading: isSubmittingAndNavigating,
-          disabled: isSubmittingAndNavigating || isBusy,
+          disabled: globalSubmitting || isBusy,
         },
       };
 
@@ -193,7 +203,7 @@ export const EmissionCaptureScreen: FC = () => {
                 type={user ? "inventories" : "landing"}
                 buttonProps={{
                   onClick: handleExitClick,
-                  disabled: isSubmittingAndGoingToList,
+                  disabled: globalSubmitting || isBusy,
                   loading: isSubmittingAndGoingToList,
                 }}
               />
