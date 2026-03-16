@@ -130,7 +130,10 @@ export const ReadMeasurementUnitsCell: FC<ReadMeasurementUnitsCellProps> = ({
           }}
           onDelete={
             onClick
-              ? () => onChange(unitIds.filter((id) => id !== unit.id))
+              ? () => {
+                  onClick();
+                  onChange(unitIds.filter((id) => id !== unit.id));
+                }
               : undefined
           }
         />
