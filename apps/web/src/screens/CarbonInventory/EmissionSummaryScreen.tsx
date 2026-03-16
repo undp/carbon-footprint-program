@@ -26,6 +26,7 @@ import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -34,8 +35,8 @@ export const EmissionSummaryScreen: FC = () => {
 
   const { enqueueSnackbar } = useSnackbar();
   const { user } = useAuth();
-  const { goBack, goNext, goToList, goToLanding } =
-    useEmissionSummaryNavigation(inventoryId);
+  const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
   const { handleExitClick, dialogProps } = useExitDialog({
     user,
     onUserExit: goToList,

@@ -19,13 +19,5 @@ export const useEmissionSummaryNavigation = (inventoryId: string) => {
     });
   }, [navigate, inventoryId]);
 
-  const goToList = useCallback(() => {
-    void navigate({ to: Routes.CARBON_INVENTORIES });
-  }, [navigate]);
-
-  const goToLanding = useCallback(() => {
-    void navigate({ to: Routes.LANDING });
-  }, [navigate]);
-
-  return { goBack, goNext, goToList, goToLanding };
+  return { goBack, goNext };
 };

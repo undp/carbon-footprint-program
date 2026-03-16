@@ -27,12 +27,12 @@ import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
@@ -49,6 +49,7 @@ export const EmissionCaptureScreen: FC = () => {
   });
 
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const activeActionsCount = useEmissionCaptureState(
     (state) => state.activeActionsCount
@@ -95,10 +96,6 @@ export const EmissionCaptureScreen: FC = () => {
     resultFeedbackWithSnackbar: true,
   });
 
-  const goToList = useCallback(
-    () => void navigate({ to: Routes.CARBON_INVENTORIES }),
-    [navigate]
-  );
   const {
     submit: submitAndGoToList,
     isSubmitting: isSubmittingAndGoingToList,
@@ -139,7 +136,7 @@ export const EmissionCaptureScreen: FC = () => {
   const { handleExitClick, dialogProps } = useExitDialog({
     user,
     onUserExit: () => void handleSubmit(submitAndGoToList)(),
-    onGuestConfirm: () => void navigate({ to: Routes.LANDING }),
+    onGuestConfirm: goToLanding,
   });
 
   if (!isLoading && mustNavigateAway) return null;

@@ -11,6 +11,7 @@ import { EmissionResultsContent } from "@/components";
 import { useEmissionsSummaryCategories } from "@/api/query";
 import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatusChip";
 import { isCarbonInventoryEditable } from "@repo/utils";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -18,8 +19,8 @@ export const EmissionResultsScreen: FC = () => {
   });
 
   const { user } = useAuth();
-  const { goBack, goToList, goToLanding } =
-    useEmissionResultsNavigation(inventoryId);
+  const { goBack } = useEmissionResultsNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const { data: summaryData } = useEmissionsSummaryCategories(inventoryId);
 

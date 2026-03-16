@@ -30,6 +30,7 @@ import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useAuth } from "@/contexts";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -111,8 +112,8 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const { goBack, goNext, goToList, goToLanding } =
-    useBusinessProfilingNavigation(inventoryId);
+  const { goBack, goNext } = useBusinessProfilingNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,

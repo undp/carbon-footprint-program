@@ -1,6 +1,6 @@
 import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
@@ -23,6 +23,7 @@ import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 const ERROR_MESSAGE = {
   title:
@@ -36,7 +37,6 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
@@ -56,6 +56,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   } = useSubcategoryPreselectionData(inventoryId);
 
   const { goBack, goNext } = useSubcategoryPreselectionNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const methods = useSubcategoryPreselectionForm({
     data: categories,
@@ -70,7 +71,6 @@ export const SubcategoryPreselectionScreen: FC = () => {
     { onSuccess: goNext }
   );
 
-  const goToList = () => void navigate({ to: Routes.CARBON_INVENTORIES });
   const { submit: submitAndGoToList } = useSubcategoryPreselectionSubmit(
     inventoryId,
     { onSuccess: goToList }
@@ -82,7 +82,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     user,
     onUserExit: () =>
       void handleSubmit((values) => submitAndGoToList(values, isDirty))(),
-    onGuestConfirm: () => void navigate({ to: Routes.LANDING }),
+    onGuestConfirm: goToLanding,
   });
 
   if (!isLoading && mustNavigateAway) return null;
