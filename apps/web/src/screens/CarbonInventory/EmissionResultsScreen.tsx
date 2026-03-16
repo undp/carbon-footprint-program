@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout, type FooterButton } from "./layout";
-import { StepHeader } from "./components";
+import { StepHeader, CarbonInventoryNavigationButton } from "./components";
 import { Routes } from "@/interfaces";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
 import { ArrowRightAltRounded } from "@mui/icons-material";
@@ -53,6 +53,12 @@ export const EmissionResultsScreen: FC = () => {
       headerProps={{
         title: "Simulador de Inventario Organizacional",
         subtitle: summaryData?.carbonInventory.name ?? undefined,
+        action: isEditable ? undefined : (
+          <CarbonInventoryNavigationButton
+            type={user ? "inventories" : "landing"}
+            buttonProps={{ onClick: goToList }}
+          />
+        ),
       }}
       footerProps={{
         buttons: isEditable ? [backButton, nextButton] : [backButton],
