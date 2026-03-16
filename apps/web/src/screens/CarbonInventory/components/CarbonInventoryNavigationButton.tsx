@@ -1,42 +1,27 @@
 import { FC } from "react";
-import { Button } from "@mui/material";
+import { Button, ButtonProps } from "@mui/material";
 import { ArrowForwardRounded, HomeOutlined } from "@mui/icons-material";
-import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/contexts";
-import { Routes } from "@/interfaces";
 
-export const CarbonInventoryNavigationButton: FC = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+interface Props {
+  type: "inventories" | "landing";
+  buttonProps: ButtonProps;
+}
 
-  const handleGoToInventories = () => {
-    void navigate({ to: Routes.CARBON_INVENTORIES });
-  };
-
-  const handleGoToLanding = () => {
-    void navigate({ to: Routes.LANDING });
-  };
-
-  return (
-    <>
-      {user && (
-        <Button
-          variant="outlined"
-          startIcon={<ArrowForwardRounded />}
-          onClick={handleGoToInventories}
-        >
-          Ir a mis huellas
-        </Button>
-      )}
-      {!user && (
-        <Button
-          variant="outlined"
-          startIcon={<HomeOutlined />}
-          onClick={handleGoToLanding}
-        >
-          Ir al inicio
-        </Button>
-      )}
-    </>
+export const CarbonInventoryNavigationButton: FC<Props> = ({
+  type,
+  buttonProps,
+}) => {
+  return type === "inventories" ? (
+    <Button
+      variant="outlined"
+      startIcon={<ArrowForwardRounded />}
+      {...buttonProps}
+    >
+      Ir a mis huellas
+    </Button>
+  ) : (
+    <Button variant="outlined" startIcon={<HomeOutlined />} {...buttonProps}>
+      Ir al inicio
+    </Button>
   );
 };

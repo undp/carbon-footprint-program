@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Box, Button, Divider, Typography } from "@mui/material";
+import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import capinautPointing from "@assets/capinaut-pointing.png";
@@ -12,7 +12,11 @@ import {
   FormTextField,
   FormNumericField,
 } from "@/components";
-import { StepHeader, ExitInventoryDialog } from "./components";
+import {
+  StepHeader,
+  ExitInventoryDialog,
+  CarbonInventoryNavigationButton,
+} from "./components";
 import { useCarbonInventory } from "@/api/query";
 import { EXIT_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
@@ -22,11 +26,7 @@ import { useBusinessProfilingNavigation } from "./hooks/useBusinessProfilingNavi
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useSnackbar } from "notistack";
-import {
-  ArrowForwardRounded,
-  ArrowRightAltRounded,
-  HomeOutlined,
-} from "@mui/icons-material";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useAuth } from "@/contexts";
@@ -111,7 +111,8 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const { goBack, goNext } = useBusinessProfilingNavigation(inventoryId);
+  const { goBack, goNext, goToList, goToLanding } =
+    useBusinessProfilingNavigation(inventoryId);
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
@@ -132,14 +133,6 @@ export const BusinessProfilingScreen: FC = () => {
   }
 
   const handleExitClick = () => setIsExitDialogOpen(true);
-
-  const handleExitConfirm = () => {
-    if (user) {
-      void navigate({ to: Routes.CARBON_INVENTORIES });
-    } else {
-      void navigate({ to: Routes.LANDING });
-    }
-  };
 
   const exitDialogProps = user
     ? EXIT_DIALOG_CONTENT.LOGGED_IN
@@ -176,22 +169,11 @@ export const BusinessProfilingScreen: FC = () => {
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
-            action: user ? (
-              <Button
-                variant="outlined"
-                startIcon={<ArrowForwardRounded />}
-                onClick={handleExitClick}
-              >
-                Ir a mis huellas
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                startIcon={<HomeOutlined />}
-                onClick={handleExitClick}
-              >
-                Ir al inicio
-              </Button>
+            action: (
+              <CarbonInventoryNavigationButton
+                type={user ? "inventories" : "landing"}
+                buttonProps={{ onClick: handleExitClick }}
+              />
             ),
           }}
           footerProps={{
@@ -332,7 +314,7 @@ export const BusinessProfilingScreen: FC = () => {
       <ExitInventoryDialog
         open={isExitDialogOpen}
         onClose={() => setIsExitDialogOpen(false)}
-        onConfirm={handleExitConfirm}
+        onConfirm={user ? goToList : goToLanding}
         {...exitDialogProps}
       />
     </>

@@ -54,7 +54,12 @@ export const EmissionResultsScreen: FC = () => {
       headerProps={{
         title: "Simulador de Inventario Organizacional",
         subtitle: summaryData?.carbonInventory.name ?? undefined,
-        action: <CarbonInventoryNavigationButton />,
+        action: (
+          <CarbonInventoryNavigationButton
+            type={user ? "inventories" : "landing"}
+            buttonProps={{ onClick: user ? goToList : goToLanding }}
+          />
+        ),
       }}
       footerProps={{
         buttons: isEditable ? [backButton, nextButton] : [backButton],

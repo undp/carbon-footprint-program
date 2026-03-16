@@ -1,10 +1,14 @@
 import { FC, useMemo, useCallback, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { Box } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
-import { StepHeader, ExitInventoryDialog } from "./components";
+import {
+  StepHeader,
+  ExitInventoryDialog,
+  CarbonInventoryNavigationButton,
+} from "./components";
 import { useAuth } from "@/contexts";
 import { CategoryCard } from "./components/CategoryCard";
 import { EmissionEditor } from "./components/EmissionEditor";
@@ -17,12 +21,7 @@ import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import {
-  ArrowForwardRounded,
-  ArrowRightAltRounded,
-  HomeOutlined,
-  SaveRounded,
-} from "@mui/icons-material";
+import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
@@ -192,22 +191,11 @@ export const EmissionCaptureScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
-            action: user ? (
-              <Button
-                variant="outlined"
-                startIcon={<ArrowForwardRounded />}
-                onClick={handleExitClick}
-              >
-                Ir a mis huellas
-              </Button>
-            ) : (
-              <Button
-                variant="outlined"
-                startIcon={<HomeOutlined />}
-                onClick={handleExitClick}
-              >
-                Ir al inicio
-              </Button>
+            action: (
+              <CarbonInventoryNavigationButton
+                type={user ? "inventories" : "landing"}
+                buttonProps={{ onClick: handleExitClick }}
+              />
             ),
           }}
           footerProps={{

@@ -1,8 +1,9 @@
 import { FC, useEffect } from "react";
 import { Box } from "@mui/material";
-import { useParams } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useAuth } from "@/contexts";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { StepHeader, CarbonInventoryNavigationButton } from "./components";
 import {
@@ -27,6 +28,8 @@ export const EmissionSummaryScreen: FC = () => {
   });
 
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
 
   const { data: equivalence, isError: isEquivalenceError } =
@@ -93,7 +96,17 @@ export const EmissionSummaryScreen: FC = () => {
     <CarbonInventoryLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
-        action: <CarbonInventoryNavigationButton />,
+        action: (
+          <CarbonInventoryNavigationButton
+            type={user ? "inventories" : "landing"}
+            buttonProps={{
+              onClick: () =>
+                void navigate({
+                  to: user ? Routes.CARBON_INVENTORIES : Routes.LANDING,
+                }),
+            }}
+          />
+        ),
       }}
       footerProps={{
         buttons: [backButton, nextButton],
