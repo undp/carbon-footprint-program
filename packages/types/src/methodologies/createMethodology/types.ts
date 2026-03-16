@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   CreateMethodologyRequestSchema,
   CreateMethodologyResponseSchema,
+  MethodologyVersionFormSchema,
 } from "./schemas.js";
 
 // TypeScript Types
@@ -10,4 +11,7 @@ export type CreateMethodologyRequest = z.infer<
 >;
 export type CreateMethodologyResponse = z.infer<
   typeof CreateMethodologyResponseSchema
+>;
+export type MethodologyVersionForm = z.infer<
+  typeof MethodologyVersionFormSchema
 >;

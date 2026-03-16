@@ -2,3 +2,4 @@ export * from "./DataIntegrityError.js";
 export * from "./ApplicationConfigError.js";
 export * from "./EmptyResourceError.js";
 export * from "./DatabaseUniqueConstraintViolationError.js";
+export * from "./prisma.js";

@@ -9,10 +9,13 @@ import {
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import {
   createInventoryFromPattern,
   carbonInventoryPatterns,
@@ -252,6 +255,87 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
             expect(typeof emissionFactor.value).toBe("string");
           }
         });
+      });
+    });
+
+    it("should exclude deleted categories from the response", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+
+      // Create a deleted category on the seeded methodology
+      const deletedCategory = await createTestCategory(prisma, methodologyId, {
+        name: "Test - Deleted Category",
+        position: 999,
+        status: CategoryStatus.DELETED,
+      });
+
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      const categoryIds = body.categories.map((cat) => cat.id);
+      expect(categoryIds).not.toContain(deletedCategory.id.toString());
+
+      // Cleanup the deleted category
+      await prisma.category.delete({ where: { id: deletedCategory.id } });
+    });
+
+    it("should exclude deleted subcategories from the response", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+
+      // Get an existing active category to attach a deleted subcategory
+      const activeCategory = await prisma.category.findFirst({
+        where: {
+          methodologyVersionId: methodologyId,
+          status: CategoryStatus.ACTIVE,
+        },
+      });
+      expect(activeCategory).toBeDefined();
+
+      const deletedSubcategory = await createTestSubcategory(
+        prisma,
+        activeCategory!.id,
+        {
+          name: "Test - Deleted Subcategory",
+          status: SubcategoryStatus.DELETED,
+        }
+      );
+
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      const allSubcategoryIds = body.categories.flatMap((cat) =>
+        cat.subcategories.map((sub) => sub.id)
+      );
+      expect(allSubcategoryIds).not.toContain(deletedSubcategory.id.toString());
+
+      // Cleanup the deleted subcategory
+      await prisma.subcategory.delete({
+        where: { id: deletedSubcategory.id },
       });
     });
 

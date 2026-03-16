@@ -19,3 +19,5 @@ export interface SelectOption {
   label: string;
   value: string;
 }
+
+export * from "./subcategory";

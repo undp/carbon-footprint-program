@@ -13,12 +13,9 @@ import {
 import { Routes } from "@/interfaces/routes";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
-import {
-  FormMethodology,
-  useMethodologiesForm,
-} from "../hooks/useMethodologiesForm";
+import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
 import { useMethodologyColumns } from "../hooks/useMethodologyColumns";
-import { MethodologyVersionStatus } from "@repo/types";
+import { MethodologyVersionStatus, MethodologyVersionForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -163,7 +160,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   );
 
   const handleToggle = useCallback(
-    (row: FormMethodology, checked: boolean) => {
+    (row: MethodologyVersionForm, checked: boolean) => {
       // Don't allow unchecking the active methodology
       if (!checked) {
         void enqueueSnackbar({
@@ -197,7 +194,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
           : r.id === row.id
             ? MethodologyVersionStatus.UNPUBLISHED
             : r.status,
-      })) as FormMethodology[];
+      })) as MethodologyVersionForm[];
       fieldArray.replace(updatedRows);
 
       updateMutation.mutate(
@@ -229,7 +226,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   );
 
   const handleView = useCallback(
-    (row: FormMethodology) => {
+    (row: MethodologyVersionForm) => {
       selectMethodology({
         id: row.id,
         name: row.name,
@@ -241,7 +238,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   );
 
   const handleEdit = useCallback(
-    (row: FormMethodology) => {
+    (row: MethodologyVersionForm) => {
       if (isNewRow(row.id)) {
         void enqueueSnackbar({
           message: "Guarda la metodología antes de editarla",
@@ -260,7 +257,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   );
 
   const handleDuplicate = useCallback(
-    async (row: FormMethodology) => {
+    async (row: MethodologyVersionForm) => {
       if (isNewRow(row.id)) {
         void enqueueSnackbar({
           message: "Guarda la metodología antes de duplicarla",
@@ -290,7 +287,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
-    const newRow: FormMethodology = {
+    const newRow: MethodologyVersionForm = {
       id: tempId,
       name: "",
       description: "",
@@ -303,7 +300,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
   }, [fieldArray]);
 
   const handleDelete = useCallback(
-    async (row: FormMethodology) => {
+    async (row: MethodologyVersionForm) => {
       try {
         const rows = form.getValues("methodologies");
         const index = rows.findIndex((r) => r.id === row.id);
@@ -384,7 +381,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
               columns={columns}
               rows={currentRows}
               rowHeight={60}
-              getRowId={(row: FormMethodology) => row.id}
+              getRowId={(row: MethodologyVersionForm) => row.id}
               loading={isLoading}
             />
           </Box>

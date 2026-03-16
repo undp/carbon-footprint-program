@@ -4,38 +4,21 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
   type CreateMethodologyResponse,
-  MethodologyVersionBaseSchema,
+  MethodologyVersionFormSchema,
+  MethodologyVersionForm,
 } from "@repo/types";
 
-type Methodology = CreateMethodologyResponse;
-
-export type FormMethodology = Pick<
-  Methodology,
-  "id" | "name" | "description" | "regulation" | "version" | "status"
->;
-
 export interface MethodologiesFormValues {
-  methodologies: FormMethodology[];
+  methodologies: MethodologyVersionForm[];
 }
 
 const methodologiesFormSchema = z.object({
-  methodologies: z.array(
-    MethodologyVersionBaseSchema.loose()
-      .pick({
-        id: true,
-        name: true,
-        description: true,
-        regulation: true,
-        version: true,
-        status: true,
-      })
-      .extend({
-        id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
-      })
-  ),
+  methodologies: z.array(MethodologyVersionFormSchema),
 });
 
-export const useMethodologiesForm = (serverData: Methodology[]) => {
+export const useMethodologiesForm = (
+  serverData: CreateMethodologyResponse[]
+) => {
   const form = useForm<MethodologiesFormValues>({
     defaultValues: { methodologies: [] },
     mode: "onBlur",
@@ -59,7 +42,7 @@ export const useMethodologiesForm = (serverData: Methodology[]) => {
   }, [serverData, form]);
 
   const handleCellChange = useCallback(
-    (rowIndex: number, field: keyof FormMethodology, value: string) => {
+    (rowIndex: number, field: keyof MethodologyVersionForm, value: string) => {
       const currentRow = form.getValues(`methodologies.${rowIndex}`);
       if (currentRow) {
         // Clone the row and update the field to avoid mutating frozen objects

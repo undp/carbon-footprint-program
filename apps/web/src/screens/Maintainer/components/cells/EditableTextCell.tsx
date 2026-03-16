@@ -13,6 +13,7 @@ import {
   type Theme,
 } from "@mui/material";
 import { getNestedError } from "./cellUtils";
+import { useOverflowTooltip } from "./useOverflowTooltip";
 
 interface EditableTextCellProps {
   /** Name of the form array (e.g. "methodologies", "categories") */
@@ -90,6 +91,11 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
     fieldName
   );
 
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
+    formValue,
+    truncateLines,
+  ]);
+
   if (!isEditing) {
     const truncateSx: SxProps<Theme> =
       truncateLines === 1
@@ -105,12 +111,20 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
             display: "-webkit-box",
             WebkitLineClamp: truncateLines,
             WebkitBoxOrient: "vertical",
+            whiteSpace: "normal",
+            wordBreak: "break-word",
             width: "100%",
           };
 
     return (
-      <Tooltip title={formValue} arrow placement="top" enterDelay={500}>
+      <Tooltip
+        title={isOverflowed ? formValue : ""}
+        arrow
+        placement="top"
+        enterDelay={500}
+      >
         <Typography
+          ref={overflowRef}
           onClick={onClick}
           sx={{
             px: 1,

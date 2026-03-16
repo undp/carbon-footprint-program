@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Routes } from "@/interfaces/routes";
-import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConstructionScreen";
+import { SubcategoriesMaintainerScreen } from "@/screens/Maintainer/screens/SubcategoriesMaintainerScreen";
 
 export const Route = createFileRoute(Routes.ADMIN_SUBCATEGORIES)({
-  component: () => <UnderConstructionScreen />,
+  component: SubcategoriesMaintainerScreen,
 });

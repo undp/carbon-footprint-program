@@ -429,7 +429,8 @@
               "g",
               "kg",
               "ton"
-            ]
+            ],
+            "icon": "FACTORY"
           },
           {
             "name": "Combustiones móviles (flota propia)",
@@ -650,7 +651,8 @@
               "g",
               "kg",
               "ton"
-            ]
+            ],
+            "icon": "FACTORY"
           },
           {
             "name": "Emisiones fugitivas",
@@ -1130,7 +1132,8 @@
                 "value": 16100
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Emisiones por uso de suelo - Ganadería",
@@ -1302,7 +1305,8 @@
                 "value": 1710
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["cant anim"]
+            "allowedMeasurementUnitsAbbreviations": ["cant anim"],
+            "icon": "FACTORY"
           },
           {
             "name": "Emisiones por uso de suelo - Agricultura",
@@ -1348,7 +1352,8 @@
                 "value": 4368
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["ha"]
+            "allowedMeasurementUnitsAbbreviations": ["ha"],
+            "icon": "FACTORY"
           },
           {
             "name": "Emisiones por uso de suelo - Aplicación de fertilizantes",
@@ -1408,7 +1413,8 @@
                 "value": 0.61
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Procesos industriales - Cinc",
@@ -1468,7 +1474,8 @@
                 "value": 3.66
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Procesos industriales - Cemento",
@@ -1500,7 +1507,8 @@
                 "value": 0.52
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Procesos industriales - Vidrio",
@@ -1616,7 +1624,8 @@
                 "value": 0.1
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Procesos industriales - Acero",
@@ -1690,7 +1699,8 @@
                 "value": 1.06
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Emisiones provenientes de otras fuentes",
@@ -1698,7 +1708,8 @@
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": []
+            "allowedMeasurementUnitsAbbreviations": [],
+            "icon": "FACTORY"
           }
         ]
       },
@@ -1741,7 +1752,8 @@
                 "value": 0.5349499999999999
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["kWh", "MWh"]
+            "allowedMeasurementUnitsAbbreviations": ["kWh", "MWh"],
+            "icon": "FACTORY"
           }
         ]
       },
@@ -2085,7 +2097,8 @@
                 "value": 1402
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Disposición de residuos sólidos",
@@ -2527,7 +2540,8 @@
                 "value": 8.9
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"]
+            "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Consumo de agua y tratamiento de aguas residuales",
@@ -2573,7 +2587,8 @@
                 "value": 0.1913
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["L", "m3", "gal"]
+            "allowedMeasurementUnitsAbbreviations": ["L", "m3", "gal"],
+            "icon": "FACTORY"
           },
           {
             "name": "Desplazamiento diario de empleados y trabajo remoto",
@@ -2581,7 +2596,8 @@
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": []
+            "allowedMeasurementUnitsAbbreviations": [],
+            "icon": "FACTORY"
           },
           {
             "name": "Viajes de negocios - Estadía",
@@ -2893,7 +2909,8 @@
                 "value": 38.5
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["pieza arre"]
+            "allowedMeasurementUnitsAbbreviations": ["pieza arre"],
+            "icon": "FACTORY"
           },
           {
             "name": "Viajes de negocios - Traslado",
@@ -3051,7 +3068,8 @@
                 "value": 0.148
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi"]
+            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi"],
+            "icon": "FACTORY"
           },
           {
             "name": "Transporte y distribución de bienes aguas arriba",
@@ -3209,7 +3227,8 @@
                 "value": 0.00691
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"]
+            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Transporte y distribución de bienes aguas abajo",
@@ -3367,7 +3386,8 @@
                 "value": 0.00691
               }
             ],
-            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"]
+            "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"],
+            "icon": "FACTORY"
           },
           {
             "name": "Uso de productos de la organización",
@@ -3375,7 +3395,8 @@
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": []
+            "allowedMeasurementUnitsAbbreviations": [],
+            "icon": "FACTORY"
           },
           {
             "name": "Emisiones provenientes de otras fuentes",
@@ -3383,7 +3404,8 @@
             "examples": null,
             "emissionFactorDimensions": [],
             "emissionFactors": [],
-            "allowedMeasurementUnitsAbbreviations": []
+            "allowedMeasurementUnitsAbbreviations": [],
+            "icon": "FACTORY"
           }
         ]
       }

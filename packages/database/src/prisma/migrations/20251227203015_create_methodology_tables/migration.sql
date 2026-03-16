@@ -7,6 +7,9 @@ CREATE TYPE "category_status" AS ENUM ('ACTIVE', 'DELETED');
 -- CreateEnum
 CREATE TYPE "emission_factor_status" AS ENUM ('ACTIVE', 'DELETED');
 
+-- CreateEnum
+CREATE TYPE "subcategory_status" AS ENUM ('ACTIVE', 'DELETED'); 
+
 -- CreateTable
 CREATE TABLE "methodology_version" (
     "id" BIGSERIAL NOT NULL,
@@ -49,8 +52,10 @@ CREATE TABLE "subcategory" (
     "id" BIGSERIAL NOT NULL,
     "category_id" BIGINT NOT NULL,
     "name" TEXT NOT NULL,
-    "description" TEXT,
+    "icon" TEXT NOT NULL,
+    "description" TEXT NOT NULL,
     "examples" TEXT,
+    "status" "subcategory_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
@@ -129,8 +134,10 @@ CREATE UNIQUE INDEX "category_methodology_version_id_position_active_unique"
   ON "category" ("methodology_version_id", "position")
   WHERE "status" <> 'DELETED';
   
--- CreateIndex
-CREATE UNIQUE INDEX "subcategory_category_id_name_key" ON "subcategory"("category_id", "name");
+-- CreateIndex: Partial unique index excluding DELETED rows
+CREATE UNIQUE INDEX "subcategory_category_id_name_active_unique"
+  ON "subcategory" ("category_id", "name")
+  WHERE "status" <> 'DELETED';
 
 -- CreateIndex
 CREATE UNIQUE INDEX "emission_factor_dimension_subcategory_id_code_key" ON "emission_factor_dimension"("subcategory_id", "code");

@@ -2,30 +2,27 @@ import { useMemo, useCallback } from "react";
 import { Button } from "@mui/material";
 import { InfoOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import type { GetAllCategoriesResponse } from "@repo/types";
+import type { CategoryForm } from "@repo/types";
 
 import { EditableTextCell, IconPickerCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
-import type { FormCategory } from "./useCategoriesForm";
-
-type Category = GetAllCategoriesResponse[number];
 
 interface UseCategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof FormCategory,
+    field: keyof CategoryForm,
     value: string
   ) => void;
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => void;
   onCancelEditRow: () => void;
-  onDelete: (row: FormCategory) => void;
+  onDelete: (row: CategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
-  onMoveUp: (row: FormCategory) => void;
-  onMoveDown: (row: FormCategory) => void;
-  rows: FormCategory[];
+  onMoveUp: (row: CategoryForm) => void;
+  onMoveDown: (row: CategoryForm) => void;
+  rows: CategoryForm[];
 }
 
 export const useCategoryColumns = ({
@@ -40,7 +37,7 @@ export const useCategoryColumns = ({
   onMoveUp,
   onMoveDown,
   rows,
-}: UseCategoryColumnsParams): GridColDef<Category>[] => {
+}: UseCategoryColumnsParams): GridColDef<CategoryForm>[] => {
   const getRowIndex = useCallback(
     (rowId: string) => rows.findIndex((r) => r.id === rowId),
     [rows]
@@ -55,7 +52,7 @@ export const useCategoryColumns = ({
     [rows]
   );
 
-  return useMemo<GridColDef<Category>[]>(
+  return useMemo<GridColDef<CategoryForm>[]>(
     () => [
       {
         field: "position",
@@ -72,7 +69,7 @@ export const useCategoryColumns = ({
         width: 60,
         headerAlign: "center",
         align: "center",
-        renderCell: (params: GridRenderCellParams<Category>) => {
+        renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           return (
@@ -100,7 +97,7 @@ export const useCategoryColumns = ({
         headerName: "Categoría/Alcance",
         flex: 0.4,
         minWidth: 180,
-        renderCell: (params: GridRenderCellParams<Category>) => {
+        renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           return (
@@ -125,7 +122,7 @@ export const useCategoryColumns = ({
         headerName: "Nombre",
         flex: 0.4,
         minWidth: 180,
-        renderCell: (params: GridRenderCellParams<Category>) => {
+        renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           return (
@@ -150,7 +147,7 @@ export const useCategoryColumns = ({
         headerName: "Descripción",
         flex: 0.6,
         minWidth: 200,
-        renderCell: (params: GridRenderCellParams<Category>) => {
+        renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
           return (
@@ -178,7 +175,7 @@ export const useCategoryColumns = ({
         width: 120,
         headerAlign: "center",
         align: "center",
-        renderCell: (params: GridRenderCellParams<Category>) => {
+        renderCell: (params: GridRenderCellParams<CategoryForm>) => {
           const rowIndex = getRowIndex(params.row.id);
           const hasContent = !!params.row.examples;
           return (
@@ -214,7 +211,7 @@ export const useCategoryColumns = ({
               filterable: false,
               headerAlign: "center" as const,
               align: "center" as const,
-              renderCell: (params: GridRenderCellParams<Category>) => {
+              renderCell: (params: GridRenderCellParams<CategoryForm>) => {
                 const sortedIdx = sortedRows.findIndex(
                   (r) => r.id === params.row.id
                 );

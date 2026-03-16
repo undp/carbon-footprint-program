@@ -10,10 +10,11 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
-import { CategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 
 describe("DELETE /api/categories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -182,6 +183,39 @@ describe("DELETE /api/categories/:id - Integration Tests", () => {
       expect(dbCatA2!.position).toBe(1);
       expect(dbCatB1!.position).toBe(1);
       expect(dbCatB2!.position).toBe(2);
+    });
+  });
+
+  describe("Subcategory cascade", () => {
+    it("should soft-delete all subcategories when category is deleted", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Cascade Subcats Delete",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat With Subcats",
+        position: 1,
+      });
+
+      const sub1 = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub 1",
+      });
+      const sub2 = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub 2",
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/categories/${category.id}`,
+      });
+
+      const [dbSub1, dbSub2] = await Promise.all([
+        prisma.subcategory.findUnique({ where: { id: sub1.id } }),
+        prisma.subcategory.findUnique({ where: { id: sub2.id } }),
+      ]);
+
+      expect(dbSub1!.status).toBe(SubcategoryStatus.DELETED);
+      expect(dbSub2!.status).toBe(SubcategoryStatus.DELETED);
     });
   });
 

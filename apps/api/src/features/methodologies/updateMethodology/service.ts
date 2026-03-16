@@ -7,10 +7,10 @@ import { MethodologyVersionStatus, type User } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNameVersionAlreadyExistsError,
-  getDuplicatedFieldsFromP2002Error,
   MethodologyIsDeletedError,
   MethodologyNotFoundError,
 } from "../errors.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const updateMethodologyService = async (
   prismaClient: PrismaClient,

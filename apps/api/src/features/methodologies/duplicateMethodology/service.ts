@@ -7,15 +7,16 @@ import {
   type DuplicateMethodologyResponse,
   type User,
   CategoryStatus,
+  SubcategoryStatus,
 } from "@repo/types";
 import { mapMethodologyToResponse } from "../mappers.js";
 import {
   MethodologyNotFoundError,
   MethodologyNameVersionAlreadyExistsError,
-  getDuplicatedFieldsFromP2002Error,
 } from "../errors.js";
 import { generateUniqueCopyName } from "@/helpers/generateUniqueCopyName.js";
 import map from "lodash-es/map.js";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const duplicateMethodologyService = async (
   prismaClient: PrismaClient,
@@ -72,9 +73,11 @@ export const duplicateMethodologyService = async (
         },
       });
 
-      if (activeCategories.length > 0) {
-        await tx.category.createMany({
-          data: activeCategories.map((cat) => ({
+      // Create categories individually to capture old → new ID mapping
+      const categoryIdMap = new Map<bigint, bigint>();
+      for (const cat of activeCategories) {
+        const newCat = await tx.category.create({
+          data: {
             methodologyVersionId: newMethodology.id,
             name: cat.name,
             icon: cat.icon,
@@ -86,7 +89,55 @@ export const duplicateMethodologyService = async (
             status: cat.status,
             createdById: userId,
             updatedAt: null,
-          })),
+          },
+        });
+        categoryIdMap.set(cat.id, newCat.id);
+      }
+
+      // Duplicate all active subcategories from the original categories
+      if (activeCategories.length > 0) {
+        const activeSubcategories = await tx.subcategory.findMany({
+          where: {
+            categoryId: { in: activeCategories.map((cat) => cat.id) },
+            status: SubcategoryStatus.ACTIVE,
+          },
+          include: {
+            subcategoryMeasurementUnits: {
+              select: { measurementUnitId: true },
+            },
+          },
+        });
+
+        // Create subcategories individually to capture old → new ID mapping
+        const measurementUnitLinks: {
+          subcategoryId: bigint;
+          measurementUnitId: bigint;
+        }[] = [];
+
+        for (const sub of activeSubcategories) {
+          const newSub = await tx.subcategory.create({
+            data: {
+              categoryId: categoryIdMap.get(sub.categoryId)!,
+              name: sub.name,
+              icon: sub.icon,
+              description: sub.description,
+              examples: sub.examples,
+              status: sub.status,
+              createdById: userId,
+              updatedAt: null,
+            },
+          });
+
+          for (const link of sub.subcategoryMeasurementUnits) {
+            measurementUnitLinks.push({
+              subcategoryId: newSub.id,
+              measurementUnitId: link.measurementUnitId,
+            });
+          }
+        }
+
+        await tx.subcategoryMeasurementUnit.createMany({
+          data: measurementUnitLinks,
         });
       }
 

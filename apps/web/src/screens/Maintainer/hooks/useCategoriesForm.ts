@@ -2,45 +2,24 @@ import { useCallback } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { type GetAllCategoriesResponse, CategoryBaseSchema } from "@repo/types";
+import {
+  type GetAllCategoriesResponse,
+  CategoryFormSchema,
+  CategoryForm,
+} from "@repo/types";
 
 type Category = GetAllCategoriesResponse[number];
 
-export type FormCategory = Pick<
-  Category,
-  | "id"
-  | "name"
-  | "icon"
-  | "color"
-  | "synonyms"
-  | "description"
-  | "examples"
-  | "position"
->;
-
 export interface CategoriesFormValues {
-  categories: FormCategory[];
+  categories: CategoryForm[];
 }
 
 const categoriesFormSchema = z.object({
-  categories: z.array(
-    CategoryBaseSchema.pick({
-      id: true,
-      name: true,
-      icon: true,
-      color: true,
-      synonyms: true,
-      description: true,
-      examples: true,
-      position: true,
-    }).extend({
-      id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
-    })
-  ),
+  categories: z.array(CategoryFormSchema),
 });
 
-/** Strip server-only fields so the form only holds FormCategory data. */
-export function toFormCategory(c: Category): FormCategory {
+/** Strip server-only fields so the form only holds CategoryForm data. */
+export function toFormCategory(c: Category): CategoryForm {
   return {
     id: c.id,
     name: c.name,
@@ -53,7 +32,7 @@ export function toFormCategory(c: Category): FormCategory {
   };
 }
 
-export const useCategoriesForm = (initialCategories: FormCategory[]) => {
+export const useCategoriesForm = (initialCategories: CategoryForm[]) => {
   const form = useForm<CategoriesFormValues>({
     defaultValues: { categories: initialCategories },
     mode: "onBlur",
@@ -66,7 +45,7 @@ export const useCategoriesForm = (initialCategories: FormCategory[]) => {
   });
 
   const handleCellChange = useCallback(
-    (rowIndex: number, field: keyof FormCategory, value: string) => {
+    (rowIndex: number, field: keyof CategoryForm, value: string) => {
       const currentRow = form.getValues(`categories.${rowIndex}`);
       if (currentRow) {
         const updatedRow = { ...structuredClone(currentRow), [field]: value };
