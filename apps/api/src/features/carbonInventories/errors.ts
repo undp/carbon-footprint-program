@@ -77,3 +77,9 @@ export const CarbonInventoryCannotRequestVerificationError = createError(
   "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
   422
 );
+
+export const CarbonInventoryCannotSelfDeclareError = createError(
+  "CARBON_INVENTORY_CANNOT_SELF_DECLARE",
+  "Carbon inventory %s cannot be self-declared: must be in DRAFT status",
+  422
+);
