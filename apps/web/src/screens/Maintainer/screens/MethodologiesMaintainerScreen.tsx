@@ -333,7 +333,8 @@ export const MethodologiesMaintainerScreen: FC = () => {
   // --- Block navigation while editing ---
   // TODO: replicate on inventory steps. May be create a reusable hook
   const { proceed, reset, status } = useBlocker({
-    shouldBlockFn: () => editingRowId !== null,
+    shouldBlockFn: () => form.formState.isDirty,
+    enableBeforeUnload: form.formState.isDirty,
     withResolver: true,
   });
 
