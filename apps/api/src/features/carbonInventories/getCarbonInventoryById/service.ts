@@ -53,7 +53,6 @@ export const getCarbonInventoryByIdService = async (
       },
       organization: {
         select: {
-          id: true,
           summary: {
             select: {
               name: true,
