@@ -129,12 +129,12 @@ export const OrganizationFormDialog: FC<Props> = ({
       open={open}
       onClose={handleClose}
       maxWidth="lg"
+      scroll="body"
       fullWidth
       slotProps={{
         paper: {
           sx: {
-            maxHeight: "90vh",
-            borderRadius: 1,
+            overflow: "hidden",
           },
         },
       }}
@@ -160,9 +160,7 @@ export const OrganizationFormDialog: FC<Props> = ({
       </IconButton>
 
       <form onSubmit={handleSubmit(submit)} noValidate>
-        <DialogContent
-          sx={{ pt: 0, overflow: "auto", maxHeight: "calc(90vh - 160px)" }}
-        >
+        <DialogContent sx={{ pt: 0, maxHeight: "calc(90vh - 160px)" }}>
           {/* Organization Information Section */}
           <Box className="mb-6">
             <Box className="mb-4 flex items-center gap-2">
