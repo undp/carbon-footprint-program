@@ -29,7 +29,7 @@ import {
   toFormSubcategory,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
-import { SubcategoryForm, type GetAllSubcategoriesResponse } from "@repo/types";
+import { SubcategoryForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
@@ -40,8 +40,6 @@ import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 import { VariableConfigModal } from "../components/VariableConfigModal";
-
-type Subcategory = GetAllSubcategoriesResponse[number];
 
 export const SubcategoriesMaintainerScreen: FC = () => {
   const {
@@ -374,18 +372,15 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     [setExplanationModal]
   );
 
-  const handleOpenVariableConfig = useCallback(
-    (rowId: string) => {
-      const sub = serverSubcategories.find((s) => s.id === rowId);
-      if (sub) {
-        setVariableConfigRow({
-          subcategoryId: sub.id,
-          subcategoryName: sub.name,
-        });
-      }
-    },
-    [serverSubcategories]
-  );
+  const handleOpenVariableConfig = (rowId: string) => {
+    const sub = subcategories?.find((s) => s.id === rowId);
+    if (sub) {
+      setVariableConfigRow({
+        subcategoryId: sub.id,
+        subcategoryName: sub.name,
+      });
+    }
+  };
 
   const handleSaveVariableConfig = useCallback(
     (
@@ -658,7 +653,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         subcategoryId={variableConfigRow?.subcategoryId ?? ""}
         subcategoryName={variableConfigRow?.subcategoryName ?? ""}
         currentDimensions={
-          serverDimensions
+          dimensions
             .find((d) => d.subcategoryId === variableConfigRow?.subcategoryId)
             ?.dimensions.map(({ code, name, position, isRequired }) => ({
               code,
