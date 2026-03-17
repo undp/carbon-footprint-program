@@ -1,0 +1,14 @@
+[
+  {
+    "key": "AUTO_APPROVE_CARBON_INVENTORIES_MEASUREMENT_SUBMISSIONS",
+    "value": "true",
+    "description": "Determines if a Submission of type CARBON_INVENTORY_CALCULATION is automatically approved when a user self-declares a carbon inventory",
+    "type": "CARBON_INVENTORIES_SUBMISSIONS"
+  },
+  {
+    "key": "CARBON_INVENTORIES_MEASUREMENT_SELF_DECLARATION_AUTO_RECOGNITION",
+    "value": "true",
+    "description": "Determines if a carbon inventory measurement is automatically recognized when a user self-declares it",
+    "type": "CARBON_INVENTORIES_SUBMISSIONS"
+  }
+]
