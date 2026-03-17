@@ -9,7 +9,8 @@ import { StandardRouteSignature } from "@/routes/api/index.js";
 import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
-  fastify
+  fastify,
+  options
 ) => {
   fastify.post<{ Params: DuplicateCarbonInventoryParams }>(
     "/:id/duplicate",
@@ -24,6 +25,9 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
           200: DuplicateCarbonInventoryResponseSchema,
           404: ApiErrorResponseSchema,
         },
+      },
+      config: {
+        public: options?.public ?? false,
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
