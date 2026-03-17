@@ -15,13 +15,13 @@ interface DeleteUserConfirmationDialogProps {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
-  userName?: string | null;
+  userEmail?: string | null;
   isDeleting?: boolean;
 }
 
 export const DeleteUserConfirmationDialog: FC<
   DeleteUserConfirmationDialogProps
-> = ({ open, onClose, onConfirm, userName, isDeleting = false }) => {
+> = ({ open, onClose, onConfirm, userEmail, isDeleting = false }) => {
   return (
     <Dialog
       open={open}
@@ -67,8 +67,8 @@ export const DeleteUserConfirmationDialog: FC<
 
       <DialogContent>
         <Typography variant="body1">
-          ¿Estás seguro de que deseas eliminar al usuario{" "}
-          {userName ? <strong>{userName}</strong> : "este usuario"}?
+          ¿Estás seguro de que deseas eliminar a{" "}
+          {userEmail ? <strong>{userEmail}</strong> : "este usuario"}?
         </Typography>
         <Typography variant="body2" sx={{ mt: 2, color: "text.secondary" }}>
           Esta acción no se puede deshacer.

@@ -9,7 +9,7 @@ interface UserDialogsState {
 
   // Selected user info
   selectedUserId: string | null;
-  selectedUserName: string | null;
+  selectedUserEmail: string | null;
   selectedUserRole: OrganizationRole | null;
 
   // Add user handlers
@@ -19,13 +19,13 @@ interface UserDialogsState {
   // Edit user role handlers
   openEditUserDialog: (
     userId: string,
-    userName: string,
+    userEmail: string,
     role: OrganizationRole
   ) => void;
   closeEditUserDialog: () => void;
 
   // Delete user handlers
-  openDeleteUserDialog: (userId: string, userName: string) => void;
+  openDeleteUserDialog: (userId: string, userEmail: string) => void;
   closeDeleteUserDialog: () => void;
 }
 
@@ -41,7 +41,9 @@ export const useUserDialogsState = (): UserDialogsState => {
 
   // Selected user info
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedUserName, setSelectedUserName] = useState<string | null>(null);
+  const [selectedUserEmail, setSelectedUserEmail] = useState<string | null>(
+    null
+  );
   const [selectedUserRole, setSelectedUserRole] =
     useState<OrganizationRole | null>(null);
 
@@ -56,9 +58,9 @@ export const useUserDialogsState = (): UserDialogsState => {
 
   // Edit user role handlers
   const openEditUserDialog = useCallback(
-    (userId: string, userName: string, role: OrganizationRole) => {
+    (userId: string, userEmail: string, role: OrganizationRole) => {
       setSelectedUserId(userId);
-      setSelectedUserName(userName);
+      setSelectedUserEmail(userEmail);
       setSelectedUserRole(role);
       setEditDialogOpen(true);
     },
@@ -68,15 +70,15 @@ export const useUserDialogsState = (): UserDialogsState => {
   const closeEditUserDialog = useCallback(() => {
     setEditDialogOpen(false);
     setSelectedUserId(null);
-    setSelectedUserName(null);
+    setSelectedUserEmail(null);
     setSelectedUserRole(null);
   }, []);
 
   // Delete user handlers
   const openDeleteUserDialog = useCallback(
-    (userId: string, userName: string) => {
+    (userId: string, userEmail: string) => {
       setSelectedUserId(userId);
-      setSelectedUserName(userName);
+      setSelectedUserEmail(userEmail);
       setDeleteDialogOpen(true);
     },
     []
@@ -85,7 +87,7 @@ export const useUserDialogsState = (): UserDialogsState => {
   const closeDeleteUserDialog = useCallback(() => {
     setDeleteDialogOpen(false);
     setSelectedUserId(null);
-    setSelectedUserName(null);
+    setSelectedUserEmail(null);
   }, []);
 
   return {
@@ -96,7 +98,7 @@ export const useUserDialogsState = (): UserDialogsState => {
 
     // Selected user info
     selectedUserId,
-    selectedUserName,
+    selectedUserEmail,
     selectedUserRole,
 
     // Handlers
