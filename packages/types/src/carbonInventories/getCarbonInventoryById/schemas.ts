@@ -61,14 +61,7 @@ const SubcategoryItemSchema = z
 
 export const GetCarbonInventoryByIdResponseSchema =
   CarbonInventoryBaseSchema.omit({ status: true }).extend({
-    organization: z
-      .object({
-        id: IdSchema.describe("The ID of the organization"),
-        name: OrganizationSummaryBaseSchema.shape.name.describe(
-          "The name of the organization"
-        ),
-      })
-      .nullable(),
+    organizationName: OrganizationSummaryBaseSchema.shape.name.nullable(),
     status: CarbonInventoryDisplayStatusSchema,
     subcategories: z
       .array(SubcategoryItemSchema)
