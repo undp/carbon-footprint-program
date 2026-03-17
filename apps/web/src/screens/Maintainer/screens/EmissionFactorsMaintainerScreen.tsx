@@ -1,6 +1,5 @@
 import {
   FC,
-  ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -9,24 +8,11 @@ import {
   useState,
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogContentText,
-  DialogTitle,
-  MenuItem,
-  Paper,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
-  useMethodologies,
   useSubcategories,
   useEmissionFactors,
   useAddEmissionFactor,
@@ -35,229 +21,141 @@ import {
 } from "@/api/query/maintainer";
 import { useRateMeasurementUnits } from "@/api/query/measurementUnits/useRateMeasurementUnits";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import {
   useEmissionFactorsForm,
   toFormEmissionFactor,
 } from "../hooks/useEmissionFactorsForm";
 import { useEmissionFactorColumns } from "../hooks/useEmissionFactorColumns";
-import {
-  MethodologyVersionStatus,
-  type EmissionFactorForm,
-  type GetAllEmissionFactorsResponse,
-} from "@repo/types";
+import { type EmissionFactorForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { InfoBanner } from "../components/InfoBanner";
 import { GEIBreakdownModal } from "../components/GEIBreakdownModal";
+import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 
-type EmissionFactor = GetAllEmissionFactorsResponse[number];
-
-/**
- * Outer wrapper: data fetching + deferred form mount.
- */
-export const EmissionFactorsMaintainerScreen: FC = () => {
-  const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
-  const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
-  const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
-  const stopEditing = useMaintainerStore((s) => s.stopEditing);
-  const { data: methodologies = [] } = useMethodologies();
-
-  const activeMethodology = useMemo(
-    () =>
-      methodologies.find(
-        (m) => m.status === MethodologyVersionStatus.PUBLISHED
-      ),
-    [methodologies]
-  );
-
-  const effectiveMethodologyId =
-    editingMethodology?.id ?? selectedMethodology?.id ?? activeMethodology?.id;
-
-  const handleExitEditMode = useCallback(() => {
-    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
-    if (target) {
-      selectMethodology({
-        id: target.id,
-        name: target.name,
-        regulation: target.regulation,
-      });
-    } else {
-      stopEditing();
-    }
-  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
-
-  const targetMethodology = methodologies.find(
-    (m) => m.id === effectiveMethodologyId
-  );
-  const methodologyVersionId = targetMethodology?.id;
-
-  const isViewOnly =
-    !editingMethodology ||
-    targetMethodology?.status === MethodologyVersionStatus.PUBLISHED;
-
-  const methodologySelector = (
-    <Box className="flex items-center gap-1">
-      <Typography variant="body2" color="text.secondary" noWrap>
-        Metodología:
-      </Typography>
-      <Select
-        size="small"
-        value={effectiveMethodologyId ?? ""}
-        disabled={!!editingMethodology}
-        onChange={(e) => {
-          const m = methodologies.find((m) => m.id === e.target.value);
-          if (m)
-            selectMethodology({
-              id: m.id,
-              name: m.name,
-              regulation: m.regulation,
-            });
-        }}
-        sx={{ minWidth: 220 }}
-      >
-        {methodologies.map((m) => (
-          <MenuItem key={m.id} value={m.id}>
-            {m.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </Box>
-  );
-
-  const { data: emissionFactors, isLoading: isLoadingEFs } =
-    useEmissionFactors(methodologyVersionId);
-  const { data: subcategories, isLoading: isLoadingSubs } =
-    useSubcategories(methodologyVersionId);
-  const { data: rateUnits, isLoading: isLoadingUnits } =
-    useRateMeasurementUnits();
-  if (!targetMethodology) return null;
-
-  if (
-    isLoadingEFs ||
-    !emissionFactors ||
-    isLoadingSubs ||
-    !subcategories ||
-    isLoadingUnits ||
-    !rateUnits
-  ) {
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Factores de emisión"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            Cargando factores de emisión…
-          </Typography>
-        </Box>
-      </>
-    );
-  }
-
-  const subcategoryOptions = subcategories.map((s) => ({
-    id: s.id,
-    name: s.name,
-    categoryName: s.category.name,
-    measurementUnitIds: s.measurementUnits.map((mu) => mu.id),
-  }));
-
-  const rateUnitOptions = rateUnits.map((u) => ({
-    id: u.id,
-    name: u.name,
-    abbreviation: u.abbreviation,
-    denominatorUnitId: u.denominatorUnit.id,
-  }));
-
-  return (
-    <EmissionFactorsForm
-      key={methodologyVersionId}
-      targetMethodology={targetMethodology}
-      methodologyVersionId={methodologyVersionId!}
-      isViewOnly={isViewOnly}
-      initialEmissionFactors={emissionFactors.map(toFormEmissionFactor)}
-      serverEmissionFactors={emissionFactors}
-      subcategories={subcategoryOptions}
-      rateUnits={rateUnitOptions}
-      methodologySelector={methodologySelector}
-      onExitEditMode={handleExitEditMode}
-    />
-  );
+const EMPTY_GAS_DETAILS: EmissionFactorForm["gasDetails"] = {
+  CO2_FOSSIL: 0,
+  CH4: 0,
+  N2O: 0,
+  HFC: 0,
+  PFC: 0,
+  SF6: 0,
+  NF3: 0,
 };
 
-// ---------------------------------------------------------------------------
-
-interface EmissionFactorsFormProps {
-  targetMethodology: { id: string; name: string };
-  methodologyVersionId: string;
-  isViewOnly: boolean;
-  initialEmissionFactors: EmissionFactorForm[];
-  serverEmissionFactors: GetAllEmissionFactorsResponse;
-  subcategories: Array<{
-    id: string;
-    name: string;
-    categoryName: string;
-    measurementUnitIds: string[];
-  }>;
-  rateUnits: Array<{
-    id: string;
-    name: string;
-    abbreviation: string;
-    denominatorUnitId: string;
-  }>;
-  methodologySelector: ReactNode;
-  onExitEditMode: () => void;
-}
-
-const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
-  targetMethodology,
-  methodologyVersionId,
-  isViewOnly,
-  initialEmissionFactors,
-  serverEmissionFactors,
-  subcategories,
-  rateUnits,
-  methodologySelector,
-  onExitEditMode,
-}) => {
+export const EmissionFactorsMaintainerScreen: FC = () => {
+  const {
+    isViewOnly,
+    methodologies,
+    effectiveMethodologyId,
+    methodologyVersionId,
+    targetMethodology,
+    methodologySelector,
+    selectMethodology,
+    stopEditing,
+    isMethodologiesError,
+  } = useMaintainerMethodologyScope();
   const { enqueueSnackbar } = useSnackbar();
 
-  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const { data: emissionFactors, isLoading: isLoadingEmissionFactors } =
+    useEmissionFactors(methodologyVersionId);
+  const { data: subcategories, isLoading: isLoadingSubcategories } =
+    useSubcategories(methodologyVersionId);
+  const { data: rateUnits, isLoading: isLoadingRateUnits } =
+    useRateMeasurementUnits();
+
+  const subcategoryOptions = useMemo(
+    () =>
+      subcategories?.map((subcategory) => ({
+        id: subcategory.id,
+        name: subcategory.name,
+        categoryName: subcategory.category.name,
+        measurementUnitIds: subcategory.measurementUnits.map(
+          (measurementUnit) => measurementUnit.id
+        ),
+      })) ?? [],
+    [subcategories]
+  );
+
+  const rateUnitOptions = useMemo(
+    () =>
+      rateUnits?.map((rateUnit) => ({
+        id: rateUnit.id,
+        name: rateUnit.name,
+        abbreviation: rateUnit.abbreviation,
+        denominatorUnitId: rateUnit.denominatorUnit.id,
+      })) ?? [],
+    [rateUnits]
+  );
+
+  const [editingState, setEditingState] = useState<{
+    methodologyVersionId?: string;
+    rowId: string | null;
+  }>({ methodologyVersionId: undefined, rowId: null });
+  const editingRowId =
+    editingState.methodologyVersionId === methodologyVersionId
+      ? editingState.rowId
+      : null;
+  const setEditingRowId = useCallback(
+    (rowId: string | null) => {
+      setEditingState({ methodologyVersionId, rowId });
+    },
+    [methodologyVersionId]
+  );
+
   const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 25,
   });
-  const [geiModal, setGeiModal] = useState<{
+  const [geiModalState, setGeiModalState] = useState<{
+    methodologyVersionId?: string;
     open: boolean;
     rowIndex: number;
-  }>({ open: false, rowIndex: -1 });
+  }>({ methodologyVersionId: undefined, open: false, rowIndex: -1 });
+  const geiModal = useMemo(
+    () =>
+      geiModalState.methodologyVersionId === methodologyVersionId
+        ? {
+            open: geiModalState.open,
+            rowIndex: geiModalState.rowIndex,
+          }
+        : { open: false, rowIndex: -1 },
+    [geiModalState, methodologyVersionId]
+  );
+  const setGeiModal = useCallback(
+    (value: { open: boolean; rowIndex: number }) => {
+      setGeiModalState({ methodologyVersionId, ...value });
+    },
+    [methodologyVersionId]
+  );
 
   const addMutation = useAddEmissionFactor(methodologyVersionId);
   const updateMutation = useUpdateEmissionFactor(methodologyVersionId);
   const deleteMutation = useDeleteEmissionFactor(methodologyVersionId);
 
-  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm(
-    initialEmissionFactors
-  );
+  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm([]);
   const currentRows = form.watch("emissionFactors");
 
-  // Sync form when server data changes (e.g. after a delete).
   const editingRowIdRef = useRef(editingRowId);
   useLayoutEffect(() => {
     editingRowIdRef.current = editingRowId;
   }, [editingRowId]);
+
+  useEffect(() => {
+    form.reset({ emissionFactors: [] });
+  }, [methodologyVersionId, form]);
+
   useEffect(() => {
     if (editingRowIdRef.current !== null) return;
+    if (!emissionFactors) return;
     form.reset({
-      emissionFactors: serverEmissionFactors.map(toFormEmissionFactor),
+      emissionFactors: emissionFactors.map(toFormEmissionFactor),
     });
-  }, [serverEmissionFactors, form]);
+  }, [emissionFactors, form]);
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
@@ -266,8 +164,12 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
 
     const rows = form.getValues("emissionFactors");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
-    const row = rows[rowIndex];
+    if (rowIndex === -1) {
+      setEditingRowId(null);
+      return true;
+    }
 
+    const row = rows[rowIndex];
     const isValid = await form.trigger(`emissionFactors.${rowIndex}`);
     if (!isValid) {
       void enqueueSnackbar({
@@ -277,7 +179,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       return false;
     }
 
-    if (row && isNewRow(row.id)) {
+    if (isNewRow(row.id)) {
       try {
         const result = await addMutation.mutateAsync({
           subcategoryId: row.subcategoryId,
@@ -301,27 +203,25 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
         });
         return false;
       }
+
       setEditingRowId(null);
       return true;
     }
 
-    const serverRow = serverEmissionFactors.find(
-      ({ id }) => id === editingRowId
-    );
+    const serverRow = emissionFactors?.find(({ id }) => id === editingRowId);
     const original = serverRow ? toFormEmissionFactor(serverRow) : null;
     const hasRealChanges =
-      row &&
-      (!original ||
-        row.subcategoryId !== original.subcategoryId ||
-        row.dimensionValue1Name !== original.dimensionValue1Name ||
-        row.dimensionValue2Name !== original.dimensionValue2Name ||
-        row.rateMeasurementUnitId !== original.rateMeasurementUnitId ||
-        row.source !== original.source ||
-        row.value !== original.value ||
-        JSON.stringify(row.gasDetails) !== JSON.stringify(original.gasDetails));
+      !original ||
+      row.subcategoryId !== original.subcategoryId ||
+      row.dimensionValue1Name !== original.dimensionValue1Name ||
+      row.dimensionValue2Name !== original.dimensionValue2Name ||
+      row.rateMeasurementUnitId !== original.rateMeasurementUnitId ||
+      row.source !== original.source ||
+      row.value !== original.value ||
+      JSON.stringify(row.gasDetails) !== JSON.stringify(original.gasDetails);
 
     try {
-      if (row && hasRealChanges) {
+      if (hasRealChanges) {
         await updateMutation.mutateAsync({
           emissionFactorId: row.id,
           data: {
@@ -347,6 +247,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       });
       return false;
     }
+
     setEditingRowId(null);
     return true;
   }, [
@@ -357,7 +258,8 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
     fieldArray,
     updateMutation,
     enqueueSnackbar,
-    serverEmissionFactors,
+    emissionFactors,
+    setEditingRowId,
   ]);
 
   const handleCancelEditRow = useCallback(() => {
@@ -369,9 +271,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
     if (isNewRow(editingRowId)) {
       if (rowIndex !== -1) fieldArray.remove(rowIndex);
     } else {
-      const original = serverEmissionFactors.find(
-        ({ id }) => id === editingRowId
-      );
+      const original = emissionFactors?.find(({ id }) => id === editingRowId);
       if (original && rowIndex !== -1) {
         fieldArray.update(rowIndex, toFormEmissionFactor(original));
       }
@@ -379,7 +279,14 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
 
     form.reset({ emissionFactors: form.getValues("emissionFactors") });
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, fieldArray, serverEmissionFactors]);
+  }, [
+    editingRowId,
+    form,
+    isNewRow,
+    fieldArray,
+    emissionFactors,
+    setEditingRowId,
+  ]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -389,7 +296,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       }
       setEditingRowId(rowId);
     },
-    [editingRowId, handleStopEditRow]
+    [editingRowId, handleStopEditRow, setEditingRowId]
   );
 
   const handleAddRow = useCallback(() => {
@@ -401,7 +308,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       Math.ceil(totalAfterAppend / paginationModel.pageSize) - 1
     );
 
-    const newRow: EmissionFactorForm = {
+    fieldArray.append({
       id: tempId,
       subcategoryId: "",
       dimensionValue1Name: null,
@@ -409,26 +316,17 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       rateMeasurementUnitId: "",
       source: "",
       value: 0,
-      gasDetails: {
-        CO2_FOSSIL: 0,
-        CH4: 0,
-        N2O: 0,
-        HFC: 0,
-        PFC: 0,
-        SF6: 0,
-        NF3: 0,
-      },
-    };
-    fieldArray.append(newRow);
+      gasDetails: EMPTY_GAS_DETAILS,
+    });
     setPaginationModel((prev) => ({ ...prev, page: lastPage }));
     setEditingRowId(tempId);
-  }, [fieldArray, form, paginationModel.pageSize]);
+  }, [fieldArray, form, paginationModel.pageSize, setEditingRowId]);
 
   const handleDelete = useCallback(
     async (row: EmissionFactorForm) => {
       try {
         const rows = form.getValues("emissionFactors");
-        const index = rows.findIndex((r) => r.id === row.id);
+        const index = rows.findIndex((currentRow) => currentRow.id === row.id);
         if (index !== -1) {
           if (editingRowId === row.id) {
             setEditingRowId(null);
@@ -450,26 +348,49 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
         });
       }
     },
-    [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
+    [
+      form,
+      fieldArray,
+      editingRowId,
+      isNewRow,
+      deleteMutation,
+      enqueueSnackbar,
+      setEditingRowId,
+    ]
   );
+
+  const handleExitEditModeNav = useCallback(() => {
+    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
+    if (target) {
+      selectMethodology({
+        id: target.id,
+        name: target.name,
+        regulation: target.regulation,
+      });
+    } else {
+      stopEditing();
+    }
+  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
 
   const handleExitEditMode = useCallback(() => {
     if (editingRowId) handleCancelEditRow();
-    onExitEditMode();
-  }, [editingRowId, handleCancelEditRow, onExitEditMode]);
+    handleExitEditModeNav();
+  }, [editingRowId, handleCancelEditRow, handleExitEditModeNav]);
 
-  // --- GEI Breakdown Modal ---
-  const handleOpenGEIBreakdown = useCallback((rowIndex: number) => {
-    setGeiModal({ open: true, rowIndex });
-  }, []);
+  const handleOpenGEIBreakdown = useCallback(
+    (rowIndex: number) => {
+      setGeiModal({ open: true, rowIndex });
+    },
+    [setGeiModal]
+  );
 
   const handleSaveGEIBreakdown = useCallback(
     (gasDetails: EmissionFactorForm["gasDetails"]) => {
       const { rowIndex } = geiModal;
       if (rowIndex < 0) return;
+
       handleCellChange(rowIndex, "gasDetails", gasDetails);
 
-      // Auto-save for existing rows
       const row = form.getValues(`emissionFactors.${rowIndex}`);
       if (row && !isNewRow(row.id)) {
         void updateMutation
@@ -478,9 +399,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
             data: { gasDetails },
           })
           .then(() => {
-            form.reset({
-              emissionFactors: form.getValues("emissionFactors"),
-            });
+            form.reset({ emissionFactors: form.getValues("emissionFactors") });
             void enqueueSnackbar({
               message: "Desglose GEI guardado",
               variant: "success",
@@ -504,13 +423,11 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
     ]
   );
 
-  // --- Block navigation while editing ---
   const { proceed, reset, status } = useBlocker({
     shouldBlockFn: () => editingRowId !== null,
     withResolver: true,
   });
 
-  // --- Column definitions ---
   const columns = useEmissionFactorColumns({
     editingRowId,
     viewOnly: isViewOnly,
@@ -521,26 +438,57 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
     onDelete: handleDelete,
     onOpenGEIBreakdown: handleOpenGEIBreakdown,
     rows: currentRows,
-    subcategories,
-    rateUnits,
+    subcategories: subcategoryOptions,
+    rateUnits: rateUnitOptions,
   });
 
   const geiGasDetails =
     geiModal.rowIndex >= 0
       ? form.getValues(`emissionFactors.${geiModal.rowIndex}.gasDetails`)
       : undefined;
-
   const geiDeclaredValue =
     geiModal.rowIndex >= 0
       ? Number(form.getValues(`emissionFactors.${geiModal.rowIndex}.value`))
       : 0;
+
+  const isDataReady =
+    !isLoadingEmissionFactors &&
+    !!emissionFactors &&
+    !isLoadingSubcategories &&
+    !!subcategories &&
+    !isLoadingRateUnits &&
+    !!rateUnits;
+
+  if (methodologies.length === 0 || !targetMethodology) {
+    const emptyStateMessage = isMethodologiesError
+      ? "No fue posible cargar las metodologías."
+      : methodologies.length === 0
+        ? "No hay metodologías disponibles para mostrar factores de emisión."
+        : "La metodología seleccionada no está disponible.";
+
+    return (
+      <>
+        <MaintainerPageHeader
+          title="Factores de emisión"
+          addLabel="Agregar fila"
+          addDisabled
+          extra={methodologySelector}
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary">
+            {emptyStateMessage}
+          </Typography>
+        </Box>
+      </>
+    );
+  }
 
   return (
     <FormProvider {...form}>
       <MaintainerPageHeader
         title="Factores de emisión"
         onAddRow={isViewOnly ? undefined : handleAddRow}
-        addDisabled={editingRowId !== null}
+        addDisabled={editingRowId !== null || !isDataReady}
         addLabel="Agregar fila"
         extra={methodologySelector}
       />
@@ -555,20 +503,11 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
             subtitle="Los cambios se aplicarán automáticamente"
           />
         )}
-        <Box
-          sx={{
-            m: 2,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <Typography variant="body2" color="text.secondary">
-            {isViewOnly
-              ? "Vista de solo lectura de los factores de emisión de esta metodología."
-              : "Gestiona los factores de emisión. Haz clic en una fila para editarla."}
-          </Typography>
-        </Box>
+        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
+          {isViewOnly
+            ? "Vista de solo lectura de los factores de emisión de esta metodología."
+            : "Gestiona los factores de emisión de esta metodología. Haz clic en una fila para editarla."}
+        </Typography>
         <form id="emission-factors-form" noValidate>
           <Box className="flex w-full">
             <StylizedDataGrid
@@ -592,8 +531,9 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
               })}
               columns={columns}
               rows={currentRows}
+              loading={!isDataReady}
               getRowHeight={() => 60}
-              getRowId={(row: EmissionFactor) => row.id}
+              getRowId={(row: EmissionFactorForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
               }
@@ -639,39 +579,16 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
           </Button>
         </Paper>
       )}
-      <Dialog
+      <ExitEditModeDialog
         open={exitEditModeOpen}
+        methodologyName={targetMethodology.name}
+        hasUnsavedRow={editingRowId !== null}
         onClose={() => setExitEditModeOpen(false)}
-      >
-        <DialogTitle>Salir de modo edición</DialogTitle>
-        <DialogContent>
-          {editingRowId ? (
-            <DialogContentText>
-              Tienes cambios sin guardar en la fila que estás editando. Si sales
-              del modo edición, los cambios se perderán.
-            </DialogContentText>
-          ) : (
-            <DialogContentText>
-              Estás a punto de salir del modo edición de{" "}
-              <strong>{targetMethodology.name}</strong>. Podrás volver a
-              editarla desde la pantalla de Metodologías.
-            </DialogContentText>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setExitEditModeOpen(false)}>Cancelar</Button>
-          <Button
-            variant="outlined"
-            color="primary"
-            onClick={() => {
-              setExitEditModeOpen(false);
-              handleExitEditMode();
-            }}
-          >
-            {editingRowId ? "Salir sin guardar" : "Salir"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={() => {
+          setExitEditModeOpen(false);
+          handleExitEditMode();
+        }}
+      />
       {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
         open={status === "blocked"}
@@ -680,17 +597,7 @@ const EmissionFactorsForm: FC<EmissionFactorsFormProps> = ({
       />
       <GEIBreakdownModal
         open={geiModal.open}
-        gasDetails={
-          geiGasDetails ?? {
-            CO2_FOSSIL: 0,
-            CH4: 0,
-            N2O: 0,
-            HFC: 0,
-            PFC: 0,
-            SF6: 0,
-            NF3: 0,
-          }
-        }
+        gasDetails={geiGasDetails ?? EMPTY_GAS_DETAILS}
         declaredValue={geiDeclaredValue}
         readOnly={isViewOnly}
         onSave={handleSaveGEIBreakdown}
