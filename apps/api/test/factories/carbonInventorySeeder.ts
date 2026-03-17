@@ -133,6 +133,7 @@ export async function seedCarbonInventory(
   prisma: PrismaClient,
   data: Prisma.CarbonInventoryUncheckedCreateInput
 ) {
+  const { id } = await getTestLoggedUser(prisma);
   return prisma.carbonInventory.create({
     data: {
       year: data.year,
@@ -147,7 +148,7 @@ export async function seedCarbonInventory(
         mapBigIntField(data.methodologyVersionId?.toString()) ?? null,
       preselectedNodesId:
         mapBigIntField(data.preselectedNodesId?.toString()) ?? null,
-      createdById: data.createdById ?? null,
+      createdById: data.createdById ?? id,
       updatedById: data.updatedById ?? null,
       updatedAt: null,
     },
@@ -214,11 +215,13 @@ export async function createCarbonInventoryLine(
     status?: CarbonInventoryLineStatus;
   }
 ) {
+  const { id } = await getTestLoggedUser(prisma);
   return prisma.carbonInventoryLine.create({
     data: {
       carbonInventoryId,
       subcategoryId,
       status: options?.status ?? CarbonInventoryLineStatus.ACTIVE,
+      createdById: id,
       updatedAt: null,
     },
   });
@@ -241,6 +244,7 @@ export async function createCarbonInventoryLineInput(
     isActive?: boolean;
   }
 ) {
+  const { id } = await getTestLoggedUser(prisma);
   return prisma.carbonInventoryLineInput.create({
     data: {
       lineId,
@@ -252,6 +256,7 @@ export async function createCarbonInventoryLineInput(
       manualFactor: options?.manualFactor ?? null,
       comment: options?.comment ?? null,
       isActive: options?.isActive ?? true,
+      createdById: id,
       updatedAt: null,
     },
   });
@@ -265,6 +270,7 @@ export async function createCarbonInventoryLineResult(
   lineInputId: bigint,
   totalEmissions: number | Prisma.Decimal
 ) {
+  const { id } = await getTestLoggedUser(prisma);
   return prisma.carbonInventoryLineResult.create({
     data: {
       lineInputId,
@@ -273,6 +279,7 @@ export async function createCarbonInventoryLineResult(
           ? new Prisma.Decimal(totalEmissions)
           : totalEmissions,
       resultDetails: {},
+      createdById: id,
       updatedAt: null,
     },
   });
@@ -292,6 +299,7 @@ export async function createCarbonInventoryLineFactor(
     derivationDetails?: Prisma.InputJsonValue;
   }
 ) {
+  const { id } = await getTestLoggedUser(prisma);
   return prisma.carbonInventoryLineFactor.create({
     data: {
       lineInputId,
@@ -300,6 +308,7 @@ export async function createCarbonInventoryLineFactor(
       emissionFactorId: options.emissionFactorId ?? null,
       appliedFactorSource: options.appliedFactorSource ?? null,
       derivationDetails: options.derivationDetails ?? undefined,
+      createdById: id,
       updatedAt: null,
     },
   });
@@ -317,9 +326,11 @@ export async function createInventoryWithEmissions(
   }
 ) {
   // Create the inventory
+  const { id } = await getTestLoggedUser(prisma);
   const inventory = await prisma.carbonInventory.create({
     data: {
       ...inventoryData,
+      createdById: id,
       updatedAt: null,
     },
   });
