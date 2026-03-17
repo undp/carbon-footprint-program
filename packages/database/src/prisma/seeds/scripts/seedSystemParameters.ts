@@ -53,11 +53,18 @@ export async function seedSystemParameters(
     skipDuplicates: true,
   });
 
-  const systemParameters = await prisma.systemParameter.findMany();
+  const systemParameters = await prisma.systemParameter.findMany({
+    select: { key: true },
+  });
 
-  if (systemParameters.length < systemParametersData.length)
+  const existingKeys = new Set(systemParameters.map((p) => p.key));
+  const missingKeys = systemParametersData
+    .map((p) => p.key)
+    .filter((key) => !existingKeys.has(key));
+
+  if (missingKeys.length > 0)
     throw new Error(
-      `Expected at least ${systemParametersData.length} system parameters but found ${systemParameters.length} for dataset ${dataset}`
+      `Missing system parameter keys for dataset ${dataset}: ${missingKeys.join(", ")}`
     );
 
   console.log(
