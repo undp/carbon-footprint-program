@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { useForm, useFieldArray, type Resolver } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import {
@@ -10,13 +10,13 @@ import {
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
-export interface EmissionFactorsFormValues {
-  emissionFactors: EmissionFactorForm[];
-}
-
 const emissionFactorsFormSchema = z.object({
   emissionFactors: z.array(EmissionFactorFormSchema),
 });
+
+export interface EmissionFactorsFormValues {
+  emissionFactors: EmissionFactorForm[];
+}
 
 const DEFAULT_GAS_DETAILS: EmissionFactorForm["gasDetails"] = {
   CO2_FOSSIL: 0,
@@ -42,15 +42,11 @@ export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
   };
 }
 
-export const useEmissionFactorsForm = (
-  initialEmissionFactors: EmissionFactorForm[]
-) => {
+export const useEmissionFactorsForm = () => {
   const form = useForm<EmissionFactorsFormValues>({
-    defaultValues: { emissionFactors: initialEmissionFactors },
+    defaultValues: { emissionFactors: [] },
     mode: "onBlur",
-    resolver: zodResolver(
-      emissionFactorsFormSchema
-    ) as Resolver<EmissionFactorsFormValues>,
+    resolver: zodResolver(emissionFactorsFormSchema),
   });
 
   const fieldArray = useFieldArray({
@@ -59,15 +55,9 @@ export const useEmissionFactorsForm = (
   });
 
   const handleCellChange = useCallback(
-    (
-      rowIndex: number,
-      field: keyof EmissionFactorForm,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      value: any
-    ) => {
+    (rowIndex: number, field: keyof EmissionFactorForm, value: unknown) => {
       const currentRow = form.getValues(`emissionFactors.${rowIndex}`);
       if (currentRow) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const updatedRow = { ...structuredClone(currentRow), [field]: value };
 
         fieldArray.update(rowIndex, updatedRow);

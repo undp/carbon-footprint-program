@@ -138,7 +138,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   const updateMutation = useUpdateEmissionFactor(methodologyVersionId);
   const deleteMutation = useDeleteEmissionFactor(methodologyVersionId);
 
-  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm([]);
+  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm();
   const currentRows = form.watch("emissionFactors");
 
   const editingRowIdRef = useRef(editingRowId);
