@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -120,6 +120,16 @@ export const BusinessProfilingScreen: FC = () => {
     onSuccess: goNext,
   });
 
+  const goToListOrLanding = user ? goToList : goToLanding;
+
+  const handleExitClick = useCallback(() => {
+    if (!isDirty) {
+      goToListOrLanding();
+    } else {
+      setIsExitDialogOpen(true);
+    }
+  }, [goToListOrLanding, setIsExitDialogOpen, isDirty]);
+
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
 
@@ -132,16 +142,6 @@ export const BusinessProfilingScreen: FC = () => {
     void navigate({ to: Routes.CARBON_INVENTORY });
     return null;
   }
-
-  const goToListOrLanding = user ? goToList : goToLanding;
-
-  const handleExitClick = (isDirty: boolean) => {
-    if (!isDirty) {
-      goToListOrLanding();
-    } else {
-      setIsExitDialogOpen(true);
-    }
-  };
 
   const exitDialogProps = user
     ? EXIT_DIALOG_CONTENT.LOGGED_IN
@@ -182,7 +182,7 @@ export const BusinessProfilingScreen: FC = () => {
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}
                 buttonProps={{
-                  onClick: () => handleExitClick(isDirty),
+                  onClick: handleExitClick,
                   disabled: isSubmitting,
                 }}
               />
@@ -323,9 +323,10 @@ export const BusinessProfilingScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={control} />}
-      {/* In this screen we do not use the useExitDialog hook because this form has required fields
-      , so the user cannot exit the screen without filling them. and allowing partial filling
-      could be problematic programmatically and not intuitive for the user.
+      {/* 
+        Custom exit logic: useExitDialog is not used due to required field constraints.
+          - If dirty: Show confirmation dialog to exit without saving.
+          - If clean: Exit immediately without prompting.
       */}
       <ExitInventoryDialog
         open={isExitDialogOpen}
