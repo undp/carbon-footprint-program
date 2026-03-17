@@ -8,20 +8,12 @@ import {
   useState,
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import {
-  Box,
-  Button,
-  MenuItem,
-  Paper,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
   useCategories,
-  useMethodologies,
   useSubcategories,
   useAddSubcategory,
   useUpdateSubcategory,
@@ -29,13 +21,12 @@ import {
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import {
   useSubcategoriesForm,
   toFormSubcategory,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
-import { MethodologyVersionStatus, SubcategoryForm } from "@repo/types";
+import { SubcategoryForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
@@ -43,35 +34,21 @@ import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
+import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 
 export const SubcategoriesMaintainerScreen: FC = () => {
-  const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
-  const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
-  const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
-  const stopEditing = useMaintainerStore((s) => s.stopEditing);
+  const {
+    isViewOnly,
+    methodologies,
+    effectiveMethodologyId,
+    methodologyVersionId,
+    targetMethodology,
+    methodologySelector,
+    selectMethodology,
+    stopEditing,
+    isMethodologiesError,
+  } = useMaintainerMethodologyScope();
   const { enqueueSnackbar } = useSnackbar();
-  const { data: methodologies = [], isError: isMethodologiesError } =
-    useMethodologies();
-
-  const activeMethodology = useMemo(
-    () =>
-      methodologies.find(
-        (m) => m.status === MethodologyVersionStatus.PUBLISHED
-      ),
-    [methodologies]
-  );
-
-  const effectiveMethodologyId =
-    editingMethodology?.id ?? selectedMethodology?.id ?? activeMethodology?.id;
-
-  const targetMethodology = methodologies.find(
-    (m) => m.id === effectiveMethodologyId
-  );
-  const methodologyVersionId = targetMethodology?.id;
-
-  const isViewOnly =
-    !editingMethodology ||
-    targetMethodology?.status === MethodologyVersionStatus.PUBLISHED;
 
   // --- Data fetching ---
   const { data: subcategories, isLoading: isLoadingSubcategories } =
@@ -89,12 +66,42 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   );
 
   // --- Form & editing state ---
-  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [editingState, setEditingState] = useState<{
+    methodologyVersionId?: string;
+    rowId: string | null;
+  }>({ methodologyVersionId: undefined, rowId: null });
+  const editingRowId =
+    editingState.methodologyVersionId === methodologyVersionId
+      ? editingState.rowId
+      : null;
+  const setEditingRowId = useCallback(
+    (rowId: string | null) => {
+      setEditingState({ methodologyVersionId, rowId });
+    },
+    [methodologyVersionId]
+  );
   const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
-  const [explanationModal, setExplanationModal] = useState<{
+  const [explanationModalState, setExplanationModalState] = useState<{
+    methodologyVersionId?: string;
     open: boolean;
     rowIndex: number;
-  }>({ open: false, rowIndex: -1 });
+  }>({ methodologyVersionId: undefined, open: false, rowIndex: -1 });
+  const explanationModal = useMemo(
+    () =>
+      explanationModalState.methodologyVersionId === methodologyVersionId
+        ? {
+            open: explanationModalState.open,
+            rowIndex: explanationModalState.rowIndex,
+          }
+        : { open: false, rowIndex: -1 },
+    [explanationModalState, methodologyVersionId]
+  );
+  const setExplanationModal = useCallback(
+    (value: { open: boolean; rowIndex: number }) => {
+      setExplanationModalState({ methodologyVersionId, ...value });
+    },
+    [methodologyVersionId]
+  );
 
   const addMutation = useAddSubcategory(methodologyVersionId);
   const updateMutation = useUpdateSubcategory(methodologyVersionId);
@@ -110,18 +117,14 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   }, [editingRowId]);
 
   useEffect(() => {
+    form.reset({ subcategories: [] });
+  }, [methodologyVersionId, form]);
+
+  useEffect(() => {
     if (editingRowIdRef.current !== null) return;
     if (!subcategories) return;
     form.reset({ subcategories: subcategories.map(toFormSubcategory) });
   }, [subcategories, form]);
-
-  // --- Reset editing state when methodology changes ---
-  const prevMethodologyVersionId = useRef(methodologyVersionId);
-  if (prevMethodologyVersionId.current !== methodologyVersionId) {
-    prevMethodologyVersionId.current = methodologyVersionId;
-    setEditingRowId(null);
-    setExplanationModal({ open: false, rowIndex: -1 });
-  }
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
@@ -220,6 +223,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     updateMutation,
     enqueueSnackbar,
     subcategories,
+    setEditingRowId,
   ]);
 
   const handleCancelEditRow = useCallback(() => {
@@ -239,7 +243,14 @@ export const SubcategoriesMaintainerScreen: FC = () => {
 
     form.reset({ subcategories: form.getValues("subcategories") });
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, fieldArray, subcategories]);
+  }, [
+    editingRowId,
+    form,
+    isNewRow,
+    fieldArray,
+    subcategories,
+    setEditingRowId,
+  ]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -249,7 +260,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       }
       setEditingRowId(rowId);
     },
-    [editingRowId, handleStopEditRow]
+    [editingRowId, handleStopEditRow, setEditingRowId]
   );
 
   const handleAddRow = useCallback(() => {
@@ -265,7 +276,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     };
     fieldArray.append(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray]);
+  }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
     async (row: SubcategoryForm) => {
@@ -293,7 +304,15 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         });
       }
     },
-    [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
+    [
+      form,
+      fieldArray,
+      editingRowId,
+      isNewRow,
+      deleteMutation,
+      enqueueSnackbar,
+      setEditingRowId,
+    ]
   );
 
   // --- Exit edit mode ---
@@ -318,9 +337,12 @@ export const SubcategoriesMaintainerScreen: FC = () => {
 
   // --- Explanation modal ---
 
-  const handleOpenExplanation = useCallback((rowIndex: number) => {
-    setExplanationModal({ open: true, rowIndex });
-  }, []);
+  const handleOpenExplanation = useCallback(
+    (rowIndex: number) => {
+      setExplanationModal({ open: true, rowIndex });
+    },
+    [setExplanationModal]
+  );
 
   const handleSaveExplanation = useCallback(
     async (value: string) => {
@@ -400,34 +422,13 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         ) ?? "")
       : "";
 
-  const methodologySelector = (
-    <Box className="flex items-center gap-1">
-      <Typography variant="body2" color="text.secondary" noWrap>
-        Metodología:
-      </Typography>
-      <Select
-        size="small"
-        value={effectiveMethodologyId ?? ""}
-        disabled={!!editingMethodology}
-        onChange={(e) => {
-          const m = methodologies.find((m) => m.id === e.target.value);
-          if (m)
-            selectMethodology({
-              id: m.id,
-              name: m.name,
-              regulation: m.regulation,
-            });
-        }}
-        sx={{ minWidth: 220 }}
-      >
-        {methodologies.map((m) => (
-          <MenuItem key={m.id} value={m.id}>
-            {m.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </Box>
-  );
+  const isDataReady =
+    !isLoadingSubcategories &&
+    !!subcategories &&
+    !isLoadingCategories &&
+    !!categories &&
+    !isLoadingUnits &&
+    !!measurementUnits;
 
   if (methodologies.length === 0 || !targetMethodology) {
     const emptyStateMessage = isMethodologiesError
@@ -452,14 +453,6 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       </>
     );
   }
-
-  const isDataReady =
-    !isLoadingSubcategories &&
-    !!subcategories &&
-    !isLoadingCategories &&
-    !!categories &&
-    !isLoadingUnits &&
-    !!measurementUnits;
 
   return (
     <FormProvider {...form}>
