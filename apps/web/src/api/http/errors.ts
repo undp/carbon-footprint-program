@@ -3,6 +3,21 @@ export type AppError =
   | { kind: "validation"; message: string; details?: unknown; status: number }
   | { kind: "unknown"; message: string; status?: number };
 
+/**
+ * Mirrors the API's `ApiErrorResponse` shape returned by the error handler.
+ * Every API error response contains at least `{ code, message }`.
+ */
+export interface ApiErrorBody {
+  code: string;
+  message: string;
+}
+
+export const isApiErrorBody = (value: unknown): value is ApiErrorBody =>
+  typeof value === "object" &&
+  value !== null &&
+  typeof (value as Record<string, unknown>).code === "string" &&
+  typeof (value as Record<string, unknown>).message === "string";
+
 export type NormalizedError = AppError & {
   request: { url: string; method: string };
   body?: unknown;
@@ -12,6 +27,11 @@ export class AppHttpError extends Error {
   constructor(public readonly detail: NormalizedError) {
     super(detail.message);
     this.name = "AppHttpError";
+  }
+
+  /** Returns the machine-readable error code from the API response, if present. */
+  get errorCode(): string | undefined {
+    return isApiErrorBody(this.detail.body) ? this.detail.body.code : undefined;
   }
 }
 
