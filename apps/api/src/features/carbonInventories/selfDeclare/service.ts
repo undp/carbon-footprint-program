@@ -40,7 +40,7 @@ export const selfDeclareService = async (
 
     const displayStatus = calculateDisplayStatus(inventory);
     if (displayStatus !== CarbonInventoryDisplayStatusEnum.DRAFT) {
-      throw new CarbonInventoryCannotSelfDeclareError(inventory.id);
+      throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
     }
 
     const createdById = user ? BigInt(user.id) : null;
