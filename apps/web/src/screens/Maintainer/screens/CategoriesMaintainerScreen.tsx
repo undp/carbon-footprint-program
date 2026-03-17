@@ -1,6 +1,5 @@
 import {
   FC,
-  ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -20,7 +19,6 @@ import {
   MenuItem,
   Paper,
   Select,
-  Skeleton,
   Typography,
 } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
@@ -38,32 +36,20 @@ import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useCategoriesForm, toFormCategory } from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
-import {
-  MethodologyVersionStatus,
-  CategoryForm,
-  type GetAllCategoriesResponse,
-} from "@repo/types";
+import { MethodologyVersionStatus, CategoryForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
-import { MaintainerTableSkeleton } from "../components/MaintainerTableSkeleton";
 
-type Category = GetAllCategoriesResponse[number];
-
-/**
- * Outer wrapper that handles data fetching and defers form mount until data is
- * ready. This ensures `useForm` receives real data in `defaultValues` instead
- * of an empty array followed by `form.reset()`, which freezes `useFieldArray`
- * internals and breaks `register()` / DevTools.
- */
 export const CategoriesMaintainerScreen: FC = () => {
   const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
   const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
   const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
   const stopEditing = useMaintainerStore((s) => s.stopEditing);
+  const { enqueueSnackbar } = useSnackbar();
   const { data: methodologies = [] } = useMethodologies();
 
   const activeMethodology = useMemo(
@@ -77,19 +63,6 @@ export const CategoriesMaintainerScreen: FC = () => {
   const effectiveMethodologyId =
     editingMethodology?.id ?? selectedMethodology?.id ?? activeMethodology?.id;
 
-  const handleExitEditMode = useCallback(() => {
-    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
-    if (target) {
-      selectMethodology({
-        id: target.id,
-        name: target.name,
-        regulation: target.regulation,
-      });
-    } else {
-      stopEditing();
-    }
-  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
-
   const targetMethodology = methodologies.find(
     (m) => m.id === effectiveMethodologyId
   );
@@ -99,95 +72,10 @@ export const CategoriesMaintainerScreen: FC = () => {
     !editingMethodology ||
     targetMethodology?.status === MethodologyVersionStatus.PUBLISHED;
 
-  const methodologySelector = (
-    <Box className="flex items-center gap-1">
-      <Typography variant="body2" color="text.secondary" noWrap>
-        Metodología:
-      </Typography>
-      <Select
-        size="small"
-        value={effectiveMethodologyId ?? ""}
-        disabled={!!editingMethodology}
-        onChange={(e) => {
-          const m = methodologies.find((m) => m.id === e.target.value);
-          if (m)
-            selectMethodology({
-              id: m.id,
-              name: m.name,
-              regulation: m.regulation,
-            });
-        }}
-        sx={{ minWidth: 220 }}
-      >
-        {methodologies.map((m) => (
-          <MenuItem key={m.id} value={m.id}>
-            {m.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </Box>
-  );
-
+  // --- Data fetching ---
   const { data: categories, isLoading } = useCategories(methodologyVersionId);
 
-  if (!targetMethodology) return null;
-
-  // Defer form mount until the first successful fetch so `defaultValues` gets
-  // the real data and `useFieldArray` + `register()` work correctly.
-  if (isLoading || !categories) {
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Categorías / Alcances"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Skeleton variant="text" width={500} height={20} sx={{ mb: 2 }} />
-          <MaintainerTableSkeleton columns={7} rows={5} rowHeight={70} />
-        </Box>
-      </>
-    );
-  }
-
-  return (
-    <CategoriesForm
-      key={methodologyVersionId}
-      targetMethodology={targetMethodology}
-      methodologyVersionId={methodologyVersionId!}
-      isViewOnly={isViewOnly}
-      initialCategories={categories.map(toFormCategory)}
-      serverCategories={categories}
-      methodologySelector={methodologySelector}
-      onExitEditMode={handleExitEditMode}
-    />
-  );
-};
-
-// ---------------------------------------------------------------------------
-
-interface CategoriesFormProps {
-  targetMethodology: { id: string; name: string };
-  methodologyVersionId: string;
-  isViewOnly: boolean;
-  initialCategories: CategoryForm[];
-  serverCategories: Category[];
-  methodologySelector: ReactNode;
-  onExitEditMode: () => void;
-}
-
-const CategoriesForm: FC<CategoriesFormProps> = ({
-  targetMethodology,
-  methodologyVersionId,
-  isViewOnly,
-  initialCategories,
-  serverCategories,
-  methodologySelector,
-  onExitEditMode,
-}) => {
-  const { enqueueSnackbar } = useSnackbar();
-
+  // --- Form & editing state ---
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
   const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
   const [explanationModal, setExplanationModal] = useState<{
@@ -200,24 +88,32 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
   const deleteMutation = useDeleteCategory(methodologyVersionId);
   const swapMutation = useSwapCategoryPositions(methodologyVersionId);
 
-  // Form is initialised with real data via defaultValues — no form.reset()
-  const { form, fieldArray, handleCellChange } =
-    useCategoriesForm(initialCategories);
+  const { form, fieldArray, handleCellChange } = useCategoriesForm();
   const currentRows = form.watch("categories");
 
-  // Sync form when server data changes (e.g. positions after a delete).
-  // Use a ref so the effect only triggers on serverCategories changes, not on
-  // editingRowId changes (which would reset mid-edit or before refetch arrives).
+  // --- Sync form with server data ---
   const editingRowIdRef = useRef(editingRowId);
   useLayoutEffect(() => {
     editingRowIdRef.current = editingRowId;
   }, [editingRowId]);
+
   useEffect(() => {
     if (editingRowIdRef.current !== null) return;
-    form.reset({ categories: serverCategories.map(toFormCategory) });
-  }, [serverCategories, form]);
+    if (!categories) return;
+    form.reset({ categories: categories.map(toFormCategory) });
+  }, [categories, form]);
+
+  // --- Reset editing state when methodology changes ---
+  const prevMethodologyVersionId = useRef(methodologyVersionId);
+  if (prevMethodologyVersionId.current !== methodologyVersionId) {
+    prevMethodologyVersionId.current = methodologyVersionId;
+    setEditingRowId(null);
+    setExplanationModal({ open: false, rowIndex: -1 });
+  }
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+
+  // --- Row editing callbacks ---
 
   const handleStopEditRow = useCallback(async (): Promise<boolean> => {
     if (!editingRowId) return true;
@@ -238,7 +134,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     if (row && isNewRow(row.id)) {
       try {
         const result = await addMutation.mutateAsync({
-          methodologyVersionId,
+          methodologyVersionId: methodologyVersionId!,
           name: row.name,
           icon: row.icon,
           color: row.color,
@@ -316,7 +212,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     if (isNewRow(editingRowId)) {
       if (rowIndex !== -1) fieldArray.remove(rowIndex);
     } else {
-      const original = serverCategories.find(({ id }) => id === editingRowId);
+      const original = categories?.find(({ id }) => id === editingRowId);
       if (original && rowIndex !== -1) {
         fieldArray.update(rowIndex, toFormCategory(original));
       }
@@ -324,7 +220,7 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
 
     form.reset({ categories: form.getValues("categories") });
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, fieldArray, serverCategories]);
+  }, [editingRowId, form, isNewRow, fieldArray, categories]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -434,10 +330,27 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
     [handleMove]
   );
 
+  // --- Exit edit mode ---
+
+  const handleExitEditModeNav = useCallback(() => {
+    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
+    if (target) {
+      selectMethodology({
+        id: target.id,
+        name: target.name,
+        regulation: target.regulation,
+      });
+    } else {
+      stopEditing();
+    }
+  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
+
   const handleExitEditMode = useCallback(() => {
     if (editingRowId) handleCancelEditRow();
-    onExitEditMode();
-  }, [editingRowId, handleCancelEditRow, onExitEditMode]);
+    handleExitEditModeNav();
+  }, [editingRowId, handleCancelEditRow, handleExitEditModeNav]);
+
+  // --- Explanation modal ---
 
   const handleOpenExplanation = useCallback((rowIndex: number) => {
     setExplanationModal({ open: true, rowIndex });
@@ -516,6 +429,37 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
         "")
       : "";
 
+  const methodologySelector = (
+    <Box className="flex items-center gap-1">
+      <Typography variant="body2" color="text.secondary" noWrap>
+        Metodología:
+      </Typography>
+      <Select
+        size="small"
+        value={effectiveMethodologyId ?? ""}
+        disabled={!!editingMethodology}
+        onChange={(e) => {
+          const m = methodologies.find((m) => m.id === e.target.value);
+          if (m)
+            selectMethodology({
+              id: m.id,
+              name: m.name,
+              regulation: m.regulation,
+            });
+        }}
+        sx={{ minWidth: 220 }}
+      >
+        {methodologies.map((m) => (
+          <MenuItem key={m.id} value={m.id}>
+            {m.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </Box>
+  );
+
+  if (!targetMethodology) return null;
+
   return (
     <FormProvider {...form}>
       <MaintainerPageHeader
@@ -550,15 +494,17 @@ const CategoriesForm: FC<CategoriesFormProps> = ({
                 },
                 "& .MuiDataGrid-cell": {
                   display: "flex",
+                  maxHeight: 70,
                   alignItems: "center",
                 },
                 "& .MuiDataGrid-row.row--editing": {
                   backgroundColor: theme.palette.grey[100],
                 },
               })}
+              loading={isLoading}
               columns={columns}
               rows={currentRows}
-              getRowHeight={() => 70}
+              rowHeight={70}
               getRowId={(row: CategoryForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""

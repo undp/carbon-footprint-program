@@ -32,9 +32,9 @@ export function toFormCategory(c: Category): CategoryForm {
   };
 }
 
-export const useCategoriesForm = (initialCategories: CategoryForm[]) => {
+export const useCategoriesForm = () => {
   const form = useForm<CategoriesFormValues>({
-    defaultValues: { categories: initialCategories },
+    defaultValues: { categories: [] },
     mode: "onBlur",
     resolver: zodResolver(categoriesFormSchema),
   });
