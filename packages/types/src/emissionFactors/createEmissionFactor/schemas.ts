@@ -50,5 +50,13 @@ export const EmissionFactorFormSchema = z.object({
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
   source: z.string().min(1, "Fuente es requerida"),
   value: z.number({ error: "Valor es requerido" }),
-  gasDetails: GasDetailsSchema,
+  gasDetails: z.object({
+    CO2_FOSSIL: z.number(),
+    CH4: z.number(),
+    N2O: z.number(),
+    HFC: z.number(),
+    PFC: z.number(),
+    SF6: z.number(),
+    NF3: z.number(),
+  }),
 });
