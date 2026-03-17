@@ -569,15 +569,15 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
   });
 
   describe("Error cases", () => {
-    it("should return 404 with 'Carbon inventory not found' when carbon inventory does not exist", async () => {
+    it("should return 403 with 'FORBIDDEN' when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/carbon-inventories/999999/methodology",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 404 with 'Methodology not found' when carbon inventory has no methodology", async () => {

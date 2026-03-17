@@ -115,15 +115,15 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
   });
 
   describe("Validation errors", () => {
-    it("should return 404 when carbon inventory does not exist", async () => {
+    it("should return 403 when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories/999999/request-calculation",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 422 when carbon inventory has no associated organization", async () => {

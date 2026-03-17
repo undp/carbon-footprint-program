@@ -108,16 +108,16 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
     });
   });
 
-  describe("Not found errors", () => {
-    it("should return 404 when carbon inventory does not exist", async () => {
+  describe("Authorization errors", () => {
+    it("should return 403 when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "DELETE",
         url: "/api/carbon-inventories/999999",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
   });
 

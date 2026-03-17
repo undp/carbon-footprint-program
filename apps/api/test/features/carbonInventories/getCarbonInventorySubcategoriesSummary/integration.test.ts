@@ -493,15 +493,15 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
   });
 
   describe("Error handling", () => {
-    it("should return 404 for non-existent carbon inventory", async () => {
+    it("should return 403 for non-existent carbon inventory", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/carbon-inventories/999999999/subcategories/summary",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 404 for carbon inventory without methodology", async () => {

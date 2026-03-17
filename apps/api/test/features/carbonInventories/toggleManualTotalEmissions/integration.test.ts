@@ -166,9 +166,9 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
         payload: { activated: true },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 422 when activating manual mode but no active lines exist", async () => {

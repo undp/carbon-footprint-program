@@ -815,7 +815,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
   });
 
   describe("Error handling", () => {
-    it("should return 404 when carbon inventory does not exist", async () => {
+    it("should return 403 when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
         url: `/api/carbon-inventories/999999/lines/sync`,
@@ -826,9 +826,9 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 404 when subcategory does not exist for create", async () => {

@@ -10,6 +10,7 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import {
   cleanupCarbonInventoryTestData,
+  createCarbonInventory,
   createInventoryWithEmissions,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
@@ -88,12 +89,9 @@ describe("GET /api/carbon-inventories/:id/sector-ranking - Integration Tests", (
     });
 
     it("should return empty array for inventory with no emissions", async () => {
-      const inventory = await prisma.carbonInventory.create({
-        data: {
-          usageMode: "SIMPLIFIED",
-          methodologyVersionId,
-          updatedAt: null,
-        },
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
       });
 
       const response = await app.inject({
@@ -109,15 +107,15 @@ describe("GET /api/carbon-inventories/:id/sector-ranking - Integration Tests", (
   });
 
   describe("Error handling", () => {
-    it("should return 404 for a non-existent inventory", async () => {
+    it("should return 403 for a non-existent inventory", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/carbon-inventories/999999/sector-ranking",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
   });
 });
