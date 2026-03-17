@@ -129,6 +129,9 @@ export const EditableTextCell: FC<EditableTextCellProps> = ({
           sx={{
             px: 1,
             py: 0.5,
+            minHeight: "2rem",
+            display: "flex",
+            alignItems: "center",
             borderRadius: 1,
             cursor: onClick ? "pointer" : "default",
             transition: "background-color 0.15s ease",
