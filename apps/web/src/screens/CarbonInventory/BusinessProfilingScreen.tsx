@@ -133,7 +133,15 @@ export const BusinessProfilingScreen: FC = () => {
     return null;
   }
 
-  const handleExitClick = () => setIsExitDialogOpen(true);
+  const goToListOrLanding = user ? goToList : goToLanding;
+
+  const handleExitClick = (isDirty: boolean) => {
+    if (!isDirty) {
+      goToListOrLanding();
+    } else {
+      setIsExitDialogOpen(true);
+    }
+  };
 
   const exitDialogProps = user
     ? EXIT_DIALOG_CONTENT.LOGGED_IN
@@ -174,7 +182,7 @@ export const BusinessProfilingScreen: FC = () => {
               <CarbonInventoryNavigationButton
                 type={user ? "inventories" : "landing"}
                 buttonProps={{
-                  onClick: handleExitClick,
+                  onClick: () => handleExitClick(isDirty),
                   disabled: isSubmitting,
                 }}
               />
@@ -322,7 +330,7 @@ export const BusinessProfilingScreen: FC = () => {
       <ExitInventoryDialog
         open={isExitDialogOpen}
         onClose={() => setIsExitDialogOpen(false)}
-        onConfirm={user ? goToList : goToLanding}
+        onConfirm={goToListOrLanding}
         {...exitDialogProps}
       />
     </>
