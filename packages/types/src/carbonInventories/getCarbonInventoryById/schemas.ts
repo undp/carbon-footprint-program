@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
+import { OrganizationSummaryBaseSchema } from "../../baseSchemas/index.js";
 
 export const GetCarbonInventoryByIdParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
@@ -60,6 +61,14 @@ const SubcategoryItemSchema = z
 
 export const GetCarbonInventoryByIdResponseSchema =
   CarbonInventoryBaseSchema.omit({ status: true }).extend({
+    organization: z
+      .object({
+        id: IdSchema.describe("The ID of the organization"),
+        name: OrganizationSummaryBaseSchema.shape.name.describe(
+          "The name of the organization"
+        ),
+      })
+      .nullable(),
     status: CarbonInventoryDisplayStatusSchema,
     subcategories: z
       .array(SubcategoryItemSchema)

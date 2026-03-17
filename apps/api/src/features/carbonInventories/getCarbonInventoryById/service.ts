@@ -51,6 +51,16 @@ export const getCarbonInventoryByIdService = async (
           },
         },
       },
+      organization: {
+        select: {
+          id: true,
+          summary: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -74,6 +84,12 @@ export const getCarbonInventoryByIdService = async (
 
   return {
     ...mapCarbonInventoryWithLinesToResponse(inventory, subcategories),
+    organization: inventory.organizationId
+      ? {
+          id: inventory.organizationId.toString(),
+          name: inventory.organization!.summary!.name, // if organization id is not null, summary is not null
+        }
+      : null,
     status: calculateDisplayStatus(inventory),
   };
 };
