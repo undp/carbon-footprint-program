@@ -33,6 +33,18 @@ export const CategoryFormSchema = CategoryBaseSchema.pick({
     .string()
     .min(1, "Nombre es requerido")
     .max(255, "Nombre no puede exceder 255 caracteres"),
+  icon: z.string().min(1, "Ícono es requerido"),
+  color: z
+    .string()
+    .min(1, "Color es requerido")
+    .regex(
+      /^#([0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/,
+      "Color debe ser un código hexadecimal válido"
+    ),
   synonyms: z.string().min(1, "Categoría/Alcance es requerido"),
   description: z.string().min(1, "Descripción es requerida"),
+  position: z
+    .number({ error: "Posición debe ser un número" })
+    .int("Posición debe ser un número entero")
+    .min(1, "Posición debe ser mayor a 0"),
 });
