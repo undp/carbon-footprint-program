@@ -1,0 +1,8 @@
+[
+  {
+    "key": "AUTO_APPROVE_CARBON_INVENTORIES_MEASUREMENT_SUBMISSIONS",
+    "value": "true",
+    "description": "Determines if a Submission of type CARBON_INVENTORY_CALCULATION is automatically created and approved when a user self-declares a carbon inventory",
+    "type": "CARBON_INVENTORIES_SUBMISSIONS"
+  }
+]
