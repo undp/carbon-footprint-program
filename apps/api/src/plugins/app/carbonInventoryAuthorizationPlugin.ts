@@ -113,15 +113,12 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
 
       const userId = BigInt(request.currentUser.id);
 
-      // Query for an ACTIVE carbon inventory matching the access control filter
+      // Query for a carbon inventory the user has access to (via authorship or org membership)
       const inventory = await fastify.prisma.carbonInventory.findFirst({
         where: {
           id: BigInt(carbonInventoryId),
-          status: InventoryStatus.ACTIVE,
           OR: [
-            // User created the inventory
             { createdById: userId },
-            // Inventory belongs to organization where user has active membership
             {
               organization: {
                 memberships: {
@@ -134,7 +131,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
             },
           ],
         },
-        select: { id: true },
+        select: { id: true, status: true },
       });
 
       if (!inventory) {
@@ -143,11 +140,25 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
             userId: request.currentUser.id,
             carbonInventoryId,
           },
-          "Carbon inventory authorization failed: inventory not found or user does not have access"
+          "Carbon inventory authorization failed: user does not have access"
         );
         return reply.status(403).send({
           code: "FORBIDDEN",
           message: "You do not have access to this carbon inventory",
+        });
+      }
+
+      if (inventory.status === InventoryStatus.DELETED) {
+        log.warn(
+          {
+            userId: request.currentUser.id,
+            carbonInventoryId,
+          },
+          "Carbon inventory authorization failed: inventory is deleted"
+        );
+        return reply.status(404).send({
+          code: "NOT_FOUND",
+          message: "Carbon inventory not found",
         });
       }
 
