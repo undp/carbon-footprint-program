@@ -76,4 +76,4 @@ server/dist
 public/dist
 
 # Claude
-.claude
+.claude/settings*
