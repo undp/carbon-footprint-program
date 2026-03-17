@@ -37,6 +37,7 @@ export const SubcategoryFormSchema = z.strictObject({
   description: z.string().trim().min(1, "Descripción es requerida"),
   examples: z
     .string()
+    .trim()
     .nullable()
     .transform((v) => (v === "" ? null : v)),
   measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
