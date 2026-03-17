@@ -30,6 +30,7 @@ import { type EmissionFactorForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { InfoBanner } from "../components/InfoBanner";
@@ -196,9 +197,12 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           message: "Factor de emisión creado exitosamente",
           variant: "success",
         });
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al crear factor de emisión",
+          message: getApiErrorMessage(
+            error,
+            "Error al crear factor de emisión"
+          ),
           variant: "error",
         });
         return false;
@@ -240,9 +244,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           variant: "success",
         });
       }
-    } catch {
+    } catch (error) {
       void enqueueSnackbar({
-        message: "Error al guardar cambios",
+        message: getApiErrorMessage(error, "Error al guardar cambios"),
         variant: "error",
       });
       return false;
@@ -341,9 +345,12 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
             variant: "success",
           });
         }
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al eliminar factor de emisión",
+          message: getApiErrorMessage(
+            error,
+            "Error al eliminar factor de emisión"
+          ),
           variant: "error",
         });
       }
@@ -405,9 +412,12 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
               variant: "success",
             });
           })
-          .catch(() => {
+          .catch((error) => {
             void enqueueSnackbar({
-              message: "Error al guardar desglose GEI",
+              message: getApiErrorMessage(
+                error,
+                "Error al guardar desglose GEI"
+              ),
               variant: "error",
             });
           });
