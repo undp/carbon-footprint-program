@@ -32,6 +32,7 @@ export interface OrganizationFormValues {
   representativePositionId: string;
   representativePhone: string;
   representativeEmail: string;
+  files: File[];
 }
 
 /**

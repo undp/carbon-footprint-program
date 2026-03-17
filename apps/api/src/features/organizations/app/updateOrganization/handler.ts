@@ -4,6 +4,7 @@ import type {
   UpdateOrganizationBody,
 } from "@repo/types";
 import { updateOrganizationService } from "./service.js";
+import { StorageNotConfiguredError } from "@/features/files/errors.js";
 
 export const updateOrganizationHandler = async (
   request: FastifyRequest<{
@@ -15,15 +16,23 @@ export const updateOrganizationHandler = async (
   const log = request.log.child({ module: "app-organizations" });
   const { id } = request.params;
   const userId = request.currentUser!.id;
+  const { fileUuids, ...bodyData } = request.body;
+  const { blobServiceClient, storageContainerName } = request.server;
 
   log.info({ organizationId: id }, "Updating organization...");
 
-  const prisma = request.server.prisma;
+  if (fileUuids?.length && (!blobServiceClient || !storageContainerName)) {
+    throw new StorageNotConfiguredError();
+  }
+
   const result = await updateOrganizationService(
-    prisma,
+    request.server.prisma,
     id,
     userId,
-    request.body
+    bodyData,
+    fileUuids,
+    blobServiceClient ?? undefined,
+    storageContainerName ?? undefined
   );
 
   log.info({ organizationId: id }, "Organization updated successfully");

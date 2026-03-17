@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateOrganizationBody,
   UpdateOrganizationResponse,
@@ -17,6 +18,10 @@ import {
   createOrganizationData,
   createOrganizationDataSubmission,
 } from "../../helpers.js";
+import {
+  linkSubmissionFiles,
+  cleanupSourceBlobs,
+} from "@/features/files/helpers/linkSubmissionFiles.js";
 
 /**
  * Updates organization data based on current submission state.
@@ -50,7 +55,10 @@ export const updateOrganizationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   userId: string,
-  body: UpdateOrganizationBody
+  body: Omit<UpdateOrganizationBody, "fileUuids">,
+  fileUuids?: string[],
+  blobServiceClient?: BlobServiceClient,
+  containerName?: string
 ): Promise<UpdateOrganizationResponse> => {
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -62,7 +70,7 @@ export const updateOrganizationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
-  return await prismaClient.$transaction(async (tx) => {
+  const result = await prismaClient.$transaction(async (tx) => {
     const pendingOrganizationData = await getPendingOrganizationData(
       tx,
       organizationId
@@ -101,14 +109,22 @@ export const updateOrganizationService = async (
         userId,
         body
       );
-      await createOrganizationDataSubmission(
+      const submission = await createOrganizationDataSubmission(
         tx,
         newOrganizationData.id.toString(),
         userId
       );
-      return {
-        id: organization.id.toString(),
-      };
+      let blobCleanup;
+      if (fileUuids?.length) {
+        blobCleanup = await linkSubmissionFiles(
+          tx,
+          blobServiceClient,
+          containerName,
+          submission.id,
+          fileUuids
+        );
+      }
+      return { id: organization.id.toString(), blobCleanup };
     }
 
     const rejectedOrganizationData = await getRejectedOrganizationData(
@@ -125,4 +141,10 @@ export const updateOrganizationService = async (
 
     throw new OrganizationDataNotFoundError(organizationId);
   });
+
+  if (result.blobCleanup) {
+    await cleanupSourceBlobs(result.blobCleanup);
+  }
+
+  return { id: result.id };
 };

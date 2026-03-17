@@ -1,4 +1,4 @@
-import type { PrismaClient, Prisma } from "@repo/database";
+import type { PrismaClient, Prisma, OrganizationData } from "@repo/database";
 import {
   OrganizationDataStatus,
   SubmissionStatus,
@@ -172,6 +172,34 @@ export const updateOrganizationData = async (
     data: {
       updatedById: BigInt(userId),
       ...mapOrganizationMutationData(data),
+    },
+  });
+};
+
+export const cloneOrganizationData = (
+  prisma: PrismaClient | Prisma.TransactionClient,
+  source: OrganizationData,
+  userId: string
+) => {
+  return prisma.organizationData.create({
+    data: {
+      organizationId: source.organizationId,
+      createdById: BigInt(userId),
+      legalName: source.legalName,
+      tradeName: source.tradeName,
+      taxId: source.taxId,
+      address: source.address,
+      employeesCount: source.employeesCount,
+      representativeFullName: source.representativeFullName,
+      representativeTaxId: source.representativeTaxId,
+      representativePhone: source.representativePhone,
+      representativeEmail: source.representativeEmail,
+      countryOrganizationSizeId: source.countryOrganizationSizeId,
+      sectorId: source.sectorId,
+      subsectorId: source.subsectorId,
+      mainActivityId: source.mainActivityId,
+      representativeCountryJobPositionId:
+        source.representativeCountryJobPositionId,
     },
   });
 };

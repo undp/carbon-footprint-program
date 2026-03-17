@@ -20,7 +20,10 @@ import {
   OrganizationDataAlreadyRejectedError,
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
-import { getRejectedOrganizationData } from "../../helpers.js";
+import {
+  getRejectedOrganizationData,
+  cloneOrganizationData,
+} from "../../helpers.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -57,11 +60,21 @@ export const requestOrganizationAccreditationService = async (
 
     const rejectedData = await getRejectedOrganizationData(tx, organizationId);
 
-    if (!activeData && rejectedData) {
-      throw new OrganizationDataAlreadyRejectedError(organizationId);
+    let resolvedActiveData = activeData;
+    if (!resolvedActiveData && rejectedData) {
+      // If no new files are provided, the user is submitting the same rejected info — block it
+      if (!fileUuids?.length) {
+        throw new OrganizationDataAlreadyRejectedError(organizationId);
+      }
+      // Files provided: clone rejected data into a new draft so the user can re-submit
+      resolvedActiveData = await cloneOrganizationData(
+        tx,
+        rejectedData,
+        userId
+      );
     }
 
-    if (!activeData) {
+    if (!resolvedActiveData) {
       throw new OrganizationDataNotFoundError(organizationId);
     }
 
@@ -70,7 +83,7 @@ export const requestOrganizationAccreditationService = async (
       where: {
         type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subject: {
-          organizationData: { organizationDataId: activeData.id },
+          organizationData: { organizationDataId: resolvedActiveData.id },
         },
       },
       select: { id: true },
@@ -108,7 +121,7 @@ export const requestOrganizationAccreditationService = async (
     await tx.submissionSubjectOrganizationData.create({
       data: {
         subjectId: subject.id,
-        organizationDataId: activeData.id,
+        organizationDataId: resolvedActiveData.id,
       },
     });
 

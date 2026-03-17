@@ -14,7 +14,10 @@ import {
 import { Close } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "../../../../config/environment";
-import { GetOrganizationByIdResponse } from "@repo/types";
+import {
+  GetOrganizationByIdResponse,
+  OrganizationDisplayStatusValues,
+} from "@repo/types";
 import {
   useOrganizationForm,
   useOrganizationSubmit,
@@ -27,6 +30,7 @@ import {
   FormAutocompleteField,
   FormNumericField,
   ConfirmDialog,
+  FormFileUpload,
 } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
 import { useConfirmDialog } from "@/hooks";
@@ -57,9 +61,13 @@ export const OrganizationFormDialog: FC<Props> = ({
   const { control, handleSubmit, reset, selectedSectorId, formState } =
     useOrganizationForm({ organization });
 
+  const isAccredited =
+    organization?.status === OrganizationDisplayStatusValues.ACCREDITED;
+
   const { submit, isSubmitting } = useOrganizationSubmit({
     mode,
     organizationId: organization?.id,
+    isAccredited,
     onSuccess: onClose,
   });
 
@@ -111,7 +119,10 @@ export const OrganizationFormDialog: FC<Props> = ({
     }
   }, [open]);
 
-  const buttonActionLabel = BUTTON_LABELS[mode];
+  const buttonActionLabel =
+    isAccredited && mode === "edit"
+      ? "Solicitar revisión"
+      : BUTTON_LABELS[mode];
 
   return (
     <Dialog
@@ -317,6 +328,31 @@ export const OrganizationFormDialog: FC<Props> = ({
               </Box>
             </Box>
           </Box>
+
+          {isAccredited && mode === "edit" && (
+            <>
+              <Divider sx={{ mb: 3, opacity: 0.2 }} />
+              <Box>
+                <Box className="mb-4 flex items-center gap-2">
+                  <Typography variant="body1" fontSize={18}>
+                    Documentos de respaldo
+                  </Typography>
+                </Box>
+                <FormFileUpload
+                  control={control}
+                  name="files"
+                  disabled={isSubmitting}
+                  required
+                  requiredMessage="Al menos un archivo es requerido"
+                  accept={{
+                    "image/png": [".png"],
+                    "image/jpeg": [".jpg", ".jpeg"],
+                    "application/pdf": [".pdf"],
+                  }}
+                />
+              </Box>
+            </>
+          )}
         </DialogContent>
 
         <DialogActions

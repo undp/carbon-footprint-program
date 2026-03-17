@@ -45,10 +45,7 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
           const body = error.detail.body;
           if (body) {
             const errorCode = (body as { code: string }).code;
-            if (errorCode === "ORGANIZATION_DATA_ALREADY_REJECTED") {
-              message =
-                "La información a postular fue rechazada. Por favor, actualiza tu información para poder postular nuevamente.";
-            } else if (errorCode === "SUBMISSION_ALREADY_EXISTS") {
+            if (errorCode === "SUBMISSION_ALREADY_EXISTS") {
               message =
                 "Ya existe una solicitud de acreditación pendiente para esta organización.";
             }
