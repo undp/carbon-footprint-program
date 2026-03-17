@@ -216,6 +216,7 @@ export async function createCarbonInventorySubmission(
 
 export const carbonInventoryWithSubmissionsMinimalSelect = {
   id: true,
+  isSelfDeclared: true,
   submission: {
     select: {
       subject: {
@@ -243,7 +244,11 @@ export const calculateDisplayStatus = (
 ): CarbonInventoryDisplayStatus => {
   const submissions = carbonInventory.submission?.subject.submissions || [];
 
-  if (!submissions.length) return CarbonInventoryDisplayStatusEnum.DRAFT;
+  if (!submissions.length) {
+    return carbonInventory.isSelfDeclared
+      ? CarbonInventoryDisplayStatusEnum.SELF_DECLARED
+      : CarbonInventoryDisplayStatusEnum.DRAFT;
+  }
 
   const verifSubs = submissions.filter(
     (s) => s.type === SubmissionType.CARBON_INVENTORY_VERIFICATION
@@ -277,5 +282,7 @@ export const calculateDisplayStatus = (
   if (calcSubs.some((s) => s.status === SubmissionStatus.OBJECTED))
     return CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
 
-  return CarbonInventoryDisplayStatusEnum.DRAFT;
+  return carbonInventory.isSelfDeclared
+    ? CarbonInventoryDisplayStatusEnum.SELF_DECLARED
+    : CarbonInventoryDisplayStatusEnum.DRAFT;
 };
