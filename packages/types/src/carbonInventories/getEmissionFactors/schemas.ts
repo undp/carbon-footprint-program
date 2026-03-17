@@ -2,6 +2,11 @@ import { z } from "zod";
 import { CategoryBaseSchema } from "../../baseSchemas/category.js";
 import { SubcategoryBaseSchema } from "../../baseSchemas/subcategory.js";
 import { EmissionFactorBaseSchema } from "../../baseSchemas/emissionFactor.js";
+import { IdSchema } from "../../zod.js";
+
+export const GetEmissionFactorsParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
 
 const ItemSchema = z
   .object({

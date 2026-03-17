@@ -1,18 +1,18 @@
 import { getEmissionFactorsHandler } from "./handler.js";
-import { IdSchema, GetEmissionFactorsResponseSchema } from "@repo/types";
+import {
+  GetEmissionFactorsParams,
+  GetEmissionFactorsParamsSchema,
+  GetEmissionFactorsResponseSchema,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getEmissionFactorsRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetEmissionFactorsParams }>(
     "/:id/emission-factors",
     {
       schema: {
@@ -20,7 +20,7 @@ export const getEmissionFactorsRoute: StandardRouteSignature = (
         summary: "Get emission factors used in inventory",
         description:
           "Retrieves all emission factors used in the inventory, including category/subcategory info, activity parameters, gas breakdown, and factor sources.",
-        params: ParamsSchema,
+        params: GetEmissionFactorsParamsSchema,
         response: {
           200: GetEmissionFactorsResponseSchema,
           404: ApiErrorResponseSchema,
@@ -29,6 +29,11 @@ export const getEmissionFactorsRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getEmissionFactorsHandler
   );

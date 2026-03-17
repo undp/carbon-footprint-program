@@ -3,6 +3,10 @@ import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
+export const GetCarbonInventoryByIdParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
+
 const LineItemSchema = z
   .object({
     id: IdSchema.describe("The ID of the line"),

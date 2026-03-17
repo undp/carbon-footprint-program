@@ -1,21 +1,18 @@
 import { getEmissionsSummaryCategoriesHandler } from "./handler.js";
 import {
-  IdSchema,
+  GetEmissionsSummaryCategoriesParams,
+  GetEmissionsSummaryCategoriesParamsSchema,
   GetEmissionsSummaryCategoriesResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getEmissionsSummaryCategoriesRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetEmissionsSummaryCategoriesParams }>(
     "/:id/emissions-summary/categories",
     {
       schema: {
@@ -23,7 +20,7 @@ export const getEmissionsSummaryCategoriesRoute: StandardRouteSignature = (
         summary: "Get emissions summary by category",
         description:
           "Retrieves emissions totals and percentages grouped by category and subcategory for a carbon inventory.",
-        params: ParamsSchema,
+        params: GetEmissionsSummaryCategoriesParamsSchema,
         response: {
           200: GetEmissionsSummaryCategoriesResponseSchema,
           404: ApiErrorResponseSchema,
@@ -32,6 +29,11 @@ export const getEmissionsSummaryCategoriesRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getEmissionsSummaryCategoriesHandler
   );

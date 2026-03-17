@@ -1,21 +1,18 @@
 import { getCarbonInventoryMetadataHandler } from "./handler.js";
 import {
-  IdSchema,
+  GetCarbonInventoryMetadataParams,
+  GetCarbonInventoryMetadataParamsSchema,
   GetCarbonInventoryMetadataResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getCarbonInventoryMetadataRoute: StandardRouteSignature = (
   fastify,
   options
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetCarbonInventoryMetadataParams }>(
     "/:id/metadata",
     {
       schema: {
@@ -23,7 +20,7 @@ export const getCarbonInventoryMetadataRoute: StandardRouteSignature = (
         summary: "Get carbon inventory metadata",
         description:
           "Retrieves the metadata attributes of a carbon inventory, including resolved organization, sector, size, and main activity names.",
-        params: ParamsSchema,
+        params: GetCarbonInventoryMetadataParamsSchema,
         response: {
           200: GetCarbonInventoryMetadataResponseSchema,
           404: ApiErrorResponseSchema,
@@ -32,6 +29,11 @@ export const getCarbonInventoryMetadataRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     getCarbonInventoryMetadataHandler
   );

@@ -2,14 +2,17 @@ import { duplicateCarbonInventoryHandler } from "./handler.js";
 import {
   DuplicateCarbonInventoryParamsSchema,
   DuplicateCarbonInventoryResponseSchema,
+  type DuplicateCarbonInventoryParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
-  fastify
+  fastify,
+  options
 ) => {
-  fastify.post(
+  fastify.post<{ Params: DuplicateCarbonInventoryParams }>(
     "/:id/duplicate",
     {
       schema: {
@@ -23,6 +26,14 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
+      config: {
+        public: options?.public ?? false,
+      },
+      preHandler: [
+        fastify.requireCarbonInventoryAccess(
+          extractCarbonInventoryIdFromParams
+        ),
+      ],
     },
     duplicateCarbonInventoryHandler
   );

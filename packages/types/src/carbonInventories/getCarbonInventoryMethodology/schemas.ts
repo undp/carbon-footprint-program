@@ -8,6 +8,10 @@ import {
   EmissionFactorDimensionValueBaseSchema,
 } from "../../baseSchemas/index.js";
 
+export const GetCarbonInventoryMethodologyParamsSchema = z.object({
+  id: IdSchema.describe("The carbon inventory ID"),
+});
+
 const DimensionValueItemSchema = EmissionFactorDimensionValueBaseSchema.pick({
   id: true,
   value: true,

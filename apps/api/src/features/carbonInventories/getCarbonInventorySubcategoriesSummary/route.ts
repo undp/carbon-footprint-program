@@ -1,19 +1,16 @@
 import { getCarbonInventorySubcategoriesSummaryHandler } from "./handler.js";
 import {
-  IdSchema,
+  GetCarbonInventorySubcategoriesSummaryParams,
+  GetCarbonInventorySubcategoriesSummaryParamsSchema,
   GetCarbonInventorySubcategoriesSummaryResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
-import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-
-const ParamsSchema = z.object({
-  id: IdSchema.describe("The carbon inventory ID"),
-});
+import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
 export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature =
   (fastify, options) => {
-    fastify.get(
+    fastify.get<{ Params: GetCarbonInventorySubcategoriesSummaryParams }>(
       "/:id/subcategories/summary",
       {
         schema: {
@@ -21,7 +18,7 @@ export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature
           summary: "Get subcategories summary for carbon inventory",
           description:
             "Retrieves the summary status of all subcategories for a given carbon inventory, indicating which subcategories have active lines and which lines have been edited.",
-          params: ParamsSchema,
+          params: GetCarbonInventorySubcategoriesSummaryParamsSchema,
           response: {
             200: GetCarbonInventorySubcategoriesSummaryResponseSchema,
             404: ApiErrorResponseSchema,
@@ -31,6 +28,11 @@ export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature
         config: {
           public: options?.public ?? false,
         },
+        preHandler: [
+          fastify.requireCarbonInventoryAccess(
+            extractCarbonInventoryIdFromParams
+          ),
+        ],
       },
       getCarbonInventorySubcategoriesSummaryHandler
     );
