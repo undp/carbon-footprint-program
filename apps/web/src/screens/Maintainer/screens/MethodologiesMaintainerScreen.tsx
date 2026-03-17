@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from "react";
 import { useNavigate, useBlocker } from "@tanstack/react-router";
-import { Box, Typography } from "@mui/material";
+import { Box, Skeleton, Typography } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
@@ -20,6 +20,7 @@ import { StylizedDataGrid } from "@components";
 import { FormDebugPanel } from "@/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
+import { MaintainerTableSkeleton } from "../components/MaintainerTableSkeleton";
 
 export const MethodologiesMaintainerScreen: FC = () => {
   const navigate = useNavigate();
@@ -363,30 +364,38 @@ export const MethodologiesMaintainerScreen: FC = () => {
         addLabel="Agregar fila"
       />
       <Box className="rounded-sm bg-white p-3">
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Gestiona las metodologías de cálculo. Haz clic en Editar para
-          modificar alcances, subcategorías y factores de emisión. Siempre debe
-          existir una única metodología activa.
-        </Typography>
-        <form id="methodologies-form" noValidate>
-          <Box className="flex w-full">
-            <StylizedDataGrid
-              sx={(theme) => ({
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.grey[200],
-                },
-                "& .MuiDataGrid-cell .MuiTextField-root": {
-                  alignSelf: "center",
-                },
-              })}
-              columns={columns}
-              rows={currentRows}
-              rowHeight={60}
-              getRowId={(row: MethodologyVersionForm) => row.id}
-              loading={isLoading}
-            />
-          </Box>
-        </form>
+        {isLoading ? (
+          <>
+            <Skeleton variant="text" width={400} height={20} sx={{ mb: 2 }} />
+            <MaintainerTableSkeleton columns={6} rows={5} rowHeight={60} />
+          </>
+        ) : (
+          <>
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Gestiona las metodologías de cálculo. Haz clic en Editar para
+              modificar alcances, subcategorías y factores de emisión. Siempre debe
+              existir una única metodología activa.
+            </Typography>
+            <form id="methodologies-form" noValidate>
+              <Box className="flex w-full">
+                <StylizedDataGrid
+                  sx={(theme) => ({
+                    "& .MuiDataGrid-columnHeader": {
+                      backgroundColor: theme.palette.grey[200],
+                    },
+                    "& .MuiDataGrid-cell .MuiTextField-root": {
+                      alignSelf: "center",
+                    },
+                  })}
+                  columns={columns}
+                  rows={currentRows}
+                  rowHeight={60}
+                  getRowId={(row: MethodologyVersionForm) => row.id}
+                />
+              </Box>
+            </form>
+          </>
+        )}
       </Box>
       {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog

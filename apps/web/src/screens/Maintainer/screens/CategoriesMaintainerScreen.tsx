@@ -20,6 +20,7 @@ import {
   MenuItem,
   Paper,
   Select,
+  Skeleton,
   Typography,
 } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
@@ -48,6 +49,7 @@ import { FormDebugPanel } from "@/devtools";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
+import { MaintainerTableSkeleton } from "../components/MaintainerTableSkeleton";
 
 type Category = GetAllCategoriesResponse[number];
 
@@ -142,9 +144,8 @@ export const CategoriesMaintainerScreen: FC = () => {
           extra={methodologySelector}
         />
         <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            Cargando categorías…
-          </Typography>
+          <Skeleton variant="text" width={500} height={20} sx={{ mb: 2 }} />
+          <MaintainerTableSkeleton columns={7} rows={5} rowHeight={70} />
         </Box>
       </>
     );
