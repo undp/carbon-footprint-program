@@ -91,7 +91,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const { mutateAsync: requestVerification } = useRequestVerification();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
     useDuplicateCarbonInventory();
-  const preUploadFiles = usePreUploadSubmissionFiles();
+  const { preUploadFiles } = usePreUploadSubmissionFiles();
   const [isVerifySubmitting, setIsVerifySubmitting] = useState(false);
 
   const onEditClick = useCallback(

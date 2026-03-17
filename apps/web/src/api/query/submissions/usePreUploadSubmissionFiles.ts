@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { apiClient } from "@/api/http/client";
 import { FileType } from "@repo/types";
 
@@ -33,11 +33,29 @@ const preUploadOneFile = async (file: File): Promise<string> => {
   return uuid;
 };
 
-export const usePreUploadSubmissionFiles = (): ((
-  files: File[]
-) => Promise<string[]>) =>
-  useCallback(
-    async (files: File[]): Promise<string[]> =>
-      Promise.all(files.map(preUploadOneFile)),
+export const usePreUploadSubmissionFiles = () => {
+  const [isUploading, setIsUploading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const preUploadFiles = useCallback(
+    async (files: File[]): Promise<string[]> => {
+      setIsUploading(true);
+      setHasError(false);
+      try {
+        const results = await Promise.all(files.map(preUploadOneFile));
+        return results;
+      } catch {
+        setHasError(true);
+        return [];
+      } finally {
+        setIsUploading(false);
+      }
+    },
     []
   );
+  return {
+    preUploadFiles,
+    isUploading,
+    hasError,
+  };
+};

@@ -13,7 +13,7 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
 
   const { mutateAsync: requestAccreditation } =
     useRequestOrganizationAccreditation(organizationId);
-  const preUploadFiles = usePreUploadSubmissionFiles();
+  const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const openDialog = useCallback(() => setIsOpen(true), []);
   const closeDialog = useCallback(() => setIsOpen(false), []);
@@ -74,6 +74,6 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
     openDialog,
     closeDialog,
     handleConfirm,
-    isLoading: isSubmitting,
+    isLoading: isSubmitting || isUploading,
   };
 };

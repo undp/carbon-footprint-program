@@ -24,7 +24,7 @@ export const useOrganizationSubmit = ({
   const { enqueueSnackbar } = useSnackbar();
   const createMutation = useCreateOrganization();
   const updateMutation = useUpdateOrganization(organizationId);
-  const preUploadFiles = usePreUploadSubmissionFiles();
+  const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const submit = useCallback(
     async (data: OrganizationFormValues) => {
@@ -69,6 +69,7 @@ export const useOrganizationSubmit = ({
 
   return {
     submit,
-    isSubmitting: createMutation.isPending || updateMutation.isPending,
+    isSubmitting:
+      createMutation.isPending || updateMutation.isPending || isUploading,
   };
 };
