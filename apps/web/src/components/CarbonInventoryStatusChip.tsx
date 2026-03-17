@@ -21,8 +21,10 @@ const getStatusColor = (
   switch (status) {
     case CarbonInventoryDisplayStatusEnum.DRAFT:
       return theme.palette.grey[400];
-    case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION:
+    case CarbonInventoryDisplayStatusEnum.SELF_DECLARED:
       return theme.palette.info.main;
+    case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION:
+      return theme.palette.warning.main;
     case CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED:
       return theme.palette.warning.main;
     case CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED:
@@ -30,7 +32,7 @@ const getStatusColor = (
     case CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED:
       return theme.palette.success.main;
     case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION:
-      return theme.palette.info.main;
+      return theme.palette.warning.main;
     case CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED:
       return theme.palette.warning.main;
     case CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED:
@@ -46,20 +48,17 @@ const getStatusColor = (
 
 const STATUS_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.DRAFT]: "Borrador",
-  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
-    "Postulando a cálculo",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]:
-    "Objetado en cálculo",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
-    "Rechazado en cálculo",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: "Calculado",
-  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
-    "Postulando a verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]:
-    "Objetado en verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
-    "Rechazado en verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: "Verificado",
+  [CarbonInventoryDisplayStatusEnum.SELF_DECLARED]: "Autodeclarada",
+  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]: "En revisión",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]: "Con observaciones",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]: "Rechazado",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]:
+    "Aprobado - Sello de medición",
+  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]: "En revisión",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]: "Con observaciones",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]: "Rechazado",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]:
+    "Aprobado - Sello de verificación",
   [CarbonInventoryDisplayStatusEnum.DELETED]: "Eliminado",
 };
 
