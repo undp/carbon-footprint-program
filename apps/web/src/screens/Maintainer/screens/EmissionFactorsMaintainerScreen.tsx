@@ -517,6 +517,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
                 },
                 "& .MuiDataGrid-cell": {
                   display: "flex",
+                  maxHeight: 60,
                   alignItems: "center",
                 },
                 "& .MuiDataGrid-cell .MuiOutlinedInput-root": {
@@ -532,7 +533,6 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
               columns={columns}
               rows={currentRows}
               loading={!isDataReady}
-              getRowHeight={() => 60}
               getRowId={(row: EmissionFactorForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
