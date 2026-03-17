@@ -27,13 +27,14 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
 // Form Schema
 export const SubcategoryFormSchema = z.strictObject({
   id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
-  categoryId: z.string().min(1, "Categoría es requerida"),
+  categoryId: z.string().trim().min(1, "Categoría es requerida"),
   name: z
     .string()
+    .trim()
     .min(1, "Nombre es requerido")
     .max(255, "Nombre no puede exceder 255 caracteres"),
-  icon: z.string().min(1, "Ícono es requerido"),
-  description: z.string().min(1, "Descripción es requerida"),
+  icon: z.string().trim().min(1, "Ícono es requerido"),
+  description: z.string().trim().min(1, "Descripción es requerida"),
   examples: z
     .string()
     .nullable()
