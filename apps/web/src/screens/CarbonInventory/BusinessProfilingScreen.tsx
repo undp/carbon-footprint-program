@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback, useState } from "react";
 import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -12,8 +12,13 @@ import {
   FormTextField,
   FormNumericField,
 } from "@/components";
-import { StepHeader, CarbonInventoryNavigationButton } from "./components";
+import {
+  StepHeader,
+  ExitInventoryDialog,
+  CarbonInventoryNavigationButton,
+} from "./components";
 import { useCarbonInventory } from "@/api/query";
+import { EXIT_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
@@ -24,6 +29,8 @@ import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { useAuth } from "@/contexts";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -44,6 +51,8 @@ export const BusinessProfilingScreen: FC = () => {
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false);
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
   });
@@ -104,11 +113,22 @@ export const BusinessProfilingScreen: FC = () => {
   });
 
   const { goBack, goNext } = useBusinessProfilingNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goNext,
   });
+
+  const goToListOrLanding = user ? goToList : goToLanding;
+
+  const handleExitClick = useCallback(() => {
+    if (!isDirty) {
+      goToListOrLanding();
+    } else {
+      setIsExitDialogOpen(true);
+    }
+  }, [goToListOrLanding, setIsExitDialogOpen, isDirty]);
 
   const isFormDisabled =
     isSubmitting || isInventoryLoading || hasInventoryError;
@@ -122,6 +142,10 @@ export const BusinessProfilingScreen: FC = () => {
     void navigate({ to: Routes.CARBON_INVENTORY });
     return null;
   }
+
+  const exitDialogProps = user
+    ? EXIT_DIALOG_CONTENT.LOGGED_IN
+    : EXIT_DIALOG_CONTENT.GUEST;
 
   const backButton: FooterButton = {
     text: "Volver",
@@ -154,7 +178,15 @@ export const BusinessProfilingScreen: FC = () => {
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
-            action: <CarbonInventoryNavigationButton />,
+            action: (
+              <CarbonInventoryNavigationButton
+                type={user ? "inventories" : "landing"}
+                buttonProps={{
+                  onClick: handleExitClick,
+                  disabled: isSubmitting,
+                }}
+              />
+            ),
           }}
           footerProps={{
             buttons: [backButton, nextButton],
@@ -291,6 +323,17 @@ export const BusinessProfilingScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={control} />}
+      {/* 
+        Custom exit logic: useExitDialog is not used due to required field constraints.
+          - If dirty: Show confirmation dialog to exit without saving.
+          - If clean: Exit immediately without prompting.
+      */}
+      <ExitInventoryDialog
+        open={isExitDialogOpen}
+        onClose={() => setIsExitDialogOpen(false)}
+        onConfirm={goToListOrLanding}
+        {...exitDialogProps}
+      />
     </>
   );
 };

@@ -11,6 +11,7 @@ import { EmissionResultsContent } from "@/components";
 import { useEmissionsSummaryCategories } from "@/api/query";
 import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatusChip";
 import { isCarbonInventoryEditable } from "@repo/utils";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -18,9 +19,8 @@ export const EmissionResultsScreen: FC = () => {
   });
 
   const { user } = useAuth();
-
-  const { goBack, goToList, goToLanding } =
-    useEmissionResultsNavigation(inventoryId);
+  const { goBack } = useEmissionResultsNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const { data: summaryData } = useEmissionsSummaryCategories(inventoryId);
 
@@ -54,7 +54,15 @@ export const EmissionResultsScreen: FC = () => {
       headerProps={{
         title: "Simulador de Inventario Organizacional",
         subtitle: summaryData?.carbonInventory.name ?? undefined,
-        action: <CarbonInventoryNavigationButton />,
+        action: isEditable ? undefined : (
+          // If the inventory is locked (non-editable), we assume a registered user session.
+          // Otherwise, we default to the guest flow, where the footer button handles
+          // registration or temporary data persistence.
+          <CarbonInventoryNavigationButton
+            type="inventories"
+            buttonProps={{ onClick: goToList }}
+          />
+        ),
       }}
       footerProps={{
         buttons: isEditable ? [backButton, nextButton] : [backButton],

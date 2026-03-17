@@ -6,9 +6,11 @@ import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import {
   StepHeader,
-  CarbonInventoryNavigationButton,
   SubcategoryPreselectionField,
+  ExitInventoryDialog,
+  CarbonInventoryNavigationButton,
 } from "./components";
+import { useAuth } from "@/contexts";
 import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
@@ -20,6 +22,8 @@ import { IS_DEVELOPMENT } from "@/config/environment";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { useExitDialog } from "./hooks/useExitDialog";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 const ERROR_MESSAGE = {
   title:
@@ -33,6 +37,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
   });
+  const { user } = useAuth();
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
@@ -51,6 +56,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
   } = useSubcategoryPreselectionData(inventoryId);
 
   const { goBack, goNext } = useSubcategoryPreselectionNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const methods = useSubcategoryPreselectionForm({
     data: categories,
@@ -65,18 +71,32 @@ export const SubcategoryPreselectionScreen: FC = () => {
     { onSuccess: goNext }
   );
 
+  const {
+    submit: submitAndGoToList,
+    isSubmitting: isSubmittingAndGoingToList,
+  } = useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goToList });
+
+  const globalSubmitting = isSubmitting || isSubmittingAndGoingToList;
+
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
+
+  const { handleExitClick, dialogProps } = useExitDialog({
+    user,
+    onUserExit: () =>
+      void handleSubmit((values) => submitAndGoToList(values, isDirty))(),
+    onGuestConfirm: goToLanding,
+  });
 
   if (!isLoading && mustNavigateAway) return null;
 
-  const isFormDisabled = isSubmitting || hasError || isLoading;
+  const isFormDisabled = globalSubmitting || hasError || isLoading;
 
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      disabled: isSubmitting,
+      disabled: globalSubmitting,
       onClick: goBack,
     },
   };
@@ -105,7 +125,16 @@ export const SubcategoryPreselectionScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
-            action: <CarbonInventoryNavigationButton />,
+            action: (
+              <CarbonInventoryNavigationButton
+                type={user ? "inventories" : "landing"}
+                buttonProps={{
+                  onClick: handleExitClick,
+                  disabled: globalSubmitting,
+                  loading: isSubmittingAndGoingToList,
+                }}
+              />
+            ),
           }}
           footerProps={{
             buttons: [backButton, nextButton],
@@ -157,6 +186,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
+      <ExitInventoryDialog {...dialogProps} />
     </FormProvider>
   );
 };

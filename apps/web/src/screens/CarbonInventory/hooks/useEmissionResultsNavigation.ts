@@ -11,21 +11,7 @@ export const useEmissionResultsNavigation = (inventoryId: string) => {
     });
   };
 
-  const goToList = () => {
-    void navigate({
-      to: Routes.CARBON_INVENTORIES,
-    });
-  };
-
-  const goToLanding = () => {
-    void navigate({
-      to: Routes.LANDING,
-    });
-  };
-
   return {
     goBack,
-    goToList,
-    goToLanding,
   };
 };

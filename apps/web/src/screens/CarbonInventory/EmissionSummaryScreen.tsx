@@ -3,8 +3,13 @@ import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
+import { useAuth } from "@/contexts";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
-import { StepHeader, CarbonInventoryNavigationButton } from "./components";
+import {
+  StepHeader,
+  CarbonInventoryNavigationButton,
+  ExitInventoryDialog,
+} from "./components";
 import {
   InventoryAttributesCard,
   EmissionFactorsTable,
@@ -17,9 +22,11 @@ import {
   useCarbonInventoryMetadata,
 } from "@/api/query";
 import { useEmissionSummaryNavigation } from "./hooks/useEmissionSummaryNavigation";
+import { useExitDialog } from "./hooks/useExitDialog";
 import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -27,7 +34,14 @@ export const EmissionSummaryScreen: FC = () => {
   });
 
   const { enqueueSnackbar } = useSnackbar();
+  const { user } = useAuth();
   const { goBack, goNext } = useEmissionSummaryNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
+  const { handleExitClick, dialogProps } = useExitDialog({
+    user,
+    onUserExit: goToList,
+    onGuestConfirm: goToLanding,
+  });
 
   const { data: equivalence, isError: isEquivalenceError } =
     useMainActivityEquivalence(inventoryId);
@@ -93,7 +107,14 @@ export const EmissionSummaryScreen: FC = () => {
     <CarbonInventoryLayout
       headerProps={{
         title: "Simulador de Inventario Organizacional",
-        action: <CarbonInventoryNavigationButton />,
+        action: (
+          <CarbonInventoryNavigationButton
+            type={user ? "inventories" : "landing"}
+            buttonProps={{
+              onClick: handleExitClick,
+            }}
+          />
+        ),
       }}
       footerProps={{
         buttons: [backButton, nextButton],
@@ -139,6 +160,7 @@ export const EmissionSummaryScreen: FC = () => {
           hasError={isFactorsError}
         />
       </Box>
+      <ExitInventoryDialog {...dialogProps} />
     </CarbonInventoryLayout>
   );
 };

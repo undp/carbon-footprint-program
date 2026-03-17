@@ -26,7 +26,10 @@ export const BaseHeader: FC<PropsWithChildren<Props>> = ({
       <Toolbar className="bg-white px-6 py-4">
         {showLogo && (
           <Box
-            className="flex cursor-pointer items-center"
+            sx={{
+              cursor: onLogoClick ? "pointer" : "default",
+            }}
+            className="flex items-center"
             onClick={onLogoClick}
           >
             <HuellaLatamLogo

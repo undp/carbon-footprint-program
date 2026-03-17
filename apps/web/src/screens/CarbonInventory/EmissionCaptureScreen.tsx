@@ -4,7 +4,12 @@ import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
-import { StepHeader, CarbonInventoryNavigationButton } from "./components";
+import {
+  StepHeader,
+  ExitInventoryDialog,
+  CarbonInventoryNavigationButton,
+} from "./components";
+import { useAuth } from "@/contexts";
 import { CategoryCard } from "./components/CategoryCard";
 import { EmissionEditor } from "./components/EmissionEditor";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
@@ -21,11 +26,14 @@ import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
+import { useExitDialog } from "./hooks/useExitDialog";
+import { useCommonNavigation } from "./hooks/useCommonNavigation";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
   });
+  const { user } = useAuth();
 
   const { data: existingInventory } = useCarbonInventory(inventoryId);
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
@@ -41,6 +49,7 @@ export const EmissionCaptureScreen: FC = () => {
   });
 
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
+  const { goToList, goToLanding } = useCommonNavigation();
 
   const activeActionsCount = useEmissionCaptureState(
     (state) => state.activeActionsCount
@@ -78,7 +87,10 @@ export const EmissionCaptureScreen: FC = () => {
       showNoChangesMessage: false,
     });
 
-  const { submit: submitOnCategoryChange } = useEmissionCaptureSubmit({
+  const {
+    submit: submitOnCategoryChange,
+    isSubmitting: isSubmittingOnCategoryChange,
+  } = useEmissionCaptureSubmit({
     inventoryId,
     isDirty: formState.isDirty,
     getDirtyLineIds,
@@ -87,12 +99,31 @@ export const EmissionCaptureScreen: FC = () => {
     resultFeedbackWithSnackbar: true,
   });
 
+  const {
+    submit: submitAndGoToList,
+    isSubmitting: isSubmittingAndGoingToList,
+  } = useEmissionCaptureSubmit({
+    inventoryId,
+    onSuccess: goToList,
+    isDirty: formState.isDirty,
+    getDirtyLineIds,
+    resetAfterSave,
+    showNoChangesMessage: false,
+  });
+
   const selectedCategoryData = useMemo(
     () => data?.categories.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
   );
 
   const isBusy = activeActionsCount > 0;
+
+  const globalSubmitting =
+    isSubmittingAndNavigating ||
+    isSubmittingAndGoingToList ||
+    isSubmittingAndGoingBack ||
+    isSubmittingNoNavigating ||
+    isSubmittingOnCategoryChange;
 
   const handleCategoryChangeWithSave = useCallback(
     (categoryId: string) => {
@@ -112,6 +143,12 @@ export const EmissionCaptureScreen: FC = () => {
 
   const isLoading = isEmissionCaptureLoading || !isReady;
 
+  const { handleExitClick, dialogProps } = useExitDialog({
+    user,
+    onUserExit: () => void handleSubmit(submitAndGoToList)(),
+    onGuestConfirm: goToLanding,
+  });
+
   if (!isLoading && mustNavigateAway) return null;
 
   const backButton: FooterButton = {
@@ -121,7 +158,7 @@ export const EmissionCaptureScreen: FC = () => {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
       onClick: handleSubmit(submitAndGoBack),
       loading: isSubmittingAndGoingBack,
-      disabled: isSubmittingAndGoingBack || isBusy,
+      disabled: globalSubmitting || isBusy,
     },
   };
 
@@ -134,7 +171,7 @@ export const EmissionCaptureScreen: FC = () => {
           variant: "contained",
           onClick: handleSubmit(submitNoNavigate),
           loading: isSubmittingNoNavigating,
-          disabled: isSubmittingNoNavigating || isBusy,
+          disabled: globalSubmitting || isBusy,
         },
       }
     : {
@@ -146,7 +183,7 @@ export const EmissionCaptureScreen: FC = () => {
           type: "submit",
           form: "emission-capture-form",
           loading: isSubmittingAndNavigating,
-          disabled: isSubmittingAndNavigating || isBusy,
+          disabled: globalSubmitting || isBusy,
         },
       };
 
@@ -161,7 +198,16 @@ export const EmissionCaptureScreen: FC = () => {
           headerProps={{
             title: "Simulador de Inventario Organizacional",
             subtitle: data?.name ?? undefined,
-            action: <CarbonInventoryNavigationButton />,
+            action: (
+              <CarbonInventoryNavigationButton
+                type={user ? "inventories" : "landing"}
+                buttonProps={{
+                  onClick: handleExitClick,
+                  disabled: globalSubmitting || isBusy,
+                  loading: isSubmittingAndGoingToList,
+                }}
+              />
+            ),
           }}
           footerProps={{
             buttons: [backButton, nextButton],
@@ -232,6 +278,7 @@ export const EmissionCaptureScreen: FC = () => {
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
+      <ExitInventoryDialog {...dialogProps} />
     </FormProvider>
   );
 };
