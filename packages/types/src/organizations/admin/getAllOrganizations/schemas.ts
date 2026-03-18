@@ -45,7 +45,9 @@ const GetAllOrganizationsSortKeysSchema = z.enum([
   "totalEmissions",
 ]);
 
-const StatusesQueryParamSchema = listQueryParam(OrganizationStatusSchema);
+const StatusesQueryParamSchema = listQueryParam().pipe(
+  OrganizationStatusSchema.array()
+);
 
 // Query parameters
 export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({

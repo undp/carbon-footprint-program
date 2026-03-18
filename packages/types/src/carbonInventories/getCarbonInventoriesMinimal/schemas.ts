@@ -3,7 +3,9 @@ import { IdSchema, listQueryParam } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 export const GetCarbonInventoriesMinimalParamsSchema = z.object({
-  statuses: listQueryParam(CarbonInventoryDisplayStatusSchema).optional(),
+  statuses: listQueryParam()
+    .pipe(CarbonInventoryDisplayStatusSchema.array())
+    .optional(),
 });
 
 export type GetCarbonInventoriesMinimalParams = z.infer<
