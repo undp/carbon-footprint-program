@@ -19,7 +19,8 @@ export const IdSchema = z
  * Creates a schema that accepts comma-separated strings or arrays,
  * normalizes to an array, and optionally validates each element.
  *
- * @param itemSchema - Optional Zod schema to validate each array element
+ * @param itemSchema - Zod schema to validate each array element.
+ *   Required when the desired element type is not `string`.
  *
  * @example
  * // With validation:
@@ -31,18 +32,18 @@ export const IdSchema = z
 export const listQueryParam = <T extends string = string>(
   itemSchema?: z.ZodType<T, T>
 ) => {
-  return z.union([z.string(), z.array(z.string())]).transform((value): T[] => {
-    const items =
-      typeof value === "string"
-        ? value
-            .split(",")
-            .map((v) => v.trim())
-            .filter(Boolean)
-        : value;
-
-    if (itemSchema) {
-      return items.map((item) => itemSchema.parse(item));
+  const base = z.union([z.string(), z.array(z.string())]).transform((value) => {
+    if (typeof value === "string") {
+      return value
+        .split(",")
+        .map((v) => v.trim())
+        .filter(Boolean);
     }
-    return items as T[];
+    return value;
   });
+
+  if (itemSchema) {
+    return base.pipe(z.array(itemSchema));
+  }
+  return base;
 };
