@@ -16,9 +16,9 @@ export const IdSchema = z
   .describe("An ID as a numeric string");
 
 /**
- * Creates a schema that accepts comma-separated strings or arrays,
- * normalizes to an array, and optionally validates each element.
- *
+ * Creates a schema that accepts comma-separated strings or arrays
+ * and normalizes them to a trimmed, non-empty string array.
+ * Does not perform per-item validation beyond trimming and filtering empties.
  *
  * @example
  *
@@ -33,5 +33,5 @@ export const listQueryParam = () =>
         .map((v) => v.trim())
         .filter(Boolean);
     }
-    return value;
+    return value.map((v) => v.trim()).filter(Boolean);
   });
