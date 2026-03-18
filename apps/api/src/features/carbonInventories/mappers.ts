@@ -173,7 +173,7 @@ export function mapCarbonInventoryWithLinesToResponse(
   };
 }
 
-// Map carbon inventory without subcategories, organization and status to response (omits subcategories, organization and status fields)
+// Map carbon inventory without subcategories, organizationName, and status to responses
 export function mapCarbonInventoryToResponse(
   item: PrismaCarbonInventory
 ): Omit<
