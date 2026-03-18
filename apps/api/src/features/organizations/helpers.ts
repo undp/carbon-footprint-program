@@ -49,28 +49,28 @@ export const getDraftOrganizationData = (
   });
 };
 
-export const getApprovedOrganizationData = (
+export const hasApprovedOrganizationData = async (
   prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
-) => {
-  return prisma.organizationData.findFirst({
-    where: {
-      organizationId: BigInt(organizationId),
-      status: OrganizationDataStatus.ACTIVE,
-      submission: {
-        subject: {
-          submissions: {
-            some: {
-              status: SubmissionStatus.APPROVED,
+) =>
+  Boolean(
+    await prisma.organizationData.findFirst({
+      where: {
+        organizationId: BigInt(organizationId),
+        submission: {
+          subject: {
+            submissions: {
+              some: {
+                status: SubmissionStatus.APPROVED,
+              },
             },
           },
         },
       },
-    },
-  });
-};
+    })
+  );
 
-export const getRejectedOrganizationData = (
+export const getLastRejectedOrganizationData = async (
   prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
 ) => {
@@ -87,6 +87,9 @@ export const getRejectedOrganizationData = (
           },
         },
       },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
 };

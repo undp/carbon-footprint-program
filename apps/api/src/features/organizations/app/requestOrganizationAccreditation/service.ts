@@ -18,11 +18,13 @@ import {
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
   OrganizationDataAlreadyRejectedError,
+  OrganizationAlreadyAccreditedError,
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
-  getRejectedOrganizationData,
+  getLastRejectedOrganizationData,
   cloneOrganizationData,
+  hasApprovedOrganizationData,
 } from "../../helpers.js";
 
 export const requestOrganizationAccreditationService = async (
@@ -48,6 +50,11 @@ export const requestOrganizationAccreditationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
+  // this endpoint is not expected to be called if the organization is already accredited
+  if (await hasApprovedOrganizationData(prismaClient, organizationId)) {
+    throw new OrganizationAlreadyAccreditedError(organizationId);
+  }
+
   const result = await prismaClient.$transaction(async (tx) => {
     // Find ACTIVE organization data that is a Draft (no submission linked)
     const activeData = await tx.organizationData.findFirst({
@@ -58,7 +65,10 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    const rejectedData = await getRejectedOrganizationData(tx, organizationId);
+    const rejectedData = await getLastRejectedOrganizationData(
+      tx,
+      organizationId
+    );
 
     let resolvedActiveData = activeData;
     if (!resolvedActiveData && rejectedData) {

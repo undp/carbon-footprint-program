@@ -8,15 +8,16 @@ import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   OrganizationUnderReviewError,
+  FileAttachmentsNotSupportedError,
 } from "../../errors.js";
 import {
   updateOrganizationData,
   getDraftOrganizationData,
-  getApprovedOrganizationData,
+  hasApprovedOrganizationData,
   getPendingOrganizationData,
-  getRejectedOrganizationData,
   createOrganizationData,
   createOrganizationDataSubmission,
+  getLastRejectedOrganizationData,
 } from "../../helpers.js";
 import {
   linkSubmissionFiles,
@@ -33,17 +34,20 @@ import {
  *    - User must wait for admin approval/rejection before making changes
  *
  * 2. DRAFT (no submission):
+ *    - files are not expected to be provided
  *    - Updates the existing organization data in place
  *    - No new submission is created
  *    - Changes remain as draft until explicitly submitted
  *
- * 3. APPROVED (accredited):
+ * 3. has an APPROVED organization data (accredited):
  *    - Creates NEW organization data record with changes
  *    - Automatically creates and submits for review (PENDING status)
  *    - Original approved data remains unchanged
  *    - New changes require admin approval before taking effect
+ *    - files are expected to be provided
  *
- * 4. REJECTED (previously rejected):
+ * 4. REJECTED (you only reach this point if you are in DRAFT and you have been rejected):
+ *    - files are not expected to be provided
  *    - Creates NEW organization data as draft
  *    - No automatic submission - user can edit freely
  *    - User must explicitly request accreditation when ready
@@ -86,6 +90,9 @@ export const updateOrganizationService = async (
     );
 
     if (draftOrganizationData) {
+      if (fileUuids?.length) {
+        throw new FileAttachmentsNotSupportedError("draft");
+      }
       await updateOrganizationData(
         tx,
         draftOrganizationData.id.toString(),
@@ -97,12 +104,7 @@ export const updateOrganizationService = async (
       };
     }
 
-    const approvedOrganizationData = await getApprovedOrganizationData(
-      tx,
-      organizationId
-    );
-
-    if (approvedOrganizationData) {
+    if (await hasApprovedOrganizationData(tx, organizationId)) {
       const newOrganizationData = await createOrganizationData(
         tx,
         organizationId,
@@ -127,12 +129,15 @@ export const updateOrganizationService = async (
       return { id: organization.id.toString(), blobCleanup };
     }
 
-    const rejectedOrganizationData = await getRejectedOrganizationData(
+    const lastRejectedOrganizationData = await getLastRejectedOrganizationData(
       tx,
       organizationId
     );
 
-    if (rejectedOrganizationData) {
+    if (lastRejectedOrganizationData) {
+      if (fileUuids?.length) {
+        throw new FileAttachmentsNotSupportedError("rejected");
+      }
       await createOrganizationData(tx, organizationId, userId, body);
       return {
         id: organization.id.toString(),
