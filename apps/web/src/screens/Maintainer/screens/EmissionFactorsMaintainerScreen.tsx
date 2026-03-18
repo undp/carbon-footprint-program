@@ -59,28 +59,46 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     selectMethodology,
     stopEditing,
     isMethodologiesError,
+    isLoadingMethodologies,
   } = useMaintainerMethodologyScope();
   const { enqueueSnackbar } = useSnackbar();
 
-  const { data: emissionFactors, isLoading: isLoadingEmissionFactors } =
-    useEmissionFactors(methodologyVersionId);
-  const { data: subcategories, isLoading: isLoadingSubcategories } =
-    useSubcategories(methodologyVersionId);
-  const { data: rateUnits, isLoading: isLoadingRateUnits } =
-    useRateMeasurementUnits();
-  const { data: emissionFactorDimensions } =
-    useEmissionFactorDimensions(methodologyVersionId);
+  const {
+    data: emissionFactors,
+    isLoading: isLoadingEmissionFactors,
+    isError: isErrorEmissionFactors,
+  } = useEmissionFactors(methodologyVersionId);
+  const {
+    data: subcategories,
+    isLoading: isLoadingSubcategories,
+    isError: isErrorSubcategories,
+  } = useSubcategories(methodologyVersionId);
+  const {
+    data: rateUnits,
+    isLoading: isLoadingRateUnits,
+    isError: isErrorRateUnits,
+  } = useRateMeasurementUnits();
+  const {
+    data: emissionFactorDimensions,
+    isError: isErrorEmissionFactorDimensions,
+  } = useEmissionFactorDimensions(methodologyVersionId);
 
   const dimensionRequirements = useMemo(
     () =>
       Object.fromEntries(
-        (emissionFactorDimensions ?? []).map(({ subcategoryId, dimensions }) => [
-          subcategoryId,
-          {
-            var1Required: dimensions.some((d) => d.position === 1 && d.isRequired),
-            var2Required: dimensions.some((d) => d.position === 2 && d.isRequired),
-          },
-        ])
+        (emissionFactorDimensions ?? []).map(
+          ({ subcategoryId, dimensions }) => [
+            subcategoryId,
+            {
+              var1Required: dimensions.some(
+                (d) => d.position === 1 && d.isRequired
+              ),
+              var2Required: dimensions.some(
+                (d) => d.position === 2 && d.isRequired
+              ),
+            },
+          ]
+        )
       ),
     [emissionFactorDimensions]
   );
@@ -155,7 +173,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   const updateMutation = useUpdateEmissionFactor(methodologyVersionId);
   const deleteMutation = useDeleteEmissionFactor(methodologyVersionId);
 
-  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm(dimensionRequirements);
+  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm(
+    dimensionRequirements
+  );
   const currentRows = form.watch("emissionFactors");
 
   const editingRowIdRef = useRef(editingRowId);
@@ -487,13 +507,18 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     !isLoadingRateUnits &&
     !!rateUnits;
 
-  if (methodologies.length === 0 || !targetMethodology) {
-    const emptyStateMessage = isMethodologiesError
-      ? "No fue posible cargar las metodologías."
-      : methodologies.length === 0
-        ? "No hay metodologías disponibles para mostrar factores de emisión."
-        : "La metodología seleccionada no está disponible.";
+  const isAnyError =
+    isMethodologiesError ||
+    isErrorEmissionFactors ||
+    isErrorSubcategories ||
+    isErrorRateUnits ||
+    isErrorEmissionFactorDimensions;
 
+  if (
+    !isLoadingMethodologies &&
+    isDataReady &&
+    (isAnyError || !targetMethodology)
+  ) {
     return (
       <>
         <MaintainerPageHeader
@@ -504,7 +529,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         />
         <Box className="rounded-sm bg-white p-3">
           <Typography variant="body2" color="text.secondary">
-            {emptyStateMessage}
+            No fue posible cargar los datos.
           </Typography>
         </Box>
       </>
@@ -527,7 +552,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         {!isViewOnly && (
           <InfoBanner
             variant="success"
-            title={`Editando metodología: ${targetMethodology.name}`}
+            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
             subtitle="Los cambios se aplicarán automáticamente"
           />
         )}
@@ -594,7 +619,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology.name}
+              Editando: {targetMethodology?.name ?? ""}
             </Typography>
           </Box>
           <Button
@@ -609,7 +634,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       )}
       <ExitEditModeDialog
         open={exitEditModeOpen}
-        methodologyName={targetMethodology.name}
+        methodologyName={targetMethodology?.name ?? ""}
         hasUnsavedRow={editingRowId !== null}
         onClose={() => setExitEditModeOpen(false)}
         onConfirm={() => {
