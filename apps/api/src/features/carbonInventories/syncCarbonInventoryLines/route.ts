@@ -6,6 +6,7 @@ import {
   type SyncCarbonInventoryLinesRequest,
   type SyncCarbonInventoryLinesParams,
 } from "@repo/types";
+import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
@@ -39,7 +40,13 @@ export const syncCarbonInventoryLinesRoute: StandardRouteSignature = (
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
+          extractCarbonInventoryIdFromParams,
+          {
+            requiredOrganizationRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
         ),
       ],
     },
