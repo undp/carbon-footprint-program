@@ -6,6 +6,7 @@ import {
   afterAll,
   afterEach,
   inject,
+  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
@@ -27,6 +28,19 @@ import { createTestOrganizationDataSubmission } from "@test/factories/submission
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { getTestCountryJobPositionId } from "@test/factories/jobPositionFactory.js";
+import {
+  createTestFile,
+  cleanupTestFiles,
+} from "@test/factories/fileFactory.js";
+
+// Mock blob service operations to prevent actual Azure storage calls
+vi.mock("@/services/blobService.js", () => ({
+  generateWriteSasUrl: vi.fn(),
+  generateReadSasUrl: vi.fn(),
+  copyBlob: vi.fn().mockResolvedValue(undefined),
+  deleteBlob: vi.fn().mockResolvedValue(undefined),
+  moveBlob: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -40,7 +54,10 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
-    app = await createTestApp(databaseUrl);
+    app = await createTestApp(databaseUrl, {
+      storageConnectionString: inject("storageConnectionString"),
+      storageContainerName: inject("storageContainerName"),
+    });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
 
@@ -77,6 +94,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
   });
 
@@ -163,7 +181,18 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       await createTestMembership(prisma, testUser.id, org.id);
 
-      const updateBody = getValidUpdateBody();
+      // Create test files for the submission
+      const file1 = await createTestFile(prisma, testUser.id, {
+        originalName: "test-document-1.pdf",
+      });
+      const file2 = await createTestFile(prisma, testUser.id, {
+        originalName: "test-document-2.pdf",
+      });
+
+      const updateBody = {
+        ...getValidUpdateBody(),
+        fileUuids: [file1.uuid, file2.uuid],
+      };
 
       const response = await app.inject({
         method: "PATCH",
