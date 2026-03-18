@@ -50,6 +50,7 @@ model SystemParameter {
   value       String
   description String
   type        String
+  options     String[]
   createdAt   DateTime  @default(now()) @map("created_at")
   updatedAt   DateTime? @updatedAt @map("updated_at")
   createdById BigInt?   @map("created_by_id")
