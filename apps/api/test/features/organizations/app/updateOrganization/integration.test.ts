@@ -238,6 +238,15 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
       expect(newSubmission).toBeTruthy();
       expect(newSubmission!.status).toBe(SubmissionStatus.PENDING);
 
+      const submissionFiles = await prisma.submissionFile.findMany({
+        where: { submissionId: newSubmission!.id },
+        include: { file: { select: { uuid: true } } },
+      });
+      expect(submissionFiles).toHaveLength(2);
+      expect(submissionFiles.map((sf) => sf.file.uuid).sort()).toEqual(
+        [file1.uuid, file2.uuid].sort()
+      );
+
       // Verify both old and new data are ACTIVE
       const activeData = await prisma.organizationData.findMany({
         where: {
