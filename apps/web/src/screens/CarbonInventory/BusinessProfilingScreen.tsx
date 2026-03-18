@@ -68,6 +68,8 @@ export const BusinessProfilingScreen: FC = () => {
     isError: hasInventoryError,
   } = useCarbonInventory(inventoryId);
 
+  const hasOrganization = !!existingInventory?.organizationId;
+
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
@@ -227,6 +229,7 @@ export const BusinessProfilingScreen: FC = () => {
                     name="companyName"
                     control={control}
                     label={companyNameLabel}
+                    disabled={hasOrganization}
                   />
 
                   <FormSelectField
