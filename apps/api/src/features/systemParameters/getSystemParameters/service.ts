@@ -10,9 +10,7 @@ export const getSystemParametersService = async (
   query: GetSystemParametersQuery | null,
   _user: User | null
 ): Promise<GetSystemParametersResponse> => {
-  const where = query?.keys
-    ? { key: { in: query.keys.split(",").map((k) => k.trim()).filter(Boolean) } }
-    : {};
+  const where = query?.keys ? { key: { in: query.keys } } : {};
 
   const parameters = await prismaClient.systemParameter.findMany({
     where,
