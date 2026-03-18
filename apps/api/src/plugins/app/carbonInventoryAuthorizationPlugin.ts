@@ -32,6 +32,7 @@ import type {
   FastifyRequest,
   FastifyReply,
 } from "fastify";
+import type { OrganizationRole } from "@repo/database/enums";
 import { MembershipStatus } from "@repo/database/enums";
 import { InventoryStatus } from "@repo/types";
 
@@ -49,7 +50,8 @@ export type CarbonInventoryIdExtractor<
 export type RequireCarbonInventoryAccessFunction = <
   P extends Record<string, string>,
 >(
-  carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>
+  carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
+  options?: { requiredOrganizationRoles?: OrganizationRole[] }
 ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
@@ -66,7 +68,9 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    */
   fastify.decorate("requireCarbonInventoryAccess", function <
     P extends Record<string, string>,
-  >(carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>) {
+  >(carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>, options?: { requiredOrganizationRoles?: OrganizationRole[] }) {
+    const requiredOrganizationRoles = options?.requiredOrganizationRoles;
+
     return async function (
       request: FastifyRequest<{ Params: P }>,
       reply: FastifyReply
@@ -113,28 +117,32 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
 
       const userId = BigInt(request.currentUser.id);
 
-      // Query for a carbon inventory the user has access to (via authorship or org membership)
+      // Fetch the inventory with organization membership info
       const inventory = await fastify.prisma.carbonInventory.findFirst({
         where: {
           id: BigInt(carbonInventoryId),
-          OR: [
-            { createdById: userId },
-            {
-              organization: {
-                memberships: {
-                  some: {
-                    userId,
-                    status: MembershipStatus.ACTIVE,
-                  },
+        },
+        select: {
+          id: true,
+          status: true,
+          createdById: true,
+          organizationId: true,
+          organization: {
+            select: {
+              memberships: {
+                where: {
+                  userId,
+                  status: MembershipStatus.ACTIVE,
                 },
+                select: { role: true },
+                take: 1,
               },
             },
-          ],
+          },
         },
-        select: { id: true, status: true },
       });
 
-      if (!inventory) {
+      if (!inventory || inventory.status === InventoryStatus.DELETED) {
         log.warn(
           {
             userId: request.currentUser.id,
@@ -148,18 +156,62 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
         });
       }
 
-      if (inventory.status === InventoryStatus.DELETED) {
-        log.warn(
-          {
-            userId: request.currentUser.id,
-            carbonInventoryId,
-          },
-          "Carbon inventory authorization failed: inventory is deleted"
-        );
-        return reply.status(404).send({
-          code: "NOT_FOUND",
-          message: "Carbon inventory not found",
-        });
+      const membership = inventory.organization?.memberships?.[0];
+
+      // Access rules:
+      // - Inventory without organization: only the creator has access
+      // - Inventory with organization: only active org members have access
+      if (!inventory.organizationId) {
+        if (inventory.createdById !== userId) {
+          log.warn(
+            {
+              userId: request.currentUser.id,
+              carbonInventoryId,
+            },
+            "Carbon inventory authorization failed: user is not the creator of this standalone inventory"
+          );
+          return reply.status(403).send({
+            code: "FORBIDDEN",
+            message: "You do not have access to this carbon inventory",
+          });
+        }
+      } else {
+        if (!membership) {
+          log.warn(
+            {
+              userId: request.currentUser.id,
+              carbonInventoryId,
+              organizationId: inventory.organizationId.toString(),
+            },
+            "Carbon inventory authorization failed: user is not a member of the inventory's organization"
+          );
+          return reply.status(403).send({
+            code: "FORBIDDEN",
+            message: "You do not have access to this carbon inventory",
+          });
+        }
+
+        // Check organization role if required
+        if (
+          requiredOrganizationRoles &&
+          requiredOrganizationRoles.length > 0 &&
+          !requiredOrganizationRoles.includes(membership.role)
+        ) {
+          log.warn(
+            {
+              userId: request.currentUser.id,
+              carbonInventoryId,
+              organizationId: inventory.organizationId.toString(),
+              userRole: membership.role,
+              requiredRoles: requiredOrganizationRoles,
+            },
+            "Carbon inventory authorization failed: insufficient organization permissions"
+          );
+          return reply.status(403).send({
+            code: "FORBIDDEN",
+            message: "Insufficient permissions for this organization",
+          });
+        }
       }
 
       log.debug(
