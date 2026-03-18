@@ -1,8 +1,10 @@
 import { z } from "zod";
-import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
+import {
+  CarbonInventoryBaseSchema,
+  OrganizationSummaryBaseSchema,
+} from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
-import { OrganizationSummaryBaseSchema } from "../../baseSchemas/index.js";
 
 export const GetCarbonInventoryByIdParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
