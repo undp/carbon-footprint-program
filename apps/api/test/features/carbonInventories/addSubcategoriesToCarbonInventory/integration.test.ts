@@ -207,6 +207,8 @@ describe("POST /api/carbon-inventories/:id/subcategories/add - Integration Tests
   });
 
   describe("Error cases", () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
     it("should return 403 when carbon inventory does not exist", async () => {
       const nonExistentId = "999999";
 

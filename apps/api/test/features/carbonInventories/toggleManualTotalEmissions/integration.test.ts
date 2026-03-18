@@ -159,7 +159,9 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
   });
 
   describe("Error cases", () => {
-    it("should return 404 when inventory does not exist", async () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 when inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
         url: `/api/carbon-inventories/999999/subcategories/1/manual-total-emissions`,

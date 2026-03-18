@@ -120,6 +120,8 @@ describe("GET /api/carbon-inventories/:id/emissions-summary/categories - Integra
   });
 
   describe("Error handling", () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
     it("should return 403 for a non-existent inventory", async () => {
       const response = await app.inject({
         method: "GET",
