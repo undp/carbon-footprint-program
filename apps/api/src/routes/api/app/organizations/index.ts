@@ -21,18 +21,19 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
     ])
   );
 
-  // ORG. ADMIN
+  // Org. ADMIN
+  updateOrganizationRoute(fastify);
+  requestOrganizationAccreditationRoute(fastify);
   addOrganizationUserRoute(fastify);
   updateOrganizationUserRoleRoute(fastify);
   removeOrganizationUserRoute(fastify);
-  updateOrganizationRoute(fastify);
-  requestOrganizationAccreditationRoute(fastify);
 
   // ORG. ADMIN, CONTRIBUTOR, VIEWER
   getOrganizationUsersRoute(fastify);
   getOrganizationByIdRoute(fastify);
+  getOrganizationUsersRoute(fastify);
 
-  // AUTHENTICATED (No organization role required)
+  // AUTHENTICATED (No organization membership required)
   getMyOrganizationsRoute(fastify);
   createOrganizationRoute(fastify);
 }
