@@ -44,9 +44,9 @@ export const usePreUploadSubmissionFiles = () => {
       try {
         const results = await Promise.all(files.map(preUploadOneFile));
         return results;
-      } catch {
+      } catch (error) {
         setHasError(true);
-        return [];
+        throw error;
       } finally {
         setIsUploading(false);
       }
