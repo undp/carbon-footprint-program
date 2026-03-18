@@ -19,6 +19,7 @@ export type ScopedMethodologyContext = {
   selectMethodology: MaintainerState["selectMethodology"];
   stopEditing: MaintainerState["stopEditing"];
   isMethodologiesError: boolean;
+  isLoadingMethodologies: boolean;
 };
 
 export const useMaintainerMethodologyScope = (): ScopedMethodologyContext => {
@@ -26,8 +27,11 @@ export const useMaintainerMethodologyScope = (): ScopedMethodologyContext => {
   const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
   const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
   const stopEditing = useMaintainerStore((s) => s.stopEditing);
-  const { data: methodologies = [], isError: isMethodologiesError } =
-    useMethodologies();
+  const {
+    data: methodologies = [],
+    isError: isMethodologiesError,
+    isLoading: isLoadingMethodologies,
+  } = useMethodologies();
 
   const activeMethodology = useMemo(
     () =>
@@ -89,5 +93,6 @@ export const useMaintainerMethodologyScope = (): ScopedMethodologyContext => {
     selectMethodology,
     stopEditing,
     isMethodologiesError,
+    isLoadingMethodologies,
   };
 };
