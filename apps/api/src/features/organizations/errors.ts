@@ -42,6 +42,12 @@ export const FileAttachmentsNotSupportedError = createError(
   400
 );
 
+export const FileAttachmentsRequiredError = createError(
+  "FILE_ATTACHMENTS_REQUIRED",
+  "File attachments are required when updating organization data in %s state. File attachments are only supported when creating a new submission for review.",
+  400
+);
+
 export const OrganizationAlreadyAccreditedError = createError(
   "ORGANIZATION_ALREADY_ACCREDITED",
   "Organization with ID %s is already accredited",

@@ -9,6 +9,7 @@ import {
   OrganizationNotFoundError,
   OrganizationUnderReviewError,
   FileAttachmentsNotSupportedError,
+  FileAttachmentsRequiredError,
 } from "../../errors.js";
 import {
   updateOrganizationData,
@@ -23,7 +24,6 @@ import {
   createSubmissionFileRecords,
   moveSubmissionBlobs,
   cleanupSourceBlobs,
-  type SubmissionFileInfo,
 } from "@/features/files/helpers/linkSubmissionFiles.js";
 
 /**
@@ -107,6 +107,10 @@ export const updateOrganizationService = async (
     }
 
     if (await hasApprovedOrganizationData(tx, organizationId)) {
+      if (!fileUuids?.length) {
+        throw new FileAttachmentsRequiredError("approved");
+      }
+
       const newOrganizationData = await createOrganizationData(
         tx,
         organizationId,
@@ -118,14 +122,11 @@ export const updateOrganizationService = async (
         newOrganizationData.id.toString(),
         userId
       );
-      let fileMetadata: SubmissionFileInfo[] | undefined;
-      if (fileUuids?.length) {
-        fileMetadata = await createSubmissionFileRecords(
-          tx,
-          submission.id,
-          fileUuids
-        );
-      }
+      const fileMetadata = await createSubmissionFileRecords(
+        tx,
+        submission.id,
+        fileUuids
+      );
       return { id: organization.id.toString(), fileMetadata };
     }
 
