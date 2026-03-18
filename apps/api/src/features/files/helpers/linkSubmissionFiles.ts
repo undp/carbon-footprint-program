@@ -4,7 +4,11 @@ import { FileType } from "@repo/types";
 import { map } from "lodash-es";
 import { buildBlobPath } from "./buildBlobPath.js";
 import { copyBlob, deleteBlob } from "@/services/blobService.js";
-import { BlobMoveError } from "../errors.js";
+import {
+  BlobMoveError,
+  FileNotFoundError,
+  MissingFilesError,
+} from "../errors.js";
 
 export interface BlobCleanup {
   sourcePaths: string[];
@@ -61,9 +65,7 @@ export async function createSubmissionFileRecords(
   if (files.length !== uniqueUuids.length) {
     const foundUuids = new Set(files.map((f) => f.uuid));
     const missing = uniqueUuids.filter((u) => !foundUuids.has(u));
-    throw new Error(
-      `Cannot link submission files: file UUIDs not found: ${missing.join(", ")}`
-    );
+    throw new MissingFilesError(missing.join(", "));
   }
 
   // Calculate final blob paths for each file

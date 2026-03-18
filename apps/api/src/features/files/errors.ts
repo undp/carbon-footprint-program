@@ -23,3 +23,9 @@ export const BlobMoveError = createError(
   "Failed to move blob",
   500
 );
+
+export const MissingFilesError = createError(
+  "MISSING_FILES",
+  "File UUIDs not found: %s",
+  404
+);
