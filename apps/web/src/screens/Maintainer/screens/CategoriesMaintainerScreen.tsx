@@ -51,11 +51,17 @@ export const CategoriesMaintainerScreen: FC = () => {
     methodologySelector,
     selectMethodology,
     stopEditing,
+    isLoadingMethodologies,
+    isMethodologiesError,
   } = useMaintainerMethodologyScope();
   const { enqueueSnackbar } = useSnackbar();
 
   // --- Data fetching ---
-  const { data: categories, isLoading } = useCategories(methodologyVersionId);
+  const {
+    data: categories,
+    isLoading,
+    isError: isErrorCategories,
+  } = useCategories(methodologyVersionId);
 
   // --- Form & editing state ---
   const [editingState, setEditingState] = useState<{
@@ -449,7 +455,32 @@ export const CategoriesMaintainerScreen: FC = () => {
         "")
       : "";
 
-  if (!targetMethodology) return null;
+  if (
+    !isLoadingMethodologies &&
+    (isMethodologiesError || isErrorCategories || !targetMethodology)
+  ) {
+    const emptyStateMessage = isMethodologiesError
+      ? "No fue posible cargar las metodologías."
+      : isErrorCategories
+        ? "No fue posible cargar las categorías."
+        : "No hay metodologías disponibles para mostrar categorías.";
+
+    return (
+      <>
+        <MaintainerPageHeader
+          title="Categorías / Alcances"
+          addLabel="Agregar fila"
+          addDisabled
+          extra={methodologySelector}
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary">
+            {emptyStateMessage}
+          </Typography>
+        </Box>
+      </>
+    );
+  }
 
   return (
     <FormProvider {...form}>
@@ -467,7 +498,7 @@ export const CategoriesMaintainerScreen: FC = () => {
         {!isViewOnly && (
           <InfoBanner
             variant="success"
-            title={`Editando metodología: ${targetMethodology.name}`}
+            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
             subtitle="Los cambios se aplicarán automáticamente"
           />
         )}
@@ -492,7 +523,7 @@ export const CategoriesMaintainerScreen: FC = () => {
                   backgroundColor: theme.palette.grey[100],
                 },
               })}
-              loading={isLoading}
+              loading={isLoading || isLoadingMethodologies}
               columns={columns}
               rows={currentRows}
               rowHeight={70}
@@ -525,7 +556,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology.name}
+              Editando: {targetMethodology?.name ?? ""}
             </Typography>
           </Box>
           <Button
@@ -552,7 +583,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           ) : (
             <DialogContentText>
               Estás a punto de salir del modo edición de{" "}
-              <strong>{targetMethodology.name}</strong>. Podrás volver a
+              <strong>{targetMethodology?.name ?? ""}</strong>. Podrás volver a
               editarla desde la pantalla de Metodologías.
             </DialogContentText>
           )}

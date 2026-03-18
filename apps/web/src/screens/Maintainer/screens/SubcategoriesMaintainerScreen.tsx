@@ -46,13 +46,17 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     methodologySelector,
     selectMethodology,
     stopEditing,
+    isLoadingMethodologies,
     isMethodologiesError,
   } = useMaintainerMethodologyScope();
   const { enqueueSnackbar } = useSnackbar();
 
   // --- Data fetching ---
-  const { data: subcategories, isLoading: isLoadingSubcategories } =
-    useSubcategories(methodologyVersionId);
+  const {
+    data: subcategories,
+    isLoading: isLoadingSubcategories,
+    isError: isErrorSubcategories,
+  } = useSubcategories(methodologyVersionId);
   const { data: categories, isLoading: isLoadingCategories } =
     useCategories(methodologyVersionId);
   const { data: measurementUnits, isLoading: isLoadingUnits } =
@@ -430,12 +434,15 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     !isLoadingUnits &&
     !!measurementUnits;
 
-  if (methodologies.length === 0 || !targetMethodology) {
+  if (
+    !isLoadingMethodologies &&
+    (isMethodologiesError || isErrorSubcategories || !targetMethodology)
+  ) {
     const emptyStateMessage = isMethodologiesError
       ? "No fue posible cargar las metodologías."
-      : methodologies.length === 0
-        ? "No hay metodologías disponibles para mostrar sub-categorías."
-        : "La metodología seleccionada no está disponible.";
+      : isErrorSubcategories
+        ? "No fue posible cargar las sub-categorías."
+        : "No hay metodologías disponibles para mostrar sub-categorías.";
 
     return (
       <>
@@ -470,7 +477,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         {!isViewOnly && (
           <InfoBanner
             variant="success"
-            title={`Editando metodología: ${targetMethodology.name}`}
+            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
             subtitle="Los cambios se aplicarán automáticamente"
           />
         )}
@@ -497,7 +504,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
               })}
               columns={columns}
               rows={currentRows}
-              loading={!isDataReady}
+              loading={!isDataReady || isLoadingMethodologies}
               getRowId={(row: SubcategoryForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
@@ -527,7 +534,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
           <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology.name}
+              Editando: {targetMethodology?.name ?? ""}
             </Typography>
           </Box>
           <Button
@@ -542,7 +549,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       )}
       <ExitEditModeDialog
         open={exitEditModeOpen}
-        methodologyName={targetMethodology.name}
+        methodologyName={targetMethodology?.name ?? ""}
         hasUnsavedRow={editingRowId !== null}
         onClose={() => setExitEditModeOpen(false)}
         onConfirm={() => {
