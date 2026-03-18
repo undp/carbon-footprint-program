@@ -1,5 +1,12 @@
-import { useMemo, useCallback } from "react";
-import { Button, ListSubheader, MenuItem, Select, Typography } from "@mui/material";
+import { FC, useMemo, useCallback } from "react";
+import { useFormContext, useFormState } from "react-hook-form";
+import {
+  Button,
+  ListSubheader,
+  MenuItem,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { LocalFireDepartment as FlameIcon } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import type {
@@ -8,6 +15,7 @@ import type {
 } from "@repo/types";
 
 import { EditableTextCell, EditableNumberCell, EmissionFactorSourceCell } from "../components/cells";
+import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
@@ -43,6 +51,97 @@ interface UseEmissionFactorColumnsParams {
   subcategories: SubcategoryOption[];
   rateUnits: RateMeasurementUnit[];
 }
+
+const SubcategoryEditSelect: FC<{
+  rowIndex: number;
+  value: string;
+  onChange: (value: string) => void;
+  subcategories: SubcategoryOption[];
+}> = ({ rowIndex, value, onChange, subcategories }) => {
+  const { control } = useFormContext();
+  const { errors } = useFormState({
+    control,
+    name: `emissionFactors.${rowIndex}.subcategoryId`,
+  });
+  const fieldError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    "emissionFactors",
+    rowIndex,
+    "subcategoryId"
+  );
+
+  return (
+    <TextField
+      select
+      fullWidth
+      size="small"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      error={!!fieldError}
+      label={fieldError?.message ?? ""}
+      sx={{ "& .MuiOutlinedInput-root": { backgroundColor: "white" } }}
+    >
+      {(() => {
+        const items: React.ReactNode[] = [];
+        let lastCategory = "";
+        for (const sc of subcategories) {
+          if (sc.categoryName !== lastCategory) {
+            lastCategory = sc.categoryName;
+            items.push(
+              <ListSubheader key={`header-${sc.categoryName}`}>
+                {sc.categoryName}
+              </ListSubheader>
+            );
+          }
+          items.push(
+            <MenuItem key={sc.id} value={sc.id}>
+              {sc.name}
+            </MenuItem>
+          );
+        }
+        return items;
+      })()}
+    </TextField>
+  );
+};
+
+const UnitEditSelect: FC<{
+  rowIndex: number;
+  value: string;
+  onChange: (value: string) => void;
+  units: RateMeasurementUnit[];
+}> = ({ rowIndex, value, onChange, units }) => {
+  const { control } = useFormContext();
+  const { errors } = useFormState({
+    control,
+    name: `emissionFactors.${rowIndex}.rateMeasurementUnitId`,
+  });
+  const fieldError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    "emissionFactors",
+    rowIndex,
+    "rateMeasurementUnitId"
+  );
+
+  return (
+    <TextField
+      select
+      fullWidth
+      size="small"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      error={!!fieldError}
+      label={fieldError?.message ?? ""}
+      sx={{ "& .MuiOutlinedInput-root": { backgroundColor: "white" } }}
+    >
+      {units.map((u) => (
+        <MenuItem key={u.id} value={u.id}>
+          {u.abbreviation}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+};
 
 export const useEmissionFactorColumns = ({
   editingRowId,
@@ -80,35 +179,14 @@ export const useEmissionFactorColumns = ({
 
           if (editing) {
             return (
-              <Select
-                size="small"
-                fullWidth
+              <SubcategoryEditSelect
+                rowIndex={rowIndex}
                 value={formRow?.subcategoryId ?? ""}
-                onChange={(e) =>
-                  onCellChange(rowIndex, "subcategoryId", e.target.value)
+                onChange={(value) =>
+                  onCellChange(rowIndex, "subcategoryId", value)
                 }
-              >
-                {(() => {
-                  const items: React.ReactNode[] = [];
-                  let lastCategory = "";
-                  for (const sc of subcategories) {
-                    if (sc.categoryName !== lastCategory) {
-                      lastCategory = sc.categoryName;
-                      items.push(
-                        <ListSubheader key={`header-${sc.categoryName}`}>
-                          {sc.categoryName}
-                        </ListSubheader>
-                      );
-                    }
-                    items.push(
-                      <MenuItem key={sc.id} value={sc.id}>
-                        {sc.name}
-                      </MenuItem>
-                    );
-                  }
-                  return items;
-                })()}
-              </Select>
+                subcategories={subcategories}
+              />
             );
           }
 
@@ -238,24 +316,14 @@ export const useEmissionFactorColumns = ({
 
           if (editing) {
             return (
-              <Select
-                size="small"
-                fullWidth
+              <UnitEditSelect
+                rowIndex={rowIndex}
                 value={formRow?.rateMeasurementUnitId ?? ""}
-                onChange={(e) =>
-                  onCellChange(
-                    rowIndex,
-                    "rateMeasurementUnitId",
-                    e.target.value
-                  )
+                onChange={(value) =>
+                  onCellChange(rowIndex, "rateMeasurementUnitId", value)
                 }
-              >
-                {filteredUnits.map((u) => (
-                  <MenuItem key={u.id} value={u.id}>
-                    {u.abbreviation}
-                  </MenuItem>
-                ))}
-              </Select>
+                units={filteredUnits}
+              />
             );
           }
 

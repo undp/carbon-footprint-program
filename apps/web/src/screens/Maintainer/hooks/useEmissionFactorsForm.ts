@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useMemo } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,9 +10,10 @@ import {
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
-const emissionFactorsFormSchema = z.object({
-  emissionFactors: z.array(EmissionFactorFormSchema),
-});
+export interface DimensionRequirements {
+  var1Required: boolean;
+  var2Required: boolean;
+}
 
 export interface EmissionFactorsFormValues {
   emissionFactors: EmissionFactorForm[];
@@ -42,7 +43,35 @@ export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
   };
 }
 
-export const useEmissionFactorsForm = () => {
+export const useEmissionFactorsForm = (
+  dimensionRequirements: Record<string, DimensionRequirements> = {}
+) => {
+  const emissionFactorsFormSchema = useMemo(
+    () =>
+      z.object({
+        emissionFactors: z.array(
+          EmissionFactorFormSchema.superRefine((row, ctx) => {
+            const req = dimensionRequirements[row.subcategoryId];
+            if (req?.var1Required && !row.dimensionValue1Name?.trim()) {
+              ctx.addIssue({
+                code: "custom",
+                message: "Variable 1 es requerida",
+                path: ["dimensionValue1Name"],
+              });
+            }
+            if (req?.var2Required && !row.dimensionValue2Name?.trim()) {
+              ctx.addIssue({
+                code: "custom",
+                message: "Variable 2 es requerida",
+                path: ["dimensionValue2Name"],
+              });
+            }
+          })
+        ),
+      }),
+    [dimensionRequirements]
+  );
+
   const form = useForm<EmissionFactorsFormValues>({
     defaultValues: { emissionFactors: [] },
     mode: "onBlur",
@@ -65,6 +94,10 @@ export const useEmissionFactorsForm = () => {
           shouldDirty: true,
         });
         void form.trigger(`emissionFactors.${rowIndex}.${field}`);
+        if (field === "subcategoryId") {
+          void form.trigger(`emissionFactors.${rowIndex}.dimensionValue1Name`);
+          void form.trigger(`emissionFactors.${rowIndex}.dimensionValue2Name`);
+        }
       }
     },
     [form, fieldArray]
