@@ -23,7 +23,11 @@ export const CategoryBaseSchema = z.object({
     ])
     .describe("Hex color code in #RGB, #RGBA, #RRGGBB, or #RRGGBBAA format"),
   synonyms: z.string().trim().min(1).describe("Comma-separated synonyms"),
-  description: z.string().trim().min(1).describe("The description of the category"),
+  description: z
+    .string()
+    .trim()
+    .min(1)
+    .describe("The description of the category"),
   explanationId: IdSchema.nullable().describe(
     "The ID of the explanation associated with this category, if any"
   ),

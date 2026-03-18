@@ -15,7 +15,12 @@ export const UpdateMethodologyParamsSchema = z
 // Request Schema - all fields optional for partial updates
 export const UpdateMethodologyRequestSchema = z
   .object({
-    name: z.string().trim().min(1).max(255).describe("The name of the methodology"),
+    name: z
+      .string()
+      .trim()
+      .min(1)
+      .max(255)
+      .describe("The name of the methodology"),
     description: z
       .string()
       .nullable()
@@ -26,7 +31,12 @@ export const UpdateMethodologyRequestSchema = z
       .min(1)
       .max(255)
       .describe("The regulation/standard reference"),
-    version: z.string().trim().min(1).max(100).describe("The version identifier"),
+    version: z
+      .string()
+      .trim()
+      .min(1)
+      .max(100)
+      .describe("The version identifier"),
     status: MethodologyVersionStatusSchema,
   })
   .partial()
