@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:8080
+
+### Get All System Parameters
+GET {{baseUrl}}/api/system-parameters HTTP/1.1
+
+### Get System Parameters by single key
+GET {{baseUrl}}/api/system-parameters?keys=CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR HTTP/1.1
+
+### Get System Parameters by multiple keys
+GET {{baseUrl}}/api/system-parameters?keys=CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,ANOTHER_KEY HTTP/1.1
