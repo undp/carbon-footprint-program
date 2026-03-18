@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,10 +12,13 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type SystemParameterData = Pick<
-  Prisma.SystemParameterCreateInput,
-  "key" | "value" | "description" | "type"
->[];
+type SystemParameterData = {
+  key: string;
+  value: string;
+  description: string;
+  type: string;
+  options?: string[] | undefined;
+}[];
 
 const SystemParameterDataSchema: z.ZodType<SystemParameterData> = z.array(
   z.object({
@@ -23,6 +26,7 @@ const SystemParameterDataSchema: z.ZodType<SystemParameterData> = z.array(
     value: z.string().min(1),
     description: z.string().min(1),
     type: z.string().min(1),
+    options: z.array(z.string()).optional(),
   })
 );
 
@@ -49,6 +53,7 @@ export async function seedSystemParameters(
       value: param.value,
       description: param.description,
       type: param.type,
+      options: param.options ?? [],
     })),
     skipDuplicates: true,
   });
