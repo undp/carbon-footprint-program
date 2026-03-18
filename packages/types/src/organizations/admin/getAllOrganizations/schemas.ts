@@ -6,6 +6,7 @@ import {
   BasePaginationQuerySchema,
 } from "../../../common/index.js";
 import { OrganizationStatusSchema } from "../../../baseSchemas/index.js";
+import { listQueryParam } from "../../../zod.js";
 
 // Organization list item for admin (with all fields)
 const AdminOrganizationItemSchema = CommonOrganizationFieldsSchema.extend({
@@ -44,21 +45,7 @@ const GetAllOrganizationsSortKeysSchema = z.enum([
   "totalEmissions",
 ]);
 
-const StatusesQueryParamSchema = z
-  .union([
-    z.string(), // ?statuses=ACTIVE,BLOCKED
-    z.array(z.string()), // ?statuses=ACTIVE&statuses=BLOCKED
-  ])
-  .transform((value) => {
-    if (typeof value === "string") {
-      return value
-        .split(",")
-        .map((v) => v.trim())
-        .filter(Boolean);
-    }
-    return value;
-  })
-  .pipe(z.array(OrganizationStatusSchema));
+const StatusesQueryParamSchema = listQueryParam(OrganizationStatusSchema);
 
 // Query parameters
 export const GetAllOrganizationsQuerySchema = BasePaginationQuerySchema.extend({
