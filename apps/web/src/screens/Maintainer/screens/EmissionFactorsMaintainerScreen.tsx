@@ -15,6 +15,7 @@ import { FormProvider } from "react-hook-form";
 import {
   useSubcategories,
   useEmissionFactors,
+  useEmissionFactorDimensions,
   useAddEmissionFactor,
   useUpdateEmissionFactor,
   useDeleteEmissionFactor,
@@ -67,6 +68,22 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     useSubcategories(methodologyVersionId);
   const { data: rateUnits, isLoading: isLoadingRateUnits } =
     useRateMeasurementUnits();
+  const { data: emissionFactorDimensions } =
+    useEmissionFactorDimensions(methodologyVersionId);
+
+  const dimensionRequirements = useMemo(
+    () =>
+      Object.fromEntries(
+        (emissionFactorDimensions ?? []).map(({ subcategoryId, dimensions }) => [
+          subcategoryId,
+          {
+            var1Required: dimensions.some((d) => d.position === 1 && d.isRequired),
+            var2Required: dimensions.some((d) => d.position === 2 && d.isRequired),
+          },
+        ])
+      ),
+    [emissionFactorDimensions]
+  );
 
   const subcategoryOptions = useMemo(
     () =>
@@ -138,7 +155,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   const updateMutation = useUpdateEmissionFactor(methodologyVersionId);
   const deleteMutation = useDeleteEmissionFactor(methodologyVersionId);
 
-  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm();
+  const { form, fieldArray, handleCellChange } = useEmissionFactorsForm(dimensionRequirements);
   const currentRows = form.watch("emissionFactors");
 
   const editingRowIdRef = useRef(editingRowId);
