@@ -8,7 +8,7 @@ export const UpdateOrganizationParamsSchema = z.object({
 
 export const UpdateOrganizationBodySchema =
   OrganizationMutationDataSchema.extend({
-    fileUuids: z.array(z.string().uuid()).optional(),
+    fileUuids: z.array(z.uuid()).optional(),
   });
 
 export const UpdateOrganizationResponseSchema = z.object({
