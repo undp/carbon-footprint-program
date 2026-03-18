@@ -18,8 +18,10 @@ import {
 } from "../helpers.js";
 import { canSubmitToVerification } from "@repo/utils";
 import {
-  linkSubmissionFiles,
+  createSubmissionFileRecords,
+  moveSubmissionBlobs,
   cleanupSourceBlobs,
+  type SubmissionFileInfo,
 } from "@/features/files/helpers/linkSubmissionFiles.js";
 
 export const requestVerificationService = async (
@@ -71,21 +73,25 @@ export const requestVerificationService = async (
       createdById
     );
 
-    let blobCleanup;
+    let fileMetadata: SubmissionFileInfo[] | undefined;
     if (fileUuids?.length) {
-      blobCleanup = await linkSubmissionFiles(
+      fileMetadata = await createSubmissionFileRecords(
         tx,
-        blobServiceClient,
-        containerName,
         submissionId,
         fileUuids
       );
     }
 
-    return { blobCleanup };
+    return { fileMetadata };
   });
 
-  if (result.blobCleanup) {
-    await cleanupSourceBlobs(result.blobCleanup);
+  if (result.fileMetadata && blobServiceClient && containerName) {
+    const { sourceCleanup } = await moveSubmissionBlobs(
+      blobServiceClient,
+      containerName,
+      result.fileMetadata,
+      prismaClient
+    );
+    await cleanupSourceBlobs(sourceCleanup);
   }
 };

@@ -10,8 +10,10 @@ import {
   SubmissionType,
 } from "@repo/database";
 import {
-  linkSubmissionFiles,
+  createSubmissionFileRecords,
+  moveSubmissionBlobs,
   cleanupSourceBlobs,
+  type SubmissionFileInfo,
 } from "@/features/files/helpers/linkSubmissionFiles.js";
 import {
   OrganizationDataNotFoundError,
@@ -146,24 +148,27 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    // 4. Copy pre-uploaded files from tmp → final path and link to the submission
-    //    (source blobs are deleted post-commit to avoid inconsistency on rollback)
-    let blobCleanup;
+    // 4. Create SubmissionFile records (blob operations happen after transaction commits)
+    let fileMetadata: SubmissionFileInfo[] | undefined;
     if (fileUuids?.length) {
-      blobCleanup = await linkSubmissionFiles(
+      fileMetadata = await createSubmissionFileRecords(
         tx,
-        blobServiceClient,
-        containerName,
         submission.id,
         fileUuids
       );
     }
 
-    return { submissionId: submission.id.toString(), blobCleanup };
+    return { submissionId: submission.id.toString(), fileMetadata };
   });
 
-  if (result.blobCleanup) {
-    await cleanupSourceBlobs(result.blobCleanup);
+  if (result.fileMetadata && blobServiceClient && containerName) {
+    const { sourceCleanup } = await moveSubmissionBlobs(
+      blobServiceClient,
+      containerName,
+      result.fileMetadata,
+      prismaClient
+    );
+    await cleanupSourceBlobs(sourceCleanup);
   }
 
   return { submissionId: result.submissionId };

@@ -20,8 +20,10 @@ import {
   getLastRejectedOrganizationData,
 } from "../../helpers.js";
 import {
-  linkSubmissionFiles,
+  createSubmissionFileRecords,
+  moveSubmissionBlobs,
   cleanupSourceBlobs,
+  type SubmissionFileInfo,
 } from "@/features/files/helpers/linkSubmissionFiles.js";
 
 /**
@@ -116,17 +118,15 @@ export const updateOrganizationService = async (
         newOrganizationData.id.toString(),
         userId
       );
-      let blobCleanup;
+      let fileMetadata: SubmissionFileInfo[] | undefined;
       if (fileUuids?.length) {
-        blobCleanup = await linkSubmissionFiles(
+        fileMetadata = await createSubmissionFileRecords(
           tx,
-          blobServiceClient,
-          containerName,
           submission.id,
           fileUuids
         );
       }
-      return { id: organization.id.toString(), blobCleanup };
+      return { id: organization.id.toString(), fileMetadata };
     }
 
     const lastRejectedOrganizationData = await getLastRejectedOrganizationData(
@@ -147,8 +147,14 @@ export const updateOrganizationService = async (
     throw new OrganizationDataNotFoundError(organizationId);
   });
 
-  if (result.blobCleanup) {
-    await cleanupSourceBlobs(result.blobCleanup);
+  if (result.fileMetadata && blobServiceClient && containerName) {
+    const { sourceCleanup } = await moveSubmissionBlobs(
+      blobServiceClient,
+      containerName,
+      result.fileMetadata,
+      prismaClient
+    );
+    await cleanupSourceBlobs(sourceCleanup);
   }
 
   return { id: result.id };
