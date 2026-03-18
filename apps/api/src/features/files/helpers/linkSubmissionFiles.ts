@@ -4,11 +4,7 @@ import { FileType } from "@repo/types";
 import { map } from "lodash-es";
 import { buildBlobPath } from "./buildBlobPath.js";
 import { copyBlob, deleteBlob } from "@/services/blobService.js";
-import {
-  BlobMoveError,
-  FileNotFoundError,
-  MissingFilesError,
-} from "../errors.js";
+import { BlobMoveError, MissingFilesError } from "../errors.js";
 
 export interface BlobCleanup {
   sourcePaths: string[];
