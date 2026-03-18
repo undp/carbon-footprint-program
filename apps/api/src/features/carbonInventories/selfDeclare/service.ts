@@ -51,23 +51,13 @@ export const selfDeclareService = async (
       data: { isSelfDeclared: true },
     });
 
-    // Check if measurement submissions are enabled
-    const measurementEnabled = await tx.systemParameter.findUnique({
-      where: { key: "CARBON_INVENTORIES_MEASUREMENT_ENABLED" },
+    // Check recognition behavior
+    const recognitionBehavior = await tx.systemParameter.findUnique({
+      where: { key: "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR" },
       select: { value: true },
     });
 
-    if (measurementEnabled?.value !== "true") return;
-
-    // Check if auto-recognition is enabled
-    const autoRecognition = await tx.systemParameter.findUnique({
-      where: {
-        key: "CARBON_INVENTORIES_MEASUREMENT_SELF_DECLARATION_AUTO_RECOGNITION",
-      },
-      select: { value: true },
-    });
-
-    if (autoRecognition?.value !== "true") return;
+    if (recognitionBehavior?.value !== "AUTOMATIC") return;
 
     // Create submission and auto-approve it
     const submissionId = await createCarbonInventorySubmission(
