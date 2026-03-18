@@ -379,11 +379,11 @@ export const MethodologiesMaintainerScreen: FC = () => {
                   alignSelf: "center",
                 },
               })}
+              loading={isLoading}
               columns={columns}
               rows={currentRows}
               rowHeight={60}
               getRowId={(row: MethodologyVersionForm) => row.id}
-              loading={isLoading}
             />
           </Box>
         </form>

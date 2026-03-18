@@ -79,6 +79,7 @@ export const StylizedDataGrid = ({
       }}
       ignoreDiacritics
       localeText={{
+        noRowsLabel: "No hay filas para mostrar",
         paginationRowsPerPage: "Filas por página",
         paginationDisplayedRows: ({ from, to, count }) =>
           `${from}-${to} de ${count}`,

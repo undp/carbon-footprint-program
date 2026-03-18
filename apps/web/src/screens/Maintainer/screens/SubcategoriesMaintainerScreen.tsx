@@ -1,6 +1,5 @@
 import {
   FC,
-  ReactNode,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -9,20 +8,12 @@ import {
   useState,
 } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import {
-  Box,
-  Button,
-  MenuItem,
-  Paper,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Paper, Typography } from "@mui/material";
 import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import {
   useCategories,
-  useMethodologies,
   useSubcategories,
   useAddSubcategory,
   useUpdateSubcategory,
@@ -30,17 +21,12 @@ import {
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import {
   useSubcategoriesForm,
   toFormSubcategory,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
-import {
-  MethodologyVersionStatus,
-  SubcategoryForm,
-  type GetAllMeasurementUnitsResponse,
-} from "@repo/types";
+import { SubcategoryForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
@@ -48,240 +34,105 @@ import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
-import { Subcategory } from "../types";
+import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 
-/**
- * Outer wrapper that handles data fetching and defers form mount until data is
- * ready. This ensures `useForm` receives real data in `defaultValues` instead
- * of an empty array followed by `form.reset()`, which freezes `useFieldArray`
- * internals and breaks `register()` / DevTools.
- */
 export const SubcategoriesMaintainerScreen: FC = () => {
-  const editingMethodology = useMaintainerStore((s) => s.editingMethodology);
-  const selectedMethodology = useMaintainerStore((s) => s.selectedMethodology);
-  const selectMethodology = useMaintainerStore((s) => s.selectMethodology);
-  const stopEditing = useMaintainerStore((s) => s.stopEditing);
   const {
-    data: methodologies = [],
-    isLoading: isLoadingMethodologies,
-    isError: isMethodologiesError,
-  } = useMethodologies();
+    isViewOnly,
+    methodologies,
+    effectiveMethodologyId,
+    methodologyVersionId,
+    targetMethodology,
+    methodologySelector,
+    selectMethodology,
+    stopEditing,
+    isLoadingMethodologies,
+    isMethodologiesError,
+  } = useMaintainerMethodologyScope();
+  const { enqueueSnackbar } = useSnackbar();
 
-  const activeMethodology = useMemo(
-    () =>
-      methodologies.find(
-        (m) => m.status === MethodologyVersionStatus.PUBLISHED
-      ),
-    [methodologies]
-  );
-
-  const effectiveMethodologyId =
-    editingMethodology?.id ?? selectedMethodology?.id ?? activeMethodology?.id;
-
-  const handleExitEditMode = useCallback(() => {
-    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
-    if (target) {
-      selectMethodology({
-        id: target.id,
-        name: target.name,
-        regulation: target.regulation,
-      });
-    } else {
-      stopEditing();
-    }
-  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
-
-  const targetMethodology = methodologies.find(
-    (m) => m.id === effectiveMethodologyId
-  );
-  const methodologyVersionId = targetMethodology?.id;
-
-  const isViewOnly =
-    !editingMethodology ||
-    targetMethodology?.status === MethodologyVersionStatus.PUBLISHED;
-
-  const methodologySelector = (
-    <Box className="flex items-center gap-1">
-      <Typography variant="body2" color="text.secondary" noWrap>
-        Metodología:
-      </Typography>
-      <Select
-        size="small"
-        value={effectiveMethodologyId ?? ""}
-        disabled={!!editingMethodology}
-        onChange={(e) => {
-          const m = methodologies.find((m) => m.id === e.target.value);
-          if (m)
-            selectMethodology({
-              id: m.id,
-              name: m.name,
-              regulation: m.regulation,
-            });
-        }}
-        sx={{ minWidth: 220 }}
-      >
-        {methodologies.map((m) => (
-          <MenuItem key={m.id} value={m.id}>
-            {m.name}
-          </MenuItem>
-        ))}
-      </Select>
-    </Box>
-  );
-
-  const { data: subcategories, isLoading: isLoadingSubcategories } =
-    useSubcategories(methodologyVersionId);
+  // --- Data fetching ---
+  const {
+    data: subcategories,
+    isLoading: isLoadingSubcategories,
+    isError: isErrorSubcategories,
+  } = useSubcategories(methodologyVersionId);
   const { data: categories, isLoading: isLoadingCategories } =
     useCategories(methodologyVersionId);
   const { data: measurementUnits, isLoading: isLoadingUnits } =
     useMeasurementUnits();
 
-  if (isLoadingMethodologies) {
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Sub-categorías"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            Cargando sub-categorías…
-          </Typography>
-        </Box>
-      </>
-    );
-  }
-
-  if (methodologies.length === 0 || !targetMethodology) {
-    const emptyStateMessage = isMethodologiesError
-      ? "No fue posible cargar las metodologías."
-      : methodologies.length === 0
-        ? "No hay metodologías disponibles para mostrar sub-categorías."
-        : "La metodología seleccionada no está disponible.";
-
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Sub-categorías"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            {emptyStateMessage}
-          </Typography>
-        </Box>
-      </>
-    );
-  }
-
-  // Defer form mount until all data is available.
-  if (
-    isLoadingSubcategories ||
-    !subcategories ||
-    isLoadingCategories ||
-    !categories ||
-    isLoadingUnits ||
-    !measurementUnits
-  ) {
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Sub-categorías"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            Cargando sub-categorías…
-          </Typography>
-        </Box>
-      </>
-    );
-  }
-
-  const categoryOptions = categories.map((c) => ({
-    id: c.id,
-    name: c.name,
-    color: c.color,
-  }));
-
-  return (
-    <SubcategoriesForm
-      key={methodologyVersionId}
-      targetMethodology={targetMethodology}
-      methodologyVersionId={methodologyVersionId!}
-      isViewOnly={isViewOnly}
-      initialSubcategories={subcategories.map(toFormSubcategory)}
-      serverSubcategories={subcategories}
-      categories={categoryOptions}
-      allMeasurementUnits={measurementUnits}
-      methodologySelector={methodologySelector}
-      onExitEditMode={handleExitEditMode}
-    />
+  const categoryOptions = useMemo(
+    () =>
+      categories?.map((c) => ({ id: c.id, name: c.name, color: c.color })) ??
+      [],
+    [categories]
   );
-};
 
-// ---------------------------------------------------------------------------
-
-interface SubcategoriesFormProps {
-  targetMethodology: { id: string; name: string };
-  methodologyVersionId: string;
-  isViewOnly: boolean;
-  initialSubcategories: SubcategoryForm[];
-  serverSubcategories: Subcategory[];
-  categories: Array<{ id: string; name: string; color: string }>;
-  allMeasurementUnits: GetAllMeasurementUnitsResponse;
-  methodologySelector: ReactNode;
-  onExitEditMode: () => void;
-}
-
-const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
-  targetMethodology,
-  methodologyVersionId,
-  isViewOnly,
-  initialSubcategories,
-  serverSubcategories,
-  categories,
-  allMeasurementUnits,
-  methodologySelector,
-  onExitEditMode,
-}) => {
-  const { enqueueSnackbar } = useSnackbar();
-
-  const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  // --- Form & editing state ---
+  const [editingState, setEditingState] = useState<{
+    methodologyVersionId?: string;
+    rowId: string | null;
+  }>({ methodologyVersionId: undefined, rowId: null });
+  const editingRowId =
+    editingState.methodologyVersionId === methodologyVersionId
+      ? editingState.rowId
+      : null;
+  const setEditingRowId = useCallback(
+    (rowId: string | null) => {
+      setEditingState({ methodologyVersionId, rowId });
+    },
+    [methodologyVersionId]
+  );
   const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
-  const [explanationModal, setExplanationModal] = useState<{
+  const [explanationModalState, setExplanationModalState] = useState<{
+    methodologyVersionId?: string;
     open: boolean;
     rowIndex: number;
-  }>({ open: false, rowIndex: -1 });
+  }>({ methodologyVersionId: undefined, open: false, rowIndex: -1 });
+  const explanationModal = useMemo(
+    () =>
+      explanationModalState.methodologyVersionId === methodologyVersionId
+        ? {
+            open: explanationModalState.open,
+            rowIndex: explanationModalState.rowIndex,
+          }
+        : { open: false, rowIndex: -1 },
+    [explanationModalState, methodologyVersionId]
+  );
+  const setExplanationModal = useCallback(
+    (value: { open: boolean; rowIndex: number }) => {
+      setExplanationModalState({ methodologyVersionId, ...value });
+    },
+    [methodologyVersionId]
+  );
 
   const addMutation = useAddSubcategory(methodologyVersionId);
   const updateMutation = useUpdateSubcategory(methodologyVersionId);
   const deleteMutation = useDeleteSubcategory(methodologyVersionId);
 
-  // Form is initialised with real data via defaultValues — no form.reset()
-  const { form, fieldArray, handleCellChange } =
-    useSubcategoriesForm(initialSubcategories);
+  const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
   const currentRows = form.watch("subcategories");
 
-  // Sync form when server data changes (e.g. after a delete).
+  // --- Sync form with server data ---
   const editingRowIdRef = useRef(editingRowId);
   useLayoutEffect(() => {
     editingRowIdRef.current = editingRowId;
   }, [editingRowId]);
+
+  useEffect(() => {
+    form.reset({ subcategories: [] });
+  }, [methodologyVersionId, form]);
+
   useEffect(() => {
     if (editingRowIdRef.current !== null) return;
-    form.reset({
-      subcategories: serverSubcategories.map(toFormSubcategory),
-    });
-  }, [serverSubcategories, form]);
+    if (!subcategories) return;
+    form.reset({ subcategories: subcategories.map(toFormSubcategory) });
+  }, [subcategories, form]);
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+
+  // --- Row editing callbacks ---
 
   const handleStopEditRow = useCallback(async (): Promise<boolean> => {
     if (!editingRowId) return true;
@@ -326,7 +177,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
       return true;
     }
 
-    const serverRow = serverSubcategories.find(({ id }) => id === editingRowId);
+    const serverRow = subcategories?.find(({ id }) => id === editingRowId);
     const original = serverRow ? toFormSubcategory(serverRow) : null;
     const hasRealChanges =
       row &&
@@ -375,7 +226,8 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
     fieldArray,
     updateMutation,
     enqueueSnackbar,
-    serverSubcategories,
+    subcategories,
+    setEditingRowId,
   ]);
 
   const handleCancelEditRow = useCallback(() => {
@@ -387,9 +239,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
     if (isNewRow(editingRowId)) {
       if (rowIndex !== -1) fieldArray.remove(rowIndex);
     } else {
-      const original = serverSubcategories.find(
-        ({ id }) => id === editingRowId
-      );
+      const original = subcategories?.find(({ id }) => id === editingRowId);
       if (original && rowIndex !== -1) {
         fieldArray.update(rowIndex, toFormSubcategory(original));
       }
@@ -397,7 +247,14 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
 
     form.reset({ subcategories: form.getValues("subcategories") });
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, fieldArray, serverSubcategories]);
+  }, [
+    editingRowId,
+    form,
+    isNewRow,
+    fieldArray,
+    subcategories,
+    setEditingRowId,
+  ]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -407,7 +264,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
       }
       setEditingRowId(rowId);
     },
-    [editingRowId, handleStopEditRow]
+    [editingRowId, handleStopEditRow, setEditingRowId]
   );
 
   const handleAddRow = useCallback(() => {
@@ -423,7 +280,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
     };
     fieldArray.append(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray]);
+  }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
     async (row: SubcategoryForm) => {
@@ -451,17 +308,45 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
         });
       }
     },
-    [form, fieldArray, editingRowId, isNewRow, deleteMutation, enqueueSnackbar]
+    [
+      form,
+      fieldArray,
+      editingRowId,
+      isNewRow,
+      deleteMutation,
+      enqueueSnackbar,
+      setEditingRowId,
+    ]
   );
+
+  // --- Exit edit mode ---
+
+  const handleExitEditModeNav = useCallback(() => {
+    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
+    if (target) {
+      selectMethodology({
+        id: target.id,
+        name: target.name,
+        regulation: target.regulation,
+      });
+    } else {
+      stopEditing();
+    }
+  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
 
   const handleExitEditMode = useCallback(() => {
     if (editingRowId) handleCancelEditRow();
-    onExitEditMode();
-  }, [editingRowId, handleCancelEditRow, onExitEditMode]);
+    handleExitEditModeNav();
+  }, [editingRowId, handleCancelEditRow, handleExitEditModeNav]);
 
-  const handleOpenExplanation = useCallback((rowIndex: number) => {
-    setExplanationModal({ open: true, rowIndex });
-  }, []);
+  // --- Explanation modal ---
+
+  const handleOpenExplanation = useCallback(
+    (rowIndex: number) => {
+      setExplanationModal({ open: true, rowIndex });
+    },
+    [setExplanationModal]
+  );
 
   const handleSaveExplanation = useCallback(
     async (value: string) => {
@@ -530,8 +415,8 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
     onDelete: handleDelete,
     onOpenExplanation: handleOpenExplanation,
     rows: currentRows,
-    categories,
-    allMeasurementUnits,
+    categories: categoryOptions,
+    allMeasurementUnits: measurementUnits ?? [],
   });
 
   const explanationValue =
@@ -540,6 +425,41 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
           `subcategories.${explanationModal.rowIndex}.examples`
         ) ?? "")
       : "";
+
+  const isDataReady =
+    !isLoadingSubcategories &&
+    !!subcategories &&
+    !isLoadingCategories &&
+    !!categories &&
+    !isLoadingUnits &&
+    !!measurementUnits;
+
+  if (
+    !isLoadingMethodologies &&
+    (isMethodologiesError || isErrorSubcategories || !targetMethodology)
+  ) {
+    const emptyStateMessage = isMethodologiesError
+      ? "No fue posible cargar las metodologías."
+      : isErrorSubcategories
+        ? "No fue posible cargar las sub-categorías."
+        : "No hay metodologías disponibles para mostrar sub-categorías.";
+
+    return (
+      <>
+        <MaintainerPageHeader
+          title="Sub-categorías"
+          addLabel="Agregar fila"
+          addDisabled
+          extra={methodologySelector}
+        />
+        <Box className="rounded-sm bg-white p-3">
+          <Typography variant="body2" color="text.secondary">
+            {emptyStateMessage}
+          </Typography>
+        </Box>
+      </>
+    );
+  }
 
   return (
     <FormProvider {...form}>
@@ -557,7 +477,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
         {!isViewOnly && (
           <InfoBanner
             variant="success"
-            title={`Editando metodología: ${targetMethodology.name}`}
+            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
             subtitle="Los cambios se aplicarán automáticamente"
           />
         )}
@@ -575,6 +495,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
                 },
                 "& .MuiDataGrid-cell": {
                   display: "flex",
+                  maxHeight: 100,
                   alignItems: "center",
                 },
                 "& .MuiDataGrid-row.row--editing": {
@@ -583,7 +504,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
               })}
               columns={columns}
               rows={currentRows}
-              getRowHeight={() => 100}
+              loading={!isDataReady || isLoadingMethodologies}
               getRowId={(row: SubcategoryForm) => row.id}
               getRowClassName={({ id }) =>
                 String(id) === editingRowId ? "row--editing" : ""
@@ -613,7 +534,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
           <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
           <Box sx={{ flex: 1 }}>
             <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology.name}
+              Editando: {targetMethodology?.name ?? ""}
             </Typography>
           </Box>
           <Button
@@ -628,7 +549,7 @@ const SubcategoriesForm: FC<SubcategoriesFormProps> = ({
       )}
       <ExitEditModeDialog
         open={exitEditModeOpen}
-        methodologyName={targetMethodology.name}
+        methodologyName={targetMethodology?.name ?? ""}
         hasUnsavedRow={editingRowId !== null}
         onClose={() => setExitEditModeOpen(false)}
         onConfirm={() => {

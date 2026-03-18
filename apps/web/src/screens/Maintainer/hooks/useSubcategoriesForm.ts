@@ -26,11 +26,9 @@ export function toFormSubcategory(s: Subcategory): SubcategoryForm {
   };
 }
 
-export const useSubcategoriesForm = (
-  initialSubcategories: SubcategoryForm[]
-) => {
+export const useSubcategoriesForm = () => {
   const form = useForm<SubcategoriesFormValues>({
-    defaultValues: { subcategories: initialSubcategories },
+    defaultValues: { subcategories: [] },
     mode: "onBlur",
     resolver: zodResolver(subcategoriesFormSchema),
   });
