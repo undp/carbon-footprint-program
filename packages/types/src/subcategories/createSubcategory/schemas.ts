@@ -27,19 +27,17 @@ export const CreateSubcategoryRequestSchema = z.strictObject({
 // Form Schema
 export const SubcategoryFormSchema = z.strictObject({
   id: z.string().min(1), // Override IdSchema to allow temp_ IDs for new rows
-  categoryId: SubcategoryBaseSchema.shape.categoryId.min(
-    1,
-    "Categoría es requerida"
-  ),
-  name: SubcategoryBaseSchema.shape.name
+  categoryId: z.string().trim().min(1, "Categoría es requerida"),
+  name: z
+    .string()
+    .trim()
     .min(1, "Nombre es requerido")
     .max(255, "Nombre no puede exceder 255 caracteres"),
-  icon: SubcategoryBaseSchema.shape.icon.min(1, "Ícono es requerido"),
-  description: SubcategoryBaseSchema.shape.description.min(
-    1,
-    "Descripción es requerida"
-  ),
-  examples: SubcategoryBaseSchema.shape.examples
+  icon: z.string().trim().min(1, "Ícono es requerido"),
+  description: z.string().trim().min(1, "Descripción es requerida"),
+  examples: z
+    .string()
+    .trim()
     .nullable()
     .transform((v) => (v === "" ? null : v)),
   measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),

@@ -8,9 +8,13 @@ export const SubcategoryBaseSchema = z.object({
   categoryId: CategoryBaseSchema.shape.id.describe(
     "The ID of the category this subcategory belongs to"
   ),
-  name: z.string().min(1).describe("The name of the subcategory"),
-  icon: z.string().min(1).describe("The icon identifier"),
-  description: z.string().min(1).describe("The description of the subcategory"),
+  name: z.string().trim().min(1).describe("The name of the subcategory"),
+  icon: z.string().trim().min(1).describe("The icon identifier"),
+  description: z
+    .string()
+    .trim()
+    .min(1)
+    .describe("The description of the subcategory"),
   explanationId: IdSchema.nullable().describe(
     "The ID of the explanation associated with this subcategory, if any"
   ),

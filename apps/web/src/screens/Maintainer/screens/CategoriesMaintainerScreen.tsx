@@ -36,6 +36,7 @@ import { CategoryForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
@@ -163,9 +164,9 @@ export const CategoriesMaintainerScreen: FC = () => {
           message: "Categoría creada exitosamente",
           variant: "success",
         });
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al crear categoría",
+          message: getApiErrorMessage(error, "Error al crear categoría"),
           variant: "error",
         });
         return false;
@@ -197,9 +198,9 @@ export const CategoriesMaintainerScreen: FC = () => {
           variant: "success",
         });
       }
-    } catch {
+    } catch (error) {
       void enqueueSnackbar({
-        message: "Error al guardar cambios",
+        message: getApiErrorMessage(error, "Error al guardar cambios"),
         variant: "error",
       });
       return false;
@@ -285,9 +286,9 @@ export const CategoriesMaintainerScreen: FC = () => {
             variant: "success",
           });
         }
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al eliminar categoría",
+          message: getApiErrorMessage(error, "Error al eliminar categoría"),
           variant: "error",
         });
       }
@@ -333,9 +334,9 @@ export const CategoriesMaintainerScreen: FC = () => {
         });
         updatedRows.sort((a, b) => a.position - b.position);
         form.reset({ categories: updatedRows });
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al mover categoría",
+          message: getApiErrorMessage(error, "Error al mover categoría"),
           variant: "error",
         });
       }
@@ -401,9 +402,9 @@ export const CategoriesMaintainerScreen: FC = () => {
             message: "Explicación guardada",
             variant: "success",
           });
-        } catch {
+        } catch (error) {
           void enqueueSnackbar({
-            message: "Error al guardar explicación",
+            message: getApiErrorMessage(error, "Error al guardar explicación"),
             variant: "error",
           });
         }

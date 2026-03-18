@@ -30,6 +30,7 @@ import { SubcategoryForm } from "@repo/types";
 import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
@@ -166,9 +167,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
           message: "Sub-categoría creada exitosamente",
           variant: "success",
         });
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al crear sub-categoría",
+          message: getApiErrorMessage(error, "Error al crear sub-categoría"),
           variant: "error",
         });
         return false;
@@ -209,9 +210,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
           variant: "success",
         });
       }
-    } catch {
+    } catch (error) {
       void enqueueSnackbar({
-        message: "Error al guardar cambios",
+        message: getApiErrorMessage(error, "Error al guardar cambios"),
         variant: "error",
       });
       return false;
@@ -301,9 +302,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             variant: "success",
           });
         }
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al eliminar sub-categoría",
+          message: getApiErrorMessage(error, "Error al eliminar sub-categoría"),
           variant: "error",
         });
       }
@@ -370,10 +371,10 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             message: "Explicación guardada",
             variant: "success",
           });
-        } catch {
+        } catch (error) {
           handleCellChange(rowIndex, "examples", previousExamples ?? null);
           void enqueueSnackbar({
-            message: "Error al guardar explicación",
+            message: getApiErrorMessage(error, "Error al guardar explicación"),
             variant: "error",
           });
         }

@@ -9,15 +9,22 @@ export const MethodologyVersionBaseSchema = z.object({
   countryId: IdSchema.describe(
     "The ID of the country this methodology version belongs to"
   ),
-  name: z.string().min(1).max(255).describe("The name of the methodology"),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(255)
+    .describe("The name of the methodology"),
   description: z.string().describe("The description of the methodology"),
   regulation: z
     .string()
+    .trim()
     .min(1)
     .max(255)
     .describe("The regulation associated with the methodology"),
   version: z
     .string()
+    .trim()
     .min(1)
     .max(100)
     .describe("The version of the methodology"),

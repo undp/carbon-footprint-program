@@ -11,6 +11,7 @@ import {
   useDuplicateMethodology,
 } from "@/api/query/maintainer";
 import { Routes } from "@/interfaces/routes";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useMaintainerStore } from "../hooks/useMaintainerStore";
 import { useMethodologiesForm } from "../hooks/useMethodologiesForm";
@@ -77,9 +78,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
           message: "Metodología creada exitosamente",
           variant: "success",
         });
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al crear metodología",
+          message: getApiErrorMessage(error, "Error al crear metodología"),
           variant: "error",
         });
         return false;
@@ -108,9 +109,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
           variant: "success",
         });
       }
-    } catch {
+    } catch (error) {
       void enqueueSnackbar({
-        message: "Error al guardar cambios",
+        message: getApiErrorMessage(error, "Error al guardar cambios"),
         variant: "error",
       });
       return false;
@@ -211,11 +212,14 @@ export const MethodologiesMaintainerScreen: FC = () => {
               variant: "success",
             });
           },
-          onError: () => {
+          onError: (error) => {
             // Revert optimistic update on error
             fieldArray.replace(previousRows);
             void enqueueSnackbar({
-              message: "Error al cambiar el estado de la metodología",
+              message: getApiErrorMessage(
+                error,
+                "Error al cambiar el estado de la metodología"
+              ),
               variant: "error",
             });
           },
@@ -275,9 +279,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
           message: "Metodología duplicada exitosamente",
           variant: "success",
         });
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al duplicar metodología",
+          message: getApiErrorMessage(error, "Error al duplicar metodología"),
           variant: "error",
         });
       }
@@ -320,9 +324,9 @@ export const MethodologiesMaintainerScreen: FC = () => {
             variant: "success",
           });
         }
-      } catch {
+      } catch (error) {
         void enqueueSnackbar({
-          message: "Error al eliminar metodología",
+          message: getApiErrorMessage(error, "Error al eliminar metodología"),
           variant: "error",
         });
       }
