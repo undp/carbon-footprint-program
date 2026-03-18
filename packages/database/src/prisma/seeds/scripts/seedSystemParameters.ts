@@ -1,4 +1,4 @@
-import { type PrismaClient, type Prisma } from "../../../index.js";
+import { type PrismaClient } from "../../../index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -12,19 +12,38 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-type SystemParameterData = Pick<
-  Prisma.SystemParameterCreateInput,
-  "key" | "value" | "description" | "type"
->[];
+const SystemParameterSeedSchema = z.object({
+  key: z.string().min(1),
+  value: z.string().min(1),
+  description: z.string().min(1),
+  type: z.string().min(1),
+  options: z.array(z.string()).optional(),
+});
 
-const SystemParameterDataSchema: z.ZodType<SystemParameterData> = z.array(
-  z.object({
-    key: z.string().min(1),
-    value: z.string().min(1),
-    description: z.string().min(1),
-    type: z.string().min(1),
-  })
-);
+const SystemParameterSeedDataSchema = z
+  .array(SystemParameterSeedSchema)
+  // Validate selector-type parameters: they must define a non-empty options array,
+  // and their value must be one of the defined options.
+  // Other parameter types can have an empty or omitted options array.
+  .superRefine((arr, ctx) => {
+    for (const [i, item] of arr.entries()) {
+      if (item.type === "selector") {
+        if (!item.options || item.options.length === 0) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Selector parameter "${item.key}" must have at least one option`,
+            path: [i, "options"],
+          });
+        } else if (!item.options.includes(item.value)) {
+          ctx.addIssue({
+            code: "custom",
+            message: `Selector parameter "${item.key}" has value "${item.value}" which is not in options [${item.options.join(", ")}]`,
+            path: [i, "value"],
+          });
+        }
+      }
+    }
+  });
 
 export async function seedSystemParameters(
   prisma: PrismaClient,
@@ -32,7 +51,7 @@ export async function seedSystemParameters(
 ) {
   console.log("Seeding system parameters...");
 
-  const systemParametersData = SystemParameterDataSchema.parse(
+  const systemParametersData = SystemParameterSeedDataSchema.parse(
     JSON.parse(
       readFileSync(
         generateSeedDataPath(__dirname, "systemParameters.json", dataset),
@@ -49,6 +68,7 @@ export async function seedSystemParameters(
       value: param.value,
       description: param.description,
       type: param.type,
+      options: param.options ?? [],
     })),
     skipDuplicates: true,
   });
