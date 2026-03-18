@@ -97,15 +97,17 @@ describe("GET /api/carbon-inventories/:id/main-activity-equivalence - Integratio
   });
 
   describe("Error handling", () => {
-    it("should return 404 for a non-existent inventory", async () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 for a non-existent inventory", async () => {
       const response = await app.inject({
         method: "GET",
         url: "/api/carbon-inventories/999999/main-activity-equivalence",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
   });
 });

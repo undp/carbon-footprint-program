@@ -421,15 +421,17 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
   });
 
   describe("Error cases", () => {
-    it("should return 404 when inventory does not exist", async () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 when inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories/999999/duplicate",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 400 for invalid ID format (non-numeric)", async () => {
@@ -459,7 +461,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
 
       expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("NOT_FOUND");
     });
   });
 });

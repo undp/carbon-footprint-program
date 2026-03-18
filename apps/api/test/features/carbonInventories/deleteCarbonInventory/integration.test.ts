@@ -108,20 +108,24 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
     });
   });
 
-  describe("Not found errors", () => {
-    it("should return 404 when carbon inventory does not exist", async () => {
+  describe("Authorization errors", () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 when carbon inventory does not exist", async () => {
       const response = await app.inject({
         method: "DELETE",
         url: "/api/carbon-inventories/999999",
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
   });
 
   describe("Not deletable errors", () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
     it("should return 403 when inventory has a pending calculation submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
@@ -146,6 +150,8 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
 
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
     it("should return 403 when inventory has an approved calculation submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
@@ -175,6 +181,8 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
 
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
     it("should return 403 when inventory has a pending verification submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(
@@ -212,6 +220,8 @@ describe("DELETE /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.code).toBe("CARBON_INVENTORY_NOT_DELETABLE");
     });
 
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
     it("should return 403 when inventory has an approved verification submission", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await createInventoryFromPattern(

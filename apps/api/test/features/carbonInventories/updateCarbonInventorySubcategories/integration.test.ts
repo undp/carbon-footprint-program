@@ -420,7 +420,9 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
   });
 
   describe("Error cases", () => {
-    it("should return 404 when carbon inventory does not exist", async () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 when carbon inventory does not exist", async () => {
       const nonExistentId = "999999";
 
       const response = await app.inject({
@@ -434,9 +436,9 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
         ],
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(/Carbon inventory with ID .+ not found/);
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 404 when carbon inventory has no methodology", async () => {

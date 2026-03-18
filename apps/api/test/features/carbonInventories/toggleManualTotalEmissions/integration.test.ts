@@ -159,16 +159,18 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
   });
 
   describe("Error cases", () => {
-    it("should return 404 when inventory does not exist", async () => {
+    // Returns 403 FORBIDDEN (not 404) for non-existent resources to prevent
+    // resource ID enumeration (security-by-obscurity).
+    it("should return 403 when inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
         url: `/api/carbon-inventories/999999/subcategories/1/manual-total-emissions`,
         payload: { activated: true },
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
 
     it("should return 422 when activating manual mode but no active lines exist", async () => {
