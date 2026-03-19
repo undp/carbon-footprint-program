@@ -108,7 +108,7 @@ export const updateOrganizationService = async (
 
     if (await hasApprovedOrganizationData(tx, organizationId)) {
       if (!fileUuids?.length) {
-        throw new FileAttachmentsRequiredError("approved");
+        throw new FileAttachmentsRequiredError();
       }
 
       const newOrganizationData = await createOrganizationData(

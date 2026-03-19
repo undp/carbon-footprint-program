@@ -44,7 +44,7 @@ export const FileAttachmentsNotSupportedError = createError(
 
 export const FileAttachmentsRequiredError = createError(
   "FILE_ATTACHMENTS_REQUIRED",
-  "File attachments are required when updating organization data in %s state. File attachments are only supported when creating a new submission for review.",
+  "File attachments are required when updating an accredited organization or requesting accreditation for a new organization.",
   400
 );
 
