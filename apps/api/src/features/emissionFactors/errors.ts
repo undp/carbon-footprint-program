@@ -37,6 +37,18 @@ export const EmissionFactorGasDetailsMismatchError = createError(
   400
 );
 
+export const DimensionNotConfiguredError = createError(
+  "DIMENSION_NOT_CONFIGURED",
+  "No hay dimensión configurada en la posición %s para esta subcategoría",
+  400
+);
+
+export const DimensionValueNotFoundError = createError(
+  "DIMENSION_VALUE_NOT_FOUND",
+  "El valor '%s' no existe en la dimensión de posición %s",
+  404
+);
+
 const normalizeP2002FieldName = (value: string): string =>
   value
     .trim()
