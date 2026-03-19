@@ -1,8 +1,11 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
+import { Tooltip, Typography } from "@mui/material";
+import { Lock as LockIcon } from "@mui/icons-material";
 import { SOURCE_OPTIONS } from "../../constants";
 import type { EmissionFactorsFormValues } from "../../hooks/useEmissionFactorsForm";
 import { FreeSoloAutocompleteCell } from "./FreeSoloAutocompleteCell";
+import { useOverflowTooltip } from "./useOverflowTooltip";
 
 const options = SOURCE_OPTIONS.map((o) => o.value);
 
@@ -11,6 +14,8 @@ interface EmissionFactorSourceCellProps {
   isEditing: boolean;
   onChange: (value: string) => void;
   onClick?: () => void;
+  isSourceLocked?: boolean;
+  lockedSource?: string;
 }
 
 export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
@@ -18,6 +23,8 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
   isEditing,
   onChange,
   onClick,
+  isSourceLocked = false,
+  lockedSource,
 }) => {
   const { control } = useFormContext<EmissionFactorsFormValues>();
   const formValue = useWatch<EmissionFactorsFormValues>({
@@ -28,6 +35,80 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
     name: `emissionFactors.${rowIndex}.source`,
   });
   const fieldError = errors.emissionFactors?.[rowIndex]?.source;
+
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
+    formValue,
+    lockedSource,
+  ]);
+
+  useEffect(() => {
+    if (isSourceLocked && lockedSource && formValue !== lockedSource) {
+      onChange(lockedSource);
+    }
+  }, [isSourceLocked, lockedSource, formValue, onChange]);
+
+  if (isSourceLocked && isEditing) {
+    const displayValue = lockedSource ?? formValue;
+    return (
+      <Tooltip
+        title="La fuente es compartida por todos los factores de emisión de esta subcategoría y no puede ser modificada individualmente."
+        arrow
+        placement="top"
+      >
+        <Typography
+          ref={overflowRef}
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            color: "text.secondary",
+            backgroundColor: "grey.100",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+            cursor: "not-allowed",
+          }}
+        >
+          <LockIcon sx={{ fontSize: 14, color: "text.disabled" }} />
+          {displayValue}
+        </Typography>
+      </Tooltip>
+    );
+  }
+
+  if (isSourceLocked && !isEditing) {
+    const displayValue = lockedSource ?? formValue;
+    const tooltipText = isOverflowed
+      ? `${displayValue} — La fuente es compartida por todos los factores de esta subcategoría.`
+      : "La fuente es compartida por todos los factores de emisión de esta subcategoría.";
+    return (
+      <Tooltip title={tooltipText} arrow placement="top" enterDelay={500}>
+        <Typography
+          ref={overflowRef}
+          sx={{
+            px: 1,
+            py: 0.5,
+            borderRadius: 1,
+            display: "flex",
+            alignItems: "center",
+            gap: 0.5,
+            cursor: "default",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            width: "100%",
+          }}
+        >
+          <LockIcon sx={{ fontSize: 14, color: "text.disabled" }} />
+          {displayValue}
+        </Typography>
+      </Tooltip>
+    );
+  }
 
   return (
     <FreeSoloAutocompleteCell
