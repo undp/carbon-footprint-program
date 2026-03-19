@@ -11,7 +11,11 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
-import { getTestRateMeasurementUnitId } from "@test/factories/emissionFactorFactory.js";
+import {
+  getTestRateMeasurementUnitId,
+  createTestEmissionFactorDimension,
+  createTestEmissionFactorDimensionValue,
+} from "@test/factories/emissionFactorFactory.js";
 import type { CreateEmissionFactorResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -99,10 +103,20 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(body.gasDetails.CO2_FOSSIL).toBe(1.5);
     });
 
-    it("should create with dimension value names (find-or-create)", async () => {
-      const { payload } = await buildEmissionFactorPayload({
+    it("should create with pre-configured dimension value names", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
         dimensionValue1Name: "Búfalos",
-        source: "IPCC find-or-create",
+        source: "IPCC pre-configured",
+      });
+
+      // Pre-configure dimension and value
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Búfalos",
       });
 
       const response = await app.inject({
@@ -116,6 +130,23 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
 
       expect(body.dimensionValue1Name).toBe("Búfalos");
       expect(body.dimensionValue1Id).toBeTruthy();
+    });
+
+    it("should return 400 when dimension is not configured", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        dimensionValue1Name: "NonExistent",
+        source: "IPCC no-dim",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_NOT_CONFIGURED");
     });
 
     it("should persist the emission factor in the database", async () => {
