@@ -8,10 +8,21 @@ import { map } from "lodash-es";
 
 /**
  * Phase 2: Copies blobs and updates File.blobPath records.
- * Must be called AFTER the transaction commits successfully.
- * Performs external blob copy operations and database updates outside of the transaction.
- *
- * Returns cleanup info for source blobs that should be deleted.
+ * 
+ * @important Must be called AFTER the transaction containing Phase 1 (linkFilesToSubmission) commits successfully.
+ * @note Performs external blob copy operations and individual database updates outside of the original transaction.
+ * 
+ * @param blobServiceClient - Azure Blob Storage client.
+ * @param containerName - Name of the blob container.
+ * @param files - The FileInfo[] array returned by linkFilesToSubmission.
+ * @param prisma - Prisma client for updating file paths.
+ * 
+ * @returns {Promise<BlobCopyResult>} Cleanup info for Phase 3 (cleanupSourceBlobs).
+ * 
+ * @throws {BlobMoveError} If any blob copy operation fails.
+ * 
+ * @see linkFilesToSubmission for Phase 1.
+ * @see cleanupSourceBlobs for Phase 3 cleanup.
  */
 export async function moveFilesBlob(
   blobServiceClient: BlobServiceClient,
