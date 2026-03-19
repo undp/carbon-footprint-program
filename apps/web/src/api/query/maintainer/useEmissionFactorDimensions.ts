@@ -4,8 +4,11 @@ import { maintainerKeys } from "./keys";
 import { STALE_TIME_MS } from "@/config/constants";
 import type {
   GetEmissionFactorDimensionsResponse,
-  UpsertEmissionFactorDimensionsRequest,
-  UpsertEmissionFactorDimensionsResponse,
+  CreateEmissionFactorDimensionRequest,
+  CreateEmissionFactorDimensionResponse,
+  UpdateEmissionFactorDimensionRequest,
+  UpdateEmissionFactorDimensionResponse,
+  DeleteEmissionFactorDimensionParams,
 } from "@repo/types";
 
 export const useEmissionFactorDimensions = (methodologyVersionId?: string) =>
@@ -23,24 +26,71 @@ export const useEmissionFactorDimensions = (methodologyVersionId?: string) =>
     enabled: !!methodologyVersionId,
   });
 
-export const useUpsertEmissionFactorDimensions = (
+export const useCreateEmissionFactorDimension = (
   methodologyVersionId?: string
 ) => {
   const queryClient = useQueryClient();
   return useMutation<
-    UpsertEmissionFactorDimensionsResponse,
+    CreateEmissionFactorDimensionResponse,
     Error,
-    UpsertEmissionFactorDimensionsRequest
+    CreateEmissionFactorDimensionRequest
   >({
     mutationFn: (data) =>
-      apiClient.put("emission-factor-dimensions", { json: data }).json(),
+      apiClient.post("emission-factor-dimensions", { json: data }).json(),
     onSuccess: () => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey:
             maintainerKeys.emissionFactorDimensions.all(methodologyVersionId),
         });
-        // Also invalidate emission factors since dimensions affect how they display
+        void queryClient.invalidateQueries({
+          queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
+        });
+      }
+    },
+  });
+};
+
+export const useUpdateEmissionFactorDimension = (
+  methodologyVersionId?: string
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    UpdateEmissionFactorDimensionResponse,
+    Error,
+    { id: string; data: UpdateEmissionFactorDimensionRequest }
+  >({
+    mutationFn: ({ id, data }) =>
+      apiClient
+        .patch(`emission-factor-dimensions/${id}`, { json: data })
+        .json(),
+    onSuccess: () => {
+      if (methodologyVersionId) {
+        void queryClient.invalidateQueries({
+          queryKey:
+            maintainerKeys.emissionFactorDimensions.all(methodologyVersionId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
+        });
+      }
+    },
+  });
+};
+
+export const useDeleteEmissionFactorDimension = (
+  methodologyVersionId?: string
+) => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, DeleteEmissionFactorDimensionParams>({
+    mutationFn: ({ id }) =>
+      apiClient.delete(`emission-factor-dimensions/${id}`).json(),
+    onSuccess: () => {
+      if (methodologyVersionId) {
+        void queryClient.invalidateQueries({
+          queryKey:
+            maintainerKeys.emissionFactorDimensions.all(methodologyVersionId),
+        });
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
         });

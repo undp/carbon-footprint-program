@@ -26,7 +26,7 @@ interface UseSubcategoryColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
-  onConfigureVariables: (rowId: string) => void;
+  onConfigureVariables?: (rowId: string) => void;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -241,7 +241,7 @@ export const useSubcategoryColumns = ({
             return (
               <ActionButtons
                 isActiveRow={false}
-                onConfigureVariables={() => onConfigureVariables(params.row.id)}
+                onConfigureVariables={onConfigureVariables ? () => onConfigureVariables(params.row.id) : undefined}
               />
             );
           }
@@ -254,7 +254,7 @@ export const useSubcategoryColumns = ({
               onCancelEdit={onCancelEditRow}
               onDelete={formRow ? () => onDelete(formRow) : undefined}
               onConfigureVariables={
-                !isNewRow
+                !isNewRow && onConfigureVariables
                   ? () => onConfigureVariables(params.row.id)
                   : undefined
               }
