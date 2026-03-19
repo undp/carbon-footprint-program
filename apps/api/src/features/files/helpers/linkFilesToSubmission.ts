@@ -14,13 +14,13 @@ export interface BlobCleanup {
 /**
  * Phase 3: Deletes source blobs that were copied during Phase 2.
  * Call this AFTER moveFilesBlob (Phase 2) succeeds.
- * 
+ *
  * @note Failures are logged but not thrown — the copy already succeeded
  * and source blobs in tmp are safe to leave as orphans.
- * 
+ *
  * @param cleanup - BlobCleanup object returned by moveFilesBlob.
  * @returns {Promise<void>}
- * 
+ *
  * @see moveFilesBlob for Phase 2.
  */
 export async function cleanupSourceBlobs(cleanup: BlobCleanup): Promise<void> {
@@ -45,19 +45,19 @@ export interface BlobCopyResult {
 
 /**
  * Phase 1: Creates SubmissionFile records in the database.
- * 
+ *
  * @important Must be called inside a Prisma transaction.
  * @note Does NOT perform any blob operations - those happen in Phase 2.
- * 
+ *
  * @param tx - Prisma transaction client.
  * @param submissionId - The ID of the submission to link files to.
  * @param fileUuids - Array of file UUIDs to link.
  * @param fileType - The type of submission file (defaults to ATTACHMENT).
- * 
+ *
  * @returns {Promise<FileInfo[]>} File metadata needed for Phase 2 (moveFilesBlob).
- * 
+ *
  * @throws {MissingFilesError} If any of the provided UUIDs are not found in the database.
- * 
+ *
  * @see moveFilesBlob for Phase 2 operations.
  * @see cleanupSourceBlobs for post-copy cleanup.
  */
