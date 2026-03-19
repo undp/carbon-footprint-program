@@ -15,6 +15,7 @@ import {
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
+import { findDimensionValue } from "../helpers.js";
 
 export const createEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -82,22 +83,20 @@ export const createEmissionFactorService = async (
       let dimensionValue2Id: bigint | null = null;
 
       if (data.dimensionValue1Name) {
-        dimensionValue1Id = await findOrCreateDimensionValue(
+        dimensionValue1Id = await findDimensionValue(
           tx,
           subcategory.id,
           1,
-          data.dimensionValue1Name,
-          BigInt(user.id)
+          data.dimensionValue1Name
         );
       }
 
       if (data.dimensionValue2Name) {
-        dimensionValue2Id = await findOrCreateDimensionValue(
+        dimensionValue2Id = await findDimensionValue(
           tx,
           subcategory.id,
           2,
-          data.dimensionValue2Name,
-          BigInt(user.id)
+          data.dimensionValue2Name
         );
       }
 
@@ -154,75 +153,3 @@ export const createEmissionFactorService = async (
   }
 };
 
-/**
- * Finds an existing dimension value or creates a new one for the given
- * subcategory's dimension at the specified position.
- */
-async function findOrCreateDimensionValue(
-  tx: Prisma.TransactionClient,
-  subcategoryId: bigint,
-  position: number,
-  valueName: string,
-  userId: bigint
-): Promise<bigint> {
-  // Find the dimension for this subcategory at the given position
-  const dimension = await tx.emissionFactorDimension.findFirst({
-    where: { subcategoryId, position },
-    select: { id: true },
-  });
-
-  if (!dimension) {
-    // No dimension configured at this position — skip
-    // This can happen if dimensions haven't been configured yet
-    // Create the dimension on-the-fly with sensible defaults
-    const newDimension = await tx.emissionFactorDimension.create({
-      data: {
-        subcategoryId,
-        code: `variable_${position}`,
-        name: `Variable ${position}`,
-        position,
-        isRequired: false,
-        createdById: userId,
-        updatedAt: null,
-      },
-      select: { id: true },
-    });
-
-    const newValue = await tx.emissionFactorDimensionValue.create({
-      data: {
-        dimensionId: newDimension.id,
-        value: valueName,
-        isActive: true,
-        createdById: userId,
-        updatedAt: null,
-      },
-      select: { id: true },
-    });
-
-    return newValue.id;
-  }
-
-  // Try to find an existing value
-  const existing = await tx.emissionFactorDimensionValue.findFirst({
-    where: { dimensionId: dimension.id, value: valueName },
-    select: { id: true },
-  });
-
-  if (existing) {
-    return existing.id;
-  }
-
-  // Create a new value
-  const newValue = await tx.emissionFactorDimensionValue.create({
-    data: {
-      dimensionId: dimension.id,
-      value: valueName,
-      isActive: true,
-      createdById: userId,
-      updatedAt: null,
-    },
-    select: { id: true },
-  });
-
-  return newValue.id;
-}
