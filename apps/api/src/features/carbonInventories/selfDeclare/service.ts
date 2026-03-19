@@ -6,8 +6,10 @@ import {
   type PrismaClient,
 } from "@repo/database";
 import type { User } from "@repo/types";
+import { canSelfDeclare } from "@repo/utils";
 import { CarbonInventoryCannotSelfDeclareError } from "./errors.js";
 import {
+  calculateDisplayStatus,
   carbonInventoryWithSubmissionsMinimalSelect,
   createCarbonInventorySubmission,
 } from "../helpers.js";
@@ -39,20 +41,26 @@ export const selfDeclareService = async (
       throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
     }
 
-    // Verify no submissions exist that would make the display status non-DRAFT.
+    // Verify the display status was DRAFT before the claim.
     // updateMany cannot filter on relations, so we check after claiming the row.
+    // We override isSelfDeclared to false to evaluate the pre-claim state.
     // If this check fails, the transaction rolls back the claim above.
     const inventory = await tx.carbonInventory.findFirst({
       where: { id: inventoryId },
       select: carbonInventoryWithSubmissionsMinimalSelect,
     });
 
-    if (inventory) {
-      const submissions =
-        inventory.submission?.subject.submissions || [];
-      if (submissions.length > 0) {
-        throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
-      }
+    if (!inventory) {
+      throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
+    }
+
+    const displayStatus = calculateDisplayStatus({
+      ...inventory,
+      isSelfDeclared: false,
+    });
+
+    if (!canSelfDeclare(displayStatus)) {
+      throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
     }
 
     // Check recognition behavior
