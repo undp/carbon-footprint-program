@@ -1,10 +1,9 @@
 import type { BlobServiceClient } from "@azure/storage-blob";
-import { Prisma, SubmissionFileType, type PrismaClient } from "@repo/database";
+import { Prisma, SubmissionFileType } from "@repo/database";
 import { FileType } from "@repo/types";
-import { map } from "lodash-es";
 import { buildBlobPath } from "./buildBlobPath.js";
-import { copyBlob, deleteBlob } from "@/services/blobService.js";
-import { BlobMoveError, MissingFilesError } from "../errors.js";
+import { deleteBlob } from "@/services/blobService.js";
+import { MissingFilesError } from "../errors.js";
 
 export interface BlobCleanup {
   sourcePaths: string[];
@@ -26,7 +25,7 @@ export async function cleanupSourceBlobs(cleanup: BlobCleanup): Promise<void> {
   );
 }
 
-export interface SubmissionFileInfo {
+export interface FileInfo {
   fileId: bigint;
   uuid: string;
   originalName: string;
@@ -45,12 +44,12 @@ export interface BlobCopyResult {
  *
  * Returns file metadata needed for blob copying after the transaction commits.
  */
-export async function createSubmissionFileRecords(
+export async function linkFilesToSubmission(
   tx: Prisma.TransactionClient,
   submissionId: bigint,
   fileUuids: string[],
   fileType: SubmissionFileType = SubmissionFileType.ATTACHMENT
-): Promise<SubmissionFileInfo[]> {
+): Promise<FileInfo[]> {
   const uniqueUuids = [...new Set(fileUuids)];
 
   const files = await tx.file.findMany({
@@ -65,7 +64,7 @@ export async function createSubmissionFileRecords(
   }
 
   // Calculate final blob paths for each file
-  const fileMetadata: SubmissionFileInfo[] = files.map((file) => ({
+  const fileMetadata: FileInfo[] = files.map((file) => ({
     fileId: file.id,
     uuid: file.uuid,
     originalName: file.originalName,
@@ -89,50 +88,4 @@ export async function createSubmissionFileRecords(
   });
 
   return fileMetadata;
-}
-
-/**
- * Phase 2: Copies blobs and updates File.blobPath records.
- * Must be called AFTER the transaction commits successfully.
- * Performs external blob copy operations and database updates outside of the transaction.
- *
- * Returns cleanup info for source blobs that should be deleted.
- */
-export async function moveSubmissionBlobs(
-  blobServiceClient: BlobServiceClient,
-  containerName: string,
-  files: SubmissionFileInfo[],
-  prisma: PrismaClient
-): Promise<BlobCopyResult> {
-  const sourcePaths: string[] = [];
-
-  await Promise.all(
-    map(files, async (file) => {
-      try {
-        await copyBlob(
-          blobServiceClient,
-          containerName,
-          file.currentBlobPath,
-          file.finalBlobPath
-        );
-      } catch {
-        throw new BlobMoveError(file.currentBlobPath, file.finalBlobPath);
-      }
-      sourcePaths.push(file.currentBlobPath);
-
-      // Update File.blobPath outside of transaction
-      await prisma.file.update({
-        where: { id: file.fileId },
-        data: { blobPath: file.finalBlobPath },
-      });
-    })
-  );
-
-  return {
-    sourceCleanup: {
-      sourcePaths,
-      blobServiceClient,
-      containerName,
-    },
-  };
 }

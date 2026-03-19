@@ -18,11 +18,11 @@ import {
 } from "../helpers.js";
 import { canSubmitToVerification } from "@repo/utils";
 import {
-  createSubmissionFileRecords,
-  moveSubmissionBlobs,
+  linkFilesToSubmission,
   cleanupSourceBlobs,
-  type SubmissionFileInfo,
-} from "@/features/files/helpers/linkSubmissionFiles.js";
+  type FileInfo,
+} from "@/features/files/helpers/linkFilesToSubmission.js";
+import { moveFilesBlob } from "@/features/files/helpers/moveFilesBlob.js";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
@@ -73,20 +73,16 @@ export const requestVerificationService = async (
       createdById
     );
 
-    let fileMetadata: SubmissionFileInfo[] | undefined;
+    let fileMetadata: FileInfo[] | undefined;
     if (fileUuids?.length) {
-      fileMetadata = await createSubmissionFileRecords(
-        tx,
-        submissionId,
-        fileUuids
-      );
+      fileMetadata = await linkFilesToSubmission(tx, submissionId, fileUuids);
     }
 
     return { fileMetadata };
   });
 
   if (result.fileMetadata && blobServiceClient && containerName) {
-    const { sourceCleanup } = await moveSubmissionBlobs(
+    const { sourceCleanup } = await moveFilesBlob(
       blobServiceClient,
       containerName,
       result.fileMetadata,

@@ -21,10 +21,10 @@ import {
   getLastRejectedOrganizationData,
 } from "../../helpers.js";
 import {
-  createSubmissionFileRecords,
-  moveSubmissionBlobs,
+  linkFilesToSubmission,
   cleanupSourceBlobs,
-} from "@/features/files/helpers/linkSubmissionFiles.js";
+} from "@/features/files/helpers/linkFilesToSubmission.js";
+import { moveFilesBlob } from "@/features/files/helpers/moveFilesBlob.js";
 
 /**
  * Updates organization data based on current submission state.
@@ -122,7 +122,7 @@ export const updateOrganizationService = async (
         newOrganizationData.id.toString(),
         userId
       );
-      const fileMetadata = await createSubmissionFileRecords(
+      const fileMetadata = await linkFilesToSubmission(
         tx,
         submission.id,
         fileUuids
@@ -149,7 +149,7 @@ export const updateOrganizationService = async (
   });
 
   if (result.fileMetadata && blobServiceClient && containerName) {
-    const { sourceCleanup } = await moveSubmissionBlobs(
+    const { sourceCleanup } = await moveFilesBlob(
       blobServiceClient,
       containerName,
       result.fileMetadata,

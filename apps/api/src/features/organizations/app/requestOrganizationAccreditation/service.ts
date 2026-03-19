@@ -10,11 +10,10 @@ import {
   SubmissionType,
 } from "@repo/database";
 import {
-  createSubmissionFileRecords,
-  moveSubmissionBlobs,
+  linkFilesToSubmission,
   cleanupSourceBlobs,
-  type SubmissionFileInfo,
-} from "@/features/files/helpers/linkSubmissionFiles.js";
+  type FileInfo,
+} from "@/features/files/helpers/linkFilesToSubmission.js";
 import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
@@ -28,6 +27,7 @@ import {
   cloneOrganizationData,
   hasApprovedOrganizationData,
 } from "../../helpers.js";
+import { moveFilesBlob } from "@/features/files/helpers/moveFilesBlob.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -149,20 +149,16 @@ export const requestOrganizationAccreditationService = async (
     });
 
     // 4. Create SubmissionFile records (blob operations happen after transaction commits)
-    let fileMetadata: SubmissionFileInfo[] | undefined;
+    let fileMetadata: FileInfo[] | undefined;
     if (fileUuids?.length) {
-      fileMetadata = await createSubmissionFileRecords(
-        tx,
-        submission.id,
-        fileUuids
-      );
+      fileMetadata = await linkFilesToSubmission(tx, submission.id, fileUuids);
     }
 
     return { submissionId: submission.id.toString(), fileMetadata };
   });
 
   if (result.fileMetadata && blobServiceClient && containerName) {
-    const { sourceCleanup } = await moveSubmissionBlobs(
+    const { sourceCleanup } = await moveFilesBlob(
       blobServiceClient,
       containerName,
       result.fileMetadata,
