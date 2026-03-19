@@ -17,7 +17,7 @@ import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import {
   useCarbonInventories,
-  useCarbonInventoriesAvailableYears,
+  useCarbonInventoriesMinimalData,
   useMyOrganizations,
 } from "@/api/query";
 import { formatEmissions } from "@/utils/formatting";
@@ -48,8 +48,17 @@ export const CarbonInventoriesScreen: FC = () => {
   const { data: inventories = [], isLoading: isLoadingInventories } =
     useCarbonInventories(selectedYear, selectedOrganizationId);
 
-  const { data: availableYears = [], isLoading: isLoadingYears } =
-    useCarbonInventoriesAvailableYears();
+  const { data: minimalInventories = [], isLoading: isLoadingYears } =
+    useCarbonInventoriesMinimalData();
+
+  const availableYears = useMemo(
+    () =>
+      [...new Set(minimalInventories.map((inv) => inv.year))]
+        .filter((year): year is number => year !== null)
+        .sort((a, b) => b - a)
+        .map(String),
+    [minimalInventories]
+  );
 
   const [newInventoryDialogOpen, setNewInventoryDialogOpen] = useState(false);
 
@@ -204,12 +213,6 @@ export const CarbonInventoriesScreen: FC = () => {
       ),
     [inventories]
   );
-
-  // useEffect(() => {
-  //   void refetchInventories();
-  //   void refetchAvailableYears();
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
 
   return (
     <MainLayout>
