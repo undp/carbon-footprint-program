@@ -97,8 +97,8 @@ export const useEmissionEditorColumns = ({
     const secondDimension = dimensions.find((d) => d.position === 2);
 
     return [
-      // First dimension column (if exists)
-      ...(firstDimension
+      // First dimension column (if exists and has values)
+      ...(firstDimension?.values.length
         ? [
             {
               field: `dimensionValue1Id`,
@@ -125,8 +125,8 @@ export const useEmissionEditorColumns = ({
           ]
         : []),
 
-      // Second dimension column (if exists)
-      ...(secondDimension
+      // Second dimension column (if exists and has values)
+      ...(secondDimension?.values.length
         ? [
             {
               field: `dimensionValue2Id`,
