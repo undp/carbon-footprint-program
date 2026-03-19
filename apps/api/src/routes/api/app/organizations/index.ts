@@ -12,7 +12,14 @@ import { SystemRole } from "@repo/types";
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
-  fastify.addHook("preHandler", fastify.requireRoles([SystemRole.USER]));
+  fastify.addHook(
+    "preHandler",
+    fastify.requireRoles([
+      SystemRole.SUPERADMIN,
+      SystemRole.ADMIN,
+      SystemRole.USER,
+    ])
+  );
 
   // ORG. ADMIN
   addOrganizationUserRoute(fastify);

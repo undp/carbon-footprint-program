@@ -28,7 +28,13 @@ export const getOrganizationFormFieldsRoute: StandardRouteSignature = (
           400: ApiErrorResponseSchema,
         },
       },
-      preHandler: [fastify.requireRoles([SystemRole.USER])],
+      preHandler: [
+        fastify.requireRoles([
+          SystemRole.SUPERADMIN,
+          SystemRole.ADMIN,
+          SystemRole.USER,
+        ]),
+      ],
     },
     getOrganizationFormFieldsHandler
   );
