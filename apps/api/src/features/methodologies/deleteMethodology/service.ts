@@ -57,7 +57,7 @@ export const deleteMethodologyService = async (
         subcategory: { category: { methodologyVersionId: methodologyId } },
         status: { not: EmissionFactorStatus.DELETED },
       },
-      data: { status: EmissionFactorStatus.DELETED },
+      data: { status: EmissionFactorStatus.DELETED, updatedById },
     });
 
     await tx.subcategory.updateMany({
