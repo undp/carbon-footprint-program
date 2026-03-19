@@ -13,6 +13,7 @@ import {
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
+import { findDimensionValue } from "../helpers.js";
 
 export const updateEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -91,7 +92,7 @@ export const updateEmissionFactorService = async (
       if (data.value !== undefined)
         updateData.value = new Prisma.Decimal(data.value);
 
-      // Handle dimension value names (find-or-create)
+      // Handle dimension value names (lookup only)
       if (data.dimensionValue1Name !== undefined) {
         if (data.dimensionValue1Name === null) {
           updateData.dimensionValue1Id = null;
@@ -100,12 +101,11 @@ export const updateEmissionFactorService = async (
             data.subcategoryId !== undefined
               ? BigInt(data.subcategoryId)
               : existing.subcategoryId;
-          updateData.dimensionValue1Id = await findOrCreateDimensionValue(
+          updateData.dimensionValue1Id = await findDimensionValue(
             tx,
             subcategoryId,
             1,
-            data.dimensionValue1Name,
-            BigInt(user.id)
+            data.dimensionValue1Name
           );
         }
       }
@@ -118,12 +118,11 @@ export const updateEmissionFactorService = async (
             data.subcategoryId !== undefined
               ? BigInt(data.subcategoryId)
               : existing.subcategoryId;
-          updateData.dimensionValue2Id = await findOrCreateDimensionValue(
+          updateData.dimensionValue2Id = await findDimensionValue(
             tx,
             subcategoryId,
             2,
-            data.dimensionValue2Name,
-            BigInt(user.id)
+            data.dimensionValue2Name
           );
         }
       }
@@ -179,65 +178,3 @@ export const updateEmissionFactorService = async (
   }
 };
 
-async function findOrCreateDimensionValue(
-  tx: Prisma.TransactionClient,
-  subcategoryId: bigint,
-  position: number,
-  valueName: string,
-  userId: bigint
-): Promise<bigint> {
-  const dimension = await tx.emissionFactorDimension.findFirst({
-    where: { subcategoryId, position },
-    select: { id: true },
-  });
-
-  if (!dimension) {
-    const newDimension = await tx.emissionFactorDimension.create({
-      data: {
-        subcategoryId,
-        code: `variable_${position}`,
-        name: `Variable ${position}`,
-        position,
-        isRequired: false,
-        createdById: userId,
-        updatedAt: null,
-      },
-      select: { id: true },
-    });
-
-    const newValue = await tx.emissionFactorDimensionValue.create({
-      data: {
-        dimensionId: newDimension.id,
-        value: valueName,
-        isActive: true,
-        createdById: userId,
-        updatedAt: null,
-      },
-      select: { id: true },
-    });
-
-    return newValue.id;
-  }
-
-  const existing = await tx.emissionFactorDimensionValue.findFirst({
-    where: { dimensionId: dimension.id, value: valueName },
-    select: { id: true },
-  });
-
-  if (existing) {
-    return existing.id;
-  }
-
-  const newValue = await tx.emissionFactorDimensionValue.create({
-    data: {
-      dimensionId: dimension.id,
-      value: valueName,
-      isActive: true,
-      createdById: userId,
-      updatedAt: null,
-    },
-    select: { id: true },
-  });
-
-  return newValue.id;
-}
