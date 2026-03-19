@@ -330,25 +330,24 @@ export const OrganizationFormDialog: FC<Props> = ({
           {isAccredited && mode === "edit" && (
             <>
               <Divider sx={{ mb: 3, opacity: 0.2 }} />
-              <Box>
-                <Box className="mb-4 flex items-center gap-2">
-                  <Typography variant="body1" fontSize={18}>
-                    Documentos de respaldo
-                  </Typography>
-                </Box>
-                <FormFileUpload
-                  control={control}
-                  name="files"
-                  disabled={isSubmitting}
-                  required
-                  requiredMessage="Al menos un archivo es requerido"
-                  accept={{
-                    "image/png": [".png"],
-                    "image/jpeg": [".jpg", ".jpeg"],
-                    "application/pdf": [".pdf"],
-                  }}
-                />
+
+              <Box className="mb-4 flex items-center gap-2">
+                <Typography variant="body1" fontSize={18}>
+                  Documentos de respaldo
+                </Typography>
               </Box>
+              <FormFileUpload
+                control={control}
+                name="files"
+                disabled={isSubmitting}
+                required
+                requiredMessage="Al menos un archivo es requerido"
+                accept={{
+                  "image/png": [".png"],
+                  "image/jpeg": [".jpg", ".jpeg"],
+                  "application/pdf": [".pdf"],
+                }}
+              />
             </>
           )}
         </DialogContent>
