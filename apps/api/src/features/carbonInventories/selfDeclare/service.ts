@@ -13,6 +13,7 @@ import {
   carbonInventoryWithSubmissionsMinimalSelect,
   createCarbonInventorySubmission,
 } from "../helpers.js";
+import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
 
 export const selfDeclareService = async (
   prismaClient: PrismaClient,
@@ -42,7 +43,7 @@ export const selfDeclareService = async (
     }
 
     // Verify the display status was DRAFT before the claim.
-    // updateMany cannot filter on relations, so we check after claiming the row.
+    // updateMany cannot filter on relations, so we check after claiming.
     // We override isSelfDeclared to false to evaluate the pre-claim state.
     // If this check fails, the transaction rolls back the claim above.
     const inventory = await tx.carbonInventory.findFirst({
@@ -63,13 +64,12 @@ export const selfDeclareService = async (
       throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
     }
 
-    // Check recognition behavior
-    const recognitionBehavior = await tx.systemParameter.findUnique({
-      where: { key: "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR" },
-      select: { value: true },
-    });
+    const recognitionBehavior = await getSystemParameterValue(
+      tx,
+      "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR"
+    );
 
-    if (recognitionBehavior?.value !== "AUTOMATIC") return;
+    if (recognitionBehavior !== "AUTOMATIC") return;
 
     // Create submission and auto-approve it
     const submissionId = await createCarbonInventorySubmission(
