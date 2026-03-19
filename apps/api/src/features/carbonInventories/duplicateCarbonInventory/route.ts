@@ -24,6 +24,7 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
         params: DuplicateCarbonInventoryParamsSchema,
         response: {
           200: DuplicateCarbonInventoryResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

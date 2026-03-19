@@ -27,6 +27,7 @@ export const requestVerificationRoute: StandardRouteSignature = (fastify) => {
         body: RequestVerificationBodySchema,
         response: {
           200: RequestVerificationResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },

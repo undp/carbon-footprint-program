@@ -21,6 +21,7 @@ export const getCarbonInventorySubcategoriesSummaryRoute: StandardRouteSignature
           params: GetCarbonInventorySubcategoriesSummaryParamsSchema,
           response: {
             200: GetCarbonInventorySubcategoriesSummaryResponseSchema,
+            403: ApiErrorResponseSchema,
             404: ApiErrorResponseSchema,
             500: ApiErrorResponseSchema,
           },

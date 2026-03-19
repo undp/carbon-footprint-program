@@ -31,6 +31,7 @@ export const addSubcategoriesToCarbonInventoryRoute: StandardRouteSignature = (
         response: {
           200: AddSubcategoriesToCarbonInventoryResponseSchema,
           400: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },

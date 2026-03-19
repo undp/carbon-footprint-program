@@ -23,6 +23,7 @@ export const getSubcategoriesRankingRoute: StandardRouteSignature = (
         params: GetSubcategoriesRankingParamsSchema,
         response: {
           200: GetSubcategoriesRankingResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

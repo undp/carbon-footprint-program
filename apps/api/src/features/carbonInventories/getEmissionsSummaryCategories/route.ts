@@ -23,6 +23,7 @@ export const getEmissionsSummaryCategoriesRoute: StandardRouteSignature = (
         params: GetEmissionsSummaryCategoriesParamsSchema,
         response: {
           200: GetEmissionsSummaryCategoriesResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

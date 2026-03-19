@@ -31,6 +31,7 @@ export const syncCarbonInventoryLinesRoute: StandardRouteSignature = (
         response: {
           200: SyncCarbonInventoryLinesResponseSchema,
           400: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },

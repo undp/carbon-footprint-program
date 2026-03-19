@@ -21,6 +21,7 @@ export const requestCalculationRoute: StandardRouteSignature = (fastify) => {
         params: RequestCalculationParamsSchema,
         response: {
           200: RequestCalculationResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
