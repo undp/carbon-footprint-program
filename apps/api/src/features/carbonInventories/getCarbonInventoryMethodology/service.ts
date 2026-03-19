@@ -4,6 +4,7 @@ import {
   CategoryStatus,
   SubcategoryStatus,
   IconNameSchema,
+  EmissionFactorStatus,
 } from "@repo/types";
 import { z } from "zod";
 import {
@@ -102,6 +103,9 @@ export const getCarbonInventoryMethodologyService = async (
                 },
               },
               emissionFactors: {
+                where: {
+                  status: EmissionFactorStatus.ACTIVE,
+                },
                 select: {
                   id: true,
                   dimensionValue1Id: true,
