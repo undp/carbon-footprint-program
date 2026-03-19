@@ -23,7 +23,7 @@ import {
 } from "../helpers.js";
 import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
 
-export const selfDeclareService = async (
+export const selfDeclareCarbonInventoryService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: string,
   user: User | null

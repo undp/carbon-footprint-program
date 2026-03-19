@@ -25,8 +25,8 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/database";
-import { ApiErrorResponse } from "../../../src/commonSchemas/errors.js";
-import { createCarbonInventorySubmission } from "../../../src/features/carbonInventories/helpers.js";
+import { ApiErrorResponse } from "../../../../src/commonSchemas/errors.js";
+import { createCarbonInventorySubmission } from "../../../../src/features/carbonInventories/helpers.js";
 
 describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", () => {
   let app: FastifyInstance;
