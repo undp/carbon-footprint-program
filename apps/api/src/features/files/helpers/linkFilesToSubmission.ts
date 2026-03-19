@@ -1,15 +1,9 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
 import { Prisma, SubmissionFileType } from "@repo/database";
 import { FileType } from "@repo/types";
 import { buildBlobPath } from "./buildBlobPath.js";
 import { deleteBlob } from "@/services/blobService.js";
 import { MissingFilesError } from "../errors.js";
-
-export interface BlobCleanup {
-  sourcePaths: string[];
-  blobServiceClient: BlobServiceClient;
-  containerName: string;
-}
+import { BlobCleanup } from "./moveFilesBlob.js";
 
 /**
  * Phase 3: Deletes source blobs that were copied during Phase 2.
@@ -37,10 +31,6 @@ export interface FileInfo {
   originalName: string;
   currentBlobPath: string;
   finalBlobPath: string;
-}
-
-export interface BlobCopyResult {
-  sourceCleanup: BlobCleanup;
 }
 
 /**

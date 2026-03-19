@@ -1,10 +1,19 @@
 import { BlobServiceClient } from "@azure/storage-blob";
 import { PrismaClient } from "@repo/database";
 import { FileInfo } from "./linkFilesToSubmission.js";
-import { BlobCopyResult } from "./linkFilesToSubmission.js";
 import { BlobMoveError } from "../errors.js";
 import { copyBlob } from "@/services/blobService.js";
 import { map } from "lodash-es";
+
+export interface BlobCleanup {
+  sourcePaths: string[];
+  blobServiceClient: BlobServiceClient;
+  containerName: string;
+}
+
+export interface BlobCopyResult {
+  sourceCleanup: BlobCleanup;
+}
 
 /**
  * Phase 2: Copies blobs and updates File.blobPath records.
