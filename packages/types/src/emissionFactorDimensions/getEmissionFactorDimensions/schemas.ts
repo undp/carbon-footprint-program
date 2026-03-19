@@ -5,6 +5,11 @@ import {
 } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 
+const DimensionValueSchema = z.object({
+  id: IdSchema,
+  value: z.string(),
+});
+
 export const GetEmissionFactorDimensionsQuerySchema = z.strictObject({
   methodologyVersionId: IdSchema.describe(
     "The ID of the methodology version to filter dimensions by"
@@ -22,6 +27,8 @@ export const GetEmissionFactorDimensionsResponseSchema = z.array(
         name: true,
         position: true,
         isRequired: true,
+      }).extend({
+        values: z.array(DimensionValueSchema),
       })
     ),
   })
