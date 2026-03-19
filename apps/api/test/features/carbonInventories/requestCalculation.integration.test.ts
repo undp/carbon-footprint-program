@@ -144,7 +144,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
 
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("ORGANIZATION_NOT_ASSOCIATED3");
+      expect(body.code).toBe("ORGANIZATION_NOT_ASSOCIATED");
     });
 
     it("should return 422 when associated organization is not accredited", async () => {
