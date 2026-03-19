@@ -200,15 +200,15 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
   });
 
   describe("Validation errors", () => {
-    it("should return 422 when inventory does not exist", async () => {
+    it("should return 404 when inventory does not exist", async () => {
       const response = await app.inject({
         method: "POST",
         url: "/api/carbon-inventories/999999/self-declare",
       });
 
-      expect(response.statusCode).toBe(422);
+      expect(response.statusCode).toBe(404);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_SELF_DECLARE");
+      expect(body.code).toBe("CARBON_INVENTORY_NOT_FOUND_FOR_SELF_DECLARE");
     });
 
     it("should return 422 when inventory has no organizationId", async () => {
@@ -225,7 +225,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
 
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_SELF_DECLARE");
+      expect(body.code).toBe("CARBON_INVENTORY_MISSING_ORGANIZATION");
     });
 
     it("should return 422 when inventory has no year", async () => {
@@ -244,7 +244,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
 
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_SELF_DECLARE");
+      expect(body.code).toBe("CARBON_INVENTORY_MISSING_YEAR");
     });
 
     it("should return 422 when inventory is already self-declared", async () => {
@@ -265,7 +265,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
 
       expect(secondResponse.statusCode).toBe(422);
       const body = JSON.parse(secondResponse.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_SELF_DECLARE");
+      expect(body.code).toBe("CARBON_INVENTORY_ALREADY_SELF_DECLARED");
     });
 
     it("should return 422 when inventory has a pending submission (not DRAFT display status)", async () => {
@@ -286,7 +286,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
 
       expect(response.statusCode).toBe(422);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("CARBON_INVENTORY_CANNOT_SELF_DECLARE");
+      expect(body.code).toBe("CARBON_INVENTORY_NOT_DRAFT_FOR_SELF_DECLARE");
     });
   });
 });

@@ -7,7 +7,15 @@ import {
 } from "@repo/database";
 import type { User } from "@repo/types";
 import { canSelfDeclare } from "@repo/utils";
-import { CarbonInventoryCannotSelfDeclareError } from "./errors.js";
+import {
+  CarbonInventoryCannotSelfDeclareError,
+  CarbonInventoryNotFoundForSelfDeclareError,
+  CarbonInventoryNotActiveForSelfDeclareError,
+  CarbonInventoryAlreadySelfDeclaredError,
+  CarbonInventoryMissingOrganizationError,
+  CarbonInventoryMissingYearError,
+  CarbonInventoryNotDraftForSelfDeclareError,
+} from "./errors.js";
 import {
   calculateDisplayStatus,
   carbonInventoryWithSubmissionsMinimalSelect,
@@ -39,6 +47,36 @@ export const selfDeclareService = async (
     });
 
     if (count === 0) {
+      // Diagnose which precondition failed to provide a specific error.
+      const existing = await tx.carbonInventory.findUnique({
+        where: { id: inventoryId },
+        select: {
+          status: true,
+          isSelfDeclared: true,
+          organizationId: true,
+          year: true,
+        },
+      });
+
+      if (!existing) {
+        throw new CarbonInventoryNotFoundForSelfDeclareError(carbonInventoryId);
+      }
+      if (existing.status !== InventoryStatus.ACTIVE) {
+        throw new CarbonInventoryNotActiveForSelfDeclareError(
+          carbonInventoryId
+        );
+      }
+      if (existing.isSelfDeclared) {
+        throw new CarbonInventoryAlreadySelfDeclaredError(carbonInventoryId);
+      }
+      if (!existing.organizationId) {
+        throw new CarbonInventoryMissingOrganizationError(carbonInventoryId);
+      }
+      if (!existing.year) {
+        throw new CarbonInventoryMissingYearError(carbonInventoryId);
+      }
+
+      // All conditions looked fine — a concurrent request likely claimed it first.
       throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
     }
 
@@ -52,7 +90,7 @@ export const selfDeclareService = async (
     });
 
     if (!inventory) {
-      throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
+      throw new CarbonInventoryNotFoundForSelfDeclareError(carbonInventoryId);
     }
 
     const displayStatus = calculateDisplayStatus({
@@ -61,7 +99,7 @@ export const selfDeclareService = async (
     });
 
     if (!canSelfDeclare(displayStatus)) {
-      throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
+      throw new CarbonInventoryNotDraftForSelfDeclareError(carbonInventoryId);
     }
 
     const recognitionBehavior = await getSystemParameterValue(
