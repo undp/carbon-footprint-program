@@ -23,4 +23,5 @@ export * from "./rateMeasurementUnit.js";
 export * from "./subcategory.js";
 export * from "./submission.js";
 export * from "./submissionSubject.js";
+export * from "./systemParameter.js";
 export * from "./user.js";
