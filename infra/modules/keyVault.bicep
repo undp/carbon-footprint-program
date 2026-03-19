@@ -5,6 +5,9 @@ param skuName string
 @description('Object ID of the Azure AD group that needs access to Key Vault')
 param devGroupObjectId string = ''
 
+@description('Enable Key Vault Secrets Officer role assignment for the dev group')
+param enableDevGroupAccess bool = false
+
 @secure()
 @description('Database password to store as secret (if provided)')
 param dbPassword string = ''
@@ -60,7 +63,7 @@ resource dbPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = if (d
 var keyVaultSecretsOfficerRoleId = 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
 
 // Assign Key Vault Secrets Officer role to the Azure AD group
-resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (devGroupObjectId != '') {
+resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (enableDevGroupAccess && devGroupObjectId != '') {
   name: guid(keyVault.id, devGroupObjectId, keyVaultSecretsOfficerRoleId)
   scope: keyVault
   properties: {

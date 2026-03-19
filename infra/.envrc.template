@@ -3,7 +3,8 @@ export ENVIRONMENT=""
 # Azure Subscription
 export AZURE_SUBSCRIPTION_ID=""
 export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
-export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
+# Optional: Azure AD group for dev access to Key Vault and Storage (requires enableDevGroup*Access in bicepparam)
+# export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
 
 # Azure Entra
 export AZURE_EXTERNAL_TENANT_SUBDOMAIN=""
