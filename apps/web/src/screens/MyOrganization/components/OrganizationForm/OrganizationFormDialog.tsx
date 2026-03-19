@@ -14,10 +14,7 @@ import {
 import { Close } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "../../../../config/environment";
-import {
-  GetOrganizationByIdResponse,
-  OrganizationDisplayStatusValues,
-} from "@repo/types";
+import { GetOrganizationByIdResponse } from "@repo/types";
 import {
   useOrganizationForm,
   useOrganizationSubmit,
@@ -43,31 +40,29 @@ interface Props {
 }
 
 const DIALOG_TITLES: Record<DialogMode, string> = {
-  create: "Crear perfil de empresa",
-  edit: "Editar perfil de empresa",
+  [DialogMode.create]: "Crear perfil de empresa",
+  [DialogMode.edit]: "Editar perfil de empresa",
+  [DialogMode.accredited]: "Editar perfil de empresa",
 };
 
 const BUTTON_LABELS: Record<DialogMode, string> = {
-  create: "Crear",
-  edit: "Guardar cambios",
+  [DialogMode.create]: "Crear",
+  [DialogMode.edit]: "Guardar cambios",
+  [DialogMode.accredited]: "Solicitar revisión",
 };
 
 export const OrganizationFormDialog: FC<Props> = ({
   open,
   onClose,
   organization,
-  mode = "create",
+  mode = DialogMode.create,
 }) => {
   const { control, handleSubmit, reset, selectedSectorId, formState } =
     useOrganizationForm({ organization });
 
-  const isAccredited =
-    organization?.status === OrganizationDisplayStatusValues.ACCREDITED;
-
   const { submit, isSubmitting } = useOrganizationSubmit({
     mode,
     organizationId: organization?.id,
-    isAccredited,
     onSuccess: onClose,
   });
 
@@ -119,10 +114,7 @@ export const OrganizationFormDialog: FC<Props> = ({
     }
   }, [open]);
 
-  const buttonActionLabel =
-    isAccredited && mode === "edit"
-      ? "Solicitar revisión"
-      : BUTTON_LABELS[mode];
+  const buttonActionLabel = BUTTON_LABELS[mode];
 
   return (
     <Dialog
@@ -327,7 +319,7 @@ export const OrganizationFormDialog: FC<Props> = ({
             </Box>
           </Box>
 
-          {isAccredited && mode === "edit" && (
+          {mode === DialogMode.accredited && (
             <>
               <Divider sx={{ mb: 3, opacity: 0.2 }} />
 

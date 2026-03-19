@@ -11,14 +11,12 @@ import { DialogMode, OrganizationFormValues } from "../../../types";
 interface UseOrganizationSubmitProps {
   mode: DialogMode;
   organizationId?: string;
-  isAccredited?: boolean;
   onSuccess?: () => void;
 }
 
 export const useOrganizationSubmit = ({
   mode,
   organizationId,
-  isAccredited,
   onSuccess,
 }: UseOrganizationSubmitProps) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -32,17 +30,17 @@ export const useOrganizationSubmit = ({
         const { files, ...orgData } = data;
         const requestData = mapFormValuesToRequest(orgData);
 
-        if (mode === "edit" && isAccredited) {
+        if (mode === DialogMode.accredited) {
           const fileUuids = await preUploadFiles(files);
           await updateMutation.mutateAsync({ ...requestData, fileUuids });
         } else {
-          await (mode === "create"
+          await (mode === DialogMode.create
             ? createMutation.mutateAsync(requestData)
             : updateMutation.mutateAsync(requestData));
         }
 
         enqueueSnackbar(
-          `Organización ${mode === "create" ? "creada" : "actualizada"} exitosamente`,
+          `Organización ${mode === DialogMode.create ? "creada" : "actualizada"} exitosamente`,
           {
             variant: "success",
           }
@@ -50,7 +48,7 @@ export const useOrganizationSubmit = ({
         onSuccess?.();
       } catch (error) {
         enqueueSnackbar(
-          `No se pudo ${mode === "create" ? "crear" : "actualizar"} la organización`,
+          `No se pudo ${mode === DialogMode.create ? "crear" : "actualizar"} la organización`,
           { variant: "error" }
         );
         throw error;
@@ -58,7 +56,6 @@ export const useOrganizationSubmit = ({
     },
     [
       mode,
-      isAccredited,
       preUploadFiles,
       createMutation,
       updateMutation,

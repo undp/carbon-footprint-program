@@ -10,7 +10,7 @@ import { DialogMode } from "../types";
  *
  * @returns {Object} State management object
  * @returns {string | undefined} selectedOrganizationId - The currently selected organization ID
- * @returns {DialogMode} formDialogMode - Current mode of the form dialog (create or edit)
+ * @returns {DialogMode} formDialogMode - Current mode of the form dialog ("create", "edit", or "accredited")
  * @returns {boolean} formDialogOpen - Whether the form dialog is open
  * @returns {Function} setSelectedOrganizationId - Sets the selected organization ID
  * @returns {Function} openFormDialog - Opens the form dialog with specified mode
@@ -22,11 +22,13 @@ export const useMyOrganizationState = () => {
     string | undefined
   >(undefined);
 
-  const [formDialogMode, setFormDialogMode] = useState<DialogMode>("create");
+  const [formDialogMode, setFormDialogMode] = useState<DialogMode>(
+    DialogMode.create
+  );
 
   const [formDialogOpen, setFormDialogOpen] = useState(false);
 
-  const openFormDialog = useCallback((mode: DialogMode = "create") => {
+  const openFormDialog = useCallback((mode: DialogMode = DialogMode.create) => {
     setFormDialogMode(mode);
     setFormDialogOpen(true);
   }, []);
@@ -36,7 +38,9 @@ export const useMyOrganizationState = () => {
   }, []);
 
   const onEditOrganizationProfile = useCallback(() => {
-    openFormDialog(selectedOrganizationId ? "edit" : "create");
+    openFormDialog(
+      selectedOrganizationId ? DialogMode.edit : DialogMode.create
+    );
   }, [openFormDialog, selectedOrganizationId]);
 
   return {

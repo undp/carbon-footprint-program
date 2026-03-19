@@ -20,7 +20,8 @@ import {
   useMyOrganizationUsers,
 } from "./hooks";
 import { useMyOrganizations } from "@/api/query/organizations";
-import { OrganizationRole } from "@repo/types";
+import { OrganizationDisplayStatusValues, OrganizationRole } from "@repo/types";
+import { DialogMode } from "./types";
 
 export const MyOrganizationScreen: FC = () => {
   // Fetch user's organizations list
@@ -37,6 +38,7 @@ export const MyOrganizationScreen: FC = () => {
     setSelectedOrganizationId,
     formDialogMode,
     formDialogOpen,
+    openFormDialog,
     closeFormDialog,
     onEditOrganizationProfile,
   } = useMyOrganizationState();
@@ -140,7 +142,7 @@ export const MyOrganizationScreen: FC = () => {
         <OrganizationFormDialog
           open={formDialogOpen}
           onClose={closeFormDialog}
-          mode="create"
+          mode={DialogMode.create}
         />
       </MainLayout>
     );
@@ -158,7 +160,14 @@ export const MyOrganizationScreen: FC = () => {
           <>
             <OrganizationProfileSection
               profile={organization}
-              onEdit={onEditOrganizationProfile}
+              onEdit={() =>
+                openFormDialog(
+                  organization.status ===
+                    OrganizationDisplayStatusValues.ACCREDITED
+                    ? DialogMode.accredited
+                    : DialogMode.edit
+                )
+              }
               canManageOrganization={
                 myOrganizationRole === OrganizationRole.ADMIN
               }
