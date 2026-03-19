@@ -407,6 +407,21 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
+          const formRow = rows[rowIndex];
+          const subcategoryId = formRow?.subcategoryId;
+
+          const otherRowsWithSameSubcategory = subcategoryId
+            ? rows.filter(
+                (r) =>
+                  r.subcategoryId === subcategoryId &&
+                  r.id !== formRow?.id
+              )
+            : [];
+          const isSourceLocked = otherRowsWithSameSubcategory.length > 0;
+          const lockedSource = isSourceLocked
+            ? otherRowsWithSameSubcategory[0]?.source
+            : undefined;
+
           return (
             <EmissionFactorSourceCell
               rowIndex={rowIndex}
@@ -417,6 +432,8 @@ export const useEmissionFactorColumns = ({
                   ? () => onStartEditRow(params.row.id)
                   : undefined
               }
+              isSourceLocked={isSourceLocked}
+              lockedSource={lockedSource}
             />
           );
         },
