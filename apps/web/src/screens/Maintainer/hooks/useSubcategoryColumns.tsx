@@ -220,43 +220,49 @@ export const useSubcategoryColumns = ({
           );
         },
       },
-      ...(!viewOnly
-        ? [
-            {
-              field: "actions",
-              headerName: "Acciones",
-              width: 130,
-              sortable: false,
-              filterable: false,
-              headerAlign: "center" as const,
-              align: "center" as const,
-              renderCell: (params: GridRenderCellParams<Subcategory>) => {
-                const anyEditing = editingRowId !== null;
-                const rowId = params.row.id;
-                const editing = isEditing(rowId);
-                const rowIndex = getRowIndex(rowId);
-                const formRow = rows[rowIndex];
+      {
+        field: "actions",
+        headerName: "Acciones",
+        width: viewOnly ? 90 : 130,
+        sortable: false,
+        filterable: false,
+        headerAlign: "center" as const,
+        align: "center" as const,
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const anyEditing = editingRowId !== null;
+          const rowId = params.row.id;
+          const editing = isEditing(rowId);
+          const rowIndex = getRowIndex(rowId);
+          const formRow = rows[rowIndex];
 
-                const isNewRow = params.row.id.startsWith("temp_");
-                return (
-                  <ActionButtons
-                    isActiveRow={anyEditing && !editing}
-                    isEditing={editing}
-                    onStopEditCells={onStopEditRow}
-                    onCancelEdit={onCancelEditRow}
-                    onDelete={formRow ? () => onDelete(formRow) : undefined}
-                    onConfigureVariables={
-                      !isNewRow
-                        ? () => onConfigureVariables(params.row.id)
-                        : undefined
-                    }
-                    deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta subcategoría?"
-                  />
-                );
-              },
-            },
-          ]
-        : []),
+          const isNewRow = params.row.id.startsWith("temp_");
+
+          if (viewOnly) {
+            return (
+              <ActionButtons
+                isActiveRow={false}
+                onConfigureVariables={() => onConfigureVariables(params.row.id)}
+              />
+            );
+          }
+
+          return (
+            <ActionButtons
+              isActiveRow={anyEditing && !editing}
+              isEditing={editing}
+              onStopEditCells={onStopEditRow}
+              onCancelEdit={onCancelEditRow}
+              onDelete={formRow ? () => onDelete(formRow) : undefined}
+              onConfigureVariables={
+                !isNewRow
+                  ? () => onConfigureVariables(params.row.id)
+                  : undefined
+              }
+              deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta subcategoría?"
+            />
+          );
+        },
+      },
     ],
     [
       viewOnly,
