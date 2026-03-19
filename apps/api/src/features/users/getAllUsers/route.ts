@@ -1,9 +1,15 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getAllUsersHandler } from "./handler.js";
-import { GetAllUsersResponseSchema } from "@repo/types";
+import {
+  GetAllUsersResponse,
+  GetAllUsersResponseSchema,
+  SystemRole,
+} from "@repo/types";
 
 export const getAllUsersRoute = (fastify: FastifyZodInstance) => {
-  fastify.get(
+  fastify.get<{
+    Reply: GetAllUsersResponse;
+  }>(
     "/",
     {
       schema: {
@@ -14,6 +20,9 @@ export const getAllUsersRoute = (fastify: FastifyZodInstance) => {
           200: GetAllUsersResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
+      ],
     },
     getAllUsersHandler
   );

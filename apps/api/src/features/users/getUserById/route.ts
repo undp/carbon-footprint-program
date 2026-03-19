@@ -1,13 +1,19 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { getUserByIdHandler } from "./handler.js";
 import {
+  GetUserByIdParams,
   GetUserByIdParamsSchema,
+  GetUserByIdResponse,
   GetUserByIdResponseSchema,
+  SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
-  fastify.get(
+  fastify.get<{
+    Params: GetUserByIdParams;
+    Reply: GetUserByIdResponse;
+  }>(
     "/:id",
     {
       schema: {
@@ -20,6 +26,9 @@ export const getUserByIdRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
+      ],
     },
     getUserByIdHandler
   );

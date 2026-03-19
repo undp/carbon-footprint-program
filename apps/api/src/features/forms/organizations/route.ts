@@ -1,4 +1,8 @@
-import { GetOrganizationFormFieldsResponseSchema } from "@repo/types";
+import {
+  GetOrganizationFormFieldsResponse,
+  GetOrganizationFormFieldsResponseSchema,
+  SystemRole,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { getOrganizationFormFieldsHandler } from "./handler.js";
@@ -10,7 +14,9 @@ export const getOrganizationFormFieldsRoute: StandardRouteSignature = (
   fastify,
   _options
 ) => {
-  fastify.get(
+  fastify.get<{
+    Reply: GetOrganizationFormFieldsResponse;
+  }>(
     "/organizations",
     {
       schema: {
@@ -22,6 +28,7 @@ export const getOrganizationFormFieldsRoute: StandardRouteSignature = (
           400: ApiErrorResponseSchema,
         },
       },
+      preHandler: [fastify.requireRoles([SystemRole.USER])],
     },
     getOrganizationFormFieldsHandler
   );
