@@ -34,3 +34,13 @@ export function canSubmitToVerification(
 ): boolean {
   return REQUEST_VERIFICATION_STATUSES.includes(status);
 }
+
+const SELF_DECLARABLE_STATUSES: CarbonInventoryDisplayStatus[] = [
+  CarbonInventoryDisplayStatusEnum.DRAFT,
+];
+
+export function canSelfDeclare(
+  status: CarbonInventoryDisplayStatus
+): boolean {
+  return SELF_DECLARABLE_STATUSES.includes(status);
+}

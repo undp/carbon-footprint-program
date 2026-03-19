@@ -5,4 +5,5 @@ export {
   isCarbonInventoryEditable,
   isCarbonInventoryDeletable,
   canSubmitToVerification,
+  canSelfDeclare,
 } from "./carbonInventory.js";
