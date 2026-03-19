@@ -9,7 +9,7 @@ export default function badgeRoutes(fastify: FastifyZodInstance) {
     "preHandler",
     fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])
   );
-  badgeRequestUploadRoute(fastify, { public: true });
-  badgeConfirmUploadRoute(fastify, { public: true });
-  badgeGetFilesRoute(fastify, { public: true });
+  badgeRequestUploadRoute(fastify);
+  badgeConfirmUploadRoute(fastify);
+  badgeGetFilesRoute(fastify);
 }
