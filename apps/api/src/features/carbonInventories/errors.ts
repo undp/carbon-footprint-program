@@ -77,4 +77,3 @@ export const CarbonInventoryCannotRequestVerificationError = createError(
   "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
   422
 );
-

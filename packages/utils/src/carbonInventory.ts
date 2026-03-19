@@ -39,8 +39,6 @@ const SELF_DECLARABLE_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.DRAFT,
 ];
 
-export function canSelfDeclare(
-  status: CarbonInventoryDisplayStatus
-): boolean {
+export function canSelfDeclare(status: CarbonInventoryDisplayStatus): boolean {
   return SELF_DECLARABLE_STATUSES.includes(status);
 }
