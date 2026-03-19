@@ -9,6 +9,7 @@ import type { User } from "@repo/types";
 import {
   CarbonInventoryCannotSelfDeclareError,
   CarbonInventoryNotFoundError,
+  CarbonInventoryYearNotSetError,
   OrganizationNotAssociatedError,
 } from "../errors.js";
 import {
@@ -28,6 +29,7 @@ export const selfDeclareService = async (
       where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
         organizationId: true,
+        year: true,
         ...carbonInventoryWithSubmissionsMinimalSelect,
       },
     });
@@ -36,6 +38,10 @@ export const selfDeclareService = async (
 
     if (!inventory.organizationId) {
       throw new OrganizationNotAssociatedError(carbonInventoryId);
+    }
+
+    if (!inventory.year) {
+      throw new CarbonInventoryYearNotSetError(carbonInventoryId);
     }
 
     const displayStatus = calculateDisplayStatus(inventory);

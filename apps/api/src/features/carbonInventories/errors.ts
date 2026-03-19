@@ -83,3 +83,9 @@ export const CarbonInventoryCannotSelfDeclareError = createError(
   "Carbon inventory %s cannot be self-declared: must be in DRAFT status",
   422
 );
+
+export const CarbonInventoryYearNotSetError = createError(
+  "CARBON_INVENTORY_YEAR_NOT_SET",
+  "Carbon inventory with ID %s does not have a year set",
+  422
+);
