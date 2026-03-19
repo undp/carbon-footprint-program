@@ -32,6 +32,11 @@ export const getEmissionFactorDimensionsService = async (
           name: true,
           position: true,
           isRequired: true,
+          values: {
+            where: { isActive: true },
+            select: { id: true, value: true },
+            orderBy: { value: "asc" },
+          },
         },
         orderBy: { position: "asc" },
       },
@@ -48,6 +53,10 @@ export const getEmissionFactorDimensionsService = async (
       name: dim.name,
       position: dim.position,
       isRequired: dim.isRequired,
+      values: dim.values.map((v) => ({
+        id: v.id.toString(),
+        value: v.value,
+      })),
     })),
   }));
 };
