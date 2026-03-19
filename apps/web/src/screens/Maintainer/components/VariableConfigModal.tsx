@@ -108,49 +108,51 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
     <>
       <DialogTitle>{`Configurar variables - ${subcategoryName}`}</DialogTitle>
       <DialogContent>
-        <Box
-          sx={{
-            mb: 2,
-            p: 1.5,
-            borderRadius: 1,
-            border: "1px solid",
-            borderColor: "info.main",
-            bgcolor: "info.lighter",
-            display: "flex",
-            gap: 1.5,
-            alignItems: "flex-start",
-          }}
-        >
-          <Info color="info" sx={{ mt: 0.25 }} />
-          <Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-              <strong>Instrucciones:</strong> Define las variables de esta
-              sub-categoría y si son requeridas.
-            </Typography>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              component="ul"
-              sx={{ pl: 2 }}
-            >
-              <li>
-                Solo puedes configurar la <strong>variable 2</strong> si ya
-                existe una <strong>variable 1</strong>
-              </li>
-              <li>
-                Una variable <strong>requerida</strong> afecta el cálculo del
-                factor de emisión
-              </li>
-              {hasEmissionFactors && (
+        {!readOnly && (
+          <Box
+            sx={{
+              mb: 2,
+              p: 1.5,
+              borderRadius: 1,
+              border: "1px solid",
+              borderColor: "info.main",
+              bgcolor: "info.lighter",
+              display: "flex",
+              gap: 1.5,
+              alignItems: "flex-start",
+            }}
+          >
+            <Info color="info" sx={{ mt: 0.25 }} />
+            <Box>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                <strong>Instrucciones:</strong> Define las variables de esta
+                sub-categoría y si son requeridas.
+              </Typography>
+              <Typography
+                variant="caption"
+                color="text.secondary"
+                component="ul"
+                sx={{ pl: 2 }}
+              >
                 <li>
-                  Esta sub-categoría tiene factores de emisión asociados, solo
-                  se puede modificar el <strong>nombre</strong> de las variables
-                  existentes
+                  Solo puedes configurar la <strong>variable 2</strong> si ya
+                  existe una <strong>variable 1</strong>
                 </li>
-              )}
-            </Typography>
+                <li>
+                  Una variable <strong>requerida</strong> afecta el cálculo del
+                  factor de emisión
+                </li>
+                {hasEmissionFactors && (
+                  <li>
+                    Esta sub-categoría tiene factores de emisión asociados, solo
+                    se puede modificar el <strong>nombre</strong> de las variables
+                    existentes
+                  </li>
+                )}
+              </Typography>
+            </Box>
           </Box>
-        </Box>
+        )}
 
         <TableContainer>
           <Table size="small">
@@ -289,7 +291,7 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
         </TableContainer>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancelar</Button>
+        <Button onClick={onClose}>{readOnly ? "Cerrar" : "Cancelar"}</Button>
         {!readOnly && (
           <Button variant="contained" color="primary" onClick={handleSave}>
             Guardar configuraci&oacute;n
