@@ -18,9 +18,6 @@ import {
   useAddSubcategory,
   useUpdateSubcategory,
   useDeleteSubcategory,
-  useEmissionFactorDimensions,
-  useUpsertEmissionFactorDimensions,
-  useEmissionFactors,
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
@@ -39,7 +36,6 @@ import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { InfoBanner } from "../components/InfoBanner";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
-import { VariableConfigModal } from "../components/VariableConfigModal";
 
 export const SubcategoriesMaintainerScreen: FC = () => {
   const {
@@ -66,25 +62,12 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     useCategories(methodologyVersionId);
   const { data: measurementUnits, isLoading: isLoadingUnits } =
     useMeasurementUnits();
-  // Dimensions and emission factors are loaded in the background — they don't block the form mount.
-  const { data: dimensions = [] } =
-    useEmissionFactorDimensions(methodologyVersionId);
-  const { data: emissionFactors = [] } =
-    useEmissionFactors(methodologyVersionId);
 
   const categoryOptions = useMemo(
     () =>
       categories?.map((c) => ({ id: c.id, name: c.name, color: c.color })) ??
       [],
     [categories]
-  );
-
-  const subcategoryIdsWithEFs = useMemo(
-    () =>
-      new Set(
-        emissionFactors.map((emissionFactor) => emissionFactor.subcategoryId)
-      ),
-    [emissionFactors]
   );
 
   // --- Form & editing state ---
@@ -124,16 +107,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     },
     [methodologyVersionId]
   );
-  const [variableConfigRow, setVariableConfigRow] = useState<{
-    subcategoryId: string;
-    subcategoryName: string;
-  } | null>(null);
-
   const addMutation = useAddSubcategory(methodologyVersionId);
   const updateMutation = useUpdateSubcategory(methodologyVersionId);
   const deleteMutation = useDeleteSubcategory(methodologyVersionId);
-  const upsertDimensions =
-    useUpsertEmissionFactorDimensions(methodologyVersionId);
 
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
   const currentRows = form.watch("subcategories");
@@ -372,49 +348,6 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     [setExplanationModal]
   );
 
-  const handleOpenVariableConfig = (rowId: string) => {
-    const sub = subcategories?.find((s) => s.id === rowId);
-    if (sub) {
-      setVariableConfigRow({
-        subcategoryId: sub.id,
-        subcategoryName: sub.name,
-      });
-    }
-  };
-
-  const handleSaveVariableConfig = useCallback(
-    (
-      subcategoryId: string,
-      dimensions: Array<{
-        code: string;
-        name: string;
-        position: number;
-        isRequired: boolean;
-      }>
-    ) => {
-      void upsertDimensions
-        .mutateAsync([
-          {
-            subcategoryId,
-            dimensions,
-          },
-        ])
-        .then(() => {
-          void enqueueSnackbar({
-            message: "Configuración de variables guardada",
-            variant: "success",
-          });
-        })
-        .catch(() => {
-          void enqueueSnackbar({
-            message: "Error al guardar configuración de variables",
-            variant: "error",
-          });
-        });
-    },
-    [upsertDimensions, enqueueSnackbar]
-  );
-
   const handleSaveExplanation = useCallback(
     async (value: string) => {
       const { rowIndex } = explanationModal;
@@ -481,7 +414,6 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
     onOpenExplanation: handleOpenExplanation,
-    onConfigureVariables: handleOpenVariableConfig,
     rows: currentRows,
     categories: categoryOptions,
     allMeasurementUnits: measurementUnits ?? [],
@@ -643,27 +575,6 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         readOnly={isViewOnly}
         onSave={handleSaveExplanation}
         onClose={() => setExplanationModal({ open: false, rowIndex: -1 })}
-      />
-      <VariableConfigModal
-        open={variableConfigRow !== null}
-        readOnly={isViewOnly}
-        hasEmissionFactors={subcategoryIdsWithEFs.has(
-          variableConfigRow?.subcategoryId ?? ""
-        )}
-        subcategoryId={variableConfigRow?.subcategoryId ?? ""}
-        subcategoryName={variableConfigRow?.subcategoryName ?? ""}
-        currentDimensions={
-          dimensions
-            .find((d) => d.subcategoryId === variableConfigRow?.subcategoryId)
-            ?.dimensions.map(({ code, name, position, isRequired }) => ({
-              code,
-              name,
-              position,
-              isRequired,
-            })) ?? []
-        }
-        onSave={handleSaveVariableConfig}
-        onClose={() => setVariableConfigRow(null)}
       />
     </FormProvider>
   );
