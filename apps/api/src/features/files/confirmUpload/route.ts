@@ -1,6 +1,9 @@
 import {
+  ConfirmUploadBody,
   ConfirmUploadBodySchema,
+  ConfirmUploadResponse,
   ConfirmUploadResponseSchema,
+  SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
@@ -11,7 +14,10 @@ export const confirmUploadRoute: StandardRouteSignature = (
   fastify: FastifyZodInstance,
   _options
 ) => {
-  fastify.post(
+  fastify.post<{
+    Body: ConfirmUploadBody;
+    Reply: ConfirmUploadResponse;
+  }>(
     "/confirm-upload",
     {
       schema: {
@@ -25,6 +31,13 @@ export const confirmUploadRoute: StandardRouteSignature = (
           503: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([
+          SystemRole.USER,
+          SystemRole.ADMIN,
+          SystemRole.SUPERADMIN,
+        ]),
+      ],
     },
     confirmUploadHandler
   );
