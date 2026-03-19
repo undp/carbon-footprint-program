@@ -6,18 +6,11 @@ import {
   type PrismaClient,
 } from "@repo/database";
 import type { User } from "@repo/types";
+import { CarbonInventoryCannotSelfDeclareError } from "../errors.js";
 import {
-  CarbonInventoryCannotSelfDeclareError,
-  CarbonInventoryNotFoundError,
-  CarbonInventoryYearNotSetError,
-  OrganizationNotAssociatedError,
-} from "../errors.js";
-import {
-  calculateDisplayStatus,
   carbonInventoryWithSubmissionsMinimalSelect,
   createCarbonInventorySubmission,
 } from "../helpers.js";
-import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 
 export const selfDeclareService = async (
   prismaClient: PrismaClient,
@@ -25,37 +18,42 @@ export const selfDeclareService = async (
   user: User | null
 ): Promise<void> => {
   await prismaClient.$transaction(async (tx) => {
-    const inventory = await tx.carbonInventory.findFirst({
-      where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
-      select: {
-        organizationId: true,
-        year: true,
-        ...carbonInventoryWithSubmissionsMinimalSelect,
+    const inventoryId = BigInt(carbonInventoryId);
+    const createdById = user ? BigInt(user.id) : null;
+
+    // Atomically claim the inventory row for self-declaration.
+    // The isSelfDeclared: false predicate prevents concurrent requests
+    // from both succeeding.
+    const { count } = await tx.carbonInventory.updateMany({
+      where: {
+        id: inventoryId,
+        status: InventoryStatus.ACTIVE,
+        isSelfDeclared: false,
+        organizationId: { not: null },
+        year: { not: null },
       },
+      data: { isSelfDeclared: true, updatedById: createdById },
     });
 
-    if (!inventory) throw new CarbonInventoryNotFoundError(carbonInventoryId);
-
-    if (!inventory.organizationId) {
-      throw new OrganizationNotAssociatedError(carbonInventoryId);
-    }
-
-    if (!inventory.year) {
-      throw new CarbonInventoryYearNotSetError(carbonInventoryId);
-    }
-
-    const displayStatus = calculateDisplayStatus(inventory);
-    if (displayStatus !== CarbonInventoryDisplayStatusEnum.DRAFT) {
+    if (count === 0) {
       throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
     }
 
-    const createdById = user ? BigInt(user.id) : null;
-
-    // Set isSelfDeclared = true
-    await tx.carbonInventory.update({
-      where: { id: inventory.id },
-      data: { isSelfDeclared: true },
+    // Verify no submissions exist that would make the display status non-DRAFT.
+    // updateMany cannot filter on relations, so we check after claiming the row.
+    // If this check fails, the transaction rolls back the claim above.
+    const inventory = await tx.carbonInventory.findFirst({
+      where: { id: inventoryId },
+      select: carbonInventoryWithSubmissionsMinimalSelect,
     });
+
+    if (inventory) {
+      const submissions =
+        inventory.submission?.subject.submissions || [];
+      if (submissions.length > 0) {
+        throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
+      }
+    }
 
     // Check recognition behavior
     const recognitionBehavior = await tx.systemParameter.findUnique({
@@ -68,7 +66,7 @@ export const selfDeclareService = async (
     // Create submission and auto-approve it
     const submissionId = await createCarbonInventorySubmission(
       tx,
-      inventory.id,
+      inventoryId,
       SubmissionType.CARBON_INVENTORY_CALCULATION,
       createdById
     );
