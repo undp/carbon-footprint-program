@@ -6,7 +6,7 @@ import {
   type PrismaClient,
 } from "@repo/database";
 import type { User } from "@repo/types";
-import { CarbonInventoryCannotSelfDeclareError } from "../errors.js";
+import { CarbonInventoryCannotSelfDeclareError } from "./errors.js";
 import {
   carbonInventoryWithSubmissionsMinimalSelect,
   createCarbonInventorySubmission,
