@@ -12,7 +12,6 @@ import {
 import {
   linkFilesToSubmission,
   cleanupSourceBlobs,
-  type FileInfo,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
 import {
   OrganizationDataNotFoundError,
@@ -149,10 +148,11 @@ export const requestOrganizationAccreditationService = async (
     });
 
     // 4. Create SubmissionFile records (blob operations happen after transaction commits)
-    let fileMetadata: FileInfo[] | undefined;
-    if (fileUuids?.length) {
-      fileMetadata = await linkFilesToSubmission(tx, submission.id, fileUuids);
-    }
+    const fileMetadata = await linkFilesToSubmission(
+      tx,
+      submission.id,
+      fileUuids
+    );
 
     return { submissionId: submission.id.toString(), fileMetadata };
   });
