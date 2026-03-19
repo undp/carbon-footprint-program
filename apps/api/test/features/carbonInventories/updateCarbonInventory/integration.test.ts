@@ -317,7 +317,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       });
 
       const organizationData = {
-        name: "Full Org Data",
+        name: null,
         sectorId: "10",
         subsectorId: "20",
         sizeId: "5",
