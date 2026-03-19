@@ -431,6 +431,33 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
       expect(body.message).toBeTruthy();
     });
 
+    it("should return 400 FILE_ATTACHMENTS_REQUIRED when updating accredited org without files", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+      await createTestMembership(prisma, testUser.id, org.id);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/app/organizations/${org.id.toString()}`,
+        payload: getValidUpdateBody(),
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FILE_ATTACHMENTS_REQUIRED");
+    });
+
     it("should return 400 for invalid organization ID format", async () => {
       const updateBody = getValidUpdateBody();
 

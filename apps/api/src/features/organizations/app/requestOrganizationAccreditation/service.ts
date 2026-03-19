@@ -18,8 +18,8 @@ import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
-  OrganizationDataAlreadyRejectedError,
   OrganizationAlreadyAccreditedError,
+  FileAttachmentsRequiredError,
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
@@ -39,6 +39,10 @@ export const requestOrganizationAccreditationService = async (
 ): Promise<RequestOrganizationAccreditationResponse> => {
   if (!user) {
     throw new UserNotFoundError();
+  }
+
+  if (!fileUuids?.length) {
+    throw new FileAttachmentsRequiredError();
   }
 
   const userId = user.id;
@@ -74,10 +78,6 @@ export const requestOrganizationAccreditationService = async (
 
     let resolvedActiveData = activeData;
     if (!resolvedActiveData && rejectedData) {
-      // If no new files are provided, the user is submitting the same rejected info — block it
-      if (!fileUuids?.length) {
-        throw new OrganizationDataAlreadyRejectedError(organizationId);
-      }
       // Files provided: clone rejected data into a new draft so the user can re-submit
       resolvedActiveData = await cloneOrganizationData(
         tx,
