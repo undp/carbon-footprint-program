@@ -43,7 +43,7 @@ export const deleteCategoryService = async (
         subcategory: { categoryId },
         status: { not: EmissionFactorStatus.DELETED },
       },
-      data: { status: EmissionFactorStatus.DELETED },
+      data: { status: EmissionFactorStatus.DELETED, updatedById: BigInt(user.id) },
     });
 
     await tx.subcategory.updateMany({
