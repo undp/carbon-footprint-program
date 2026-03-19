@@ -164,8 +164,8 @@ if [ -n "${AZURE_SUBSCRIPTION_GROUP:-}" ]; then
   DEVS_GROUP_ID=$(az ad group show --group "$AZURE_SUBSCRIPTION_GROUP" --query id -o tsv 2>/dev/null || echo "")
 
   if [ -z "$DEVS_GROUP_ID" ]; then
-    log "Warning: $AZURE_SUBSCRIPTION_GROUP group not found. Dev group access will be skipped."
-    log "You can manually assign permissions later or add the group Object ID to the deployment."
+    log "Error: Azure AD group '$AZURE_SUBSCRIPTION_GROUP' was specified but could not be found."
+    exit 1
   fi
 else
   log "AZURE_SUBSCRIPTION_GROUP not set. Skipping dev group access configuration."
