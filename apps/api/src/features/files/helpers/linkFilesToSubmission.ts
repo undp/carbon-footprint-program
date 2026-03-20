@@ -3,20 +3,16 @@ import { FileType } from "@repo/types";
 import { buildBlobPath } from "./buildBlobPath.js";
 import { copyBlob, deleteBlob } from "@/services/blobService.js";
 import { BlobMoveError, MissingFilesError } from "../errors.js";
-import { map } from "lodash-es";
 import { BlobServiceClient } from "@azure/storage-blob";
 
 /**
- * Phase 3: Deletes source blobs that were copied during Phase 2.
- * Call this AFTER moveFilesBlob (Phase 2) succeeds.
+ * Deletes source blobs that were copied during linkFilesToSubmission.
+ * Call this AFTER linkFilesToSubmission succeeds.
  *
- * @note Failures are logged but not thrown — the copy already succeeded
- * and source blobs in tmp are safe to leave as orphans.
- *
- * @param cleanup - BlobCleanup object returned by moveFilesBlob.
+ * @param cleanup - BlobCleanup object returned by linkFilesToSubmission.
  * @returns {Promise<void>}
  *
- * @see moveFilesBlob for Phase 2.
+ * @see linkFilesToSubmission for the main function.
  */
 export async function cleanupSourceBlobs(
   cleanup: BlobCleanupContext
@@ -41,22 +37,29 @@ export interface BlobCopyResult {
 }
 
 /**
- * Phase 1: Creates SubmissionFile records in the database.
+ * Copies file blobs to their final submission paths and creates SubmissionFile
+ * records in the database.
+ *
+ * Uses a two-phase approach: first copies all blobs in parallel via
+ * `Promise.allSettled`, then updates the DB only if every copy succeeded.
+ * If any copy fails, successfully copied destination blobs are deleted
+ * before throwing, preventing orphaned blobs in permanent storage.
  *
  * @important Must be called inside a Prisma transaction.
- * @note Does NOT perform any blob operations - those happen in Phase 2.
  *
  * @param tx - Prisma transaction client.
  * @param submissionId - The ID of the submission to link files to.
  * @param fileUuids - Array of file UUIDs to link.
+ * @param blobServiceClient - Azure Blob Service client.
+ * @param containerName - Azure Blob container name.
  * @param fileType - The type of submission file (defaults to ATTACHMENT).
  *
- * @returns {Promise<FileInfo[]>} File metadata needed for Phase 2 (moveFilesBlob).
+ * @returns {Promise<BlobCopyResult>} Cleanup context for deleting source blobs after commit.
  *
  * @throws {MissingFilesError} If any of the provided UUIDs are not found in the database.
+ * @throws {BlobMoveError} If any blob copy fails (after cleaning up successful copies).
  *
- * @see moveFilesBlob for Phase 2 operations.
- * @see cleanupSourceBlobs for post-copy cleanup.
+ * @see cleanupSourceBlobs for post-copy source blob cleanup.
  */
 export async function linkFilesToSubmission(
   tx: Prisma.TransactionClient,
@@ -80,33 +83,60 @@ export async function linkFilesToSubmission(
     throw new MissingFilesError(missing.join(", "));
   }
 
-  await Promise.all(
-    map(files, async (file) => {
-      const currentBlobPath = file.blobPath;
-      const finalBlobPath = buildBlobPath({
-        fileType: FileType.SUBMISSION,
-        groupKey: submissionId.toString(),
-        subPath: fileType,
-        uuid: file.uuid,
-        name: file.originalName,
-      });
-      try {
-        await copyBlob(
-          blobServiceClient,
-          containerName,
-          file.blobPath,
-          finalBlobPath
-        );
-        await tx.file.update({
-          where: { id: file.id },
-          data: { blobPath: finalBlobPath },
-        });
-      } catch {
-        throw new BlobMoveError(currentBlobPath, finalBlobPath);
-      }
-      sourcePaths.push(currentBlobPath);
-    })
+  // Step 1: Compute file plans upfront
+  const filePlans = files.map((file) => ({
+    file,
+    currentBlobPath: file.blobPath,
+    finalBlobPath: buildBlobPath({
+      fileType: FileType.SUBMISSION,
+      groupKey: submissionId.toString(),
+      subPath: fileType,
+      uuid: file.uuid,
+      name: file.originalName,
+    }),
+  }));
+
+  // Step 2: Copy all blobs in parallel
+  const copyResults = await Promise.allSettled(
+    filePlans.map((plan) =>
+      copyBlob(
+        blobServiceClient,
+        containerName,
+        plan.currentBlobPath,
+        plan.finalBlobPath
+      )
+    )
   );
+
+  // Step 3: If any copy failed, clean up successful destinations and throw
+  const failedPlans = filePlans.filter(
+    (_, i) => copyResults[i].status === "rejected"
+  );
+
+  if (failedPlans.length > 0) {
+    const successfulDests = filePlans
+      .filter((_, i) => copyResults[i].status === "fulfilled")
+      .map((plan) => plan.finalBlobPath);
+
+    await Promise.allSettled(
+      successfulDests.map((dest) =>
+        deleteBlob(blobServiceClient, containerName, dest)
+      )
+    );
+    throw new BlobMoveError(
+      failedPlans.map((plan) => plan.currentBlobPath).join(", "),
+      failedPlans.map((plan) => plan.finalBlobPath).join(", ")
+    );
+  }
+
+  // Step 4: All copies succeeded — update DB records
+  for (const plan of filePlans) {
+    await tx.file.update({
+      where: { id: plan.file.id },
+      data: { blobPath: plan.finalBlobPath },
+    });
+    sourcePaths.push(plan.currentBlobPath);
+  }
 
   // Create SubmissionFile records
   await tx.submissionFile.createMany({
