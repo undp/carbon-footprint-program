@@ -1,5 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetEmissionFactorsResponse } from "@repo/types";
+import {
+  CarbonInventoryLineStatus,
+  EmissionFactorDimensionStatus,
+  type GetEmissionFactorsResponse,
+} from "@repo/types";
 import { fetchInventory } from "../helpers.js";
 import {
   formatEmissionFactor,
@@ -14,13 +18,19 @@ export const getEmissionFactorsService = async (
   const inventory = await fetchInventory(prismaClient, id);
 
   const lines = await prismaClient.carbonInventoryLine.findMany({
-    where: { carbonInventoryId: inventory.id, status: "ACTIVE" },
+    where: {
+      carbonInventoryId: inventory.id,
+      status: CarbonInventoryLineStatus.ACTIVE,
+    },
     include: {
       subcategory: {
         select: {
           name: true,
           category: { select: { name: true, synonyms: true, position: true } },
           dimensions: {
+            where: {
+              status: EmissionFactorDimensionStatus.ACTIVE,
+            },
             select: { position: true, isRequired: true },
           },
         },

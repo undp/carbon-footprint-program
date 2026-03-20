@@ -1,5 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
   User,
   type GetAllEmissionFactorsQuery,
@@ -23,7 +25,39 @@ export const getAllEmissionFactorsService = async (
             },
           }
         : {}),
-      status: { not: EmissionFactorStatus.DELETED },
+      status: EmissionFactorStatus.ACTIVE,
+      AND: [
+        {
+          OR: [
+            { dimensionValue1Id: null },
+            {
+              dimensionValue1: {
+                is: {
+                  status: EmissionFactorDimensionValueStatus.ACTIVE,
+                  dimension: {
+                    is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                  },
+                },
+              },
+            },
+          ],
+        },
+        {
+          OR: [
+            { dimensionValue2Id: null },
+            {
+              dimensionValue2: {
+                is: {
+                  status: EmissionFactorDimensionValueStatus.ACTIVE,
+                  dimension: {
+                    is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                  },
+                },
+              },
+            },
+          ],
+        },
+      ],
     },
     include: {
       subcategory: {

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
+  EmissionFactorDimensionStatus,
   type GetCarbonInventoryByIdResponse,
   CarbonInventoryLineStatus,
   User,
@@ -74,6 +75,9 @@ export const getCarbonInventoryByIdService = async (
     select: {
       id: true,
       dimensions: {
+        where: {
+          status: EmissionFactorDimensionStatus.ACTIVE,
+        },
         select: {
           id: true,
         },
