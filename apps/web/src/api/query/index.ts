@@ -8,3 +8,4 @@ export * from "./users";
 export * from "./measurementUnits";
 export * from "./organizations";
 export * from "./submissions";
+export * from "./systemParameters";
