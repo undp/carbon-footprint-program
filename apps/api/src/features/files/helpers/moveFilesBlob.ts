@@ -5,14 +5,14 @@ import { BlobMoveError } from "../errors.js";
 import { copyBlob } from "@/services/blobService.js";
 import { map } from "lodash-es";
 
-export interface BlobCleanup {
+export interface BlobCleanupContext {
   sourcePaths: string[];
   blobServiceClient: BlobServiceClient;
   containerName: string;
 }
 
 export interface BlobCopyResult {
-  sourceCleanup: BlobCleanup;
+  sourceCleanup: BlobCleanupContext;
 }
 
 /**

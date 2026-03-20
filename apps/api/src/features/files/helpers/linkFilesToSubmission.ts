@@ -3,7 +3,7 @@ import { FileType } from "@repo/types";
 import { buildBlobPath } from "./buildBlobPath.js";
 import { deleteBlob } from "@/services/blobService.js";
 import { MissingFilesError } from "../errors.js";
-import { BlobCleanup } from "./moveFilesBlob.js";
+import { BlobCleanupContext } from "./moveFilesBlob.js";
 
 /**
  * Phase 3: Deletes source blobs that were copied during Phase 2.
@@ -17,7 +17,11 @@ import { BlobCleanup } from "./moveFilesBlob.js";
  *
  * @see moveFilesBlob for Phase 2.
  */
-export async function cleanupSourceBlobs(cleanup: BlobCleanup): Promise<void> {
+export async function cleanupSourceBlobs(
+  cleanup: BlobCleanupContext
+): Promise<void> {
+  // we use allSettled to avoid throwing errors if a blob deletion fails
+  // since the copy already succeeded and source blobs in tmp are safe to leave as orphans
   await Promise.allSettled(
     cleanup.sourcePaths.map((sourcePath) =>
       deleteBlob(cleanup.blobServiceClient, cleanup.containerName, sourcePath)
