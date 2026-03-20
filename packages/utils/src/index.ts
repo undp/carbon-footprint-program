@@ -6,4 +6,5 @@ export {
   isCarbonInventoryDeletable,
   canSubmitToVerification,
   canSelfDeclare,
+  canSubmitToMeasurement,
 } from "./carbonInventory.js";

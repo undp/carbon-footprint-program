@@ -24,7 +24,21 @@ export function isCarbonInventoryDeletable(
   return DELETABLE_STATUSES.includes(status);
 }
 
+const REQUEST_MEASUREMENT_STATUSES: CarbonInventoryDisplayStatus[] = [
+  CarbonInventoryDisplayStatusEnum.DRAFT,
+  CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
+  CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED,
+  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+];
+
+export function canSubmitToMeasurement(
+  status: CarbonInventoryDisplayStatus
+): boolean {
+  return REQUEST_MEASUREMENT_STATUSES.includes(status);
+}
+
 const REQUEST_VERIFICATION_STATUSES: CarbonInventoryDisplayStatus[] = [
+  CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
   CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
   CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED,
 ];
