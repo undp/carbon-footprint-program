@@ -161,57 +161,57 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
       // Access rules:
       // - Inventory without organization: only the creator has access
       // - Inventory with organization: only active org members have access
-      if (!inventory.organizationId) {
-        if (inventory.createdById !== userId) {
-          log.warn(
-            {
-              userId: request.currentUser.id,
-              carbonInventoryId,
-            },
-            "Carbon inventory authorization failed: user is not the creator of this standalone inventory"
-          );
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "You do not have access to this carbon inventory",
-          });
-        }
-      } else {
-        if (!membership) {
-          log.warn(
-            {
-              userId: request.currentUser.id,
-              carbonInventoryId,
-              organizationId: inventory.organizationId.toString(),
-            },
-            "Carbon inventory authorization failed: user is not a member of the inventory's organization"
-          );
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "You do not have access to this carbon inventory",
-          });
-        }
+      if (!inventory.organizationId && inventory.createdById !== userId) {
+        log.warn(
+          {
+            userId: request.currentUser.id,
+            carbonInventoryId,
+          },
+          "Carbon inventory authorization failed: user is not the creator of this standalone inventory"
+        );
+        return reply.status(403).send({
+          code: "FORBIDDEN",
+          message: "You do not have access to this carbon inventory",
+        });
+      }
 
-        // Check organization role if required
-        if (
-          requiredOrganizationRoles &&
-          requiredOrganizationRoles.length > 0 &&
-          !requiredOrganizationRoles.includes(membership.role)
-        ) {
-          log.warn(
-            {
-              userId: request.currentUser.id,
-              carbonInventoryId,
-              organizationId: inventory.organizationId.toString(),
-              userRole: membership.role,
-              requiredRoles: requiredOrganizationRoles,
-            },
-            "Carbon inventory authorization failed: insufficient organization permissions"
-          );
-          return reply.status(403).send({
-            code: "FORBIDDEN",
-            message: "Insufficient permissions for this organization",
-          });
-        }
+      if (inventory.organizationId && !membership) {
+        log.warn(
+          {
+            userId: request.currentUser.id,
+            carbonInventoryId,
+            organizationId: inventory.organizationId.toString(),
+          },
+          "Carbon inventory authorization failed: user is not a member of the inventory's organization"
+        );
+        return reply.status(403).send({
+          code: "FORBIDDEN",
+          message: "You do not have access to this carbon inventory",
+        });
+      }
+
+      // Check organization role if required
+      if (
+        inventory.organizationId &&
+        membership &&
+        requiredOrganizationRoles &&
+        requiredOrganizationRoles.length > 0 &&
+        !requiredOrganizationRoles.includes(membership.role)
+      ) {
+        log.warn(
+          {
+            userId: request.currentUser.id,
+            carbonInventoryId,
+            organizationId: inventory.organizationId.toString(),
+            userRole: membership.role,
+            requiredRoles: requiredOrganizationRoles,
+          },
+          "Carbon inventory authorization failed: insufficient organization permissions"
+        );
+        return reply.status(403).send({
+          code: "FORBIDDEN",
+          message: "Insufficient permissions for this organization",
+        });
       }
 
       log.debug(
