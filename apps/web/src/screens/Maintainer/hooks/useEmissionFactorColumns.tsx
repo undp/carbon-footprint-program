@@ -5,6 +5,7 @@ import {
   ListSubheader,
   MenuItem,
   TextField,
+  Tooltip,
   Typography,
 } from "@mui/material";
 import { LocalFireDepartment as FlameIcon } from "@mui/icons-material";
@@ -14,7 +15,7 @@ import type {
   EmissionFactorForm,
 } from "@repo/types";
 
-import { EditableTextCell, EditableNumberCell, EmissionFactorSourceCell } from "../components/cells";
+import { EditableNumberCell, EmissionFactorSourceCell } from "../components/cells";
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 
@@ -34,6 +35,16 @@ interface SubcategoryOption {
   measurementUnitIds: string[];
 }
 
+export interface DimensionOption {
+  required: boolean;
+  values: Array<{ id: string; value: string }>;
+}
+
+export interface SubcategoryDimensions {
+  dim1: DimensionOption | null;
+  dim2: DimensionOption | null;
+}
+
 interface UseEmissionFactorColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
@@ -50,6 +61,7 @@ interface UseEmissionFactorColumnsParams {
   rows: EmissionFactorForm[];
   subcategories: SubcategoryOption[];
   rateUnits: RateMeasurementUnit[];
+  dimensionOptionsMap: Record<string, SubcategoryDimensions>;
 }
 
 const SubcategoryEditSelect: FC<{
@@ -143,6 +155,50 @@ const UnitEditSelect: FC<{
   );
 };
 
+const DimensionValueEditSelect: FC<{
+  rowIndex: number;
+  fieldName: "dimensionValue1Name" | "dimensionValue2Name";
+  value: string | null;
+  onChange: (value: string | null) => void;
+  options: Array<{ id: string; value: string }>;
+  disabled?: boolean;
+}> = ({ rowIndex, fieldName, value, onChange, options, disabled }) => {
+  const { control } = useFormContext();
+  const { errors } = useFormState({
+    control,
+    name: `emissionFactors.${rowIndex}.${fieldName}`,
+  });
+  const fieldError = getNestedError(
+    errors as unknown as Record<string, unknown>,
+    "emissionFactors",
+    rowIndex,
+    fieldName
+  );
+
+  return (
+    <TextField
+      select
+      fullWidth
+      size="small"
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value || null)}
+      error={!!fieldError}
+      label={fieldError?.message ?? ""}
+      disabled={disabled}
+      sx={{ "& .MuiOutlinedInput-root": { backgroundColor: "white" } }}
+    >
+      <MenuItem value="">
+        <em>—</em>
+      </MenuItem>
+      {options.map((opt) => (
+        <MenuItem key={opt.id} value={opt.value}>
+          {opt.value}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+};
+
 export const useEmissionFactorColumns = ({
   editingRowId,
   viewOnly,
@@ -155,6 +211,7 @@ export const useEmissionFactorColumns = ({
   rows,
   subcategories,
   rateUnits,
+  dimensionOptionsMap,
 }: UseEmissionFactorColumnsParams): GridColDef<EmissionFactor>[] => {
   const getRowIndex = useCallback(
     (rowId: string) => rows.findIndex((r) => r.id === rowId),
@@ -224,22 +281,57 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
+          const formRow = rows[rowIndex];
+          const dimInfo =
+            dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim1;
+          const isDimEnabled = !!dimInfo?.required;
+
+          const disabledTooltip = !isDimEnabled
+            ? "Dimensión no requerida para esta subcategoría"
+            : "";
+
+          if (editing) {
+            return (
+              <Tooltip title={disabledTooltip} arrow>
+                <span style={{ width: "100%" }}>
+                  <DimensionValueEditSelect
+                    rowIndex={rowIndex}
+                    fieldName="dimensionValue1Name"
+                    value={formRow?.dimensionValue1Name ?? null}
+                    onChange={(value) =>
+                      onCellChange(rowIndex, "dimensionValue1Name", value)
+                    }
+                    options={dimInfo?.values ?? []}
+                    disabled={!isDimEnabled}
+                  />
+                </span>
+              </Tooltip>
+            );
+          }
+
           return (
-            <EditableTextCell
-              formArrayName="emissionFactors"
-              rowIndex={rowIndex}
-              fieldName="dimensionValue1Name"
-              isEditing={editing}
-              onChange={(value) =>
-                onCellChange(rowIndex, "dimensionValue1Name", value)
-              }
-              onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
-              }
-              truncateLines={1}
-            />
+            <Tooltip title={disabledTooltip} arrow>
+              <Typography
+                variant="body2"
+                onClick={
+                  !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                }
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  cursor: !viewOnly ? "pointer" : "default",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  width: "100%",
+                  color: !isDimEnabled ? "text.disabled" : "text.primary",
+                  "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+                }}
+              >
+                {formRow?.dimensionValue1Name ?? "—"}
+              </Typography>
+            </Tooltip>
           );
         },
       },
@@ -251,22 +343,56 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const rowIndex = getRowIndex(params.row.id);
           const editing = isEditing(params.row.id);
+          const formRow = rows[rowIndex];
+          const dimInfo =
+            dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim2;
+          const isDimEnabled = !!dimInfo?.required;
+          const disabledTooltip = !isDimEnabled
+            ? "Dimensión no requerida para esta subcategoría"
+            : "";
+
+          if (editing) {
+            return (
+              <Tooltip title={disabledTooltip} arrow>
+                <span style={{ width: "100%" }}>
+                  <DimensionValueEditSelect
+                    rowIndex={rowIndex}
+                    fieldName="dimensionValue2Name"
+                    value={formRow?.dimensionValue2Name ?? null}
+                    onChange={(value) =>
+                      onCellChange(rowIndex, "dimensionValue2Name", value)
+                    }
+                    options={dimInfo?.values ?? []}
+                    disabled={!isDimEnabled}
+                  />
+                </span>
+              </Tooltip>
+            );
+          }
+
           return (
-            <EditableTextCell
-              formArrayName="emissionFactors"
-              rowIndex={rowIndex}
-              fieldName="dimensionValue2Name"
-              isEditing={editing}
-              onChange={(value) =>
-                onCellChange(rowIndex, "dimensionValue2Name", value)
-              }
-              onClick={
-                !viewOnly && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
-              }
-              truncateLines={1}
-            />
+            <Tooltip title={disabledTooltip} arrow>
+              <Typography
+                variant="body2"
+                onClick={
+                  !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                }
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  cursor: !viewOnly ? "pointer" : "default",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  width: "100%",
+                  color: !isDimEnabled ? "text.disabled" : "text.primary",
+                  "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+                }}
+              >
+                {formRow?.dimensionValue2Name ?? "—"}
+              </Typography>
+            </Tooltip>
           );
         },
       },
@@ -476,6 +602,7 @@ export const useEmissionFactorColumns = ({
       onStartEditRow,
       subcategories,
       rateUnits,
+      dimensionOptionsMap,
       onOpenGEIBreakdown,
       editingRowId,
       rows,

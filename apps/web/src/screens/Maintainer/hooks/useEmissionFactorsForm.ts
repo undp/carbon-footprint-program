@@ -89,10 +89,27 @@ export const useEmissionFactorsForm = (
       if (currentRow) {
         const updatedRow = { ...structuredClone(currentRow), [field]: value };
 
+        if (field === "subcategoryId") {
+          updatedRow.dimensionValue1Name = null;
+          updatedRow.dimensionValue2Name = null;
+        }
+
         fieldArray.update(rowIndex, updatedRow);
         form.setValue(`emissionFactors.${rowIndex}.${field}`, value as never, {
           shouldDirty: true,
         });
+        if (field === "subcategoryId") {
+          form.setValue(
+            `emissionFactors.${rowIndex}.dimensionValue1Name`,
+            null as never,
+            { shouldDirty: true }
+          );
+          form.setValue(
+            `emissionFactors.${rowIndex}.dimensionValue2Name`,
+            null as never,
+            { shouldDirty: true }
+          );
+        }
         void form.trigger(`emissionFactors.${rowIndex}.${field}`);
         if (field === "subcategoryId") {
           void form.trigger(`emissionFactors.${rowIndex}.dimensionValue1Name`);
