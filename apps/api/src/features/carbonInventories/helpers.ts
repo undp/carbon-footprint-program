@@ -258,29 +258,29 @@ export const calculateDisplayStatus = (
     (s) => s.type === SubmissionType.CARBON_INVENTORY_CALCULATION
   );
 
-  if (verifSubs.some((s) => s.status === SubmissionStatus.APPROVED))
-    return CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
-
   if (verifSubs.some((s) => s.status === SubmissionStatus.PENDING))
     return CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION;
-
-  if (verifSubs.some((s) => s.status === SubmissionStatus.REJECTED))
-    return CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED;
-
-  if (verifSubs.some((s) => s.status === SubmissionStatus.OBJECTED))
-    return CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
-
-  if (calcSubs.some((s) => s.status === SubmissionStatus.APPROVED))
-    return CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED;
-
-  if (calcSubs.some((s) => s.status === SubmissionStatus.REJECTED))
-    return CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED;
 
   if (calcSubs.some((s) => s.status === SubmissionStatus.PENDING))
     return CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION;
 
+  if (verifSubs.some((s) => s.status === SubmissionStatus.OBJECTED))
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED;
+
   if (calcSubs.some((s) => s.status === SubmissionStatus.OBJECTED))
     return CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED;
+
+  if (verifSubs.some((s) => s.status === SubmissionStatus.REJECTED))
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED;
+
+  if (calcSubs.some((s) => s.status === SubmissionStatus.REJECTED))
+    return CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED;
+
+  if (verifSubs.some((s) => s.status === SubmissionStatus.APPROVED))
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
+
+  if (calcSubs.some((s) => s.status === SubmissionStatus.APPROVED))
+    return CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED;
 
   return carbonInventory.isSelfDeclared
     ? CarbonInventoryDisplayStatusEnum.SELF_DECLARED
