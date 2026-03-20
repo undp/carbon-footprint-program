@@ -5,7 +5,11 @@ import {
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
-import type { User } from "@repo/types";
+import {
+  type User,
+  SystemParameterKeyEnum,
+  MeasurementRecognitionBehaviorEnum,
+} from "@repo/types";
 import { canSelfDeclare } from "@repo/utils";
 import {
   CarbonInventoryCannotSelfDeclareError,
@@ -104,10 +108,11 @@ export const selfDeclareCarbonInventoryService = async (
 
     const recognitionBehavior = await getSystemParameterValue(
       tx,
-      "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR"
+      SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR
     );
 
-    if (recognitionBehavior !== "AUTOMATIC") return;
+    if (recognitionBehavior !== MeasurementRecognitionBehaviorEnum.AUTOMATIC)
+      return;
 
     // Create submission and auto-approve it
     const submissionId = await createCarbonInventorySubmission(

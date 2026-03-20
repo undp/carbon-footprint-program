@@ -25,6 +25,10 @@ import {
   SubmissionStatus,
   SubmissionType,
 } from "@repo/database";
+import {
+  SystemParameterKeyEnum,
+  MeasurementRecognitionBehaviorEnum,
+} from "@repo/types";
 import { ApiErrorResponse } from "../../../../src/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "../../../../src/features/carbonInventories/helpers.js";
 
@@ -161,8 +165,10 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
     it("should not create submission when recognition behavior is not AUTOMATIC", async () => {
       // Change system parameter to MANUAL
       await prisma.systemParameter.update({
-        where: { key: "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR" },
-        data: { value: "MANUAL" },
+        where: {
+          key: SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
+        },
+        data: { value: MeasurementRecognitionBehaviorEnum.MANUAL },
       });
 
       try {
@@ -191,9 +197,9 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
         // Restore system parameter
         await prisma.systemParameter.update({
           where: {
-            key: "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR",
+            key: SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
           },
-          data: { value: "AUTOMATIC" },
+          data: { value: MeasurementRecognitionBehaviorEnum.AUTOMATIC },
         });
       }
     });
