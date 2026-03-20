@@ -8,13 +8,10 @@ import {
   MenuItem,
   SelectChangeEvent,
 } from "@mui/material";
-import {
-  CarbonInventoryAvailableYearsResponse,
-  GetCarbonInventoriesMinimalResponse,
-} from "@repo/types";
+import { GetCarbonInventoriesMinimalResponse } from "@repo/types";
 
 interface Props {
-  availableYears: CarbonInventoryAvailableYearsResponse;
+  availableYears: string[];
   onYearChange: (year: string) => void;
   inventories: GetCarbonInventoriesMinimalResponse;
   onCarbonInventoryChange: (inventoryId: string) => void;

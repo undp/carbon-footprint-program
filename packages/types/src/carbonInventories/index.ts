@@ -20,8 +20,6 @@ export * from "./toggleManualTotalEmissions/schemas.js";
 export * from "./toggleManualTotalEmissions/types.js";
 export * from "./syncCarbonInventoryLines/schemas.js";
 export * from "./syncCarbonInventoryLines/types.js";
-export * from "./getAvailableYears/schemas.js";
-export * from "./getAvailableYears/types.js";
 export * from "./getEmissionsSummaryCategories/schemas.js";
 export * from "./getEmissionsSummaryCategories/types.js";
 export * from "./getMainActivityEquivalence/schemas.js";
