@@ -28,6 +28,15 @@ export const UpdateEmissionFactorDimensionRequestSchema = z
           .array(IdSchema)
           .optional()
           .describe("IDs of values to remove from the dimension"),
+        rename: z
+          .array(
+            z.object({
+              id: IdSchema,
+              newValue: z.string().trim().min(1, "Variable es requerida"),
+            })
+          )
+          .optional()
+          .describe("Values to rename (update value text in place)"),
       })
       .optional()
       .describe("Value changes to apply"),

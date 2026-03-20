@@ -1,5 +1,7 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
   User,
   type UpdateEmissionFactorDimensionRequest,
@@ -11,6 +13,8 @@ import {
   DimensionMustHaveAtLeastOneValueError,
   DuplicateDimensionValueError,
   DimensionValueNotFoundForRemovalError,
+  DimensionIsRequiredChangeBlockedError,
+  DimensionValueNotFoundForRenameError,
 } from "../errors.js";
 
 export const updateEmissionFactorDimensionService = async (
@@ -24,11 +28,15 @@ export const updateEmissionFactorDimensionService = async (
   }
 
   const dimensionId = BigInt(id);
+  const userId = BigInt(user.id);
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
-      const dimension = await tx.emissionFactorDimension.findUnique({
-        where: { id: dimensionId },
+      const dimension = await tx.emissionFactorDimension.findFirst({
+        where: {
+          id: dimensionId,
+          status: EmissionFactorDimensionStatus.ACTIVE,
+        },
         select: {
           id: true,
           subcategoryId: true,
@@ -43,83 +51,155 @@ export const updateEmissionFactorDimensionService = async (
         throw new EmissionFactorDimensionNotFoundError();
       }
 
-      const effectiveIsRequired = data.isRequired ?? dimension.isRequired;
-
-      // Handle value removals
-      if (data.values?.remove && data.values.remove.length > 0) {
-        for (const valueIdStr of data.values.remove) {
-          const valueId = BigInt(valueIdStr);
-
-          // Verify the value exists and belongs to this dimension
-          const value = await tx.emissionFactorDimensionValue.findFirst({
-            where: { id: valueId, dimensionId: dimension.id },
-            select: { id: true },
-          });
-
-          if (!value) {
-            throw new DimensionValueNotFoundForRemovalError(valueIdStr);
-          }
-
-          // Cascade to emission factors based on whether dimension is required
-          const efWhereClause =
-            dimension.position === 1
-              ? { dimensionValue1Id: valueId }
-              : { dimensionValue2Id: valueId };
-
-          if (effectiveIsRequired) {
-            // Soft-delete emission factors that use this value in a required position
-            await tx.emissionFactor.updateMany({
-              where: {
-                ...efWhereClause,
-                status: { not: EmissionFactorStatus.DELETED },
-              },
-              data: {
-                status: EmissionFactorStatus.DELETED,
-                updatedById: BigInt(user.id),
-              },
-            });
-          } else {
-            // Set FK to null for emission factors that use this value in a non-required position
-            const efUpdateData =
-              dimension.position === 1
-                ? { dimensionValue1Id: null }
-                : { dimensionValue2Id: null };
-
-            await tx.emissionFactor.updateMany({
-              where: {
-                ...efWhereClause,
-                status: { not: EmissionFactorStatus.DELETED },
-              },
-              data: {
-                ...efUpdateData,
-                updatedById: BigInt(user.id),
-              },
-            });
-          }
-
-          // Hard-delete the dimension value
-          await tx.emissionFactorDimensionValue.delete({
-            where: { id: valueId },
-          });
+      // Block isRequired change if active emission factors exist for this subcategory
+      if (
+        data.isRequired !== undefined &&
+        data.isRequired !== dimension.isRequired
+      ) {
+        const activeEfCount = await tx.emissionFactor.count({
+          where: {
+            subcategoryId: dimension.subcategoryId,
+            status: { not: EmissionFactorStatus.DELETED },
+          },
+        });
+        if (activeEfCount > 0) {
+          throw new DimensionIsRequiredChangeBlockedError();
         }
       }
 
-      // Count remaining values after removal
-      const remainingCount = await tx.emissionFactorDimensionValue.count({
-        where: { dimensionId: dimension.id },
+      const valueIdsToRemove = [
+        ...new Set(
+          (data.values?.remove ?? []).map((valueId) => BigInt(valueId))
+        ),
+      ];
+
+      if (valueIdsToRemove.length > 0) {
+        const removableValues = await tx.emissionFactorDimensionValue.findMany({
+          where: {
+            id: { in: valueIdsToRemove },
+            dimensionId: dimension.id,
+            status: EmissionFactorDimensionValueStatus.ACTIVE,
+          },
+          select: { id: true },
+        });
+
+        if (removableValues.length !== valueIdsToRemove.length) {
+          const removableIds = new Set(
+            removableValues.map((value) => value.id.toString())
+          );
+          const missingId = [...new Set(data.values?.remove ?? [])].find(
+            (valueId) => !removableIds.has(valueId)
+          );
+          throw new DimensionValueNotFoundForRemovalError(missingId ?? "");
+        }
+      }
+
+      const activeValueCount = await tx.emissionFactorDimensionValue.count({
+        where: {
+          dimensionId: dimension.id,
+          status: EmissionFactorDimensionValueStatus.ACTIVE,
+        },
       });
 
       const addCount = data.values?.add?.length ?? 0;
 
-      if (remainingCount + addCount < 1) {
+      if (activeValueCount - valueIdsToRemove.length + addCount < 1) {
         throw new DimensionMustHaveAtLeastOneValueError();
+      }
+
+      if (valueIdsToRemove.length > 0) {
+        const efWhereClause =
+          dimension.position === 1
+            ? { dimensionValue1Id: { in: valueIdsToRemove } }
+            : { dimensionValue2Id: { in: valueIdsToRemove } };
+
+        if (dimension.isRequired) {
+          await tx.emissionFactor.updateMany({
+            where: {
+              ...efWhereClause,
+              status: EmissionFactorStatus.ACTIVE,
+            },
+            data: {
+              status: EmissionFactorStatus.DELETED,
+              updatedById: userId,
+            },
+          });
+        } else {
+          const efUpdateData =
+            dimension.position === 1
+              ? { dimensionValue1Id: null }
+              : { dimensionValue2Id: null };
+
+          await tx.emissionFactor.updateMany({
+            where: {
+              ...efWhereClause,
+              status: EmissionFactorStatus.ACTIVE,
+            },
+            data: {
+              ...efUpdateData,
+              updatedById: userId,
+            },
+          });
+        }
+
+        await tx.emissionFactorDimensionValue.updateMany({
+          where: { id: { in: valueIdsToRemove } },
+          data: {
+            status: EmissionFactorDimensionValueStatus.DELETED,
+            updatedById: userId,
+          },
+        });
+      }
+
+      if (data.values?.rename && data.values.rename.length > 0) {
+        for (const { id: valueIdStr, newValue } of data.values.rename) {
+          const valueId = BigInt(valueIdStr);
+
+          const value = await tx.emissionFactorDimensionValue.findFirst({
+            where: {
+              id: valueId,
+              dimensionId: dimension.id,
+              status: EmissionFactorDimensionValueStatus.ACTIVE,
+            },
+            select: { id: true },
+          });
+
+          if (!value) {
+            throw new DimensionValueNotFoundForRenameError(valueIdStr);
+          }
+
+          const duplicate = await tx.emissionFactorDimensionValue.findFirst({
+            where: {
+              dimensionId: dimension.id,
+              value: newValue,
+              status: EmissionFactorDimensionValueStatus.ACTIVE,
+              id: { not: valueId },
+            },
+            select: { id: true },
+          });
+
+          if (duplicate) {
+            throw new DuplicateDimensionValueError(newValue);
+          }
+
+          await tx.emissionFactorDimensionValue.update({
+            where: { id: valueId },
+            data: {
+              value: newValue,
+              updatedById: userId,
+            },
+          });
+        }
       }
 
       // Handle value additions
       if (data.values?.add && data.values.add.length > 0) {
         // Check for duplicates against existing values
         const existingValues = await tx.emissionFactorDimensionValue.findMany({
-          where: { dimensionId: dimension.id },
+          where: {
+            dimensionId: dimension.id,
+            status: EmissionFactorDimensionValueStatus.ACTIVE,
+          },
           select: { value: true },
         });
         const existingValueNames = new Set(existingValues.map((v) => v.value));
@@ -137,8 +217,8 @@ export const updateEmissionFactorDimensionService = async (
               data: {
                 dimensionId: dimension.id,
                 value,
-                isActive: true,
-                createdById: BigInt(user.id),
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                createdById: userId,
                 updatedAt: null,
               },
             })
@@ -148,10 +228,11 @@ export const updateEmissionFactorDimensionService = async (
 
       // Update dimension metadata
       const updateData: Prisma.EmissionFactorDimensionUncheckedUpdateInput = {
-        updatedById: BigInt(user.id),
+        updatedById: userId,
       };
       if (data.name !== undefined) updateData.name = data.name;
-      if (data.isRequired !== undefined) updateData.isRequired = data.isRequired;
+      if (data.isRequired !== undefined)
+        updateData.isRequired = data.isRequired;
 
       await tx.emissionFactorDimension.update({
         where: { id: dimension.id },
@@ -159,8 +240,11 @@ export const updateEmissionFactorDimensionService = async (
       });
 
       // Re-fetch the full dimension with values
-      const updated = await tx.emissionFactorDimension.findUnique({
-        where: { id: dimension.id },
+      const updated = await tx.emissionFactorDimension.findFirst({
+        where: {
+          id: dimension.id,
+          status: EmissionFactorDimensionStatus.ACTIVE,
+        },
         select: {
           id: true,
           subcategoryId: true,
@@ -169,7 +253,7 @@ export const updateEmissionFactorDimensionService = async (
           position: true,
           isRequired: true,
           values: {
-            where: { isActive: true },
+            where: { status: EmissionFactorDimensionValueStatus.ACTIVE },
             select: { id: true, value: true },
             orderBy: { value: "asc" },
           },
