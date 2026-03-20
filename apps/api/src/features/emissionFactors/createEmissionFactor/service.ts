@@ -15,7 +15,7 @@ import {
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { findDimensionValue } from "../helpers.js";
+import { findDimensionValue, checkDuplicateEmissionFactor } from "../helpers.js";
 
 export const createEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -99,6 +99,13 @@ export const createEmissionFactorService = async (
           data.dimensionValue2Name
         );
       }
+
+      await checkDuplicateEmissionFactor(
+        tx,
+        subcategory.id,
+        dimensionValue1Id,
+        dimensionValue2Id
+      );
 
       const emissionFactor = await tx.emissionFactor.create({
         data: {

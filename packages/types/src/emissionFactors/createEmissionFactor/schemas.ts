@@ -49,7 +49,9 @@ export const EmissionFactorFormSchema = z.object({
   dimensionValue2Name: z.string().nullable(),
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
   source: z.string().min(1, "Fuente es requerida"),
-  value: z.number({ error: "Valor es requerido" }),
+  value: z
+    .number({ error: "Valor es requerido" })
+    .refine((v) => v !== 0, "Debe ser distinto de 0"),
   gasDetails: z.object({
     CO2_FOSSIL: z.number(),
     CH4: z.number(),

@@ -13,7 +13,7 @@ import {
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { findDimensionValue } from "../helpers.js";
+import { findDimensionValue, checkDuplicateEmissionFactor } from "../helpers.js";
 
 export const updateEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -32,7 +32,7 @@ export const updateEmissionFactorService = async (
       id: emissionFactorId,
       status: { not: EmissionFactorStatus.DELETED },
     },
-    select: { id: true, subcategoryId: true, gasDetails: true, value: true },
+    select: { id: true, subcategoryId: true, dimensionValue1Id: true, dimensionValue2Id: true, gasDetails: true, value: true },
   });
 
   if (!existing) {
@@ -125,6 +125,34 @@ export const updateEmissionFactorService = async (
             data.dimensionValue2Name
           );
         }
+      }
+
+      // Check uniqueness when any of the uniqueness-key fields change
+      const subcategoryChanged = data.subcategoryId !== undefined;
+      const dim1Changed = data.dimensionValue1Name !== undefined;
+      const dim2Changed = data.dimensionValue2Name !== undefined;
+
+      if (subcategoryChanged || dim1Changed || dim2Changed) {
+        const effectiveSubcategoryId =
+          updateData.subcategoryId != null
+            ? BigInt(updateData.subcategoryId as bigint)
+            : existing.subcategoryId;
+        const effectiveDim1Id =
+          dim1Changed
+            ? (updateData.dimensionValue1Id as bigint | null) ?? null
+            : existing.dimensionValue1Id;
+        const effectiveDim2Id =
+          dim2Changed
+            ? (updateData.dimensionValue2Id as bigint | null) ?? null
+            : existing.dimensionValue2Id;
+
+        await checkDuplicateEmissionFactor(
+          tx,
+          effectiveSubcategoryId,
+          effectiveDim1Id,
+          effectiveDim2Id,
+          emissionFactorId
+        );
       }
 
       await tx.emissionFactor.update({
