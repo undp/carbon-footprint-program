@@ -20,9 +20,7 @@ import { canSubmitToVerification } from "@repo/utils";
 import {
   linkFilesToSubmission,
   cleanupSourceBlobs,
-  type FileInfo,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
-import { moveFilesBlob } from "@/features/files/helpers/moveFilesBlob.js";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
@@ -32,7 +30,7 @@ export const requestVerificationService = async (
   blobServiceClient?: BlobServiceClient,
   containerName?: string
 ): Promise<void> => {
-  const result = await prismaClient.$transaction(async (tx) => {
+  await prismaClient.$transaction(async (tx) => {
     const inventory = await tx.carbonInventory.findFirst({
       where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
@@ -73,21 +71,15 @@ export const requestVerificationService = async (
       createdById
     );
 
-    let fileMetadata: FileInfo[] | undefined;
-    if (fileUuids?.length) {
-      fileMetadata = await linkFilesToSubmission(tx, submissionId, fileUuids);
+    if (fileUuids?.length && blobServiceClient && containerName) {
+      const { sourceCleanup } = await linkFilesToSubmission(
+        tx,
+        submissionId,
+        fileUuids,
+        blobServiceClient,
+        containerName
+      );
+      await cleanupSourceBlobs(sourceCleanup);
     }
-
-    return { fileMetadata };
   });
-
-  if (result.fileMetadata && blobServiceClient && containerName) {
-    const { sourceCleanup } = await moveFilesBlob(
-      blobServiceClient,
-      containerName,
-      result.fileMetadata,
-      prismaClient
-    );
-    await cleanupSourceBlobs(sourceCleanup);
-  }
 };

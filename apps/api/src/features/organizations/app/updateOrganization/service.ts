@@ -24,7 +24,6 @@ import {
   linkFilesToSubmission,
   cleanupSourceBlobs,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
-import { moveFilesBlob } from "@/features/files/helpers/moveFilesBlob.js";
 
 /**
  * Updates organization data based on current submission state.
@@ -122,12 +121,17 @@ export const updateOrganizationService = async (
         newOrganizationData.id.toString(),
         userId
       );
-      const fileMetadata = await linkFilesToSubmission(
-        tx,
-        submission.id,
-        fileUuids
-      );
-      return { id: organization.id.toString(), fileMetadata };
+      if (blobServiceClient && containerName) {
+        const { sourceCleanup } = await linkFilesToSubmission(
+          tx,
+          submission.id,
+          fileUuids,
+          blobServiceClient,
+          containerName
+        );
+        await cleanupSourceBlobs(sourceCleanup);
+      }
+      return { id: organization.id.toString() };
     }
 
     const lastRejectedOrganizationData = await getLastRejectedOrganizationData(
@@ -147,16 +151,6 @@ export const updateOrganizationService = async (
 
     throw new OrganizationDataNotFoundError(organizationId);
   });
-
-  if (result.fileMetadata && blobServiceClient && containerName) {
-    const { sourceCleanup } = await moveFilesBlob(
-      blobServiceClient,
-      containerName,
-      result.fileMetadata,
-      prismaClient
-    );
-    await cleanupSourceBlobs(sourceCleanup);
-  }
 
   return { id: result.id };
 };

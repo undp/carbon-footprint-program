@@ -26,7 +26,6 @@ import {
   cloneOrganizationData,
   hasApprovedOrganizationData,
 } from "../../helpers.js";
-import { moveFilesBlob } from "@/features/files/helpers/moveFilesBlob.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -148,24 +147,19 @@ export const requestOrganizationAccreditationService = async (
     });
 
     // 4. Create SubmissionFile records (blob operations happen after transaction commits)
-    const fileMetadata = await linkFilesToSubmission(
-      tx,
-      submission.id,
-      fileUuids
-    );
+    if (blobServiceClient && containerName) {
+      const fileMetadata = await linkFilesToSubmission(
+        tx,
+        submission.id,
+        fileUuids,
+        blobServiceClient,
+        containerName
+      );
+      await cleanupSourceBlobs(fileMetadata.sourceCleanup);
+    }
 
-    return { submissionId: submission.id.toString(), fileMetadata };
+    return { submissionId: submission.id.toString() };
   });
-
-  if (result.fileMetadata && blobServiceClient && containerName) {
-    const { sourceCleanup } = await moveFilesBlob(
-      blobServiceClient,
-      containerName,
-      result.fileMetadata,
-      prismaClient
-    );
-    await cleanupSourceBlobs(sourceCleanup);
-  }
 
   return { submissionId: result.submissionId };
 };
