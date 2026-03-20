@@ -6,6 +6,8 @@ export {
   OrganizationDataStatus,
   InventoryStatus,
   UsageMode,
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
   CarbonInventoryLineStatus,
   MethodologyVersionStatus,
