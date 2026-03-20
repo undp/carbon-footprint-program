@@ -8,7 +8,7 @@ import {
   FileCopyOutlined,
   SendOutlined,
   VisibilityOutlined,
-  AssignmentTurnedInOutlined,
+  TaskAltRounded,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
@@ -356,7 +356,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               disabled={isSelfDeclared}
               aria-label="Autodeclarar"
             >
-              <AssignmentTurnedInOutlined fontSize="small" />
+              <TaskAltRounded fontSize="small" />
             </BaseIconButton>
           </span>
         </Tooltip>
