@@ -47,6 +47,9 @@ export const CarbonInventoryBaseSchema = z
     preselectedNodesId: IdSchema.nullable().describe(
       "The ID of the preselected nodes"
     ),
+    isSelfDeclared: z
+      .boolean()
+      .describe("Indicates if the carbon inventory is self-declared"),
     isEditable: z
       .boolean()
       .describe("Indicates if the carbon inventory is editable"),
