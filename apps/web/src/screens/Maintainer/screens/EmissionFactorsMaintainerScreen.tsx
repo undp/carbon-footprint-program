@@ -83,25 +83,41 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     isError: isErrorEmissionFactorDimensions,
   } = useEmissionFactorDimensions(methodologyVersionId);
 
-  const dimensionRequirements = useMemo(
-    () =>
-      Object.fromEntries(
-        (emissionFactorDimensions ?? []).map(
-          ({ subcategoryId, dimensions }) => [
-            subcategoryId,
-            {
-              var1Required: dimensions.some(
-                (d) => d.position === 1 && d.isRequired
-              ),
-              var2Required: dimensions.some(
-                (d) => d.position === 2 && d.isRequired
-              ),
-            },
-          ]
-        )
-      ),
-    [emissionFactorDimensions]
-  );
+  const dimensionOptionsMap = useMemo(() => {
+    const map: Record<
+      string,
+      {
+        dim1: { required: boolean; values: Array<{ id: string; value: string }> } | null;
+        dim2: { required: boolean; values: Array<{ id: string; value: string }> } | null;
+      }
+    > = {};
+    for (const { subcategoryId, dimensions } of emissionFactorDimensions ??
+      []) {
+      const dim1 = dimensions.find((d) => d.position === 1);
+      const dim2 = dimensions.find((d) => d.position === 2);
+      map[subcategoryId] = {
+        dim1: dim1
+          ? { required: dim1.isRequired, values: dim1.values }
+          : null,
+        dim2: dim2
+          ? { required: dim2.isRequired, values: dim2.values }
+          : null,
+      };
+    }
+    return map;
+  }, [emissionFactorDimensions]);
+
+  const dimensionRequirements = useMemo(() => {
+    const result: Record<string, { var1Required: boolean; var2Required: boolean }> = {};
+    for (const subcategoryId of Object.keys(dimensionOptionsMap)) {
+      const dims = dimensionOptionsMap[subcategoryId];
+      result[subcategoryId] = {
+        var1Required: !!dims?.dim1?.required,
+        var2Required: !!dims?.dim2?.required,
+      };
+    }
+    return result;
+  }, [dimensionOptionsMap]);
 
   const subcategoryOptions = useMemo(
     () =>
@@ -488,6 +504,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     rows: currentRows,
     subcategories: subcategoryOptions,
     rateUnits: rateUnitOptions,
+    dimensionOptionsMap,
   });
 
   const geiGasDetails =
