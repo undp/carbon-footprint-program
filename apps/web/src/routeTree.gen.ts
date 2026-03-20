@@ -34,6 +34,7 @@ import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodolo
 import { Route as AdminMainActivitiesRouteImport } from './routes/admin/main-activities'
 import { Route as AdminItemsRouteImport } from './routes/admin/items'
 import { Route as AdminEmissionFactorsRouteImport } from './routes/admin/emission-factors'
+import { Route as AdminDimensionsRouteImport } from './routes/admin/dimensions'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as CarbonInventoryInventoryIdSubcategoryPreselectionRouteImport } from './routes/carbon-inventory/$inventoryId/subcategory-preselection'
@@ -168,6 +169,11 @@ const AdminEmissionFactorsRoute = AdminEmissionFactorsRouteImport.update({
   path: '/emission-factors',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminDimensionsRoute = AdminDimensionsRouteImport.update({
+  id: '/dimensions',
+  path: '/dimensions',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminDashboardRoute = AdminDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -224,6 +230,7 @@ export interface FileRoutesByFullPath {
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
@@ -256,6 +263,7 @@ export interface FileRoutesByTo {
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
@@ -292,6 +300,7 @@ export interface FileRoutesById {
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/dimensions': typeof AdminDimensionsRoute
   '/admin/emission-factors': typeof AdminEmissionFactorsRoute
   '/admin/items': typeof AdminItemsRoute
   '/admin/main-activities': typeof AdminMainActivitiesRoute
@@ -329,6 +338,7 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/dimensions'
     | '/admin/emission-factors'
     | '/admin/items'
     | '/admin/main-activities'
@@ -361,6 +371,7 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/dimensions'
     | '/admin/emission-factors'
     | '/admin/items'
     | '/admin/main-activities'
@@ -396,6 +407,7 @@ export interface FileRouteTypes {
     | '/transparency'
     | '/admin/categories'
     | '/admin/dashboard'
+    | '/admin/dimensions'
     | '/admin/emission-factors'
     | '/admin/items'
     | '/admin/main-activities'
@@ -609,6 +621,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEmissionFactorsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/dimensions': {
+      id: '/admin/dimensions'
+      path: '/dimensions'
+      fullPath: '/admin/dimensions'
+      preLoaderRoute: typeof AdminDimensionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/dashboard': {
       id: '/admin/dashboard'
       path: '/dashboard'
@@ -671,6 +690,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminDimensionsRoute: typeof AdminDimensionsRoute
   AdminEmissionFactorsRoute: typeof AdminEmissionFactorsRoute
   AdminItemsRoute: typeof AdminItemsRoute
   AdminMainActivitiesRoute: typeof AdminMainActivitiesRoute
@@ -686,6 +706,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminDashboardRoute: AdminDashboardRoute,
+  AdminDimensionsRoute: AdminDimensionsRoute,
   AdminEmissionFactorsRoute: AdminEmissionFactorsRoute,
   AdminItemsRoute: AdminItemsRoute,
   AdminMainActivitiesRoute: AdminMainActivitiesRoute,

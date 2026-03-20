@@ -30,6 +30,7 @@ export const Routes = {
   ADMIN_ITEMS: "/admin/items",
   ADMIN_SUBCATEGORIES: "/admin/subcategories",
   ADMIN_EMISSION_FACTORS: "/admin/emission-factors",
+  ADMIN_DIMENSIONS: "/admin/dimensions",
   ADMIN_UNITS: "/admin/units",
   ADMIN_PARAMETERS: "/admin/parameters",
   ADMIN_MAIN_ACTIVITIES: "/admin/main-activities",
