@@ -174,6 +174,20 @@ enum SubcategoryStatus {
   @@map("subcategory_status")
 }
 
+enum EmissionFactorDimensionStatus {
+  ACTIVE
+  DELETED
+
+  @@map("emission_factor_dimension_status")
+}
+
+enum EmissionFactorDimensionValueStatus {
+  ACTIVE
+  DELETED
+
+  @@map("emission_factor_dimension_value_status")
+}
+
 model UserOrganizationMembership {
   id             BigInt           @id @default(autoincrement())
   userId         BigInt           @map("user_id")
@@ -445,6 +459,7 @@ model EmissionFactorDimension {
   // Position must be > 0 (enforced by DB CHECK constraint: emission_factor_dimension_position_check)
   position      Int
   isRequired    Boolean                        @map("is_required")
+  status        EmissionFactorDimensionStatus  @default(ACTIVE)
   createdAt     DateTime                       @default(now()) @map("created_at")
   updatedAt     DateTime?                      @updatedAt @map("updated_at")
   createdById   BigInt?                        @map("created_by_id")
@@ -454,8 +469,10 @@ model EmissionFactorDimension {
   updater       User?                          @relation("emission_factor_dimension_updated_by", fields: [updatedById], references: [id])
   values        EmissionFactorDimensionValue[]
 
-  @@unique([subcategoryId, code])
-  @@unique([subcategoryId, position])
+  // Partial unique indexes exist in SQL migration:
+  // ("subcategory_id", "code") WHERE status <> 'DELETED'
+  // ("subcategory_id", "position") WHERE status <> 'DELETED'
+
   @@map("emission_factor_dimension")
 }
 
@@ -464,7 +481,7 @@ model EmissionFactorDimensionValue {
   dimensionId                 BigInt                         @map("dimension_id")
   parentValueId               BigInt?                        @map("parent_value_id")
   value                       String
-  isActive                    Boolean                        @default(true) @map("is_active")
+  status                      EmissionFactorDimensionValueStatus @default(ACTIVE)
   createdAt                   DateTime                       @default(now()) @map("created_at")
   updatedAt                   DateTime?                      @updatedAt @map("updated_at")
   createdById                 BigInt?                        @map("created_by_id")
@@ -479,7 +496,9 @@ model EmissionFactorDimensionValue {
   creator                     User?                          @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id])
   updater                     User?                          @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id])
 
-  @@unique([dimensionId, value])
+  // Partial unique index exists in SQL migration:
+  // ("dimension_id", "value") WHERE status <> 'DELETED'
+
   @@map("emission_factor_dimension_value")
 }
 

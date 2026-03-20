@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
+import { EmissionFactorDimensionStatus } from "../enums.js";
 
 export const EmissionFactorDimensionBaseSchema = z.object({
   id: IdSchema.describe("The ID of the dimension"),
@@ -10,6 +11,9 @@ export const EmissionFactorDimensionBaseSchema = z.object({
   name: z.string().describe("The name of the dimension"),
   position: z.number().int().describe("The position/order of the dimension"),
   isRequired: z.boolean().describe("Whether this dimension is required"),
+  status: z
+    .enum(EmissionFactorDimensionStatus)
+    .describe("The status of the dimension"),
   createdAt: z.iso.datetime().describe("The creation date of the dimension"),
   updatedAt: z.iso
     .datetime()
