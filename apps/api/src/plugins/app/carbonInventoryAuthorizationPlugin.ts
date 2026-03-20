@@ -3,8 +3,12 @@
  *
  * Provides a decorator for checking if authenticated users have access
  * to a specific carbon inventory.
- * Access is granted if the user created the inventory OR has an active
- * membership in the inventory's organization.
+ *
+ * Access rules:
+ * - Inventory without organization: only the creator has access.
+ * - Inventory with organization: only active org members have access.
+ *   If `requiredOrganizationRoles` is specified, the member's role must
+ *   be included in that list; otherwise any active membership suffices.
  *
  * This plugin depends on authorization-plugin and user-resolve-plugin.
  * Prisma is accessed via fastify.prisma (loaded alphabetically after this plugin).
@@ -17,10 +21,21 @@
  * ```typescript
  * import { extractCarbonInventoryIdFromParams } from "@/features/carbonInventories/carbonInventoryIdExtractors.js";
  *
+ * // Basic access check (any org member or creator):
  * fastify.get("/:id", {
  *   onRequest: [fastify.requireAuth],
  *   preHandler: [
  *     fastify.requireCarbonInventoryAccess(extractCarbonInventoryIdFromParams)
+ *   ],
+ * }, handler);
+ *
+ * // Restricted to specific organization roles:
+ * fastify.put("/:id", {
+ *   onRequest: [fastify.requireAuth],
+ *   preHandler: [
+ *     fastify.requireCarbonInventoryAccess(extractCarbonInventoryIdFromParams, {
+ *       requiredOrganizationRoles: [OrganizationRole.ADMIN],
+ *     })
  *   ],
  * }, handler);
  * ```
@@ -59,11 +74,15 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    * Decorator factory that creates a hook to check if user has access
    * to a carbon inventory.
    *
-   * Access is granted if:
-   * - The user created the inventory, OR
-   * - The user has an active membership in the inventory's organization
+   * Access rules:
+   * - Inventory without organization: only the creator has access.
+   * - Inventory with organization: only active org members have access.
+   *   When `requiredOrganizationRoles` is provided, the member's role
+   *   must be in that list or a 403 is returned.
    *
    * @param carbonInventoryIdExtractor - Function to extract carbon inventory ID from request
+   * @param options - Optional configuration
+   * @param options.requiredOrganizationRoles - If set, restricts access to org members with one of these roles
    * @returns Fastify hook function
    */
   fastify.decorate("requireCarbonInventoryAccess", function <
