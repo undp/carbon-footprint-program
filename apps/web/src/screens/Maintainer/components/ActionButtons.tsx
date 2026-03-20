@@ -36,6 +36,8 @@ interface ActionButtonProps {
   onConfigureVariables?: () => void;
   moveUpDisabled?: boolean;
   moveDownDisabled?: boolean;
+  deleteDisabled?: boolean;
+  deleteTooltipTitle?: string;
   deleteConfirmMessage?: string;
 }
 
@@ -53,9 +55,18 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onConfigureVariables,
   moveUpDisabled = false,
   moveDownDisabled = false,
+  deleteDisabled = false,
+  deleteTooltipTitle,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
 }) => {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const isDeleteDisabled = isActiveRow || deleteDisabled;
+  const resolvedDeleteTooltipTitle = isDeleteDisabled
+    ? deleteTooltipTitle ??
+      (isActiveRow
+        ? "Finaliza la edición actual para eliminar"
+        : "No se puede eliminar este registro")
+    : "Eliminar";
 
   return (
     <>
@@ -140,12 +151,12 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           </Tooltip>
         )}
         {!isEditing && onDelete && (
-          <Tooltip title="Eliminar">
+          <Tooltip title={resolvedDeleteTooltipTitle}>
             <span className="content-center">
               <IconButton
                 size="small"
                 onClick={() => setDeleteOpen(true)}
-                disabled={isActiveRow}
+                disabled={isDeleteDisabled}
               >
                 <DeleteOutlined fontSize="small" />
               </IconButton>
