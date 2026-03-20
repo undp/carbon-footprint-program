@@ -7,6 +7,8 @@ import {
   type DuplicateMethodologyResponse,
   type User,
   CategoryStatus,
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   SubcategoryStatus,
   EmissionFactorStatus,
 } from "@repo/types";
@@ -151,7 +153,10 @@ export const duplicateMethodologyService = async (
         // 1. Duplicate dimensions
         const dimensionIdMap = new Map<bigint, bigint>();
         const originalDimensions = await tx.emissionFactorDimension.findMany({
-          where: { subcategoryId: { in: oldSubcategoryIds } },
+          where: {
+            subcategoryId: { in: oldSubcategoryIds },
+            status: EmissionFactorDimensionStatus.ACTIVE,
+          },
         });
 
         for (const dim of originalDimensions) {
@@ -162,6 +167,7 @@ export const duplicateMethodologyService = async (
               name: dim.name,
               position: dim.position,
               isRequired: dim.isRequired,
+              status: EmissionFactorDimensionStatus.ACTIVE,
               createdById: userId,
               updatedAt: null,
             },
@@ -177,6 +183,7 @@ export const duplicateMethodologyService = async (
             {
               where: {
                 dimensionId: { in: [...dimensionIdMap.keys()] },
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
               },
             }
           );
@@ -187,7 +194,7 @@ export const duplicateMethodologyService = async (
               data: {
                 dimensionId: dimensionIdMap.get(val.dimensionId)!,
                 value: val.value,
-                isActive: val.isActive,
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
                 parentValueId: null,
                 createdById: userId,
                 updatedAt: null,
@@ -219,6 +226,38 @@ export const duplicateMethodologyService = async (
           where: {
             subcategoryId: { in: oldSubcategoryIds },
             status: EmissionFactorStatus.ACTIVE,
+            AND: [
+              {
+                OR: [
+                  { dimensionValue1Id: null },
+                  {
+                    dimensionValue1: {
+                      is: {
+                        status: EmissionFactorDimensionValueStatus.ACTIVE,
+                        dimension: {
+                          is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+              {
+                OR: [
+                  { dimensionValue2Id: null },
+                  {
+                    dimensionValue2: {
+                      is: {
+                        status: EmissionFactorDimensionValueStatus.ACTIVE,
+                        dimension: {
+                          is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                        },
+                      },
+                    },
+                  },
+                ],
+              },
+            ],
           },
         });
 
