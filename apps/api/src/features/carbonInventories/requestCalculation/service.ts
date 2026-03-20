@@ -11,10 +11,11 @@ import {
   OrganizationNotAssociatedError,
 } from "../errors.js";
 import {
+  calculateDisplayStatus,
   carbonInventoryWithSubmissionsMinimalSelect,
   createCarbonInventorySubmission,
 } from "../helpers.js";
-import { canSubmitToCalculation } from "./helpers.js";
+import { canSubmitToMeasurement } from "@repo/utils";
 
 export const requestCalculationService = async (
   prismaClient: PrismaClient,
@@ -46,8 +47,10 @@ export const requestCalculationService = async (
     if (!inventory.organization?.summary?.isAccredited) {
       throw new OrganizationNotAccreditedError(carbonInventoryId);
     }
+    const displayStatus = calculateDisplayStatus(inventory);
 
-    const can = canSubmitToCalculation(inventory);
+    const can = canSubmitToMeasurement(displayStatus);
+
     if (!can)
       throw new CarbonInventoryCannotRequestCalculationError(inventory.id);
 
