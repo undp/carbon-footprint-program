@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
 import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
   SubcategoryStatus,
   User,
   type GetEmissionFactorDimensionsQuery,
@@ -20,12 +23,18 @@ export const getEmissionFactorDimensionsService = async (
             },
           }
         : {}),
-      status: { not: SubcategoryStatus.DELETED },
+      status: SubcategoryStatus.ACTIVE,
     },
     select: {
       id: true,
       name: true,
+      emissionFactors: {
+        where: { status: EmissionFactorStatus.ACTIVE },
+        select: { id: true },
+        take: 1,
+      },
       dimensions: {
+        where: { status: EmissionFactorDimensionStatus.ACTIVE },
         select: {
           id: true,
           code: true,
@@ -33,8 +42,21 @@ export const getEmissionFactorDimensionsService = async (
           position: true,
           isRequired: true,
           values: {
-            where: { isActive: true },
-            select: { id: true, value: true },
+            where: { status: EmissionFactorDimensionValueStatus.ACTIVE },
+            select: {
+              id: true,
+              value: true,
+              emissionFactorsAsDimension1: {
+                where: { status: EmissionFactorStatus.ACTIVE },
+                select: { id: true },
+                take: 1,
+              },
+              emissionFactorsAsDimension2: {
+                where: { status: EmissionFactorStatus.ACTIVE },
+                select: { id: true },
+                take: 1,
+              },
+            },
             orderBy: { value: "asc" },
           },
         },
@@ -47,6 +69,7 @@ export const getEmissionFactorDimensionsService = async (
   return subcategories.map((sub) => ({
     subcategoryId: sub.id.toString(),
     subcategoryName: sub.name,
+    subcategoryHasEmissionFactors: sub.emissionFactors.length > 0,
     dimensions: sub.dimensions.map((dim) => ({
       id: dim.id.toString(),
       code: dim.code,
@@ -56,6 +79,9 @@ export const getEmissionFactorDimensionsService = async (
       values: dim.values.map((v) => ({
         id: v.id.toString(),
         value: v.value,
+        inUse:
+          v.emissionFactorsAsDimension1.length > 0 ||
+          v.emissionFactorsAsDimension2.length > 0,
       })),
     })),
   }));

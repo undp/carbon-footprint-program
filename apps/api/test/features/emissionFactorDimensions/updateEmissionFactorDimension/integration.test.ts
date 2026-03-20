@@ -17,7 +17,10 @@ import {
   createTestEmissionFactor,
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
-import { EmissionFactorStatus } from "@repo/types";
+import {
+  EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
+} from "@repo/types";
 import type { UpdateEmissionFactorDimensionResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -87,8 +90,9 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(200);
-      const body =
-        JSON.parse(response.body) as UpdateEmissionFactorDimensionResponse;
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
       expect(body.name).toBe("Updated Name");
     });
 
@@ -102,8 +106,9 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(200);
-      const body =
-        JSON.parse(response.body) as UpdateEmissionFactorDimensionResponse;
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
       expect(body.isRequired).toBe(true);
     });
 
@@ -119,8 +124,9 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(200);
-      const body =
-        JSON.parse(response.body) as UpdateEmissionFactorDimensionResponse;
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
       expect(body.values).toHaveLength(3); // Initial + 2 new
     });
 
@@ -152,10 +158,20 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(200);
-      const body =
-        JSON.parse(response.body) as UpdateEmissionFactorDimensionResponse;
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
       expect(body.values).toHaveLength(1);
       expect(body.values[0].value).toBe("Backup Value");
+
+      const updatedValue = await prisma.emissionFactorDimensionValue.findUnique(
+        {
+          where: { id: value.id },
+        }
+      );
+      expect(updatedValue!.status).toBe(
+        EmissionFactorDimensionValueStatus.DELETED
+      );
 
       // Verify EF FK was set to null (not soft-deleted)
       const updatedEf = await prisma.emissionFactor.findUnique({
@@ -192,6 +208,15 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(200);
+
+      const updatedValue = await prisma.emissionFactorDimensionValue.findUnique(
+        {
+          where: { id: value.id },
+        }
+      );
+      expect(updatedValue!.status).toBe(
+        EmissionFactorDimensionValueStatus.DELETED
+      );
 
       // Verify EF was soft-deleted
       const updatedEf = await prisma.emissionFactor.findUnique({

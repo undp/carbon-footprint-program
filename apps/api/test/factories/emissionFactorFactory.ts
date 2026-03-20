@@ -5,7 +5,11 @@ import {
   type EmissionFactorDimensionValue,
   Prisma,
 } from "@repo/database";
-import { EmissionFactorStatus } from "@repo/types";
+import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
+} from "@repo/types";
 
 const DEFAULT_GAS_DETAILS = {
   CO2_FOSSIL: 0,
@@ -62,6 +66,7 @@ export async function createTestEmissionFactorDimension(
     name: string;
     position: number;
     isRequired: boolean;
+    status: EmissionFactorDimension["status"];
   }>
 ): Promise<EmissionFactorDimension> {
   const randomSuffix = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
@@ -73,6 +78,7 @@ export async function createTestEmissionFactorDimension(
       name: overrides?.name ?? `Test Dimension ${randomSuffix}`,
       position: overrides?.position ?? 1,
       isRequired: overrides?.isRequired ?? false,
+      status: overrides?.status ?? EmissionFactorDimensionStatus.ACTIVE,
       createdById: null,
       updatedAt: null,
     },
@@ -87,7 +93,7 @@ export async function createTestEmissionFactorDimensionValue(
   dimensionId: bigint,
   overrides?: Partial<{
     value: string;
-    isActive: boolean;
+    status: EmissionFactorDimensionValue["status"];
     parentValueId: bigint | null;
   }>
 ): Promise<EmissionFactorDimensionValue> {
@@ -97,7 +103,7 @@ export async function createTestEmissionFactorDimensionValue(
     data: {
       dimensionId,
       value: overrides?.value ?? `Test Value ${randomSuffix}`,
-      isActive: overrides?.isActive ?? true,
+      status: overrides?.status ?? EmissionFactorDimensionValueStatus.ACTIVE,
       parentValueId: overrides?.parentValueId ?? null,
       createdById: null,
       updatedAt: null,

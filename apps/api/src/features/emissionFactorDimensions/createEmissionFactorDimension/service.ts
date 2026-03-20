@@ -1,5 +1,7 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   SubcategoryStatus,
   User,
   type CreateEmissionFactorDimensionRequest,
@@ -39,11 +41,27 @@ export const createEmissionFactorDimensionService = async (
       }
 
       const existingCount = await tx.emissionFactorDimension.count({
-        where: { subcategoryId },
+        where: {
+          subcategoryId,
+          status: EmissionFactorDimensionStatus.ACTIVE,
+        },
       });
 
       if (existingCount >= 2) {
         throw new MaxDimensionsPerSubcategoryError();
+      }
+
+      const existingPosition = await tx.emissionFactorDimension.findFirst({
+        where: {
+          subcategoryId,
+          position: data.position,
+          status: EmissionFactorDimensionStatus.ACTIVE,
+        },
+        select: { id: true },
+      });
+
+      if (existingPosition) {
+        throw new DimensionPositionAlreadyTakenError(data.position.toString());
       }
 
       const code = `dim_${data.position}_${Date.now()}`;
@@ -55,10 +73,17 @@ export const createEmissionFactorDimensionService = async (
           name: data.name,
           position: data.position,
           isRequired: data.isRequired,
+          status: EmissionFactorDimensionStatus.ACTIVE,
           createdById: BigInt(user.id),
           updatedAt: null,
         },
-        select: { id: true, code: true, name: true, position: true, isRequired: true },
+        select: {
+          id: true,
+          code: true,
+          name: true,
+          position: true,
+          isRequired: true,
+        },
       });
 
       const createdValues = await Promise.all(
@@ -67,7 +92,7 @@ export const createEmissionFactorDimensionService = async (
             data: {
               dimensionId: dimension.id,
               value,
-              isActive: true,
+              status: EmissionFactorDimensionValueStatus.ACTIVE,
               createdById: BigInt(user.id),
               updatedAt: null,
             },
@@ -94,8 +119,12 @@ export const createEmissionFactorDimensionService = async (
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
-        const target = error.meta?.target as string[] | undefined;
-        if (target?.includes("position")) {
+        const target = Array.isArray(error.meta?.target)
+          ? error.meta.target.map(String)
+          : error.meta?.target
+            ? [String(error.meta.target)]
+            : [];
+        if (target.some((item) => item.includes("position"))) {
           throw new DimensionPositionAlreadyTakenError(
             data.position.toString()
           );

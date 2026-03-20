@@ -17,7 +17,11 @@ import {
   createTestEmissionFactor,
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
-import { EmissionFactorStatus } from "@repo/types";
+import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
@@ -77,6 +81,31 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
     return { methodology, subcategory, dimension, value, ef, rateUnitId };
   }
 
+  async function buildSubcategoryWithTwoDimensions() {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - For Two Dimensions Deletion",
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Two Dimensions Category",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Two Dimensions Subcategory",
+    });
+    const dimension1 = await createTestEmissionFactorDimension(
+      prisma,
+      subcategory.id,
+      { position: 1, isRequired: true }
+    );
+    const dimension2 = await createTestEmissionFactorDimension(
+      prisma,
+      subcategory.id,
+      { position: 2, isRequired: false }
+    );
+
+    return { methodology, category, subcategory, dimension1, dimension2 };
+  }
+
   describe("Successful deletion", () => {
     it("should delete the dimension and soft-delete associated emission factors", async () => {
       const { dimension, ef } = await buildTestDimensionWithEF();
@@ -88,11 +117,12 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
 
       expect(response.statusCode).toBe(200);
 
-      // Verify dimension is deleted
+      // Verify dimension is soft-deleted
       const deletedDim = await prisma.emissionFactorDimension.findUnique({
         where: { id: dimension.id },
       });
-      expect(deletedDim).toBeNull();
+      expect(deletedDim).not.toBeNull();
+      expect(deletedDim!.status).toBe(EmissionFactorDimensionStatus.DELETED);
 
       // Verify emission factor was soft-deleted
       const updatedEf = await prisma.emissionFactor.findUnique({
@@ -109,11 +139,15 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
         url: `/api/emission-factor-dimensions/${dimension.id}`,
       });
 
-      const deletedValue =
-        await prisma.emissionFactorDimensionValue.findUnique({
+      const deletedValue = await prisma.emissionFactorDimensionValue.findUnique(
+        {
           where: { id: value.id },
-        });
-      expect(deletedValue).toBeNull();
+        }
+      );
+      expect(deletedValue).not.toBeNull();
+      expect(deletedValue!.status).toBe(
+        EmissionFactorDimensionValueStatus.DELETED
+      );
     });
 
     it("should delete a dimension with no emission factors", async () => {
@@ -142,6 +176,27 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
       });
 
       expect(response.statusCode).toBe(200);
+
+      const deletedDim = await prisma.emissionFactorDimension.findUnique({
+        where: { id: dimension.id },
+      });
+      expect(deletedDim!.status).toBe(EmissionFactorDimensionStatus.DELETED);
+    });
+
+    it("should allow deleting position 2 when the subcategory has two dimensions", async () => {
+      const { dimension2 } = await buildSubcategoryWithTwoDimensions();
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factor-dimensions/${dimension2.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const deletedDim = await prisma.emissionFactorDimension.findUnique({
+        where: { id: dimension2.id },
+      });
+      expect(deletedDim!.status).toBe(EmissionFactorDimensionStatus.DELETED);
     });
   });
 
@@ -153,6 +208,27 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
       });
 
       expect(response.statusCode).toBe(404);
+    });
+
+    it("should reject deleting position 1 when the subcategory has two dimensions", async () => {
+      const { dimension1, dimension2 } = await buildSubcategoryWithTwoDimensions();
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factor-dimensions/${dimension1.id}`,
+      });
+
+      expect(response.statusCode).toBe(409);
+
+      const persistedDim1 = await prisma.emissionFactorDimension.findUnique({
+        where: { id: dimension1.id },
+      });
+      const persistedDim2 = await prisma.emissionFactorDimension.findUnique({
+        where: { id: dimension2.id },
+      });
+
+      expect(persistedDim1!.status).toBe(EmissionFactorDimensionStatus.ACTIVE);
+      expect(persistedDim2!.status).toBe(EmissionFactorDimensionStatus.ACTIVE);
     });
   });
 });
