@@ -60,6 +60,11 @@ param enableDevGroupStorageAccess = true
 // ============================================
 param keyVaultSkuName = 'standard'
 
+// Grant Key Vault Secrets Officer to the dev group so developers can
+// read/manage secrets locally using `az login` without manual role assignment.
+// In production this should remain false — only the App Service managed identity needs access.
+param enableDevGroupKeyVaultAccess = true
+
 // ============================================
 // Database Configuration
 // ============================================

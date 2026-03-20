@@ -61,7 +61,6 @@ fi
 # 2) Check required non-sensitive variables
 : "${AZURE_SUBSCRIPTION_ID:?AZURE_SUBSCRIPTION_ID is required}"
 : "${AZURE_RESOURCE_GROUP:?AZURE_RESOURCE_GROUP is required}"
-: "${AZURE_SUBSCRIPTION_GROUP:?AZURE_SUBSCRIPTION_GROUP is required}"
 : "${LOCATION:?LOCATION is required}"
 : "${ENVIRONMENT:?ENVIRONMENT is required}"
 
@@ -158,13 +157,18 @@ else
   ENABLE_AZURE_AUTH="false"
 fi
 
-# 5) Get Azure AD group Object ID for Key Vault access
-log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
-DEVS_GROUP_ID=$(az ad group show --group "$AZURE_SUBSCRIPTION_GROUP" --query id -o tsv 2>/dev/null || echo "")
+# 5) Get Azure AD group Object ID (optional - for dev group access to Key Vault and Storage)
+DEVS_GROUP_ID=""
+if [ -n "${AZURE_SUBSCRIPTION_GROUP:-}" ]; then
+  log "Getting $AZURE_SUBSCRIPTION_GROUP group Object ID..."
+  DEVS_GROUP_ID=$(az ad group show --group "$AZURE_SUBSCRIPTION_GROUP" --query id -o tsv 2>/dev/null || echo "")
 
-if [ -z "$DEVS_GROUP_ID" ]; then
-  log "Warning: $AZURE_SUBSCRIPTION_GROUP group not found. Key Vault will be created without group access."
-  log "You can manually assign permissions later or add the group Object ID to the deployment."
+  if [ -z "$DEVS_GROUP_ID" ]; then
+    log "Error: Azure AD group '$AZURE_SUBSCRIPTION_GROUP' was specified but could not be found."
+    exit 1
+  fi
+else
+  log "AZURE_SUBSCRIPTION_GROUP not set. Skipping dev group access configuration."
 fi
 
 # 6) Check if password secret already exists in Key Vault
