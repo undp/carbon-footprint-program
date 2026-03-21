@@ -130,13 +130,14 @@ export async function linkFilesToSubmission(
   }
 
   // Step 4: All copies succeeded — update DB records
-  for (const plan of filePlans) {
-    await tx.file.update({
-      where: { id: plan.file.id },
-      data: { blobPath: plan.finalBlobPath },
-    });
-    sourcePaths.push(plan.currentBlobPath);
-  }
+  await Promise.all(
+    filePlans.map((plan) =>
+      tx.file.update({
+        where: { id: plan.file.id },
+        data: { blobPath: plan.finalBlobPath },
+      })
+    )
+  );
 
   // Create SubmissionFile records
   await tx.submissionFile.createMany({
