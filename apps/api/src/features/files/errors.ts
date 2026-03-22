@@ -20,7 +20,7 @@ export const StorageNotConfiguredError = createError(
 
 export const BlobMoveError = createError(
   "BLOB_MOVE_ERROR",
-  "Failed to move blobs: %s",
+  "Failed to move blobs from %s to %s",
   500
 );
 
