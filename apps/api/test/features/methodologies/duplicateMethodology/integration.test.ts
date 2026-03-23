@@ -500,7 +500,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
     });
 
     // Create emission factors using same source (trigger enforces single source per subcategory)
-    await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+      const factor1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
       dimensionValue1Id: val1.id,
       source: "IPCC",
       value: "2.5",
@@ -561,7 +561,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
     // Ensure new IDs are different from originals
     expect(dupDimensions[0].id).not.toBe(dim.id);
     expect(dupValues[0].id).not.toBe(val1.id);
-    expect(dupFactors[0].id).not.toBe(val1.id);
+    expect(dupFactors[0].id).not.toBe(factor1.id);
   });
 
   it("should not duplicate deleted emission factors", async () => {
