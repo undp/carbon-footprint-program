@@ -77,3 +77,8 @@ public/dist
 
 # Claude
 .claude/settings*
+.claude/skills/
+
+# Agents
+.agents/settings*
+.agents/skills/
