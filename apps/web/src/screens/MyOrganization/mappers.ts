@@ -25,11 +25,12 @@ export const mapOrganizationToFormValues = (
     representativePositionId: organization.representative.position.id,
     representativePhone: organization.representative.phone,
     representativeEmail: organization.representative.email,
+    files: [],
   };
 };
 
 export const mapFormValuesToRequest = (
-  values: OrganizationFormValues
+  values: Omit<OrganizationFormValues, "files">
 ): CreateOrganizationBody => {
   return {
     ...values,

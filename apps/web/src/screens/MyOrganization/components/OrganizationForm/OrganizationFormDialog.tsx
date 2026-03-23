@@ -27,6 +27,7 @@ import {
   FormAutocompleteField,
   FormNumericField,
   ConfirmDialog,
+  FormFileUpload,
 } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
 import { useConfirmDialog } from "@/hooks";
@@ -39,20 +40,22 @@ interface Props {
 }
 
 const DIALOG_TITLES: Record<DialogMode, string> = {
-  create: "Crear perfil de empresa",
-  edit: "Editar perfil de empresa",
+  [DialogMode.create]: "Crear perfil de empresa",
+  [DialogMode.edit]: "Editar perfil de empresa",
+  [DialogMode.accredited]: "Editar perfil de empresa",
 };
 
 const BUTTON_LABELS: Record<DialogMode, string> = {
-  create: "Crear",
-  edit: "Guardar cambios",
+  [DialogMode.create]: "Crear",
+  [DialogMode.edit]: "Guardar cambios",
+  [DialogMode.accredited]: "Solicitar revisión",
 };
 
 export const OrganizationFormDialog: FC<Props> = ({
   open,
   onClose,
   organization,
-  mode = "create",
+  mode = DialogMode.create,
 }) => {
   const { control, handleSubmit, reset, selectedSectorId, formState } =
     useOrganizationForm({ organization });
@@ -118,12 +121,12 @@ export const OrganizationFormDialog: FC<Props> = ({
       open={open}
       onClose={handleClose}
       maxWidth="lg"
+      scroll="body"
       fullWidth
       slotProps={{
         paper: {
           sx: {
-            maxHeight: "90vh",
-            borderRadius: 1,
+            overflow: "hidden",
           },
         },
       }}
@@ -149,9 +152,7 @@ export const OrganizationFormDialog: FC<Props> = ({
       </IconButton>
 
       <form onSubmit={handleSubmit(submit)} noValidate>
-        <DialogContent
-          sx={{ pt: 0, overflow: "auto", maxHeight: "calc(90vh - 160px)" }}
-        >
+        <DialogContent sx={{ pt: 0, maxHeight: "calc(90vh - 160px)" }}>
           {/* Organization Information Section */}
           <Box className="mb-6">
             <Box className="mb-4 flex items-center gap-2">
@@ -317,6 +318,30 @@ export const OrganizationFormDialog: FC<Props> = ({
               </Box>
             </Box>
           </Box>
+
+          {mode === DialogMode.accredited && (
+            <>
+              <Divider sx={{ mb: 3, opacity: 0.2 }} />
+
+              <Box className="mb-4 flex items-center gap-2">
+                <Typography variant="body1" fontSize={18}>
+                  Documentos de respaldo
+                </Typography>
+              </Box>
+              <FormFileUpload
+                control={control}
+                name="files"
+                disabled={isSubmitting}
+                required
+                requiredMessage="Al menos un archivo es requerido"
+                accept={{
+                  "image/png": [".png"],
+                  "image/jpeg": [".jpg", ".jpeg"],
+                  "application/pdf": [".pdf"],
+                }}
+              />
+            </>
+          )}
         </DialogContent>
 
         <DialogActions

@@ -20,6 +20,12 @@ export const StorageNotConfiguredError = createError(
 
 export const BlobMoveError = createError(
   "BLOB_MOVE_ERROR",
-  "Failed to move blob",
+  "Failed to move blobs from %s to %s",
   500
+);
+
+export const MissingFilesError = createError(
+  "MISSING_FILES",
+  "File UUIDs not found: %s",
+  404
 );

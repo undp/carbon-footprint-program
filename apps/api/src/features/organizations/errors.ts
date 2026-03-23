@@ -35,3 +35,21 @@ export const OrganizationDataAlreadyRejectedError = createError(
   "Organization data with ID %s is already rejected",
   409
 );
+
+export const FileAttachmentsNotSupportedError = createError(
+  "FILE_ATTACHMENTS_NOT_SUPPORTED",
+  "File attachments cannot be included when updating organization data in %s state. File attachments are only supported when creating a new submission for review.",
+  400
+);
+
+export const FileAttachmentsRequiredError = createError(
+  "FILE_ATTACHMENTS_REQUIRED",
+  "File attachments are required when updating an accredited organization or requesting accreditation for a new organization.",
+  400
+);
+
+export const OrganizationAlreadyAccreditedError = createError(
+  "ORGANIZATION_ALREADY_ACCREDITED",
+  "Organization with ID %s is already accredited",
+  409
+);

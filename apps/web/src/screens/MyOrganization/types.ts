@@ -8,9 +8,14 @@ import { OrganizationRole } from "@repo/types";
 /**
  * Dialog mode for organization form dialog
  * - create: Creating a new organization
- * - edit: Editing an existing organization
+ * - edit: Editing an existing (non-accredited) organization
+ * - accredited: Editing an accredited organization (requires file upload + "Solicitar revisión")
  */
-export type DialogMode = "create" | "edit";
+export enum DialogMode {
+  create = "create",
+  edit = "edit",
+  accredited = "accredited",
+}
 
 /**
  * Form state for the organization form.
@@ -32,6 +37,7 @@ export interface OrganizationFormValues {
   representativePositionId: string;
   representativePhone: string;
   representativeEmail: string;
+  files: File[];
 }
 
 /**

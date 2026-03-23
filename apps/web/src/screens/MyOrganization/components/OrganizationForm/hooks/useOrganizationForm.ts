@@ -20,6 +20,7 @@ const defaultValues: OrganizationFormValues = {
   representativePositionId: "",
   representativePhone: "",
   representativeEmail: "",
+  files: [],
 };
 
 type Params = {

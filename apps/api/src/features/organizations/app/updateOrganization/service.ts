@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateOrganizationBody,
   UpdateOrganizationResponse,
@@ -7,16 +8,22 @@ import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   OrganizationUnderReviewError,
+  FileAttachmentsNotSupportedError,
+  FileAttachmentsRequiredError,
 } from "../../errors.js";
 import {
   updateOrganizationData,
   getDraftOrganizationData,
-  getApprovedOrganizationData,
+  hasApprovedOrganizationData,
   getPendingOrganizationData,
-  getRejectedOrganizationData,
   createOrganizationData,
   createOrganizationDataSubmission,
+  getLastRejectedOrganizationData,
 } from "../../helpers.js";
+import {
+  linkFilesToSubmission,
+  cleanupSourceBlobs,
+} from "@/features/files/helpers/linkFilesToSubmission.js";
 
 /**
  * Updates organization data based on current submission state.
@@ -28,17 +35,20 @@ import {
  *    - User must wait for admin approval/rejection before making changes
  *
  * 2. DRAFT (no submission):
+ *    - files are not expected to be provided
  *    - Updates the existing organization data in place
  *    - No new submission is created
  *    - Changes remain as draft until explicitly submitted
  *
- * 3. APPROVED (accredited):
+ * 3. has an APPROVED organization data (accredited):
  *    - Creates NEW organization data record with changes
  *    - Automatically creates and submits for review (PENDING status)
  *    - Original approved data remains unchanged
  *    - New changes require admin approval before taking effect
+ *    - files are expected to be provided
  *
- * 4. REJECTED (previously rejected):
+ * 4. REJECTED (you only reach this point if you are in DRAFT and you have been rejected):
+ *    - files are not expected to be provided
  *    - Creates NEW organization data as draft
  *    - No automatic submission - user can edit freely
  *    - User must explicitly request accreditation when ready
@@ -50,7 +60,10 @@ export const updateOrganizationService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   userId: string,
-  body: UpdateOrganizationBody
+  body: Omit<UpdateOrganizationBody, "fileUuids">,
+  fileUuids?: string[],
+  blobServiceClient?: BlobServiceClient,
+  containerName?: string
 ): Promise<UpdateOrganizationResponse> => {
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -62,7 +75,7 @@ export const updateOrganizationService = async (
     throw new OrganizationNotFoundError(organizationId);
   }
 
-  return await prismaClient.$transaction(async (tx) => {
+  const result = await prismaClient.$transaction(async (tx) => {
     const pendingOrganizationData = await getPendingOrganizationData(
       tx,
       organizationId
@@ -78,6 +91,9 @@ export const updateOrganizationService = async (
     );
 
     if (draftOrganizationData) {
+      if (fileUuids?.length) {
+        throw new FileAttachmentsNotSupportedError("draft");
+      }
       await updateOrganizationData(
         tx,
         draftOrganizationData.id.toString(),
@@ -89,34 +105,45 @@ export const updateOrganizationService = async (
       };
     }
 
-    const approvedOrganizationData = await getApprovedOrganizationData(
-      tx,
-      organizationId
-    );
+    const isAccredited = await hasApprovedOrganizationData(tx, organizationId);
+    if (isAccredited) {
+      if (!fileUuids?.length) {
+        throw new FileAttachmentsRequiredError();
+      }
 
-    if (approvedOrganizationData) {
       const newOrganizationData = await createOrganizationData(
         tx,
         organizationId,
         userId,
         body
       );
-      await createOrganizationDataSubmission(
+      const submission = await createOrganizationDataSubmission(
         tx,
         newOrganizationData.id.toString(),
         userId
       );
-      return {
-        id: organization.id.toString(),
-      };
+      if (blobServiceClient && containerName) {
+        const { sourceCleanup } = await linkFilesToSubmission(
+          tx,
+          submission.id,
+          fileUuids,
+          blobServiceClient,
+          containerName
+        );
+        await cleanupSourceBlobs(sourceCleanup);
+      }
+      return { id: organization.id.toString() };
     }
 
-    const rejectedOrganizationData = await getRejectedOrganizationData(
+    const lastRejectedOrganizationData = await getLastRejectedOrganizationData(
       tx,
       organizationId
     );
 
-    if (rejectedOrganizationData) {
+    if (lastRejectedOrganizationData) {
+      if (fileUuids?.length) {
+        throw new FileAttachmentsNotSupportedError("rejected");
+      }
       await createOrganizationData(tx, organizationId, userId, body);
       return {
         id: organization.id.toString(),
@@ -125,4 +152,6 @@ export const updateOrganizationService = async (
 
     throw new OrganizationDataNotFoundError(organizationId);
   });
+
+  return { id: result.id };
 };

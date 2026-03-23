@@ -10,17 +10,22 @@ import {
   SubmissionType,
 } from "@repo/database";
 import {
-  linkSubmissionFiles,
+  linkFilesToSubmission,
   cleanupSourceBlobs,
-} from "@/features/files/helpers/linkSubmissionFiles.js";
+} from "@/features/files/helpers/linkFilesToSubmission.js";
 import {
   OrganizationDataNotFoundError,
   OrganizationNotFoundError,
   SubmissionAlreadyExistsError,
-  OrganizationDataAlreadyRejectedError,
+  OrganizationAlreadyAccreditedError,
+  FileAttachmentsRequiredError,
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
-import { getRejectedOrganizationData } from "../../helpers.js";
+import {
+  getLastRejectedOrganizationData,
+  cloneOrganizationData,
+  hasApprovedOrganizationData,
+} from "../../helpers.js";
 
 export const requestOrganizationAccreditationService = async (
   prismaClient: PrismaClient,
@@ -34,6 +39,10 @@ export const requestOrganizationAccreditationService = async (
     throw new UserNotFoundError();
   }
 
+  if (!fileUuids?.length) {
+    throw new FileAttachmentsRequiredError();
+  }
+
   const userId = user.id;
   const organization = await prismaClient.organization.findUnique({
     where: {
@@ -43,6 +52,15 @@ export const requestOrganizationAccreditationService = async (
 
   if (!organization) {
     throw new OrganizationNotFoundError(organizationId);
+  }
+
+  // this endpoint is not expected to be called if the organization is already accredited
+  const isAccredited = await hasApprovedOrganizationData(
+    prismaClient,
+    organizationId
+  );
+  if (isAccredited) {
+    throw new OrganizationAlreadyAccreditedError(organizationId);
   }
 
   const result = await prismaClient.$transaction(async (tx) => {
@@ -55,13 +73,22 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    const rejectedData = await getRejectedOrganizationData(tx, organizationId);
+    const rejectedData = await getLastRejectedOrganizationData(
+      tx,
+      organizationId
+    );
 
-    if (!activeData && rejectedData) {
-      throw new OrganizationDataAlreadyRejectedError(organizationId);
+    let resolvedActiveData = activeData;
+    if (!resolvedActiveData && rejectedData) {
+      // Files provided: clone rejected data into a new draft so the user can re-submit
+      resolvedActiveData = await cloneOrganizationData(
+        tx,
+        rejectedData,
+        userId
+      );
     }
 
-    if (!activeData) {
+    if (!resolvedActiveData) {
       throw new OrganizationDataNotFoundError(organizationId);
     }
 
@@ -70,7 +97,7 @@ export const requestOrganizationAccreditationService = async (
       where: {
         type: SubmissionType.ORGANIZATION_ACCREDITATION,
         subject: {
-          organizationData: { organizationDataId: activeData.id },
+          organizationData: { organizationDataId: resolvedActiveData.id },
         },
       },
       select: { id: true },
@@ -108,7 +135,7 @@ export const requestOrganizationAccreditationService = async (
     await tx.submissionSubjectOrganizationData.create({
       data: {
         subjectId: subject.id,
-        organizationDataId: activeData.id,
+        organizationDataId: resolvedActiveData.id,
       },
     });
 
@@ -123,25 +150,20 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    // 4. Copy pre-uploaded files from tmp → final path and link to the submission
-    //    (source blobs are deleted post-commit to avoid inconsistency on rollback)
-    let blobCleanup;
-    if (fileUuids?.length) {
-      blobCleanup = await linkSubmissionFiles(
+    // 4. Create SubmissionFile records (blob operations happen after transaction commits)
+    if (blobServiceClient && containerName) {
+      const fileMetadata = await linkFilesToSubmission(
         tx,
-        blobServiceClient,
-        containerName,
         submission.id,
-        fileUuids
+        fileUuids,
+        blobServiceClient,
+        containerName
       );
+      await cleanupSourceBlobs(fileMetadata.sourceCleanup);
     }
 
-    return { submissionId: submission.id.toString(), blobCleanup };
+    return { submissionId: submission.id.toString() };
   });
-
-  if (result.blobCleanup) {
-    await cleanupSourceBlobs(result.blobCleanup);
-  }
 
   return { submissionId: result.submissionId };
 };

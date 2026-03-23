@@ -14,7 +14,10 @@ import { createTestOrganizationData } from "@test/factories/organizationDataFact
 import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
-import { cleanupTestFiles } from "@test/factories/fileFactory.js";
+import {
+  createTestFile,
+  cleanupTestFiles,
+} from "@test/factories/fileFactory.js";
 import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { RequestOrganizationAccreditationResponse } from "@repo/types";
@@ -47,7 +50,10 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
-    app = await createTestApp(databaseUrl);
+    app = await createTestApp(databaseUrl, {
+      storageConnectionString: inject("storageConnectionString"),
+      storageContainerName: inject("storageContainerName"),
+    });
     prisma = app.prisma;
     const testUser = await getTestLoggedUser(prisma);
     testUserId = testUser.id;
@@ -59,6 +65,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
   });
 
   afterEach(async () => {
+    await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
   });
 
@@ -81,10 +88,13 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       // Execute: Request accreditation
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -135,10 +145,13 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       // Execute
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -174,10 +187,13 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       // Execute
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -236,6 +252,8 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       // Verify initial state: both org_data are ACTIVE
       const initialRejectedData = await prisma.organizationData.findUnique({
         where: { id: rejectedOrgData.id },
@@ -250,6 +268,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(200);
@@ -366,9 +385,12 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       // Service returns 404 because it looks for a draft (ACTIVE without submission)
@@ -389,9 +411,12 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(404);
@@ -426,9 +451,12 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(404);
@@ -451,9 +479,12 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file = await createTestFile(prisma, testUserId);
+
       const response = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
+        payload: { fileUuids: [file.uuid] },
       });
 
       expect(response.statusCode).toBe(404);
@@ -486,15 +517,20 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         status: MembershipStatus.ACTIVE,
       });
 
+      const file1 = await createTestFile(prisma, testUserId);
+      const file2 = await createTestFile(prisma, testUserId);
+
       // Execute: Request accreditation for both
       const response1 = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${org1.id}/request-accreditation`,
+        payload: { fileUuids: [file1.uuid] },
       });
 
       const response2 = await app.inject({
         method: "POST",
         url: `/api/app/organizations/${org2.id}/request-accreditation`,
+        payload: { fileUuids: [file2.uuid] },
       });
 
       expect(response1.statusCode).toBe(200);
@@ -687,15 +723,13 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       }
     });
 
-    it("should succeed and create submission without files when fileUuids is omitted", async () => {
+    it("should return 400 FILE_ATTACHMENTS_REQUIRED when no files are provided", async () => {
       const organization = await createTestOrganization(prismaWithStorage, {
         status: OrganizationStatus.ACTIVE,
       });
-      const organizationData = await createTestOrganizationData(
-        prismaWithStorage,
-        organization.id,
-        { status: OrganizationDataStatus.ACTIVE }
-      );
+      await createTestOrganizationData(prismaWithStorage, organization.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
       await createTestMembership(
         prismaWithStorage,
         userIdWithStorage,
@@ -708,22 +742,9 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
         url: `/api/app/organizations/${organization.id}/request-accreditation`,
       });
 
-      expect(response.statusCode).toBe(200);
-      expect(vi.mocked(copyBlob)).not.toHaveBeenCalled();
-
-      const submission = await prismaWithStorage.submission.findFirst({
-        where: {
-          subject: {
-            organizationData: { organizationDataId: organizationData.id },
-          },
-        },
-      });
-      expect(submission).toBeDefined();
-
-      const submissionFileCount = await prismaWithStorage.submissionFile.count({
-        where: { submissionId: submission!.id },
-      });
-      expect(submissionFileCount).toBe(0);
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FILE_ATTACHMENTS_REQUIRED");
     });
   });
 });

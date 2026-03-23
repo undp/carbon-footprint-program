@@ -6,6 +6,7 @@ import {
   afterAll,
   afterEach,
   inject,
+  vi,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
@@ -27,6 +28,19 @@ import { createTestOrganizationDataSubmission } from "@test/factories/submission
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { getTestCountryJobPositionId } from "@test/factories/jobPositionFactory.js";
+import {
+  createTestFile,
+  cleanupTestFiles,
+} from "@test/factories/fileFactory.js";
+
+// Mock blob service operations to prevent actual Azure storage calls
+vi.mock("@/services/blobService.js", () => ({
+  generateWriteSasUrl: vi.fn(),
+  generateReadSasUrl: vi.fn(),
+  copyBlob: vi.fn().mockResolvedValue(undefined),
+  deleteBlob: vi.fn().mockResolvedValue(undefined),
+  moveBlob: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -40,7 +54,10 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
-    app = await createTestApp(databaseUrl);
+    app = await createTestApp(databaseUrl, {
+      storageConnectionString: inject("storageConnectionString"),
+      storageContainerName: inject("storageContainerName"),
+    });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
 
@@ -77,6 +94,7 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
   });
 
@@ -163,7 +181,18 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
 
       await createTestMembership(prisma, testUser.id, org.id);
 
-      const updateBody = getValidUpdateBody();
+      // Create test files for the submission
+      const file1 = await createTestFile(prisma, testUser.id, {
+        originalName: "test-document-1.pdf",
+      });
+      const file2 = await createTestFile(prisma, testUser.id, {
+        originalName: "test-document-2.pdf",
+      });
+
+      const updateBody = {
+        ...getValidUpdateBody(),
+        fileUuids: [file1.uuid, file2.uuid],
+      };
 
       const response = await app.inject({
         method: "PATCH",
@@ -208,6 +237,15 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
       });
       expect(newSubmission).toBeTruthy();
       expect(newSubmission!.status).toBe(SubmissionStatus.PENDING);
+
+      const submissionFiles = await prisma.submissionFile.findMany({
+        where: { submissionId: newSubmission!.id },
+        include: { file: { select: { uuid: true } } },
+      });
+      expect(submissionFiles).toHaveLength(2);
+      expect(submissionFiles.map((sf) => sf.file.uuid).sort()).toEqual(
+        [file1.uuid, file2.uuid].sort()
+      );
 
       // Verify both old and new data are ACTIVE
       const activeData = await prisma.organizationData.findMany({
@@ -391,6 +429,33 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("ORGANIZATION_UNDER_REVIEW");
       expect(body.message).toBeTruthy();
+    });
+
+    it("should return 400 FILE_ATTACHMENTS_REQUIRED when updating accredited org without files", async () => {
+      const org = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const orgData = await createTestOrganizationData(prisma, org.id, {
+        status: OrganizationDataStatus.ACTIVE,
+      });
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+      await createTestMembership(prisma, testUser.id, org.id);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/app/organizations/${org.id.toString()}`,
+        payload: getValidUpdateBody(),
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("FILE_ATTACHMENTS_REQUIRED");
     });
 
     it("should return 400 for invalid organization ID format", async () => {

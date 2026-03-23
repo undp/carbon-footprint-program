@@ -18,9 +18,9 @@ import {
 } from "../helpers.js";
 import { canSubmitToVerification } from "@repo/utils";
 import {
-  linkSubmissionFiles,
+  linkFilesToSubmission,
   cleanupSourceBlobs,
-} from "@/features/files/helpers/linkSubmissionFiles.js";
+} from "@/features/files/helpers/linkFilesToSubmission.js";
 
 export const requestVerificationService = async (
   prismaClient: PrismaClient,
@@ -30,7 +30,7 @@ export const requestVerificationService = async (
   blobServiceClient?: BlobServiceClient,
   containerName?: string
 ): Promise<void> => {
-  const result = await prismaClient.$transaction(async (tx) => {
+  await prismaClient.$transaction(async (tx) => {
     const inventory = await tx.carbonInventory.findFirst({
       where: { id: BigInt(carbonInventoryId), status: InventoryStatus.ACTIVE },
       select: {
@@ -71,21 +71,15 @@ export const requestVerificationService = async (
       createdById
     );
 
-    let blobCleanup;
-    if (fileUuids?.length) {
-      blobCleanup = await linkSubmissionFiles(
+    if (fileUuids?.length && blobServiceClient && containerName) {
+      const { sourceCleanup } = await linkFilesToSubmission(
         tx,
-        blobServiceClient,
-        containerName,
         submissionId,
-        fileUuids
+        fileUuids,
+        blobServiceClient,
+        containerName
       );
+      await cleanupSourceBlobs(sourceCleanup);
     }
-
-    return { blobCleanup };
   });
-
-  if (result.blobCleanup) {
-    await cleanupSourceBlobs(result.blobCleanup);
-  }
 };
