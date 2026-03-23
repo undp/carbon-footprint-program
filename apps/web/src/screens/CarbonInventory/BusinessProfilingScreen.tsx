@@ -31,6 +31,7 @@ import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useAuth } from "@/contexts";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { VOCAB } from "@/config/vocab";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -199,7 +200,7 @@ export const BusinessProfilingScreen: FC = () => {
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
               <StepHeader
                 title="Paso 1: Perfilamiento"
-                description="La información de tu empresa nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro."
+                description={`La información de tu ${VOCAB.organization.noun.singular} nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro.`}
               />
               <Box className="flex flex-col gap-3">
                 <Box className="flex flex-1 flex-row gap-6">
@@ -304,15 +305,17 @@ export const BusinessProfilingScreen: FC = () => {
 
                 <Box>
                   <Typography variant="body1" fontWeight="fontWeightBold">
-                    ¿Cuál es la actividad principal de tu negocio?
+                    ¿Cuál es la actividad principal de tu $
+                    {VOCAB.organization.noun.singular}?
                   </Typography>
                   <Typography variant="body1">
                     Es la forma más simple y representativa de medir lo que hace
-                    tu empresa. Te permite ver tu huella por unidad de servicio
-                    o producto.
+                    tu ${VOCAB.organization.noun.singular}. Te permite ver tu
+                    huella por unidad de servicio o producto.
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
-                    Ejemplo: Actividad principal del negocio → cómo mides tu
+                    Ejemplo: Actividad principal de{" "}
+                    {VOCAB.organization.article.singular} → cómo mides tu
                     operación (ej: paquetes entregados). Actividad principal al
                     año → cuántos hiciste el último año (ej: 220.000 paquetes).
                   </Typography>

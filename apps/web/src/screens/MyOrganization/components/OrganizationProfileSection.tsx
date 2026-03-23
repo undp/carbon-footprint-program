@@ -13,10 +13,14 @@ import {
   OrganizationDisplayStatusValues,
 } from "@repo/types";
 import { useAccreditationDialog } from "../hooks";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "@repo/utils";
 
 const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> = {
-  [OrganizationDisplayStatusValues.ACCREDITED]: "Acreditada",
-  [OrganizationDisplayStatusValues.NOT_ACCREDITED]: "No Acreditada",
+  [OrganizationDisplayStatusValues.ACCREDITED]: capitalize(
+    VOCAB.inscription.noun.singular
+  ),
+  [OrganizationDisplayStatusValues.NOT_ACCREDITED]: `No ${capitalize(VOCAB.inscription.noun.singular)}`,
   [OrganizationDisplayStatusValues.BLOCKED]: "Bloqueada",
 };
 
@@ -73,7 +77,7 @@ const OrganizationProfileSectionComponent: FC<
           onClick: onEdit,
           disabled: !profile.isEditable,
           title: !profile.isEditable
-            ? "La empresa tiene una postulación pendiente"
+            ? `${capitalize(VOCAB.organization.article.singular)} tiene una postulación pendiente`
             : undefined,
         },
       ]
@@ -86,17 +90,20 @@ const OrganizationProfileSectionComponent: FC<
     profile.lastSubmissionStatus !== SubmissionStatus.PENDING
   ) {
     actions.push({
-      label: "SOLICITAR ACREDITACIÓN",
+      label: `SOLICITAR ${VOCAB.inscription.noun.singular.toUpperCase()}`,
       icon: <StarOutline />,
       onClick: accreditationDialog.openDialog,
       disabled: false,
-      title: "Solicitar acreditación de la empresa",
+      title: `Solicitar ${VOCAB.inscription.noun.singular} de ${VOCAB.organization.article.singular}`,
     });
   }
 
   return (
     <>
-      <SectionCard title="Perfil empresa" actions={actions}>
+      <SectionCard
+        title={`Perfil ${VOCAB.organization.noun.singular}`}
+        actions={actions}
+      >
         <InfoCard title={profile.name}>
           <InfoRow
             label="Estado"
@@ -129,7 +136,7 @@ const OrganizationProfileSectionComponent: FC<
           />
           <InfoRow label="Sub-rubro" value={profile.subsector?.name ?? "-"} />
           <InfoRow
-            label="Tamaño de organización"
+            label={`Tamaño de ${VOCAB.organization.noun.singular}`}
             value={profile.countryOrganizationSize?.name ?? "-"}
           />
           <InfoRow

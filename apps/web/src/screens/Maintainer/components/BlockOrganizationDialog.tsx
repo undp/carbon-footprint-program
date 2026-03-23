@@ -7,6 +7,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "@repo/utils";
 
 interface BlockOrganizationDialogProps {
   open: boolean;
@@ -30,11 +32,15 @@ export const BlockOrganizationDialog: FC<BlockOrganizationDialogProps> = ({
       aria-labelledby="block-org-dialog-title"
       aria-describedby="block-org-dialog-description"
     >
-      <DialogTitle id="block-org-dialog-title">Bloquear empresa</DialogTitle>
+      <DialogTitle id="block-org-dialog-title">
+        Bloquear ${VOCAB.organization.article.singular}
+      </DialogTitle>
       <DialogContent>
         <DialogContentText id="block-org-dialog-description">
-          ¿Estás seguro de que deseas bloquear la empresa{" "}
-          <strong>{organizationName}</strong>? La empresa será bloqueada y no
+          ¿Estás seguro de que deseas bloquear $
+          {VOCAB.organization.article.singular}{" "}
+          <strong>{organizationName}</strong>? $
+          {capitalize(VOCAB.organization.article.singular)} será bloqueada y no
           podrá usar las funcionalidades del sistema.
         </DialogContentText>
       </DialogContent>

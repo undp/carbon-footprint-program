@@ -1,5 +1,6 @@
 import { ToPathOption } from "@tanstack/react-router";
 import { Routes } from "./routes.const";
+import { VOCAB } from "@/config/vocab";
 
 export const SidebarRoutes: Record<string, ToPathOption> = {
   HOME: Routes.HOME,
@@ -14,7 +15,7 @@ export type SidebarRoute = (typeof SidebarRoutes)[keyof typeof SidebarRoutes];
 
 export const SidebarRoutesTranslations: Record<SidebarRoute, string> = {
   [SidebarRoutes.HOME]: "Inicio",
-  [SidebarRoutes.MY_ORGANIZATION]: "Mi empresa",
+  [SidebarRoutes.MY_ORGANIZATION]: `Mi ${VOCAB.organization.noun.singular}`,
   [SidebarRoutes.CARBON_INVENTORIES]: "Huella organizacional",
   [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
   [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",

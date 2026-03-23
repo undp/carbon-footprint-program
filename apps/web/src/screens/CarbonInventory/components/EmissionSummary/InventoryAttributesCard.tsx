@@ -5,6 +5,7 @@ import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
 import { EmptyStateMessage } from "../EmptyStateMessage";
 import { formatQuantity } from "@/utils/formatting";
+import { VOCAB } from "@/config/vocab";
 
 interface InventoryAttributesCardProps {
   data: GetCarbonInventoryMetadataResponse | undefined;
@@ -54,7 +55,10 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
     >
       {/* Left column */}
       <Box className="flex flex-1 flex-col gap-1">
-        <AttributeRow label="Nombre empresa" value={data.organizationName} />
+        <AttributeRow
+          label={`Nombre ${VOCAB.organization.noun.singular}`}
+          value={data.organizationName}
+        />
         <AttributeRow label="País" value={data.country} />
         <AttributeRow label="Rubro" value={data.organizationSectorName} />
       </Box>

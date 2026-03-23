@@ -1,8 +1,16 @@
 import { FC } from "react";
-import { Box, Button, Card, Stack, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  capitalize,
+  Card,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { FileDownloadOutlined } from "@mui/icons-material";
 import { OrganizationScreenKpiSection } from "../components/OrganizationScreenKpiSection";
 import { OrganizationScreenTable } from "../components/OrganizationScreenTable";
+import { VOCAB } from "@/config/vocab";
 
 export const AdminOrganizationsScreen: FC = () => {
   return (
@@ -22,10 +30,11 @@ export const AdminOrganizationsScreen: FC = () => {
         >
           <Box>
             <Typography variant="h5" fontWeight={700}>
-              Empresas
+              {capitalize(VOCAB.organization.noun.plural)}
             </Typography>
             <Typography variant="body2" color="text.secondary">
-              Gestión de empresas registradas en el sistema
+              Gestión de {VOCAB.organization.noun.plural} registradas en el
+              sistema
             </Typography>
           </Box>
           <Stack direction="row" spacing={1}>

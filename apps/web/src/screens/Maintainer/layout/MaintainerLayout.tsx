@@ -18,6 +18,8 @@ import { Routes } from "@/interfaces/routes";
 import { Sidebar, UserMenu } from "@/components/layout/Sidebar";
 import type { SidebarDef } from "@/components/layout/Sidebar";
 import { APP_VERSION } from "@/config/environment";
+import { capitalize } from "@repo/utils";
+import { VOCAB } from "@/config/vocab";
 
 const SIDEBAR_DEFS: SidebarDef[] = [
   {
@@ -75,7 +77,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     ],
   },
   {
-    text: "Empresas",
+    text: capitalize(VOCAB.organization.noun.plural),
     icon: <BusinessOutlined />,
     path: Routes.ADMIN_ORGANIZATIONS,
   },

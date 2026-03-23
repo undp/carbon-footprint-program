@@ -10,6 +10,8 @@ import {
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
+import { capitalize } from "@repo/utils";
+import { VOCAB } from "@/config/vocab";
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];
 
@@ -30,7 +32,7 @@ export const useOrganizationColumns = ({
     () => [
       {
         field: "name",
-        headerName: "Empresa",
+        headerName: capitalize(VOCAB.organization.noun.singular),
 
         cellClassName,
         flex: 1,
@@ -129,17 +131,23 @@ export const useOrganizationColumns = ({
           return (
             <Stack direction="row" spacing={0.5} alignItems="center">
               {/* TODO: implement callback for this button */}
-              <IconButton size="small" aria-label="Ver empresa">
+              <IconButton
+                size="small"
+                aria-label={`Ver ${VOCAB.organization.noun.singular}`}
+              >
                 <VisibilityOutlined fontSize="small" />
               </IconButton>
               {/* TODO: implement callback for this button */}
-              <IconButton size="small" aria-label="Editar empresa">
+              <IconButton
+                size="small"
+                aria-label={`Editar ${VOCAB.organization.noun.singular}`}
+              >
                 <EditOutlined fontSize="small" />
               </IconButton>
               {isBlocked ? (
                 <IconButton
                   size="small"
-                  aria-label="Restaurar empresa"
+                  aria-label={`Restaurar ${VOCAB.organization.noun.singular}`}
                   onClick={() => onUnblock(params.row.id)}
                 >
                   <RestoreOutlined fontSize="small" />
@@ -147,7 +155,7 @@ export const useOrganizationColumns = ({
               ) : (
                 <IconButton
                   size="small"
-                  aria-label="Eliminar empresa"
+                  aria-label={`Eliminar ${VOCAB.organization.noun.singular}`}
                   onClick={() => onBlock(params.row.id)}
                 >
                   <DeleteOutlined fontSize="small" />

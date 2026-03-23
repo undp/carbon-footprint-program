@@ -10,6 +10,8 @@ import {
 import { useAdminOrganizationsKpis } from "@/api/query/organizations/useAdminOrganizationsKpis";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "@repo/utils";
 
 type OrganizationKpiKey =
   | "total"
@@ -25,10 +27,10 @@ const KPI_ORDER: OrganizationKpiKey[] = [
 ];
 
 const LABELS: Record<OrganizationKpiKey, string> = {
-  total: "Total Empresas",
+  total: `Total ${capitalize(VOCAB.organization.noun.plural)}`,
   withMeasurements: "con Mediciones",
   registered: "Registradas",
-  notAccredited: "No acreditadas",
+  notAccredited: `No ${capitalize(VOCAB.inscription.adjective.plural)}`,
 };
 
 const ICONS: Record<OrganizationKpiKey, SvgIconComponent> = {

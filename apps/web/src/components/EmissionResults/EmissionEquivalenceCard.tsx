@@ -4,6 +4,7 @@ import { useTheme } from "@mui/material/styles";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
+import { VOCAB } from "@/config/vocab";
 
 interface EmissionEquivalenceCardProps {
   value: string | null;
@@ -79,9 +80,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
       {!isLoading && !exists && !hasError && (
         <EmptyStateMessage
           color="primary"
-          message={
-            "Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu empresa"
-          }
+          message={`Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu ${VOCAB.organization.noun.singular}`}
         />
       )}
     </Box>
