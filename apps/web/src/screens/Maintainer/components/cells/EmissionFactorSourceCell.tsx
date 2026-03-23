@@ -50,7 +50,7 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
   }, [onChange]);
 
   useEffect(() => {
-    if (!isSourceLocked || lockedSource == null) {
+    if (!isSourceLocked || !lockedSource) {
       return;
     }
 
