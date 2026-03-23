@@ -156,7 +156,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
               <TableRow sx={{ bgcolor: "grey.100" }}>
                 <TableCell>
                   <Typography variant="body2" fontWeight={700}>
-                    Total tCO&#8322;e
+                    Total kgCO&#8322;e
                   </Typography>
                 </TableCell>
                 <TableCell>
