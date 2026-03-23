@@ -68,9 +68,7 @@ export const DimensionsMaintainerScreen: FC = () => {
   // --- Sync form with server data ---
   const toFormData = useCallback(
     (data: unknown[]) =>
-      flattenDimensions(
-        data as Parameters<typeof flattenDimensions>[0]
-      ),
+      flattenDimensions(data as Parameters<typeof flattenDimensions>[0]),
     []
   );
   useMaintainerFormSync({
@@ -88,7 +86,8 @@ export const DimensionsMaintainerScreen: FC = () => {
       if (!dimensionsData) return null;
       for (const subcat of dimensionsData) {
         for (const dim of subcat.dimensions) {
-          if (dim.id === id) return { ...dim, subcategoryId: subcat.subcategoryId };
+          if (dim.id === id)
+            return { ...dim, subcategoryId: subcat.subcategoryId };
         }
       }
       return null;
@@ -175,9 +174,7 @@ export const DimensionsMaintainerScreen: FC = () => {
       payload.isRequired = row.isRequired;
 
     const currentRealIds = new Set(
-      row.variables
-        .filter((v) => !v.id.startsWith("new_"))
-        .map((v) => v.id)
+      row.variables.filter((v) => !v.id.startsWith("new_")).map((v) => v.id)
     );
     const removedIds = original.values
       .filter((v) => !currentRealIds.has(v.id))
@@ -195,7 +192,11 @@ export const DimensionsMaintainerScreen: FC = () => {
       }
     }
 
-    if (removedIds.length > 0 || addedValues.length > 0 || renamedValues.length > 0) {
+    if (
+      removedIds.length > 0 ||
+      addedValues.length > 0 ||
+      renamedValues.length > 0
+    ) {
       payload.values = {};
       if (removedIds.length > 0) payload.values.remove = removedIds;
       if (addedValues.length > 0) payload.values.add = addedValues;
@@ -302,8 +303,7 @@ export const DimensionsMaintainerScreen: FC = () => {
     (rowIndex: number, subcategoryId: string) => {
       const rows = form.getValues("dimensions");
       const existingForSubcat = rows.filter(
-        (r) =>
-          r.subcategoryId === subcategoryId && !r.id.startsWith("temp_")
+        (r) => r.subcategoryId === subcategoryId && !r.id.startsWith("temp_")
       );
 
       if (existingForSubcat.length >= 2) {
@@ -524,9 +524,10 @@ export const DimensionsMaintainerScreen: FC = () => {
         <DimensionVariablesModal
           open={variablesModal.open}
           readOnly={scope.isViewOnly}
-          subcategoryHasEmissionFactors={!!variablesRow?.subcategoryHasEmissionFactors}
+          subcategoryHasEmissionFactors={
+            !!variablesRow?.subcategoryHasEmissionFactors
+          }
           dimensionName={variablesRow?.name ?? ""}
-          isRequired={variablesRow?.isRequired ?? false}
           variables={variablesRow?.variables ?? []}
           onSave={handleSaveVariables}
           onClose={() => setVariablesModal({ open: false, rowIndex: -1 })}

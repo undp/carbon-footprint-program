@@ -25,7 +25,6 @@ interface DimensionVariablesModalProps {
   readOnly?: boolean;
   subcategoryHasEmissionFactors?: boolean;
   dimensionName: string;
-  isRequired: boolean;
   variables: DimensionVariable[];
   onSave: (variables: DimensionVariable[]) => void;
   onClose: () => void;
