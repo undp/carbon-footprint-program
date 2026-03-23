@@ -106,7 +106,7 @@ describe("DELETE /api/emission-factors/:id - Integration Tests", () => {
       prisma,
       subcategory.id,
       rateUnitId,
-      { status: "DELETED" }
+      { status: EmissionFactorStatus.DELETED }
     );
 
     const response = await app.inject({
