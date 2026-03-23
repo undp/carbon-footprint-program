@@ -7,6 +7,7 @@ import {
   useTheme,
   darken,
   ChipProps,
+  Tooltip,
 } from "@mui/material";
 import {
   CarbonInventoryDisplayStatusEnum,
@@ -52,14 +53,35 @@ const STATUS_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]: "En revisión",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]: "Con observaciones",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]: "Rechazado",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]:
-    "Aprobado - Sello de medición",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: "Aprobado",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]: "En revisión",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]: "Con observaciones",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]: "Rechazado",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: "Aprobado",
+  [CarbonInventoryDisplayStatusEnum.DELETED]: "Eliminado",
+};
+
+//TODO: This is temporal solution until we implement the designs
+const TOOLTIP_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
+  [CarbonInventoryDisplayStatusEnum.DRAFT]: "En Borrador",
+  [CarbonInventoryDisplayStatusEnum.SELF_DECLARED]: "Huella autodeclarada",
+  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
+    "En revisión - Sello de medición",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]:
+    "Con observaciones - Sello de medición",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
+    "Rechazado - Sello de medición",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]:
+    "Aprobado - Sello de medición",
+  [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
+    "En revisión - Sello de verificación",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]:
+    "Con observaciones - Sello de verificación",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
+    "Rechazado - Sello de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]:
     "Aprobado - Sello de verificación",
-  [CarbonInventoryDisplayStatusEnum.DELETED]: "Eliminado",
+  [CarbonInventoryDisplayStatusEnum.DELETED]: "Huella eliminada",
 };
 
 interface CarbonInventoryStatusChipProps {
@@ -77,20 +99,22 @@ export const CarbonInventoryStatusChip: FC<CarbonInventoryStatusChipProps> = ({
   const fontWeight = size === "medium" ? "fontWeightMedium" : undefined;
 
   return (
-    <Chip
-      sx={{
-        padding: "6px 16px",
-        backgroundColor: alpha(getStatusColor(theme, status), 0.3),
-        color: darken(getStatusColor(theme, status), 0.5),
-        border: `1px solid ${alpha(getStatusColor(theme, status), 0.3)}`,
-        textTransform: "uppercase",
-      }}
-      label={
-        <Typography variant={variant} fontWeight={fontWeight}>
-          {STATUS_LABELS[status]}
-        </Typography>
-      }
-      size={size}
-    />
+    <Tooltip title={TOOLTIP_LABELS[status]}>
+      <Chip
+        sx={{
+          padding: "6px 16px",
+          backgroundColor: alpha(getStatusColor(theme, status), 0.3),
+          color: darken(getStatusColor(theme, status), 0.5),
+          border: `1px solid ${alpha(getStatusColor(theme, status), 0.3)}`,
+          textTransform: "uppercase",
+        }}
+        label={
+          <Typography variant={variant} fontWeight={fontWeight}>
+            {STATUS_LABELS[status]}
+          </Typography>
+        }
+        size={size}
+      />
+    </Tooltip>
   );
 };
