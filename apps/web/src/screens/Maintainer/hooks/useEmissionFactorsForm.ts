@@ -87,13 +87,16 @@ export const useEmissionFactorsForm = (
     (rowIndex: number, field: keyof EmissionFactorForm, value: unknown) => {
       const currentRow = form.getValues(`emissionFactors.${rowIndex}`);
       if (currentRow) {
-        const updatedRow = { ...structuredClone(currentRow), [field]: value };
+        const updatedRow = { ...currentRow, [field]: value };
 
         if (field === "subcategoryId") {
           updatedRow.dimensionValue1Name = null;
           updatedRow.dimensionValue2Name = null;
         }
 
+        // Keep the field-array row in sync for consumers that depend on
+        // useFieldArray's internal row state; the setValue calls below are
+        // still needed to mark fields dirty and trigger validation.
         fieldArray.update(rowIndex, updatedRow);
         form.setValue(`emissionFactors.${rowIndex}.${field}`, value as never, {
           shouldDirty: true,
