@@ -17,7 +17,7 @@ import {
 } from "@test/factories/emissionFactorFactory.js";
 import type { GetAllEmissionFactorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { EmissionFactorStatus, type PrismaClient } from "@repo/database";
 
 describe("GET /api/emission-factors/ - Integration Tests", () => {
   let app: FastifyInstance;
@@ -104,7 +104,7 @@ describe("GET /api/emission-factors/ - Integration Tests", () => {
 
     await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
       source: "Deleted EF Source",
-      status: "DELETED",
+      status: EmissionFactorStatus.DELETED,
     });
 
     const response = await app.inject({
