@@ -35,6 +35,18 @@ const EMPTY_GAS_DETAILS: EmissionFactorForm["gasDetails"] = {
   NF3: 0,
 };
 
+const gasDetailsEqual = (
+  left: EmissionFactorForm["gasDetails"],
+  right: EmissionFactorForm["gasDetails"]
+) =>
+  left.CO2_FOSSIL === right.CO2_FOSSIL &&
+  left.CH4 === right.CH4 &&
+  left.N2O === right.N2O &&
+  left.HFC === right.HFC &&
+  left.PFC === right.PFC &&
+  left.SF6 === right.SF6 &&
+  left.NF3 === right.NF3;
+
 export const EmissionFactorsMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
@@ -65,8 +77,14 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     const map: Record<
       string,
       {
-        dim1: { required: boolean; values: Array<{ id: string; value: string }> } | null;
-        dim2: { required: boolean; values: Array<{ id: string; value: string }> } | null;
+        dim1: {
+          required: boolean;
+          values: Array<{ id: string; value: string }>;
+        } | null;
+        dim2: {
+          required: boolean;
+          values: Array<{ id: string; value: string }>;
+        } | null;
       }
     > = {};
     for (const { subcategoryId, dimensions } of emissionFactorDimensions ??
@@ -74,19 +92,18 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       const dim1 = dimensions.find((d) => d.position === 1);
       const dim2 = dimensions.find((d) => d.position === 2);
       map[subcategoryId] = {
-        dim1: dim1
-          ? { required: dim1.isRequired, values: dim1.values }
-          : null,
-        dim2: dim2
-          ? { required: dim2.isRequired, values: dim2.values }
-          : null,
+        dim1: dim1 ? { required: dim1.isRequired, values: dim1.values } : null,
+        dim2: dim2 ? { required: dim2.isRequired, values: dim2.values } : null,
       };
     }
     return map;
   }, [emissionFactorDimensions]);
 
   const dimensionRequirements = useMemo(() => {
-    const result: Record<string, { var1Required: boolean; var2Required: boolean }> = {};
+    const result: Record<
+      string,
+      { var1Required: boolean; var2Required: boolean }
+    > = {};
     for (const subcategoryId of Object.keys(dimensionOptionsMap)) {
       const dims = dimensionOptionsMap[subcategoryId];
       result[subcategoryId] = {
@@ -226,7 +243,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       row.rateMeasurementUnitId !== original.rateMeasurementUnitId ||
       row.source !== original.source ||
       row.value !== original.value ||
-      JSON.stringify(row.gasDetails) !== JSON.stringify(original.gasDetails);
+      !gasDetailsEqual(row.gasDetails, original.gasDetails);
 
     try {
       if (hasRealChanges) {
@@ -413,10 +430,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         } catch (error) {
           handleCellChange(rowIndex, "gasDetails", previousGasDetails);
           void enqueueSnackbar({
-            message: getApiErrorMessage(
-              error,
-              "Error al guardar desglose GEI"
-            ),
+            message: getApiErrorMessage(error, "Error al guardar desglose GEI"),
             variant: "error",
           });
         }
