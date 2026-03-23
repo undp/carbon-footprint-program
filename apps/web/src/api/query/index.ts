@@ -3,6 +3,8 @@ export * from "./client";
 export * from "./countryOrganizationSizes";
 export * from "./countrySectors";
 export * from "./organizationMainActivities";
+export * from "./reductionProjects";
 export * from "./users";
 export * from "./measurementUnits";
 export * from "./organizations";
+export * from "./subcategories";

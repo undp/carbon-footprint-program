@@ -6,9 +6,13 @@ const {
   VITE_AZURE_API_CLIENT_ID,
   VITE_IS_DEMO_APP,
   VITE_APP_VERSION,
+  VITE_AUTH_BYPASS,
 } = import.meta.env;
 
 export const IS_DEVELOPMENT = import.meta.env.DEV;
+
+/** When true, skips Azure MSAL auth. Pair with API's forced-user provider for local dev. */
+export const AUTH_BYPASS = VITE_AUTH_BYPASS === "true";
 
 export const IS_DEMO = VITE_IS_DEMO_APP === "true";
 

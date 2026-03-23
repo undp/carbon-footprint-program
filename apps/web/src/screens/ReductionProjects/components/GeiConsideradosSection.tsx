@@ -27,10 +27,12 @@ const GREENHOUSE_GASES: {
 
 type GeiConsideradosSectionProps = {
   control: Control<AddReductionProjectFormData>;
+  disabled?: boolean;
 };
 
 export const GeiConsideradosSection: FC<GeiConsideradosSectionProps> = ({
   control,
+  disabled = false,
 }) => {
   return (
     <Box className="flex flex-col gap-4">
@@ -112,6 +114,7 @@ export const GeiConsideradosSection: FC<GeiConsideradosSectionProps> = ({
                     render={({ field }) => (
                       <Checkbox
                         checked={field.value.includes(gas.value)}
+                        disabled={disabled}
                         onChange={(e) => {
                           const newValue = e.target.checked
                             ? [...field.value, gas.value]

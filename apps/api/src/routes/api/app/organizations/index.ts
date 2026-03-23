@@ -8,6 +8,7 @@ import { getOrganizationByIdRoute } from "@/features/organizations/app/getOrgani
 import { createOrganizationRoute } from "@/features/organizations/app/createOrganization/route.js";
 import { updateOrganizationRoute } from "@/features/organizations/app/updateOrganization/route.js";
 import { requestOrganizationAccreditationRoute } from "@/features/organizations/app/requestOrganizationAccreditation/route.js";
+import { getValidFootprintYearsRoute } from "@/features/organizations/app/getValidFootprintYears/route.js";
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
@@ -22,6 +23,7 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
 
   // ADMIN, CONTRIBUTOR, VIEWER
   getOrganizationByIdRoute(fastify);
+  getValidFootprintYearsRoute(fastify);
 
   // AUTHENTICATED (No organization role required)
   getMyOrganizationsRoute(fastify);

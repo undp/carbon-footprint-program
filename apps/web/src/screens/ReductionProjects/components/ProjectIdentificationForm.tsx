@@ -7,20 +7,20 @@ import { AddReductionProjectFormData, SelectOption } from "../types";
 
 type ProjectIdentificationFormProps = {
   control: Control<AddReductionProjectFormData>;
-  branches: SelectOption[];
   subcategories: SelectOption[];
   pcgOptions: SelectOption[];
+  disabled?: boolean;
 };
 
 export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
   control,
-  branches,
   subcategories,
   pcgOptions,
+  disabled = false,
 }) => {
   return (
     <Box className="flex flex-col gap-10">
-      {/* Row 1: Project Name and Branch */}
+      {/* Row 1: Project Name */}
       <Box className="flex flex-col gap-6 md:flex-row">
         <FormTextField
           name="projectName"
@@ -28,14 +28,8 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
           label="Nombre del proyecto"
           placeholder="Ingresa el nombre del proyecto"
           required
+          disabled={disabled}
           inputProps={{ maxLength: 200 }}
-        />
-        <FormSelectField
-          name="branch"
-          control={control}
-          label="Sede/sucursal/establecimiento"
-          options={branches}
-          required
         />
       </Box>
 
@@ -57,6 +51,7 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
             type="date"
             InputLabelProps={{ shrink: true }}
             required
+            disabled={disabled}
           />
           <FormSelectField
             name="emissionSubcategory"
@@ -64,6 +59,7 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
             label="Subcategoría de fuente de emisión"
             options={subcategories}
             required
+            disabled={disabled}
           />
         </Box>
         <FormTextField
@@ -74,6 +70,7 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
           multiline
           rows={6}
           required
+          disabled={disabled}
           inputProps={{ maxLength: 1000 }}
           sx={{
             "& .MuiInputBase-root": {
@@ -100,6 +97,7 @@ export const ProjectIdentificationForm: FC<ProjectIdentificationFormProps> = ({
             label="Potencial de calentamiento global (PCG) utilizado"
             options={pcgOptions}
             required
+            disabled={disabled}
           />
           <Box
             sx={{

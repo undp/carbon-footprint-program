@@ -16,3 +16,5 @@ export * from "./updateOrganizationUserRole/schemas.js";
 export * from "./updateOrganizationUserRole/types.js";
 export * from "./removeOrganizationUser/schemas.js";
 export * from "./removeOrganizationUser/types.js";
+export * from "./getValidFootprintYears/schemas.js";
+export * from "./getValidFootprintYears/types.js";

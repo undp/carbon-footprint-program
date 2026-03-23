@@ -251,6 +251,14 @@ model User {
   membershipsCreated                   UserOrganizationMembership[]   @relation("membership_created_by")
   membershipsUpdated                   UserOrganizationMembership[]   @relation("membership_updated_by")
   filesUploaded                        File[]                         @relation("file_created_by")
+  organizationBranchesCreated          OrganizationBranch[]           @relation("organization_branch_created_by")
+  organizationBranchesUpdated          OrganizationBranch[]           @relation("organization_branch_updated_by")
+  reductionProjectsCreated             ReductionProject[]             @relation("reduction_project_created_by")
+  reductionProjectsUpdated             ReductionProject[]             @relation("reduction_project_updated_by")
+  reductionProjectFilesCreated         ReductionProjectFile[]         @relation("reduction_project_file_created_by")
+  reductionProjectFilesUpdated         ReductionProjectFile[]         @relation("reduction_project_file_updated_by")
+  reductionProjectReportsCreated       ReductionProjectReport[]       @relation("reduction_project_report_created_by")
+  reductionProjectReportsUpdated       ReductionProjectReport[]       @relation("reduction_project_report_updated_by")
 
   @@map("user")
 }
@@ -386,6 +394,7 @@ model Subcategory {
   emissionFactors             EmissionFactor[]
   inventoryLines              CarbonInventoryLine[]
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
+  reductionProjects           ReductionProject[]
 
   @@unique([categoryId, name])
   @@map("subcategory")
@@ -700,6 +709,8 @@ model Organization {
   carbonInventories CarbonInventory[]
   memberships       UserOrganizationMembership[]
   summary           OrganizationSummaryView?
+  branches          OrganizationBranch[]
+  reductionProjects ReductionProject[]
 
   @@map("organization")
 }
@@ -757,6 +768,14 @@ enum SubmissionFileType {
   @@map("submission_file_type")
 }
 
+enum SubmissionSubjectType {
+  CARBON_INVENTORY
+  ORGANIZATION_DATA
+  REDUCTION_PROJECT
+
+  @@map("submission_subject_type")
+}
+
 enum FileStatus {
   ACTIVE
   DELETED
@@ -796,6 +815,35 @@ model SubmissionFile {
   @@map("submission_file")
 }
 
+enum GreenhouseGas {
+  CO2
+  CH4
+  HIDROFLUOROCARBONADOS
+  PERFLUOROCARBONADOS
+  SF6
+  NF3
+
+  @@map("greenhouse_gas")
+}
+
+enum ReductionProjectStatus {
+  DRAFT
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  OBJECTED
+
+  @@map("reduction_project_status")
+}
+
+enum ReductionProjectFileType {
+  REDUCTION_REPORT
+  VERIFICATION_REPORT
+  SELF_DECLARATION
+
+  @@map("reduction_project_file_type")
+}
+
 model SubmissionSubject {
   id               BigInt                             @id @default(autoincrement())
   createdAt        DateTime                           @default(now()) @map("created_at")
@@ -804,6 +852,7 @@ model SubmissionSubject {
   submissions      Submission[]
   carbonInventory  SubmissionSubjectCarbonInventory?
   organizationData SubmissionSubjectOrganizationData?
+  reductionProject SubmissionSubjectReductionProject?
 
   @@map("submission_subject")
 }
@@ -914,4 +963,102 @@ model Badge {
   // Enforced by partial unique index in migration:
   // UNIQUE (type) WHERE status = 'ACTIVE'
   @@map("badge")
+}
+
+model SubmissionSubjectReductionProject {
+  subjectId          BigInt            @id @map("subject_id")
+  reductionProjectId BigInt            @unique @map("reduction_project_id")
+  subject            SubmissionSubject @relation(fields: [subjectId], references: [id])
+  reductionProject   ReductionProject  @relation(fields: [reductionProjectId], references: [id])
+
+  @@map("submission_subject_reduction_project")
+}
+
+model OrganizationBranch {
+  id             BigInt    @id @default(autoincrement())
+  organizationId BigInt    @map("organization_id")
+  name           String
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime? @updatedAt @map("updated_at")
+  createdById    BigInt?   @map("created_by_id")
+  updatedById    BigInt?   @map("updated_by_id")
+
+  organization      Organization       @relation(fields: [organizationId], references: [id])
+  creator           User?              @relation("organization_branch_created_by", fields: [createdById], references: [id])
+  updater           User?              @relation("organization_branch_updated_by", fields: [updatedById], references: [id])
+  reductionProjects ReductionProject[]
+
+  @@unique([organizationId, name])
+  @@map("organization_branch")
+}
+
+model ReductionProject {
+  id                          BigInt                  @id @default(autoincrement())
+  organizationId              BigInt                  @map("organization_id")
+  organizationBranchId        BigInt?                 @map("organization_branch_id")
+  name                        String
+  description                 String?
+  implementationDate          DateTime?               @map("implementation_date") @db.Date
+  subcategoryId               BigInt?                 @map("subcategory_id")
+  pcg                         String?
+  usePcgNationalInventory     Boolean                 @default(false) @map("use_pcg_national_inventory")
+  selectedGases               GreenhouseGas[]         @map("selected_gases")
+  reportedInOtherInitiative   Boolean                 @default(false) @map("reported_in_other_initiative")
+  otherInitiativeDescription  String?                 @map("other_initiative_description")
+  status                      ReductionProjectStatus  @default(DRAFT)
+  createdAt                   DateTime                @default(now()) @map("created_at")
+  updatedAt                   DateTime?               @updatedAt @map("updated_at")
+  createdById                 BigInt?                 @map("created_by_id")
+  updatedById                 BigInt?                 @map("updated_by_id")
+
+  organization       Organization                       @relation(fields: [organizationId], references: [id])
+  organizationBranch OrganizationBranch?                @relation(fields: [organizationBranchId], references: [id])
+  subcategory        Subcategory?                       @relation(fields: [subcategoryId], references: [id])
+  creator            User?                              @relation("reduction_project_created_by", fields: [createdById], references: [id])
+  updater            User?                              @relation("reduction_project_updated_by", fields: [updatedById], references: [id])
+  files              ReductionProjectFile[]
+  reports            ReductionProjectReport[]
+  submission         SubmissionSubjectReductionProject?
+
+  @@map("reduction_project")
+}
+
+model ReductionProjectFile {
+  id                 BigInt                    @id @default(autoincrement())
+  reductionProjectId BigInt                    @map("reduction_project_id")
+  fileType           ReductionProjectFileType  @map("file_type")
+  fileName           String                    @map("file_name")
+  fileUrl            String                    @map("file_url")
+  fileSizeBytes      Int?                      @map("file_size_bytes")
+  mimeType           String?                   @map("mime_type")
+  createdAt          DateTime                  @default(now()) @map("created_at")
+  updatedAt          DateTime?                 @updatedAt @map("updated_at")
+  createdById        BigInt?                   @map("created_by_id")
+  updatedById        BigInt?                   @map("updated_by_id")
+
+  reductionProject ReductionProject @relation(fields: [reductionProjectId], references: [id], onDelete: Cascade)
+  creator          User?            @relation("reduction_project_file_created_by", fields: [createdById], references: [id])
+  updater          User?            @relation("reduction_project_file_updated_by", fields: [updatedById], references: [id])
+
+  @@map("reduction_project_file")
+}
+
+model ReductionProjectReport {
+  id                 BigInt    @id @default(autoincrement())
+  reductionProjectId BigInt    @map("reduction_project_id")
+  reductionYear      Int       @map("reduction_year")
+  baselineValue      Decimal   @map("baseline_value") @db.Decimal(28, 10)
+  projectValue       Decimal   @map("project_value") @db.Decimal(28, 10)
+  reductionValue     Decimal   @map("reduction_value") @db.Decimal(28, 10)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime? @updatedAt @map("updated_at")
+  createdById        BigInt?   @map("created_by_id")
+  updatedById        BigInt?   @map("updated_by_id")
+
+  reductionProject ReductionProject @relation(fields: [reductionProjectId], references: [id], onDelete: Cascade)
+  creator          User?            @relation("reduction_project_report_created_by", fields: [createdById], references: [id])
+  updater          User?            @relation("reduction_project_report_updated_by", fields: [updatedById], references: [id])
+
+  @@unique([reductionProjectId, reductionYear])
+  @@map("reduction_project_report")
 }

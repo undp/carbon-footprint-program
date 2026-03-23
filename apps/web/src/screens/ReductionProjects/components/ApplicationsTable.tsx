@@ -12,16 +12,16 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Download } from "@mui/icons-material";
-import { SealApplication, SealApplicationStatus } from "../types";
+import type { ReductionProjectSummary, ReductionProjectStatus } from "../types";
 import { headerCellSx, bodyCellSx, tableContainerSx } from "./tableStyles";
 
 type ApplicationsTableProps = {
-  applications: SealApplication[];
-  onDownload?: (application: SealApplication) => void;
+  applications: ReductionProjectSummary[];
+  onDownload?: (application: ReductionProjectSummary) => void;
 };
 
 const getStatusConfig = (
-  status: SealApplicationStatus
+  status: ReductionProjectStatus
 ): { label: string; bgColor: string; textColor: string } => {
   switch (status) {
     case "APPROVED":
@@ -30,11 +30,11 @@ const getStatusConfig = (
         bgColor: "rgba(130, 199, 132, 0.3)",
         textColor: "#345035",
       };
-    case "PENDING":
+    case "DRAFT":
       return {
-        label: "PENDIENTE",
-        bgColor: "rgba(255, 183, 77, 0.3)",
-        textColor: "#66491F",
+        label: "BORRADOR",
+        bgColor: "rgba(189, 189, 189, 0.3)",
+        textColor: "#424242",
       };
     case "IN_REVIEW":
       return {
@@ -48,12 +48,15 @@ const getStatusConfig = (
         bgColor: "rgba(211, 47, 47, 0.3)",
         textColor: "#8B0000",
       };
-    default: {
-      const _exhaustive: never = status;
-      throw new Error(`Unhandled status: ${_exhaustive}`);
-    }
   }
 };
+
+const formatDate = (isoDate: string): string =>
+  new Date(isoDate).toLocaleDateString("es-CL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
 
 export const ApplicationsTable: FC<ApplicationsTableProps> = ({
   applications,
@@ -64,11 +67,15 @@ export const ApplicationsTable: FC<ApplicationsTableProps> = ({
       <Table size="small">
         <TableHead>
           <TableRow>
-            <TableCell sx={headerCellSx}>Año de reducción</TableCell>
-            <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
-              Fecha
+            <TableCell sx={{ ...headerCellSx, width: "35%" }}>
+              Nombre Proyecto
             </TableCell>
-            <TableCell sx={headerCellSx}>Sello</TableCell>
+            <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
+              Año Reducción
+            </TableCell>
+            <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
+              Fecha Creación
+            </TableCell>
             <TableCell sx={{ ...headerCellSx, textAlign: "center" }}>
               Estado
             </TableCell>
@@ -82,13 +89,15 @@ export const ApplicationsTable: FC<ApplicationsTableProps> = ({
             const statusConfig = getStatusConfig(application.status);
             return (
               <TableRow key={application.id}>
+                <TableCell sx={bodyCellSx}>{application.name}</TableCell>
                 <TableCell sx={{ ...bodyCellSx, textAlign: "center" }}>
-                  {application.reductionYear}
+                  {application.reportYears.length > 0
+                    ? application.reportYears.join(", ")
+                    : "-"}
                 </TableCell>
                 <TableCell sx={{ ...bodyCellSx, textAlign: "center" }}>
-                  {application.applicationDate}
+                  {formatDate(application.createdAt)}
                 </TableCell>
-                <TableCell sx={bodyCellSx}>{application.sealName}</TableCell>
                 <TableCell sx={{ ...bodyCellSx, textAlign: "center" }}>
                   <Chip
                     label={statusConfig.label}

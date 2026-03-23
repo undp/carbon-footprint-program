@@ -57,6 +57,7 @@ export const PageHeader: FC<PageHeaderProps> = ({
             label="Año"
             onChange={handleYearChange}
           >
+            <MenuItem value="all">Todos</MenuItem>
             {years.map((year) => (
               <MenuItem key={year} value={year}>
                 {year}
@@ -66,12 +67,12 @@ export const PageHeader: FC<PageHeaderProps> = ({
         </FormControl>
 
         <FormControl size="small" sx={{ minWidth: 300 }}>
-          <InputLabel id="branch-select-label">Sede/sucursal</InputLabel>
+          <InputLabel id="branch-select-label">Organización</InputLabel>
           <Select
             labelId="branch-select-label"
             id="branch-select"
             value={selectedBranch}
-            label="Sede/sucursal"
+            label="Organización"
             onChange={handleBranchChange}
           >
             {branches.map((branch) => (

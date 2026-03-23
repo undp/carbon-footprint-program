@@ -1,14 +1,49 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@/test/render";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AddReductionProjectScreen } from "./AddReductionProjectScreen";
 
 vi.mock("@tanstack/react-router", () => ({
   useNavigate: () => vi.fn(),
+  useSearch: () => ({ orgId: undefined, projectId: undefined }),
+  createFileRoute: () => () => ({}),
 }));
+
+vi.mock("@/api/query", () => ({
+  useCreateReductionProject: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useUpdateReductionProject: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useReductionProject: () => ({ data: undefined }),
+  useAddReductionProjectReport: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useSubmitReductionProject: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useOrganizations: () => ({ data: [] }),
+  useOrganization: () => ({ data: undefined }),
+  useSubcategories: () => ({ data: [] }),
+}));
+
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { retry: false } },
+});
+
+const renderWithQuery = (ui: React.ReactElement) =>
+  render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
 
 describe("AddReductionProjectScreen", () => {
   it("renders the page title", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     expect(
       screen.getByText("Postulación Sello Reducción")
@@ -16,13 +51,13 @@ describe("AddReductionProjectScreen", () => {
   });
 
   it("renders the Volver button", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     expect(screen.getByText("Volver")).toBeInTheDocument();
   });
 
   it("renders the section title with info button", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     expect(
       screen.getByText("Identificación de proyecto de Reducción")
@@ -30,29 +65,22 @@ describe("AddReductionProjectScreen", () => {
   });
 
   it("renders two Guardar Borrador buttons", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     const draftButtons = screen.getAllByText(/guardar borrador/i);
     expect(draftButtons).toHaveLength(2);
   });
 
   it("renders the Postular Sello Reducción submit button", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     expect(
       screen.getByText("Postular Sello Reducción")
     ).toBeInTheDocument();
   });
 
-  it("renders organization info section", () => {
-    render(<AddReductionProjectScreen />);
-
-    expect(screen.getByText("CEMENTERA DEL VALLE")).toBeInTheDocument();
-    expect(screen.getByText("76.458.320-1")).toBeInTheDocument();
-  });
-
   it("renders all form sections", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     // Project identification fields
     expect(screen.getByText("Nombre del proyecto")).toBeInTheDocument();
@@ -77,7 +105,7 @@ describe("AddReductionProjectScreen", () => {
   });
 
   it("displays calculated reduction as 0.00 initially", () => {
-    render(<AddReductionProjectScreen />);
+    renderWithQuery(<AddReductionProjectScreen />);
 
     expect(screen.getByDisplayValue("0.00")).toBeInTheDocument();
   });

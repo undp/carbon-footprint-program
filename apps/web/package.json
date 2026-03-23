@@ -48,6 +48,7 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.66.1",
     "tailwindcss": "^4.1.17",
+    "xlsx": "^0.18.5",
     "zod": "catalog:shared",
     "zustand": "^5.0.8"
   },

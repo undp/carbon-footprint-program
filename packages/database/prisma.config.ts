@@ -8,6 +8,8 @@ export default defineConfig({
     seed: "tsx src/prisma/seeds/seed.ts",
   },
   datasource: {
-    url: DATABASE_URL,
+    // Fallback allows `prisma generate` (client codegen) to run without a live DB.
+    // Actual connections require DATABASE_URL to be set at runtime.
+    url: DATABASE_URL || "postgresql://localhost:5432/placeholder",
   },
 });

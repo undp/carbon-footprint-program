@@ -34,7 +34,7 @@ export function useInitializeUser({
 
   useEffect(() => {
     // Clear user data if not authenticated
-    if (!isAuthenticated || !account) {
+    if (!isAuthenticated) {
       clear();
       return;
     }

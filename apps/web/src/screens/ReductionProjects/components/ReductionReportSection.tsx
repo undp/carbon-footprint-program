@@ -12,6 +12,7 @@ type ReductionReportSectionProps = {
   watch: UseFormWatch<AddReductionProjectFormData>;
   years: SelectOption[];
   calculatedReduction: number;
+  disabled?: boolean;
 };
 
 const inputFields: {
@@ -39,6 +40,7 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
   watch,
   years,
   calculatedReduction,
+  disabled = false,
 }) => {
   const projectName = watch("projectName");
   const displayName = projectName?.trim() || "[Nombre Proyecto]";
@@ -102,7 +104,9 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
                 control={control}
                 label="Año"
                 options={years}
+                required
                 size="small"
+                disabled={disabled}
               />
             </Box>
           </Box>
@@ -143,6 +147,7 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
                   minMessage="El valor no puede ser negativo"
                   size="small"
                   sx={{ maxWidth: 220 }}
+                  disabled={disabled}
                 />
               </Box>
             </Box>
@@ -177,7 +182,13 @@ export const ReductionReportSection: FC<ReductionReportSectionProps> = ({
                 label="tCO₂e"
                 size="small"
                 disabled
-                sx={{ maxWidth: 220 }}
+                sx={{
+                  maxWidth: 220,
+                  "& .MuiInputBase-input.Mui-disabled": {
+                    WebkitTextFillColor: "#414046",
+                    fontWeight: 700,
+                  },
+                }}
               />
             </Box>
           </Box>

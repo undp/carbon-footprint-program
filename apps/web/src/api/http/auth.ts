@@ -1,11 +1,14 @@
 import { msalInstance } from "@/auth/initializeMsal";
 import { apiTokenRequest } from "@/config/msalConfig";
+import { AUTH_BYPASS } from "@/config/environment";
 
 /**
  * Gets the current access token from MSAL
  * Automatically handles token refresh if needed
  */
 export async function getAuthToken(): Promise<string | null> {
+  if (AUTH_BYPASS) return null;
+
   const account = msalInstance.getActiveAccount();
 
   if (!account) {

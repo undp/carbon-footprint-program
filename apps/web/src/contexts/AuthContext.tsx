@@ -13,6 +13,7 @@ import type { GetMeResponse } from "@repo/types";
 import { RefetchOptions, QueryObserverResult } from "@tanstack/react-query";
 import { useInitializeUser } from "../hooks/useInitializeUser";
 import { enqueueSnackbar } from "notistack";
+import { AUTH_BYPASS } from "@/config/environment";
 
 export interface AuthContextType {
   isAuthenticated: boolean;
@@ -33,10 +34,11 @@ export const AuthContext = createContext<AuthContextType | undefined>(
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { instance, accounts, inProgress } = useMsal();
-  const isAuthenticated = useIsAuthenticated();
-  const [isLoading, setIsLoading] = useState(true);
+  const msalIsAuthenticated = useIsAuthenticated();
+  const [isLoading, setIsLoading] = useState(!AUTH_BYPASS);
 
-  const account: AccountInfo | null = accounts[0] || null;
+  const isAuthenticated = AUTH_BYPASS ? true : msalIsAuthenticated;
+  const account: AccountInfo | null = AUTH_BYPASS ? null : (accounts[0] || null);
 
   const { user, refetchUser } = useInitializeUser({
     isAuthenticated,
@@ -44,6 +46,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
+    if (AUTH_BYPASS) return;
     // Set loading to false once MSAL finishes initialization
     if (inProgress === "none") {
       setIsLoading(false);
@@ -54,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Sign in with popup (recommended for SPA)
    */
   const signInPopup = useCallback(async () => {
+    if (AUTH_BYPASS) return;
     try {
       setIsLoading(true);
       const response = await instance.loginPopup(loginRequest);
@@ -73,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Sign in with redirect (alternative)
    */
   const signInRedirect = useCallback(async () => {
+    if (AUTH_BYPASS) return;
     try {
       await instance.loginRedirect(loginRequest);
     } catch (error) {
@@ -88,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * Sign out
    */
   const signOut = useCallback(async () => {
+    if (AUTH_BYPASS) return;
     try {
       setIsLoading(true);
       await instance.logoutRedirect({

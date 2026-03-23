@@ -1,24 +1,34 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@/test/render";
 import { ProjectsTable } from "./ProjectsTable";
-import { ReductionProject } from "../types";
+import type { ReductionProjectSummary } from "../types";
 
-const mockProjects: ReductionProject[] = [
+const mockProjects: ReductionProjectSummary[] = [
   {
     id: "1",
+    organizationId: "1",
+    organizationBranchId: null,
     name: "Sustitucion parcial de clinker",
-    implementationDate: "05-10-2025",
-    firstReportDate: "09-10-2025",
-    reductionTCO2e: 12500,
-    yearsReported: 1,
+    usePcgNationalInventory: false,
+    status: "DRAFT",
+    createdAt: "2025-10-05T00:00:00.000Z",
+    updatedAt: "2025-10-05T00:00:00.000Z",
+    firstReportDate: "2025-10-09T00:00:00.000Z",
+    reportYears: [2025],
+    totalReduction: 50.5,
   },
   {
     id: "2",
+    organizationId: "1",
+    organizationBranchId: null,
     name: "Cambio a combustibles alternativos",
-    implementationDate: "01-06-2024",
-    firstReportDate: "15-06-2024",
-    reductionTCO2e: 8300,
-    yearsReported: 2,
+    usePcgNationalInventory: false,
+    status: "APPROVED",
+    createdAt: "2024-06-01T00:00:00.000Z",
+    updatedAt: "2024-06-15T00:00:00.000Z",
+    firstReportDate: "2024-06-15T00:00:00.000Z",
+    reportYears: [2024],
+    totalReduction: 200,
   },
 ];
 
@@ -27,9 +37,9 @@ describe("ProjectsTable", () => {
     render(<ProjectsTable projects={[]} />);
 
     expect(screen.getByText("Nombre Proyecto")).toBeInTheDocument();
-    expect(screen.getByText("Implementación")).toBeInTheDocument();
+    expect(screen.getByText("Año Reducción")).toBeInTheDocument();
     expect(screen.getByText("Primer Reporte")).toBeInTheDocument();
-    expect(screen.getByText("Años reportados")).toBeInTheDocument();
+    expect(screen.getByText("Estado")).toBeInTheDocument();
     expect(screen.getByText("Acciones")).toBeInTheDocument();
   });
 
@@ -39,8 +49,6 @@ describe("ProjectsTable", () => {
     expect(
       screen.getByText("Sustitucion parcial de clinker")
     ).toBeInTheDocument();
-    expect(screen.getByText("05-10-2025")).toBeInTheDocument();
-    expect(screen.getByText("09-10-2025")).toBeInTheDocument();
 
     expect(
       screen.getByText("Cambio a combustibles alternativos")
@@ -78,9 +86,10 @@ describe("ProjectsTable", () => {
   it("renders without callbacks (optional props)", () => {
     render(<ProjectsTable projects={mockProjects} />);
 
+    // Only DRAFT projects have the "Editar proyecto" tooltip; non-DRAFT are disabled
     expect(
       screen.getAllByRole("button", { name: /editar proyecto/i })
-    ).toHaveLength(2);
+    ).toHaveLength(1);
     expect(
       screen.getAllByRole("button", { name: /descargar/i })
     ).toHaveLength(2);

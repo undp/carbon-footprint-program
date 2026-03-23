@@ -1,22 +1,34 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@/test/render";
 import { ApplicationsTable } from "./ApplicationsTable";
-import { SealApplication, SealApplicationStatus } from "../types";
+import type { ReductionProjectSummary, ReductionProjectStatus } from "../types";
 
-const mockApplications: SealApplication[] = [
+const mockApplications: ReductionProjectSummary[] = [
   {
     id: "1",
-    reductionYear: 2023,
-    applicationDate: "10/10/2024",
-    sealName: "Sello Huella Latam Reduccion",
+    organizationId: "1",
+    organizationBranchId: null,
+    name: "Proyecto Solar",
+    usePcgNationalInventory: false,
     status: "APPROVED",
+    createdAt: "2024-10-10T00:00:00.000Z",
+    updatedAt: null,
+    firstReportDate: "2024-10-10T00:00:00.000Z",
+    reportYears: [2023],
+    totalReduction: 100,
   },
   {
     id: "2",
-    reductionYear: 2022,
-    applicationDate: "05/05/2023",
-    sealName: "Sello Reduccion",
-    status: "PENDING",
+    organizationId: "1",
+    organizationBranchId: null,
+    name: "Proyecto Eólico",
+    usePcgNationalInventory: false,
+    status: "IN_REVIEW",
+    createdAt: "2023-05-05T00:00:00.000Z",
+    updatedAt: null,
+    firstReportDate: null,
+    reportYears: [2022],
+    totalReduction: 0,
   },
 ];
 
@@ -24,9 +36,9 @@ describe("ApplicationsTable", () => {
   it("renders table headers", () => {
     render(<ApplicationsTable applications={[]} />);
 
-    expect(screen.getByText("Año de reducción")).toBeInTheDocument();
-    expect(screen.getByText("Fecha")).toBeInTheDocument();
-    expect(screen.getByText("Sello")).toBeInTheDocument();
+    expect(screen.getByText("Nombre Proyecto")).toBeInTheDocument();
+    expect(screen.getByText("Año Reducción")).toBeInTheDocument();
+    expect(screen.getByText("Fecha Creación")).toBeInTheDocument();
     expect(screen.getByText("Estado")).toBeInTheDocument();
     expect(screen.getByText("Acciones")).toBeInTheDocument();
   });
@@ -35,38 +47,41 @@ describe("ApplicationsTable", () => {
     render(<ApplicationsTable applications={mockApplications} />);
 
     expect(screen.getByText("2023")).toBeInTheDocument();
-    expect(screen.getByText("10/10/2024")).toBeInTheDocument();
-    expect(
-      screen.getByText("Sello Huella Latam Reduccion")
-    ).toBeInTheDocument();
+    expect(screen.getByText("Proyecto Solar")).toBeInTheDocument();
     expect(screen.getByText("APROBADO")).toBeInTheDocument();
 
     expect(screen.getByText("2022")).toBeInTheDocument();
-    expect(screen.getByText("PENDIENTE")).toBeInTheDocument();
+    expect(screen.getByText("EN REVISIÓN")).toBeInTheDocument();
   });
 
   it("renders correct status chips for each status", () => {
-    const allStatuses: SealApplicationStatus[] = [
+    const allStatuses: ReductionProjectStatus[] = [
       "APPROVED",
-      "PENDING",
+      "DRAFT",
       "IN_REVIEW",
       "REJECTED",
     ];
 
-    const applications: SealApplication[] = allStatuses.map(
+    const applications: ReductionProjectSummary[] = allStatuses.map(
       (status, index) => ({
         id: String(index),
-        reductionYear: 2023,
-        applicationDate: "01/01/2024",
-        sealName: `Sello ${index}`,
+        organizationId: "1",
+        organizationBranchId: null,
+        name: `Proyecto ${index}`,
+        usePcgNationalInventory: false,
         status,
+        createdAt: "2024-01-01T00:00:00.000Z",
+        updatedAt: null,
+        firstReportDate: null,
+        reportYears: [2023],
+        totalReduction: 0,
       })
     );
 
     render(<ApplicationsTable applications={applications} />);
 
     expect(screen.getByText("APROBADO")).toBeInTheDocument();
-    expect(screen.getByText("PENDIENTE")).toBeInTheDocument();
+    expect(screen.getByText("BORRADOR")).toBeInTheDocument();
     expect(screen.getByText("EN REVISIÓN")).toBeInTheDocument();
     expect(screen.getByText("RECHAZADO")).toBeInTheDocument();
   });
@@ -100,8 +115,7 @@ describe("ApplicationsTable", () => {
   it("renders empty table when no applications provided", () => {
     render(<ApplicationsTable applications={[]} />);
 
-    expect(screen.getByText("Año de reducción")).toBeInTheDocument();
-    // No data rows
+    expect(screen.getByText("Año Reducción")).toBeInTheDocument();
     expect(screen.queryByText("2023")).not.toBeInTheDocument();
   });
 });

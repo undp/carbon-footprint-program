@@ -1,25 +1,10 @@
-export type ReductionProject = {
-  id: string;
-  name: string;
-  implementationDate: string;
-  firstReportDate: string;
-  reductionTCO2e: number;
-  yearsReported: number;
-};
-
-export type SealApplication = {
-  id: string;
-  reductionYear: number;
-  applicationDate: string;
-  sealName: string;
-  status: SealApplicationStatus;
-};
-
-export type SealApplicationStatus =
-  | "PENDING"
-  | "IN_REVIEW"
-  | "APPROVED"
-  | "REJECTED";
+export type {
+  ReductionProjectSummary,
+  GetAllReductionProjectsResponse,
+  SealApplication as ApiSealApplication,
+  GetAllSealApplicationsResponse,
+  ReductionProjectStatus,
+} from "@repo/types";
 
 export type Branch = {
   id: string;
@@ -56,6 +41,6 @@ export type AddReductionProjectFormData = {
   reportedInOtherInitiative: boolean;
   otherInitiativeDescription: string;
   reductionYear: string;
-  baselineValue: number;
-  projectValue: number;
+  baselineValue: number | "";
+  projectValue: number | "";
 };

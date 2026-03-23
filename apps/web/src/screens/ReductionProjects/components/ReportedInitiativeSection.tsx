@@ -6,10 +6,12 @@ import { AddReductionProjectFormData } from "../types";
 
 type ReportedInitiativeSectionProps = {
   control: Control<AddReductionProjectFormData>;
+  disabled?: boolean;
 };
 
 export const ReportedInitiativeSection: FC<ReportedInitiativeSectionProps> = ({
   control,
+  disabled = false,
 }) => {
   return (
     <Box className="flex flex-col gap-4">
@@ -23,7 +25,7 @@ export const ReportedInitiativeSection: FC<ReportedInitiativeSectionProps> = ({
         render={({ field }) => (
           <FormControlLabel
             control={
-              <Checkbox checked={field.value} onChange={field.onChange} />
+              <Checkbox checked={field.value} disabled={disabled} onChange={field.onChange} />
             }
             label="Este proyecto se ha reportado en otra iniciativa o en la meta nacional como mitigación del NDC"
             sx={{ alignItems: "flex-start", "& .MuiCheckbox-root": { pt: 0 } }}
@@ -38,6 +40,7 @@ export const ReportedInitiativeSection: FC<ReportedInitiativeSectionProps> = ({
         placeholder="Ingresa la descripción"
         multiline
         rows={5}
+        disabled={disabled}
         inputProps={{ maxLength: 1000 }}
       />
     </Box>
