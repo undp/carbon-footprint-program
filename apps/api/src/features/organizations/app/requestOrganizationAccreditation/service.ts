@@ -55,7 +55,11 @@ export const requestOrganizationAccreditationService = async (
   }
 
   // this endpoint is not expected to be called if the organization is already accredited
-  if (await hasApprovedOrganizationData(prismaClient, organizationId)) {
+  const isAccredited = await hasApprovedOrganizationData(
+    prismaClient,
+    organizationId
+  );
+  if (isAccredited) {
     throw new OrganizationAlreadyAccreditedError(organizationId);
   }
 

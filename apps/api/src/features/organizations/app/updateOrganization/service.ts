@@ -105,7 +105,8 @@ export const updateOrganizationService = async (
       };
     }
 
-    if (await hasApprovedOrganizationData(tx, organizationId)) {
+    const isAccredited = await hasApprovedOrganizationData(tx, organizationId);
+    if (isAccredited) {
       if (!fileUuids?.length) {
         throw new FileAttachmentsRequiredError();
       }
