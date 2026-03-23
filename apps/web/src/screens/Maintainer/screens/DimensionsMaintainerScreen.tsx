@@ -1,18 +1,6 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, Button, Paper, Typography } from "@mui/material";
-import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
-import { FormProvider } from "react-hook-form";
-
 import {
   useSubcategories,
   useEmissionFactorDimensions,
@@ -20,36 +8,24 @@ import {
   useUpdateEmissionFactorDimension,
   useDeleteEmissionFactorDimension,
 } from "@/api/query/maintainer";
-import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import {
   useDimensionsForm,
   flattenDimensions,
   type DimensionFormRow,
 } from "../hooks/useDimensionsForm";
 import { useDimensionColumns } from "../hooks/useDimensionColumns";
-import { StylizedDataGrid } from "@components";
-import { IS_DEVELOPMENT } from "@/config/environment";
-import { FormDebugPanel } from "@/devtools";
-import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
-import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
-import { DimensionVariablesModal } from "../components/DimensionVariablesModal";
-import { InfoBanner } from "../components/InfoBanner";
+import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
+import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
+import { useMaintainerExitEditMode } from "../hooks/useMaintainerExitEditMode";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
+import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
+import { DimensionVariablesModal } from "../components/DimensionVariablesModal";
 
 export const DimensionsMaintainerScreen: FC = () => {
-  const {
-    isViewOnly,
-    methodologies,
-    effectiveMethodologyId,
-    methodologyVersionId,
-    targetMethodology,
-    methodologySelector,
-    selectMethodology,
-    stopEditing,
-    isLoadingMethodologies,
-    isMethodologiesError,
-  } = useMaintainerMethodologyScope();
+  const scope = useMaintainerMethodologyScope();
+  const { methodologyVersionId, isMethodologiesError } = scope;
   const { enqueueSnackbar } = useSnackbar();
 
   // --- Data fetching ---
@@ -70,69 +46,41 @@ export const DimensionsMaintainerScreen: FC = () => {
     [subcategories]
   );
 
-  // --- Form & editing state ---
-  const [editingState, setEditingState] = useState<{
-    methodologyVersionId?: string;
-    rowId: string | null;
-  }>({ methodologyVersionId: undefined, rowId: null });
-  const editingRowId =
-    editingState.methodologyVersionId === methodologyVersionId
-      ? editingState.rowId
-      : null;
-  const setEditingRowId = useCallback(
-    (rowId: string | null) => {
-      setEditingState({ methodologyVersionId, rowId });
-    },
-    [methodologyVersionId]
-  );
-
-  const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
-  const [variablesModalState, setVariablesModalState] = useState<{
-    methodologyVersionId?: string;
-    open: boolean;
-    rowIndex: number;
-  }>({ methodologyVersionId: undefined, open: false, rowIndex: -1 });
-  const variablesModal = useMemo(
-    () =>
-      variablesModalState.methodologyVersionId === methodologyVersionId
-        ? {
-            open: variablesModalState.open,
-            rowIndex: variablesModalState.rowIndex,
-          }
-        : { open: false, rowIndex: -1 },
-    [variablesModalState, methodologyVersionId]
-  );
-  const setVariablesModal = useCallback(
-    (value: { open: boolean; rowIndex: number }) => {
-      setVariablesModalState({ methodologyVersionId, ...value });
-    },
-    [methodologyVersionId]
-  );
+  // --- Editing state ---
+  const {
+    editingRowId,
+    setEditingRowId,
+    exitEditModeOpen,
+    setExitEditModeOpen,
+    modal: variablesModal,
+    setModal: setVariablesModal,
+    isNewRow,
+  } = useMaintainerEditingState({ methodologyVersionId });
 
   const createMutation = useCreateEmissionFactorDimension(methodologyVersionId);
   const updateMutation = useUpdateEmissionFactorDimension(methodologyVersionId);
   const deleteMutation = useDeleteEmissionFactorDimension(methodologyVersionId);
 
+  // --- Form ---
   const { form, fieldArray, handleCellChange } = useDimensionsForm();
   const currentRows = form.watch("dimensions");
 
   // --- Sync form with server data ---
-  const editingRowIdRef = useRef(editingRowId);
-  useLayoutEffect(() => {
-    editingRowIdRef.current = editingRowId;
-  }, [editingRowId]);
-
-  useEffect(() => {
-    form.reset({ dimensions: [] });
-  }, [methodologyVersionId, form]);
-
-  useEffect(() => {
-    if (editingRowIdRef.current !== null) return;
-    if (!dimensionsData) return;
-    form.reset({ dimensions: flattenDimensions(dimensionsData) });
-  }, [dimensionsData, form]);
-
-  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+  const toFormData = useCallback(
+    (data: unknown[]) =>
+      flattenDimensions(
+        data as Parameters<typeof flattenDimensions>[0]
+      ),
+    []
+  );
+  useMaintainerFormSync({
+    form,
+    fieldName: "dimensions",
+    editingRowId,
+    methodologyVersionId,
+    serverData: dimensionsData,
+    toFormData,
+  });
 
   // --- Helper to find original dimension from server data ---
   const findOriginal = useCallback(
@@ -239,7 +187,6 @@ export const DimensionsMaintainerScreen: FC = () => {
       .map((v) => v.value);
     const renamedValues: Array<{ id: string; newValue: string }> = [];
 
-    // Detect renamed variables (same id, different value)
     for (const v of row.variables) {
       if (v.id.startsWith("new_")) continue;
       const orig = original.values.find((ov) => ov.id === v.id);
@@ -381,7 +328,6 @@ export const DimensionsMaintainerScreen: FC = () => {
         position: newPosition,
       };
 
-      // Find where to insert: right after existing dimensions for this subcategory
       const lastIndexForSubcat = rows.reduce(
         (maxIdx, r, i) =>
           r.subcategoryId === subcategoryId && !r.id.startsWith("temp_")
@@ -462,23 +408,14 @@ export const DimensionsMaintainerScreen: FC = () => {
   );
 
   // --- Exit edit mode ---
-  const handleExitEditModeNav = useCallback(() => {
-    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
-    if (target) {
-      selectMethodology({
-        id: target.id,
-        name: target.name,
-        regulation: target.regulation,
-      });
-    } else {
-      stopEditing();
-    }
-  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
-
-  const handleExitEditMode = useCallback(() => {
-    if (editingRowId) handleCancelEditRow();
-    handleExitEditModeNav();
-  }, [editingRowId, handleCancelEditRow, handleExitEditModeNav]);
+  const { handleExitEditMode } = useMaintainerExitEditMode({
+    editingRowId,
+    handleCancelEditRow,
+    effectiveMethodologyId: scope.effectiveMethodologyId,
+    methodologies: scope.methodologies,
+    selectMethodology: scope.selectMethodology,
+    stopEditing: scope.stopEditing,
+  });
 
   // --- Variables modal ---
   const handleOpenVariables = useCallback(
@@ -487,8 +424,7 @@ export const DimensionsMaintainerScreen: FC = () => {
       const row = rows[rowIndex];
       if (!row) return;
 
-      // Auto-start editing if not already
-      if (editingRowId !== row.id && !isViewOnly) {
+      if (editingRowId !== row.id && !scope.isViewOnly) {
         if (editingRowId) {
           const success = await handleStopEditRow();
           if (!success) return;
@@ -501,7 +437,7 @@ export const DimensionsMaintainerScreen: FC = () => {
     [
       form,
       editingRowId,
-      isViewOnly,
+      scope.isViewOnly,
       handleStopEditRow,
       setEditingRowId,
       setVariablesModal,
@@ -535,7 +471,7 @@ export const DimensionsMaintainerScreen: FC = () => {
   // --- Column definitions ---
   const columns = useDimensionColumns({
     editingRowId,
-    viewOnly: isViewOnly,
+    viewOnly: scope.isViewOnly,
     onCellChange: handleCellChange,
     onStartEditRow: handleStartEditRow,
     onStopEditRow: handleStopEditRow,
@@ -558,151 +494,52 @@ export const DimensionsMaintainerScreen: FC = () => {
     !isLoadingSubcategories &&
     !!subcategories;
 
-  if (
-    !isLoadingMethodologies &&
-    (isMethodologiesError || isErrorDimensions || !targetMethodology)
-  ) {
-    const emptyStateMessage = isMethodologiesError
-      ? "No fue posible cargar las metodologías."
-      : isErrorDimensions
-        ? "No fue posible cargar las dimensiones."
-        : "No hay metodologías disponibles para mostrar dimensiones.";
-
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Dimensiones / Variables"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            {emptyStateMessage}
-          </Typography>
-        </Box>
-      </>
-    );
-  }
+  const errorMessage = isMethodologiesError
+    ? "No fue posible cargar las metodologías."
+    : isErrorDimensions
+      ? "No fue posible cargar las dimensiones."
+      : !scope.targetMethodology
+        ? "No hay metodologías disponibles para mostrar dimensiones."
+        : null;
 
   return (
-    <FormProvider {...form}>
-      <MaintainerPageHeader
-        title="Dimensiones / Variables"
-        onAddRow={isViewOnly ? undefined : handleAddRow}
-        addDisabled={editingRowId !== null}
-        addLabel="Agregar fila"
-        extra={methodologySelector}
+    <MaintainerScreenLayout
+      title="Dimensiones / Variables"
+      scope={scope}
+      editingRowId={editingRowId}
+      form={form}
+      formId="dimensions-form"
+      errorMessage={errorMessage}
+      onAddRow={handleAddRow}
+      addDisabled={editingRowId !== null}
+      onExitEditMode={handleExitEditMode}
+      exitEditModeOpen={exitEditModeOpen}
+      onExitEditModeOpenChange={setExitEditModeOpen}
+      blockerStatus={status}
+      onBlockerProceed={() => proceed?.()}
+      onBlockerReset={() => reset?.()}
+      readOnlyDescription="Vista de solo lectura de las dimensiones de esta metodología."
+      editDescription="Gestiona las dimensiones y variables de esta metodología. Haz clic en una fila para editarla."
+      extraModals={
+        <DimensionVariablesModal
+          open={variablesModal.open}
+          readOnly={scope.isViewOnly}
+          subcategoryHasEmissionFactors={!!variablesRow?.subcategoryHasEmissionFactors}
+          dimensionName={variablesRow?.name ?? ""}
+          isRequired={variablesRow?.isRequired ?? false}
+          variables={variablesRow?.variables ?? []}
+          onSave={handleSaveVariables}
+          onClose={() => setVariablesModal({ open: false, rowIndex: -1 })}
+        />
+      }
+    >
+      <MaintainerDataGrid
+        editingRowId={editingRowId}
+        columns={columns}
+        rows={currentRows}
+        loading={!isDataReady || scope.isLoadingMethodologies}
+        getRowId={(row: DimensionFormRow) => row.id}
       />
-      <Box
-        className="rounded-sm bg-white p-3"
-        sx={!isViewOnly ? { pb: 8 } : undefined}
-      >
-        {!isViewOnly && (
-          <InfoBanner
-            variant="success"
-            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
-            subtitle="Los cambios se aplicarán automáticamente"
-          />
-        )}
-        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          {isViewOnly
-            ? "Vista de solo lectura de las dimensiones de esta metodología."
-            : "Gestiona las dimensiones y variables de esta metodología. Haz clic en una fila para editarla."}
-        </Typography>
-        <form id="dimensions-form" noValidate>
-          <Box className="flex w-full">
-            <StylizedDataGrid
-              sx={(theme) => ({
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.grey[200],
-                },
-                "& .MuiDataGrid-cell": {
-                  display: "flex",
-                  maxHeight: 100,
-                  alignItems: "center",
-                },
-                "& .MuiDataGrid-cell .MuiOutlinedInput-root": {
-                  backgroundColor: theme.palette.common.white,
-                },
-                "& .MuiDataGrid-cell .MuiSelect-select": {
-                  backgroundColor: theme.palette.common.white,
-                },
-                "& .MuiDataGrid-row.row--editing": {
-                  backgroundColor: theme.palette.grey[100],
-                },
-              })}
-              columns={columns}
-              rows={currentRows}
-              loading={!isDataReady || isLoadingMethodologies}
-              getRowId={(row: DimensionFormRow) => row.id}
-              getRowClassName={({ id }) =>
-                String(id) === editingRowId ? "row--editing" : ""
-              }
-            />
-          </Box>
-        </form>
-      </Box>
-      {!isViewOnly && (
-        <Paper
-          elevation={3}
-          sx={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            px: 4,
-            py: 1.5,
-            zIndex: 1200,
-            borderTop: "2px solid",
-            borderColor: "success.main",
-          }}
-        >
-          <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology?.name ?? ""}
-            </Typography>
-          </Box>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            onClick={() => setExitEditModeOpen(true)}
-          >
-            Salir de modo edición
-          </Button>
-        </Paper>
-      )}
-      <ExitEditModeDialog
-        open={exitEditModeOpen}
-        methodologyName={targetMethodology?.name ?? ""}
-        hasUnsavedRow={editingRowId !== null}
-        onClose={() => setExitEditModeOpen(false)}
-        onConfirm={() => {
-          setExitEditModeOpen(false);
-          handleExitEditMode();
-        }}
-      />
-      {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
-      <UnsavedChangesDialog
-        open={status === "blocked"}
-        onCancel={() => reset?.()}
-        onConfirm={() => proceed?.()}
-      />
-      <DimensionVariablesModal
-        open={variablesModal.open}
-        readOnly={isViewOnly}
-        subcategoryHasEmissionFactors={!!variablesRow?.subcategoryHasEmissionFactors}
-        dimensionName={variablesRow?.name ?? ""}
-        isRequired={variablesRow?.isRequired ?? false}
-        variables={variablesRow?.variables ?? []}
-        onSave={handleSaveVariables}
-        onClose={() => setVariablesModal({ open: false, rowIndex: -1 })}
-      />
-    </FormProvider>
+    </MaintainerScreenLayout>
   );
 };
