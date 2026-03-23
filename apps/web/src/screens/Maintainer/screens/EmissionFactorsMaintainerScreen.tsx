@@ -353,18 +353,31 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         const rows = form.getValues("emissionFactors");
         const index = rows.findIndex((currentRow) => currentRow.id === row.id);
         if (index !== -1) {
-          if (editingRowId === row.id) {
-            setEditingRowId(null);
+          const isEditingDeletedRow = editingRowId === row.id;
+
+          if (isNewRow(row.id)) {
+            fieldArray.remove(index);
+            form.reset({ emissionFactors: form.getValues("emissionFactors") });
+            void enqueueSnackbar({
+              message: "Factor de emisión eliminado",
+              variant: "success",
+            });
+            if (isEditingDeletedRow) {
+              setEditingRowId(null);
+            }
+            return;
           }
-          if (!isNewRow(row.id)) {
-            await deleteMutation.mutateAsync(row.id);
-          }
+
+          await deleteMutation.mutateAsync(row.id);
           fieldArray.remove(index);
           form.reset({ emissionFactors: form.getValues("emissionFactors") });
           void enqueueSnackbar({
             message: "Factor de emisión eliminado",
             variant: "success",
           });
+          if (isEditingDeletedRow) {
+            setEditingRowId(null);
+          }
         }
       } catch (error) {
         void enqueueSnackbar({
