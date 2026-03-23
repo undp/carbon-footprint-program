@@ -1,0 +1,57 @@
+import { FC } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+} from "@mui/material";
+
+export type SelfDeclareValidationReason =
+  | "missing-organization"
+  | "missing-year"
+  | "missing-name"
+  | null;
+
+interface SelfDeclareValidationDialogProps {
+  open: boolean;
+  onClose: () => void;
+  reason: SelfDeclareValidationReason;
+}
+
+const messages: Record<NonNullable<SelfDeclareValidationReason>, string> = {
+  "missing-organization":
+    "No es posible autodeclarar esta huella porque no tiene una organización asociada. Por favor, asocie una organización antes de continuar.",
+  "missing-name":
+    "No es posible autodeclarar esta huella porque no tiene un nombre asignado. Por favor, edite la huella para completar esta información antes de continuar.",
+  "missing-year":
+    "No es posible autodeclarar esta huella porque no tiene un año asignado. Por favor, edite la huella para completar esta información antes de continuar.",
+};
+
+export const SelfDeclareValidationDialog: FC<
+  SelfDeclareValidationDialogProps
+> = ({ open, onClose, reason }) => {
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      aria-labelledby="self-declare-validation-dialog-title"
+      aria-describedby="self-declare-validation-dialog-description"
+    >
+      <DialogTitle id="self-declare-validation-dialog-title">
+        No es posible autodeclarar
+      </DialogTitle>
+      <DialogContent>
+        <DialogContentText id="self-declare-validation-dialog-description">
+          {reason && messages[reason]}
+        </DialogContentText>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={onClose} color="primary" autoFocus>
+          Entendido
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};

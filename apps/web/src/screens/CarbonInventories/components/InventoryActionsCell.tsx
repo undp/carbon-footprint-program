@@ -43,6 +43,10 @@ import {
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { SelfDeclareCarbonInventoryDialog } from "./Dialogs/SelfDeclareCarbonInventoryDialog";
+import {
+  SelfDeclareValidationDialog,
+  type SelfDeclareValidationReason,
+} from "./Dialogs/SelfDeclareValidationDialog";
 
 const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
@@ -81,6 +85,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [blockedOrgDialogOpen, setBlockedOrgDialogOpen] = useState(false);
   const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
   const [selfDeclareDialogOpen, setSelfDeclareDialogOpen] = useState(false);
+  const [selfDeclareValidationReason, setSelfDeclareValidationReason] =
+    useState<SelfDeclareValidationReason>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
   // for now, we can use the same method to check if the inventory is editable as the one to check if the inventory can request calculation
@@ -328,8 +334,24 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   }, []);
 
   const onSelfDeclareClick = useCallback(() => {
+    if (carbonInventory.organizationId === null) {
+      setSelfDeclareValidationReason("missing-organization");
+      return;
+    }
+    if (!carbonInventory.name) {
+      setSelfDeclareValidationReason("missing-name");
+      return;
+    }
+    if (carbonInventory.year == null) {
+      setSelfDeclareValidationReason("missing-year");
+      return;
+    }
     setSelfDeclareDialogOpen(true);
-  }, []);
+  }, [
+    carbonInventory.organizationId,
+    carbonInventory.name,
+    carbonInventory.year,
+  ]);
 
   const onSelfDeclareConfirm = useCallback(async () => {
     try {
@@ -463,6 +485,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
       </Box>
+
+      <SelfDeclareValidationDialog
+        open={selfDeclareValidationReason !== null}
+        onClose={() => setSelfDeclareValidationReason(null)}
+        reason={selfDeclareValidationReason}
+      />
 
       <SelfDeclareCarbonInventoryDialog
         open={selfDeclareDialogOpen}
