@@ -64,7 +64,7 @@ export const createEmissionFactorDimensionService = async (
         throw new DimensionPositionAlreadyTakenError(data.position.toString());
       }
 
-      const code = `dim_${data.position}_${Date.now()}`;
+      const code = `dim_${subcategoryId}_${data.position}_${Date.now()}`;
 
       const dimension = await tx.emissionFactorDimension.create({
         data: {
@@ -122,7 +122,7 @@ export const createEmissionFactorDimensionService = async (
         const target = Array.isArray(error.meta?.target)
           ? error.meta.target.map(String)
           : error.meta?.target
-            ? [String(error.meta.target)]
+            ? [JSON.stringify(error.meta.target)]
             : [];
         if (target.some((item) => item.includes("position"))) {
           throw new DimensionPositionAlreadyTakenError(
