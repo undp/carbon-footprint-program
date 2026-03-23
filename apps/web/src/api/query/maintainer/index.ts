@@ -27,7 +27,7 @@ export {
 } from "./useEmissionFactors";
 export {
   useEmissionFactorDimensions,
-  useCreateEmissionFactorDimension,
+  useAddEmissionFactorDimension,
   useUpdateEmissionFactorDimension,
   useDeleteEmissionFactorDimension,
 } from "./useEmissionFactorDimensions";

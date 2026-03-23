@@ -4,7 +4,7 @@ import { useSnackbar } from "notistack";
 import {
   useSubcategories,
   useEmissionFactorDimensions,
-  useCreateEmissionFactorDimension,
+  useAddEmissionFactorDimension,
   useUpdateEmissionFactorDimension,
   useDeleteEmissionFactorDimension,
 } from "@/api/query/maintainer";
@@ -57,7 +57,7 @@ export const DimensionsMaintainerScreen: FC = () => {
     isNewRow,
   } = useMaintainerEditingState({ methodologyVersionId });
 
-  const createMutation = useCreateEmissionFactorDimension(methodologyVersionId);
+  const createMutation = useAddEmissionFactorDimension(methodologyVersionId);
   const updateMutation = useUpdateEmissionFactorDimension(methodologyVersionId);
   const deleteMutation = useDeleteEmissionFactorDimension(methodologyVersionId);
 

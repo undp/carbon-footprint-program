@@ -26,7 +26,7 @@ export const useEmissionFactorDimensions = (methodologyVersionId?: string) =>
     enabled: !!methodologyVersionId,
   });
 
-export const useCreateEmissionFactorDimension = (
+export const useAddEmissionFactorDimension = (
   methodologyVersionId?: string
 ) => {
   const queryClient = useQueryClient();
