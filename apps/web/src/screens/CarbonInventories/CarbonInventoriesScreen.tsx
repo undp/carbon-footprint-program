@@ -58,6 +58,14 @@ export const CarbonInventoriesScreen: FC = () => {
 
   const [newInventoryDialogOpen, setNewInventoryDialogOpen] = useState(false);
 
+  const filteredInventories = useMemo(
+    () =>
+      inventories.filter(
+        (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
+      ),
+    [inventories]
+  );
+
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
       () => [
@@ -186,19 +194,16 @@ export const CarbonInventoriesScreen: FC = () => {
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number]
             >
-          ) => <InventoryActionsCell carbonInventory={params.row} />,
+          ) => (
+            <InventoryActionsCell
+              carbonInventory={params.row}
+              inventories={filteredInventories}
+            />
+          ),
         },
       ],
-      []
+      [filteredInventories]
     );
-
-  const filteredInventories = useMemo(
-    () =>
-      inventories.filter(
-        (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
-      ),
-    [inventories]
-  );
 
   return (
     <MainLayout>

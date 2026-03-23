@@ -21,6 +21,7 @@ import {
   isCarbonInventoryDeletable,
   canSubmitToVerification,
   canSubmitToMeasurement,
+  canSelfDeclare,
 } from "@repo/utils";
 import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
@@ -63,10 +64,12 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
+  inventories: GetAllCarbonInventoriesResponse;
 }
 
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   carbonInventory,
+  inventories,
 }) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -91,6 +94,32 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   );
 
   const isSelfDeclared = carbonInventory.isSelfDeclared;
+
+  const isYearAlreadySelfDeclared = useMemo(
+    () =>
+      inventories.some(
+        (inv) =>
+          inv.id !== carbonInventory.id &&
+          inv.organizationId === carbonInventory.organizationId &&
+          inv.year === carbonInventory.year &&
+          inv.isSelfDeclared
+      ),
+    [
+      inventories,
+      carbonInventory.id,
+      carbonInventory.organizationId,
+      carbonInventory.year,
+    ]
+  );
+
+  const selfDeclareDisabled =
+    !canSelfDeclare(carbonInventory.status) || isYearAlreadySelfDeclared;
+
+  const selfDeclareTooltip = isSelfDeclared
+    ? "Esta huella ya fue autodeclarada"
+    : isYearAlreadySelfDeclared
+      ? "Ya existe una huella autodeclarada para este año"
+      : "Autodeclarar";
 
   const canDelete = isCarbonInventoryDeletable(carbonInventory.status);
 
@@ -349,11 +378,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         )}
 
         {/* Self Declare button */}
-        <Tooltip title="Autodeclarar">
+        {/*TODO: Remove validation messages on this tooltip when new design is implemented */}
+        <Tooltip title={selfDeclareTooltip}>
           <span>
             <BaseIconButton
               onClick={onSelfDeclareClick}
-              disabled={isSelfDeclared}
+              disabled={selfDeclareDisabled}
               aria-label="Autodeclarar"
             >
               <TaskAltRounded fontSize="small" />
