@@ -1,6 +1,8 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
   MethodologyVersionStatus,
   SubcategoryStatus,
@@ -58,6 +60,22 @@ export const deleteMethodologyService = async (
         status: { not: EmissionFactorStatus.DELETED },
       },
       data: { status: EmissionFactorStatus.DELETED, updatedById },
+    });
+
+    await tx.emissionFactorDimensionValue.updateMany({
+      where: {
+        dimension: { subcategory: { category: { methodologyVersionId: methodologyId } } },
+        status: { not: EmissionFactorDimensionValueStatus.DELETED },
+      },
+      data: { status: EmissionFactorDimensionValueStatus.DELETED, updatedById },
+    });
+
+    await tx.emissionFactorDimension.updateMany({
+      where: {
+        subcategory: { category: { methodologyVersionId: methodologyId } },
+        status: { not: EmissionFactorDimensionStatus.DELETED },
+      },
+      data: { status: EmissionFactorDimensionStatus.DELETED, updatedById },
     });
 
     await tx.subcategory.updateMany({
