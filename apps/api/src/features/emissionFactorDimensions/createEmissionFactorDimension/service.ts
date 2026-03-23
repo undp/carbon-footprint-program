@@ -86,19 +86,28 @@ export const createEmissionFactorDimensionService = async (
         },
       });
 
-      const createdValues = await Promise.all(
-        data.values.map((value) =>
-          tx.emissionFactorDimensionValue.create({
-            data: {
-              dimensionId: dimension.id,
-              value,
-              status: EmissionFactorDimensionValueStatus.ACTIVE,
-              createdById: BigInt(user.id),
-              updatedAt: null,
-            },
-            select: { id: true, value: true },
-          })
-        )
+      const seenValues = new Set<string>();
+      for (const value of data.values) {
+        if (seenValues.has(value)) {
+          throw new DuplicateDimensionValueError(value);
+        }
+        seenValues.add(value);
+      }
+
+      const createdValues =
+        await tx.emissionFactorDimensionValue.createManyAndReturn({
+          data: data.values.map((value) => ({
+            dimensionId: dimension.id,
+            value,
+            status: EmissionFactorDimensionValueStatus.ACTIVE,
+            createdById: BigInt(user.id),
+            updatedAt: null,
+          })),
+          select: { id: true, value: true },
+        });
+
+      const createdValuesByValue = new Map(
+        createdValues.map((createdValue) => [createdValue.value, createdValue])
       );
 
       return {
@@ -108,10 +117,18 @@ export const createEmissionFactorDimensionService = async (
         name: dimension.name,
         position: dimension.position,
         isRequired: dimension.isRequired,
-        values: createdValues.map((v) => ({
-          id: v.id.toString(),
-          value: v.value,
-        })),
+        values: data.values.map((value) => {
+          const createdValue = createdValuesByValue.get(value);
+
+          if (!createdValue) {
+            throw new DuplicateDimensionValueError(value);
+          }
+
+          return {
+            id: createdValue.id.toString(),
+            value: createdValue.value,
+          };
+        }),
       };
     });
 
