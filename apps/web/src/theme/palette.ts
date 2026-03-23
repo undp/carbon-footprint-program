@@ -7,6 +7,7 @@ import { alpha } from "@mui/material/styles";
 import type { PaletteOptions } from "@mui/material/styles";
 import { SubmissionType as RequestType } from "@repo/types";
 
+/** @deprecated Use deriveCategoryColors() from @/utils/categoryColors instead. */
 const categoryStyle = {
   one: {
     main: "#FFB74D",

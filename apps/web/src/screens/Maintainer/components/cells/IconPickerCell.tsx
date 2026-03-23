@@ -1,63 +1,17 @@
-import { FC, useState, useEffect, useRef, type ComponentType } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import {
   Box,
   IconButton,
   Popover,
   Typography,
   Divider,
-  type SvgIconProps,
   useTheme,
   alpha,
 } from "@mui/material";
 import { CheckOutlined } from "@mui/icons-material";
-import {
-  FactoryOutlined,
-  BoltOutlined,
-  LocalShippingOutlined,
-  WhatshotOutlined,
-  DirectionsCarOutlined,
-  AcUnitOutlined,
-  WaterDropOutlined,
-  RecyclingOutlined,
-  AgricultureOutlined,
-  BusinessOutlined,
-  FlightOutlined,
-  TrainOutlined,
-  ElectricBoltOutlined,
-  SolarPowerOutlined,
-  ForestOutlined,
-  DeleteOutlineOutlined,
-  ConstructionOutlined,
-  ScienceOutlined,
-  LocalGasStationOutlined,
-  PublicOutlined,
-} from "@mui/icons-material";
 import { useFormContext, useFormState } from "react-hook-form";
 import { getNestedError } from "./cellUtils";
-
-/** Map of icon names to MUI icon components */
-export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
-  FACTORY: FactoryOutlined,
-  BOLT: BoltOutlined,
-  TRUCK: LocalShippingOutlined,
-  FLAME: WhatshotOutlined,
-  CAR: DirectionsCarOutlined,
-  SNOWFLAKE: AcUnitOutlined,
-  WATER: WaterDropOutlined,
-  RECYCLE: RecyclingOutlined,
-  AGRICULTURE: AgricultureOutlined,
-  BUILDING: BusinessOutlined,
-  FLIGHT: FlightOutlined,
-  TRAIN: TrainOutlined,
-  ELECTRIC: ElectricBoltOutlined,
-  SOLAR: SolarPowerOutlined,
-  FOREST: ForestOutlined,
-  WASTE: DeleteOutlineOutlined,
-  CONSTRUCTION: ConstructionOutlined,
-  SCIENCE: ScienceOutlined,
-  FUEL: LocalGasStationOutlined,
-  GLOBE: PublicOutlined,
-};
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 
 const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
 
