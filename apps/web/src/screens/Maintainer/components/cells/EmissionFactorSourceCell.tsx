@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useEffect, useRef } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { Tooltip, Typography } from "@mui/material";
 import { Lock as LockIcon } from "@mui/icons-material";
@@ -8,6 +8,9 @@ import { FreeSoloAutocompleteCell } from "./FreeSoloAutocompleteCell";
 import { useOverflowTooltip } from "./useOverflowTooltip";
 
 const options = SOURCE_OPTIONS.map((o) => o.value);
+
+const normalizeSourceValue = (value?: string | null) =>
+  value?.trim().replace(/\s+/g, " ") ?? "";
 
 interface EmissionFactorSourceCellProps {
   rowIndex: number;
@@ -35,6 +38,7 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
     name: `emissionFactors.${rowIndex}.source`,
   });
   const fieldError = errors.emissionFactors?.[rowIndex]?.source;
+  const onChangeRef = useRef(onChange);
 
   const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
     formValue,
@@ -42,10 +46,23 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
   ]);
 
   useEffect(() => {
-    if (isSourceLocked && lockedSource && formValue !== lockedSource) {
-      onChange(lockedSource);
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  useEffect(() => {
+    if (!isSourceLocked || lockedSource == null) {
+      return;
     }
-  }, [isSourceLocked, lockedSource, formValue, onChange]);
+
+    const normalizedLockedSource = normalizeSourceValue(lockedSource);
+    const normalizedFormValue = normalizeSourceValue(formValue);
+
+    if (normalizedFormValue === normalizedLockedSource) {
+      return;
+    }
+
+    onChangeRef.current(lockedSource);
+  }, [isSourceLocked, lockedSource, formValue]);
 
   if (isSourceLocked && isEditing) {
     const displayValue = lockedSource ?? formValue;
