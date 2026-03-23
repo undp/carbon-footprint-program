@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Divider, Typography, alpha } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
+import { deriveCategoryColors } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 import { SubcategoryLinesTable } from "./SubcategoryLinesTable";
 import { SubcategoryManualRow } from "./SubcategoryManualRow";
@@ -13,9 +13,7 @@ interface CategorySummarySectionProps {
 export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
   category,
 }) => {
-  const theme = useTheme();
-  const catKey = Math.min(category.position, 3) as 1 | 2 | 3;
-  const categoryColor = theme.palette.category[catKey];
+  const categoryColor = deriveCategoryColors(category.color);
 
   return (
     <Box

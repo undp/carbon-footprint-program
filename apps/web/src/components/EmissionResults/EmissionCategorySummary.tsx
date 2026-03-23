@@ -3,11 +3,8 @@ import { Avatar, Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { BarChartOutlined } from "@mui/icons-material";
 import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
-import {
-  DirectEmissionCategoryIcon,
-  IndirectEmissionCategoryIcon,
-  OthersCategoryIcon,
-} from "@/icons";
+import { getCategoryIconComponent } from "@/utils/categoryIcons";
+import { deriveCategoryColors } from "@/utils/categoryColors";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
@@ -21,12 +18,6 @@ interface EmissionCategorySummaryProps {
   isLoading?: boolean;
   hasError?: boolean;
 }
-
-const CATEGORY_ICONS: Record<number, FC<{ sx?: object }>> = {
-  1: DirectEmissionCategoryIcon,
-  2: IndirectEmissionCategoryIcon,
-  3: OthersCategoryIcon,
-};
 
 export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
   totalEmissions,
@@ -101,28 +92,30 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
       </Box>
 
       {categories.map((category) => {
-        const catKey = Math.min(category.position, 3) as 1 | 2 | 3;
-        const Icon = CATEGORY_ICONS[catKey] ?? OthersCategoryIcon;
+        const categoryColors = deriveCategoryColors(category.color);
+        const IconComponent = getCategoryIconComponent(category.icon);
 
         return (
           <EmissionSummaryCard
             key={category.id}
             icon={
-              <Icon
-                sx={{
-                  fill: theme.palette.category[catKey].dark,
-                  width: "100%",
-                  height: "100%",
-                }}
-              />
+              IconComponent ? (
+                <IconComponent
+                  sx={{
+                    fill: categoryColors.dark,
+                    width: "100%",
+                    height: "100%",
+                  }}
+                />
+              ) : null
             }
             title={`${category.name}:`}
             subtitle={category.synonyms ?? `Categoría ${category.position}`}
             value={category.subtotal}
             percentage={category.percentage}
-            backgroundColor={theme.palette.category[catKey].light}
-            textColor={theme.palette.category[catKey].dark}
-            iconColor={theme.palette.category[catKey].main}
+            backgroundColor={categoryColors.light}
+            textColor={categoryColors.dark}
+            iconColor={categoryColors.main}
           />
         );
       })}

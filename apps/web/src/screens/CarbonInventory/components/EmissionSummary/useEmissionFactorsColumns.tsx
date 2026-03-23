@@ -25,7 +25,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
           <Box className="flex flex-col items-start gap-1">
             <CategoryChip
               label={row.categorySynonyms ?? ""}
-              categoryPosition={row.categoryPosition}
+              categoryColor={row.categoryColor}
               sx={{
                 fontSize: "8px",
                 height: "16px",

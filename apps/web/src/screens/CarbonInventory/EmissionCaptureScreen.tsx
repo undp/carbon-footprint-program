@@ -224,7 +224,8 @@ export const EmissionCaptureScreen: FC = () => {
                 {data?.categories.map((category) => (
                   <CategoryCard
                     key={`category_${category.id}`}
-                    position={category.position}
+                    icon={category.icon}
+                    color={category.color}
                     variant={
                       selectedCategory === category.id ? "focused" : "unfocused"
                     }
