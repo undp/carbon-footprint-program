@@ -22,7 +22,9 @@ export const useBusinessProfilingSubmit = ({
   onSuccess,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
-  const updateCarbonInventoryMutation = useUpdateCarbonInventory();
+  const updateCarbonInventoryMutation = useUpdateCarbonInventory(
+    inventoryId ?? ""
+  );
 
   const submit = useCallback(
     async (data: BusinessProfilingFormValues, isDirty: boolean) => {

@@ -5,14 +5,16 @@ import {
 } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { CarbonInventoryQueryKey } from "./keys";
+import { useInventoryUuidHeader } from "./inventoryUuid";
 
 type UpdateCarbonInventoryVariables = {
   id: string;
   data: UpdateCarbonInventoryRequest;
 };
 
-export const useUpdateCarbonInventory = () => {
+export const useUpdateCarbonInventory = (inventoryId: string) => {
   const queryClient = useQueryClient();
+  const { headers } = useInventoryUuidHeader(inventoryId);
 
   return useMutation<
     UpdateCarbonInventoryResponse,
@@ -20,7 +22,9 @@ export const useUpdateCarbonInventory = () => {
     UpdateCarbonInventoryVariables
   >({
     mutationFn: ({ id, data }) =>
-      apiClient.patch(`carbon-inventories/${id}`, { json: data }).json(),
+      apiClient
+        .patch(`carbon-inventories/${id}`, { json: data, headers })
+        .json(),
     onSuccess: async (_data, { id }) => {
       await Promise.all([
         queryClient.invalidateQueries({

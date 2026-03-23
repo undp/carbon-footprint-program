@@ -7,6 +7,7 @@ CREATE TYPE "usage_mode" AS ENUM ('SIMPLIFIED', 'EXPERT');
 -- CreateTable
 CREATE TABLE "carbon_inventory" (
     "id" BIGSERIAL NOT NULL,
+    "uuid" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT,
     "organization_id" BIGINT,
     "organization_branch_id" BIGINT,

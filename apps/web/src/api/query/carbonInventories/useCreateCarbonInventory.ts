@@ -5,6 +5,7 @@ import {
 } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { CarbonInventoryQueryKey } from "./keys";
+import { saveInventoryUuid } from "./inventoryUuid";
 
 export const useCreateCarbonInventory = () => {
   const queryClient = useQueryClient();
@@ -16,7 +17,8 @@ export const useCreateCarbonInventory = () => {
   >({
     mutationFn: (data) =>
       apiClient.post("carbon-inventories", { json: data }).json(),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      saveInventoryUuid(data.id, data.uuid);
       await queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),

@@ -22,6 +22,7 @@ export type OrganizationDataField = z.infer<typeof OrganizationDataFieldSchema>;
 export const CarbonInventoryBaseSchema = z
   .object({
     id: IdSchema.describe("The ID of the carbon inventory"),
+    uuid: z.uuid().describe("The UUID of the carbon inventory"),
     name: z.string().nullable().describe("The name of the carbon inventory"),
     organizationId: IdSchema.nullable().describe("The ID of the organization"),
     organizationBranchId: IdSchema.nullable().describe(

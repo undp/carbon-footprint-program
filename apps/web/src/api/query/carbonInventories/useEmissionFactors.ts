@@ -3,12 +3,17 @@ import type { GetEmissionFactorsResponse } from "@repo/types";
 import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
+import { useInventoryUuidHeader } from "./inventoryUuid";
 
 export const useEmissionFactors = (id: string) => {
+  const { headers } = useInventoryUuidHeader(id);
+
   return useQuery<GetEmissionFactorsResponse>({
-    queryKey: carbonInventoryKeys.emissionFactors(id),
+    queryKey: [...carbonInventoryKeys.emissionFactors(id), headers],
     queryFn: () =>
-      apiClient.get(`carbon-inventories/${id}/emission-factors`).json(),
+      apiClient
+        .get(`carbon-inventories/${id}/emission-factors`, { headers })
+        .json(),
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
     enabled: !!id,
