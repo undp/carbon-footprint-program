@@ -53,6 +53,8 @@ export const getEmissionsSummaryCategoriesService = async (
     name: category.name,
     synonyms: category.synonyms,
     position: category.position,
+    icon: category.icon,
+    color: category.color,
     subtotal: roundEmissions(category.subtotal),
     percentage: categoryPercentages[catIdx],
   }));

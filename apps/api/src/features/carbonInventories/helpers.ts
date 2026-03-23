@@ -39,10 +39,10 @@ export function validateCarbonInventoryIsEditable(
 
 export type CategoryData = Pick<
   GetAllCategoriesResponse[number],
-  "id" | "name" | "synonyms" | "position"
+  "id" | "name" | "synonyms" | "position" | "icon" | "color"
 > & {
   subtotal: number;
-  subcategories: { id: string; name: string; subtotal: number }[];
+  subcategories: { id: string; name: string; icon: string; subtotal: number }[];
 };
 
 type InventoryWithCategoryData = {
@@ -96,8 +96,10 @@ export async function fetchCategoryData(
           name: true,
           synonyms: true,
           position: true,
+          icon: true,
+          color: true,
           subcategories: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, icon: true },
             orderBy: { name: "asc" },
           },
         },
@@ -124,6 +126,7 @@ export async function fetchCategoryData(
       .map((sub) => ({
         id: sub.id.toString(),
         name: sub.name,
+        icon: sub.icon,
         subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
       }))
       .filter((sub) => sub.subtotal > 0);
@@ -138,6 +141,8 @@ export async function fetchCategoryData(
       name: category.name,
       synonyms: category.synonyms,
       position: category.position,
+      icon: category.icon,
+      color: category.color,
       subtotal: categorySubtotal,
       subcategories,
     };

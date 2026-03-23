@@ -21,6 +21,7 @@ export const getSubcategoriesRankingService = async (
       name: sub.name,
       categoryName: category.name,
       categoryPosition: category.position,
+      categoryColor: category.color,
       subtotal: sub.subtotal,
     }))
   );
@@ -53,6 +54,7 @@ export const getSubcategoriesRankingService = async (
     name: item.name,
     categoryName: item.categoryName,
     categoryPosition: item.categoryPosition,
+    categoryColor: item.categoryColor,
     subtotal: roundEmissions(item.subtotal),
     percentage: rankingPercentages[idx],
     severity: getRankingSeverity(rankingPercentages[idx]),

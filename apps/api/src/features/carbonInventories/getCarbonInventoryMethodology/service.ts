@@ -72,6 +72,7 @@ export const getCarbonInventoryMethodologyService = async (
             select: {
               id: true,
               name: true,
+              icon: true,
               description: true,
               examples: true,
               explanationId: true,
@@ -164,6 +165,7 @@ export const getCarbonInventoryMethodologyService = async (
       subcategories: category.subcategories.map((subcategory) => ({
         id: subcategory.id.toString(),
         name: subcategory.name,
+        icon: subcategory.icon,
         description: subcategory.description,
         examples: subcategory.examples,
         explanationId: subcategory.explanationId?.toString() ?? null,

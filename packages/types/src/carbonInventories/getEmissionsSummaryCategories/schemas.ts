@@ -13,6 +13,8 @@ const CategoryItemSchema = CategoryBaseSchema.pick({
   name: true,
   synonyms: true,
   position: true,
+  icon: true,
+  color: true,
 })
   .extend({
     subtotal: z
