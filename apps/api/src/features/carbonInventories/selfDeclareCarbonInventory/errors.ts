@@ -41,3 +41,9 @@ export const CarbonInventoryNotDraftForSelfDeclareError = createError(
   "Carbon inventory %s must be in DRAFT status to self-declare",
   422
 );
+
+export const CarbonInventoryYearAlreadySelfDeclaredError = createError(
+  "CARBON_INVENTORY_YEAR_ALREADY_SELF_DECLARED",
+  "A self-declared carbon inventory already exists for year %s in this organization",
+  422
+);

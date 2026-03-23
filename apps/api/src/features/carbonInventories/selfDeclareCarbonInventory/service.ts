@@ -19,6 +19,7 @@ import {
   CarbonInventoryMissingOrganizationError,
   CarbonInventoryMissingYearError,
   CarbonInventoryNotDraftForSelfDeclareError,
+  CarbonInventoryYearAlreadySelfDeclaredError,
 } from "./errors.js";
 import {
   calculateDisplayStatus,
@@ -50,51 +51,41 @@ export const selfDeclareCarbonInventoryService = async (
       data: { isSelfDeclared: true, updatedById: createdById },
     });
 
+    // Single query for both diagnostics and happy-path logic.
+    // Includes submissions (for display status) plus fields needed for error diagnosis.
+    const inventory = await tx.carbonInventory.findUnique({
+      where: { id: inventoryId },
+      select: {
+        ...carbonInventoryWithSubmissionsMinimalSelect,
+        status: true,
+        organizationId: true,
+        year: true,
+      },
+    });
+
+    if (!inventory) {
+      throw new CarbonInventoryNotFoundForSelfDeclareError(carbonInventoryId);
+    }
+
     if (count === 0) {
       // Diagnose which precondition failed to provide a specific error.
-      const existing = await tx.carbonInventory.findUnique({
-        where: { id: inventoryId },
-        select: {
-          status: true,
-          isSelfDeclared: true,
-          organizationId: true,
-          year: true,
-        },
-      });
-
-      if (!existing) {
-        throw new CarbonInventoryNotFoundForSelfDeclareError(carbonInventoryId);
-      }
-      if (existing.status !== InventoryStatus.ACTIVE) {
+      if (inventory.status !== InventoryStatus.ACTIVE) {
         throw new CarbonInventoryNotActiveForSelfDeclareError(
           carbonInventoryId
         );
       }
-      if (existing.isSelfDeclared) {
+      if (inventory.isSelfDeclared) {
         throw new CarbonInventoryAlreadySelfDeclaredError(carbonInventoryId);
       }
-      if (!existing.organizationId) {
+      if (!inventory.organizationId) {
         throw new CarbonInventoryMissingOrganizationError(carbonInventoryId);
       }
-      if (!existing.year) {
+      if (!inventory.year) {
         throw new CarbonInventoryMissingYearError(carbonInventoryId);
       }
 
       // All conditions looked fine — a concurrent request likely claimed it first.
       throw new CarbonInventoryCannotSelfDeclareError(carbonInventoryId);
-    }
-
-    // Verify the display status was DRAFT before the claim.
-    // updateMany cannot filter on relations, so we check after claiming.
-    // We override isSelfDeclared to false to evaluate the pre-claim state.
-    // If this check fails, the transaction rolls back the claim above.
-    const inventory = await tx.carbonInventory.findFirst({
-      where: { id: inventoryId },
-      select: carbonInventoryWithSubmissionsMinimalSelect,
-    });
-
-    if (!inventory) {
-      throw new CarbonInventoryNotFoundForSelfDeclareError(carbonInventoryId);
     }
 
     const displayStatus = calculateDisplayStatus({
@@ -104,6 +95,26 @@ export const selfDeclareCarbonInventoryService = async (
 
     if (!canSelfDeclare(displayStatus)) {
       throw new CarbonInventoryNotDraftForSelfDeclareError(carbonInventoryId);
+    }
+
+    // Ensure no other inventory for the same organization+year is already self-declared.
+    if (inventory.organizationId && inventory.year) {
+      const existingSelfDeclared = await tx.carbonInventory.findFirst({
+        where: {
+          id: { not: inventoryId },
+          organizationId: inventory.organizationId,
+          year: inventory.year,
+          status: InventoryStatus.ACTIVE,
+          isSelfDeclared: true,
+        },
+        select: { id: true },
+      });
+
+      if (existingSelfDeclared) {
+        throw new CarbonInventoryYearAlreadySelfDeclaredError(
+          String(inventory.year)
+        );
+      }
     }
 
     const recognitionBehavior = await getSystemParameterValue(
