@@ -43,12 +43,14 @@ export const deleteEmissionFactorDimensionService = async (
     throw new EmissionFactorDimensionNotFoundError();
   }
 
-  const activeDimensionCount = await prismaClient.emissionFactorDimension.count({
-    where: {
-      subcategoryId: dimension.subcategoryId,
-      status: EmissionFactorDimensionStatus.ACTIVE,
-    },
-  });
+  const activeDimensionCount = await prismaClient.emissionFactorDimension.count(
+    {
+      where: {
+        subcategoryId: dimension.subcategoryId,
+        status: EmissionFactorDimensionStatus.ACTIVE,
+      },
+    }
+  );
 
   if (activeDimensionCount > 1 && dimension.position === 1) {
     throw new DimensionDeletionNotAllowedError();
@@ -96,7 +98,7 @@ export const deleteEmissionFactorDimensionService = async (
     }
 
     await tx.emissionFactorDimensionValue.updateMany({
-      where: { dimensionId },
+      where: { dimensionId, status: EmissionFactorDimensionValueStatus.ACTIVE },
       data: {
         status: EmissionFactorDimensionValueStatus.DELETED,
         updatedById: userId,
