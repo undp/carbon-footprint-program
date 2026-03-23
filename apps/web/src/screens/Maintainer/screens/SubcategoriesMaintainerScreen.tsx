@@ -1,17 +1,6 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useEffect, useMemo } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, Button, Paper, Typography } from "@mui/material";
-import { FiberManualRecord as DotIcon } from "@mui/icons-material";
 import { useSnackbar } from "notistack";
-import { FormProvider } from "react-hook-form";
 import {
   useCategories,
   useSubcategories,
@@ -20,36 +9,24 @@ import {
   useDeleteSubcategory,
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
-import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import {
   useSubcategoriesForm,
   toFormSubcategory,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
-import { SubcategoryForm } from "@repo/types";
-import { StylizedDataGrid } from "@components";
-import { IS_DEVELOPMENT } from "@/config/environment";
-import { FormDebugPanel } from "@/devtools";
-import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
-import { ExitEditModeDialog } from "../components/ExitEditModeDialog";
-import { ExplanationModal } from "../components/ExplanationModal";
-import { InfoBanner } from "../components/InfoBanner";
+import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
+import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
+import { useMaintainerExitEditMode } from "../hooks/useMaintainerExitEditMode";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
+import { SubcategoryForm } from "@repo/types";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
+import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
+import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
+import { ExplanationModal } from "../components/ExplanationModal";
 
 export const SubcategoriesMaintainerScreen: FC = () => {
-  const {
-    isViewOnly,
-    methodologies,
-    effectiveMethodologyId,
-    methodologyVersionId,
-    targetMethodology,
-    methodologySelector,
-    selectMethodology,
-    stopEditing,
-    isLoadingMethodologies,
-    isMethodologiesError,
-  } = useMaintainerMethodologyScope();
+  const scope = useMaintainerMethodologyScope();
+  const { methodologyVersionId, isMethodologiesError } = scope;
   const { enqueueSnackbar } = useSnackbar();
 
   // --- Data fetching ---
@@ -70,67 +47,39 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     [categories]
   );
 
-  // --- Form & editing state ---
-  const [editingState, setEditingState] = useState<{
-    methodologyVersionId?: string;
-    rowId: string | null;
-  }>({ methodologyVersionId: undefined, rowId: null });
-  const editingRowId =
-    editingState.methodologyVersionId === methodologyVersionId
-      ? editingState.rowId
-      : null;
-  const setEditingRowId = useCallback(
-    (rowId: string | null) => {
-      setEditingState({ methodologyVersionId, rowId });
-    },
-    [methodologyVersionId]
-  );
-  const [exitEditModeOpen, setExitEditModeOpen] = useState(false);
-  const [explanationModalState, setExplanationModalState] = useState<{
-    methodologyVersionId?: string;
-    open: boolean;
-    rowIndex: number;
-  }>({ methodologyVersionId: undefined, open: false, rowIndex: -1 });
-  const explanationModal = useMemo(
-    () =>
-      explanationModalState.methodologyVersionId === methodologyVersionId
-        ? {
-            open: explanationModalState.open,
-            rowIndex: explanationModalState.rowIndex,
-          }
-        : { open: false, rowIndex: -1 },
-    [explanationModalState, methodologyVersionId]
-  );
-  const setExplanationModal = useCallback(
-    (value: { open: boolean; rowIndex: number }) => {
-      setExplanationModalState({ methodologyVersionId, ...value });
-    },
-    [methodologyVersionId]
-  );
+  // --- Editing state ---
+  const {
+    editingRowId,
+    setEditingRowId,
+    exitEditModeOpen,
+    setExitEditModeOpen,
+    modal: explanationModal,
+    setModal: setExplanationModal,
+    isNewRow,
+  } = useMaintainerEditingState({ methodologyVersionId });
+
   const addMutation = useAddSubcategory(methodologyVersionId);
   const updateMutation = useUpdateSubcategory(methodologyVersionId);
   const deleteMutation = useDeleteSubcategory(methodologyVersionId);
 
+  // --- Form ---
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
   const currentRows = form.watch("subcategories");
 
   // --- Sync form with server data ---
-  const editingRowIdRef = useRef(editingRowId);
-  useLayoutEffect(() => {
-    editingRowIdRef.current = editingRowId;
-  }, [editingRowId]);
-
-  useEffect(() => {
-    form.reset({ subcategories: [] });
-  }, [methodologyVersionId, form]);
-
-  useEffect(() => {
-    if (editingRowIdRef.current !== null) return;
-    if (!subcategories) return;
-    form.reset({ subcategories: subcategories.map(toFormSubcategory) });
-  }, [subcategories, form]);
-
-  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+  const toFormData = useCallback(
+    (data: unknown[]) =>
+      (data as typeof subcategories & object).map(toFormSubcategory),
+    []
+  );
+  useMaintainerFormSync({
+    form,
+    fieldName: "subcategories",
+    editingRowId,
+    methodologyVersionId,
+    serverData: subcategories,
+    toFormData,
+  });
 
   // --- Row editing callbacks ---
 
@@ -320,24 +269,14 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   );
 
   // --- Exit edit mode ---
-
-  const handleExitEditModeNav = useCallback(() => {
-    const target = methodologies.find((m) => m.id === effectiveMethodologyId);
-    if (target) {
-      selectMethodology({
-        id: target.id,
-        name: target.name,
-        regulation: target.regulation,
-      });
-    } else {
-      stopEditing();
-    }
-  }, [effectiveMethodologyId, methodologies, selectMethodology, stopEditing]);
-
-  const handleExitEditMode = useCallback(() => {
-    if (editingRowId) handleCancelEditRow();
-    handleExitEditModeNav();
-  }, [editingRowId, handleCancelEditRow, handleExitEditModeNav]);
+  const { handleExitEditMode } = useMaintainerExitEditMode({
+    editingRowId,
+    handleCancelEditRow,
+    effectiveMethodologyId: scope.effectiveMethodologyId,
+    methodologies: scope.methodologies,
+    selectMethodology: scope.selectMethodology,
+    stopEditing: scope.stopEditing,
+  });
 
   // --- Explanation modal ---
 
@@ -407,7 +346,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   // --- Column definitions ---
   const columns = useSubcategoryColumns({
     editingRowId,
-    viewOnly: isViewOnly,
+    viewOnly: scope.isViewOnly,
     onCellChange: handleCellChange,
     onStartEditRow: handleStartEditRow,
     onStopEditRow: handleStopEditRow,
@@ -434,148 +373,49 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     !isLoadingUnits &&
     !!measurementUnits;
 
-  if (
-    !isLoadingMethodologies &&
-    (isMethodologiesError || isErrorSubcategories || !targetMethodology)
-  ) {
-    const emptyStateMessage = isMethodologiesError
-      ? "No fue posible cargar las metodologías."
-      : isErrorSubcategories
-        ? "No fue posible cargar las sub-categorías."
-        : "No hay metodologías disponibles para mostrar sub-categorías.";
-
-    return (
-      <>
-        <MaintainerPageHeader
-          title="Sub-categorías"
-          addLabel="Agregar fila"
-          addDisabled
-          extra={methodologySelector}
-        />
-        <Box className="rounded-sm bg-white p-3">
-          <Typography variant="body2" color="text.secondary">
-            {emptyStateMessage}
-          </Typography>
-        </Box>
-      </>
-    );
-  }
+  const errorMessage = isMethodologiesError
+    ? "No fue posible cargar las metodologías."
+    : isErrorSubcategories
+      ? "No fue posible cargar las sub-categorías."
+      : !scope.targetMethodology
+        ? "No hay metodologías disponibles para mostrar sub-categorías."
+        : null;
 
   return (
-    <FormProvider {...form}>
-      <MaintainerPageHeader
-        title="Sub-categorías"
-        onAddRow={isViewOnly ? undefined : handleAddRow}
-        addDisabled={editingRowId !== null}
-        addLabel="Agregar fila"
-        extra={methodologySelector}
+    <MaintainerScreenLayout
+      title="Sub-categorías"
+      scope={scope}
+      editingRowId={editingRowId}
+      form={form}
+      formId="subcategories-form"
+      errorMessage={errorMessage}
+      onAddRow={handleAddRow}
+      addDisabled={editingRowId !== null}
+      onExitEditMode={handleExitEditMode}
+      exitEditModeOpen={exitEditModeOpen}
+      onExitEditModeOpenChange={setExitEditModeOpen}
+      blockerStatus={status}
+      onBlockerProceed={() => proceed?.()}
+      onBlockerReset={() => reset?.()}
+      readOnlyDescription="Vista de solo lectura de las sub-categorías de esta metodología."
+      editDescription="Gestiona las sub-categorías de esta metodología. Haz clic en una fila para editarla."
+      extraModals={
+        <ExplanationModal
+          open={explanationModal.open}
+          value={explanationValue}
+          readOnly={scope.isViewOnly}
+          onSave={handleSaveExplanation}
+          onClose={() => setExplanationModal({ open: false, rowIndex: -1 })}
+        />
+      }
+    >
+      <MaintainerDataGrid
+        editingRowId={editingRowId}
+        columns={columns}
+        rows={currentRows}
+        loading={!isDataReady || scope.isLoadingMethodologies}
+        getRowId={(row: SubcategoryForm) => row.id}
       />
-      <Box
-        className="rounded-sm bg-white p-3"
-        sx={!isViewOnly ? { pb: 8 } : undefined}
-      >
-        {!isViewOnly && (
-          <InfoBanner
-            variant="success"
-            title={`Editando metodología: ${targetMethodology?.name ?? ""}`}
-            subtitle="Los cambios se aplicarán automáticamente"
-          />
-        )}
-        <Typography variant="body2" color="text.secondary" sx={{ m: 2 }}>
-          {isViewOnly
-            ? "Vista de solo lectura de las sub-categorías de esta metodología."
-            : "Gestiona las sub-categorías de esta metodología. Haz clic en una fila para editarla."}
-        </Typography>
-        <form id="subcategories-form" noValidate>
-          <Box className="flex w-full">
-            <StylizedDataGrid
-              sx={(theme) => ({
-                "& .MuiDataGrid-columnHeader": {
-                  backgroundColor: theme.palette.grey[200],
-                },
-                "& .MuiDataGrid-cell": {
-                  display: "flex",
-                  maxHeight: 100,
-                  alignItems: "center",
-                },
-                "& .MuiDataGrid-cell .MuiOutlinedInput-root": {
-                  backgroundColor: theme.palette.common.white,
-                },
-                "& .MuiDataGrid-cell .MuiSelect-select": {
-                  backgroundColor: theme.palette.common.white,
-                },
-                "& .MuiDataGrid-row.row--editing": {
-                  backgroundColor: theme.palette.grey[100],
-                },
-              })}
-              columns={columns}
-              rows={currentRows}
-              loading={!isDataReady || isLoadingMethodologies}
-              getRowId={(row: SubcategoryForm) => row.id}
-              getRowClassName={({ id }) =>
-                String(id) === editingRowId ? "row--editing" : ""
-              }
-            />
-          </Box>
-        </form>
-      </Box>
-      {!isViewOnly && (
-        <Paper
-          elevation={3}
-          sx={{
-            position: "fixed",
-            bottom: 0,
-            left: 0,
-            right: 0,
-            display: "flex",
-            alignItems: "center",
-            gap: 1.5,
-            px: 4,
-            py: 1.5,
-            zIndex: 1200,
-            borderTop: "2px solid",
-            borderColor: "success.main",
-          }}
-        >
-          <DotIcon sx={{ fontSize: 12, color: "success.main" }} />
-          <Box sx={{ flex: 1 }}>
-            <Typography variant="body2" fontWeight={600}>
-              Editando: {targetMethodology?.name ?? ""}
-            </Typography>
-          </Box>
-          <Button
-            size="small"
-            variant="contained"
-            color="primary"
-            onClick={() => setExitEditModeOpen(true)}
-          >
-            Salir de modo edición
-          </Button>
-        </Paper>
-      )}
-      <ExitEditModeDialog
-        open={exitEditModeOpen}
-        methodologyName={targetMethodology?.name ?? ""}
-        hasUnsavedRow={editingRowId !== null}
-        onClose={() => setExitEditModeOpen(false)}
-        onConfirm={() => {
-          setExitEditModeOpen(false);
-          handleExitEditMode();
-        }}
-      />
-      {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
-      <UnsavedChangesDialog
-        open={status === "blocked"}
-        onCancel={() => reset?.()}
-        onConfirm={() => proceed?.()}
-      />
-      <ExplanationModal
-        open={explanationModal.open}
-        value={explanationValue}
-        readOnly={isViewOnly}
-        onSave={handleSaveExplanation}
-        onClose={() => setExplanationModal({ open: false, rowIndex: -1 })}
-      />
-    </FormProvider>
+    </MaintainerScreenLayout>
   );
 };
