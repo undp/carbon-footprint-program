@@ -162,6 +162,7 @@ enum OrganizationRole {
 
 enum MembershipStatus {
   ACTIVE
+  OUTDATED
   DELETED
 
   @@map("membership_status")
@@ -190,7 +191,7 @@ model UserOrganizationMembership {
   creator      User?        @relation("membership_created_by", fields: [createdById], references: [id])
   updater      User?        @relation("membership_updated_by", fields: [updatedById], references: [id])
 
-  @@unique([userId, organizationId])
+  @@index([userId, organizationId])
   @@map("user_organization_membership")
 }
 
