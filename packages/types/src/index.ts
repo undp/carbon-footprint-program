@@ -14,5 +14,5 @@ export * from "./enums.js";
 export * from "./zod.js";
 export * from "./requests/index.js";
 export * from "./subcategories/index.js";
-
+export * from "./systemParameters/index.js";
 export * from "./baseSchemas/index.js";

@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { CarbonInventoryBaseSchema } from "../../baseSchemas/index.js";
+import {
+  CarbonInventoryBaseSchema,
+  OrganizationSummaryBaseSchema,
+} from "../../baseSchemas/index.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 import { OrganizationDisplayStatusSchema } from "../../organizations/index.js";
 import { IdSchema } from "../../zod.js";
@@ -35,8 +38,7 @@ const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
   totalEmissions: z
     .number()
     .describe("The total calculated emissions for this inventory"),
-  organizationName: z
-    .string()
+  organizationName: OrganizationSummaryBaseSchema.shape.name
     .nullable()
     .describe(
       "The name of the associated organization, or null if no organization is associated."

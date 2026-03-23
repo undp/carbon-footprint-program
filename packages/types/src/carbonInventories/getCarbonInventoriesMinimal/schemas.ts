@@ -1,23 +1,10 @@
 import { z } from "zod";
-import { IdSchema } from "../../zod.js";
+import { IdSchema, listQueryParam } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 
 export const GetCarbonInventoriesMinimalParamsSchema = z.object({
-  statuses: z
-    .union([
-      z.string(), // ?statuses=ACTIVE,BLOCKED
-      z.array(z.string()), // ?statuses=ACTIVE&statuses=BLOCKED
-    ])
-    .transform((value) => {
-      if (typeof value === "string") {
-        return value
-          .split(",")
-          .map((v) => v.trim())
-          .filter(Boolean);
-      }
-      return value;
-    })
-    .pipe(z.array(CarbonInventoryDisplayStatusSchema))
+  statuses: listQueryParam()
+    .pipe(CarbonInventoryDisplayStatusSchema.array())
     .optional(),
 });
 

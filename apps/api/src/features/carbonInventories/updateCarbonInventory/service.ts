@@ -1,5 +1,6 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import type {
+  OrganizationDataField,
   UpdateCarbonInventoryRequest,
   UpdateCarbonInventoryResponse,
   User,
@@ -23,6 +24,8 @@ export const updateCarbonInventoryService = async (
     where: { id: BigInt(id) },
     select: {
       ...carbonInventoryWithSubmissionsMinimalSelect,
+      organizationId: true,
+      organizationData: true,
     },
   });
 
@@ -50,8 +53,23 @@ export const updateCarbonInventoryService = async (
   }
 
   if (data.organizationData !== undefined) {
+    // When inventory is linked to an organization, preserve the existing companyName
+    // to avoid overwriting it with potentially stale data (the official name comes from organizationSummary)
+    // Compute isLinked from the effective post-patch organizationId (handles unlinking/linking in same PATCH)
+    const effectiveOrganizationId =
+      organizationId !== undefined ? organizationId : inventory.organizationId;
+    const isLinked = !!effectiveOrganizationId;
+    const existingName = (inventory.organizationData as OrganizationDataField)
+      ?.name;
+
+    // Normalize undefined to null for JSON fields
     updateData.organizationData = data.organizationData
-      ? (data.organizationData as Prisma.InputJsonValue)
+      ? ({
+          ...data.organizationData,
+          name: isLinked
+            ? (existingName ?? null)
+            : (data.organizationData.name ?? null),
+        } as Prisma.InputJsonValue)
       : Prisma.JsonNull;
   }
 

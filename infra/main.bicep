@@ -72,6 +72,9 @@ param dbPassword string
 @description('Object ID of the Azure AD group for Key Vault access (optional)')
 param devGroupObjectId string = ''
 
+@description('Grant Key Vault Secrets Officer role to the dev group (for local development with az login)')
+param enableDevGroupKeyVaultAccess bool = false
+
 @description('Grant Storage Blob Data Contributor to the dev group (for local development with az login)')
 param enableDevGroupStorageAccess bool = false
 
@@ -204,6 +207,7 @@ module keyVault 'modules/keyVault.bicep' = {
     location: location
     dbPassword: dbPassword
     devGroupObjectId: devGroupObjectId
+    enableDevGroupAccess: enableDevGroupKeyVaultAccess
     tags: tags
   }
 }
