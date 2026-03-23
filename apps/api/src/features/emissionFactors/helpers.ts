@@ -78,7 +78,7 @@ export async function checkDuplicateEmissionFactor(
 
   const where: Prisma.EmissionFactorWhereInput = {
     subcategoryId,
-    status: { not: EmissionFactorStatus.DELETED },
+    status: EmissionFactorStatus.ACTIVE,
     ...(excludeId != null ? { id: { not: excludeId } } : {}),
   };
 
