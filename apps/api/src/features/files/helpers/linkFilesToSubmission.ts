@@ -83,8 +83,8 @@ export async function linkFilesToSubmission(
     throw new MissingFilesError(missing.join(", "));
   }
 
-  // Step 1: Compute file plans upfront
-  const filePlans = files.map((file) => ({
+  // Step 1: Compute file metadata upfront
+  const filesMetadata = files.map((file) => ({
     file,
     currentBlobPath: file.blobPath,
     finalBlobPath: buildBlobPath({
@@ -98,23 +98,23 @@ export async function linkFilesToSubmission(
 
   // Step 2: Copy all blobs in parallel
   const copyResults = await Promise.allSettled(
-    filePlans.map((plan) =>
+    filesMetadata.map((metadata) =>
       copyBlob(
         blobServiceClient,
         containerName,
-        plan.currentBlobPath,
-        plan.finalBlobPath
+        metadata.currentBlobPath,
+        metadata.finalBlobPath
       )
     )
   );
 
   // Step 3: If any copy failed, clean up successful destinations and throw
-  const failedPlans = filePlans.filter(
+  const failedPlans = filesMetadata.filter(
     (_, i) => copyResults[i].status === "rejected"
   );
 
   if (failedPlans.length > 0) {
-    const successfulDests = filePlans
+    const successfulDests = filesMetadata
       .filter((_, i) => copyResults[i].status === "fulfilled")
       .map((plan) => plan.finalBlobPath);
 
@@ -123,6 +123,7 @@ export async function linkFilesToSubmission(
         deleteBlob(blobServiceClient, containerName, dest)
       )
     );
+
     throw new BlobMoveError(
       failedPlans.map((plan) => plan.currentBlobPath).join(", "),
       failedPlans.map((plan) => plan.finalBlobPath).join(", ")
@@ -131,7 +132,7 @@ export async function linkFilesToSubmission(
 
   // Step 4: All copies succeeded — update DB records
   await Promise.all(
-    filePlans.map((plan) =>
+    filesMetadata.map((plan) =>
       tx.file.update({
         where: { id: plan.file.id },
         data: { blobPath: plan.finalBlobPath },
