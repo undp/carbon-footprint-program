@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http/client";
 import { UpdateCarbonInventorySubcategoriesRequest } from "@repo/types";
+import { CarbonInventoryQueryKey } from "../keys";
 
 export const useUpdateCarbonInventorySubcategories = (inventoryId: string) => {
   const queryClient = useQueryClient();
@@ -17,11 +18,13 @@ export const useUpdateCarbonInventorySubcategories = (inventoryId: string) => {
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey.includes(inventoryId) &&
-            query.queryKey.includes("carbonInventoryEmissionsUpdateDependency"),
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.EmissionsUpdateDependency
+            ),
         }),
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoriesListDependency"),
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
       ]);
     },

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http/client";
 import { requestsKeys } from "../requests/keys";
+import { CarbonInventoryQueryKey } from "./keys";
 
 export const useRequestCalculation = () => {
   const queryClient = useQueryClient();
@@ -14,12 +15,12 @@ export const useRequestCalculation = () => {
           predicate: (query) =>
             query.queryKey.includes(id) &&
             query.queryKey.includes(
-              "carbonInventoryAttributesUpdateDependency"
+              CarbonInventoryQueryKey.AttributesUpdateDependency
             ),
         }),
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoriesListDependency"),
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminAll,

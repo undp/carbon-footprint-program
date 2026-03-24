@@ -4,6 +4,7 @@ import {
   UpdateCarbonInventoryResponse,
 } from "@repo/types";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "./keys";
 
 type UpdateCarbonInventoryVariables = {
   id: string;
@@ -26,12 +27,12 @@ export const useUpdateCarbonInventory = () => {
           predicate: (query) =>
             query.queryKey.includes(id) &&
             query.queryKey.includes(
-              "carbonInventoryAttributesUpdateDependency"
+              CarbonInventoryQueryKey.AttributesUpdateDependency
             ),
         }),
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoriesListDependency"),
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
       ]);
     },

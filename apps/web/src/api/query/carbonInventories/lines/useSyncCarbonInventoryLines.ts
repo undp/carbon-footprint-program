@@ -4,6 +4,7 @@ import {
   SyncCarbonInventoryLinesResponse,
 } from "@repo/types";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "../keys";
 
 type SyncCarbonInventoryLinesVariables = {
   data: SyncCarbonInventoryLinesRequest;
@@ -26,11 +27,13 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey.includes(inventoryId) &&
-            query.queryKey.includes("carbonInventoryEmissionsUpdateDependency"),
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.EmissionsUpdateDependency
+            ),
         }),
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoriesListDependency"),
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
       ]);
     },

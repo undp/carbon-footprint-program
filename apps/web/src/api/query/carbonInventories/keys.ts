@@ -1,87 +1,112 @@
+export enum CarbonInventoryQueryKey {
+  Root = "carbonInventories",
+  Subcategories = "carbonInventorySubcategories",
+  ListDependency = "carbonInventoriesListDependency",
+  OrganizationStatusDependency = "organizationStatusDependency",
+  AttributesUpdateDependency = "carbonInventoryAttributesUpdateDependency",
+  EmissionsUpdateDependency = "carbonInventoryEmissionsUpdateDependency",
+  Methodology = "methodology",
+  EmissionsSummaryCategories = "emissions-summary-categories",
+  SubcategoriesRanking = "subcategories-ranking",
+  SectorRanking = "sector-ranking",
+  MainActivityEquivalence = "main-activity-equivalence",
+  SuggestedReductionPlan = "suggested-reduction-plan",
+  EmissionsDetailedSummary = "emissions-detailed-summary",
+  EmissionFactors = "emission-factors",
+  Metadata = "metadata",
+  Minimal = "minimal",
+  Badges = "badges",
+}
+
 export const carbonInventoryKeys = {
   all: [
-    "carbonInventories",
-    "carbonInventoriesListDependency",
-    "organizationStatusDependency",
+    CarbonInventoryQueryKey.Root,
+    CarbonInventoryQueryKey.ListDependency,
+    CarbonInventoryQueryKey.OrganizationStatusDependency,
   ] as const,
   detail: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "carbonInventoryAttributesUpdateDependency",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   methodology: (id: string) =>
-    ["carbonInventories", id, "methodology"] as const,
+    [
+      CarbonInventoryQueryKey.Root,
+      id,
+      CarbonInventoryQueryKey.Methodology,
+    ] as const,
   subcategoriesSummary: (id: string) =>
     [
-      "carbonInventorySubcategories",
+      CarbonInventoryQueryKey.Subcategories,
       id,
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   emissionsSummaryCategories: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "emissions-summary-categories",
-      "carbonInventoryAttributesUpdateDependency",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.EmissionsSummaryCategories,
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   subcategoriesRanking: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "subcategories-ranking",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.SubcategoriesRanking,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   sectorRanking: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "sector-ranking",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.SectorRanking,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   mainActivityEquivalence: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "main-activity-equivalence",
-      "carbonInventoryAttributesUpdateDependency",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.MainActivityEquivalence,
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   suggestedReductionPlan: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "suggested-reduction-plan",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.SuggestedReductionPlan,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   emissionsDetailedSummary: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "emissions-detailed-summary",
-      "carbonInventoryAttributesUpdateDependency",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.EmissionsDetailedSummary,
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   emissionFactors: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "emission-factors",
-      "carbonInventoryEmissionsUpdateDependency",
+      CarbonInventoryQueryKey.EmissionFactors,
+      CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   metadata: (id: string) =>
     [
-      "carbonInventories",
+      CarbonInventoryQueryKey.Root,
       id,
-      "metadata",
-      "carbonInventoryAttributesUpdateDependency",
+      CarbonInventoryQueryKey.Metadata,
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
     ] as const,
   minimal: [
-    "carbonInventories",
-    "minimal",
-    "carbonInventoriesListDependency",
+    CarbonInventoryQueryKey.Root,
+    CarbonInventoryQueryKey.Minimal,
+    CarbonInventoryQueryKey.ListDependency,
   ] as const,
-  badges: (id?: string) => ["carbonInventories", id, "badges"] as const,
+  badges: (id?: string) =>
+    [CarbonInventoryQueryKey.Root, id, CarbonInventoryQueryKey.Badges] as const,
 };
