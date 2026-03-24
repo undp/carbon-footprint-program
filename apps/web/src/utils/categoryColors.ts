@@ -23,3 +23,19 @@ export function deriveCategoryColors(hexColor: string): CategoryColorSet {
     contrastText: "#414046",
   };
 }
+
+/** Predefined color palette available for category assignment */
+export const CATEGORY_COLORS = [
+  "#FFB74D", // orange
+  "#64B5F6", // light blue
+  "#82C784", // green
+  "#F06292", // pink
+  "#BA68C8", // purple
+  "#FFD54F", // yellow
+  "#4DB6AC", // teal
+  "#FF8A65", // deep orange
+  "#7986CB", // indigo
+  "#90A4AE", // blue gray
+  "#AED581", // light green
+  "#D4E157", // lime
+];

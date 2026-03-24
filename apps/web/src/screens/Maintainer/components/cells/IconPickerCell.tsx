@@ -15,25 +15,9 @@ import {
   CATEGORY_ICON_MAP,
   type CategoryIconName,
 } from "@/utils/categoryIcons";
+import { CATEGORY_COLORS, deriveCategoryColors } from "@/utils/categoryColors";
 
 const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
-
-/** Predefined color palette for category icons */
-export const CATEGORY_COLORS = [
-  "#FFB74D", // orange
-
-  "#64B5F6", // light blue
-  "#82C784", // green
-  "#F06292", // pink
-  "#BA68C8", // purple
-  "#FFD54F", // yellow
-  "#4DB6AC", // teal
-  "#FF8A65", // deep orange
-  "#7986CB", // indigo
-  "#90A4AE", // blue gray
-  "#AED581", // light green
-  "#D4E157", // lime
-];
 
 interface IconPickerCellBaseProps {
   iconName: string;
@@ -115,7 +99,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
   const effectiveColor = hideColor
     ? color || "#E8E8E8"
     : color
-      ? alpha(color, 0.3)
+      ? deriveCategoryColors(color).light
       : "transparent";
 
   return (
