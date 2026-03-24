@@ -12,8 +12,7 @@ export const useSubcategoryPreselectionSubmit = (
   { onSuccess }: { onSuccess?: () => void } = {}
 ): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
-  const { mutateAsync, isPending } =
-    useUpdateCarbonInventorySubcategories(inventoryId);
+  const { mutateAsync, isPending } = useUpdateCarbonInventorySubcategories();
 
   const submit = useCallback(
     async (values: Record<string, boolean>, isDirty: boolean) => {
@@ -28,7 +27,7 @@ export const useSubcategoryPreselectionSubmit = (
           selected,
         }));
 
-        await mutateAsync(payload);
+        await mutateAsync({ id: inventoryId, data: payload });
 
         enqueueSnackbar("Subcategorías actualizadas exitosamente", {
           variant: "success",
@@ -43,7 +42,7 @@ export const useSubcategoryPreselectionSubmit = (
         });
       }
     },
-    [mutateAsync, onSuccess, enqueueSnackbar]
+    [mutateAsync, onSuccess, enqueueSnackbar, inventoryId]
   );
 
   return {
