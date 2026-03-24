@@ -11,7 +11,10 @@ import {
 import { CheckOutlined } from "@mui/icons-material";
 import { useFormContext, useFormState } from "react-hook-form";
 import { getNestedError } from "./cellUtils";
-import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import {
+  CATEGORY_ICON_MAP,
+  type CategoryIconName,
+} from "@/utils/categoryIcons";
 
 const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
 
@@ -108,7 +111,9 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
       );
   const hasError = isEditing && (!!iconError || !!colorError);
 
-  const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
+  const IconComponent = iconName
+    ? CATEGORY_ICON_MAP[iconName as CategoryIconName]
+    : null;
   const isInteractive = isEditing || !!onClick;
   const effectiveColor = hideColor ? color || "#E8E8E8" : color;
 

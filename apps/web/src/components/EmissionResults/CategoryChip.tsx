@@ -14,16 +14,16 @@ export const CategoryChip: FC<CategoryChipProps> = ({
   categoryColor,
   sx,
 }) => {
-  const colors = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = deriveCategoryColors(categoryColor);
 
   return (
     <Chip
       label={label}
       size="small"
       sx={{
-        backgroundColor: colors.light,
-        border: `1px solid ${colors.light}`,
-        color: colors.dark,
+        backgroundColor: categoryColorPalette.light,
+        border: `1px solid ${categoryColorPalette.light}`,
+        color: categoryColorPalette.dark,
         fontSize: "0.75rem",
         fontWeight: 500,
         height: "26px",

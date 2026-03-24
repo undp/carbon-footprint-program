@@ -1,14 +1,12 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { formatEmissions, formatPercentage } from "@/utils/formatting";
+import { deriveCategoryColors } from "@/utils/categoryColors";
 
 interface EmissionPercentageBadgeProps {
   emissions: number;
   percentage?: number | null;
-  categoryColor: {
-    dark: string;
-    light?: string;
-  };
+  categoryColor: string;
   highlighted?: boolean;
 }
 
@@ -18,6 +16,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
   categoryColor,
   highlighted = false,
 }) => {
+  const categoryColorPalette = deriveCategoryColors(categoryColor);
   const fontWeight = highlighted ? "600" : "400";
   const hasPercentage = percentage !== null && percentage !== undefined;
   return (
@@ -25,7 +24,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
       <Typography
         variant="body1"
         fontWeight={fontWeight}
-        sx={{ color: categoryColor.dark }}
+        sx={{ color: categoryColorPalette.dark }}
       >
         {formatEmissions(emissions)}
       </Typography>
@@ -33,12 +32,12 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
         <Box className="flex min-w-[60px] justify-end">
           <Box
             className="rounded px-2 py-1"
-            sx={{ backgroundColor: categoryColor.light }}
+            sx={{ backgroundColor: categoryColorPalette.light }}
           >
             <Typography
               variant="body1"
               fontWeight={fontWeight}
-              sx={{ color: categoryColor.dark }}
+              sx={{ color: categoryColorPalette.dark }}
             >
               {formatPercentage(percentage)}
             </Typography>

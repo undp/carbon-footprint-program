@@ -18,7 +18,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
   categoryColor,
   loading = false,
 }) => {
-  const colors = useMemo(
+  const categoryColorPalette = useMemo(
     () => deriveCategoryColors(categoryColor),
     [categoryColor]
   );
@@ -33,8 +33,8 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
       <StylizedDataGrid
         sx={{
           "& .MuiDataGrid-columnHeader": {
-            backgroundColor: colors.light,
-            color: colors.dark,
+            backgroundColor: categoryColorPalette.light,
+            color: categoryColorPalette.dark,
           },
         }}
         columns={columns}

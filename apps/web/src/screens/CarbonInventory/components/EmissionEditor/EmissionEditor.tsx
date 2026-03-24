@@ -52,7 +52,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     subcategoryId: subcategory.id,
   });
 
-  const colors = useMemo(
+  const categoryColorPalette = useMemo(
     () => deriveCategoryColors(categoryColor),
     [categoryColor]
   );
@@ -132,8 +132,8 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
           <Box className="flex flex-row-reverse">
             <Button
               sx={{
-                color: colors.dark,
-                backgroundColor: colors.light,
+                color: categoryColorPalette.dark,
+                backgroundColor: categoryColorPalette.light,
               }}
               variant="text"
               onClick={handleAddLine}
@@ -141,7 +141,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
               startIcon={
                 <AddRounded
                   sx={{
-                    color: colors.dark,
+                    color: categoryColorPalette.dark,
                   }}
                 />
               }

@@ -161,7 +161,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
                   {/* Header */}
                   <CategoryCard
                     icon={category.icon}
-                    color={category.color}
+                    categoryColor={category.color}
                     subtitle={category.synonyms || ""}
                     title={category.name}
                     description={category.description || ""}

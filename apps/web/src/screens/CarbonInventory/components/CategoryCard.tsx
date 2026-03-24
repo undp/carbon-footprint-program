@@ -2,14 +2,17 @@ import { FC } from "react";
 import { Box, Typography, Card } from "@mui/material";
 import { darken } from "@mui/material/styles";
 import { InfoButton } from "@/components";
-import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import {
+  CATEGORY_ICON_MAP,
+  type CategoryIconName,
+} from "@/utils/categoryIcons";
 import { deriveCategoryColors } from "@/utils/categoryColors";
 import { useExplanationDialog } from "../../../contexts";
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
   icon: string;
-  color: string;
+  categoryColor: string;
   title: string;
   subtitle: string | null;
   description: string | null;
@@ -20,7 +23,7 @@ interface CategoryCardProps {
 export const CategoryCard: FC<CategoryCardProps> = ({
   variant = "default",
   icon,
-  color: colorProp,
+  categoryColor,
   title,
   subtitle,
   description,
@@ -29,13 +32,13 @@ export const CategoryCard: FC<CategoryCardProps> = ({
 }) => {
   const { openExplanation } = useExplanationDialog();
 
-  const categoryColors = deriveCategoryColors(colorProp);
-  const IconComponent = CATEGORY_ICON_MAP[icon];
-  const backgroundColor = categoryColors.light;
+  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
+  const backgroundColor = categoryColorPalette.light;
   const border =
-    variant === "focused" ? `1px solid ${categoryColors.main}` : "none";
+    variant === "focused" ? `1px solid ${categoryColorPalette.main}` : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const textColor = categoryColors.dark;
+  const textColor = categoryColorPalette.dark;
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
@@ -67,7 +70,9 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           "& svg": { width: "60%", height: "60%" },
         }}
       >
-        {IconComponent && <IconComponent sx={{ fill: categoryColors.dark }} />}
+        {IconComponent && (
+          <IconComponent sx={{ fill: categoryColorPalette.dark }} />
+        )}
       </Box>
       <Box className="flex-1">
         <Typography

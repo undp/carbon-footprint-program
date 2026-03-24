@@ -14,7 +14,10 @@ import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 import { useExplanationDialog } from "@/contexts";
-import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import {
+  CATEGORY_ICON_MAP,
+  type CategoryIconName,
+} from "@/utils/categoryIcons";
 import { deriveCategoryColors } from "@/utils/categoryColors";
 
 type Subcategory =
@@ -55,8 +58,8 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   hasEmissionFactors,
 }) => {
   const { openExplanation } = useExplanationDialog();
-  const IconComponent = CATEGORY_ICON_MAP[icon];
-  const colors = useMemo(
+  const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
+  const categoryColorPalette = useMemo(
     () => deriveCategoryColors(categoryColor),
     [categoryColor]
   );
@@ -72,12 +75,14 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
       <Box className="flex flex-1 flex-row items-center gap-2">
         <Avatar
           sx={{
-            backgroundColor: colors.light,
+            backgroundColor: categoryColorPalette.light,
             width: 48,
             height: 48,
           }}
         >
-          {IconComponent ? <IconComponent sx={{ color: colors.dark }} /> : null}
+          {IconComponent ? (
+            <IconComponent sx={{ color: categoryColorPalette.dark }} />
+          ) : null}
         </Avatar>
         <Box className="flex flex-col">
           <Box className="flex flex-row items-center gap-2">

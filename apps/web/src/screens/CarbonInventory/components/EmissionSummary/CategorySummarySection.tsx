@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box, Divider, Typography, alpha } from "@mui/material";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { deriveCategoryColors } from "@/utils/categoryColors";
-import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
+import { EmissionPercentageBadge } from "@/components/EmissionResults";
 import { SubcategoryLinesTable } from "./SubcategoryLinesTable";
 import { SubcategoryManualRow } from "./SubcategoryManualRow";
 
@@ -13,12 +13,12 @@ interface CategorySummarySectionProps {
 export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
   category,
 }) => {
-  const categoryColor = deriveCategoryColors(category.color);
+  const categoryColorPalette = deriveCategoryColors(category.color);
 
   return (
     <Box
       className="flex flex-col gap-3 p-4"
-      sx={{ backgroundColor: alpha(categoryColor.main, 0.1) }}
+      sx={{ backgroundColor: alpha(categoryColorPalette.main, 0.1) }}
     >
       {/* Category header */}
       <Box className="flex items-center justify-between rounded-lg">
@@ -26,13 +26,13 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
           <Typography
             variant="body1"
             fontWeight="600"
-            sx={{ color: categoryColor.dark, lineHeight: 1 }}
+            sx={{ color: categoryColorPalette.dark, lineHeight: 1 }}
           >
             {category.name}
           </Typography>
           <Typography
             variant="caption"
-            sx={{ color: categoryColor.dark, opacity: 0.7 }}
+            sx={{ color: categoryColorPalette.dark, opacity: 0.7 }}
           >
             {category.synonyms}
           </Typography>
@@ -40,7 +40,7 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
         <EmissionPercentageBadge
           emissions={category.subtotal}
           percentage={category.percentage}
-          categoryColor={categoryColor}
+          categoryColor={category.color}
           highlighted
         />
       </Box>
@@ -53,12 +53,12 @@ export const CategorySummarySection: FC<CategorySummarySectionProps> = ({
           {sub.hasLines ? (
             <SubcategoryLinesTable
               subcategory={sub}
-              categoryColor={categoryColor}
+              categoryColor={category.color}
             />
           ) : (
             <SubcategoryManualRow
               subcategory={sub}
-              categoryColor={categoryColor}
+              categoryColor={category.color}
             />
           )}
         </Box>

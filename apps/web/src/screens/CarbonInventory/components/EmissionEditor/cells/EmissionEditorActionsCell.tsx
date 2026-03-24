@@ -26,7 +26,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   disabled = false,
   hasComment = false,
 }) => {
-  const categoryColors = categoryColor
+  const categoryColorPalette = categoryColor
     ? deriveCategoryColors(categoryColor)
     : undefined;
 
@@ -38,8 +38,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
     color: (theme) =>
       disabled
         ? theme.palette.action.disabled
-        : categoryColors
-          ? categoryColors.main
+        : categoryColorPalette
+          ? categoryColorPalette.main
           : theme.palette.text.primary,
   };
 

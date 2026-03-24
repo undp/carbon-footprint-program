@@ -1,27 +1,26 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
-import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
+import { deriveCategoryColors } from "@/utils/categoryColors";
+import { EmissionPercentageBadge } from "@/components/EmissionResults";
 
 interface SubcategoryManualRowProps {
   subcategory: GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number];
-  categoryColor: {
-    dark: string;
-    light: string;
-  };
+  categoryColor: string;
 }
 
 export const SubcategoryManualRow: FC<SubcategoryManualRowProps> = ({
   subcategory,
   categoryColor,
 }) => {
+  const categoryColorPalette = deriveCategoryColors(categoryColor);
   return (
     <Box className="flex w-full items-center justify-between">
       <Box className="flex w-[80%] flex-col gap-1">
         <Typography
           variant="body2"
           fontWeight="600"
-          sx={{ color: categoryColor.dark }}
+          sx={{ color: categoryColorPalette.dark }}
         >
           {subcategory.name}
         </Typography>

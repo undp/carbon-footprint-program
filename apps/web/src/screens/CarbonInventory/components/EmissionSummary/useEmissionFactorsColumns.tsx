@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Box, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
-import { CategoryChip } from "../CategoryChip";
+import { CategoryChip } from "@/components/EmissionResults";
 
 export const useEmissionFactorsColumns = (): GridColDef<
   GetEmissionFactorsResponse[number]

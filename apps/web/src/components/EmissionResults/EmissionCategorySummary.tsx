@@ -3,7 +3,10 @@ import { Avatar, Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { BarChartOutlined } from "@mui/icons-material";
 import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
-import { getCategoryIconComponent } from "@/utils/categoryIcons";
+import {
+  CATEGORY_ICON_MAP,
+  type CategoryIconName,
+} from "@/utils/categoryIcons";
 import { deriveCategoryColors } from "@/utils/categoryColors";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
@@ -85,15 +88,14 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
         </Box>
         <EmissionPercentageBadge
           emissions={totalEmissions}
-          categoryColor={{
-            dark: theme.palette.common.deepForest,
-          }}
+          categoryColor={theme.palette.common.deepForest}
         />
       </Box>
 
       {categories.map((category) => {
-        const categoryColors = deriveCategoryColors(category.color);
-        const IconComponent = getCategoryIconComponent(category.icon);
+        const categoryColorPalette = deriveCategoryColors(category.color);
+        const IconComponent =
+          CATEGORY_ICON_MAP[category.icon as CategoryIconName];
 
         return (
           <EmissionSummaryCard
@@ -102,7 +104,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
               IconComponent ? (
                 <IconComponent
                   sx={{
-                    fill: categoryColors.dark,
+                    fill: categoryColorPalette.dark,
                     width: "100%",
                     height: "100%",
                   }}
@@ -113,9 +115,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
             subtitle={category.synonyms ?? `Categoría ${category.position}`}
             value={category.subtotal}
             percentage={category.percentage}
-            backgroundColor={categoryColors.light}
-            textColor={categoryColors.dark}
-            iconColor={categoryColors.main}
+            categoryColor={category.color}
           />
         );
       })}

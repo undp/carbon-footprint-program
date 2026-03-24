@@ -2,22 +2,20 @@ import { FC, useMemo } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
-import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
+import { deriveCategoryColors } from "@/utils/categoryColors";
+import { EmissionPercentageBadge } from "@/components/EmissionResults";
 import { useSubcategoryLinesColumns } from "./useSubcategoryLinesColumns";
 
 interface SubcategoryLinesTableProps {
   subcategory: GetEmissionsDetailedSummaryResponse["categories"][number]["subcategories"][number];
-  categoryColor: {
-    main: string;
-    dark: string;
-    light: string;
-  };
+  categoryColor: string;
 }
 
 export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
   subcategory,
   categoryColor,
 }) => {
+  const categoryColorPalette = deriveCategoryColors(categoryColor);
   const columns = useSubcategoryLinesColumns();
   const rows = useMemo(
     () => subcategory.lines.map((line) => ({ ...line, id: line.lineId })),
@@ -29,7 +27,7 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
       <Typography
         variant="body2"
         fontWeight="600"
-        sx={{ color: categoryColor.dark }}
+        sx={{ color: categoryColorPalette.dark }}
       >
         {subcategory.name}
       </Typography>
@@ -54,10 +52,10 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
             flex: 1,
             maxWidth: "75%",
             borderRadius: "8px",
-            border: `1px solid ${alpha(categoryColor.main, 0.2)}`,
+            border: `1px solid ${alpha(categoryColorPalette.main, 0.2)}`,
             "& .MuiDataGrid-columnHeader": {
-              backgroundColor: categoryColor.light,
-              color: categoryColor.dark,
+              backgroundColor: categoryColorPalette.light,
+              color: categoryColorPalette.dark,
             },
             "& .MuiDataGrid-columnHeader:focus": {
               outline: "none",
@@ -69,8 +67,8 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
               display: "none",
             },
             "& .MuiDataGrid-cell": {
-              color: categoryColor.dark,
-              borderBottom: `1px solid ${alpha(categoryColor.main, 0.2)}`,
+              color: categoryColorPalette.dark,
+              borderBottom: `1px solid ${alpha(categoryColorPalette.main, 0.2)}`,
             },
             "& .MuiDataGrid-cell:focus": {
               outline: "none",

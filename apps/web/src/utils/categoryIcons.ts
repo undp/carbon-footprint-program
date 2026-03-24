@@ -23,8 +23,34 @@ import {
   PublicOutlined,
 } from "@mui/icons-material";
 
+/** Valid category icon names */
+export type CategoryIconName =
+  | "FACTORY"
+  | "BOLT"
+  | "TRUCK"
+  | "FLAME"
+  | "CAR"
+  | "SNOWFLAKE"
+  | "WATER"
+  | "RECYCLE"
+  | "AGRICULTURE"
+  | "BUILDING"
+  | "FLIGHT"
+  | "TRAIN"
+  | "ELECTRIC"
+  | "SOLAR"
+  | "FOREST"
+  | "WASTE"
+  | "CONSTRUCTION"
+  | "SCIENCE"
+  | "FUEL"
+  | "GLOBE";
+
 /** Map of icon name identifiers to MUI icon components */
-export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
+export const CATEGORY_ICON_MAP: Record<
+  CategoryIconName,
+  ComponentType<SvgIconProps>
+> = {
   FACTORY: FactoryOutlined,
   BOLT: BoltOutlined,
   TRUCK: LocalShippingOutlined,
@@ -46,11 +72,3 @@ export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
   FUEL: LocalGasStationOutlined,
   GLOBE: PublicOutlined,
 };
-
-/** Resolves an icon name identifier to its MUI icon component, or null if not found */
-export function getCategoryIconComponent(
-  iconName: string | null | undefined
-): ComponentType<SvgIconProps> | null {
-  if (!iconName) return null;
-  return CATEGORY_ICON_MAP[iconName] ?? null;
-}
