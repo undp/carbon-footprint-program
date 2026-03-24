@@ -18,7 +18,7 @@ export const useCreateCarbonInventory = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey.includes("carbonInventoryCreationDependency"),
+          query.queryKey.includes("carbonInventoriesListDependency"),
       });
     },
   });

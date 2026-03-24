@@ -1,28 +1,24 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { invalidateCarbonInventoryEmissions } from "../keys";
-import { carbonInventorySubcategoryKeys } from "./keys";
 import { apiClient } from "@/api/http/client";
 import { UpdateCarbonInventorySubcategoriesRequest } from "@repo/types";
 
-export const useUpdateCarbonInventorySubcategories = (
-  carbonInventoryId: string
-) => {
+export const useUpdateCarbonInventorySubcategories = (inventoryId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: UpdateCarbonInventorySubcategoriesRequest) =>
       apiClient
-        .patch(`carbon-inventories/${carbonInventoryId}/subcategories`, {
+        .patch(`carbon-inventories/${inventoryId}/subcategories`, {
           json: data,
         })
         .json(),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: carbonInventorySubcategoryKeys.list(carbonInventoryId),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes(inventoryId) &&
+            query.queryKey.includes("carbonInventoryEmissionsUpdateDependency"),
         }),
-        invalidateCarbonInventoryEmissions(queryClient, carbonInventoryId),
       ]);
     },
   });
