@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http/client";
 import { requestsKeys } from "../requests/keys";
 
@@ -7,23 +6,20 @@ export const useSelfDeclareCarbonInventory = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (carbonInventoryId: string) =>
-      apiClient
-        .post(`carbon-inventories/${carbonInventoryId}/self-declare`)
-        .json(),
-    onSuccess: async (_data, carbonInventoryId) => {
+    mutationFn: (id: string) =>
+      apiClient.post(`carbon-inventories/${id}/self-declare`).json(),
+    onSuccess: async (_data, id) => {
       await Promise.all([
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.detail(carbonInventoryId),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes(id) &&
+            query.queryKey.includes(
+              "carbonInventoryAttributesUpdateDependency"
+            ),
         }),
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.all,
-          exact: false,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.metadata(carbonInventoryId),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes("carbonInventoriesListDependency"),
         }),
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminAll,
