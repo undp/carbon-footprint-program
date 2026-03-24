@@ -10,7 +10,7 @@ import {
 import { OrganizationStatusChip } from "../components/OrganizationStatusChip";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import { useOrganizationDisplayStatus } from "./useOrganizationDisplayStatus";
-import { capitalize } from "@repo/utils";
+import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 
 type OrganizationRow = GetAllOrganizationsResponse["data"][number];

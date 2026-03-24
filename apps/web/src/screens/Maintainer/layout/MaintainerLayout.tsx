@@ -18,7 +18,7 @@ import { Routes } from "@/interfaces/routes";
 import { Sidebar, UserMenu } from "@/components/layout/Sidebar";
 import type { SidebarDef } from "@/components/layout/Sidebar";
 import { APP_VERSION } from "@/config/environment";
-import { capitalize } from "@repo/utils";
+import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
 
 const SIDEBAR_DEFS: SidebarDef[] = [

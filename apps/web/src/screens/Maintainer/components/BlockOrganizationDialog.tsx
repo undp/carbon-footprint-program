@@ -8,7 +8,7 @@ import {
   Button,
 } from "@mui/material";
 import { VOCAB } from "@/config/vocab";
-import { capitalize } from "@repo/utils";
+import { capitalize } from "lodash-es";
 
 interface BlockOrganizationDialogProps {
   open: boolean;

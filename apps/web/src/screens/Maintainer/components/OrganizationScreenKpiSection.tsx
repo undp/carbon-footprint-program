@@ -11,7 +11,7 @@ import { useAdminOrganizationsKpis } from "@/api/query/organizations/useAdminOrg
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 import { VOCAB } from "@/config/vocab";
-import { capitalize } from "@repo/utils";
+import { capitalize } from "lodash-es";
 
 type OrganizationKpiKey =
   | "total"

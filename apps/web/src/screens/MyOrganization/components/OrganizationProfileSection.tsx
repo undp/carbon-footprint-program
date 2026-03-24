@@ -14,7 +14,7 @@ import {
 } from "@repo/types";
 import { useAccreditationDialog } from "../hooks";
 import { VOCAB } from "@/config/vocab";
-import { capitalize } from "@repo/utils";
+import { capitalize } from "lodash-es";
 
 const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> = {
   [OrganizationDisplayStatusValues.ACCREDITED]: capitalize(

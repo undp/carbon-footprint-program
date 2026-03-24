@@ -10,7 +10,7 @@ import { BlockOrganizationDialog } from "./BlockOrganizationDialog";
 import { UnblockOrganizationDialog } from "./UnblockOrganizationDialog";
 import { GetAllOrganizationsResponse } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
-import { capitalize } from "@repo/utils";
+import { capitalize } from "lodash-es";
 
 const TABLE_ROW_COUNT = 6;
 
