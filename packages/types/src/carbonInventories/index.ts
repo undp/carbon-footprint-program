@@ -48,3 +48,5 @@ export * from "./duplicateCarbonInventory/schemas.js";
 export * from "./duplicateCarbonInventory/types.js";
 export * from "./deleteCarbonInventory/schemas.js";
 export * from "./deleteCarbonInventory/types.js";
+export * from "./selfDeclareCarbonInventory/schemas.js";
+export * from "./selfDeclareCarbonInventory/types.js";

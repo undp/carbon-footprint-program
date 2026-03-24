@@ -24,14 +24,10 @@ import { formatEmissions } from "@/utils/formatting";
 import {
   GetAllCarbonInventoriesResponse,
   CarbonInventoryDisplayStatusEnum,
-  UsageMode,
   CarbonInventoryDisplayStatus,
 } from "@repo/types";
 import { NewInventoryDialog } from "@/components/dialogs";
 import { StylizedDataGrid } from "@/components";
-
-const getUsageModeLabel = (mode: UsageMode) =>
-  mode === UsageMode.SIMPLIFIED ? "Asistido" : "Experto";
 
 export const CarbonInventoriesScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
@@ -61,6 +57,14 @@ export const CarbonInventoriesScreen: FC = () => {
   );
 
   const [newInventoryDialogOpen, setNewInventoryDialogOpen] = useState(false);
+
+  const filteredInventories = useMemo(
+    () =>
+      inventories.filter(
+        (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
+      ),
+    [inventories]
+  );
 
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
@@ -154,16 +158,6 @@ export const CarbonInventoriesScreen: FC = () => {
             ),
         },
         {
-          field: "usageMode",
-          headerName: "Calculadora",
-          align: "left",
-          headerAlign: "left",
-          cellClassName: "content-center",
-          minWidth: 100,
-          flex: 0.6,
-          valueGetter: (value: UsageMode) => getUsageModeLabel(value),
-        },
-        {
           field: "totalEmissions",
           headerName: "Emisiones tCO₂e",
           align: "center",
@@ -178,8 +172,8 @@ export const CarbonInventoriesScreen: FC = () => {
           headerName: "Estado",
           headerAlign: "center",
           align: "center",
-          minWidth: 190,
-          flex: 1.5,
+          minWidth: 150,
+          flex: 1,
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
@@ -193,26 +187,23 @@ export const CarbonInventoriesScreen: FC = () => {
           headerName: "Acciones",
           headerAlign: "center",
           align: "center",
-          minWidth: 184,
+          minWidth: 212,
           flex: 1,
           cellClassName: "content-center max-h-[56px]",
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number]
             >
-          ) => <InventoryActionsCell carbonInventory={params.row} />,
+          ) => (
+            <InventoryActionsCell
+              carbonInventory={params.row}
+              inventories={filteredInventories}
+            />
+          ),
         },
       ],
-      []
+      [filteredInventories]
     );
-
-  const filteredInventories = useMemo(
-    () =>
-      inventories.filter(
-        (inv) => inv.status !== CarbonInventoryDisplayStatusEnum.DELETED
-      ),
-    [inventories]
-  );
 
   return (
     <MainLayout>

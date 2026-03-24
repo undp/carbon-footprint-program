@@ -1,8 +1,9 @@
 import type { PrismaClient } from "@repo/database";
-import type {
-  User,
-  GetSystemParametersQuery,
-  GetSystemParametersResponse,
+import {
+  type User,
+  type GetSystemParametersQuery,
+  type GetSystemParametersResponse,
+  SystemParameterEntrySchema,
 } from "@repo/types";
 
 export const getSystemParametersService = async (
@@ -18,5 +19,5 @@ export const getSystemParametersService = async (
     orderBy: { key: "asc" },
   });
 
-  return parameters;
+  return parameters.map((param) => SystemParameterEntrySchema.parse(param));
 };

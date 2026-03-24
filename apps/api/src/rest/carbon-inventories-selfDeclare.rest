@@ -1,0 +1,5 @@
+@baseUrl = http://localhost:8080
+@inventoryId = 1
+
+### Self-declare a Carbon Inventory
+POST {{baseUrl}}/api/carbon-inventories/{{inventoryId}}/self-declare HTTP/1.1

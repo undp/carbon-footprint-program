@@ -12,6 +12,12 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+/**
+ * System parameter seed validation schema.
+ * Keys and options here must always follow the corresponding types in @repo/types:
+ * - SystemParameterKeySchema (for parameter keys)
+ * - MeasurementRecognitionBehaviorSchema (for recognition behavior options)
+ */
 const SystemParameterSeedSchema = z.object({
   key: z.string().min(1),
   value: z.string().min(1),

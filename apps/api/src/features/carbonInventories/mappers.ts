@@ -125,6 +125,7 @@ function mapBaseCarbonInventory(
     methodologyVersionId: item.methodologyVersionId?.toString() ?? null,
     preselectedNodesId: item.preselectedNodesId?.toString() ?? null,
     isEditable: item.isEditable,
+    isSelfDeclared: item.isSelfDeclared,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt?.toISOString() ?? null,
     createdById: item.createdById?.toString() ?? null,

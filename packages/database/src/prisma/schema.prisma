@@ -549,6 +549,7 @@ model CarbonInventory {
   updatedAt            DateTime?                         @updatedAt @map("updated_at")
   createdById          BigInt?                           @map("created_by_id")
   updatedById          BigInt?                           @map("updated_by_id")
+  isSelfDeclared       Boolean                           @default(false) @map("is_self_declared")
   methodologyVersion   MethodologyVersion?               @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
   updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])

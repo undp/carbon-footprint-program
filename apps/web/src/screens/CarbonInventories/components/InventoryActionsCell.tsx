@@ -1,4 +1,4 @@
-import { FC, useState, useCallback, PropsWithChildren } from "react";
+import { FC, useState, useCallback, PropsWithChildren, useMemo } from "react";
 import { Box, IconButtonProps, IconButton, Tooltip } from "@mui/material";
 import {
   EditOutlined,
@@ -8,15 +8,20 @@ import {
   FileCopyOutlined,
   SendOutlined,
   VisibilityOutlined,
+  TaskAltRounded,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
   OrganizationDisplayStatusValues,
+  SystemParameterKeyEnum,
+  MeasurementRecognitionBehaviorEnum,
 } from "@repo/types";
 import {
   isCarbonInventoryEditable,
   isCarbonInventoryDeletable,
   canSubmitToVerification,
+  canSubmitToMeasurement,
+  canSelfDeclare,
 } from "@repo/utils";
 import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
@@ -32,9 +37,16 @@ import {
   useRequestVerification,
   useDuplicateCarbonInventory,
   usePreUploadSubmissionFiles,
+  useSelfDeclareCarbonInventory,
+  useSystemParameters,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
+import { SelfDeclareCarbonInventoryDialog } from "./Dialogs/SelfDeclareCarbonInventoryDialog";
+import {
+  SelfDeclareValidationDialog,
+  type SelfDeclareValidationReason,
+} from "./Dialogs/SelfDeclareValidationDialog";
 
 const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
@@ -56,10 +68,12 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
+  inventories: GetAllCarbonInventoriesResponse;
 }
 
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   carbonInventory,
+  inventories,
 }) => {
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -70,22 +84,67 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     useState(false);
   const [blockedOrgDialogOpen, setBlockedOrgDialogOpen] = useState(false);
   const [incompleteDialogOpen, setIncompleteDialogOpen] = useState(false);
+  const [selfDeclareDialogOpen, setSelfDeclareDialogOpen] = useState(false);
+  const [selfDeclareValidationReason, setSelfDeclareValidationReason] =
+    useState<SelfDeclareValidationReason>(null);
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
   // for now, we can use the same method to check if the inventory is editable as the one to check if the inventory can request calculation
 
   const canEdit = isCarbonInventoryEditable(carbonInventory.status);
 
-  const canRequestCalculation = isCarbonInventoryEditable(
-    carbonInventory.status
-  );
+  const canRequestMeasurement = canSubmitToMeasurement(carbonInventory.status);
 
   const canRequestVerification = canSubmitToVerification(
     carbonInventory.status
   );
 
+  const isSelfDeclared = carbonInventory.isSelfDeclared;
+
+  const isYearAlreadySelfDeclared = useMemo(
+    () =>
+      inventories.some(
+        (inv) =>
+          inv.id !== carbonInventory.id &&
+          inv.organizationId === carbonInventory.organizationId &&
+          inv.year === carbonInventory.year &&
+          inv.isSelfDeclared
+      ),
+    [
+      inventories,
+      carbonInventory.id,
+      carbonInventory.organizationId,
+      carbonInventory.year,
+    ]
+  );
+
+  const selfDeclareDisabled =
+    !canSelfDeclare(carbonInventory.status) || isYearAlreadySelfDeclared;
+
+  const selfDeclareTooltip = isSelfDeclared
+    ? "Esta huella ya fue autodeclarada"
+    : isYearAlreadySelfDeclared
+      ? "Ya existe una huella autodeclarada para este año"
+      : "Autodeclarar";
+
   const canDelete = isCarbonInventoryDeletable(carbonInventory.status);
 
+  const { data: systemParameters } = useSystemParameters([
+    SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
+  ]);
+
+  const recognitionBehavior = useMemo(
+    () =>
+      systemParameters?.find(
+        (param) =>
+          param.key ===
+          SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR
+      )?.value,
+    [systemParameters]
+  );
+
+  const { mutateAsync: selfDeclareClick, isPending: isSelfDeclareSubmitting } =
+    useSelfDeclareCarbonInventory();
   const { mutateAsync: deleteInventory } = useDeleteCarbonInventory();
   const { mutateAsync: requestCalculation } = useRequestCalculation();
   const { mutateAsync: requestVerification } = useRequestVerification();
@@ -274,6 +333,43 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     //TODO: Implement download functionality
   }, []);
 
+  const onSelfDeclareClick = useCallback(() => {
+    if (carbonInventory.organizationId === null) {
+      setSelfDeclareValidationReason("missing-organization");
+      return;
+    }
+    if (!carbonInventory.name) {
+      setSelfDeclareValidationReason("missing-name");
+      return;
+    }
+    if (carbonInventory.year == null) {
+      setSelfDeclareValidationReason("missing-year");
+      return;
+    }
+    setSelfDeclareDialogOpen(true);
+  }, [
+    carbonInventory.organizationId,
+    carbonInventory.name,
+    carbonInventory.year,
+  ]);
+
+  const onSelfDeclareConfirm = useCallback(async () => {
+    try {
+      await selfDeclareClick(carbonInventory.id);
+      enqueueSnackbar("Huella autodeclarada", { variant: "success" });
+    } catch {
+      enqueueSnackbar("No se pudo autodeclarar la huella", {
+        variant: "error",
+      });
+    } finally {
+      setSelfDeclareDialogOpen(false);
+    }
+  }, [carbonInventory.id, selfDeclareClick]);
+
+  const onSelfDeclareCancel = useCallback(() => {
+    setSelfDeclareDialogOpen(false);
+  }, []);
+
   return (
     <>
       <Box className="flex justify-center gap-1">
@@ -303,18 +399,34 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
-        {/* Request Calculation button */}
-        <Tooltip title="Enviar a cálculo">
+        {/* Self Declare button */}
+        {/*TODO: Remove validation messages on this tooltip when new design is implemented */}
+        <Tooltip title={selfDeclareTooltip}>
           <span>
             <BaseIconButton
-              onClick={onCalculationClick}
-              disabled={!canRequestCalculation}
-              aria-label="Enviar a cálculo"
+              onClick={onSelfDeclareClick}
+              disabled={selfDeclareDisabled}
+              aria-label="Autodeclarar"
             >
-              <SendOutlined fontSize="small" />
+              <TaskAltRounded fontSize="small" />
             </BaseIconButton>
           </span>
         </Tooltip>
+
+        {/* Request Calculation button */}
+        {recognitionBehavior === MeasurementRecognitionBehaviorEnum.MANUAL && (
+          <Tooltip title="Enviar a cálculo">
+            <span>
+              <BaseIconButton
+                onClick={onCalculationClick}
+                disabled={!canRequestMeasurement || !isSelfDeclared}
+                aria-label="Enviar a cálculo"
+              >
+                <SendOutlined fontSize="small" />
+              </BaseIconButton>
+            </span>
+          </Tooltip>
+        )}
 
         {/* Request Verification button */}
         <Tooltip title="Enviar a verificación">
@@ -373,6 +485,22 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
       </Box>
+
+      <SelfDeclareValidationDialog
+        open={selfDeclareValidationReason !== null}
+        onClose={() => setSelfDeclareValidationReason(null)}
+        reason={selfDeclareValidationReason}
+      />
+
+      <SelfDeclareCarbonInventoryDialog
+        open={selfDeclareDialogOpen}
+        onClose={onSelfDeclareCancel}
+        onConfirm={onSelfDeclareConfirm}
+        isLoading={isSelfDeclareSubmitting}
+        isAutomaticRecognition={
+          recognitionBehavior === MeasurementRecognitionBehaviorEnum.AUTOMATIC
+        }
+      />
 
       <CalculationConfirmationDialog
         open={calculationDialogOpen}

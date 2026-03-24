@@ -9,7 +9,10 @@ import {
   inject,
 } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
-import type { GetSystemParametersResponse } from "@repo/types";
+import {
+  type GetSystemParametersResponse,
+  SystemParameterKeyEnum,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
@@ -68,28 +71,28 @@ describe("GET /api/system-parameters - Integration Tests", () => {
     it("should filter by a single key", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/api/system-parameters?keys=CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR",
+        url: `/api/system-parameters?keys=${SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR}`,
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetSystemParametersResponse;
       expect(body).toHaveLength(1);
       expect(body[0].key).toBe(
-        "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR"
+        SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR
       );
     });
 
     it("should return only matching keys when filtering by multiple keys", async () => {
       const response = await app.inject({
         method: "GET",
-        url: "/api/system-parameters?keys=CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,NONEXISTENT_KEY",
+        url: `/api/system-parameters?keys=${SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR},NONEXISTENT_KEY`,
       });
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetSystemParametersResponse;
       expect(body).toHaveLength(1);
       expect(body[0].key).toBe(
-        "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR"
+        SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR
       );
     });
 

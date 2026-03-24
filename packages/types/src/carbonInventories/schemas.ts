@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const CarbonInventoryDisplayStatusSchema = z.enum([
   "DRAFT",
+  "SELF_DECLARED",
   "SUBMITTED_TO_CALCULATION",
   "CALCULATION_OBJECTED",
   "CALCULATION_REJECTED",
