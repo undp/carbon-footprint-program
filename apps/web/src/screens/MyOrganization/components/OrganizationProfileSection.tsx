@@ -136,7 +136,7 @@ const OrganizationProfileSectionComponent: FC<
           />
           <InfoRow label="Sub-rubro" value={profile.subsector?.name ?? "-"} />
           <InfoRow
-            label={`Tamaño de ${VOCAB.organization.noun.singular}`}
+            label={`Tamaño de ${VOCAB.organization.article.singular}`}
             value={profile.countryOrganizationSize?.name ?? "-"}
           />
           <InfoRow
