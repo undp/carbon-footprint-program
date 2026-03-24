@@ -73,7 +73,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
     [needsCarousel, cardWidth, onCategorySelect]
   );
 
-  // Simple layout for ≤3 categories
+  // Simple layout for ≤VISIBLE_CARDS categories
   if (!needsCarousel) {
     return (
       <Box className="flex flex-row gap-4">
@@ -96,7 +96,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
     );
   }
 
-  // Carousel layout for >3 categories (scroll-snap)
+  // Carousel layout for >VISIBLE_CARDS categories (scroll-snap)
   return (
     <Box
       ref={containerRef}
