@@ -111,6 +111,7 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
                   name: c.name,
                   subtotal: c.subtotal,
                   percentage: c.percentage,
+                  color: c.color,
                 }))}
                 totalEmissions={totalEmissions}
                 isLoading={isSummaryLoading}

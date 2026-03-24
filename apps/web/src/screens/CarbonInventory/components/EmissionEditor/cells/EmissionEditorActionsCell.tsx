@@ -5,13 +5,14 @@ import {
   DeleteOutlined,
 } from "@mui/icons-material";
 import { FC } from "react";
+import { deriveCategoryColors } from "@/utils/categoryColors";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
   uploadFiles?: (id: string | number) => void;
   updateComment?: (id: string | number) => void;
   deleteSource?: (id: string | number) => void;
-  categoryPosition?: number;
+  categoryColor?: string;
   disabled?: boolean;
   hasComment?: boolean;
 }
@@ -21,10 +22,14 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   uploadFiles,
   updateComment,
   deleteSource,
-  categoryPosition,
+  categoryColor,
   disabled = false,
   hasComment = false,
 }) => {
+  const categoryColors = categoryColor
+    ? deriveCategoryColors(categoryColor)
+    : undefined;
+
   const iconSx: SxProps<Theme> = {
     borderRadius: 1,
     border: "1px solid",
@@ -33,8 +38,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
     color: (theme) =>
       disabled
         ? theme.palette.action.disabled
-        : categoryPosition
-          ? theme.palette.category[categoryPosition].main
+        : categoryColors
+          ? categoryColors.main
           : theme.palette.text.primary,
   };
 

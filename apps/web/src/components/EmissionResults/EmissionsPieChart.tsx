@@ -1,7 +1,6 @@
 import { FC } from "react";
 import { Box, Skeleton, Typography } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
-import { useTheme } from "@mui/material/styles";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 
@@ -9,6 +8,7 @@ interface CategoryData {
   name: string;
   subtotal: number;
   percentage: number;
+  color: string;
 }
 
 interface EmissionsPieChartProps {
@@ -32,19 +32,11 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
   isLoading = false,
   hasError = false,
 }) => {
-  const theme = useTheme();
-
-  const categoryColors = [
-    theme.palette.category[1].main,
-    theme.palette.category[2].main,
-    theme.palette.category[3].main,
-  ];
-
   const pieData = categories.map((cat, index) => ({
     id: index,
     value: cat.subtotal,
     label: cat.name,
-    color: categoryColors[index % categoryColors.length],
+    color: cat.color,
   }));
 
   return (

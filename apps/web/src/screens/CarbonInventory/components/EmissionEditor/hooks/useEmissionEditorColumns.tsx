@@ -26,7 +26,7 @@ interface UseEmissionEditorColumnsParams {
   subcategory: MethodologySubcategory;
   measurementUnits: MeasurementUnit[] | undefined;
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
-  categoryPosition: number;
+  categoryColor: string;
   onCellChange: (
     value: string | number | null,
     params: GridRenderCellParams<
@@ -47,7 +47,7 @@ export const useEmissionEditorColumns = ({
   subcategory,
   measurementUnits,
   rateMeasurementUnits,
-  categoryPosition,
+  categoryColor,
   onCellChange,
   onFactorSourceChange,
   onDeleteLine,
@@ -279,7 +279,7 @@ export const useEmissionEditorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionCaptureFormLine>) => (
           <EmissionEditorActionsCell
             rowId={params.id}
-            categoryPosition={categoryPosition}
+            categoryColor={categoryColor}
             uploadFiles={() => onUploadFiles(params.id.toString())}
             updateComment={() =>
               onUpdateComment(params.id.toString(), params.row.comment || "")
@@ -296,7 +296,7 @@ export const useEmissionEditorColumns = ({
     subcategory.emissionFactors,
     displayedUnits,
     rateMeasurementUnits,
-    categoryPosition,
+    categoryColor,
     onCellChange,
     onFactorSourceChange,
     onDeleteLine,

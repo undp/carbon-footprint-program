@@ -29,6 +29,10 @@ export const CATEGORY_COLORS = [
   "#E8E8E8", // light gray
   "#C4E8D0", // pale green
   "#F0D5E8", // rose
+  // TODO: standarize how we add this colors (since this are the original colors from the design system)
+  "#FFB74D", // orange
+  "#82C784", // green
+  "#64B5F6", // blue
 ];
 
 interface IconPickerCellBaseProps {

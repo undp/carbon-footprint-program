@@ -1,12 +1,11 @@
-import { FC, useCallback } from "react";
-import { Folder, WarningRounded } from "@mui/icons-material";
+import { FC, useCallback, useMemo } from "react";
+import { WarningRounded } from "@mui/icons-material";
 import {
   Box,
   Avatar,
   Typography,
   FormControlLabel,
   Checkbox,
-  alpha,
   Skeleton,
 } from "@mui/material";
 import { InfoButton, NumericInput } from "@/components";
@@ -15,20 +14,21 @@ import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 import { useExplanationDialog } from "@/contexts";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import { deriveCategoryColors } from "@/utils/categoryColors";
 
 type Subcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
 
 interface EmissionEditorHeaderProps
-  extends Pick<Subcategory, "name" | "description" | "explanationId"> {
+  extends Pick<Subcategory, "name" | "description" | "explanationId" | "icon"> {
+  categoryColor: string;
   isTotalManualEmissionsModeAvailable: boolean;
   totalEmission: number;
   setTotalEmission: (value: number) => void;
   isTotalManualEmissionsModeActive: boolean;
   setIsTotalManualEmissionsMode: (value: boolean) => Promise<void>;
   isManualModeLoading?: boolean;
-  // Manual mode line actions
-  categoryPosition?: number;
   hasManualModeLine?: boolean;
   manualModeLineHasComment?: boolean;
   onManualModeLineDelete?: () => void;
@@ -40,13 +40,14 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
   description,
   explanationId,
+  icon,
+  categoryColor,
   isTotalManualEmissionsModeAvailable,
   totalEmission,
   setTotalEmission,
   isTotalManualEmissionsModeActive,
   setIsTotalManualEmissionsMode,
   isManualModeLoading = false,
-  categoryPosition,
   hasManualModeLine = false,
   manualModeLineHasComment = false,
   onManualModeLineDelete,
@@ -54,6 +55,11 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   hasEmissionFactors,
 }) => {
   const { openExplanation } = useExplanationDialog();
+  const IconComponent = CATEGORY_ICON_MAP[icon];
+  const colors = useMemo(
+    () => deriveCategoryColors(categoryColor),
+    [categoryColor]
+  );
   const onChangeTotalEmission = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       setTotalEmission(Number(e.target.value));
@@ -65,13 +71,13 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
     <Box className="flex h-20 gap-4">
       <Box className="flex flex-1 flex-row items-center gap-2">
         <Avatar
-          sx={(theme) => ({
-            backgroundColor: alpha(theme.palette.grey[300], 0.3),
+          sx={{
+            backgroundColor: colors.light,
             width: 48,
             height: 48,
-          })}
+          }}
         >
-          <Folder sx={{ color: "text.primary" }} />
+          {IconComponent ? <IconComponent sx={{ color: colors.dark }} /> : null}
         </Avatar>
         <Box className="flex flex-col">
           <Box className="flex flex-row items-center gap-2">
@@ -178,7 +184,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         <Box className="flex items-center">
           <EmissionEditorActionsCell
             rowId="manual-mode-line"
-            categoryPosition={categoryPosition}
+            categoryColor={categoryColor}
             disabled={isManualModeLoading}
             hasComment={manualModeLineHasComment}
             uploadFiles={() => null}
