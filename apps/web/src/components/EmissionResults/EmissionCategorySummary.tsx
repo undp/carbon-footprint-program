@@ -7,7 +7,7 @@ import {
   CATEGORY_ICON_MAP,
   type CategoryIconName,
 } from "@/utils/categoryIcons";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
@@ -93,7 +93,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
       </Box>
 
       {categories.map((category) => {
-        const categoryColorPalette = deriveCategoryColors(category.color);
+        const categoryColorPalette = getColorPalette(category.color);
         const IconComponent =
           CATEGORY_ICON_MAP[category.icon as CategoryIconName];
 

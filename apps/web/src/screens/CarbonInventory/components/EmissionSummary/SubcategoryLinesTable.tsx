@@ -2,7 +2,7 @@ import { FC, useMemo } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "@/components/EmissionResults";
 import { useSubcategoryLinesColumns } from "./useSubcategoryLinesColumns";
 
@@ -15,7 +15,7 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
   subcategory,
   categoryColor,
 }) => {
-  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = getColorPalette(categoryColor);
   const columns = useSubcategoryLinesColumns();
   const rows = useMemo(
     () => subcategory.lines.map((line) => ({ ...line, id: line.lineId })),

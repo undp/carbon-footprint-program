@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { formatEmissions, formatPercentage } from "@/utils/formatting";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionPercentageBadgeProps {
   emissions: number;
@@ -16,7 +16,7 @@ export const EmissionPercentageBadge: FC<EmissionPercentageBadgeProps> = ({
   categoryColor,
   highlighted = false,
 }) => {
-  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = getColorPalette(categoryColor);
   const fontWeight = highlighted ? "600" : "400";
   const hasPercentage = percentage !== null && percentage !== undefined;
   return (

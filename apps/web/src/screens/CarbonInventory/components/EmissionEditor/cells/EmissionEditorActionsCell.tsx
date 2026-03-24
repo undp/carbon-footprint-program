@@ -5,7 +5,7 @@ import {
   DeleteOutlined,
 } from "@mui/icons-material";
 import { FC } from "react";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -27,7 +27,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   hasComment = false,
 }) => {
   const categoryColorPalette = categoryColor
-    ? deriveCategoryColors(categoryColor)
+    ? getColorPalette(categoryColor)
     : undefined;
 
   const iconSx: SxProps<Theme> = {

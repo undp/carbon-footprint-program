@@ -13,7 +13,7 @@ import {
 } from "./hooks";
 import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
 import { UsageMode } from "@repo/types";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionEditorProps {
   inventoryUsageMode: UsageMode;
@@ -53,7 +53,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   });
 
   const categoryColorPalette = useMemo(
-    () => deriveCategoryColors(categoryColor),
+    () => getColorPalette(categoryColor),
     [categoryColor]
   );
 

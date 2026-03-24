@@ -18,7 +18,7 @@ import {
   CATEGORY_ICON_MAP,
   type CategoryIconName,
 } from "@/utils/categoryIcons";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 type Subcategory =
   GetCarbonInventoryMethodologyResponse["categories"][number]["subcategories"][number];
@@ -60,7 +60,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   const { openExplanation } = useExplanationDialog();
   const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
   const categoryColorPalette = useMemo(
-    () => deriveCategoryColors(categoryColor),
+    () => getColorPalette(categoryColor),
     [categoryColor]
   );
   const onChangeTotalEmission = useCallback(

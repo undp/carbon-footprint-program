@@ -5,7 +5,7 @@ import {
   CATEGORY_ICON_MAP,
   type CategoryIconName,
 } from "@/utils/categoryIcons";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
 import { formatEmissions } from "@/utils/formatting";
 import { kgToTon } from "@repo/utils";
@@ -16,7 +16,7 @@ interface Props {
 
 export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
   const IconComponent = CATEGORY_ICON_MAP[category.icon as CategoryIconName];
-  const categoryColorPalette = deriveCategoryColors(category.color);
+  const categoryColorPalette = getColorPalette(category.color);
   const totalEmissions = useEmissionCategoryTotal(category.id);
 
   return (

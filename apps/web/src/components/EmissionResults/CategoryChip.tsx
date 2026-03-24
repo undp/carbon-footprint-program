@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Chip } from "@mui/material";
 import { SxProps, Theme } from "@mui/material/styles";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface CategoryChipProps {
   label: string;
@@ -14,7 +14,7 @@ export const CategoryChip: FC<CategoryChipProps> = ({
   categoryColor,
   sx,
 }) => {
-  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = getColorPalette(categoryColor);
 
   return (
     <Chip

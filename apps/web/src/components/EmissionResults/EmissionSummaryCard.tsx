@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 
 interface EmissionSummaryCardProps {
@@ -20,7 +20,7 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
   percentage,
   categoryColor,
 }) => {
-  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = getColorPalette(categoryColor);
 
   return (
     <Box

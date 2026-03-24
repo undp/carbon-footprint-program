@@ -3,7 +3,7 @@ import { Box, Skeleton, Typography } from "@mui/material";
 import { PieChart } from "@mui/x-charts/PieChart";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface CategoryData {
   name: string;
@@ -37,7 +37,7 @@ export const EmissionsPieChart: FC<EmissionsPieChartProps> = ({
     id: index,
     value: cat.subtotal,
     label: cat.name,
-    color: deriveCategoryColors(cat.color).main,
+    color: getColorPalette(cat.color).main,
   }));
 
   return (

@@ -6,7 +6,7 @@ import {
   CATEGORY_ICON_MAP,
   type CategoryIconName,
 } from "@/utils/categoryIcons";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 import { useExplanationDialog } from "../../../contexts";
 
 interface CategoryCardProps {
@@ -32,7 +32,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
 }) => {
   const { openExplanation } = useExplanationDialog();
 
-  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = getColorPalette(categoryColor);
   const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
   const backgroundColor = categoryColorPalette.light;
   const border =

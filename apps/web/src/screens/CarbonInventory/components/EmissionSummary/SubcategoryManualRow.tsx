@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "@/components/EmissionResults";
 
 interface SubcategoryManualRowProps {
@@ -13,7 +13,7 @@ export const SubcategoryManualRow: FC<SubcategoryManualRowProps> = ({
   subcategory,
   categoryColor,
 }) => {
-  const categoryColorPalette = deriveCategoryColors(categoryColor);
+  const categoryColorPalette = getColorPalette(categoryColor);
   return (
     <Box className="flex w-full items-center justify-between">
       <Box className="flex w-[80%] flex-col gap-1">

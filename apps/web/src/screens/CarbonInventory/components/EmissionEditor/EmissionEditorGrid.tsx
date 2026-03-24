@@ -3,7 +3,7 @@ import { Box } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { StylizedDataGrid } from "@/components";
 import { EmissionCaptureFormLine } from "../../types/EmissionCaptureTypes";
-import { deriveCategoryColors } from "@/utils/categoryColors";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionEditorGridProps {
   columns: GridColDef<EmissionCaptureFormLine>[];
@@ -19,7 +19,7 @@ export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
   loading = false,
 }) => {
   const categoryColorPalette = useMemo(
-    () => deriveCategoryColors(categoryColor),
+    () => getColorPalette(categoryColor),
     [categoryColor]
   );
 
