@@ -59,7 +59,6 @@ describe("POST /api/reduction-projects - Integration Tests", () => {
       expect(body.name).toBe("Solar Energy Reduction Project");
       expect(body.status).toBe("DRAFT");
       expect(body.organizationId).toBe(organizationId);
-      expect(body.reports).toEqual([]);
     });
 
     it("should create a reduction project with all optional fields", async () => {

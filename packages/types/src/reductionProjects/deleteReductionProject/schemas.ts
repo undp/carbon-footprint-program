@@ -1,7 +1,8 @@
 import { z } from "zod";
+import { IdSchema } from "../../zod.js";
 
 export const DeleteReductionProjectParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the reduction project"),
+  id: IdSchema,
 });
 
 export const DeleteReductionProjectResponseSchema = z.object({}).strict();

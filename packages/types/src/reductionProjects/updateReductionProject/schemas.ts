@@ -1,11 +1,12 @@
 import { z } from "zod";
+import { IdSchema } from "../../zod.js";
 import {
   CreateReductionProjectBodySchema,
 } from "../createReductionProject/schemas.js";
 import { ReductionProjectSchema } from "../baseSchemas.js";
 
 export const UpdateReductionProjectParamsSchema = z.object({
-  id: z.string().regex(/^\d+$/).describe("The ID of the reduction project"),
+  id: IdSchema,
 });
 
 export const UpdateReductionProjectBodySchema =

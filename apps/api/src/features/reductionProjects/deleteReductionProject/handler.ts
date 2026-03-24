@@ -5,5 +5,5 @@ import { deleteReductionProjectService } from "./service.js";
 export const deleteReductionProjectHandler = createDeleteHandler<DeleteReductionProjectParams>(
   "reductionProjects",
   deleteReductionProjectService,
-  "reduction project"
+  "Reduction project"
 );

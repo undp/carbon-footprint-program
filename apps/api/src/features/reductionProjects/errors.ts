@@ -18,12 +18,6 @@ export const IncompleteProjectError = createError(
   422
 );
 
-export const DuplicateReportYearError = createError(
-  "DUPLICATE_REPORT_YEAR",
-  "A report for year %s already exists in reduction project %s",
-  409
-);
-
 export const NegativeReductionValueError = createError(
   "NEGATIVE_REDUCTION_VALUE",
   "Reduction project %s: baselineValue must be greater than or equal to projectValue",

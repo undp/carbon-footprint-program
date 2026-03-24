@@ -26,6 +26,9 @@ export const reopenReductionProjectService = async (
     throw new InvalidStatusTransitionError(id, project.status, "DRAFT");
   }
 
+  // No transaction needed: reopen only changes the project status back to DRAFT.
+  // The existing Submission stays REJECTED (it's the historical record).
+  // A new PENDING Submission is created by submitReductionProject on the next submission.
   const updated = await prismaClient.reductionProject.update({
     where: { id: BigInt(id) },
     data: {
