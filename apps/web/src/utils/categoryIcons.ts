@@ -22,6 +22,9 @@ import {
   LocalGasStationOutlined,
   PublicOutlined,
 } from "@mui/icons-material";
+import { DirectEmissionCategoryIcon } from "../icons/DirectEmissionCategoryIcon";
+import { IndirectEmissionCategoryIcon } from "../icons/IndirectEmissionCategoryIcon";
+import { OthersCategoryIcon } from "../icons/OthersCategoryIcon";
 
 /** Valid category icon names */
 export type CategoryIconName =
@@ -44,7 +47,10 @@ export type CategoryIconName =
   | "CONSTRUCTION"
   | "SCIENCE"
   | "FUEL"
-  | "GLOBE";
+  | "GLOBE"
+  | "DIRECT_EMISSION"
+  | "INDIRECT_EMISSION"
+  | "OTHERS";
 
 /** Map of icon name identifiers to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<
@@ -71,4 +77,7 @@ export const CATEGORY_ICON_MAP: Record<
   SCIENCE: ScienceOutlined,
   FUEL: LocalGasStationOutlined,
   GLOBE: PublicOutlined,
+  DIRECT_EMISSION: DirectEmissionCategoryIcon,
+  INDIRECT_EMISSION: IndirectEmissionCategoryIcon,
+  OTHERS: OthersCategoryIcon,
 };
