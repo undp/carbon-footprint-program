@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Typography, alpha } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { deriveCategoryColors } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 
