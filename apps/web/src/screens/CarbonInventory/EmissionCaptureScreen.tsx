@@ -10,7 +10,7 @@ import {
   CarbonInventoryNavigationButton,
 } from "./components";
 import { useAuth } from "@/contexts";
-import { CategoryCard } from "./components/CategoryCard";
+import { CategoryCarousel } from "./components/CategoryCarousel";
 import { EmissionEditor } from "./components/EmissionEditor";
 import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -220,23 +220,11 @@ export const EmissionCaptureScreen: FC = () => {
                 title="Paso 3: Completa los datos de tus fuentes de emisión"
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
               />
-              <Box className="flex flex-row gap-4">
-                {data?.categories.map((category) => (
-                  <CategoryCard
-                    key={`category_${category.id}`}
-                    icon={category.icon}
-                    categoryColor={category.color}
-                    variant={
-                      selectedCategory === category.id ? "focused" : "unfocused"
-                    }
-                    title={category.name}
-                    subtitle={category.synonyms}
-                    description={category.description}
-                    explanationId={category.explanationId}
-                    onClick={() => handleCategoryChangeWithSave(category.id)}
-                  />
-                ))}
-              </Box>
+              <CategoryCarousel
+                categories={data?.categories ?? []}
+                selectedCategoryId={selectedCategory}
+                onCategorySelect={handleCategoryChangeWithSave}
+              />
               {selectedCategoryData && (
                 <TotalCategoryEmissionCard category={selectedCategoryData} />
               )}
