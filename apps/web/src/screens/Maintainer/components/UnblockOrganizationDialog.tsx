@@ -33,7 +33,7 @@ export const UnblockOrganizationDialog: FC<UnblockOrganizationDialogProps> = ({
       aria-describedby="unblock-org-dialog-description"
     >
       <DialogTitle id="unblock-org-dialog-title">
-        Restaurar {capitalize(VOCAB.organization.noun.singular)}
+        Restaurar {VOCAB.organization.article.singular}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="unblock-org-dialog-description">
