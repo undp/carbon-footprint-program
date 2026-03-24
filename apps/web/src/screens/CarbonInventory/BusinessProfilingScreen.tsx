@@ -313,7 +313,7 @@ export const BusinessProfilingScreen: FC = () => {
                   </Typography>
                   <Typography variant="body1">
                     Es la forma más simple y representativa de medir lo que hace
-                    tu ${VOCAB.organization.noun.singular}. Te permite ver tu
+                    tu {VOCAB.organization.noun.singular}. Te permite ver tu
                     huella por unidad de servicio o producto.
                   </Typography>
                   <Typography variant="body2" color="text.secondary">

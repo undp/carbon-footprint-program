@@ -33,13 +33,13 @@ export const BlockOrganizationDialog: FC<BlockOrganizationDialogProps> = ({
       aria-describedby="block-org-dialog-description"
     >
       <DialogTitle id="block-org-dialog-title">
-        Bloquear ${VOCAB.organization.article.singular}
+        Bloquear {VOCAB.organization.article.singular}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="block-org-dialog-description">
-          ¿Estás seguro de que deseas bloquear $
+          ¿Estás seguro de que deseas bloquear{" "}
           {VOCAB.organization.article.singular}{" "}
-          <strong>{organizationName}</strong>? $
+          <strong>{organizationName}</strong>?{" "}
           {capitalize(VOCAB.organization.article.singular)} será bloqueada y no
           podrá usar las funcionalidades del sistema.
         </DialogContentText>
