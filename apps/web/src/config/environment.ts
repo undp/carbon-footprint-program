@@ -11,8 +11,8 @@ const {
 
 export const IS_DEVELOPMENT = import.meta.env.DEV;
 
-/** When true, skips Azure MSAL auth. Pair with API's forced-user provider for local dev. */
-export const AUTH_BYPASS = VITE_AUTH_BYPASS === "true";
+/** When true, skips Azure MSAL auth. Only active in dev mode — ignored in production. */
+export const AUTH_BYPASS = IS_DEVELOPMENT && VITE_AUTH_BYPASS === "true";
 
 export const IS_DEMO = VITE_IS_DEMO_APP === "true";
 

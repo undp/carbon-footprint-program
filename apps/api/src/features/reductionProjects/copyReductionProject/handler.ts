@@ -1,8 +1,8 @@
 import { createActionHandler } from "@/handlerFactory/createActionHandler.js";
-import type { CopyReductionProjectParams } from "@repo/types";
+import type { CopyReductionProjectParams, CopyReductionProjectResponse } from "@repo/types";
 import { copyReductionProjectService } from "./service.js";
 
 export const copyReductionProjectHandler = createActionHandler<
   CopyReductionProjectParams,
-  Awaited<ReturnType<typeof copyReductionProjectService>>
->("reductionProjects", copyReductionProjectService, "reduction project");
+  CopyReductionProjectResponse
+>("reductionProjects", copyReductionProjectService, "Reduction project");

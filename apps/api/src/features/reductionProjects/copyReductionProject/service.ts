@@ -45,18 +45,16 @@ export const copyReductionProjectService = async (
       },
     });
 
-    if (original.reports.length > 0) {
-      await tx.reductionProjectReport.createMany({
-        data: original.reports.map((r) => ({
-          reductionProjectId: newProject.id,
-          reductionYear: r.reductionYear,
-          baselineValue: r.baselineValue,
-          projectValue: r.projectValue,
-          reductionValue: r.reductionValue,
-          createdById: userId,
-        })),
-      });
-    }
+    await tx.reductionProjectReport.createMany({
+      data: original.reports.map((r) => ({
+        reductionProjectId: newProject.id,
+        reductionYear: r.reductionYear,
+        baselineValue: r.baselineValue,
+        projectValue: r.projectValue,
+        reductionValue: r.reductionValue,
+        createdById: userId,
+      })),
+    });
 
     return tx.reductionProject.findUniqueOrThrow({
       where: { id: newProject.id },

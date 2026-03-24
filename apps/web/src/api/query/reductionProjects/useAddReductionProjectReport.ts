@@ -3,7 +3,7 @@ import type {
   AddReductionProjectReportBody,
   AddReductionProjectReportResponse,
 } from "@repo/types";
-import { invalidateReductionProjectDetail } from "./keys";
+import { invalidateReductionProjectDetail, invalidateReductionProjects } from "./keys";
 import { apiClient } from "@/api/http";
 
 type Variables = {
@@ -19,7 +19,9 @@ export const useAddReductionProjectReport = () => {
       apiClient
         .post(`reduction-projects/${id}/reports`, { json: data })
         .json(),
-    onSuccess: (_data, variables) =>
-      invalidateReductionProjectDetail(queryClient, variables.id),
+    onSuccess: async (_data, variables) => {
+      await invalidateReductionProjectDetail(queryClient, variables.id);
+      await invalidateReductionProjects(queryClient);
+    },
   });
 };

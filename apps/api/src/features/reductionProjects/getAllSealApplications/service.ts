@@ -13,14 +13,11 @@ export const getAllSealApplicationsService = async (
   const submissions = await prismaClient.submission.findMany({
     where: {
       subject: {
-        reductionProject: { isNot: null },
-        ...(query?.organizationId && {
-          reductionProject: {
-            reductionProject: {
-              organizationId: BigInt(query.organizationId),
-            },
-          },
-        }),
+        reductionProject: {
+          is: query?.organizationId
+            ? { reductionProject: { organizationId: BigInt(query.organizationId) } }
+            : {},
+        },
       },
     },
     include: {

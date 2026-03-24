@@ -60,6 +60,7 @@ describe("ApplicationsTable", () => {
       "DRAFT",
       "IN_REVIEW",
       "REJECTED",
+      "OBJECTED",
     ];
 
     const applications: ReductionProjectSummary[] = allStatuses.map(
@@ -84,6 +85,7 @@ describe("ApplicationsTable", () => {
     expect(screen.getByText("BORRADOR")).toBeInTheDocument();
     expect(screen.getByText("EN REVISIÓN")).toBeInTheDocument();
     expect(screen.getByText("RECHAZADO")).toBeInTheDocument();
+    expect(screen.getByText("OBJETADO")).toBeInTheDocument();
   });
 
   it("calls onDownload when download button is clicked", async () => {

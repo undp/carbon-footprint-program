@@ -13,6 +13,7 @@ export const getReductionProjectByIdHandler = async (
 
   log.info(`Getting reduction project ${id}...`);
   const result = await getReductionProjectByIdService(prisma, id, user);
+  log.info(`Reduction project ${id} retrieved`);
 
   return reply.status(200).send(result);
 };
