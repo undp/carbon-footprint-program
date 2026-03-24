@@ -20,18 +20,19 @@ const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
 
 /** Predefined color palette for category icons */
 export const CATEGORY_COLORS = [
-  "#F5E6D3", // beige
-  "#C5DEF0", // light blue
-  "#D4E8DC", // mint green
-  "#F9D5D5", // light pink
-  "#E8D5F5", // lavender
-  "#FFF3C4", // light yellow
-  "#D5F0E8", // seafoam
-  "#FFE0C4", // peach
-  "#D5E8F5", // sky blue
-  "#E8E8E8", // light gray
-  "#C4E8D0", // pale green
-  "#F0D5E8", // rose
+  "#FFB74D", // orange
+
+  "#64B5F6", // light blue
+  "#82C784", // green
+  "#F06292", // pink
+  "#BA68C8", // purple
+  "#FFD54F", // yellow
+  "#4DB6AC", // teal
+  "#FF8A65", // deep orange
+  "#7986CB", // indigo
+  "#90A4AE", // blue gray
+  "#AED581", // light green
+  "#D4E157", // lime
 ];
 
 interface IconPickerCellBaseProps {
@@ -111,7 +112,11 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
     ? CATEGORY_ICON_MAP[iconName as CategoryIconName]
     : null;
   const isInteractive = isEditing || !!onClick;
-  const effectiveColor = hideColor ? color || "#E8E8E8" : color;
+  const effectiveColor = hideColor
+    ? color || "#E8E8E8"
+    : color
+      ? alpha(color, 0.3)
+      : "transparent";
 
   return (
     <>
