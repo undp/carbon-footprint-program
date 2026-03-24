@@ -24,9 +24,18 @@ import { getCarbonInventoriesMinimalRoute } from "@/features/carbonInventories/g
 import { duplicateCarbonInventoryRoute } from "@/features/carbonInventories/duplicateCarbonInventory/route.js";
 import { deleteCarbonInventoryRoute } from "@/features/carbonInventories/deleteCarbonInventory/route.js";
 import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/selfDeclareCarbonInventory/route.js";
+import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
+  fastify.addHook(
+    "preHandler",
+    fastify.requireRoles([
+      SystemRole.USER,
+      SystemRole.ADMIN,
+      SystemRole.SUPERADMIN,
+    ])
+  );
   getAllCarbonInventoriesRoute(fastify);
   getCarbonInventoryBadgesRoute(fastify, { public: true });
   getCarbonInventoryByIdRoute(fastify, { public: true });

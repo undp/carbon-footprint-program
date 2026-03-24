@@ -1,13 +1,19 @@
 import {
+  PreviewFileParams,
   PreviewFileParamsSchema,
+  PreviewFileResponse,
   PreviewFileResponseSchema,
+  SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { previewFileHandler } from "./handler.js";
 
 export const previewFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.get(
+  fastify.get<{
+    Params: PreviewFileParams;
+    Reply: PreviewFileResponse;
+  }>(
     "/:uuid/preview",
     {
       schema: {
@@ -21,6 +27,13 @@ export const previewFileRoute: StandardRouteSignature = (fastify) => {
           503: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([
+          SystemRole.USER,
+          SystemRole.ADMIN,
+          SystemRole.SUPERADMIN,
+        ]),
+      ],
     },
     previewFileHandler
   );

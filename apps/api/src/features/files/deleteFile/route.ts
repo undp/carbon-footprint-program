@@ -1,10 +1,19 @@
-import { DeleteFileResponseSchema, DeleteFileParamsSchema } from "@repo/types";
+import {
+  DeleteFileResponseSchema,
+  DeleteFileParamsSchema,
+  SystemRole,
+  DeleteFileParams,
+  DeleteFileResponse,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
 import { deleteFileHandler } from "./handler.js";
 
 export const deleteFileRoute: StandardRouteSignature = (fastify) => {
-  fastify.delete(
+  fastify.delete<{
+    Params: DeleteFileParams;
+    Reply: DeleteFileResponse;
+  }>(
     "/:uuid",
     {
       schema: {
@@ -16,6 +25,13 @@ export const deleteFileRoute: StandardRouteSignature = (fastify) => {
           404: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([
+          SystemRole.USER,
+          SystemRole.ADMIN,
+          SystemRole.SUPERADMIN,
+        ]),
+      ],
     },
     deleteFileHandler
   );

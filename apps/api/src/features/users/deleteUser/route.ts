@@ -1,10 +1,19 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { deleteUserHandler } from "./handler.js";
-import { DeleteUserParamsSchema, DeleteUserResponseSchema } from "@repo/types";
+import {
+  DeleteUserParams,
+  DeleteUserParamsSchema,
+  DeleteUserResponse,
+  DeleteUserResponseSchema,
+  SystemRole,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const deleteUserRoute = (fastify: FastifyZodInstance) => {
-  fastify.delete(
+  fastify.delete<{
+    Params: DeleteUserParams;
+    Reply: DeleteUserResponse;
+  }>(
     "/:id",
     {
       schema: {
@@ -17,6 +26,9 @@ export const deleteUserRoute = (fastify: FastifyZodInstance) => {
           404: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
+      ],
     },
     deleteUserHandler
   );
