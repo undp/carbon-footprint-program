@@ -18,9 +18,9 @@ import { capitalize } from "lodash-es";
 
 const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> = {
   [OrganizationDisplayStatusValues.ACCREDITED]: capitalize(
-    VOCAB.inscription.noun.singular
+    VOCAB.inscription.adjective.singular
   ),
-  [OrganizationDisplayStatusValues.NOT_ACCREDITED]: `No ${capitalize(VOCAB.inscription.noun.singular)}`,
+  [OrganizationDisplayStatusValues.NOT_ACCREDITED]: `No ${capitalize(VOCAB.inscription.adjective.singular)}`,
   [OrganizationDisplayStatusValues.BLOCKED]: "Bloqueada",
 };
 
