@@ -1,16 +1,10 @@
 import { FC } from "react";
-import {
-  Box,
-  Button,
-  capitalize,
-  Card,
-  Stack,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Card, Stack, Typography } from "@mui/material";
 import { FileDownloadOutlined } from "@mui/icons-material";
 import { OrganizationScreenKpiSection } from "../components/OrganizationScreenKpiSection";
 import { OrganizationScreenTable } from "../components/OrganizationScreenTable";
 import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 export const AdminOrganizationsScreen: FC = () => {
   return (
