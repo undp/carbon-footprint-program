@@ -63,6 +63,7 @@ export const carbonInventoryKeys = {
       CarbonInventoryQueryKey.Root,
       id,
       CarbonInventoryQueryKey.SectorRanking,
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
       CarbonInventoryQueryKey.EmissionsUpdateDependency,
     ] as const,
   mainActivityEquivalence: (id: string) =>
