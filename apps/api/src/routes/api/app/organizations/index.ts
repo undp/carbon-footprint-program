@@ -31,7 +31,6 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   // ORG. ADMIN, CONTRIBUTOR, VIEWER
   getOrganizationUsersRoute(fastify);
   getOrganizationByIdRoute(fastify);
-  getOrganizationUsersRoute(fastify);
 
   // AUTHENTICATED (No organization membership required)
   getMyOrganizationsRoute(fastify);
