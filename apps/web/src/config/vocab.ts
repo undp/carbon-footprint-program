@@ -1,18 +1,12 @@
 type GrammaticalNumber = "singular" | "plural";
 
-type Noun = Record<GrammaticalNumber, string>;
-
-type Adjective = Record<GrammaticalNumber, string>;
-
-type Article = Record<GrammaticalNumber, string>;
-
-type Verb = Record<GrammaticalNumber, string>;
+type GrammaticalForm = Record<GrammaticalNumber, string>;
 
 type VocabEntry = {
-  noun?: Noun;
-  adjective?: Adjective;
-  article?: Article;
-  verb?: Verb;
+  noun?: GrammaticalForm;
+  adjective?: GrammaticalForm;
+  article?: GrammaticalForm;
+  verb?: Pick<GrammaticalForm, "singular">;
 };
 
 export const VOCAB = {
@@ -41,7 +35,6 @@ export const VOCAB = {
     },
     verb: {
       singular: "inscribir",
-      plural: "inscribir",
     },
   },
 } as const satisfies Record<string, VocabEntry>;
