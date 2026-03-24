@@ -23,13 +23,13 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
 
   // ORG. ADMIN
   addOrganizationUserRoute(fastify);
-  getOrganizationUsersRoute(fastify);
   updateOrganizationUserRoleRoute(fastify);
   removeOrganizationUserRoute(fastify);
   updateOrganizationRoute(fastify);
   requestOrganizationAccreditationRoute(fastify);
 
   // ORG. ADMIN, CONTRIBUTOR, VIEWER
+  getOrganizationUsersRoute(fastify);
   getOrganizationByIdRoute(fastify);
 
   // AUTHENTICATED (No organization role required)
