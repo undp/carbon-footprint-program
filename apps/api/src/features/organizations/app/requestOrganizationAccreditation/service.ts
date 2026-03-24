@@ -55,15 +55,11 @@ export const requestOrganizationAccreditationService = async (
   }
 
   // this endpoint is not expected to be called if the organization is already accredited
-<<<<<<< feat/mati/add-centralized-vocab
-  if (await hasApprovedOrganizationData(prismaClient, organizationId)) {
-=======
   const isAccredited = await hasApprovedOrganizationData(
     prismaClient,
     organizationId
   );
   if (isAccredited) {
->>>>>>> main
     throw new OrganizationAlreadyAccreditedError(organizationId);
   }
 

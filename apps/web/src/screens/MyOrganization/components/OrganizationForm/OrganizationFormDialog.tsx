@@ -41,15 +41,9 @@ interface Props {
 }
 
 const DIALOG_TITLES: Record<DialogMode, string> = {
-<<<<<<< feat/mati/add-centralized-vocab
   [DialogMode.create]: `Crear perfil de ${VOCAB.organization.article.singular}`,
   [DialogMode.edit]: `Editar perfil de ${VOCAB.organization.article.singular}`,
   [DialogMode.accredited]: `Editar perfil de ${VOCAB.organization.article.singular}`,
-=======
-  [DialogMode.create]: "Crear perfil de empresa",
-  [DialogMode.edit]: "Editar perfil de empresa",
-  [DialogMode.accredited]: "Editar perfil de empresa",
->>>>>>> main
 };
 
 const BUTTON_LABELS: Record<DialogMode, string> = {

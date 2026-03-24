@@ -53,12 +53,7 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
           if (body) {
             const errorCode = (body as { code: string }).code;
             if (errorCode === "SUBMISSION_ALREADY_EXISTS") {
-<<<<<<< feat/mati/add-centralized-vocab
               message = `Ya existe una solicitud de ${VOCAB.inscription.noun.singular} pendiente para esta ${VOCAB.organization.noun.singular}.`;
-=======
-              message =
-                "Ya existe una solicitud de acreditación pendiente para esta organización.";
->>>>>>> main
             }
           }
         }

@@ -83,13 +83,8 @@ export async function linkFilesToSubmission(
     throw new MissingFilesError(missing.join(", "));
   }
 
-<<<<<<< feat/mati/add-centralized-vocab
-  // Step 1: Compute file metadata upfront
-  const filesMetadata = files.map((file) => ({
-=======
   // Step 1: Compute file plan upfront
   const filesPlans = files.map((file) => ({
->>>>>>> main
     file,
     currentBlobPath: file.blobPath,
     finalBlobPath: buildBlobPath({
@@ -103,40 +98,23 @@ export async function linkFilesToSubmission(
 
   // Step 2: Copy all blobs in parallel
   const copyResults = await Promise.allSettled(
-<<<<<<< feat/mati/add-centralized-vocab
-    filesMetadata.map((metadata) =>
-      copyBlob(
-        blobServiceClient,
-        containerName,
-        metadata.currentBlobPath,
-        metadata.finalBlobPath
-=======
     filesPlans.map((plan) =>
       copyBlob(
         blobServiceClient,
         containerName,
         plan.currentBlobPath,
         plan.finalBlobPath
->>>>>>> main
       )
     )
   );
 
   // Step 3: If any copy failed, clean up successful destinations and throw
-<<<<<<< feat/mati/add-centralized-vocab
-  const failedPlans = filesMetadata.filter(
-=======
   const failedPlans = filesPlans.filter(
->>>>>>> main
     (_, i) => copyResults[i].status === "rejected"
   );
 
   if (failedPlans.length > 0) {
-<<<<<<< feat/mati/add-centralized-vocab
-    const successfulDests = filesMetadata
-=======
     const successfulDests = filesPlans
->>>>>>> main
       .filter((_, i) => copyResults[i].status === "fulfilled")
       .map((plan) => plan.finalBlobPath);
 
@@ -152,18 +130,12 @@ export async function linkFilesToSubmission(
     );
   }
 
-<<<<<<< feat/mati/add-centralized-vocab
-  // Step 4: All copies succeeded — update DB records
-  await Promise.all(
-    filesMetadata.map((plan) =>
-=======
   // Step 4: All copies succeeded — collect source paths for cleanup
   sourcePaths.push(...filesPlans.map((plan) => plan.currentBlobPath));
 
   // Step 5: Update DB records
   await Promise.all(
     filesPlans.map((plan) =>
->>>>>>> main
       tx.file.update({
         where: { id: plan.file.id },
         data: { blobPath: plan.finalBlobPath },
