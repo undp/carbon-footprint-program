@@ -4,6 +4,7 @@ import { CategoryCard } from "./CategoryCard";
 
 const GAP = 16;
 const PEEK_WIDTH = 48;
+const VISIBLE_CARDS = 3;
 
 interface CategoryData {
   id: string;
@@ -28,15 +29,15 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
-  // startIndex = index of the first fully visible card in the 3-card window
-  const [startIndex, setStartIndex] = useState(0);
 
-  const needsCarousel = categories.length > 3;
-  const maxStartIndex = Math.max(categories.length - 3, 0);
+  const needsCarousel = categories.length > VISIBLE_CARDS;
 
   // Measure container width
   useEffect(() => {
     if (!needsCarousel || !containerRef.current) return;
+
+    const el = containerRef.current;
+    setContainerWidth(el.getBoundingClientRect().width);
 
     const observer = new ResizeObserver((entries) => {
       for (const entry of entries) {
@@ -44,56 +45,32 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
       }
     });
 
-    observer.observe(containerRef.current);
+    observer.observe(el);
     return () => observer.disconnect();
   }, [needsCarousel]);
 
-  // Card width: 3 cards + 2 gaps + 2 peeks = containerWidth
+  // Card width: VISIBLE_CARDS cards + 2 gaps + 2 peeks = containerWidth
   const cardWidth = useMemo(() => {
     if (!needsCarousel || containerWidth === 0) return 0;
-    return (containerWidth - 2 * PEEK_WIDTH - 2 * GAP) / 3;
+    return Math.max(
+      (containerWidth - 2 * PEEK_WIDTH - 2 * GAP) / VISIBLE_CARDS,
+      0
+    );
   }, [needsCarousel, containerWidth]);
-
-  // translateX: different formula for edges vs middle
-  const translateX = useMemo(() => {
-    if (!needsCarousel || cardWidth === 0) return 0;
-
-    // First position: flush left (no left peek)
-    if (startIndex === 0) return 0;
-
-    // Last position: flush right (no right peek)
-    if (startIndex >= maxStartIndex) {
-      const totalStripWidth =
-        categories.length * cardWidth + (categories.length - 1) * GAP;
-      return containerWidth - totalStripWidth;
-    }
-
-    // Middle positions: peek on both sides
-    return -startIndex * (cardWidth + GAP) + PEEK_WIDTH;
-  }, [
-    needsCarousel,
-    startIndex,
-    cardWidth,
-    categories.length,
-    containerWidth,
-    maxStartIndex,
-  ]);
 
   const handleCardClick = useCallback(
     (categoryId: string, index: number) => {
-      if (needsCarousel) {
-        // Click left visible card (or peek): shift left to center it
-        if (index <= startIndex && startIndex > 0) {
-          setStartIndex(startIndex - 1);
-        }
-        // Click right visible card (or peek): shift right to center it
-        else if (index >= startIndex + 2 && startIndex < maxStartIndex) {
-          setStartIndex(startIndex + 1);
-        }
+      if (needsCarousel && containerRef.current) {
+        // Scroll so the clicked card's left neighbor peeks in
+        const targetScrollLeft = index * (cardWidth + GAP) - PEEK_WIDTH;
+        const maxScroll =
+          containerRef.current.scrollWidth - containerRef.current.clientWidth;
+        const clamped = Math.max(0, Math.min(targetScrollLeft, maxScroll));
+        containerRef.current.scrollTo({ left: clamped, behavior: "smooth" });
       }
       onCategorySelect(categoryId);
     },
-    [needsCarousel, startIndex, maxStartIndex, onCategorySelect]
+    [needsCarousel, cardWidth, onCategorySelect]
   );
 
   // Simple layout for ≤3 categories
@@ -119,37 +96,40 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
     );
   }
 
-  // Carousel layout for >3 categories
+  // Carousel layout for >3 categories (scroll-snap)
   return (
-    <Box ref={containerRef} className="relative overflow-hidden">
-      <Box
-        className="flex flex-row"
-        sx={{
-          gap: `${GAP}px`,
-          transform: `translateX(${translateX}px)`,
-          transition: "transform 300ms ease-in-out",
-        }}
-      >
-        {categories.map((category, index) => (
-          <Box
-            key={`category_${category.id}`}
-            sx={{ width: cardWidth, flexShrink: 0 }}
-          >
-            <CategoryCard
-              icon={category.icon}
-              categoryColor={category.color}
-              variant={
-                selectedCategoryId === category.id ? "focused" : "unfocused"
-              }
-              title={category.name}
-              subtitle={category.synonyms}
-              description={category.description}
-              explanationId={category.explanationId}
-              onClick={() => handleCardClick(category.id, index)}
-            />
-          </Box>
-        ))}
-      </Box>
+    <Box
+      ref={containerRef}
+      sx={{
+        display: "flex",
+        gap: `${GAP}px`,
+        overflowX: "auto",
+        scrollSnapType: "x mandatory",
+        scrollPaddingLeft: `${PEEK_WIDTH}px`,
+        scrollBehavior: "smooth",
+        scrollbarWidth: "none",
+        "&::-webkit-scrollbar": { display: "none" },
+      }}
+    >
+      {categories.map((category, index) => (
+        <Box
+          key={`category_${category.id}`}
+          sx={{ width: cardWidth, flexShrink: 0, scrollSnapAlign: "start" }}
+        >
+          <CategoryCard
+            icon={category.icon}
+            categoryColor={category.color}
+            variant={
+              selectedCategoryId === category.id ? "focused" : "unfocused"
+            }
+            title={category.name}
+            subtitle={category.synonyms}
+            description={category.description}
+            explanationId={category.explanationId}
+            onClick={() => handleCardClick(category.id, index)}
+          />
+        </Box>
+      ))}
     </Box>
   );
 };
