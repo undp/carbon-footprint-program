@@ -4,6 +4,7 @@ import {
   CreateCarbonInventoryResponse,
 } from "@repo/types";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "./keys";
 
 export const useCreateCarbonInventory = () => {
   const queryClient = useQueryClient();
@@ -18,7 +19,7 @@ export const useCreateCarbonInventory = () => {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey.includes("carbonInventoryCreationDependency"),
+          query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
       });
     },
   });

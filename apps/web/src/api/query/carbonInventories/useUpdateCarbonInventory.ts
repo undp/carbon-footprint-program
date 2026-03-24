@@ -3,8 +3,8 @@ import {
   UpdateCarbonInventoryRequest,
   UpdateCarbonInventoryResponse,
 } from "@repo/types";
-import { carbonInventoryKeys, invalidateCarbonInventoryMetadata } from "./keys";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "./keys";
 
 type UpdateCarbonInventoryVariables = {
   id: string;
@@ -21,17 +21,19 @@ export const useUpdateCarbonInventory = () => {
   >({
     mutationFn: ({ id, data }) =>
       apiClient.patch(`carbon-inventories/${id}`, { json: data }).json(),
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (_data, { id }) => {
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoryUpdationDependency"),
+            query.queryKey.includes(id) &&
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.AttributesUpdateDependency
+            ),
         }),
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.detail(variables.id),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
-        invalidateCarbonInventoryMetadata(queryClient, variables.id),
       ]);
     },
   });

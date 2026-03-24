@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { invalidateCarbonInventoryEmissions } from "../keys";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "../keys";
 
 interface ToggleManualTotalEmissionsParams {
   activated: boolean;
@@ -20,7 +20,20 @@ export const useToggleManualTotalEmissions = (
           { json: { activated } }
         )
         .json(),
-    onSuccess: () =>
-      invalidateCarbonInventoryEmissions(queryClient, inventoryId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(inventoryId) &&
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.EmissionsUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
+        }),
+      ]);
+    },
   });
 };

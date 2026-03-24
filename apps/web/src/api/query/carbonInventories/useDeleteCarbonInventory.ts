@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { carbonInventoryKeys, invalidateCarbonInventoryMetadata } from "./keys";
 import { apiClient } from "@/api/http";
 import { DeleteCarbonInventoryResponse } from "@repo/types";
+import { CarbonInventoryQueryKey } from "./keys";
 
 export const useDeleteCarbonInventory = () => {
   const queryClient = useQueryClient();
@@ -12,13 +12,15 @@ export const useDeleteCarbonInventory = () => {
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoryUpdationDependency"),
+            query.queryKey.includes(id) &&
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.AttributesUpdateDependency
+            ),
         }),
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.detail(id),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
-        invalidateCarbonInventoryMetadata(queryClient, id),
       ]);
     },
   });
