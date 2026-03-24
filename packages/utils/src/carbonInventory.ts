@@ -6,6 +6,7 @@ import {
 const EDITABLE_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.DRAFT,
   CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED,
+  CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
 ];
 
 export function isCarbonInventoryEditable(
