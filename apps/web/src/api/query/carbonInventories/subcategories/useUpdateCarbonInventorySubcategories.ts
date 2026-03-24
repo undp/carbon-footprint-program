@@ -19,6 +19,10 @@ export const useUpdateCarbonInventorySubcategories = (inventoryId: string) => {
             query.queryKey.includes(inventoryId) &&
             query.queryKey.includes("carbonInventoryEmissionsUpdateDependency"),
         }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes("carbonInventoriesListDependency"),
+        }),
       ]);
     },
   });

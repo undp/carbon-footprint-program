@@ -2,8 +2,6 @@ export const carbonInventoryKeys = {
   all: [
     "carbonInventories",
     "carbonInventoriesListDependency",
-    "carbonInventoryAttributesUpdateDependency",
-    "carbonInventoryEmissionsUpdateDependency",
     "organizationStatusDependency",
   ] as const,
   detail: (id: string) =>
@@ -84,7 +82,6 @@ export const carbonInventoryKeys = {
     "carbonInventories",
     "minimal",
     "carbonInventoriesListDependency",
-    "carbonInventoryAttributesUpdateDependency",
   ] as const,
   badges: (id?: string) => ["carbonInventories", id, "badges"] as const,
 };
