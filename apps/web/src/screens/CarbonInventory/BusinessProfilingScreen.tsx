@@ -32,6 +32,7 @@ import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useAuth } from "@/contexts";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { VOCAB } from "@/config/vocab";
+import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -67,6 +68,7 @@ export const BusinessProfilingScreen: FC = () => {
     data: existingInventory,
     isLoading: isInventoryLoading,
     isError: hasInventoryError,
+    error: inventoryError,
   } = useCarbonInventory(inventoryId);
 
   const hasOrganization = !!existingInventory?.organizationId;
@@ -124,6 +126,8 @@ export const BusinessProfilingScreen: FC = () => {
   });
 
   const goToListOrLanding = user ? goToList : goToLanding;
+
+  useInventoryErrorHandler(inventoryError);
 
   const handleExitClick = useCallback(() => {
     if (!isDirty) {

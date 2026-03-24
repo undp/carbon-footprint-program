@@ -27,6 +27,7 @@ import { EmissionSummary } from "./components/EmissionSummary/EmissionSummary";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 export const EmissionSummaryScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -50,6 +51,7 @@ export const EmissionSummaryScreen: FC = () => {
     data: summaryData,
     isLoading: isSummaryLoading,
     isError: isSummaryError,
+    error: summaryError,
   } = useEmissionsDetailedSummary(inventoryId);
 
   const {
@@ -68,6 +70,8 @@ export const EmissionSummaryScreen: FC = () => {
     isSummaryError || isEquivalenceError || isFactorsError || isMetadataError;
 
   const categories = summaryData?.categories ?? [];
+
+  useInventoryErrorHandler(summaryError);
 
   useEffect(() => {
     if (isError)
