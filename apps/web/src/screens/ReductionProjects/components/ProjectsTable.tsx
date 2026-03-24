@@ -19,25 +19,8 @@ import {
   Delete,
   ChatBubbleOutline,
 } from "@mui/icons-material";
-import type { ReductionProjectSummary, ReductionProjectStatus } from "../types";
-import { headerCellSx, bodyCellSx, tableContainerSx } from "./tableStyles";
-
-const getStatusConfig = (
-  status: ReductionProjectStatus
-): { label: string; bgColor: string; textColor: string } => {
-  switch (status) {
-    case "APPROVED":
-      return { label: "APROBADO", bgColor: "rgba(130, 199, 132, 0.3)", textColor: "#345035" };
-    case "DRAFT":
-      return { label: "BORRADOR", bgColor: "rgba(189, 189, 189, 0.3)", textColor: "#424242" };
-    case "IN_REVIEW":
-      return { label: "EN REVISIÓN", bgColor: "rgba(100, 181, 246, 0.3)", textColor: "#284862" };
-    case "REJECTED":
-      return { label: "RECHAZADO", bgColor: "rgba(211, 47, 47, 0.3)", textColor: "#8B0000" };
-    case "OBJECTED":
-      return { label: "OBJETADO", bgColor: "rgba(255, 152, 0, 0.2)", textColor: "#E65100" };
-  }
-};
+import type { ReductionProjectSummary } from "../types";
+import { headerCellSx, bodyCellSx, tableContainerSx, getStatusConfig } from "./tableStyles";
 
 const ICON_COLOR = "#009689";
 const actionBtnSx = {
@@ -101,7 +84,9 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
           </TableRow>
         </TableHead>
         <TableBody>
-          {projects.map((project) => (
+          {projects.map((project) => {
+            const statusConfig = getStatusConfig(project.status);
+            return (
             <TableRow key={project.id}>
               <TableCell sx={bodyCellSx}>{project.name}</TableCell>
               <TableCell sx={{ ...bodyCellSx, textAlign: "center" }}>
@@ -118,23 +103,18 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
                   : "-"}
               </TableCell>
               <TableCell sx={{ ...bodyCellSx, textAlign: "center" }}>
-                {(() => {
-                  const cfg = getStatusConfig(project.status);
-                  return (
-                    <Chip
-                      label={cfg.label}
-                      size="small"
-                      sx={{
-                        backgroundColor: cfg.bgColor,
-                        color: cfg.textColor,
-                        fontWeight: 500,
-                        fontSize: "0.75rem",
-                        borderRadius: "14px",
-                        border: `1px solid ${cfg.bgColor}`,
-                      }}
-                    />
-                  );
-                })()}
+                <Chip
+                  label={statusConfig.label}
+                  size="small"
+                  sx={{
+                    backgroundColor: statusConfig.bgColor,
+                    color: statusConfig.textColor,
+                    fontWeight: 500,
+                    fontSize: "0.75rem",
+                    borderRadius: "14px",
+                    border: `1px solid ${statusConfig.bgColor}`,
+                  }}
+                />
               </TableCell>
               <TableCell sx={bodyCellSx}>
                 <Box className="flex items-center gap-2">
@@ -240,7 +220,8 @@ export const ProjectsTable: FC<ProjectsTableProps> = ({
                 </Box>
               </TableCell>
             </TableRow>
-          ))}
+            );
+          })}
         </TableBody>
       </Table>
     </TableContainer>

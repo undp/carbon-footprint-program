@@ -12,43 +12,12 @@ import {
   Tooltip,
 } from "@mui/material";
 import { Download } from "@mui/icons-material";
-import type { ReductionProjectSummary, ReductionProjectStatus } from "../types";
-import { headerCellSx, bodyCellSx, tableContainerSx } from "./tableStyles";
+import type { ReductionProjectSummary } from "../types";
+import { headerCellSx, bodyCellSx, tableContainerSx, getStatusConfig } from "./tableStyles";
 
 type ApplicationsTableProps = {
   applications: ReductionProjectSummary[];
   onDownload?: (application: ReductionProjectSummary) => void;
-};
-
-const getStatusConfig = (
-  status: ReductionProjectStatus
-): { label: string; bgColor: string; textColor: string } => {
-  switch (status) {
-    case "APPROVED":
-      return {
-        label: "APROBADO",
-        bgColor: "rgba(130, 199, 132, 0.3)",
-        textColor: "#345035",
-      };
-    case "DRAFT":
-      return {
-        label: "BORRADOR",
-        bgColor: "rgba(189, 189, 189, 0.3)",
-        textColor: "#424242",
-      };
-    case "IN_REVIEW":
-      return {
-        label: "EN REVISIÓN",
-        bgColor: "rgba(100, 181, 246, 0.3)",
-        textColor: "#284862",
-      };
-    case "REJECTED":
-      return {
-        label: "RECHAZADO",
-        bgColor: "rgba(211, 47, 47, 0.3)",
-        textColor: "#8B0000",
-      };
-  }
 };
 
 const formatDate = (isoDate: string): string =>

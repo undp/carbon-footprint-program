@@ -67,26 +67,22 @@ export const mapReductionProjectWithoutFilesOrReports = (
   return rest;
 };
 
+// reports are pre-sorted by createdAt asc by the DB query (orderBy: { createdAt: "asc" })
 export const mapReductionProjectSummary = (
   project: PrismaReductionProject & { reports: PrismaReport[] }
-): ReductionProjectSummary => {
-  const sortedReports = [...project.reports].sort(
-    (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
-  );
-  return {
-    id: project.id.toString(),
-    organizationId: project.organizationId.toString(),
-    organizationBranchId: project.organizationBranchId?.toString() ?? null,
-    name: project.name,
-    usePcgNationalInventory: project.usePcgNationalInventory,
-    status: project.status,
-    createdAt: project.createdAt.toISOString(),
-    updatedAt: project.updatedAt?.toISOString() ?? null,
-    firstReportDate: sortedReports[0]?.createdAt.toISOString() ?? null,
-    reportYears: [...new Set(project.reports.map((r) => r.reductionYear))],
-    totalReduction: project.reports.reduce(
-      (sum, r) => sum + Number(r.reductionValue),
-      0
-    ),
-  };
-};
+): ReductionProjectSummary => ({
+  id: project.id.toString(),
+  organizationId: project.organizationId.toString(),
+  organizationBranchId: project.organizationBranchId?.toString() ?? null,
+  name: project.name,
+  usePcgNationalInventory: project.usePcgNationalInventory,
+  status: project.status,
+  createdAt: project.createdAt.toISOString(),
+  updatedAt: project.updatedAt?.toISOString() ?? null,
+  firstReportDate: project.reports[0]?.createdAt.toISOString() ?? null,
+  reportYears: [...new Set(project.reports.map((r) => r.reductionYear))],
+  totalReduction: project.reports.reduce(
+    (sum, r) => sum + Number(r.reductionValue),
+    0
+  ),
+});

@@ -120,21 +120,7 @@ export const AddReductionProjectScreen: FC = () => {
   const calculatedReduction =
     (Number(baselineValue) || 0) - (Number(projectValue) || 0);
 
-  const mapFormToApi = (data: AddReductionProjectFormData) => ({
-    organizationId: effectiveOrgId,
-    name: data.projectName,
-    description: data.projectDescription || undefined,
-    organizationBranchId: undefined,
-    implementationDate: data.implementationDate || undefined,
-    subcategoryId: data.emissionSubcategory || undefined,
-    pcg: data.pcg || undefined,
-    selectedGases: data.selectedGases,
-    reportedInOtherInitiative: data.reportedInOtherInitiative,
-    otherInitiativeDescription:
-      data.otherInitiativeDescription || undefined,
-  });
-
-  const mapFormToUpdateApi = (data: AddReductionProjectFormData) => ({
+  const mapFormToCommon = (data: AddReductionProjectFormData) => ({
     name: data.projectName,
     description: data.projectDescription || undefined,
     implementationDate: data.implementationDate || undefined,
@@ -142,8 +128,7 @@ export const AddReductionProjectScreen: FC = () => {
     pcg: data.pcg || undefined,
     selectedGases: data.selectedGases,
     reportedInOtherInitiative: data.reportedInOtherInitiative,
-    otherInitiativeDescription:
-      data.otherInitiativeDescription || undefined,
+    otherInitiativeDescription: data.otherInitiativeDescription || undefined,
   });
 
   const addReportIfProvided = async (
@@ -166,10 +151,10 @@ export const AddReductionProjectScreen: FC = () => {
   const handleSaveDraft = handleSubmit(async (data) => {
     try {
       if (isEditMode && projectId) {
-        await updateProject.mutateAsync({ id: projectId, data: mapFormToUpdateApi(data) });
+        await updateProject.mutateAsync({ id: projectId, data: mapFormToCommon(data) });
         await addReportIfProvided(projectId, data);
       } else {
-        const created = await createProject.mutateAsync(mapFormToApi(data));
+        const created = await createProject.mutateAsync({ ...mapFormToCommon(data), organizationId: effectiveOrgId });
         await addReportIfProvided(created.id, data);
       }
       navigate({ to: Routes.REDUCTION_PROJECTS });
@@ -185,11 +170,11 @@ export const AddReductionProjectScreen: FC = () => {
   const handleFormSubmit = async (data: AddReductionProjectFormData) => {
     try {
       if (isEditMode && projectId) {
-        await updateProject.mutateAsync({ id: projectId, data: mapFormToUpdateApi(data) });
+        await updateProject.mutateAsync({ id: projectId, data: mapFormToCommon(data) });
         await addReportIfProvided(projectId, data);
         await submitProject.mutateAsync(projectId);
       } else {
-        const created = await createProject.mutateAsync(mapFormToApi(data));
+        const created = await createProject.mutateAsync({ ...mapFormToCommon(data), organizationId: effectiveOrgId });
         await addReportIfProvided(created.id, data);
         await submitProject.mutateAsync(created.id);
       }
