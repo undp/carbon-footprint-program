@@ -19,7 +19,7 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
 
   return (
     <>
-      <Box className="flex flex-col gap-4">
+      <Box className="flex flex-col gap-2">
         <Typography variant="subtitle1" fontWeight={600}>
           Carga de archivos para la postulación
         </Typography>

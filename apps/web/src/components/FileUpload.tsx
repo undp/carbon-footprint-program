@@ -193,7 +193,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
       {/* File list */}
       {filesWithPreviews.length > 0 && (
-        <List dense disablePadding>
+        <List className="flex flex-col gap-1" dense disablePadding>
           {filesWithPreviews.map(({ file, previewUrl }, index) => (
             <ListItem
               classes={{
@@ -214,7 +214,6 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
               sx={{
                 backgroundColor: "action.hover",
                 borderRadius: 2,
-                mb: 0.5,
                 px: 1,
               }}
             >
