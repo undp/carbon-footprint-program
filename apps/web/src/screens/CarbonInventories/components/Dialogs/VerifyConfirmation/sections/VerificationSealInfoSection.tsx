@@ -36,7 +36,7 @@ export const VerificationSealInfoSection: FC = () => {
 
           <Box className="mt-3 rounded p-3" sx={gradientCardSx}>
             <Typography
-              variant="caption"
+              variant="body2"
               fontWeight={500}
               sx={{ color: theme.palette.primary.main }}
             >
@@ -53,7 +53,7 @@ export const VerificationSealInfoSection: FC = () => {
                   }}
                 />
                 <Typography
-                  variant="caption"
+                  variant="body2"
                   sx={{ color: theme.palette.primary.dark }}
                 >
                   <strong>Sello de Verificación Oficial</strong> que certifica
@@ -69,7 +69,7 @@ export const VerificationSealInfoSection: FC = () => {
                   }}
                 />
                 <Typography
-                  variant="caption"
+                  variant="body2"
                   sx={{ color: theme.palette.primary.dark }}
                 >
                   <strong>Reconocimiento público</strong> como organización
