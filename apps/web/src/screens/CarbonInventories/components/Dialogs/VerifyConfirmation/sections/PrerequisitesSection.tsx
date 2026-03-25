@@ -8,12 +8,12 @@ const PREREQUISITES = [
 ];
 
 export const PrerequisitesSection: FC = () => (
-  <Box className="border-b border-gray-200 pb-6">
-    <Typography variant="subtitle1" fontWeight={600} className="mb-3!">
+  <Box className="flex flex-col gap-2">
+    <Typography variant="subtitle1" fontWeight={600}>
       Requisitos Previos
     </Typography>
 
-    <Typography variant="body2" color="text.secondary" className="mb-3!">
+    <Typography variant="body2" color="text.secondary">
       Antes de postular, asegúrate de cumplir con lo siguiente:
     </Typography>
 
