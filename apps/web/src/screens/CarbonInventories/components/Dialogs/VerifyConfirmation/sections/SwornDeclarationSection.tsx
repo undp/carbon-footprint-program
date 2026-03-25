@@ -3,6 +3,7 @@ import { Control, Controller } from "react-hook-form";
 import {
   Box,
   Checkbox,
+  FormControl,
   FormControlLabel,
   FormHelperText,
   Typography,
@@ -26,7 +27,7 @@ export const SwornDeclarationSection: FC<SwornDeclarationSectionProps> = ({
         val || "Debes aceptar la declaración jurada para continuar",
     }}
     render={({ field, fieldState }) => (
-      <>
+      <FormControl error={!!fieldState.error}>
         <Box className="rounded border border-gray-200 bg-gray-50 p-4">
           <FormControlLabel
             sx={{ alignItems: "flex-start" }}
@@ -55,11 +56,11 @@ export const SwornDeclarationSection: FC<SwornDeclarationSectionProps> = ({
           />
         </Box>
         {fieldState.error && (
-          <FormHelperText error role="alert" sx={{ mx: 0, mt: -2 }}>
+          <FormHelperText role="alert">
             {fieldState.error.message}
           </FormHelperText>
         )}
-      </>
+      </FormControl>
     )}
   />
 );
