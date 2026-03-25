@@ -1,13 +1,14 @@
 import type { Accept } from "react-dropzone";
 import { Control, Controller, FieldPath, FieldValues } from "react-hook-form";
 import { FileUpload } from "../FileUpload";
+import { PropsWithChildren } from "react";
 
 type Props<T extends FieldValues> = {
   name: FieldPath<T>;
   control: Control<T>;
   accept?: Accept;
   acceptMessage?: string;
-  maxSize?: number;
+  maxSizeMB?: number;
   disabled?: boolean;
   required?: boolean;
   requiredMessage?: string;
@@ -18,9 +19,10 @@ export const FormFileUpload = <T extends FieldValues>({
   control,
   required,
   requiredMessage = "Este campo es obligatorio",
-  maxSize = 20 * 1024 * 1024, // 20MB
+  maxSizeMB,
+  children,
   ...props
-}: Props<T>) => (
+}: PropsWithChildren<Props<T>>) => (
   <Controller
     name={name}
     control={control}
@@ -38,9 +40,11 @@ export const FormFileUpload = <T extends FieldValues>({
         value={field.value ?? []}
         onChange={field.onChange}
         error={fieldState.error?.message}
-        maxSize={maxSize}
+        maxSizeMB={maxSizeMB}
         {...props}
-      />
+      >
+        {children}
+      </FileUpload>
     )}
   />
 );

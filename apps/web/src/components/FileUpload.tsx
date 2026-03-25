@@ -16,10 +16,11 @@ import {
   ListItemText,
   Typography,
 } from "@mui/material";
-import { CloudUpload, DeleteOutlined } from "@mui/icons-material";
+import { DeleteOutlined, FileUploadOutlined } from "@mui/icons-material";
 import { useDropzone, ErrorCode } from "react-dropzone";
 import type { Accept } from "react-dropzone";
 import accepts from "attr-accept";
+import { MAX_FILE_UPLOAD_SIZE_MB } from "../config/constants";
 
 interface FileWithPreview {
   file: File;
@@ -31,22 +32,58 @@ interface Props {
   onChange: (files: File[]) => void;
   accept?: Accept;
   acceptMessage?: string;
-  maxSize?: number; // bytes
+  maxSizeMB?: number;
   disabled?: boolean;
   error?: string;
 }
 
 const isImage = (file: File) => file.type.startsWith("image/");
 
+const defaultAccept = {
+  "image/png": [".png"],
+  "image/jpeg": [".jpg", ".jpeg"],
+  "application/pdf": [".pdf"],
+  "application/vnd.ms-excel": [".xls"],
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [
+    ".xlsx",
+  ],
+};
+
+const defaultAcceptMessage = (maxFileSizeMB: number) =>
+  `JPG, PNG, PDF, XLS, XLSX (máx. ${maxFileSizeMB}MB por archivo)`;
+
+const defaultChildren = (acceptMessage: string) => (
+  <Box className="flex cursor-pointer flex-col items-center gap-2 p-8">
+    <FileUploadOutlined color="disabled" sx={{ fontSize: "40px" }} />
+    <Typography variant="body2" fontWeight={500} color="text.primary">
+      Adjuntar documentos
+    </Typography>
+    <Typography variant="body2" color="text.secondary">
+      <Typography
+        component="span"
+        variant="body2"
+        fontWeight={500}
+        sx={(theme) => ({ color: theme.palette.primary.main })}
+      >
+        Click para cargar
+      </Typography>
+      {" o arrastra y suelta los archivos"}
+    </Typography>
+    <Typography variant="caption" color="text.secondary">
+      {acceptMessage}
+    </Typography>
+  </Box>
+);
+
 export const FileUpload: FC<PropsWithChildren<Props>> = ({
   value,
   onChange,
-  accept,
-  acceptMessage,
-  maxSize,
+  accept = defaultAccept,
+  maxSizeMB = MAX_FILE_UPLOAD_SIZE_MB,
+  acceptMessage = defaultAcceptMessage(maxSizeMB),
   disabled = false,
   error,
-  children,
+  children = defaultChildren(acceptMessage),
 }) => {
   const [dropError, setDropError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
@@ -105,9 +142,9 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
           }
         }
 
-        if (maxSize && file.size > maxSize) {
+        if (maxSizeMB && file.size > maxSizeMB * 1024 * 1024) {
           setDropError(
-            `El archivo es demasiado grande. Tamaño máximo: ${(maxSize / (1024 * 1024)).toFixed(0)} MB`
+            `El archivo es demasiado grande. Tamaño máximo: ${maxSizeMB} MB`
           );
           hadRejections = true;
           return;
@@ -118,20 +155,20 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
       if (pasted.length) addFiles(pasted, hadRejections);
     },
-    [disabled, accept, maxSize, addFiles]
+    [disabled, accept, maxSizeMB, addFiles]
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (accepted, rejected) => addFiles(accepted, rejected.length > 0),
     accept,
-    maxSize,
+    maxSize: maxSizeMB * 1024 * 1024,
     multiple: true,
     disabled,
     onDropRejected: (rejections) => {
       const code = rejections[0]?.errors[0]?.code as ErrorCode | undefined;
       if (code === ErrorCode.FileTooLarge) {
         setDropError(
-          `El archivo es demasiado grande. Tamaño máximo: ${((maxSize ?? 0) / (1024 * 1024)).toFixed(0)} MB`
+          `El archivo es demasiado grande. Tamaño máximo: ${maxSizeMB} MB`
         );
       } else if (code === ErrorCode.FileInvalidType) {
         setDropError("Tipo de archivo no permitido.");
@@ -156,44 +193,11 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
 
   const displayError = dropError || error;
 
-  const defaultChildren = (
-    <Box className="flex w-full flex-col items-center gap-3 p-4">
-      <CloudUpload sx={{ color: "text.secondary", fontSize: 40 }} />
-      <Typography variant="caption" color="text.secondary" textAlign="center">
-        Haz clic para seleccionar, arrastra o pega el archivo aquí
-      </Typography>
-      {acceptMessage && (
-        <Typography variant="caption" color="text.secondary">
-          {acceptMessage}
-        </Typography>
-      )}
-    </Box>
-  );
-
   return (
     <div ref={containerRef} className="flex w-full flex-col gap-2">
-      {/* Dropzone */}
-      <div
-        {...getRootProps()}
-        role="button"
-        tabIndex={disabled ? -1 : 0}
-        aria-label="Subir archivos: haz clic, arrastra o pega"
-        aria-disabled={disabled}
-        className={`flex flex-col items-center rounded-lg border-2 border-dashed border-gray-300 transition-all duration-200 ${
-          displayError
-            ? "border-red-600!"
-            : isDragActive
-              ? "border-primary! bg-primary/10"
-              : ""
-        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
-      >
-        <input {...getInputProps()} />
-        {children ?? defaultChildren}
-      </div>
-
       {/* File list */}
       {filesWithPreviews.length > 0 && (
-        <List dense disablePadding>
+        <List className="flex flex-col gap-1" dense disablePadding>
           {filesWithPreviews.map(({ file, previewUrl }, index) => (
             <ListItem
               classes={{
@@ -214,7 +218,6 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
               sx={{
                 backgroundColor: "action.hover",
                 borderRadius: 2,
-                mb: 0.5,
                 px: 1,
               }}
             >
@@ -246,6 +249,25 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
           ))}
         </List>
       )}
+
+      {/* Dropzone */}
+      <div
+        {...getRootProps()}
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-label="Subir archivos: haz clic, arrastra o pega"
+        aria-disabled={disabled}
+        className={`flex flex-col items-center rounded-lg border-2 border-dashed border-gray-300 transition-all duration-200 ${
+          displayError
+            ? "border-red-600!"
+            : isDragActive
+              ? "border-primary! bg-primary/10"
+              : ""
+        } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
+      >
+        <input {...getInputProps()} />
+        {children}
+      </div>
 
       {/* Error message */}
       {displayError && (

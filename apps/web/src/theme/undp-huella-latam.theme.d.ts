@@ -9,6 +9,7 @@ declare module "@mui/material/styles" {
   interface CommonColors {
     deepForest: string;
     brightGreen: string;
+    glossyTeal: string;
   }
 
   interface CategoryColors {
@@ -27,6 +28,8 @@ declare module "@mui/material/styles" {
       snackbar: string;
       ratingFull: string;
       fluor: string;
+      gradient: string;
+      gradient20: string;
     };
     category: {
       one: CategoryColors;
@@ -45,6 +48,8 @@ declare module "@mui/material/styles" {
       snackbar?: string;
       ratingFull?: string;
       fluor?: string;
+      gradient?: string;
+      gradient20?: string;
     };
     category?: {
       one?: CategoryColors;

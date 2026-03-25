@@ -91,11 +91,6 @@ export const AccreditationConfirmDialog: FC<
             disabled={isLoading}
             required
             requiredMessage="Al menos un archivo es requerido"
-            accept={{
-              "image/png": [".png"],
-              "image/jpeg": [".jpg", ".jpeg"],
-              "application/pdf": [".pdf"],
-            }}
           />
         </DialogContent>
 
