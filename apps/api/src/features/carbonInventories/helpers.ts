@@ -4,7 +4,11 @@ import {
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
-import { type GetAllCategoriesResponse, IconNameSchema } from "@repo/types";
+import {
+  type GetAllCategoriesResponse,
+  IconName,
+  IconNameSchema,
+} from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
   CarbonInventoryNotEditableError,
@@ -42,7 +46,12 @@ export type CategoryData = Pick<
   "id" | "name" | "synonyms" | "position" | "icon" | "color"
 > & {
   subtotal: number;
-  subcategories: { id: string; name: string; icon: string; subtotal: number }[];
+  subcategories: {
+    id: string;
+    name: string;
+    icon: IconName;
+    subtotal: number;
+  }[];
 };
 
 type InventoryWithCategoryData = {
