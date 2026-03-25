@@ -1,20 +1,18 @@
 import { FC, useCallback, useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
-  FormHelperText,
   IconButton,
   Typography,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome, Close, InfoOutlined } from "@mui/icons-material";
+import { FormSwornDeclarationField } from "@/components/form";
 
 interface FormValues {
   sworn: boolean;
@@ -153,42 +151,20 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           </Box>
 
           {/* Sworn checkbox */}
-          <Controller
+          <FormSwornDeclarationField
             name="sworn"
             control={control}
-            rules={{
-              validate: (val) =>
-                val || "Debes aceptar la declaración para continuar",
-            }}
-            render={({ field, fieldState }) => (
-              <>
-                <FormControlLabel
-                  sx={{ alignItems: "flex-start" }}
-                  control={
-                    <Checkbox
-                      checked={field.value}
-                      onChange={field.onChange}
                       disabled={isLoading}
-                      sx={{ mt: -0.5 }}
-                    />
-                  }
+            errorMessage="Debes aceptar la declaración para continuar"
                   label={
                     <Typography variant="body2">
                       Declaro que los datos del cálculo de huella de carbono
-                      corresponden a la organización mencionada y que comprendo
-                      que este diploma es un reconocimiento por realizar el
-                      cálculo, y no constituye una certificación oficial ni
-                      verificación por parte de Huella Latam.
+                corresponden a la organización mencionada y que comprendo que
+                este diploma es un reconocimiento por realizar el cálculo, y no
+                constituye una certificación oficial ni verificación por parte
+                de Huella Latam.
                     </Typography>
                   }
-                />
-                {fieldState.error && (
-                  <FormHelperText error role="alert" sx={{ mx: 0 }}>
-                    {fieldState.error.message}
-                  </FormHelperText>
-                )}
-              </>
-            )}
           />
         </DialogContent>
 
