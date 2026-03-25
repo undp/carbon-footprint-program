@@ -3,7 +3,7 @@ import { Box, Typography } from "@mui/material";
 
 const PREREQUISITES = [
   "Tener un cálculo de huella de carbono autodeclarado en la plataforma Huella Latam",
-  "Contar con verificación externa realizada por un organismo acreditado",
+  "Contar con una verificación externa realizada por un organismo acreditado",
   "Validar que los datos de contacto de tu organización estén actualizados en el sistema",
 ];
 
