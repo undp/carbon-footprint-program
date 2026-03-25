@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 
 const PREREQUISITES = [
-  "Tener un cálculo de huella de carbono completo en la plataforma Huella Latam",
+  "Tener un cálculo de huella de carbono autodeclarada en la plataforma Huella Latam",
   "Contar con verificación realizada por un organismo acreditado",
   "Validar que los datos de contacto de tu organización estén actualizados en el sistema",
 ];
