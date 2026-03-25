@@ -16,7 +16,6 @@ export const ReadOnlyField: FC<Props> = ({ label, value = "" }) => {
       </Typography>
       <TextField
         sx={{
-          padding: "4px 12px",
           borderRadius: "8px",
           backgroundColor: theme.palette.grey[200],
         }}
@@ -29,6 +28,7 @@ export const ReadOnlyField: FC<Props> = ({ label, value = "" }) => {
           input: {
             disableUnderline: true,
             sx: {
+              padding: "4px 12px",
               fontSize: 14,
             },
           },
