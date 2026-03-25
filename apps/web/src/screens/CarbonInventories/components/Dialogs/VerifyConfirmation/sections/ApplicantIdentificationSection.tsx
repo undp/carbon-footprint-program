@@ -1,48 +1,12 @@
 import { FC } from "react";
-import { Box, TextField, Typography, useTheme } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import { ReadOnlyField } from "@/components";
 
 interface ApplicantIdentificationSectionProps {
   legalName?: string;
   taxId?: string;
   representativeFullName?: string;
 }
-
-interface ReadOnlyFieldProps {
-  label: string;
-  value?: string;
-}
-
-const ReadOnlyField: FC<ReadOnlyFieldProps> = ({ label, value = "" }) => {
-  const theme = useTheme();
-
-  return (
-    <Box>
-      <Typography variant="body2" fontWeight={500} className="mb-1">
-        {label}
-      </Typography>
-      <TextField
-        sx={{
-          padding: "4px 12px",
-          borderRadius: "8px",
-          backgroundColor: theme.palette.grey[200],
-        }}
-        variant="standard"
-        disabled
-        value={value}
-        fullWidth
-        size="small"
-        slotProps={{
-          input: {
-            disableUnderline: true,
-            sx: {
-              fontSize: 14,
-            },
-          },
-        }}
-      />
-    </Box>
-  );
-};
 
 export const ApplicantIdentificationSection: FC<
   ApplicantIdentificationSectionProps
