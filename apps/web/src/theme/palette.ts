@@ -103,7 +103,7 @@ export const palette: PaletteOptions = {
     snackbar: "#323232",
     ratingFull: "#FFB400",
     fluor: "#63E4CF",
-    gradient: `linear-gradient(90deg, "#56F58D" 0%, "#63E4CF" 100%)`,
+    gradient: `linear-gradient(90deg, #56F58D 0%, #63E4CF 100%)`,
     gradient20: `linear-gradient(90deg, ${alpha(
       "#56F58D",
       0.2
