@@ -13,7 +13,7 @@ const REQUIRED_DOCUMENTS = [
     number: 2,
     title: "Informe de Verificación por Tercera Parte",
     description:
-      "Validación emitida por un organismo verificador registrado en Huella Latam, con declaración de verificación firmada",
+      "Informe emitido por un organismo verificador, con declaración de verificación firmada",
   },
   {
     number: 3,
