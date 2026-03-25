@@ -73,13 +73,13 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
         >
           <WarningAmberRounded
             sx={(theme) => ({
-              color: theme.palette.error.main,
+              color: theme.palette.warning.dark,
               fontSize: 16,
             })}
           />
           <Typography
             variant="body2"
-            sx={(theme) => ({ color: theme.palette.error.main })}
+            sx={(theme) => ({ color: theme.palette.warning.dark })}
           >
             Debes adjuntar al menos un documento antes de enviar la postulación.
           </Typography>
