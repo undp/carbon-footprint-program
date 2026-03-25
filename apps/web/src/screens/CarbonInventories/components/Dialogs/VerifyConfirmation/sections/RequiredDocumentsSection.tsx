@@ -17,7 +17,7 @@ const REQUIRED_DOCUMENTS = [
   },
   {
     number: 3,
-    title: "Autodeclaración de No Conflicto de Interés",
+    title: "Declaración jurada de No Conflicto de Interés",
     description:
       "Checkbox de la plataforma y/o documento firmado por el representante legal",
   },
