@@ -6,6 +6,7 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
+  Divider,
   IconButton,
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
@@ -87,16 +88,19 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
       </IconButton>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
-        <DialogContent className="flex flex-col gap-6 pt-0">
+        <DialogContent className="flex flex-col gap-5 pt-0">
           <VerificationSealInfoSection />
           <RequiredDocumentsSection />
+          <Divider />
           <PrerequisitesSection />
+          <Divider />
           <ApplicantIdentificationSection
             legalName={organization?.legalName}
             taxId={organization?.taxId}
             representativeFullName={organization?.representative?.fullName}
             isLoading={isOrganizationLoading}
           />
+          <Divider />
           <FileUploadSection control={control} isLoading={isLoading} />
           <SwornDeclarationSection control={control} isLoading={isLoading} />
         </DialogContent>
