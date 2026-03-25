@@ -334,11 +334,6 @@ export const OrganizationFormDialog: FC<Props> = ({
                 disabled={isSubmitting}
                 required
                 requiredMessage="Al menos un archivo es requerido"
-                accept={{
-                  "image/png": [".png"],
-                  "image/jpeg": [".jpg", ".jpeg"],
-                  "application/pdf": [".pdf"],
-                }}
               />
             </>
           )}

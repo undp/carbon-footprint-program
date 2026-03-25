@@ -1,8 +1,7 @@
 import { FC } from "react";
 import { Control, useWatch } from "react-hook-form";
 import { alpha, Box, Typography } from "@mui/material";
-import { WarningAmberRounded, FileUploadOutlined } from "@mui/icons-material";
-
+import { WarningAmberRounded } from "@mui/icons-material";
 import { FormFileUpload } from "@/components";
 import { VerifyFormValues } from "../VerifyConfirmationDialog";
 
@@ -52,37 +51,7 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
           disabled={isLoading}
           required
           requiredMessage="Debes adjuntar al menos un documento antes de enviar la postulación."
-          maxSize={3 * 1024 * 1024}
-          accept={{
-            "image/png": [".png"],
-            "image/jpeg": [".jpg", ".jpeg"],
-            "application/pdf": [".pdf"],
-            "application/vnd.ms-excel": [".xls"],
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
-              [".xlsx"],
-          }}
-        >
-          <Box className="flex cursor-pointer flex-col items-center gap-2 p-8">
-            <FileUploadOutlined color="disabled" sx={{ fontSize: "40px" }} />
-            <Typography variant="body2" fontWeight={500} color="text.primary">
-              Adjuntar documentos
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              <Typography
-                component="span"
-                variant="body2"
-                fontWeight={500}
-                sx={(theme) => ({ color: theme.palette.primary.main })}
-              >
-                Click para cargar
-              </Typography>
-              {" o arrastra y suelta los archivos"}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              JPG, PNG, PDF, XLS, XLSX (máx. 3MB por archivo)
-            </Typography>
-          </Box>
-        </FormFileUpload>
+        />
       </Box>
     </>
   );
