@@ -43,7 +43,6 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":
               [".xlsx"],
           }}
-          acceptMessage="JPG, PNG, PDF, XLS (máx. 3MB por archivo)"
         >
           <Box className="flex cursor-pointer flex-col items-center gap-2 p-8">
             <FileUploadOutlined color="disabled" sx={{ fontSize: "40px" }} />
