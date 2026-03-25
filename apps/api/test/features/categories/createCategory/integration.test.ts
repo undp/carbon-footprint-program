@@ -50,7 +50,7 @@ describe("POST /api/categories/ - Integration Tests", () => {
     return {
       methodologyVersionId,
       name: `Test - Category ${randomSuffix}`,
-      icon: "test-icon",
+      icon: "FACTORY",
       color: "#FF0000",
       synonyms: "synonym1, synonym2",
       description: "Test category description",

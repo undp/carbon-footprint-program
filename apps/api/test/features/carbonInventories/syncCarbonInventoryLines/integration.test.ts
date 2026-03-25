@@ -1066,7 +1066,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
           position: 1,
           synonyms: "Test Synonyms",
           description: "Test Description",
-          icon: "Test Icon",
+          icon: "FACTORY",
           color: "#000000",
           updatedAt: null,
         },

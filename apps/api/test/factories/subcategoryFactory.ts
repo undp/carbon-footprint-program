@@ -16,7 +16,7 @@ export async function createTestSubcategory(
     data: {
       categoryId,
       name: overrides?.name ?? `Test - Subcategory ${randomSuffix}`,
-      icon: overrides?.icon ?? "test-icon",
+      icon: overrides?.icon ?? "FACTORY",
       description: overrides?.description ?? "Test subcategory description",
       examples: overrides?.examples ?? null,
       status: overrides?.status ?? SubcategoryStatus.ACTIVE,

@@ -28,7 +28,7 @@ export async function createTestCategory(
     data: {
       methodologyVersionId,
       name: overrides?.name ?? `Test - Category ${randomSuffix}`,
-      icon: overrides?.icon ?? "test-icon",
+      icon: overrides?.icon ?? "FACTORY",
       color: overrides?.color ?? "#000000",
       synonyms: overrides?.synonyms ?? "test",
       description: overrides?.description ?? "Test category description",

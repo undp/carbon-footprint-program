@@ -55,7 +55,7 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
     return {
       categoryId,
       name: `Test - Subcategory ${randomSuffix}`,
-      icon: "test-icon",
+      icon: "FACTORY",
       description: "Test subcategory description",
       examples: null,
       measurementUnitIds: [],
