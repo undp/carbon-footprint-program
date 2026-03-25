@@ -103,6 +103,11 @@ export const palette: PaletteOptions = {
     snackbar: "#323232",
     ratingFull: "#FFB400",
     fluor: "#63E4CF",
+    gradient: `linear-gradient(90deg, "#56F58D" 0%, "#63E4CF" 100%)`,
+    gradient20: `linear-gradient(90deg, ${alpha(
+      "#56F58D",
+      0.2
+    )} 0%, ${alpha("#63E4CF", 0.2)} 100%)`,
   },
   // Grey scale (Material Design standard)
   grey: {
@@ -140,6 +145,7 @@ export const palette: PaletteOptions = {
     white: "#FFFFFF",
     deepForest: "#1C403A",
     brightGreen: "#56F58D",
+    glossyTeal: "#009689",
   },
   // Divider
   divider: alpha("#000000", 0.12),
