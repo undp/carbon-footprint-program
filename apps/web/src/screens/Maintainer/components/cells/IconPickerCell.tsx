@@ -11,7 +11,7 @@ import {
 import { CheckOutlined } from "@mui/icons-material";
 import { useFormContext, useFormState } from "react-hook-form";
 import { getNestedError } from "./cellUtils";
-import type { IconName } from "@repo/types";
+import type { IconName, IconNameFormValue } from "@repo/types";
 import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { CATEGORY_COLORS, getColorPalette } from "@/utils/categoryColors";
 
@@ -21,7 +21,7 @@ const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP) as [
 ][];
 
 interface IconPickerCellBaseProps {
-  iconName: IconName;
+  iconName: IconNameFormValue;
   color: string;
   isEditing: boolean;
   rowIndex: number;

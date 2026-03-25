@@ -10,7 +10,12 @@ export interface SubcategoriesFormValues {
 }
 
 const subcategoriesFormSchema = z.object({
-  subcategories: z.array(SubcategoryFormSchema),
+  subcategories: z.array(
+    SubcategoryFormSchema.refine((row) => row.icon !== "", {
+      message: "Ícono es requerido",
+      path: ["icon"],
+    })
+  ),
 });
 
 /** Strip server-only / nested fields so the form only holds SubcategoryForm data. */

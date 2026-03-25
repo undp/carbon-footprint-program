@@ -152,6 +152,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     }
 
     if (row && isNewRow(row.id)) {
+      if (!row.icon) return false;
       try {
         const result = await addMutation.mutateAsync({
           categoryId: row.categoryId,
@@ -192,7 +193,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
           [...original.measurementUnitIds].sort().join());
 
     try {
-      if (row && hasRealChanges) {
+      if (row && hasRealChanges && row.icon) {
         await updateMutation.mutateAsync({
           subcategoryId: row.id,
           data: {
@@ -274,7 +275,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       id: tempId,
       categoryId: "",
       name: "",
-      icon: "FACTORY",
+      icon: "",
       description: "",
       examples: null,
       measurementUnitIds: [],

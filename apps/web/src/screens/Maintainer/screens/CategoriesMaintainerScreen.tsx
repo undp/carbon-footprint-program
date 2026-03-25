@@ -147,6 +147,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     }
 
     if (row && isNewRow(row.id)) {
+      if (!row.icon) return false;
       try {
         const result = await addMutation.mutateAsync({
           methodologyVersionId: methodologyVersionId!,
@@ -179,7 +180,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     const isRowDirty = dirtyFields.categories?.[rowIndex];
 
     try {
-      if (row && isRowDirty) {
+      if (row && isRowDirty && row.icon) {
         await updateMutation.mutateAsync({
           id: row.id,
           data: {
@@ -256,7 +257,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     const newRow: CategoryForm = {
       id: tempId,
       name: "",
-      icon: "FACTORY",
+      icon: "",
       color: "",
       synonyms: "",
       description: "",
