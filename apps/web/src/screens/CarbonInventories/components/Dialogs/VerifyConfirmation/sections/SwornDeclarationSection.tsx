@@ -52,7 +52,7 @@ export const SwornDeclarationSection: FC<SwornDeclarationSectionProps> = ({
                 Declaro bajo juramento que toda la información proporcionada en
                 esta postulación es verídica y está respaldada por documentación
                 oficial. Entiendo que cualquier falsedad puede resultar en
-                sanciones administrativas y la anulación del proceso de
+                sanciones administrativas y la anulación del reconocimiento de
                 verificación.
               </Typography>
             }
