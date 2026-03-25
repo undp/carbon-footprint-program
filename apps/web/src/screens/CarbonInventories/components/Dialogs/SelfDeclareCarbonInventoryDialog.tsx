@@ -83,8 +83,8 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           {/* Congratulations info box */}
           <Box
             sx={{
-              backgroundColor: alpha(theme.palette.primary.main, 0.06),
-              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              background: alpha(theme.palette.info.main, 0.1),
+              border: `1px solid ${alpha(theme.palette.info.light, 0.5)}`,
               borderRadius: 2,
               p: 2.5,
               mb: 2,
@@ -92,10 +92,10 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <AutoAwesome
-                sx={{ color: theme.palette.primary.main }}
+                sx={{ color: theme.palette.info.main }}
                 fontSize="small"
               />
-              <Typography variant="subtitle2" fontWeight={600}>
+              <Typography color="info" variant="subtitle2" fontWeight={600}>
                 ¡Felicitaciones por completar el cálculo de tu Huella de
                 Carbono!
               </Typography>
@@ -103,7 +103,7 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
 
             {isAutomaticRecognition && (
               <Box sx={{ mt: 1 }}>
-                <Typography variant="body2" sx={{ mb: 1.5 }}>
+                <Typography color="info" variant="body2" sx={{ mb: 1.5 }}>
                   Al <strong>autodeclarar</strong> tu huella de carbono,
                   recibirás automáticamente un{" "}
                   <strong>Diploma de Medición</strong> que reconoce que tu
@@ -113,7 +113,8 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
 
                 <Box
                   sx={{
-                    backgroundColor: alpha(theme.palette.text.primary, 0.04),
+                    background: alpha(theme.palette.info.main, 0.1),
+                    border: `1px solid ${alpha(theme.palette.info.light, 1)}`,
                     borderRadius: 1.5,
                     p: 1.5,
                     mb: 1.5,
@@ -123,14 +124,14 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   }}
                 >
                   <InfoOutlined
-                    sx={{ color: theme.palette.text.secondary, mt: 0.25 }}
+                    sx={{ color: theme.palette.info.main, mt: 0.25 }}
                     fontSize="small"
                   />
                   <Box>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography color="info" variant="body2" fontWeight={600}>
                       Importante:
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography color="info" variant="body2">
                       El diploma{" "}
                       <strong>NO es un reconocimiento oficial</strong> ni
                       certifica que la medición haya sido verificada por Huella
@@ -140,7 +141,7 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   </Box>
                 </Box>
 
-                <Typography variant="body2" color="primary">
+                <Typography color="info" variant="body2">
                   Si deseas obtener el <strong>Sello de Verificación</strong>{" "}
                   (reconocimiento oficial), podrás postular tu huella al proceso
                   de verificación gubernamental desde la sección &quot;Mis
@@ -154,17 +155,17 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           <FormSwornDeclarationField
             name="sworn"
             control={control}
-                      disabled={isLoading}
+            disabled={isLoading}
             errorMessage="Debes aceptar la declaración para continuar"
-                  label={
-                    <Typography variant="body2">
-                      Declaro que los datos del cálculo de huella de carbono
-                corresponden a la organización mencionada y que comprendo que
-                este diploma es un reconocimiento por realizar el cálculo, y no
+            label={
+              <Typography variant="body2">
+                Declaro que los datos del cálculo de huella de carbono
+                corresponden a la organización mencionada y comprendo que este
+                diploma es un reconocimiento por realizar el cálculo, y no
                 constituye una certificación oficial ni verificación por parte
                 de Huella Latam.
-                    </Typography>
-                  }
+              </Typography>
+            }
           />
         </DialogContent>
 
