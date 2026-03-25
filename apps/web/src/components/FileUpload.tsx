@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FC,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Box,
   FormHelperText,
@@ -21,7 +29,6 @@ interface FileWithPreview {
 interface Props {
   value: File[];
   onChange: (files: File[]) => void;
-  content?: React.ReactNode;
   accept?: Accept;
   acceptMessage?: string;
   maxSize?: number; // bytes
@@ -31,16 +38,16 @@ interface Props {
 
 const isImage = (file: File) => file.type.startsWith("image/");
 
-export const FileUpload = ({
+export const FileUpload: FC<PropsWithChildren<Props>> = ({
   value,
   onChange,
-  content,
   accept,
   acceptMessage,
   maxSize,
   disabled = false,
   error,
-}: Props) => {
+  children,
+}: PropsWithChildren<Props>) => {
   const [dropError, setDropError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -149,6 +156,20 @@ export const FileUpload = ({
 
   const displayError = dropError || error;
 
+  const defaultChildren = (
+    <Box className="flex w-full flex-col items-center gap-3 p-4">
+      <CloudUpload sx={{ color: "text.secondary", fontSize: 40 }} />
+      <Typography variant="caption" color="text.secondary" textAlign="center">
+        Haz clic para seleccionar, arrastra o pega el archivo aquí
+      </Typography>
+      {acceptMessage && (
+        <Typography variant="caption" color="text.secondary">
+          {acceptMessage}
+        </Typography>
+      )}
+    </Box>
+  );
+
   return (
     <div ref={containerRef} className="flex w-full flex-col gap-2">
       {/* Dropzone */}
@@ -167,25 +188,7 @@ export const FileUpload = ({
         } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
       >
         <input {...getInputProps()} />
-        {content ? (
-          content
-        ) : (
-          <Box className="flex w-full flex-col items-center gap-3 p-4">
-            <CloudUpload sx={{ color: "text.secondary", fontSize: 40 }} />
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              textAlign="center"
-            >
-              Haz clic para seleccionar, arrastra o pega el archivo aquí
-            </Typography>
-            {acceptMessage && (
-              <Typography variant="caption" color="text.secondary">
-                {acceptMessage}
-              </Typography>
-            )}
-          </Box>
-        )}
+        {children ? children : defaultChildren}
       </div>
 
       {/* File list */}
