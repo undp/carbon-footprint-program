@@ -57,7 +57,7 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
               {" o arrastra y suelta los archivos"}
             </Typography>
             <Typography variant="caption" color="text.secondary">
-              JPG, PNG, PDF, XLS (máx. 3MB por archivo)
+              JPG, PNG, PDF, XLS, XLSX (máx. 3MB por archivo)
             </Typography>
           </Box>
         </FormFileUpload>
