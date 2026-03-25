@@ -1,19 +1,18 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { GppGoodOutlined } from "@mui/icons-material";
+import { Check, GppGoodOutlined } from "@mui/icons-material";
 
 export const VerificationSealInfoSection: FC = () => {
   const theme = useTheme();
 
+  const gradientCardSx = {
+    background: theme.palette.other.gradient20,
+    border: `1px solid ${alpha(theme.palette.secondary.light, 0.5)}`,
+  };
+
   return (
-    <Box
-      className="rounded-[10px] p-4"
-      sx={{
-        background: theme.palette.other.gradient20,
-        border: `1px solid ${alpha(theme.palette.secondary.light, 0.5)}`,
-      }}
-    >
+    <Box className="rounded-[10px] p-4" sx={gradientCardSx}>
       <Box className="flex items-start gap-2">
         <GppGoodOutlined color="primary" sx={{ mt: 0.25 }} fontSize="small" />
         <Box>
@@ -35,13 +34,7 @@ export const VerificationSealInfoSection: FC = () => {
             organización cumple con los estándares gubernamentales establecidos.
           </Typography>
 
-          <Box
-            className="mt-3 rounded p-3"
-            sx={{
-              background: theme.palette.other.gradient20,
-              border: `1px solid ${alpha(theme.palette.secondary.light, 0.5)}`,
-            }}
-          >
+          <Box className="mt-3 rounded p-3" sx={gradientCardSx}>
             <Typography
               variant="caption"
               fontWeight={500}
@@ -52,12 +45,13 @@ export const VerificationSealInfoSection: FC = () => {
 
             <Box component="ul" className="m-0 mt-1 list-none pl-0">
               <Box component="li" className="mt-1 flex gap-1">
-                <Typography
-                  variant="caption"
-                  sx={{ color: theme.palette.primary.light }}
-                >
-                  ✓
-                </Typography>
+                <Check
+                  sx={{
+                    color: theme.palette.primary.light,
+                    fontSize: 14,
+                    mt: 0.25,
+                  }}
+                />
                 <Typography
                   variant="caption"
                   sx={{ color: theme.palette.primary.dark }}
@@ -67,12 +61,13 @@ export const VerificationSealInfoSection: FC = () => {
                 </Typography>
               </Box>
               <Box component="li" className="mt-1 flex gap-1">
-                <Typography
-                  variant="caption"
-                  sx={{ color: theme.palette.primary.light }}
-                >
-                  ✓
-                </Typography>
+                <Check
+                  sx={{
+                    color: theme.palette.primary.light,
+                    fontSize: 14,
+                    mt: 0.25,
+                  }}
+                />
                 <Typography
                   variant="caption"
                   sx={{ color: theme.palette.primary.dark }}
