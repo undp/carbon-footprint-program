@@ -256,7 +256,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     const newRow: CategoryForm = {
       id: tempId,
       name: "",
-      icon: "",
+      icon: "FACTORY",
       color: "",
       synonyms: "",
       description: "",

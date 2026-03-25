@@ -22,39 +22,14 @@ import {
   LocalGasStationOutlined,
   PublicOutlined,
 } from "@mui/icons-material";
+import type { IconName } from "@repo/types";
 import { DirectEmissionCategoryIcon } from "../icons/DirectEmissionCategoryIcon";
 import { IndirectEmissionCategoryIcon } from "../icons/IndirectEmissionCategoryIcon";
 import { OthersCategoryIcon } from "../icons/OthersCategoryIcon";
 
-/** Valid category icon names */
-export type CategoryIconName =
-  | "FACTORY"
-  | "BOLT"
-  | "TRUCK"
-  | "FLAME"
-  | "CAR"
-  | "SNOWFLAKE"
-  | "WATER"
-  | "RECYCLE"
-  | "AGRICULTURE"
-  | "BUILDING"
-  | "FLIGHT"
-  | "TRAIN"
-  | "ELECTRIC"
-  | "SOLAR"
-  | "FOREST"
-  | "WASTE"
-  | "CONSTRUCTION"
-  | "SCIENCE"
-  | "FUEL"
-  | "GLOBE"
-  | "DIRECT_EMISSION"
-  | "INDIRECT_EMISSION"
-  | "OTHERS";
-
 /** Map of icon name identifiers to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<
-  CategoryIconName,
+  IconName,
   ComponentType<SvgIconProps>
 > = {
   FACTORY: FactoryOutlined,

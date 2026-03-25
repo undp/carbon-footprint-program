@@ -274,7 +274,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       id: tempId,
       categoryId: "",
       name: "",
-      icon: "",
+      icon: "FACTORY",
       description: "",
       examples: null,
       measurementUnitIds: [],

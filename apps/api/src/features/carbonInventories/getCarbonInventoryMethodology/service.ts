@@ -3,6 +3,7 @@ import {
   GetCarbonInventoryMethodologyResponse,
   CategoryStatus,
   SubcategoryStatus,
+  IconNameSchema,
 } from "@repo/types";
 import { z } from "zod";
 import {
@@ -161,11 +162,12 @@ export const getCarbonInventoryMethodologyService = async (
     categories: methodology.categories.map((category) => ({
       ...category,
       id: category.id.toString(),
+      icon: IconNameSchema.parse(category.icon),
       explanationId: category.explanationId?.toString() ?? null,
       subcategories: category.subcategories.map((subcategory) => ({
         id: subcategory.id.toString(),
         name: subcategory.name,
-        icon: subcategory.icon,
+        icon: IconNameSchema.parse(subcategory.icon),
         description: subcategory.description,
         examples: subcategory.examples,
         explanationId: subcategory.explanationId?.toString() ?? null,

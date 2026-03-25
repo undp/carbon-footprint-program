@@ -3,6 +3,7 @@ import {
   CategoryStatus,
   SubcategoryStatus,
   User,
+  IconNameSchema,
   type CreateSubcategoryRequest,
   type CreateSubcategoryResponse,
 } from "@repo/types";
@@ -78,6 +79,7 @@ export const createSubcategoryService = async (
       return {
         ...newSubcategory,
         id: newSubcategory.id.toString(),
+        icon: IconNameSchema.parse(newSubcategory.icon),
         category: {
           id: newSubcategory.category.id.toString(),
           name: newSubcategory.category.name,

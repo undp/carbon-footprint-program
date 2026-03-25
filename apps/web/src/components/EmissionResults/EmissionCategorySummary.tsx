@@ -3,10 +3,7 @@ import { Avatar, Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { BarChartOutlined } from "@mui/icons-material";
 import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
-import {
-  CATEGORY_ICON_MAP,
-  type CategoryIconName,
-} from "@/utils/categoryIcons";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionSummaryCard } from "./EmissionSummaryCard";
 import { EmptyStateMessage } from "./EmptyStateMessage";
@@ -94,8 +91,7 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
 
       {categories.map((category) => {
         const categoryColorPalette = getColorPalette(category.color);
-        const IconComponent =
-          CATEGORY_ICON_MAP[category.icon as CategoryIconName];
+        const IconComponent = CATEGORY_ICON_MAP[category.icon];
 
         return (
           <EmissionSummaryCard

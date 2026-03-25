@@ -11,21 +11,22 @@ import {
 import { CheckOutlined } from "@mui/icons-material";
 import { useFormContext, useFormState } from "react-hook-form";
 import { getNestedError } from "./cellUtils";
-import {
-  CATEGORY_ICON_MAP,
-  type CategoryIconName,
-} from "@/utils/categoryIcons";
+import type { IconName } from "@repo/types";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { CATEGORY_COLORS, getColorPalette } from "@/utils/categoryColors";
 
-const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
+const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP) as [
+  IconName,
+  (typeof CATEGORY_ICON_MAP)[IconName],
+][];
 
 interface IconPickerCellBaseProps {
-  iconName: string;
+  iconName: IconName;
   color: string;
   isEditing: boolean;
   rowIndex: number;
   formArrayName: string;
-  onChangeIcon: (iconName: string) => void;
+  onChangeIcon: (iconName: IconName) => void;
   onClick?: () => void;
 }
 
@@ -92,9 +93,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
       );
   const hasError = isEditing && (!!iconError || !!colorError);
 
-  const IconComponent = iconName
-    ? CATEGORY_ICON_MAP[iconName as CategoryIconName]
-    : null;
+  const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
   const effectiveColor = hideColor
     ? color || "#E8E8E8"

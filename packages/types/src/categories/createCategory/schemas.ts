@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CategoryBaseSchema } from "../../baseSchemas/index.js";
+import { CategoryBaseSchema, IconNameSchema } from "../../baseSchemas/index.js";
 
 // Request Schema
 export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({
@@ -34,7 +34,7 @@ export const CategoryFormSchema = CategoryBaseSchema.pick({
     .trim()
     .min(1, "Nombre es requerido")
     .max(255, "Nombre no puede exceder 255 caracteres"),
-  icon: z.string().trim().min(1, "Ícono es requerido"),
+  icon: IconNameSchema,
   color: z
     .string()
     .trim()

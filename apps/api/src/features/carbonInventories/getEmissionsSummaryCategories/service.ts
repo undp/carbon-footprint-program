@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetEmissionsSummaryCategoriesResponse } from "@repo/types";
+import { type GetEmissionsSummaryCategoriesResponse } from "@repo/types";
 import { distributePercentages, roundEmissions } from "../utils.js";
 import {
   fetchCategoryData,

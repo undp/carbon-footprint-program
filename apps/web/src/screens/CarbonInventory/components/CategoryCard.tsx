@@ -1,17 +1,15 @@
 import { FC } from "react";
 import { Box, Typography, Card } from "@mui/material";
 import { darken } from "@mui/material/styles";
+import type { IconName } from "@repo/types";
 import { InfoButton } from "@/components";
-import {
-  CATEGORY_ICON_MAP,
-  type CategoryIconName,
-} from "@/utils/categoryIcons";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 import { useExplanationDialog } from "../../../contexts";
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
-  icon: string;
+  icon: IconName;
   categoryColor: string;
   title: string;
   subtitle: string | null;
@@ -33,7 +31,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   const { openExplanation } = useExplanationDialog();
 
   const categoryColorPalette = getColorPalette(categoryColor);
-  const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
+  const IconComponent = CATEGORY_ICON_MAP[icon];
   const backgroundColor = categoryColorPalette.light;
   const border =
     variant === "focused" ? `1px solid ${categoryColorPalette.main}` : "none";
