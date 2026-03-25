@@ -9,6 +9,8 @@ import { useUnblockOrganization } from "@/api/query/organizations/useUnblockOrga
 import { BlockOrganizationDialog } from "./BlockOrganizationDialog";
 import { UnblockOrganizationDialog } from "./UnblockOrganizationDialog";
 import { GetAllOrganizationsResponse } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 const TABLE_ROW_COUNT = 6;
 
@@ -67,12 +69,18 @@ export const OrganizationScreenTable: FC = () => {
     blockMutation.mutate(blockOrgId, {
       onSuccess: () => {
         setBlockOrgId(null);
-        enqueueSnackbar("Empresa bloqueada exitosamente", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          `${capitalize(VOCAB.organization.noun.singular)} bloqueada exitosamente`,
+          {
+            variant: "success",
+          }
+        );
       },
       onError: () => {
-        enqueueSnackbar("No se pudo bloquear la empresa", { variant: "error" });
+        enqueueSnackbar(
+          `No se pudo bloquear ${VOCAB.organization.article.singular}`,
+          { variant: "error" }
+        );
       },
     });
   }, [blockOrgId, blockMutation]);
@@ -82,14 +90,20 @@ export const OrganizationScreenTable: FC = () => {
     unblockMutation.mutate(unblockOrgId, {
       onSuccess: () => {
         setUnblockOrgId(null);
-        enqueueSnackbar("Empresa desbloqueada exitosamente", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          `${capitalize(VOCAB.organization.noun.singular)} desbloqueada exitosamente`,
+          {
+            variant: "success",
+          }
+        );
       },
       onError: () => {
-        enqueueSnackbar("No se pudo desbloquear la empresa", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `No se pudo desbloquear ${VOCAB.organization.article.singular}`,
+          {
+            variant: "error",
+          }
+        );
       },
     });
   }, [unblockOrgId, unblockMutation]);

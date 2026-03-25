@@ -31,6 +31,7 @@ import {
 } from "@/components";
 import { InfoButton } from "@/components/InfoButton";
 import { useConfirmDialog } from "@/hooks";
+import { VOCAB } from "@/config/vocab";
 
 interface Props {
   open: boolean;
@@ -40,9 +41,9 @@ interface Props {
 }
 
 const DIALOG_TITLES: Record<DialogMode, string> = {
-  [DialogMode.create]: "Crear perfil de empresa",
-  [DialogMode.edit]: "Editar perfil de empresa",
-  [DialogMode.accredited]: "Editar perfil de empresa",
+  [DialogMode.create]: `Crear perfil de ${VOCAB.organization.article.singular}`,
+  [DialogMode.edit]: `Editar perfil de ${VOCAB.organization.article.singular}`,
+  [DialogMode.accredited]: `Editar perfil de ${VOCAB.organization.article.singular}`,
 };
 
 const BUTTON_LABELS: Record<DialogMode, string> = {
@@ -157,10 +158,10 @@ export const OrganizationFormDialog: FC<Props> = ({
           <Box className="mb-6">
             <Box className="mb-4 flex items-center gap-2">
               <Typography variant="body1" fontSize={18}>
-                Ingreso de datos de la organización
+                Ingreso de datos de {VOCAB.organization.article.singular}
               </Typography>
               <InfoButton
-                label="Ingresa los datos de tu organización para la acreditación"
+                label={`Ingresa los datos de tu ${VOCAB.organization.noun.singular} para ${VOCAB.inscription.article.singular}`}
                 size="small"
               />
             </Box>
@@ -193,7 +194,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormSelectField
                   name="countryOrganizationSizeId"
                   control={control}
-                  label="Tipo / Tamaño organización"
+                  label={`Tipo / Tamaño ${VOCAB.organization.noun.singular}`}
                   options={companySizeOptions}
                   disabled={organizationSizesLoading}
                 />
@@ -243,7 +244,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormAutocompleteField
                   name="mainActivityId"
                   control={control}
-                  label="Actividad principal del negocio"
+                  label={`Actividad principal de ${VOCAB.organization.article.singular}`}
                   labelId="activity-label"
                   options={activityOptions}
                   loading={activitiesLoading}
@@ -265,7 +266,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 institucional
               </Typography>
               <InfoButton
-                label="Ingresa los datos del representante legal de tu organización"
+                label={`Ingresa los datos del representante legal de tu ${VOCAB.organization.noun.singular}`}
                 size="small"
               />
             </Box>

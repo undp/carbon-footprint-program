@@ -24,6 +24,7 @@ import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { VOCAB } from "@/config/vocab";
 
 const ERROR_MESSAGE = {
   title:
@@ -146,7 +147,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto rounded-lg bg-white p-6">
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
-              description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
+              description={`Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`}
             />
             <Box className="flex min-h-0 flex-1 flex-row gap-4 overflow-x-auto">
               {categories.map((category) => (

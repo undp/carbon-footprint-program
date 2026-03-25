@@ -5,6 +5,7 @@ import { EmptyStateMessage } from "./EmptyStateMessage";
 import { RankingRow } from "./RankingRow";
 import type { RankingItem } from "@repo/types";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
+import { VOCAB } from "@/config/vocab";
 
 interface EmissionRankingCardProps {
   ownRankings: RankingItem[];
@@ -88,7 +89,7 @@ export const EmissionRankingCard: FC<EmissionRankingCardProps> = ({
             message={
               viewMode === "own"
                 ? "Luego de registrar actividades, sabrás cuáles son las que más emiten huella de carbono"
-                : "Después de perfilar tu empresa, podrás ver un ranking de emisiones de empresas de tu rubro"
+                : `Después de perfilar tu ${VOCAB.organization.noun.singular}, podrás ver un ranking de emisiones de ${VOCAB.organization.noun.plural} de tu rubro`
             }
           />
         )}

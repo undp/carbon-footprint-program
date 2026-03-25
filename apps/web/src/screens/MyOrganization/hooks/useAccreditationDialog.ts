@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { VOCAB } from "@/config/vocab";
 import { useSnackbar } from "notistack";
 import { AppHttpError } from "@/api/http/errors";
 import {
@@ -21,9 +22,12 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
   const handleConfirm = useCallback(
     async (files: File[]) => {
       if (!organizationId) {
-        enqueueSnackbar("Error: ID de organización no disponible", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `Error: ID de ${VOCAB.organization.article.singular} no disponible`,
+          {
+            variant: "error",
+          }
+        );
         closeDialog();
         return;
       }
@@ -34,20 +38,22 @@ export const useAccreditationDialog = (organizationId: string | undefined) => {
         const fileUuids = await preUploadFiles(files);
         // Step 2: create submission with file references atomically
         await requestAccreditation(fileUuids);
-        enqueueSnackbar("Solicitud de acreditación enviada exitosamente", {
-          variant: "success",
-        });
+        enqueueSnackbar(
+          `Solicitud de ${VOCAB.inscription.noun.singular} enviada exitosamente`,
+          {
+            variant: "success",
+          }
+        );
         closeDialog();
       } catch (error) {
-        let message = "Error al solicitar la acreditación";
+        let message = `Error al solicitar ${VOCAB.inscription.article.singular}`;
 
         if (error instanceof AppHttpError) {
           const body = error.detail.body;
           if (body) {
             const errorCode = (body as { code: string }).code;
             if (errorCode === "SUBMISSION_ALREADY_EXISTS") {
-              message =
-                "Ya existe una solicitud de acreditación pendiente para esta organización.";
+              message = `Ya existe una solicitud de ${VOCAB.inscription.noun.singular} pendiente para esta ${VOCAB.organization.noun.singular}.`;
             }
           }
         }

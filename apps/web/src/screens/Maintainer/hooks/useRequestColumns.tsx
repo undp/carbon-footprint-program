@@ -16,6 +16,8 @@ import {
 } from "@repo/types";
 import { useApproveRequest } from "@/api/query/requests/useApproveRequest";
 import { useRejectRequest } from "@/api/query/requests/useRejectRequest";
+import { capitalize } from "lodash-es";
+import { VOCAB } from "@/config/vocab";
 
 // ASSETS FOR RENDERING THE STATUS COLUMN
 
@@ -103,7 +105,7 @@ export const useRequestColumns = (): GridColDef<
     () => [
       {
         field: "organizationName",
-        headerName: "Empresa",
+        headerName: capitalize(VOCAB.organization.noun.singular),
         cellClassName,
         flex: 1,
       },
