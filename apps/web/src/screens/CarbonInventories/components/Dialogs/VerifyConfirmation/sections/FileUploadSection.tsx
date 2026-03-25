@@ -4,11 +4,7 @@ import { alpha, Box, Typography } from "@mui/material";
 import { WarningAmberRounded, FileUploadOutlined } from "@mui/icons-material";
 
 import { FormFileUpload } from "@/components";
-
-interface VerifyFormValues {
-  files: File[];
-  sworn: boolean;
-}
+import { VerifyFormValues } from "../VerifyConfirmationDialog";
 
 interface FileUploadSectionProps {
   control: Control<VerifyFormValues>;

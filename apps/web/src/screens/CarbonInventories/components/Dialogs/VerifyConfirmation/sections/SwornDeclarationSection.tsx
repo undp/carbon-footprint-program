@@ -7,11 +7,7 @@ import {
   FormHelperText,
   Typography,
 } from "@mui/material";
-
-interface VerifyFormValues {
-  files: File[];
-  sworn: boolean;
-}
+import { VerifyFormValues } from "../VerifyConfirmationDialog";
 
 interface SwornDeclarationSectionProps {
   control: Control<VerifyFormValues>;

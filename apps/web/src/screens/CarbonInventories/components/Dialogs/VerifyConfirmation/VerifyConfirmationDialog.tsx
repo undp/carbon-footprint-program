@@ -19,8 +19,7 @@ import {
   FileUploadSection,
   SwornDeclarationSection,
 } from "./sections";
-
-interface VerifyFormValues {
+export interface VerifyFormValues {
   files: File[];
   sworn: boolean;
 }
