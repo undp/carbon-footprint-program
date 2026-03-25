@@ -43,7 +43,8 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
     defaultValues: { files: [], sworn: false },
   });
 
-  const { data: organization } = useOrganization(organizationId ?? undefined);
+  const { data: organization, isLoading: isOrganizationLoading } =
+    useOrganization(organizationId ?? undefined);
 
   const onSubmit = useCallback(
     async (data: VerifyFormValues) => {
@@ -94,6 +95,7 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
             legalName={organization?.legalName}
             taxId={organization?.taxId}
             representativeFullName={organization?.representative?.fullName}
+            isLoading={isOrganizationLoading}
           />
           <FileUploadSection control={control} isLoading={isLoading} />
           <SwornDeclarationSection control={control} isLoading={isLoading} />
