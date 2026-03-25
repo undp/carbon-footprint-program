@@ -63,7 +63,7 @@ export const FormSwornDeclarationField = <T extends FieldValues>({
             />
           </Box>
           {fieldState.error && (
-            <FormHelperText role="alert">
+            <FormHelperText sx={{ mr: 0, ml: 0, mt: 1.5 }} role="alert">
               {fieldState.error.message}
             </FormHelperText>
           )}
