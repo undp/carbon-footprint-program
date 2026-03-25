@@ -47,7 +47,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
   disabled = false,
   error,
   children,
-}: PropsWithChildren<Props>) => {
+}) => {
   const [dropError, setDropError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
 
