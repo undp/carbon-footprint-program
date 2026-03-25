@@ -25,3 +25,5 @@ export const IconNameSchema = z.enum([
   "INDIRECT_EMISSION",
   "OTHERS",
 ]);
+
+export const IconNameValue = IconNameSchema.enum;
