@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useMemo } from "react";
 import { Box, Typography, Button, Collapse } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
@@ -13,17 +13,18 @@ import {
 } from "./hooks";
 import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
 import { UsageMode } from "@repo/types";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionEditorProps {
   inventoryUsageMode: UsageMode;
   subcategory: SubcategoryWithLines;
-  categoryPosition: number;
+  categoryColor: string;
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   inventoryUsageMode,
   subcategory,
-  categoryPosition,
+  categoryColor,
 }) => {
   const { measurementUnits, rateMeasurementUnits, dimensions } =
     useEmissionEditorData({ subcategory });
@@ -51,12 +52,17 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     subcategoryId: subcategory.id,
   });
 
+  const categoryColorPalette = useMemo(
+    () => getColorPalette(categoryColor),
+    [categoryColor]
+  );
+
   const columns = useEmissionEditorColumns({
     dimensions,
     subcategory,
     measurementUnits,
     rateMeasurementUnits,
-    categoryPosition,
+    categoryColor,
     inventoryUsageMode,
     onCellChange: handleCellChange,
     onFactorSourceChange: handleFactorSourceChange,
@@ -86,6 +92,8 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         name={subcategory.name}
         description={subcategory.description}
         explanationId={subcategory.explanationId}
+        icon={subcategory.icon}
+        categoryColor={categoryColor}
         isTotalManualEmissionsModeAvailable={
           subcategory.isTotalManualEmissionsModeAvailable
         }
@@ -94,8 +102,6 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         isManualModeLoading={isTotalManualEmissionsModeLoading}
         totalEmission={totalEmission}
         setTotalEmission={handleSetTotalEmission}
-        // Manual mode line actions
-        categoryPosition={categoryPosition}
         hasManualModeLine={!!manualModeLine}
         manualModeLineHasComment={!!manualModeLine?.comment}
         onManualModeLineDelete={handleManualModeLineDelete}
@@ -116,7 +122,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
               <EmissionEditorGrid
                 rows={rows}
                 columns={columns}
-                categoryPosition={categoryPosition}
+                categoryColor={categoryColor}
                 loading={isTotalManualEmissionsModeLoading}
               />
             )}
@@ -125,18 +131,18 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
           {/* Footer Section */}
           <Box className="flex flex-row-reverse">
             <Button
-              sx={(theme) => ({
-                color: theme.palette.category[categoryPosition].dark,
-                backgroundColor: theme.palette.category[categoryPosition].light,
-              })}
+              sx={{
+                color: categoryColorPalette.dark,
+                backgroundColor: categoryColorPalette.light,
+              }}
               variant="text"
               onClick={handleAddLine}
               disabled={isTotalManualEmissionsModeLoading}
               startIcon={
                 <AddRounded
-                  sx={(theme) => ({
-                    color: theme.palette.category[categoryPosition].dark,
-                  })}
+                  sx={{
+                    color: categoryColorPalette.dark,
+                  }}
                 />
               }
             >

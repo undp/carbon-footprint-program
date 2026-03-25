@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { CategoryStatus } from "../enums.js";
+import { IconNameSchema } from "../common/index.js";
 
 export const CategoryStatusSchema = z.enum(CategoryStatus);
 
@@ -13,7 +14,7 @@ export const CategoryBaseSchema = z.object({
   id: IdSchema.describe("The ID of the category"),
   methodologyVersionId: IdSchema.describe("The ID of the methodology version"),
   name: z.string().trim().min(1).max(255).describe("The name of the category"),
-  icon: z.string().trim().min(1).max(255).describe("The icon identifier"),
+  icon: IconNameSchema.describe("The icon identifier"),
   color: z
     .union([
       z.string().regex(HEX_RGB_REGEX),

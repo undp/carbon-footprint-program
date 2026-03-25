@@ -54,7 +54,7 @@ export const RankingRow: FC<RankingRowProps> = ({ item }) => {
           <Typography variant="body2">{item.name}</Typography>
           <CategoryChip
             label={item.categoryName}
-            categoryPosition={item.categoryPosition}
+            categoryColor={item.categoryColor}
           />
         </Box>
       </Box>

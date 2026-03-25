@@ -1,5 +1,8 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
+import {
+  type GetEmissionsDetailedSummaryResponse,
+  IconNameSchema,
+} from "@repo/types";
 import {
   distributePercentages,
   roundEmissions,
@@ -148,6 +151,7 @@ export const getEmissionsDetailedSummaryService = async (
         id: sub.id,
         name: sub.name,
         description,
+        icon: IconNameSchema.parse(sub.icon),
         hasLines,
         lines: emissionLines,
         subtotal: roundEmissions(sub.subtotal),
@@ -166,6 +170,8 @@ export const getEmissionsDetailedSummaryService = async (
       name: category.name,
       synonyms: category.synonyms,
       position: category.position,
+      icon: IconNameSchema.parse(category.icon),
+      color: category.color,
       subcategories,
       subtotal: roundEmissions(category.subtotal),
       percentage: categoryPercentages[catIdx],

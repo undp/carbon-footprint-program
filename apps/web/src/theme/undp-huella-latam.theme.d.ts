@@ -12,14 +12,6 @@ declare module "@mui/material/styles" {
     glossyTeal: string;
   }
 
-  interface CategoryColors {
-    main: string;
-    light: string;
-    dark: string;
-    contrastText: string;
-    background: string;
-  }
-
   interface Palette {
     other: {
       backdrop: string;
@@ -30,12 +22,6 @@ declare module "@mui/material/styles" {
       fluor: string;
       gradient: string;
       gradient20: string;
-    };
-    category: {
-      one: CategoryColors;
-      two: CategoryColors;
-      three: CategoryColors;
-      [key: number]: CategoryColors;
     };
     requestTypeColors: Record<RequestType, string>;
   }
@@ -50,12 +36,6 @@ declare module "@mui/material/styles" {
       fluor?: string;
       gradient?: string;
       gradient20?: string;
-    };
-    category?: {
-      one?: CategoryColors;
-      two?: CategoryColors;
-      three?: CategoryColors;
-      [key: number]: CategoryColors;
     };
     requestTypeColors?: Record<RequestType, string>;
   }

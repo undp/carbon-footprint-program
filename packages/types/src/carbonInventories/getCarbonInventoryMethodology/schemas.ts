@@ -69,6 +69,7 @@ const EmissionFactorItemSchema = EmissionFactorBaseSchema.pick({
 const SubcategorySchema = SubcategoryBaseSchema.pick({
   id: true,
   name: true,
+  icon: true,
   description: true,
   examples: true,
   explanationId: true,

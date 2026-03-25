@@ -36,6 +36,8 @@ export const useSubcategoryPreselectionData = (
     return methodology.categories.map((category) => ({
       id: category.id,
       name: category.name,
+      icon: category.icon,
+      color: category.color,
       description: category.description,
       synonyms: category.synonyms,
       position: category.position,

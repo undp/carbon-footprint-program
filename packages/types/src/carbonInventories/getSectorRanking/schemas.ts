@@ -19,6 +19,7 @@ export const RankingItemSchema = z
     name: SubcategoryBaseSchema.shape.name,
     categoryName: CategoryBaseSchema.shape.name,
     categoryPosition: CategoryBaseSchema.shape.position,
+    categoryColor: CategoryBaseSchema.shape.color,
     subtotal: z
       .number()
       .nonnegative()

@@ -1,40 +1,48 @@
-import { FC } from "react";
-import { Box, darken } from "@mui/material";
+import { FC, useMemo } from "react";
+import { Box } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import { StylizedDataGrid } from "@/components";
 import { EmissionCaptureFormLine } from "../../types/EmissionCaptureTypes";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionEditorGridProps {
   columns: GridColDef<EmissionCaptureFormLine>[];
   rows: EmissionCaptureFormLine[];
-  categoryPosition: number;
+  categoryColor: string;
   loading?: boolean;
 }
 
 export const EmissionEditorGrid: FC<EmissionEditorGridProps> = ({
   columns,
   rows,
-  categoryPosition,
+  categoryColor,
   loading = false,
-}) => (
-  <Box
-    style={{
-      display: "flex",
-      width: "100%",
-    }}
-  >
-    <StylizedDataGrid
-      sx={(theme) => ({
-        "& .MuiDataGrid-columnHeader": {
-          backgroundColor: theme.palette.category[categoryPosition].light,
-          color: darken(theme.palette.category[categoryPosition].main, 0.6),
-        },
-      })}
-      columns={columns}
-      rows={rows}
-      getRowId={(row: EmissionCaptureFormLine) => row.lineId}
-      loading={loading}
-      localeText={{ noRowsLabel: "Sin fuentes" }}
-    />
-  </Box>
-);
+}) => {
+  const categoryColorPalette = useMemo(
+    () => getColorPalette(categoryColor),
+    [categoryColor]
+  );
+
+  return (
+    <Box
+      style={{
+        display: "flex",
+        width: "100%",
+      }}
+    >
+      <StylizedDataGrid
+        sx={{
+          "& .MuiDataGrid-columnHeader": {
+            backgroundColor: categoryColorPalette.light,
+            color: categoryColorPalette.dark,
+          },
+        }}
+        columns={columns}
+        rows={rows}
+        getRowId={(row: EmissionCaptureFormLine) => row.lineId}
+        loading={loading}
+        localeText={{ noRowsLabel: "Sin fuentes" }}
+      />
+    </Box>
+  );
+};

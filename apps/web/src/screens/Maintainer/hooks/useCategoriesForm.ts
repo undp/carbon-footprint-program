@@ -15,7 +15,12 @@ export interface CategoriesFormValues {
 }
 
 const categoriesFormSchema = z.object({
-  categories: z.array(CategoryFormSchema),
+  categories: z.array(
+    CategoryFormSchema.refine((row) => row.icon !== "", {
+      message: "Ícono es requerido",
+      path: ["icon"],
+    })
+  ),
 });
 
 /** Strip server-only fields so the form only holds CategoryForm data. */

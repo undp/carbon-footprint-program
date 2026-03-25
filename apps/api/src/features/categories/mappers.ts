@@ -1,5 +1,5 @@
 import type { Category as PrismaCategory } from "@repo/database";
-import type { GetAllCategoriesResponse } from "@repo/types";
+import { type GetAllCategoriesResponse, IconNameSchema } from "@repo/types";
 
 /**
  * Maps a Prisma Category to the API response format.
@@ -12,7 +12,7 @@ export function mapCategoryToResponse(
     id: category.id.toString(),
     methodologyVersionId: category.methodologyVersionId.toString(),
     name: category.name,
-    icon: category.icon,
+    icon: IconNameSchema.parse(category.icon),
     color: category.color,
     synonyms: category.synonyms,
     description: category.description,

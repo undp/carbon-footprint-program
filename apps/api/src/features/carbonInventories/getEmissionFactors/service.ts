@@ -19,7 +19,9 @@ export const getEmissionFactorsService = async (
       subcategory: {
         select: {
           name: true,
-          category: { select: { name: true, synonyms: true, position: true } },
+          category: {
+            select: { name: true, synonyms: true, position: true, color: true },
+          },
           dimensions: {
             select: { position: true, isRequired: true },
           },
@@ -145,6 +147,7 @@ export const getEmissionFactorsService = async (
       categoryName: line.subcategory.category.name,
       categorySynonyms: line.subcategory.category.synonyms,
       categoryPosition: line.subcategory.category.position,
+      categoryColor: line.subcategory.category.color,
       subcategoryName: line.subcategory.name,
       activityParameter,
       factorLabel,

@@ -35,6 +35,7 @@ const SubcategorySummaryItemSchema = SubcategoryBaseSchema.pick({
   id: true,
   name: true,
   description: true,
+  icon: true,
 })
   .extend({
     hasLines: z
@@ -76,6 +77,8 @@ const CategorySummaryItemSchema = CategoryBaseSchema.pick({
   name: true,
   synonyms: true,
   position: true,
+  icon: true,
+  color: true,
 })
   .extend({
     subcategories: z

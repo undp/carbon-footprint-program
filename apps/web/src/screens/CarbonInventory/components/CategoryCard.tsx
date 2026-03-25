@@ -1,16 +1,16 @@
-import { FC, useMemo } from "react";
-import { Box, darken, Typography, useTheme, Card } from "@mui/material";
+import { FC } from "react";
+import { Box, Typography, Card } from "@mui/material";
+import { darken } from "@mui/material/styles";
+import type { IconName } from "@repo/types";
 import { InfoButton } from "@/components";
-import {
-  DirectEmissionCategoryIcon,
-  IndirectEmissionCategoryIcon,
-  OthersCategoryIcon,
-} from "@/icons";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import { getColorPalette } from "@/utils/categoryColors";
 import { useExplanationDialog } from "../../../contexts";
 
 interface CategoryCardProps {
   variant?: "default" | "focused" | "unfocused";
-  position: number;
+  icon: IconName;
+  categoryColor: string;
   title: string;
   subtitle: string | null;
   description: string | null;
@@ -20,48 +20,23 @@ interface CategoryCardProps {
 
 export const CategoryCard: FC<CategoryCardProps> = ({
   variant = "default",
-  position,
+  icon,
+  categoryColor,
   title,
   subtitle,
   description,
   explanationId,
   onClick,
 }) => {
-  const theme = useTheme();
   const { openExplanation } = useExplanationDialog();
 
-  const icons: Record<number, React.ReactNode> = useMemo(
-    () => ({
-      1: (
-        <DirectEmissionCategoryIcon
-          sx={{ fill: darken(theme.palette.category[1].main, 0.6) }}
-        />
-      ),
-      2: (
-        <IndirectEmissionCategoryIcon
-          sx={{ fill: darken(theme.palette.category[2].main, 0.6) }}
-        />
-      ),
-      3: (
-        <OthersCategoryIcon
-          sx={{ fill: darken(theme.palette.category[3].main, 0.6) }}
-        />
-      ),
-    }),
-    [theme]
-  );
-  // Ensure the position is between 1 and 3
-  // TODO: In the future should exists a default value for positions greater than 3
-  // For now, we will use the last category
-  const safePosition = Math.max(Math.min(position, 3), 1) as 1 | 2 | 3;
-  const backgroundColor = theme.palette.category[safePosition].light;
+  const categoryColorPalette = getColorPalette(categoryColor);
+  const IconComponent = CATEGORY_ICON_MAP[icon];
+  const backgroundColor = categoryColorPalette.light;
   const border =
-    variant === "focused"
-      ? `1px solid ${theme.palette.category[safePosition].main}`
-      : "none";
+    variant === "focused" ? `1px solid ${categoryColorPalette.main}` : "none";
   const opacity = variant === "unfocused" ? "opacity-50" : "";
-  const icon = icons[safePosition];
-  const color = darken(theme.palette.category[safePosition].main, 0.6);
+  const textColor = categoryColorPalette.dark;
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
@@ -81,7 +56,6 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           textTransform: "none",
           "&:hover": {
             backgroundColor: darken(backgroundColor, 0.05),
-            boxShadow: theme.shadows[4],
           },
         }),
       }}
@@ -94,21 +68,23 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           "& svg": { width: "60%", height: "60%" },
         }}
       >
-        {icon}
+        {IconComponent && (
+          <IconComponent sx={{ fill: categoryColorPalette.dark }} />
+        )}
       </Box>
       <Box className="flex-1">
         <Typography
           fontSize="0.65rem"
           fontWeight="medium"
           lineHeight="normal"
-          color={color}
+          color={textColor}
         >
           {subtitle?.toUpperCase() ?? ""}
         </Typography>
-        <Typography variant="body1" fontWeight="medium" color={color}>
+        <Typography variant="body1" fontWeight="medium" color={textColor}>
           {title}
         </Typography>
-        <Typography fontSize="0.65rem" lineHeight="normal" color={color}>
+        <Typography fontSize="0.65rem" lineHeight="normal" color={textColor}>
           {description}
         </Typography>
       </Box>

@@ -14,6 +14,7 @@ const ItemSchema = z
     categoryName: CategoryBaseSchema.shape.name,
     categorySynonyms: CategoryBaseSchema.shape.synonyms,
     categoryPosition: CategoryBaseSchema.shape.position,
+    categoryColor: CategoryBaseSchema.shape.color,
     subcategoryName: SubcategoryBaseSchema.shape.name,
     activityParameter: z
       .string()

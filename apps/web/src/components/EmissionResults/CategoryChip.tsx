@@ -1,29 +1,29 @@
 import { FC } from "react";
 import { Chip } from "@mui/material";
-import { SxProps, Theme, useTheme } from "@mui/material/styles";
+import { SxProps, Theme } from "@mui/material/styles";
+import { getColorPalette } from "@/utils/categoryColors";
 
 interface CategoryChipProps {
   label: string;
-  categoryPosition: number;
+  categoryColor: string;
   sx?: SxProps<Theme>;
 }
 
 export const CategoryChip: FC<CategoryChipProps> = ({
   label,
-  categoryPosition,
+  categoryColor,
   sx,
 }) => {
-  const theme = useTheme();
-  const catKey = Math.min(categoryPosition, 3) as 1 | 2 | 3;
+  const categoryColorPalette = getColorPalette(categoryColor);
 
   return (
     <Chip
       label={label}
       size="small"
       sx={{
-        backgroundColor: theme.palette.category[catKey].light,
-        border: `1px solid ${theme.palette.category[catKey].light}`,
-        color: theme.palette.category[catKey].dark,
+        backgroundColor: categoryColorPalette.light,
+        border: `1px solid ${categoryColorPalette.main}`,
+        color: categoryColorPalette.dark,
         fontSize: "0.75rem",
         fontWeight: 500,
         height: "26px",

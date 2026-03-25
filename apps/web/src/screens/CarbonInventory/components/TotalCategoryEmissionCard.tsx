@@ -1,65 +1,37 @@
-import {
-  alpha,
-  Avatar,
-  Box,
-  Card,
-  darken,
-  SvgIconProps,
-  Typography,
-} from "@mui/material";
+import { Avatar, Box, Card, Typography } from "@mui/material";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import React from "react";
-import {
-  DirectEmissionCategoryIcon,
-  IndirectEmissionCategoryIcon,
-  OthersCategoryIcon,
-} from "@/icons";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import { getColorPalette } from "@/utils/categoryColors";
 import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
 import { formatEmissions } from "@/utils/formatting";
 import { kgToTon } from "@repo/utils";
-
-const ICONS_PER_CATEGORY_POSITION: Record<number, React.FC<SvgIconProps>> = {
-  1: DirectEmissionCategoryIcon,
-  2: IndirectEmissionCategoryIcon,
-  3: OthersCategoryIcon,
-};
 
 interface Props {
   category: GetCarbonInventoryMethodologyResponse["categories"][number];
 }
 
 export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
-  const IconComponent =
-    ICONS_PER_CATEGORY_POSITION[category.position] ?? OthersCategoryIcon;
-
+  const IconComponent = CATEGORY_ICON_MAP[category.icon];
+  const categoryColorPalette = getColorPalette(category.color);
   const totalEmissions = useEmissionCategoryTotal(category.id);
 
   return (
     <Box className="flex">
       <Card
         className="flex h-16 w-full flex-row items-center justify-center p-2"
-        sx={(theme) => ({
-          backgroundColor: theme.palette.category[Number(category.id)].light,
-        })}
+        sx={{ backgroundColor: categoryColorPalette.light }}
         elevation={0}
       >
         <Box className="justify-left flex flex-1 items-center gap-2">
           <Avatar
-            sx={(theme) => ({
-              backgroundColor: alpha(
-                theme.palette.category[Number(category.id)].main,
-                0.3
-              ),
-            })}
+            sx={{
+              backgroundColor: categoryColorPalette.light,
+            }}
           >
-            <IconComponent
-              sx={(theme) => ({
-                fill: darken(
-                  theme.palette.category[category.position].main,
-                  0.6
-                ),
-              })}
-            />
+            {IconComponent && (
+              <IconComponent sx={{ fill: categoryColorPalette.dark }} />
+            )}
           </Avatar>
           <Typography variant="subtitle1" fontWeight="medium">
             Total {category.name.toLowerCase()}:{" "}

@@ -1,5 +1,6 @@
 import { FC } from "react";
-import { Box, Typography, alpha } from "@mui/material";
+import { Box, Typography } from "@mui/material";
+import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "./EmissionPercentageBadge";
 
 interface EmissionSummaryCardProps {
@@ -8,9 +9,7 @@ interface EmissionSummaryCardProps {
   subtitle: string;
   value: number;
   percentage: number;
-  backgroundColor: string;
-  textColor: string;
-  iconColor: string;
+  categoryColor: string;
 }
 
 export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
@@ -19,20 +18,20 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
   subtitle,
   value,
   percentage,
-  backgroundColor,
-  textColor,
-  iconColor,
+  categoryColor,
 }) => {
+  const categoryColorPalette = getColorPalette(categoryColor);
+
   return (
     <Box
       className="flex w-full flex-1 flex-col items-start justify-center gap-2 rounded-lg px-3 py-2"
-      sx={{ backgroundColor }}
+      sx={{ backgroundColor: categoryColorPalette.light }}
     >
       <Box className="flex w-full items-center justify-between">
         <Box className="flex items-center gap-2">
           <Box
             className="flex size-8 items-center justify-center rounded-full"
-            sx={{ backgroundColor: alpha(iconColor, 0.3) }}
+            sx={{ backgroundColor: categoryColorPalette.light }}
           >
             <Box className="flex size-[18px] items-center justify-center">
               {icon}
@@ -42,13 +41,13 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
             <Typography
               variant="body1"
               fontWeight="fontWeightSemiBold"
-              sx={{ color: textColor, lineHeight: 1.2 }}
+              sx={{ color: categoryColorPalette.dark, lineHeight: 1.2 }}
             >
               {title}
             </Typography>
             <Typography
               variant="caption"
-              sx={{ color: textColor, lineHeight: 1.2 }}
+              sx={{ color: categoryColorPalette.dark, lineHeight: 1.2 }}
             >
               {subtitle}
             </Typography>
@@ -58,7 +57,7 @@ export const EmissionSummaryCard: FC<EmissionSummaryCardProps> = ({
           <EmissionPercentageBadge
             emissions={value}
             percentage={percentage}
-            categoryColor={{ dark: textColor, light: backgroundColor }}
+            categoryColor={categoryColor}
           />
         </Box>
       </Box>

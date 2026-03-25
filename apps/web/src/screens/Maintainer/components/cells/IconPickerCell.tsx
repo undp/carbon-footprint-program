@@ -1,89 +1,32 @@
-import { FC, useState, useEffect, useRef, type ComponentType } from "react";
+import { FC, useState, useEffect, useRef } from "react";
 import {
   Box,
   IconButton,
   Popover,
   Typography,
   Divider,
-  type SvgIconProps,
   useTheme,
   alpha,
 } from "@mui/material";
 import { CheckOutlined } from "@mui/icons-material";
-import {
-  FactoryOutlined,
-  BoltOutlined,
-  LocalShippingOutlined,
-  WhatshotOutlined,
-  DirectionsCarOutlined,
-  AcUnitOutlined,
-  WaterDropOutlined,
-  RecyclingOutlined,
-  AgricultureOutlined,
-  BusinessOutlined,
-  FlightOutlined,
-  TrainOutlined,
-  ElectricBoltOutlined,
-  SolarPowerOutlined,
-  ForestOutlined,
-  DeleteOutlineOutlined,
-  ConstructionOutlined,
-  ScienceOutlined,
-  LocalGasStationOutlined,
-  PublicOutlined,
-} from "@mui/icons-material";
 import { useFormContext, useFormState } from "react-hook-form";
 import { getNestedError } from "./cellUtils";
+import type { IconName, IconNameFormValue } from "@repo/types";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import { CATEGORY_COLORS, getColorPalette } from "@/utils/categoryColors";
 
-/** Map of icon names to MUI icon components */
-export const CATEGORY_ICON_MAP: Record<string, ComponentType<SvgIconProps>> = {
-  FACTORY: FactoryOutlined,
-  BOLT: BoltOutlined,
-  TRUCK: LocalShippingOutlined,
-  FLAME: WhatshotOutlined,
-  CAR: DirectionsCarOutlined,
-  SNOWFLAKE: AcUnitOutlined,
-  WATER: WaterDropOutlined,
-  RECYCLE: RecyclingOutlined,
-  AGRICULTURE: AgricultureOutlined,
-  BUILDING: BusinessOutlined,
-  FLIGHT: FlightOutlined,
-  TRAIN: TrainOutlined,
-  ELECTRIC: ElectricBoltOutlined,
-  SOLAR: SolarPowerOutlined,
-  FOREST: ForestOutlined,
-  WASTE: DeleteOutlineOutlined,
-  CONSTRUCTION: ConstructionOutlined,
-  SCIENCE: ScienceOutlined,
-  FUEL: LocalGasStationOutlined,
-  GLOBE: PublicOutlined,
-};
-
-const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP);
-
-/** Predefined color palette for category icons */
-export const CATEGORY_COLORS = [
-  "#F5E6D3", // beige
-  "#C5DEF0", // light blue
-  "#D4E8DC", // mint green
-  "#F9D5D5", // light pink
-  "#E8D5F5", // lavender
-  "#FFF3C4", // light yellow
-  "#D5F0E8", // seafoam
-  "#FFE0C4", // peach
-  "#D5E8F5", // sky blue
-  "#E8E8E8", // light gray
-  "#C4E8D0", // pale green
-  "#F0D5E8", // rose
-];
+const ICON_ENTRIES = Object.entries(CATEGORY_ICON_MAP) as [
+  IconName,
+  (typeof CATEGORY_ICON_MAP)[IconName],
+][];
 
 interface IconPickerCellBaseProps {
-  iconName: string;
+  iconName: IconNameFormValue;
   color: string;
   isEditing: boolean;
   rowIndex: number;
   formArrayName: string;
-  onChangeIcon: (iconName: string) => void;
+  onChangeIcon: (iconName: IconName) => void;
   onClick?: () => void;
 }
 
@@ -152,7 +95,11 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
 
   const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
-  const effectiveColor = hideColor ? color || "#E8E8E8" : color;
+  const effectiveColor = hideColor
+    ? color || "#E8E8E8"
+    : color
+      ? getColorPalette(color).light
+      : "transparent";
 
   return (
     <>
