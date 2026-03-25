@@ -1,5 +1,14 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  FC,
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Box,
   FormHelperText,
   IconButton,
   List,
@@ -29,7 +38,7 @@ interface Props {
 
 const isImage = (file: File) => file.type.startsWith("image/");
 
-export const FileUpload = ({
+export const FileUpload: FC<PropsWithChildren<Props>> = ({
   value,
   onChange,
   accept,
@@ -37,7 +46,8 @@ export const FileUpload = ({
   maxSize,
   disabled = false,
   error,
-}: Props) => {
+  children,
+}) => {
   const [dropError, setDropError] = useState<string>("");
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -146,6 +156,20 @@ export const FileUpload = ({
 
   const displayError = dropError || error;
 
+  const defaultChildren = (
+    <Box className="flex w-full flex-col items-center gap-3 p-4">
+      <CloudUpload sx={{ color: "text.secondary", fontSize: 40 }} />
+      <Typography variant="caption" color="text.secondary" textAlign="center">
+        Haz clic para seleccionar, arrastra o pega el archivo aquí
+      </Typography>
+      {acceptMessage && (
+        <Typography variant="caption" color="text.secondary">
+          {acceptMessage}
+        </Typography>
+      )}
+    </Box>
+  );
+
   return (
     <div ref={containerRef} className="flex w-full flex-col gap-2">
       {/* Dropzone */}
@@ -155,7 +179,7 @@ export const FileUpload = ({
         tabIndex={disabled ? -1 : 0}
         aria-label="Subir archivos: haz clic, arrastra o pega"
         aria-disabled={disabled}
-        className={`flex flex-col items-center gap-3 rounded-lg border-2 border-dashed border-gray-300 p-4 transition-all duration-200 ${
+        className={`flex flex-col items-center rounded-lg border-2 border-dashed border-gray-300 transition-all duration-200 ${
           displayError
             ? "border-red-600!"
             : isDragActive
@@ -164,15 +188,7 @@ export const FileUpload = ({
         } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
       >
         <input {...getInputProps()} />
-        <CloudUpload sx={{ color: "text.secondary", fontSize: 40 }} />
-        <Typography variant="caption" color="text.secondary" textAlign="center">
-          Haz clic para seleccionar, arrastra o pega el archivo aquí
-        </Typography>
-        {acceptMessage && (
-          <Typography variant="caption" color="text.secondary">
-            {acceptMessage}
-          </Typography>
-        )}
+        {children ?? defaultChildren}
       </div>
 
       {/* File list */}
