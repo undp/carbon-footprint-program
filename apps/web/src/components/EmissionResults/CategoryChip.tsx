@@ -22,7 +22,7 @@ export const CategoryChip: FC<CategoryChipProps> = ({
       size="small"
       sx={{
         backgroundColor: categoryColorPalette.light,
-        border: `1px solid ${categoryColorPalette.light}`,
+        border: `1px solid ${categoryColorPalette.main}`,
         color: categoryColorPalette.dark,
         fontSize: "0.75rem",
         fontWeight: 500,
