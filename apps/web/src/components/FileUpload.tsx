@@ -171,7 +171,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
   );
 
   return (
-    <div ref={containerRef} className="flex w-full flex-col gap-2">
+    <div ref={containerRef} className="flex w-full flex-col-reverse gap-2">
       {/* Dropzone */}
       <div
         {...getRootProps()}
