@@ -50,7 +50,7 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
     <Dialog
       open={open}
       onClose={isLoading ? undefined : onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       aria-labelledby="self-declare-dialog-title"
       slotProps={{
@@ -62,21 +62,20 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
         sx={{ pr: 6, fontWeight: 600 }}
       >
         Autodeclarar Huella de Carbono
+        <IconButton
+          aria-label="cerrar"
+          onClick={onClose}
+          disabled={isLoading}
+          sx={(theme) => ({
+            position: "absolute",
+            right: 16,
+            top: 16,
+            color: theme.palette.grey[500],
+          })}
+        >
+          <Close />
+        </IconButton>
       </DialogTitle>
-
-      <IconButton
-        aria-label="cerrar"
-        onClick={onClose}
-        disabled={isLoading}
-        sx={(theme) => ({
-          position: "absolute",
-          right: 16,
-          top: 16,
-          color: theme.palette.grey[500],
-        })}
-      >
-        <Close />
-      </IconButton>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent sx={{ pt: 0 }}>
