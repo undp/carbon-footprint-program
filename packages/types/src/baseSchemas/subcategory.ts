@@ -2,7 +2,7 @@ import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { SubcategoryStatus } from "../enums.js";
 import { CategoryBaseSchema } from "./category.js";
-import { IconNameSchema } from "./iconName.js";
+import { IconNameSchema } from "../common/index.js";
 
 export const SubcategoryBaseSchema = z.object({
   id: IdSchema.describe("The ID of the subcategory"),

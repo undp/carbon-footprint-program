@@ -4,8 +4,8 @@ import {
   SubcategoryBaseSchema,
   MeasurementUnitBaseSchema,
   CategoryBaseSchema,
-  IconNameSchema,
 } from "../../baseSchemas/index.js";
+import { IconNameSchema } from "../../common/index.js";
 
 export const CreateSubcategoryRequestSchema = z.strictObject({
   ...SubcategoryBaseSchema.pick({

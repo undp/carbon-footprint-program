@@ -25,5 +25,3 @@ export const IconNameSchema = z.enum([
   "INDIRECT_EMISSION",
   "OTHERS",
 ]);
-
-export type IconName = z.infer<typeof IconNameSchema>;

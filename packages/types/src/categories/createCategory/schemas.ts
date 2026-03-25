@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { CategoryBaseSchema, IconNameSchema } from "../../baseSchemas/index.js";
+import { CategoryBaseSchema } from "../../baseSchemas/index.js";
+import { IconNameSchema } from "../../common/index.js";
 
 // Request Schema
 export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({

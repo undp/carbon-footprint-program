@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { CategoryStatus } from "../enums.js";
-import { IconNameSchema } from "./iconName.js";
+import { IconNameSchema } from "../common/index.js";
 
 export const CategoryStatusSchema = z.enum(CategoryStatus);
 

@@ -9,7 +9,6 @@ export * from "./countrySector.js";
 export * from "./countrySubsector.js";
 export * from "./emissionFactor.js";
 export * from "./explanation.js";
-export * from "./iconName.js";
 export * from "./emissionFactorDimension.js";
 export * from "./emissionFactorDimensionValue.js";
 export * from "./file.js";
