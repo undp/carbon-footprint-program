@@ -188,7 +188,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
         } ${disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"} ${!disabled && !displayError ? "hover:border-primary!" : ""}`}
       >
         <input {...getInputProps()} />
-        {children ? children : defaultChildren}
+        {children ?? defaultChildren}
       </div>
 
       {/* File list */}
