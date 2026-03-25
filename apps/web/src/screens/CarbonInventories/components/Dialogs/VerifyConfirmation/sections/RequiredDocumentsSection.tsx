@@ -27,15 +27,15 @@ export const RequiredDocumentsSection: FC = () => {
   const theme = useTheme();
 
   return (
-    <Box className="border-b border-gray-200 pb-6">
-      <Box className="mb-3 flex items-center gap-2">
+    <Box className="flex flex-col gap-2">
+      <Box className="flex items-center gap-2">
         <DescriptionOutlined color="primary" fontSize="small" />
         <Typography variant="subtitle1" fontWeight={600}>
           Documentos Requeridos para la Verificación
         </Typography>
       </Box>
 
-      <Typography variant="body2" color="text.secondary" className="mb-3">
+      <Typography variant="body2" color="text.secondary">
         Para iniciar el proceso de verificación, deberás adjuntar los siguientes
         documentos en formato PDF o JPG:
       </Typography>
