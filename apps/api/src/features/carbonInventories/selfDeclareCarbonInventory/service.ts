@@ -48,7 +48,11 @@ export const selfDeclareCarbonInventoryService = async (
         organizationId: { not: null },
         year: { not: null },
       },
-      data: { isSelfDeclared: true, updatedById: createdById },
+      data: {
+        isSelfDeclared: true,
+        selfDeclaredAt: new Date(),
+        updatedById: createdById,
+      },
     });
 
     // Single query for both diagnostics and happy-path logic.

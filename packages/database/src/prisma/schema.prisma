@@ -589,6 +589,7 @@ model CarbonInventory {
   isEditable           Boolean                           @default(true) @map("is_editable")
   createdAt            DateTime                          @default(now()) @map("created_at")
   updatedAt            DateTime?                         @updatedAt @map("updated_at")
+  selfDeclaredAt       DateTime?                         @map("self_declared_at")
   createdById          BigInt?                           @map("created_by_id")
   updatedById          BigInt?                           @map("updated_by_id")
   isSelfDeclared       Boolean                           @default(false) @map("is_self_declared")

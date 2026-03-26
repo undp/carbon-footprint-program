@@ -51,6 +51,12 @@ export const CarbonInventoryBaseSchema = z
     isSelfDeclared: z
       .boolean()
       .describe("Indicates if the carbon inventory is self-declared"),
+    selfDeclaredAt: z.iso
+      .datetime()
+      .nullable()
+      .describe(
+        "The date and time when the carbon inventory was self-declared"
+      ),
     isEditable: z
       .boolean()
       .describe("Indicates if the carbon inventory is editable"),
