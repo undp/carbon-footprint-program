@@ -62,22 +62,51 @@ export const SubcategoryPreselectionCarousel: FC<
     );
   }, [needsCarousel, containerWidth]);
 
+  const scrollToIndex = useCallback(
+    (index: number, behavior: ScrollBehavior = "smooth") => {
+      if (!containerRef.current) return;
+      const targetScrollLeft = index * (cardWidth + GAP) - PEEK_WIDTH;
+      const maxScroll =
+        containerRef.current.scrollWidth - containerRef.current.clientWidth;
+      const clamped = Math.max(0, Math.min(targetScrollLeft, maxScroll));
+      containerRef.current.scrollTo({ left: clamped, behavior });
+    },
+    [cardWidth]
+  );
+
   const handleBoxClick = useCallback(
     (_e: MouseEvent, categoryId: string, index: number) => {
       if (!needsCarousel) return;
       setFocusedCategoryId(categoryId);
-
-      if (containerRef.current) {
-        // Scroll so the clicked card's left neighbor peeks in
-        const targetScrollLeft = index * (cardWidth + GAP) - PEEK_WIDTH;
-        const maxScroll =
-          containerRef.current.scrollWidth - containerRef.current.clientWidth;
-        const clamped = Math.max(0, Math.min(targetScrollLeft, maxScroll));
-        containerRef.current.scrollTo({ left: clamped, behavior: "smooth" });
-      }
+      scrollToIndex(index);
     },
-    [needsCarousel, cardWidth]
+    [needsCarousel, scrollToIndex]
   );
+
+  // Keyboard navigation: left/right arrow keys
+  useEffect(() => {
+    if (!needsCarousel) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+
+      const currentIndex = categories.findIndex(
+        (c) => c.id === resolvedFocusedId
+      );
+      const nextIndex =
+        e.key === "ArrowRight"
+          ? Math.min(currentIndex + 1, categories.length - 1)
+          : Math.max(currentIndex - 1, 0);
+
+      if (nextIndex !== currentIndex) {
+        setFocusedCategoryId(categories[nextIndex].id);
+        scrollToIndex(nextIndex, "auto");
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [needsCarousel, categories, resolvedFocusedId, scrollToIndex]);
 
   // Simple layout for ≤VISIBLE_CARDS categories
   if (!needsCarousel) {
