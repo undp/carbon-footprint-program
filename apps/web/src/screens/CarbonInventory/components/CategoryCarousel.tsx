@@ -1,8 +1,7 @@
-import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Box } from "@mui/material";
+import { FC, useCallback, useRef } from "react";
 import { CategoryCard } from "./CategoryCard";
+import { Carousel, CarouselHandle } from "./Carousel";
 
-const GAP = 16;
 const PEEK_WIDTH = 48;
 const VISIBLE_CARDS = 3;
 
@@ -27,109 +26,50 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
   selectedCategoryId,
   onCategorySelect,
 }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [containerWidth, setContainerWidth] = useState(0);
+  const carouselRef = useRef<CarouselHandle>(null);
 
-  const needsCarousel = categories.length > VISIBLE_CARDS;
-
-  // Measure container width
-  useEffect(() => {
-    if (!needsCarousel || !containerRef.current) return;
-
-    const el = containerRef.current;
-    setContainerWidth(el.getBoundingClientRect().width);
-
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
-    });
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [needsCarousel]);
-
-  // Card width: VISIBLE_CARDS cards + 2 gaps + 2 peeks = containerWidth
-  const cardWidth = useMemo(() => {
-    if (!needsCarousel || containerWidth === 0) return 0;
-    return Math.max(
-      (containerWidth - 2 * PEEK_WIDTH - 2 * GAP) / VISIBLE_CARDS,
-      0
-    );
-  }, [needsCarousel, containerWidth]);
+  const focusedIndex = categories.findIndex((c) => c.id === selectedCategoryId);
 
   const handleCardClick = useCallback(
     (categoryId: string, index: number) => {
-      if (needsCarousel && containerRef.current) {
-        // Scroll so the clicked card's left neighbor peeks in
-        const targetScrollLeft = index * (cardWidth + GAP) - PEEK_WIDTH;
-        const maxScroll =
-          containerRef.current.scrollWidth - containerRef.current.clientWidth;
-        const clamped = Math.max(0, Math.min(targetScrollLeft, maxScroll));
-        containerRef.current.scrollTo({ left: clamped, behavior: "smooth" });
-      }
+      carouselRef.current?.scrollToIndex(index);
       onCategorySelect(categoryId);
     },
-    [needsCarousel, cardWidth, onCategorySelect]
+    [onCategorySelect]
   );
 
-  // Simple layout for ≤VISIBLE_CARDS categories
-  if (!needsCarousel) {
-    return (
-      <Box className="flex flex-row gap-4">
-        {categories.map((category) => (
-          <CategoryCard
-            key={`category_${category.id}`}
-            icon={category.icon}
-            categoryColor={category.color}
-            variant={
-              selectedCategoryId === category.id ? "focused" : "unfocused"
-            }
-            title={category.name}
-            subtitle={category.synonyms}
-            description={category.description}
-            explanationId={category.explanationId}
-            onClick={() => onCategorySelect(category.id)}
-          />
-        ))}
-      </Box>
-    );
-  }
+  const handleFocusedIndexChange = useCallback(
+    (index: number) => {
+      onCategorySelect(categories[index].id);
+    },
+    [categories, onCategorySelect]
+  );
 
-  // Carousel layout for >VISIBLE_CARDS categories (scroll-snap)
   return (
-    <Box
-      ref={containerRef}
-      sx={{
-        display: "flex",
-        gap: `${GAP}px`,
-        overflowX: "auto",
-        scrollSnapType: "x mandatory",
-        scrollPaddingLeft: `${PEEK_WIDTH}px`,
-        scrollBehavior: "smooth",
-        scrollbarWidth: "none",
-        "&::-webkit-scrollbar": { display: "none" },
-      }}
-    >
-      {categories.map((category, index) => (
-        <Box
+    <Carousel
+      ref={carouselRef}
+      items={categories}
+      peekWidth={PEEK_WIDTH}
+      visibleCards={VISIBLE_CARDS}
+      focusedIndex={focusedIndex}
+      onFocusedIndexChange={handleFocusedIndexChange}
+      renderItem={(category, index, isCarousel) => (
+        <CategoryCard
           key={`category_${category.id}`}
-          sx={{ width: cardWidth, flexShrink: 0, scrollSnapAlign: "start" }}
-        >
-          <CategoryCard
-            icon={category.icon}
-            categoryColor={category.color}
-            variant={
-              selectedCategoryId === category.id ? "focused" : "unfocused"
-            }
-            title={category.name}
-            subtitle={category.synonyms}
-            description={category.description}
-            explanationId={category.explanationId}
-            onClick={() => handleCardClick(category.id, index)}
-          />
-        </Box>
-      ))}
-    </Box>
+          icon={category.icon}
+          categoryColor={category.color}
+          variant={selectedCategoryId === category.id ? "focused" : "unfocused"}
+          title={category.name}
+          subtitle={category.synonyms}
+          description={category.description}
+          explanationId={category.explanationId}
+          onClick={
+            isCarousel
+              ? () => handleCardClick(category.id, index)
+              : () => onCategorySelect(category.id)
+          }
+        />
+      )}
+    />
   );
 };

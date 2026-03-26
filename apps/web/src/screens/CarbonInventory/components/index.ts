@@ -1,3 +1,4 @@
+export * from "./Carousel";
 export * from "./CategoryCard";
 export * from "./SubcategoryPreselectionField";
 export * from "./TotalCategoryEmissionCard";
