@@ -18,7 +18,9 @@ export const getRequestsKpisService = async (
   }
 
   const types = Object.values(SubmissionType);
-  const statuses = Object.values(SubmissionStatus);
+  const statuses = Object.values(SubmissionStatus).filter(
+    (s) => s !== SubmissionStatus.APPROVED_AUTOMATICALLY
+  );
 
   const counts = flatMap(types, (type) =>
     statuses.map((status) => {

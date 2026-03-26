@@ -98,11 +98,14 @@ const RequestKpiCountSchema = z.union([
   }),
 ]);
 
-// expectedKpiCount = Object.keys(SubmissionType).length * Object.keys(SubmissionStatus).length.
+// KPI-relevant statuses exclude APPROVED_AUTOMATICALLY (auto-approved submissions are not counted in KPIs).
 // If a new SubmissionType or SubmissionStatus is added, the RequestKpiCountSchema union entries
 // above must be updated to include all new combinations, otherwise runtime validation will fail.
+const KPI_STATUSES = Object.keys(SubmissionStatus).filter(
+  (s) => s !== "APPROVED_AUTOMATICALLY"
+);
 const expectedKpiCount =
-  Object.keys(SubmissionType).length * Object.keys(SubmissionStatus).length;
+  Object.keys(SubmissionType).length * KPI_STATUSES.length;
 
 export const GetAdminRequestsKpisResponseSchema = z.object({
   total: z.number().nonnegative().describe("The total count of requests"),
