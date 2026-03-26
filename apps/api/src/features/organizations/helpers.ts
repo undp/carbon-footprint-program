@@ -61,7 +61,12 @@ export const hasApprovedOrganizationData = async (
           subject: {
             submissions: {
               some: {
-                status: SubmissionStatus.APPROVED,
+                status: {
+                  in: [
+                    SubmissionStatus.APPROVED,
+                    SubmissionStatus.APPROVED_AUTOMATICALLY,
+                  ],
+                },
               },
             },
           },
