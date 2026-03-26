@@ -7,15 +7,16 @@ import { getColorPalette } from "@/utils/categoryColors";
 
 interface SubcategoryPreselectionCardProps {
   category: SubcategoryPreselectionMergedData[number];
-  isFocused: boolean;
-  isCarousel: boolean;
+  variant: "default" | "focused" | "unfocused";
   onClick?: (e: MouseEvent) => void;
 }
 
 export const SubcategoryPreselectionCard: FC<
   SubcategoryPreselectionCardProps
-> = ({ category, isFocused, isCarousel, onClick }) => {
+> = ({ category, variant, onClick }) => {
   const palette = getColorPalette(category.color);
+  const isUnfocused = variant === "unfocused";
+  const isNotDefault = variant !== "default";
 
   return (
     <Box
@@ -23,15 +24,15 @@ export const SubcategoryPreselectionCard: FC<
       className="flex flex-col items-start overflow-hidden p-4"
       sx={{
         border:
-          isCarousel && isFocused
+          variant === "focused"
             ? `2px solid ${palette.main}`
             : `2px solid #ECECEC`,
         borderRadius: "16px",
         height: "100%",
-        opacity: isCarousel && !isFocused ? 0.5 : 1,
-        boxShadow: isCarousel && isFocused ? 2 : 0,
+        opacity: isUnfocused ? 0.5 : 1,
+        boxShadow: variant === "focused" ? 2 : 0,
         transition: "opacity 0.2s, border-color 0.2s, box-shadow 0.2s",
-        cursor: isCarousel ? "pointer" : "default",
+        cursor: isNotDefault ? "pointer" : "default",
       }}
     >
       <Box
@@ -42,7 +43,7 @@ export const SubcategoryPreselectionCard: FC<
           width: "100%",
           minHeight: 0,
           flex: 1,
-          pointerEvents: isCarousel && !isFocused ? "none" : "auto",
+          pointerEvents: isUnfocused ? "none" : "auto",
         }}
       >
         <CategoryCard
@@ -59,7 +60,7 @@ export const SubcategoryPreselectionCard: FC<
             <Fragment key={subcategory.id}>
               <SubcategoryPreselectionField
                 subcategory={subcategory}
-                disabled={isCarousel && !isFocused}
+                disabled={isUnfocused}
               />
               <Divider className="w-full" />
             </Fragment>

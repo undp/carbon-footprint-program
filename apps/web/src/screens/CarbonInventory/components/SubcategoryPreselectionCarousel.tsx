@@ -87,8 +87,7 @@ export const SubcategoryPreselectionCarousel: FC<
           <SubcategoryPreselectionCard
             key={category.id}
             category={category}
-            isFocused={false}
-            isCarousel={false}
+            variant="default"
           />
         ))}
       </Box>
@@ -120,8 +119,9 @@ export const SubcategoryPreselectionCarousel: FC<
         >
           <SubcategoryPreselectionCard
             category={category}
-            isFocused={resolvedFocusedId === category.id}
-            isCarousel
+            variant={
+              resolvedFocusedId === category.id ? "focused" : "unfocused"
+            }
             onClick={(e) => handleBoxClick(e, category.id, index)}
           />
         </Box>
