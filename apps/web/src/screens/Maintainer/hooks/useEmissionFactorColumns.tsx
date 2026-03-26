@@ -58,7 +58,7 @@ interface UseEmissionFactorColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: EmissionFactorForm) => void;
   onOpenGEIBreakdown: (rowIndex: number) => void;
-  rows: EmissionFactorForm[];
+  getValues: () => EmissionFactorForm[];
   subcategories: SubcategoryOption[];
   rateUnits: RateMeasurementUnit[];
   dimensionOptionsMap: Record<string, SubcategoryDimensions>;
@@ -208,14 +208,24 @@ export const useEmissionFactorColumns = ({
   onCancelEditRow,
   onDelete,
   onOpenGEIBreakdown,
-  rows,
+  getValues,
   subcategories,
   rateUnits,
   dimensionOptionsMap,
 }: UseEmissionFactorColumnsParams): GridColDef<EmissionFactor>[] => {
-  const getRowIndex = useCallback(
-    (rowId: string) => rows.findIndex((r) => r.id === rowId),
-    [rows]
+  // Row data is read via getValues (a stable function from the form) instead
+  // of a `rows` array prop.  This prevents a re-render loop: form.reset →
+  // useFieldArray reconciliation → new rows ref → columns recomputed →
+  // DataGrid re-measures → setState → repeat.
+  // renderCell calls getValues at render-time to always get the latest data
+  // while columns themselves stay referentially stable.
+  const getFormRow = useCallback(
+    (rowId: string) => {
+      const rows = getValues();
+      const index = rows.findIndex((r) => r.id === rowId);
+      return { index, row: rows[index] as EmissionFactorForm | undefined };
+    },
+    [getValues]
   );
   const isEditing = useCallback(
     (rowId: string) => editingRowId === rowId,
@@ -230,9 +240,8 @@ export const useEmissionFactorColumns = ({
         flex: 0.2,
         minWidth: 180,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
 
           if (editing) {
             return (
@@ -279,9 +288,8 @@ export const useEmissionFactorColumns = ({
         flex: 0.15,
         minWidth: 130,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
           const dimInfo =
             dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim1;
           const isDimEnabled = !!dimInfo?.required;
@@ -341,9 +349,8 @@ export const useEmissionFactorColumns = ({
         flex: 0.15,
         minWidth: 130,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
           const dimInfo =
             dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim2;
           const isDimEnabled = !!dimInfo?.required;
@@ -401,7 +408,7 @@ export const useEmissionFactorColumns = ({
         headerName: "Valor",
         width: 130,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
           return (
             <EditableNumberCell
@@ -425,9 +432,8 @@ export const useEmissionFactorColumns = ({
         flex: 0.12,
         minWidth: 120,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
 
           const selectedSubcategory = subcategories.find(
             (sc) => sc.id === formRow?.subcategoryId
@@ -482,9 +488,8 @@ export const useEmissionFactorColumns = ({
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
           const gd = formRow?.gasDetails;
           const hasBreakdown =
             gd &&
@@ -531,13 +536,13 @@ export const useEmissionFactorColumns = ({
         flex: 0.15,
         minWidth: 150,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const rowIndex = getRowIndex(params.row.id);
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const formRow = rows[rowIndex];
           const subcategoryId = formRow?.subcategoryId;
 
+          const allRows = getValues();
           const otherRowsWithSameSubcategory = subcategoryId
-            ? rows.filter(
+            ? allRows.filter(
                 (r) =>
                   r.subcategoryId === subcategoryId &&
                   r.id !== formRow?.id
@@ -576,8 +581,7 @@ export const useEmissionFactorColumns = ({
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
                 const anyEditing = editingRowId !== null;
-                const rowIndex = getRowIndex(params.row.id);
-                const formRow = rows[rowIndex];
+                const { row: formRow } = getFormRow(params.row.id);
 
                 return (
                   <ActionButtons
@@ -596,7 +600,8 @@ export const useEmissionFactorColumns = ({
     ],
     [
       viewOnly,
-      getRowIndex,
+      getFormRow,
+      getValues,
       isEditing,
       onCellChange,
       onStartEditRow,
@@ -605,7 +610,6 @@ export const useEmissionFactorColumns = ({
       dimensionOptionsMap,
       onOpenGEIBreakdown,
       editingRowId,
-      rows,
       onStopEditRow,
       onCancelEditRow,
       onDelete,

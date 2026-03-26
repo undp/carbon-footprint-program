@@ -293,25 +293,28 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     const rows = form.getValues("emissionFactors");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
 
-    if (isNewRow(editingRowId)) {
-      if (rowIndex !== -1) fieldArray.remove(rowIndex);
-    } else {
-      const original = emissionFactors?.find(({ id }) => id === editingRowId);
-      if (original && rowIndex !== -1) {
-        fieldArray.update(rowIndex, toFormEmissionFactor(original));
-      }
+    if (rowIndex === -1) {
+      setEditingRowId(null);
+      return;
     }
 
-    form.reset({ emissionFactors: form.getValues("emissionFactors") });
+    if (isNewRow(editingRowId)) {
+      form.reset({
+        emissionFactors: rows.filter((_, idx) => idx !== rowIndex),
+      });
+    } else {
+      const original = emissionFactors?.find(({ id }) => id === editingRowId);
+      form.reset({
+        emissionFactors: original
+          ? rows.map((row, idx) =>
+              idx === rowIndex ? toFormEmissionFactor(original) : row
+            )
+          : rows,
+      });
+    }
+
     setEditingRowId(null);
-  }, [
-    editingRowId,
-    form,
-    isNewRow,
-    fieldArray,
-    emissionFactors,
-    setEditingRowId,
-  ]);
+  }, [editingRowId, form, isNewRow, emissionFactors, setEditingRowId]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -467,6 +470,10 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   });
 
   // --- Column definitions ---
+  const getEmissionFactorValues = useCallback(
+    () => form.getValues("emissionFactors"),
+    [form]
+  );
   const columns = useEmissionFactorColumns({
     editingRowId,
     viewOnly: scope.isViewOnly,
@@ -476,7 +483,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
     onOpenGEIBreakdown: handleOpenGEIBreakdown,
-    rows: currentRows,
+    getValues: getEmissionFactorValues,
     subcategories: subcategoryOptions,
     rateUnits: rateUnitOptions,
     dimensionOptionsMap,
