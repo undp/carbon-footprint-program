@@ -148,7 +148,7 @@ export const selfDeclareCarbonInventoryService = async (
     await tx.submission.update({
       where: { id: submissionId },
       data: {
-        status: SubmissionStatus.APPROVED,
+        status: SubmissionStatus.APPROVED_AUTOMATICALLY,
         badgeId: activeBadge?.id,
         reviewerId: createdById,
         updatedById: createdById,
