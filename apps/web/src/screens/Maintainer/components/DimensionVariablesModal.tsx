@@ -89,7 +89,7 @@ const DimensionVariablesModalContent: FC<
     <>
       <DialogTitle>Configurar Variables — {dimensionName}</DialogTitle>
       <DialogContent>
-        {subcategoryHasEmissionFactors && (
+        {subcategoryHasEmissionFactors && !readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
             Esta dimensión tiene factores de emisión activos. Puedes agregar
             nuevas variables y renombrar las existentes, pero no eliminarlas.
