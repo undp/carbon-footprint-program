@@ -4,7 +4,11 @@ import { SubmissionStatus, SubmissionType } from "@repo/database/enums";
 
 const AdminRequestSchema = z.object({
   id: IdSchema.describe("The ID of the request"),
+  organizationId: IdSchema.describe("The ID of the organization"),
   organizationName: z.string().min(1).describe("The name of the organization"),
+  carbonInventoryId: IdSchema.nullable().describe(
+    "The ID of the carbon inventory"
+  ),
   type: z.enum(SubmissionType).describe("The type of the request"),
   year: z.number().int().nullable().describe("The year of the request"),
   status: z.enum(SubmissionStatus).describe("The status of the request"),
