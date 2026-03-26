@@ -22,7 +22,9 @@ export const useBusinessProfilingSubmit = ({
   onSuccess,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
-  const updateCarbonInventoryMutation = useUpdateCarbonInventory();
+  const updateCarbonInventoryMutation = useUpdateCarbonInventory(
+    inventoryId ?? ""
+  );
 
   const submit = useCallback(
     async (data: BusinessProfilingFormValues, isDirty: boolean) => {
@@ -40,10 +42,7 @@ export const useBusinessProfilingSubmit = ({
         }
 
         const requestData = mapFormValuesToRequest(data);
-        await updateCarbonInventoryMutation.mutateAsync({
-          id: inventoryId,
-          data: requestData,
-        });
+        await updateCarbonInventoryMutation.mutateAsync(requestData);
 
         enqueueSnackbar("Inventario organizacional guardado exitosamente", {
           variant: "success",

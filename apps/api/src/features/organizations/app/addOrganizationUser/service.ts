@@ -39,46 +39,21 @@ export const addOrganizationUserService = async (
     throw new UserNotFoundByEmailError(data.email);
   }
 
-  // Check for existing ACTIVE membership
-  const existingMembership =
+  // Check for existing ACTIVE membership (partial unique index also enforces this)
+  const activeMembership =
     await prismaClient.userOrganizationMembership.findFirst({
       where: {
         userId: targetUser.id,
         organizationId: organization.id,
+        status: MembershipStatus.ACTIVE,
       },
     });
 
-  if (
-    existingMembership &&
-    existingMembership.status === MembershipStatus.ACTIVE
-  ) {
+  if (activeMembership) {
     throw new MembershipAlreadyExistsError();
   }
 
-  if (
-    existingMembership &&
-    existingMembership.status === MembershipStatus.DELETED
-  ) {
-    const updatedMembership =
-      await prismaClient.userOrganizationMembership.update({
-        where: {
-          id: existingMembership.id,
-        },
-        data: {
-          role: data.role,
-          updatedById: user ? BigInt(user.id) : undefined,
-          status: MembershipStatus.ACTIVE,
-        },
-      });
-
-    return {
-      membershipId: updatedMembership.id.toString(),
-      userId: updatedMembership.userId.toString(),
-      role: updatedMembership.role,
-    };
-  }
-
-  // Create membership with provided role
+  // Always create a new membership row
   const membership = await prismaClient.userOrganizationMembership.create({
     data: {
       userId: targetUser.id,
@@ -86,6 +61,7 @@ export const addOrganizationUserService = async (
       role: data.role,
       status: MembershipStatus.ACTIVE,
       createdById: user ? BigInt(user.id) : undefined,
+      updatedAt: null,
     },
   });
 

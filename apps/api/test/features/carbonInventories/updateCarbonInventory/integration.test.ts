@@ -27,6 +27,8 @@ import {
   VALIDATION_ERROR_CODE,
   type ApiErrorResponse,
 } from "@/commonSchemas/errors.js";
+import { createTestMembership } from "../../../factories/membershipFactory.js";
+import { getTestLoggedUser } from "../../../factories/userFactory.js";
 
 describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
   let app: FastifyInstance;
@@ -280,6 +282,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
     });
 
     it("should set nullable fields to null", async () => {
+      const user = await getTestLoggedUser(prisma);
+
       const organization = await createTestOrganization(prisma);
       const organizationId = organization.id;
 
@@ -288,6 +292,8 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         organizationId,
         organizationBranchId: 456,
       });
+
+      await createTestMembership(prisma, user.id, organizationId);
 
       const response = await app.inject({
         method: "PATCH",

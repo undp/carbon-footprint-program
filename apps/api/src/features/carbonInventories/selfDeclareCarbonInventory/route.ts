@@ -1,5 +1,6 @@
 import { selfDeclareCarbonInventoryHandler } from "./handler.js";
 import {
+  OrganizationRole,
   SelfDeclareCarboInventoryParamsSchema,
   SelfDeclareCarbonInventoryResponseSchema,
 } from "@repo/types";
@@ -27,7 +28,13 @@ export const selfDeclareCarbonInventoryRoute: StandardRouteSignature = (
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
+          extractCarbonInventoryIdFromParams,
+          {
+            requiredOrganizationRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
         ),
       ],
     },

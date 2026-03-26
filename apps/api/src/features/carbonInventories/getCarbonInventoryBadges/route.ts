@@ -4,6 +4,7 @@ import {
   type GetCarbonInventoryBadgesParams,
 } from "@repo/types";
 import { getCarbonInventoryBadgesHandler } from "./handler.js";
+import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
 
@@ -22,6 +23,7 @@ export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
           "Get all badges associated with a carbon inventory. Only inventories with VERIFIED or SUBMITTED status will have badges.",
         response: {
           200: GetCarbonInventoryBadgesResponseSchema,
+          403: ApiErrorResponseSchema,
         },
       },
       config: {

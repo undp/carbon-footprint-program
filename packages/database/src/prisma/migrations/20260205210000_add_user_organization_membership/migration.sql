@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "membership_status" AS ENUM ('ACTIVE', 'DELETED');
+CREATE TYPE "membership_status" AS ENUM ('ACTIVE', 'OUTDATED', 'DELETED');
 
 -- CreateEnum
 CREATE TYPE "organization_role" AS ENUM ('VIEWER', 'CONTRIBUTOR', 'ADMIN');
@@ -20,7 +20,7 @@ CREATE TABLE "user_organization_membership" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "user_organization_membership_user_id_organization_id_role_key" ON "user_organization_membership"("user_id", "organization_id", "role");
+CREATE INDEX "user_organization_membership_user_id_organization_id_idx" ON "user_organization_membership"("user_id", "organization_id");
 
 -- AddForeignKey
 ALTER TABLE "user_organization_membership" ADD CONSTRAINT "user_organization_membership_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "user"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

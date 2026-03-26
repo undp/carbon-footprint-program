@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
 import { CarbonInventoryQueryKey } from "../keys";
+import { useAuthorizationHeader } from "../authHeaders";
 
 interface ToggleManualTotalEmissionsParams {
   activated: boolean;
@@ -11,13 +12,14 @@ export const useToggleManualTotalEmissions = (
   subcategoryId: string
 ) => {
   const queryClient = useQueryClient();
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<void, Error, ToggleManualTotalEmissionsParams>({
     mutationFn: ({ activated }) =>
       apiClient
         .post(
           `carbon-inventories/${inventoryId}/subcategories/${subcategoryId}/manual-total-emissions`,
-          { json: { activated } }
+          { json: { activated }, headers }
         )
         .json(),
     onSuccess: async () => {

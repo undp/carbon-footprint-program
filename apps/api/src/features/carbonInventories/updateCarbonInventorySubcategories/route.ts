@@ -6,6 +6,7 @@ import {
   UpdateCarbonInventorySubcategoriesParamsSchema,
   UpdateCarbonInventorySubcategoriesParams,
 } from "@repo/types";
+import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
@@ -30,6 +31,7 @@ export const updateCarbonInventorySubcategoriesRoute: StandardRouteSignature = (
         response: {
           200: UpdateCarbonInventorySubcategoriesResponseSchema,
           400: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
@@ -39,7 +41,13 @@ export const updateCarbonInventorySubcategoriesRoute: StandardRouteSignature = (
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
+          extractCarbonInventoryIdFromParams,
+          {
+            requiredOrganizationRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
         ),
       ],
     },

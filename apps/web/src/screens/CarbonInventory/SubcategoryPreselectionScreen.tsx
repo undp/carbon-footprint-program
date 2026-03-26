@@ -25,6 +25,7 @@ import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { VOCAB } from "@/config/vocab";
+import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 const ERROR_MESSAGE = {
   title:
@@ -40,7 +41,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
   });
   const { user } = useAuth();
 
-  const { data: existingInventory } = useCarbonInventory(inventoryId);
+  const { data: existingInventory, error: inventoryError } =
+    useCarbonInventory(inventoryId);
+
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
@@ -58,6 +61,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const { goBack, goNext } = useSubcategoryPreselectionNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();
+
+  useInventoryErrorHandler(inventoryError);
 
   const methods = useSubcategoryPreselectionForm({
     data: categories,

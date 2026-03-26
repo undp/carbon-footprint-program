@@ -23,6 +23,7 @@ export const getEmissionFactorsRoute: StandardRouteSignature = (
         params: GetEmissionFactorsParamsSchema,
         response: {
           200: GetEmissionFactorsResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

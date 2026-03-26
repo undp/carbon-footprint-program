@@ -36,17 +36,12 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
       SystemRole.SUPERADMIN,
     ])
   );
-  getAllCarbonInventoriesRoute(fastify);
-  getCarbonInventoryBadgesRoute(fastify, { public: true });
-  getCarbonInventoryByIdRoute(fastify, { public: true });
+
+  /* CALCULATOR ROUTES */
   createCarbonInventoryRoute(fastify, { public: true });
-  updateCarbonInventoryRoute(fastify, { public: true });
+  getCarbonInventoryByIdRoute(fastify, { public: true });
   getCarbonInventoryMethodologyRoute(fastify, { public: true });
   getCarbonInventorySubcategoriesSummaryRoute(fastify, { public: true });
-  addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
-  updateCarbonInventorySubcategoriesRoute(fastify, { public: true });
-  toggleManualTotalEmissionsRoute(fastify, { public: true });
-  syncCarbonInventoryLinesRoute(fastify, { public: true });
   getEmissionsSummaryCategoriesRoute(fastify, { public: true });
   getMainActivityEquivalenceRoute(fastify, { public: true });
   getSubcategoriesRankingRoute(fastify, { public: true });
@@ -55,10 +50,23 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getEmissionsDetailedSummaryRoute(fastify, { public: true });
   getEmissionFactorsRoute(fastify, { public: true });
   getCarbonInventoryMetadataRoute(fastify, { public: true });
+  // At the following routes, user needs at least CONTRIBUTOR org. role for this inventory
+  addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
+  updateCarbonInventoryRoute(fastify, { public: true });
+  updateCarbonInventorySubcategoriesRoute(fastify, { public: true });
+  toggleManualTotalEmissionsRoute(fastify, { public: true });
+  syncCarbonInventoryLinesRoute(fastify, { public: true });
+
+  /* GETTERS */
+  getCarbonInventoriesMinimalRoute(fastify);
+  getAllCarbonInventoriesRoute(fastify);
+  getCarbonInventoryBadgesRoute(fastify);
+
+  /* MANAGEMENT */
+  // user needs at least CONTRIBUTOR org. role for this inventory
+  selfDeclareCarbonInventoryRoute(fastify);
   requestCalculationRoute(fastify);
   requestVerificationRoute(fastify);
-  selfDeclareCarbonInventoryRoute(fastify);
-  getCarbonInventoriesMinimalRoute(fastify);
   duplicateCarbonInventoryRoute(fastify);
   deleteCarbonInventoryRoute(fastify);
 }

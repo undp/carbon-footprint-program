@@ -23,6 +23,7 @@ export const getCarbonInventoryMethodologyRoute: StandardRouteSignature = (
         params: GetCarbonInventoryMethodologyParamsSchema,
         response: {
           200: GetCarbonInventoryMethodologyResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

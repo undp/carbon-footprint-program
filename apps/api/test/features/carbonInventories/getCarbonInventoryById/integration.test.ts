@@ -28,6 +28,10 @@ import {
   cleanupTestOrganization,
   createTestOrganization,
 } from "@test/factories/organizationFactory.js";
+import {
+  cleanupTestMemberships,
+  createTestMembership,
+} from "@test/factories/membershipFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
 describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
@@ -47,6 +51,7 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestMemberships(prisma);
     await cleanupTestOrganization(prisma);
   });
 
@@ -78,6 +83,8 @@ describe("GET /api/carbon-inventories/:id - Integration Tests", () => {
       // Get a seeded organization to satisfy foreign key constraint
       const organization = await createTestOrganization(prisma);
       const organizationId = organization.id;
+
+      await createTestMembership(prisma, userId, organizationId);
 
       const testInventory = await createInventoryFromPattern(prisma, () =>
         carbonInventoryPatterns.complete(

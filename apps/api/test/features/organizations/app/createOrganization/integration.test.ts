@@ -179,6 +179,7 @@ describe("POST /api/app/organizations - Integration Tests", () => {
         where: {
           userId: testUser.id,
           organizationId: BigInt(body.id),
+          status: MembershipStatus.ACTIVE,
         },
         include: {
           organization: true,
