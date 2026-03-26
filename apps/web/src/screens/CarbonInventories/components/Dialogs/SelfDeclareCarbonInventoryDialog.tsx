@@ -91,10 +91,14 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <AutoAwesome
-                sx={{ color: theme.palette.info.main }}
+                sx={{ color: theme.palette.info.dark }}
                 fontSize="small"
               />
-              <Typography color="info" variant="subtitle2" fontWeight={600}>
+              <Typography
+                variant="subtitle2"
+                fontWeight={600}
+                sx={{ color: theme.palette.info.dark }}
+              >
                 ¡Felicitaciones por completar el cálculo de tu Huella de
                 Carbono!
               </Typography>
@@ -102,7 +106,10 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
 
             {isAutomaticRecognition && (
               <Box sx={{ mt: 1 }}>
-                <Typography color="info" variant="body2" sx={{ mb: 1.5 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 1.5, color: theme.palette.info.dark }}
+                >
                   Al <strong>autodeclarar</strong> tu huella de carbono,
                   recibirás automáticamente un{" "}
                   <strong>Diploma de Medición</strong> que reconoce que tu
@@ -123,14 +130,21 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   }}
                 >
                   <InfoOutlined
-                    sx={{ color: theme.palette.info.main, mt: 0.25 }}
+                    sx={{ color: theme.palette.info.dark, mt: 0.25 }}
                     fontSize="small"
                   />
                   <Box>
-                    <Typography color="info" variant="body2" fontWeight={600}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{ color: theme.palette.info.dark }}
+                    >
                       Importante:
                     </Typography>
-                    <Typography color="info" variant="body2">
+                    <Typography
+                      variant="body2"
+                      sx={{ color: theme.palette.info.dark }}
+                    >
                       El diploma{" "}
                       <strong>NO es un reconocimiento oficial</strong> ni
                       certifica que la medición haya sido verificada por Huella
@@ -140,7 +154,12 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   </Box>
                 </Box>
 
-                <Typography color="info" variant="body2">
+                <Typography
+                  sx={{
+                    color: theme.palette.info.dark,
+                  }}
+                  variant="body2"
+                >
                   Si deseas obtener el <strong>Sello de Verificación</strong>{" "}
                   (reconocimiento oficial), podrás postular tu huella al proceso
                   de verificación gubernamental desde la sección &quot;Mis
