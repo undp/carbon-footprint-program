@@ -5,12 +5,12 @@
  * carbon inventory.
  *
  * Access rules (evaluated in order):
- * a) Inventory without organization: only the creator has access.
- * b) Inventory with organization: only active org members have access.
+ * a) Anonymous user: access is granted if the request includes an
+ *    `x-carbon-inventory-uuid` header whose value matches the inventory's UUID.
+ * b) Inventory without organization: only the creator has access.
+ * c) Inventory with organization: only active org members have access.
  *    If `requiredOrganizationRoles` is specified, the member's role must
  *    be included in that list; otherwise any active membership suffices.
- * c) Anonymous user: access is granted if the request includes an
- *    `x-carbon-inventory-uuid` header whose value matches the inventory's UUID.
  *
  * This plugin depends on authorization-plugin and user-resolve-plugin.
  * Prisma is accessed via fastify.prisma (loaded alphabetically after this plugin).
@@ -77,11 +77,11 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    * to a carbon inventory.
    *
    * Access rules (evaluated in order):
-   * a) Inventory without organization: only the creator has access.
-   * b) Inventory with organization: only active org members have access.
+   * a) Anonymous user: access granted via `x-carbon-inventory-uuid` header matching.
+   * b) Inventory without organization: only the creator has access.
+   * c) Inventory with organization: only active org members have access.
    *    When `requiredOrganizationRoles` is provided, the member's role
    *    must be in that list or a 403 is returned.
-   * c) Anonymous user: access granted via `x-carbon-inventory-uuid` header matching.
    *
    * @param carbonInventoryIdExtractor - Function to extract carbon inventory ID from request
    * @param options - Optional configuration
@@ -172,7 +172,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
         });
       }
 
-      // Access rule c) Anonymous user: UUID matching
+      // Access rule a) Anonymous user: UUID matching
       if (!isAuthenticated) {
         const headerUuid = request.headers["x-carbon-inventory-uuid"];
         if (typeof headerUuid === "string" && headerUuid === inventory.uuid) {
@@ -195,7 +195,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
 
       const membership = inventory.organization?.memberships?.[0];
 
-      // Access rule a) Inventory without organization: only the creator has access
+      // Access rule b) Inventory without organization: only the creator has access
       if (!inventory.organizationId && inventory.createdById !== userId) {
         log.warn(
           {
@@ -210,7 +210,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
         });
       }
 
-      // Access rule b) Inventory with organization: only active org members have access
+      // Access rule c) Inventory with organization: only active org members have access
       if (inventory.organizationId && !membership) {
         log.warn(
           {
