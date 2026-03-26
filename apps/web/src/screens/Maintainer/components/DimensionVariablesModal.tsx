@@ -118,6 +118,7 @@ const DimensionVariablesModalContent: FC<
                   value={v.value}
                   onChange={(e) => handleChange(i, e.target.value)}
                   disabled={readOnly}
+                  autoFocus={v.id.startsWith("new_")}
                   error={duplicateIndices.has(i) || v.value.trim() === ""}
                   helperText={
                     duplicateIndices.has(i)
