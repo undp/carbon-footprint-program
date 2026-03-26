@@ -3,10 +3,10 @@ import { useQuery } from "@tanstack/react-query";
 import { STALE_TIME_MS } from "@/config/constants";
 import { apiClient } from "@/api/http";
 import { carbonInventoryKeys } from "../keys";
-import { useInventoryUuidHeader } from "../inventoryUuid";
+import { useAuthorizationHeader } from "../authHeaders";
 
 export const useCarbonInventoryMethodology = (inventoryId: string) => {
-  const { headers } = useInventoryUuidHeader(inventoryId);
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useQuery<GetCarbonInventoryMethodologyResponse>({
     queryKey: [...carbonInventoryKeys.methodology(inventoryId), headers],

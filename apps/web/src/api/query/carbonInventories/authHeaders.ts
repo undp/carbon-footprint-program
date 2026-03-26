@@ -2,11 +2,16 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const INVENTORY_UUID_PREFIX = "carbon-inventory-uuid:";
 
-export function saveInventoryUuid(inventoryId: string, uuid: string): void {
+export function saveInventoryUuidToLocalStorage(
+  inventoryId: string,
+  uuid: string
+): void {
   localStorage.setItem(`${INVENTORY_UUID_PREFIX}${inventoryId}`, uuid);
 }
 
-export function getInventoryUuid(inventoryId: string): string | null {
+export function getInventoryUuidFromLocalStorage(
+  inventoryId: string
+): string | null {
   return localStorage.getItem(`${INVENTORY_UUID_PREFIX}${inventoryId}`);
 }
 
@@ -14,7 +19,7 @@ export function getInventoryUuid(inventoryId: string): string | null {
  * Returns headers with `x-carbon-inventory-uuid` when the user is not authenticated
  * and a UUID is stored in localStorage for the given inventory.
  */
-export function useInventoryUuidHeader(inventoryId: string): {
+export function useAuthorizationHeader(inventoryId: string): {
   isAuthenticated: boolean;
   headers: Record<string, string>;
 } {
@@ -22,7 +27,7 @@ export function useInventoryUuidHeader(inventoryId: string): {
 
   const headers: Record<string, string> = {};
   if (!isAuthenticated) {
-    const uuid = getInventoryUuid(inventoryId);
+    const uuid = getInventoryUuidFromLocalStorage(inventoryId);
     if (uuid) {
       headers["x-carbon-inventory-uuid"] = uuid;
     }

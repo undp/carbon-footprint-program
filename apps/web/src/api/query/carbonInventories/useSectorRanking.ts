@@ -3,10 +3,10 @@ import type { GetSectorRankingResponse } from "@repo/types";
 import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
-import { useInventoryUuidHeader } from "./inventoryUuid";
+import { useAuthorizationHeader } from "./authHeaders";
 
 export const useSectorRanking = (id: string) => {
-  const { headers } = useInventoryUuidHeader(id);
+  const { headers } = useAuthorizationHeader(id);
 
   return useQuery<GetSectorRankingResponse>({
     queryKey: [...carbonInventoryKeys.sectorRanking(id), headers],

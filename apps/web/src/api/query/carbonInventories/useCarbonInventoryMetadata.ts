@@ -3,10 +3,10 @@ import type { GetCarbonInventoryMetadataResponse } from "@repo/types";
 import { carbonInventoryKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import { REFETCH_INTERVAL_MS, STALE_TIME_MS } from "@/config/constants";
-import { useInventoryUuidHeader } from "./inventoryUuid";
+import { useAuthorizationHeader } from "./authHeaders";
 
 export const useCarbonInventoryMetadata = (id: string) => {
-  const { headers } = useInventoryUuidHeader(id);
+  const { headers } = useAuthorizationHeader(id);
 
   return useQuery<GetCarbonInventoryMetadataResponse>({
     queryKey: [...carbonInventoryKeys.metadata(id), headers],

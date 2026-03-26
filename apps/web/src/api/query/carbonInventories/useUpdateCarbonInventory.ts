@@ -5,7 +5,7 @@ import {
 } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { CarbonInventoryQueryKey } from "./keys";
-import { useInventoryUuidHeader } from "./inventoryUuid";
+import { useAuthorizationHeader } from "./authHeaders";
 
 type UpdateCarbonInventoryVariables = {
   id: string;
@@ -14,7 +14,7 @@ type UpdateCarbonInventoryVariables = {
 
 export const useUpdateCarbonInventory = (inventoryId: string) => {
   const queryClient = useQueryClient();
-  const { headers } = useInventoryUuidHeader(inventoryId);
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<
     UpdateCarbonInventoryResponse,

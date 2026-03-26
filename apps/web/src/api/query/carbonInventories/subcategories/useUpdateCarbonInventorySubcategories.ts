@@ -3,7 +3,7 @@ import { apiClient } from "@/api/http/client";
 import { UpdateCarbonInventorySubcategoriesRequest } from "@repo/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { CarbonInventoryQueryKey } from "../keys";
-import { getInventoryUuid } from "../inventoryUuid";
+import { getInventoryUuidFromLocalStorage } from "../authHeaders";
 
 type UpdateCarbonInventorySubcategoriesVariables = {
   id: string;
@@ -18,7 +18,7 @@ export const useUpdateCarbonInventorySubcategories = () => {
     mutationFn: ({ id, data }: UpdateCarbonInventorySubcategoriesVariables) => {
       const headers: Record<string, string> = {};
       if (!isAuthenticated) {
-        const uuid = getInventoryUuid(id);
+        const uuid = getInventoryUuidFromLocalStorage(id);
         if (uuid) {
           headers["x-carbon-inventory-uuid"] = uuid;
         }

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http";
 import { CarbonInventoryQueryKey } from "../keys";
-import { useInventoryUuidHeader } from "../inventoryUuid";
+import { useAuthorizationHeader } from "../authHeaders";
 
 interface ToggleManualTotalEmissionsParams {
   activated: boolean;
@@ -12,7 +12,7 @@ export const useToggleManualTotalEmissions = (
   subcategoryId: string
 ) => {
   const queryClient = useQueryClient();
-  const { headers } = useInventoryUuidHeader(inventoryId);
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<void, Error, ToggleManualTotalEmissionsParams>({
     mutationFn: ({ activated }) =>
