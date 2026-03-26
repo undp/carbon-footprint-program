@@ -2,7 +2,7 @@
 CREATE TYPE "submission_type" AS ENUM ('ORGANIZATION_ACCREDITATION', 'CARBON_INVENTORY_CALCULATION', 'CARBON_INVENTORY_VERIFICATION', 'REDUCTION_PLAN_VERIFICATION', 'NEUTRALIZATION_PLAN_VERIFICATION');
 
 -- CreateEnum
-CREATE TYPE "submission_status" AS ENUM ('PENDING', 'APPROVED', 'REVIEWED', 'REJECTED');
+CREATE TYPE "submission_status" AS ENUM ('PENDING', 'APPROVED', 'APPROVED_AUTOMATICALLY', 'REVIEWED', 'REJECTED');
 
 -- CreateTable
 CREATE TABLE "submission_subject" (
@@ -79,4 +79,4 @@ ALTER TABLE "submission" ADD CONSTRAINT "submission_created_by_id_fkey" FOREIGN 
 ALTER TABLE "submission" ADD CONSTRAINT "submission_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- Only one submission can be PENDING or APPROVED for a submission subject
-CREATE UNIQUE INDEX "submission_only_one_pending_or_approved_per_subject" ON "submission"("type", "subject_id") WHERE "status" IN ('PENDING', 'APPROVED');
+CREATE UNIQUE INDEX "submission_only_one_pending_or_approved_per_subject" ON "submission"("type", "subject_id") WHERE "status" IN ('PENDING', 'APPROVED', 'APPROVED_AUTOMATICALLY');
