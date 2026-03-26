@@ -31,6 +31,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponse } from "../../../../src/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "../../../../src/features/carbonInventories/helpers.js";
+import { createTestMembership } from "../../../factories/membershipFactory.js";
 
 describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", () => {
   let app: FastifyInstance;
@@ -63,6 +64,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
   async function createSelfDeclarableInventory() {
     const user = await getTestLoggedUser(prisma);
     const org = await createTestOrganization(prisma);
+    await createTestMembership(prisma, user.id, org.id);
 
     const inventory = await createInventoryFromPattern(
       prisma,
@@ -235,6 +237,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
     });
 
     it("should return 422 when inventory has no year", async () => {
+      const user = await getTestLoggedUser(prisma);
       const org = await createTestOrganization(prisma);
 
       const inventory = await createInventoryFromPattern(
@@ -242,6 +245,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
         carbonInventoryPatterns.simplifiedDraft,
         { organizationId: org.id }
       );
+      await createTestMembership(prisma, user.id, org.id);
 
       const response = await app.inject({
         method: "POST",

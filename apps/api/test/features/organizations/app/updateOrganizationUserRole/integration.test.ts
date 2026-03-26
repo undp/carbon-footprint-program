@@ -13,7 +13,7 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { UpdateOrganizationUserRoleResponse } from "@repo/types";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
-import { OrganizationRole } from "@repo/database/enums";
+import { MembershipStatus, OrganizationRole } from "@repo/database/enums";
 import {
   createTestOrganization,
   cleanupTestOrganization,
@@ -218,11 +218,12 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.ACTIVE,
         },
       });
 
       expect(membership!.role).toBe(OrganizationRole.CONTRIBUTOR);
-      expect(membership!.updatedById).toBe(testUser.id);
+      expect(membership!.createdById).toBe(testUser.id);
     });
 
     it("should update user role from VIEWER to ADMIN", async () => {
@@ -256,6 +257,7 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.ACTIVE,
         },
       });
       expect(membership!.updatedById).toBe(testUser.id);

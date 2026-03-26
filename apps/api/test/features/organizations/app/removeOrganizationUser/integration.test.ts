@@ -195,6 +195,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.DELETED,
         },
       });
 
@@ -226,6 +227,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.ACTIVE,
         },
       });
       expect(membership!.updatedById).toBe(testUser.id);
@@ -254,6 +256,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.DELETED,
         },
       });
 
