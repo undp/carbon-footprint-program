@@ -5,3 +5,5 @@ export * from "./EmissionEditor";
 export * from "./StepHeader";
 export * from "./CarbonInventoryNavigationButton";
 export * from "./ExitInventoryDialog";
+export * from "./SubcategoryPreselectionCard";
+export * from "./SubcategoryPreselectionCarousel";

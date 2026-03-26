@@ -6,12 +6,15 @@ import { useExplanationDialog } from "../../../contexts";
 
 export const SubcategoryPreselectionField = ({
   subcategory,
+  disabled: disabledProp = false,
 }: {
   subcategory: SubcategoryPreselectionMergedData[number]["subcategories"][number];
+  disabled?: boolean;
 }) => {
   const { openExplanation } = useExplanationDialog();
   const { control } = useFormContext();
-  const disabled = subcategory.edited;
+  const editDisabled = subcategory.edited;
+  const disabled = disabledProp || editDisabled;
 
   return (
     <Controller
@@ -27,7 +30,7 @@ export const SubcategoryPreselectionField = ({
         return (
           <Tooltip
             title={
-              disabled
+              editDisabled
                 ? "No se puede quitar porque tiene emisiones registradas. Elimine las emisiones primero."
                 : ""
             }

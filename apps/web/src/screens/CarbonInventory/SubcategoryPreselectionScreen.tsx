@@ -1,12 +1,12 @@
-import { FC, Fragment } from "react";
-import { Box, Divider } from "@mui/material";
+import { FC } from "react";
+import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import {
   StepHeader,
-  SubcategoryPreselectionField,
+  SubcategoryPreselectionCarousel,
   ExitInventoryDialog,
   CarbonInventoryNavigationButton,
 } from "./components";
@@ -15,7 +15,6 @@ import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
-import { CategoryCard } from "./components/CategoryCard";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -148,41 +147,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
               title="Paso 2: Fuentes o actividades sugeridas"
               description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
             />
-            <Box className="flex min-h-0 flex-1 flex-row gap-4 overflow-x-auto">
-              {categories.map((category) => (
-                <Box
-                  key={category.id}
-                  className="flex min-w-[300px] flex-1 flex-col items-start overflow-hidden p-4"
-                  sx={{
-                    border: `1px solid #ECECEC`,
-                    borderRadius: `16px`,
-                  }}
-                >
-                  {/* Header */}
-                  <CategoryCard
-                    icon={category.icon}
-                    categoryColor={category.color}
-                    subtitle={category.synonyms || ""}
-                    title={category.name}
-                    description={category.description || ""}
-                    explanationId={category.explanationId}
-                  />
-                  {/*  Body */}
-                  <Divider className="w-full pt-4" />
-
-                  <Box className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
-                    {category.subcategories.map((subcategory) => (
-                      <Fragment key={subcategory.id}>
-                        <SubcategoryPreselectionField
-                          subcategory={subcategory}
-                        />
-                        <Divider className="w-full" />
-                      </Fragment>
-                    ))}
-                  </Box>
-                </Box>
-              ))}
-            </Box>
+            <SubcategoryPreselectionCarousel categories={categories} />
           </Box>
         </CarbonInventoryLayout>
       </form>
