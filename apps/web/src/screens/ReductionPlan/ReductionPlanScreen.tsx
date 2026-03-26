@@ -138,17 +138,24 @@ export const ReductionPlanScreen: FC = () => {
               )}
 
               {/* Subcategory groups with initiatives */}
+              {/* TODO: reduction-plan evaluate if structuring the response as categories: { id: string, name: string, color: string, subcategories: Subcategory[] union initiatives: Initiative[] } is better */}
               {filteredSubcategories.length > 0 ? (
-                <Box className="flex flex-col gap-4">
-                  {filteredSubcategories.map((subcategory) => (
-                    <SubcategoryInitiativeGroup
-                      key={subcategory.id}
-                      name={subcategory.name}
-                      icon={subcategory.icon}
-                      description={subcategory.description}
-                      initiatives={subcategory.initiatives}
-                    />
-                  ))}
+                <Box className="flex flex-col gap-6">
+                  {filteredSubcategories.map((subcategory) => {
+                    const category = reductionPlan?.categories.find(
+                      (c) => c.id === subcategory.categoryId
+                    );
+                    return (
+                      <SubcategoryInitiativeGroup
+                        key={subcategory.id}
+                        name={subcategory.name}
+                        icon={subcategory.icon}
+                        description={subcategory.description}
+                        initiatives={subcategory.initiatives}
+                        categoryColor={category!.color}
+                      />
+                    );
+                  })}
                 </Box>
               ) : (
                 <Box className="flex flex-1 items-center justify-center py-8">

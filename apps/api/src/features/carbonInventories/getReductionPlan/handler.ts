@@ -19,4 +19,3 @@ export const getReductionPlanHandler = async (
   log.info({ carbonInventoryId }, "Reduction plan retrieved successfully");
   return reply.status(200).send(data);
 };
-

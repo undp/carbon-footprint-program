@@ -1,34 +1,31 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
-import type { IconName } from "@repo/types";
+import type { GetReductionPlanResponse } from "@repo/types";
 import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
+import { getColorPalette } from "@/utils/categoryColors";
 import { InitiativeCard } from "./InitiativeCard";
 
-//TODO: reduction-plan use types from @repo/types
-interface Initiative {
-  id: string;
-  title: string;
-  description: string;
+type Subcategory = GetReductionPlanResponse["subcategories"][number];
+
+interface SubcategoryInitiativeGroupProps
+  extends Pick<Subcategory, "name" | "icon" | "description" | "initiatives"> {
+  categoryColor: string;
 }
 
-//TODO: reduction-plan use types from @repo/types
-interface SubcategoryInitiativeGroupProps {
-  name: string;
-  icon: IconName;
-  description: string;
-  initiatives: Initiative[];
-}
-
-// TODO: reduction-plan add border with category color and shadow
 export const SubcategoryInitiativeGroup: FC<
   SubcategoryInitiativeGroupProps
-> = ({ name, icon, description, initiatives }) => {
+> = ({ name, icon, description, initiatives, categoryColor }) => {
   const IconComponent = CATEGORY_ICON_MAP[icon];
+  const categoryColorPalette = getColorPalette(categoryColor);
 
   return (
     <Box
-      className="flex flex-col gap-4 rounded-lg px-4 py-2"
-      sx={{ backgroundColor: "rgba(65,64,70,0.03)" }}
+      className="flex flex-col gap-2 rounded-lg p-4"
+      sx={{
+        backgroundColor: "rgba(65,64,70,0.03)",
+        border: `1px solid ${categoryColorPalette.main}`,
+        boxShadow: `0px 1px 4px ${categoryColorPalette.light}`,
+      }}
     >
       {/* Subcategory header */}
       <Box className="flex items-center gap-2">
