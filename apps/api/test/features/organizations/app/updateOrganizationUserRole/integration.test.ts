@@ -252,14 +252,17 @@ describe("PATCH /api/app/organizations/:organizationId/users/:userId - Integrati
 
       expect(body.role).toBe(OrganizationRole.ADMIN);
 
-      // Verify updatedById is set
+      // Verify updatedById is set on the deleted membership
       const membership = await prisma.userOrganizationMembership.findFirst({
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
-          status: MembershipStatus.ACTIVE,
+          status: {
+            in: [MembershipStatus.OUTDATED, MembershipStatus.DELETED],
+          },
         },
       });
+      expect(membership).toBeDefined();
       expect(membership!.updatedById).toBe(testUser.id);
     });
 
