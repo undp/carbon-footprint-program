@@ -3,6 +3,7 @@ import type { GetReductionPlanResponse } from "@repo/types";
 import { IconNameSchema } from "@repo/types";
 import { fetchInventory } from "../helpers.js";
 
+// TODO: reduction-plan I think this endpoint could be simpler if we try to move most of the logic to a single prisma query
 export const getReductionPlanService = async (
   prismaClient: PrismaClient,
   id: string
@@ -22,7 +23,7 @@ export const getReductionPlanService = async (
   ];
 
   if (inventorySubcategoryIds.length === 0) {
-    return { categories: [], subcategories: [] };
+    return { categories: [] };
   }
 
   // Fetch active initiatives for those subcategories
@@ -41,7 +42,7 @@ export const getReductionPlanService = async (
   });
 
   if (initiatives.length === 0) {
-    return { categories: [], subcategories: [] };
+    return { categories: [] };
   }
 
   // Get subcategory IDs that actually have initiatives
@@ -89,24 +90,28 @@ export const getReductionPlanService = async (
     initiativesBySubcategory.set(initiative.subcategoryId, existing);
   }
 
-  // Build subcategories response
-  const subcategoriesResponse = subcategories.map((sub) => ({
-    id: sub.id.toString(),
-    name: sub.name,
-    icon: IconNameSchema.parse(sub.icon),
-    description: sub.description,
-    categoryId: sub.categoryId.toString(),
-    initiatives: (initiativesBySubcategory.get(sub.id) || []).map((i) => ({
-      id: i.id.toString(),
-      title: i.title,
-      description: i.description,
-    })),
-  }));
+  // Group subcategories by category, nesting initiatives
+  const subcategorysByCategory = new Map<bigint, typeof subcategories>();
+  for (const sub of subcategories) {
+    const existing = subcategorysByCategory.get(sub.categoryId) || [];
+    existing.push(sub);
+    subcategorysByCategory.set(sub.categoryId, existing);
+  }
 
-  // Build categories response with initiative counts
+  // Build categories response with nested subcategories and initiatives
   const categoriesResponse = categories.map((cat) => {
-    const catSubcategories = subcategoriesResponse.filter(
-      (s) => s.categoryId === cat.id.toString()
+    const catSubcategories = (subcategorysByCategory.get(cat.id) || []).map(
+      (sub) => ({
+        id: sub.id.toString(),
+        name: sub.name,
+        icon: IconNameSchema.parse(sub.icon),
+        description: sub.description,
+        initiatives: (initiativesBySubcategory.get(sub.id) || []).map((i) => ({
+          id: i.id.toString(),
+          title: i.title,
+          description: i.description,
+        })),
+      })
     );
     const initiativeCount = catSubcategories.reduce(
       (sum, s) => sum + s.initiatives.length,
@@ -122,11 +127,11 @@ export const getReductionPlanService = async (
       description: cat.description,
       explanationId: cat.explanationId?.toString() ?? null,
       initiativeCount,
+      subcategories: catSubcategories,
     };
   });
 
   return {
     categories: categoriesResponse,
-    subcategories: subcategoriesResponse,
   };
 };

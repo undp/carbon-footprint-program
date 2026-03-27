@@ -17,11 +17,10 @@ const SubcategoryWithInitiativesSchema = z.object({
   name: z.string(),
   icon: IconNameSchema,
   description: z.string(),
-  categoryId: IdSchema,
   initiatives: z.array(InitiativeItemSchema),
 });
 
-const CategorySummarySchema = z.object({
+const CategoryWithSubcategoriesSchema = z.object({
   id: IdSchema,
   name: z.string(),
   synonyms: z.string(),
@@ -31,9 +30,9 @@ const CategorySummarySchema = z.object({
   description: z.string(),
   explanationId: IdSchema.nullable(),
   initiativeCount: z.number().int().nonnegative(),
+  subcategories: z.array(SubcategoryWithInitiativesSchema),
 });
 
 export const GetReductionPlanResponseSchema = z.object({
-  categories: z.array(CategorySummarySchema),
-  subcategories: z.array(SubcategoryWithInitiativesSchema),
+  categories: z.array(CategoryWithSubcategoriesSchema),
 });

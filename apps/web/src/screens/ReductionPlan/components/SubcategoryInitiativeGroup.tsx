@@ -5,7 +5,8 @@ import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 import { InitiativeCard } from "./InitiativeCard";
 
-type Subcategory = GetReductionPlanResponse["subcategories"][number];
+type Subcategory =
+  GetReductionPlanResponse["categories"][number]["subcategories"][number];
 
 interface SubcategoryInitiativeGroupProps
   extends Pick<Subcategory, "name" | "icon" | "description" | "initiatives"> {
