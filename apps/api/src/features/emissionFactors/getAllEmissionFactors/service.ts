@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import type { Prisma, PrismaClient } from "@repo/database";
 import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
@@ -14,51 +14,52 @@ export const getAllEmissionFactorsService = async (
   query: GetAllEmissionFactorsQuery | null,
   _user: User | null
 ): Promise<GetAllEmissionFactorsResponse> => {
+  const whereClause: Prisma.EmissionFactorWhereInput = {
+    ...(query?.methodologyVersionId
+      ? {
+          subcategory: {
+            category: {
+              methodologyVersionId: BigInt(query.methodologyVersionId),
+            },
+          },
+        }
+      : {}),
+    status: EmissionFactorStatus.ACTIVE,
+    AND: [
+      {
+        OR: [
+          { dimensionValue1Id: null },
+          {
+            dimensionValue1: {
+              is: {
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                dimension: {
+                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                },
+              },
+            },
+          },
+        ],
+      },
+      {
+        OR: [
+          { dimensionValue2Id: null },
+          {
+            dimensionValue2: {
+              is: {
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                dimension: {
+                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                },
+              },
+            },
+          },
+        ],
+      },
+    ],
+  };
+
   const emissionFactors = await prismaClient.emissionFactor.findMany({
-    where: {
-      ...(query?.methodologyVersionId
-        ? {
-            subcategory: {
-              category: {
-                methodologyVersionId: BigInt(query.methodologyVersionId),
-              },
-            },
-          }
-        : {}),
-      status: EmissionFactorStatus.ACTIVE,
-      AND: [
-        {
-          OR: [
-            { dimensionValue1Id: null },
-            {
-              dimensionValue1: {
-                is: {
-                  status: EmissionFactorDimensionValueStatus.ACTIVE,
-                  dimension: {
-                    is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                  },
-                },
-              },
-            },
-          ],
-        },
-        {
-          OR: [
-            { dimensionValue2Id: null },
-            {
-              dimensionValue2: {
-                is: {
-                  status: EmissionFactorDimensionValueStatus.ACTIVE,
-                  dimension: {
-                    is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      ],
-    },
     include: {
       subcategory: {
         select: { id: true, name: true },
@@ -73,6 +74,7 @@ export const getAllEmissionFactorsService = async (
         select: { id: true, name: true },
       },
     },
+    where: whereClause,
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
       { subcategory: { name: "asc" } },

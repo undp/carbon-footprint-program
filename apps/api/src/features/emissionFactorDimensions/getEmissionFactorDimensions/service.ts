@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import type { Prisma, PrismaClient } from "@repo/database";
 import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
@@ -14,17 +14,18 @@ export const getEmissionFactorDimensionsService = async (
   query: GetEmissionFactorDimensionsQuery | null,
   _user: User | null
 ): Promise<GetEmissionFactorDimensionsResponse> => {
+  const whereClause: Prisma.SubcategoryWhereInput = {
+    ...(query?.methodologyVersionId
+      ? {
+          category: {
+            methodologyVersionId: BigInt(query.methodologyVersionId),
+          },
+        }
+      : {}),
+    status: SubcategoryStatus.ACTIVE,
+  };
+
   const subcategories = await prismaClient.subcategory.findMany({
-    where: {
-      ...(query?.methodologyVersionId
-        ? {
-            category: {
-              methodologyVersionId: BigInt(query.methodologyVersionId),
-            },
-          }
-        : {}),
-      status: SubcategoryStatus.ACTIVE,
-    },
     select: {
       id: true,
       name: true,
@@ -63,6 +64,7 @@ export const getEmissionFactorDimensionsService = async (
         orderBy: { position: "asc" },
       },
     },
+    where: whereClause,
     orderBy: [{ category: { position: "asc" } }, { name: "asc" }],
   });
 
