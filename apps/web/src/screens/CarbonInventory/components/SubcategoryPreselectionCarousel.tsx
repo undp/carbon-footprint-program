@@ -4,7 +4,8 @@ import { Carousel } from "./Carousel";
 import type { SubcategoryPreselectionMergedData } from "../types";
 
 const PEEK_WIDTH = 96;
-const VISIBLE_CARDS = 3;
+const VISIBLE_CARDS = 2;
+const CAROUSEL_THRESHOLD = 3;
 
 interface SubcategoryPreselectionCarouselProps {
   categories: SubcategoryPreselectionMergedData;
@@ -17,7 +18,7 @@ export const SubcategoryPreselectionCarousel: FC<
     categories[0]?.id ?? ""
   );
 
-  const needsCarousel = categories.length > VISIBLE_CARDS;
+  const needsCarousel = categories.length > CAROUSEL_THRESHOLD;
 
   // If the focused category no longer exists in the list, fall back to the first one
   const resolvedFocusedId =
@@ -47,6 +48,7 @@ export const SubcategoryPreselectionCarousel: FC<
       items={categories}
       peekWidth={PEEK_WIDTH}
       visibleCards={VISIBLE_CARDS}
+      carouselThreshold={CAROUSEL_THRESHOLD}
       focusedIndex={focusedIndex}
       onFocusedIndexChange={handleFocusedIndexChange}
       fallbackClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"

@@ -24,6 +24,8 @@ interface CarouselProps<T extends { id: string }> {
   /** When provided together with onFocusedIndexChange, enables keyboard navigation and auto-scroll */
   focusedIndex?: number;
   onFocusedIndexChange?: (index: number) => void;
+  /** Minimum item count to trigger carousel mode. Defaults to visibleCards. */
+  carouselThreshold?: number;
 }
 
 function CarouselComponent<T extends { id: string }>({
@@ -36,11 +38,12 @@ function CarouselComponent<T extends { id: string }>({
   fallbackClassName = "flex flex-row gap-4",
   focusedIndex,
   onFocusedIndexChange,
+  carouselThreshold,
 }: CarouselProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
-  const needsCarousel = items.length > visibleCards;
+  const needsCarousel = items.length > (carouselThreshold ?? visibleCards);
 
   // Measure container width with RAF-batched ResizeObserver
   useEffect(() => {
