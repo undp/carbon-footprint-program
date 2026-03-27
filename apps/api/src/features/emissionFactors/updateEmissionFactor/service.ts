@@ -32,7 +32,7 @@ export const updateEmissionFactorService = async (
       id: emissionFactorId,
       status: { not: EmissionFactorStatus.DELETED },
     },
-    select: { id: true, subcategoryId: true, dimensionValue1Id: true, dimensionValue2Id: true, gasDetails: true, value: true },
+    select: { id: true, subcategoryId: true, source: true, dimensionValue1Id: true, dimensionValue2Id: true, gasDetails: true, value: true },
   });
 
   if (!existing) {
@@ -40,7 +40,8 @@ export const updateEmissionFactorService = async (
   }
 
   // Enforce: all active EFs for a subcategory must share the same source
-  if (data.source !== undefined) {
+  if (data.source !== undefined || data.subcategoryId !== undefined) {
+    const effectiveSource = data.source ?? existing.source;
     const targetSubcategoryId =
       data.subcategoryId !== undefined
         ? BigInt(data.subcategoryId)
@@ -55,7 +56,7 @@ export const updateEmissionFactorService = async (
       select: { source: true },
     });
 
-    if (existingSource && existingSource.source !== data.source) {
+    if (existingSource && existingSource.source !== effectiveSource) {
       throw new EmissionFactorSourceConflictError(existingSource.source);
     }
   }
