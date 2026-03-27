@@ -1,4 +1,4 @@
-import { FC, useMemo, useCallback } from "react";
+import { FC, useMemo, useCallback, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
@@ -47,6 +47,14 @@ export const EmissionCaptureScreen: FC = () => {
   const { data, isLoading: isEmissionCaptureLoading } = useEmissionCaptureData({
     inventoryId,
   });
+
+  // Default to first category once data loads if current selection doesn't match any category
+  useEffect(() => {
+    if (!data?.categories.length) return;
+    if (!data.categories.some((c) => c.id === selectedCategory)) {
+      handleCategoryChange(data.categories[0].id);
+    }
+  }, [data?.categories, selectedCategory, handleCategoryChange]);
 
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();

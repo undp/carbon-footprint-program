@@ -1,4 +1,4 @@
-import { FC, Fragment, MouseEvent } from "react";
+import { FC, Fragment } from "react";
 import { Box, Divider } from "@mui/material";
 import { CategoryCard } from "./CategoryCard";
 import { SubcategoryPreselectionField } from "./SubcategoryPreselectionField";
@@ -8,7 +8,7 @@ import { getColorPalette } from "@/utils/categoryColors";
 interface SubcategoryPreselectionCardProps {
   category: SubcategoryPreselectionMergedData[number];
   variant: "default" | "focused" | "unfocused";
-  onClick?: (e: MouseEvent) => void;
+  onClick?: () => void;
 }
 
 export const SubcategoryPreselectionCard: FC<

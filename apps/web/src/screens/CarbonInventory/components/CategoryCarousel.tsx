@@ -1,6 +1,6 @@
-import { FC, useCallback, useRef } from "react";
+import { FC, useCallback } from "react";
 import { CategoryCard } from "./CategoryCard";
-import { Carousel, CarouselHandle } from "./Carousel";
+import { Carousel } from "./Carousel";
 
 const PEEK_WIDTH = 48;
 const VISIBLE_CARDS = 3;
@@ -26,17 +26,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
   selectedCategoryId,
   onCategorySelect,
 }) => {
-  const carouselRef = useRef<CarouselHandle>(null);
-
   const focusedIndex = categories.findIndex((c) => c.id === selectedCategoryId);
-
-  const handleCardClick = useCallback(
-    (categoryId: string, index: number) => {
-      carouselRef.current?.scrollToIndex(index);
-      onCategorySelect(categoryId);
-    },
-    [onCategorySelect]
-  );
 
   const handleFocusedIndexChange = useCallback(
     (index: number) => {
@@ -47,13 +37,12 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
 
   return (
     <Carousel
-      ref={carouselRef}
       items={categories}
       peekWidth={PEEK_WIDTH}
       visibleCards={VISIBLE_CARDS}
       focusedIndex={focusedIndex}
       onFocusedIndexChange={handleFocusedIndexChange}
-      renderItem={(category, index, isCarousel) => (
+      renderItem={(category) => (
         <CategoryCard
           key={`category_${category.id}`}
           icon={category.icon}
@@ -63,11 +52,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
           subtitle={category.synonyms}
           description={category.description}
           explanationId={category.explanationId}
-          onClick={
-            isCarousel
-              ? () => handleCardClick(category.id, index)
-              : () => onCategorySelect(category.id)
-          }
+          onClick={() => onCategorySelect(category.id)}
         />
       )}
     />

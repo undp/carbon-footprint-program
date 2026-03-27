@@ -1,6 +1,6 @@
-import { FC, MouseEvent, useCallback, useRef, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import { SubcategoryPreselectionCard } from "./SubcategoryPreselectionCard";
-import { Carousel, CarouselHandle } from "./Carousel";
+import { Carousel } from "./Carousel";
 import type { SubcategoryPreselectionMergedData } from "../types";
 
 const PEEK_WIDTH = 96;
@@ -13,7 +13,6 @@ interface SubcategoryPreselectionCarouselProps {
 export const SubcategoryPreselectionCarousel: FC<
   SubcategoryPreselectionCarouselProps
 > = ({ categories }) => {
-  const carouselRef = useRef<CarouselHandle>(null);
   const [focusedCategoryId, setFocusedCategoryId] = useState<string>(
     categories[0]?.id ?? ""
   );
@@ -29,10 +28,9 @@ export const SubcategoryPreselectionCarousel: FC<
   const focusedIndex = categories.findIndex((c) => c.id === resolvedFocusedId);
 
   const handleBoxClick = useCallback(
-    (_e: MouseEvent, categoryId: string, index: number) => {
+    (categoryId: string) => {
       if (!needsCarousel) return;
       setFocusedCategoryId(categoryId);
-      carouselRef.current?.scrollToIndex(index);
     },
     [needsCarousel]
   );
@@ -46,7 +44,6 @@ export const SubcategoryPreselectionCarousel: FC<
 
   return (
     <Carousel
-      ref={carouselRef}
       items={categories}
       peekWidth={PEEK_WIDTH}
       visibleCards={VISIBLE_CARDS}
@@ -54,7 +51,7 @@ export const SubcategoryPreselectionCarousel: FC<
       onFocusedIndexChange={handleFocusedIndexChange}
       fallbackClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"
       carouselSx={{ alignItems: "stretch", minHeight: 0, flex: 1 }}
-      renderItem={(category, index, isCarousel) =>
+      renderItem={(category, _index, isCarousel) =>
         isCarousel ? (
           <SubcategoryPreselectionCard
             key={`carousel_${category.id}`}
@@ -62,7 +59,7 @@ export const SubcategoryPreselectionCarousel: FC<
             variant={
               resolvedFocusedId === category.id ? "focused" : "unfocused"
             }
-            onClick={(e) => handleBoxClick(e, category.id, index)}
+            onClick={() => handleBoxClick(category.id)}
           />
         ) : (
           <SubcategoryPreselectionCard

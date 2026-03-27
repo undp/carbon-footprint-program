@@ -1,9 +1,7 @@
 import {
-  forwardRef,
   ReactNode,
   useCallback,
   useEffect,
-  useImperativeHandle,
   useMemo,
   useRef,
   useState,
@@ -15,10 +13,6 @@ const DEFAULT_GAP = 16;
 const DEFAULT_PEEK_WIDTH = 48;
 const DEFAULT_VISIBLE_CARDS = 3;
 
-export interface CarouselHandle {
-  scrollToIndex: (index: number, behavior?: ScrollBehavior) => void;
-}
-
 interface CarouselProps<T extends { id: string }> {
   items: T[];
   gap?: number;
@@ -27,45 +21,48 @@ interface CarouselProps<T extends { id: string }> {
   renderItem: (item: T, index: number, isCarousel: boolean) => ReactNode;
   carouselSx?: Record<string, CSSProperties[keyof CSSProperties]>;
   fallbackClassName?: string;
-  /** When provided together with onFocusedIndexChange, enables keyboard navigation */
+  /** When provided together with onFocusedIndexChange, enables keyboard navigation and auto-scroll */
   focusedIndex?: number;
   onFocusedIndexChange?: (index: number) => void;
 }
 
-function CarouselInner<T extends { id: string }>(
-  {
-    items,
-    gap = DEFAULT_GAP,
-    peekWidth = DEFAULT_PEEK_WIDTH,
-    visibleCards = DEFAULT_VISIBLE_CARDS,
-    renderItem,
-    carouselSx,
-    fallbackClassName = "flex flex-row gap-4",
-    focusedIndex,
-    onFocusedIndexChange,
-  }: CarouselProps<T>,
-  ref: React.ForwardedRef<CarouselHandle>
-) {
+function CarouselComponent<T extends { id: string }>({
+  items,
+  gap = DEFAULT_GAP,
+  peekWidth = DEFAULT_PEEK_WIDTH,
+  visibleCards = DEFAULT_VISIBLE_CARDS,
+  renderItem,
+  carouselSx,
+  fallbackClassName = "flex flex-row gap-4",
+  focusedIndex,
+  onFocusedIndexChange,
+}: CarouselProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
   const needsCarousel = items.length > visibleCards;
 
-  // Measure container width
+  // Measure container width with RAF-batched ResizeObserver
   useEffect(() => {
     if (!needsCarousel || !containerRef.current) return;
 
     const el = containerRef.current;
     setContainerWidth(el.getBoundingClientRect().width);
 
-    const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        setContainerWidth(entry.contentRect.width);
-      }
+    let rafId = 0;
+    const observer = new ResizeObserver(([entry]) => {
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        const width = entry.contentRect.width;
+        setContainerWidth((prev) => (prev === width ? prev : width));
+      });
     });
 
     observer.observe(el);
-    return () => observer.disconnect();
+    return () => {
+      cancelAnimationFrame(rafId);
+      observer.disconnect();
+    };
   }, [needsCarousel]);
 
   const cardWidth = useMemo(() => {
@@ -78,25 +75,32 @@ function CarouselInner<T extends { id: string }>(
 
   const scrollToIndex = useCallback(
     (index: number, behavior: ScrollBehavior = "smooth") => {
-      if (!containerRef.current) return;
-      const targetScrollLeft = index * (cardWidth + gap) - peekWidth;
+      if (!containerRef.current || cardWidth <= 0) return;
+      const step = cardWidth + gap;
+      const targetScrollLeft = Math.max(0, index * step - peekWidth);
       const maxScroll =
         containerRef.current.scrollWidth - containerRef.current.clientWidth;
-      const clamped = Math.max(0, Math.min(targetScrollLeft, maxScroll));
-      containerRef.current.scrollTo({ left: clamped, behavior });
+      containerRef.current.scrollTo({
+        left: Math.min(targetScrollLeft, maxScroll),
+        behavior,
+      });
     },
     [cardWidth, gap, peekWidth]
   );
 
-  useImperativeHandle(ref, () => ({ scrollToIndex }), [scrollToIndex]);
-
-  // Keyboard navigation: left/right arrow keys
+  // Auto-scroll when focusedIndex changes
   useEffect(() => {
-    if (!needsCarousel || focusedIndex == null || !onFocusedIndexChange) return;
+    if (focusedIndex == null || cardWidth <= 0) return;
+    scrollToIndex(focusedIndex);
+  }, [focusedIndex, scrollToIndex, cardWidth]);
 
-    const handleKeyDown = (e: KeyboardEvent) => {
+  // Keyboard navigation: scoped to container
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (focusedIndex == null || !onFocusedIndexChange) return;
       if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
 
+      e.preventDefault();
       const nextIndex =
         e.key === "ArrowRight"
           ? Math.min(focusedIndex + 1, items.length - 1)
@@ -104,26 +108,22 @@ function CarouselInner<T extends { id: string }>(
 
       if (nextIndex !== focusedIndex) {
         onFocusedIndexChange(nextIndex);
-        scrollToIndex(nextIndex, "auto");
       }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    needsCarousel,
-    focusedIndex,
-    onFocusedIndexChange,
-    items.length,
-    scrollToIndex,
-  ]);
+    },
+    [focusedIndex, onFocusedIndexChange, items.length]
+  );
 
   // Simple layout for ≤visibleCards items
   if (!needsCarousel) {
     return (
-      <Box className={fallbackClassName}>
+      <Box className={fallbackClassName} role="listbox">
         {items.map((item, index) => (
-          <Box key={item.id} sx={{ flex: 1, minWidth: 0 }}>
+          <Box
+            key={item.id}
+            role="option"
+            aria-selected={focusedIndex === index}
+            sx={{ flex: 1, minWidth: 0 }}
+          >
             {renderItem(item, index, false)}
           </Box>
         ))}
@@ -131,17 +131,18 @@ function CarouselInner<T extends { id: string }>(
     );
   }
 
-  // Carousel layout (scroll-snap)
+  // Carousel layout (controlled scroll, no snap)
   return (
     <Box
       ref={containerRef}
+      role="listbox"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
       sx={{
         display: "flex",
         gap: `${gap}px`,
         overflowX: "auto",
-        scrollSnapType: "x mandatory",
-        scrollPaddingLeft: `${peekWidth}px`,
-        scrollBehavior: "smooth",
+        outline: "none",
         scrollbarWidth: "none",
         "&::-webkit-scrollbar": { display: "none" },
         ...carouselSx,
@@ -150,7 +151,9 @@ function CarouselInner<T extends { id: string }>(
       {items.map((item, index) => (
         <Box
           key={item.id}
-          sx={{ width: cardWidth, flexShrink: 0, scrollSnapAlign: "start" }}
+          role="option"
+          aria-selected={focusedIndex === index}
+          sx={{ width: cardWidth, flexShrink: 0 }}
         >
           {renderItem(item, index, true)}
         </Box>
@@ -159,6 +162,4 @@ function CarouselInner<T extends { id: string }>(
   );
 }
 
-export const Carousel = forwardRef(CarouselInner) as <T extends { id: string }>(
-  props: CarouselProps<T> & { ref?: React.Ref<CarouselHandle> }
-) => ReactNode;
+export const Carousel = CarouselComponent;
