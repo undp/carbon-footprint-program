@@ -103,10 +103,9 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
         >
           <InfoIcon color="info" sx={{ mt: 0.25 }} />
           <Typography variant="body2" color="text.secondary">
-            Ingresa los valores de emisi&oacute;n de cada gas de efecto
-            invernadero en <strong>kgCO&#8322;e</strong>. El total se
-            calcular&aacute; autom&aacute;ticamente. Si un gas no aplica, deja
-            el valor en 0.
+            Ingresa los valores de emisión de cada gas de efecto invernadero en{" "}
+            <strong>kgCO&#8322;e</strong>. El total se calculará
+            automáticamente. Si un gas no aplica, deja el valor en 0.
           </Typography>
         </Box>
         <TableContainer>
@@ -114,9 +113,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
             <TableHead>
               <TableRow sx={{ bgcolor: "grey.100" }}>
                 <TableCell sx={{ fontWeight: 600 }}>Gas</TableCell>
-                <TableCell sx={{ fontWeight: 600 }}>
-                  Descripci&oacute;n
-                </TableCell>
+                <TableCell sx={{ fontWeight: 600 }}>Descripción</TableCell>
                 <TableCell sx={{ fontWeight: 600 }} align="right">
                   Valor (kgCO&#8322;e)
                 </TableCell>
