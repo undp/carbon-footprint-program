@@ -8,22 +8,31 @@ import { getOrganizationByIdRoute } from "@/features/organizations/app/getOrgani
 import { createOrganizationRoute } from "@/features/organizations/app/createOrganization/route.js";
 import { updateOrganizationRoute } from "@/features/organizations/app/updateOrganization/route.js";
 import { requestOrganizationAccreditationRoute } from "@/features/organizations/app/requestOrganizationAccreditation/route.js";
+import { SystemRole } from "@repo/types";
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
+  fastify.addHook(
+    "preHandler",
+    fastify.requireRoles([
+      SystemRole.SUPERADMIN,
+      SystemRole.ADMIN,
+      SystemRole.USER,
+    ])
+  );
 
-  // ADMIN
-  addOrganizationUserRoute(fastify);
-  getOrganizationUsersRoute(fastify);
-  updateOrganizationUserRoleRoute(fastify);
-  removeOrganizationUserRoute(fastify);
+  // Org. ADMIN
   updateOrganizationRoute(fastify);
   requestOrganizationAccreditationRoute(fastify);
+  addOrganizationUserRoute(fastify);
+  updateOrganizationUserRoleRoute(fastify);
+  removeOrganizationUserRoute(fastify);
 
-  // ADMIN, CONTRIBUTOR, VIEWER
+  // ORG. ADMIN, CONTRIBUTOR, VIEWER
+  getOrganizationUsersRoute(fastify);
   getOrganizationByIdRoute(fastify);
 
-  // AUTHENTICATED (No organization role required)
+  // AUTHENTICATED (No organization membership required)
   getMyOrganizationsRoute(fastify);
   createOrganizationRoute(fastify);
 }

@@ -4,6 +4,7 @@ import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome } from "@mui/icons-material";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
+import { VOCAB } from "@/config/vocab";
 
 interface ReductionPlanCardProps {
   mainGoal: string | null;
@@ -107,17 +108,13 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
 
       {!isLoading && hasError && (
         <LoadingErrorStateMessage
-          message={
-            "Ocurrió un error al cargar el plan de reducción sugerido para tu empresa"
-          }
+          message={`Ocurrió un error al cargar el plan de reducción sugerida para tu ${VOCAB.organization.noun.singular}`}
         />
       )}
 
       {!isLoading && !hasError && !existsPlan && (
         <EmptyStateMessage
-          message={
-            "Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu empresa"
-          }
+          message={`Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu ${VOCAB.organization.noun.singular}`}
         />
       )}
     </Box>

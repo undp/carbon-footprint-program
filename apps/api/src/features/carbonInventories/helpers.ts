@@ -4,7 +4,11 @@ import {
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
-import { type GetAllCategoriesResponse } from "@repo/types";
+import {
+  type GetAllCategoriesResponse,
+  IconName,
+  IconNameSchema,
+} from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
   CarbonInventoryNotEditableError,
@@ -42,7 +46,12 @@ export type CategoryData = Pick<
   "id" | "name" | "synonyms" | "position" | "icon" | "color"
 > & {
   subtotal: number;
-  subcategories: { id: string; name: string; icon: string; subtotal: number }[];
+  subcategories: {
+    id: string;
+    name: string;
+    icon: IconName;
+    subtotal: number;
+  }[];
 };
 
 type InventoryWithCategoryData = {
@@ -126,7 +135,7 @@ export async function fetchCategoryData(
       .map((sub) => ({
         id: sub.id.toString(),
         name: sub.name,
-        icon: sub.icon,
+        icon: IconNameSchema.parse(sub.icon),
         subtotal: subtotalMap.get(sub.id.toString()) ?? 0,
       }))
       .filter((sub) => sub.subtotal > 0);
@@ -141,7 +150,7 @@ export async function fetchCategoryData(
       name: category.name,
       synonyms: category.synonyms,
       position: category.position,
-      icon: category.icon,
+      icon: IconNameSchema.parse(category.icon),
       color: category.color,
       subtotal: categorySubtotal,
       subcategories,

@@ -55,6 +55,12 @@ const authorizationPlugin: FastifyPluginCallback = (fastify) => {
   fastify.decorate("requireRoles", function (allowedRoles: SystemRole[]) {
     return async function (request: FastifyRequest, reply: FastifyReply) {
       const log = request.log.child({ module: "authorization" });
+      const isPrivateRoute = !request.routeOptions?.config?.public;
+
+      if (!isPrivateRoute) {
+        log.debug("Public route detected; skipping authorization checks");
+        return;
+      }
 
       // Ensure user is authenticated
       if (!request.authUser) {

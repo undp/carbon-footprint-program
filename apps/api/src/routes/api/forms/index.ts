@@ -5,6 +5,7 @@ import { getOrganizationFormFieldsRoute } from "@/features/forms/organizations/r
  * Routes for /api/forms
  */
 export default function formsRoutes(fastify: FastifyZodInstance) {
+  fastify.addHook("onRequest", fastify.requireAuth);
   // Register routes
-  getOrganizationFormFieldsRoute(fastify); // GET /organizations
+  getOrganizationFormFieldsRoute(fastify);
 }

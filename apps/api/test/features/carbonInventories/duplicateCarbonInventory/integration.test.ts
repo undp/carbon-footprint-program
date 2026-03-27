@@ -443,7 +443,7 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 404 when inventory is DELETED", async () => {
+    it("should return 403 when inventory was DELETED", async () => {
       const inventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft
@@ -459,9 +459,9 @@ describe("POST /api/carbon-inventories/:id/duplicate - Integration Tests", () =>
         url: `/api/carbon-inventories/${inventory.id}/duplicate`,
       });
 
-      expect(response.statusCode).toBe(404);
+      expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("NOT_FOUND");
+      expect(body.code).toBe("FORBIDDEN");
     });
   });
 });

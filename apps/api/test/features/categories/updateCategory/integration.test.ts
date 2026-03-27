@@ -78,7 +78,7 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
         url: `/api/categories/${category.id}`,
         payload: {
           name: "Updated Multi Name",
-          icon: "updated-icon",
+          icon: "TRUCK",
           color: "#FF0000",
         },
       });
@@ -86,14 +86,14 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCategoryResponse;
       expect(body.name).toBe("Updated Multi Name");
-      expect(body.icon).toBe("updated-icon");
+      expect(body.icon).toBe("TRUCK");
       expect(body.color).toBe("#FF0000");
     });
 
     it("should only update provided fields, leaving others unchanged", async () => {
       const category = await createTestCategory(prisma, methodologyVersionId, {
         name: "Test - Partial Update",
-        icon: "original-icon",
+        icon: "FACTORY",
         color: "#00FF00",
         synonyms: "original-synonyms",
         description: "Original description",
@@ -111,7 +111,7 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateCategoryResponse;
       expect(body.name).toBe("Updated Partial Name");
-      expect(body.icon).toBe("original-icon");
+      expect(body.icon).toBe("FACTORY");
       expect(body.color).toBe("#00FF00");
       expect(body.synonyms).toBe("original-synonyms");
       expect(body.description).toBe("Original description");

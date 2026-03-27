@@ -213,6 +213,7 @@ describe("POST /api/app/organizations/:organizationId/users - Integration Tests"
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.ACTIVE,
         },
       });
 
@@ -248,6 +249,7 @@ describe("POST /api/app/organizations/:organizationId/users - Integration Tests"
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.ACTIVE,
         },
       });
       expect(membership!.createdById).toBe(testUser.id);

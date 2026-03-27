@@ -1,14 +1,15 @@
 import { useMemo } from "react";
+import { VOCAB } from "@/config/vocab";
 
 type NamedItem = { name?: string };
 
 const BASE_LABELS = {
   nameLabel: "Nombre de la huella",
   yearLabel: "Año de la huella",
-  companyNameLabel: "Nombre de la empresa (Opcional)",
+  companyNameLabel: `Nombre de ${VOCAB.organization.article.singular} (Opcional)`,
   companySizeLabel: "Tamaño (Opcional)",
   sectorLabel: "Rubro",
-  activityLabel: "Actividad principal del negocio (Opcional)",
+  activityLabel: `Actividad principal de ${VOCAB.organization.article.singular} (Opcional)`,
   quantityLabel: "Cantidad de actividad principal al año",
 } as const;
 

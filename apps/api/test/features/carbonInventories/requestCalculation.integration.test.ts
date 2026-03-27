@@ -14,6 +14,7 @@ import {
   cleanupCarbonInventoryTestData,
 } from "@test/factories/carbonInventorySeeder.js";
 import { createTestOrganization } from "@test/factories/organizationFactory.js";
+import { createTestMembership } from "@test/factories/membershipFactory.js";
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import {
   createTestOrganizationDataSubmission,
@@ -69,6 +70,8 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       SubmissionStatus.APPROVED,
       user.id
     );
+
+    await createTestMembership(prisma, user.id, org.id);
 
     const inventory = await createInventoryFromPattern(
       prisma,
@@ -148,6 +151,7 @@ describe("POST /api/carbon-inventories/:id/request-calculation - Integration Tes
       const user = await getTestLoggedUser(prisma);
 
       const org = await createTestOrganization(prisma);
+      await createTestMembership(prisma, user.id, org.id);
       const orgData = await createTestOrganizationData(prisma, org.id, {
         status: OrganizationDataStatus.ACTIVE,
       });

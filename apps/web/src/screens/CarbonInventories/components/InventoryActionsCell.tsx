@@ -24,7 +24,7 @@ import {
   canSelfDeclare,
 } from "@repo/utils";
 import { CalculationConfirmationDialog } from "./Dialogs/CalculationConfirmationDialog";
-import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmationDialog";
+import { VerifyConfirmationDialog } from "./Dialogs/VerifyConfirmation";
 import { DeleteConfirmationDialog } from "./Dialogs/DeleteConfirmationDialog";
 import { MissingOrganizationDialog } from "./Dialogs/MissingOrganizationDialog";
 import { IncompleteInventoryDialog } from "./Dialogs/IncompleteInventoryDialog";
@@ -296,7 +296,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           }
         }
         await requestVerification({
-          carbonInventoryId: carbonInventory.id,
+          id: carbonInventory.id,
           body: { fileUuids },
         });
         setVerifyDialogOpen(false);
@@ -513,6 +513,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         onClose={onVerifyCancel}
         onConfirm={onVerifyConfirm}
         isLoading={isVerifySubmitting}
+        organizationId={carbonInventory.organizationId}
       />
 
       <DeleteConfirmationDialog

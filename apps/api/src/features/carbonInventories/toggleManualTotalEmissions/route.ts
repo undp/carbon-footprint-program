@@ -5,6 +5,7 @@ import {
   type ToggleManualTotalEmissionsRequest,
   type ToggleManualTotalEmissionsParams,
 } from "@repo/types";
+import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
@@ -30,6 +31,7 @@ export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
         response: {
           204: z.null().describe("Operation successful"),
           400: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
@@ -39,7 +41,13 @@ export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
+          extractCarbonInventoryIdFromParams,
+          {
+            requiredOrganizationRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
         ),
       ],
     },

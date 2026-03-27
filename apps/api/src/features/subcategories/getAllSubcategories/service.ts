@@ -2,6 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import {
   SubcategoryStatus,
   User,
+  IconNameSchema,
   type GetAllSubcategoriesResponse,
   type GetAllSubcategoriesQuery,
 } from "@repo/types";
@@ -41,7 +42,7 @@ export const getAllSubcategoriesService = async (
     ({ category, subcategoryMeasurementUnits, ...subcategory }) => ({
       id: subcategory.id.toString(),
       name: subcategory.name,
-      icon: subcategory.icon,
+      icon: IconNameSchema.parse(subcategory.icon),
       description: subcategory.description,
       examples: subcategory.examples,
       category: {

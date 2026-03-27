@@ -48,14 +48,14 @@ export const updateOrganizationUserRoleService = async (
     throw new CannotModifySelfError();
   }
 
-  // If user is currently an admin and being changed to non-admin role,
-  // check if they're the last admin and perform update in a transaction
-  // to prevent race conditions
-  if (
-    membership.role === OrganizationRole.ADMIN &&
-    data.role !== OrganizationRole.ADMIN
-  ) {
-    const updatedMembership = await prismaClient.$transaction(async (tx) => {
+  // Mark the current membership as OUTDATED and create a new ACTIVE one
+  // in a transaction for traceability
+  const newMembership = await prismaClient.$transaction(async (tx) => {
+    // If demoting from admin, ensure they're not the last admin
+    if (
+      membership.role === OrganizationRole.ADMIN &&
+      data.role !== OrganizationRole.ADMIN
+    ) {
       const adminCount = await tx.userOrganizationMembership.count({
         where: {
           organizationId: organization.id,
@@ -67,38 +67,31 @@ export const updateOrganizationUserRoleService = async (
       if (adminCount <= 1) {
         throw new CannotRemoveLastAdminError();
       }
+    }
 
-      return await tx.userOrganizationMembership.update({
-        where: {
-          id: membership.id,
-        },
-        data: {
-          role: data.role,
-          updatedById: currentUser ? BigInt(currentUser.id) : undefined,
-        },
-      });
-    });
-
-    return {
-      membershipId: updatedMembership.id.toString(),
-      role: updatedMembership.role,
-    };
-  }
-
-  // Non-admin role changes can be performed without transaction
-  const updatedMembership =
-    await prismaClient.userOrganizationMembership.update({
-      where: {
-        id: membership.id,
-      },
+    // Mark current membership as OUTDATED
+    await tx.userOrganizationMembership.update({
+      where: { id: membership.id },
       data: {
-        role: data.role,
+        status: MembershipStatus.OUTDATED,
         updatedById: currentUser ? BigInt(currentUser.id) : undefined,
       },
     });
 
+    // Create new membership with updated role
+    return await tx.userOrganizationMembership.create({
+      data: {
+        userId: membership.userId,
+        organizationId: organization.id,
+        role: data.role,
+        status: MembershipStatus.ACTIVE,
+        createdById: currentUser ? BigInt(currentUser.id) : undefined,
+      },
+    });
+  });
+
   return {
-    membershipId: updatedMembership.id.toString(),
-    role: updatedMembership.role,
+    membershipId: newMembership.id.toString(),
+    role: newMembership.role,
   };
 };

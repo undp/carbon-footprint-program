@@ -25,6 +25,8 @@ import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { VOCAB } from "@/config/vocab";
+import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 const ERROR_MESSAGE = {
   title:
@@ -40,7 +42,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
   });
   const { user } = useAuth();
 
-  const { data: existingInventory } = useCarbonInventory(inventoryId);
+  const { data: existingInventory, error: inventoryError } =
+    useCarbonInventory(inventoryId);
+
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
@@ -58,6 +62,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const { goBack, goNext } = useSubcategoryPreselectionNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();
+
+  useInventoryErrorHandler(inventoryError);
 
   const methods = useSubcategoryPreselectionForm({
     data: categories,
@@ -178,7 +184,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
           <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-auto rounded-lg bg-white p-6">
             <StepHeader
               title="Paso 2: Fuentes o actividades sugeridas"
-              description="Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu empresa."
+              description={`Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`}
             />
             <SubcategoryPreselectionCarousel categories={categories} />
           </Box>

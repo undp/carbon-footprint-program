@@ -33,6 +33,7 @@ import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
+import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -40,7 +41,9 @@ export const EmissionCaptureScreen: FC = () => {
   });
   const { user } = useAuth();
 
-  const { data: existingInventory } = useCarbonInventory(inventoryId);
+  const { data: existingInventory, error: inventoryError } =
+    useCarbonInventory(inventoryId);
+
   const { isReady, mustNavigateAway } = useInventoryEditGuard(
     inventoryId,
     existingInventory?.status
@@ -63,6 +66,8 @@ export const EmissionCaptureScreen: FC = () => {
 
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();
+
+  useInventoryErrorHandler(inventoryError);
 
   const activeActionsCount = useEmissionCaptureState(
     (state) => state.activeActionsCount

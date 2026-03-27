@@ -1,20 +1,18 @@
 import { FC, useCallback, useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import {
   Box,
   Button,
-  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControlLabel,
-  FormHelperText,
   IconButton,
   Typography,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome, Close, InfoOutlined } from "@mui/icons-material";
+import { FormSwornDeclarationField } from "@/components/form";
 
 interface FormValues {
   sworn: boolean;
@@ -52,7 +50,7 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
     <Dialog
       open={open}
       onClose={isLoading ? undefined : onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       aria-labelledby="self-declare-dialog-title"
       slotProps={{
@@ -64,29 +62,28 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
         sx={{ pr: 6, fontWeight: 600 }}
       >
         Autodeclarar Huella de Carbono
+        <IconButton
+          aria-label="cerrar"
+          onClick={onClose}
+          disabled={isLoading}
+          sx={(theme) => ({
+            position: "absolute",
+            right: 16,
+            top: 16,
+            color: theme.palette.grey[500],
+          })}
+        >
+          <Close />
+        </IconButton>
       </DialogTitle>
-
-      <IconButton
-        aria-label="cerrar"
-        onClick={onClose}
-        disabled={isLoading}
-        sx={(theme) => ({
-          position: "absolute",
-          right: 16,
-          top: 16,
-          color: theme.palette.grey[500],
-        })}
-      >
-        <Close />
-      </IconButton>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent sx={{ pt: 0 }}>
           {/* Congratulations info box */}
           <Box
             sx={{
-              backgroundColor: alpha(theme.palette.primary.main, 0.06),
-              border: `1px solid ${alpha(theme.palette.primary.main, 0.2)}`,
+              background: alpha(theme.palette.info.main, 0.1),
+              border: `1px solid ${alpha(theme.palette.info.light, 0.5)}`,
               borderRadius: 2,
               p: 2.5,
               mb: 2,
@@ -94,10 +91,14 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           >
             <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
               <AutoAwesome
-                sx={{ color: theme.palette.primary.main }}
+                sx={{ color: theme.palette.info.dark }}
                 fontSize="small"
               />
-              <Typography variant="subtitle2" fontWeight={600}>
+              <Typography
+                variant="subtitle2"
+                fontWeight={600}
+                sx={{ color: theme.palette.info.dark }}
+              >
                 ¡Felicitaciones por completar el cálculo de tu Huella de
                 Carbono!
               </Typography>
@@ -105,7 +106,10 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
 
             {isAutomaticRecognition && (
               <Box sx={{ mt: 1 }}>
-                <Typography variant="body2" sx={{ mb: 1.5 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ mb: 1.5, color: theme.palette.info.dark }}
+                >
                   Al <strong>autodeclarar</strong> tu huella de carbono,
                   recibirás automáticamente un{" "}
                   <strong>Diploma de Medición</strong> que reconoce que tu
@@ -115,7 +119,8 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
 
                 <Box
                   sx={{
-                    backgroundColor: alpha(theme.palette.text.primary, 0.04),
+                    background: alpha(theme.palette.info.main, 0.1),
+                    border: `1px solid ${alpha(theme.palette.info.light, 1)}`,
                     borderRadius: 1.5,
                     p: 1.5,
                     mb: 1.5,
@@ -125,14 +130,21 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   }}
                 >
                   <InfoOutlined
-                    sx={{ color: theme.palette.text.secondary, mt: 0.25 }}
+                    sx={{ color: theme.palette.info.dark, mt: 0.25 }}
                     fontSize="small"
                   />
                   <Box>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography
+                      variant="body2"
+                      fontWeight={600}
+                      sx={{ color: theme.palette.info.dark }}
+                    >
                       Importante:
                     </Typography>
-                    <Typography variant="body2">
+                    <Typography
+                      variant="body2"
+                      sx={{ color: theme.palette.info.dark }}
+                    >
                       El diploma{" "}
                       <strong>NO es un reconocimiento oficial</strong> ni
                       certifica que la medición haya sido verificada por Huella
@@ -142,7 +154,12 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   </Box>
                 </Box>
 
-                <Typography variant="body2" color="primary">
+                <Typography
+                  sx={{
+                    color: theme.palette.info.dark,
+                  }}
+                  variant="body2"
+                >
                   Si deseas obtener el <strong>Sello de Verificación</strong>{" "}
                   (reconocimiento oficial), podrás postular tu huella al proceso
                   de verificación gubernamental desde la sección &quot;Mis
@@ -153,42 +170,20 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
           </Box>
 
           {/* Sworn checkbox */}
-          <Controller
+          <FormSwornDeclarationField
             name="sworn"
             control={control}
-            rules={{
-              validate: (val) =>
-                val || "Debes aceptar la declaración para continuar",
-            }}
-            render={({ field, fieldState }) => (
-              <>
-                <FormControlLabel
-                  sx={{ alignItems: "flex-start" }}
-                  control={
-                    <Checkbox
-                      checked={field.value}
-                      onChange={field.onChange}
-                      disabled={isLoading}
-                      sx={{ mt: -0.5 }}
-                    />
-                  }
-                  label={
-                    <Typography variant="body2">
-                      Declaro que los datos del cálculo de huella de carbono
-                      corresponden a la organización mencionada y que comprendo
-                      que este diploma es un reconocimiento por realizar el
-                      cálculo, y no constituye una certificación oficial ni
-                      verificación por parte de Huella Latam.
-                    </Typography>
-                  }
-                />
-                {fieldState.error && (
-                  <FormHelperText error role="alert" sx={{ mx: 0 }}>
-                    {fieldState.error.message}
-                  </FormHelperText>
-                )}
-              </>
-            )}
+            disabled={isLoading}
+            errorMessage="Debes aceptar la declaración para continuar"
+            label={
+              <Typography variant="body2">
+                Declaro que los datos del cálculo de huella de carbono
+                corresponden a la organización mencionada y comprendo que este
+                diploma es un reconocimiento por realizar el cálculo, y no
+                constituye una certificación oficial ni verificación por parte
+                de Huella Latam.
+              </Typography>
+            }
           />
         </DialogContent>
 

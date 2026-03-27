@@ -14,10 +14,7 @@ import { kgToTon } from "@/utils/number";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import { EmissionEditorActionsCell } from "./cells/EmissionEditorActionsCell";
 import { useExplanationDialog } from "@/contexts";
-import {
-  CATEGORY_ICON_MAP,
-  type CategoryIconName,
-} from "@/utils/categoryIcons";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 
 type Subcategory =
@@ -58,7 +55,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   hasEmissionFactors,
 }) => {
   const { openExplanation } = useExplanationDialog();
-  const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
+  const IconComponent = CATEGORY_ICON_MAP[icon];
   const categoryColorPalette = useMemo(
     () => getColorPalette(categoryColor),
     [categoryColor]

@@ -23,6 +23,7 @@ export const getCarbonInventoryMetadataRoute: StandardRouteSignature = (
         params: GetCarbonInventoryMetadataParamsSchema,
         response: {
           200: GetCarbonInventoryMetadataResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

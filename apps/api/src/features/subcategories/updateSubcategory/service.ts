@@ -3,6 +3,7 @@ import {
   CategoryStatus,
   SubcategoryStatus,
   User,
+  IconNameSchema,
   type UpdateSubcategoryRequest,
   type UpdateSubcategoryResponse,
 } from "@repo/types";
@@ -126,7 +127,7 @@ export const updateSubcategoryService = async (
       return {
         id: subcategory.id.toString(),
         name: subcategory.name,
-        icon: subcategory.icon,
+        icon: IconNameSchema.parse(subcategory.icon),
         description: subcategory.description,
         examples: subcategory.examples,
         category: {

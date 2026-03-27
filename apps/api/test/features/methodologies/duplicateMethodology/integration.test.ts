@@ -144,7 +144,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
 
       await createTestCategory(prisma, original.id, {
         name: "Test - Category A",
-        icon: "icon-a",
+        icon: "FACTORY",
         color: "#AA0000",
         synonyms: "a-syn",
         description: "Category A description",
@@ -152,7 +152,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       });
       await createTestCategory(prisma, original.id, {
         name: "Test - Category B",
-        icon: "icon-b",
+        icon: "TRUCK",
         color: "#BB0000",
         synonyms: "b-syn",
         description: "Category B description",
@@ -177,11 +177,11 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
 
       expect(duplicatedCategories).toHaveLength(2);
       expect(duplicatedCategories[0].name).toBe("Test - Category A");
-      expect(duplicatedCategories[0].icon).toBe("icon-a");
+      expect(duplicatedCategories[0].icon).toBe("FACTORY");
       expect(duplicatedCategories[0].color).toBe("#AA0000");
       expect(duplicatedCategories[0].position).toBe(1);
       expect(duplicatedCategories[1].name).toBe("Test - Category B");
-      expect(duplicatedCategories[1].icon).toBe("icon-b");
+      expect(duplicatedCategories[1].icon).toBe("TRUCK");
       expect(duplicatedCategories[1].color).toBe("#BB0000");
       expect(duplicatedCategories[1].position).toBe(2);
     });

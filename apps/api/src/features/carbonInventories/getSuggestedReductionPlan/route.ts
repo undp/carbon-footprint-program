@@ -23,6 +23,7 @@ export const getSuggestedReductionPlanRoute: StandardRouteSignature = (
         params: GetSuggestedReductionPlanParamsSchema,
         response: {
           200: GetSuggestedReductionPlanResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

@@ -1,10 +1,7 @@
 import { Avatar, Box, Card, Typography } from "@mui/material";
 import { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 import React from "react";
-import {
-  CATEGORY_ICON_MAP,
-  type CategoryIconName,
-} from "@/utils/categoryIcons";
+import { CATEGORY_ICON_MAP } from "@/utils/categoryIcons";
 import { getColorPalette } from "@/utils/categoryColors";
 import { useEmissionCategoryTotal } from "./EmissionEditor/hooks/useEmissionCategoryTotal";
 import { formatEmissions } from "@/utils/formatting";
@@ -15,7 +12,7 @@ interface Props {
 }
 
 export const TotalCategoryEmissionCard: React.FC<Props> = ({ category }) => {
-  const IconComponent = CATEGORY_ICON_MAP[category.icon as CategoryIconName];
+  const IconComponent = CATEGORY_ICON_MAP[category.icon];
   const categoryColorPalette = getColorPalette(category.color);
   const totalEmissions = useEmissionCategoryTotal(category.id);
 

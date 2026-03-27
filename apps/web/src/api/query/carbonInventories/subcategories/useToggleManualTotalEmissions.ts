@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { invalidateCarbonInventoryEmissions } from "../keys";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "../keys";
+import { useAuthorizationHeader } from "../authHeaders";
 
 interface ToggleManualTotalEmissionsParams {
   activated: boolean;
@@ -11,16 +12,30 @@ export const useToggleManualTotalEmissions = (
   subcategoryId: string
 ) => {
   const queryClient = useQueryClient();
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<void, Error, ToggleManualTotalEmissionsParams>({
     mutationFn: ({ activated }) =>
       apiClient
         .post(
           `carbon-inventories/${inventoryId}/subcategories/${subcategoryId}/manual-total-emissions`,
-          { json: { activated } }
+          { json: { activated }, headers }
         )
         .json(),
-    onSuccess: () =>
-      invalidateCarbonInventoryEmissions(queryClient, inventoryId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(inventoryId) &&
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.EmissionsUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
+        }),
+      ]);
+    },
   });
 };

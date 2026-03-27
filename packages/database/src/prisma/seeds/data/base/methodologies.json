@@ -1719,7 +1719,7 @@
         "description": "Generadas por la electricidad consumida",
         "position": 2,
         "icon": "INDIRECT_EMISSION",
-        "color": "#64b5f6",
+        "color": "#64B5F6",
         "examples": null,
         "subcategories": [
           {
@@ -1763,7 +1763,7 @@
         "description": "Generadas fuera de tu empresa",
         "position": 3,
         "icon": "OTHERS",
-        "color": "#82c784",
+        "color": "#82C784",
         "examples": null,
         "subcategories": [
           {

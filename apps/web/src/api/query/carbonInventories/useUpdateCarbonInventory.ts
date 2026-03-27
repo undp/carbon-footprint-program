@@ -3,35 +3,36 @@ import {
   UpdateCarbonInventoryRequest,
   UpdateCarbonInventoryResponse,
 } from "@repo/types";
-import { carbonInventoryKeys, invalidateCarbonInventoryMetadata } from "./keys";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "./keys";
+import { useAuthorizationHeader } from "./authHeaders";
 
-type UpdateCarbonInventoryVariables = {
-  id: string;
-  data: UpdateCarbonInventoryRequest;
-};
-
-export const useUpdateCarbonInventory = () => {
+export const useUpdateCarbonInventory = (inventoryId: string) => {
   const queryClient = useQueryClient();
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<
     UpdateCarbonInventoryResponse,
     Error,
-    UpdateCarbonInventoryVariables
+    UpdateCarbonInventoryRequest
   >({
-    mutationFn: ({ id, data }) =>
-      apiClient.patch(`carbon-inventories/${id}`, { json: data }).json(),
-    onSuccess: async (_data, variables) => {
+    mutationFn: (data) =>
+      apiClient
+        .patch(`carbon-inventories/${inventoryId}`, { json: data, headers })
+        .json(),
+    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>
-            query.queryKey.includes("carbonInventoryUpdationDependency"),
+            query.queryKey.includes(inventoryId) &&
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.AttributesUpdateDependency
+            ),
         }),
         queryClient.invalidateQueries({
-          queryKey: carbonInventoryKeys.detail(variables.id),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
-        invalidateCarbonInventoryMetadata(queryClient, variables.id),
       ]);
     },
   });

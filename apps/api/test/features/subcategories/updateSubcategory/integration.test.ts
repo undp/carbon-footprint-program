@@ -85,7 +85,7 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
         url: `/api/subcategories/${subcategory.id}`,
         payload: {
           name: "Updated Multi Name",
-          icon: "updated-icon",
+          icon: "TRUCK",
           description: "Updated description",
         },
       });
@@ -93,14 +93,14 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateSubcategoryResponse;
       expect(body.name).toBe("Updated Multi Name");
-      expect(body.icon).toBe("updated-icon");
+      expect(body.icon).toBe("TRUCK");
       expect(body.description).toBe("Updated description");
     });
 
     it("should only update provided fields, leaving others unchanged", async () => {
       const subcategory = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Partial Update",
-        icon: "original-icon",
+        icon: "FACTORY",
         description: "Original description",
       });
 
@@ -115,7 +115,7 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateSubcategoryResponse;
       expect(body.name).toBe("Updated Partial Name");
-      expect(body.icon).toBe("original-icon");
+      expect(body.icon).toBe("FACTORY");
       expect(body.description).toBe("Original description");
     });
 

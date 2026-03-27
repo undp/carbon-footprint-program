@@ -24,20 +24,24 @@ import { getCarbonInventoriesMinimalRoute } from "@/features/carbonInventories/g
 import { duplicateCarbonInventoryRoute } from "@/features/carbonInventories/duplicateCarbonInventory/route.js";
 import { deleteCarbonInventoryRoute } from "@/features/carbonInventories/deleteCarbonInventory/route.js";
 import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/selfDeclareCarbonInventory/route.js";
+import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
-  getAllCarbonInventoriesRoute(fastify);
-  getCarbonInventoryBadgesRoute(fastify, { public: true });
-  getCarbonInventoryByIdRoute(fastify, { public: true });
+  fastify.addHook(
+    "preHandler",
+    fastify.requireRoles([
+      SystemRole.USER,
+      SystemRole.ADMIN,
+      SystemRole.SUPERADMIN,
+    ])
+  );
+
+  /* CALCULATOR ROUTES */
   createCarbonInventoryRoute(fastify, { public: true });
-  updateCarbonInventoryRoute(fastify, { public: true });
+  getCarbonInventoryByIdRoute(fastify, { public: true });
   getCarbonInventoryMethodologyRoute(fastify, { public: true });
   getCarbonInventorySubcategoriesSummaryRoute(fastify, { public: true });
-  addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
-  updateCarbonInventorySubcategoriesRoute(fastify, { public: true });
-  toggleManualTotalEmissionsRoute(fastify, { public: true });
-  syncCarbonInventoryLinesRoute(fastify, { public: true });
   getEmissionsSummaryCategoriesRoute(fastify, { public: true });
   getMainActivityEquivalenceRoute(fastify, { public: true });
   getSubcategoriesRankingRoute(fastify, { public: true });
@@ -46,10 +50,23 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getEmissionsDetailedSummaryRoute(fastify, { public: true });
   getEmissionFactorsRoute(fastify, { public: true });
   getCarbonInventoryMetadataRoute(fastify, { public: true });
+  // At the following routes, user needs at least CONTRIBUTOR org. role for this inventory
+  addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
+  updateCarbonInventoryRoute(fastify, { public: true });
+  updateCarbonInventorySubcategoriesRoute(fastify, { public: true });
+  toggleManualTotalEmissionsRoute(fastify, { public: true });
+  syncCarbonInventoryLinesRoute(fastify, { public: true });
+
+  /* GETTERS */
+  getCarbonInventoriesMinimalRoute(fastify);
+  getAllCarbonInventoriesRoute(fastify);
+  getCarbonInventoryBadgesRoute(fastify);
+
+  /* MANAGEMENT */
+  // user needs at least CONTRIBUTOR org. role for this inventory
+  selfDeclareCarbonInventoryRoute(fastify);
   requestCalculationRoute(fastify);
   requestVerificationRoute(fastify);
-  selfDeclareCarbonInventoryRoute(fastify);
-  getCarbonInventoriesMinimalRoute(fastify);
   duplicateCarbonInventoryRoute(fastify);
   deleteCarbonInventoryRoute(fastify);
 }

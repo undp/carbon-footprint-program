@@ -22,62 +22,37 @@ import {
   LocalGasStationOutlined,
   PublicOutlined,
 } from "@mui/icons-material";
+import { type IconName, IconNameValue } from "@repo/types";
 import { DirectEmissionCategoryIcon } from "../icons/DirectEmissionCategoryIcon";
 import { IndirectEmissionCategoryIcon } from "../icons/IndirectEmissionCategoryIcon";
 import { OthersCategoryIcon } from "../icons/OthersCategoryIcon";
 
-/** Valid category icon names */
-export type CategoryIconName =
-  | "FACTORY"
-  | "BOLT"
-  | "TRUCK"
-  | "FLAME"
-  | "CAR"
-  | "SNOWFLAKE"
-  | "WATER"
-  | "RECYCLE"
-  | "AGRICULTURE"
-  | "BUILDING"
-  | "FLIGHT"
-  | "TRAIN"
-  | "ELECTRIC"
-  | "SOLAR"
-  | "FOREST"
-  | "WASTE"
-  | "CONSTRUCTION"
-  | "SCIENCE"
-  | "FUEL"
-  | "GLOBE"
-  | "DIRECT_EMISSION"
-  | "INDIRECT_EMISSION"
-  | "OTHERS";
-
 /** Map of icon name identifiers to MUI icon components */
 export const CATEGORY_ICON_MAP: Record<
-  CategoryIconName,
+  IconName,
   ComponentType<SvgIconProps>
 > = {
-  FACTORY: FactoryOutlined,
-  BOLT: BoltOutlined,
-  TRUCK: LocalShippingOutlined,
-  FLAME: WhatshotOutlined,
-  CAR: DirectionsCarOutlined,
-  SNOWFLAKE: AcUnitOutlined,
-  WATER: WaterDropOutlined,
-  RECYCLE: RecyclingOutlined,
-  AGRICULTURE: AgricultureOutlined,
-  BUILDING: BusinessOutlined,
-  FLIGHT: FlightOutlined,
-  TRAIN: TrainOutlined,
-  ELECTRIC: ElectricBoltOutlined,
-  SOLAR: SolarPowerOutlined,
-  FOREST: ForestOutlined,
-  WASTE: DeleteOutlineOutlined,
-  CONSTRUCTION: ConstructionOutlined,
-  SCIENCE: ScienceOutlined,
-  FUEL: LocalGasStationOutlined,
-  GLOBE: PublicOutlined,
-  DIRECT_EMISSION: DirectEmissionCategoryIcon,
-  INDIRECT_EMISSION: IndirectEmissionCategoryIcon,
-  OTHERS: OthersCategoryIcon,
+  [IconNameValue.FACTORY]: FactoryOutlined,
+  [IconNameValue.BOLT]: BoltOutlined,
+  [IconNameValue.TRUCK]: LocalShippingOutlined,
+  [IconNameValue.FLAME]: WhatshotOutlined,
+  [IconNameValue.CAR]: DirectionsCarOutlined,
+  [IconNameValue.SNOWFLAKE]: AcUnitOutlined,
+  [IconNameValue.WATER]: WaterDropOutlined,
+  [IconNameValue.RECYCLE]: RecyclingOutlined,
+  [IconNameValue.AGRICULTURE]: AgricultureOutlined,
+  [IconNameValue.BUILDING]: BusinessOutlined,
+  [IconNameValue.FLIGHT]: FlightOutlined,
+  [IconNameValue.TRAIN]: TrainOutlined,
+  [IconNameValue.ELECTRIC]: ElectricBoltOutlined,
+  [IconNameValue.SOLAR]: SolarPowerOutlined,
+  [IconNameValue.FOREST]: ForestOutlined,
+  [IconNameValue.WASTE]: DeleteOutlineOutlined,
+  [IconNameValue.CONSTRUCTION]: ConstructionOutlined,
+  [IconNameValue.SCIENCE]: ScienceOutlined,
+  [IconNameValue.FUEL]: LocalGasStationOutlined,
+  [IconNameValue.GLOBE]: PublicOutlined,
+  [IconNameValue.DIRECT_EMISSION]: DirectEmissionCategoryIcon,
+  [IconNameValue.INDIRECT_EMISSION]: IndirectEmissionCategoryIcon,
+  [IconNameValue.OTHERS]: OthersCategoryIcon,
 };

@@ -16,3 +16,4 @@ export * from "./requests/index.js";
 export * from "./subcategories/index.js";
 export * from "./systemParameters/index.js";
 export * from "./baseSchemas/index.js";
+export * from "./common/index.js";

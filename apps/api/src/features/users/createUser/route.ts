@@ -1,10 +1,19 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
 import { createUserHandler } from "./handler.js";
-import { CreateUserBodySchema, CreateUserResponseSchema } from "@repo/types";
+import {
+  CreateUserBody,
+  CreateUserBodySchema,
+  CreateUserResponse,
+  CreateUserResponseSchema,
+  SystemRole,
+} from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 
 export const createUserRoute = (fastify: FastifyZodInstance) => {
-  fastify.post(
+  fastify.post<{
+    Body: CreateUserBody;
+    Reply: CreateUserResponse;
+  }>(
     "/",
     {
       schema: {
@@ -19,6 +28,9 @@ export const createUserRoute = (fastify: FastifyZodInstance) => {
           422: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
+      ],
     },
     createUserHandler
   );

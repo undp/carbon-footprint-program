@@ -23,6 +23,7 @@ export const getSectorRankingRoute: StandardRouteSignature = (
         params: GetSectorRankingParamsSchema,
         response: {
           200: GetSectorRankingResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

@@ -162,6 +162,7 @@ enum OrganizationRole {
 
 enum MembershipStatus {
   ACTIVE
+  OUTDATED
   DELETED
 
   @@map("membership_status")
@@ -190,7 +191,7 @@ model UserOrganizationMembership {
   creator      User?        @relation("membership_created_by", fields: [createdById], references: [id])
   updater      User?        @relation("membership_updated_by", fields: [updatedById], references: [id])
 
-  @@unique([userId, organizationId, role])
+  @@index([userId, organizationId])
   @@map("user_organization_membership")
 }
 
@@ -535,6 +536,7 @@ enum UsageMode {
 
 model CarbonInventory {
   id                   BigInt                            @id @default(autoincrement())
+  uuid                 String                            @default(uuid()) @db.Uuid
   name                 String?
   organizationId       BigInt?                           @map("organization_id")
   organizationBranchId BigInt?                           @map("organization_branch_id")

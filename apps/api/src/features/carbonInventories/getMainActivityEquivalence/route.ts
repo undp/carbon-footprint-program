@@ -23,6 +23,7 @@ export const getMainActivityEquivalenceRoute: StandardRouteSignature = (
         params: GetMainActivityEquivalenceParamsSchema,
         response: {
           200: GetMainActivityEquivalenceResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },

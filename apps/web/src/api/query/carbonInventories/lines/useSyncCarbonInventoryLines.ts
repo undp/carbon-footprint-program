@@ -3,8 +3,9 @@ import {
   SyncCarbonInventoryLinesRequest,
   SyncCarbonInventoryLinesResponse,
 } from "@repo/types";
-import { invalidateCarbonInventoryEmissions } from "../keys";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "../keys";
+import { useAuthorizationHeader } from "../authHeaders";
 
 type SyncCarbonInventoryLinesVariables = {
   data: SyncCarbonInventoryLinesRequest;
@@ -12,6 +13,7 @@ type SyncCarbonInventoryLinesVariables = {
 
 export const useSyncCarbonInventoryLines = (inventoryId: string) => {
   const queryClient = useQueryClient();
+  const { headers } = useAuthorizationHeader(inventoryId);
 
   return useMutation<
     SyncCarbonInventoryLinesResponse,
@@ -20,9 +22,25 @@ export const useSyncCarbonInventoryLines = (inventoryId: string) => {
   >({
     mutationFn: ({ data }) =>
       apiClient
-        .post(`carbon-inventories/${inventoryId}/lines/sync`, { json: data })
+        .post(`carbon-inventories/${inventoryId}/lines/sync`, {
+          json: data,
+          headers,
+        })
         .json(),
-    onSuccess: () =>
-      invalidateCarbonInventoryEmissions(queryClient, inventoryId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(inventoryId) &&
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.EmissionsUpdateDependency
+            ),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
+        }),
+      ]);
+    },
   });
 };

@@ -12,6 +12,7 @@ import { useEmissionsSummaryCategories } from "@/api/query";
 import { CarbonInventoryStatusChip } from "../../components/CarbonInventoryStatusChip";
 import { isCarbonInventoryEditable } from "@repo/utils";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 export const EmissionResultsScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -22,7 +23,10 @@ export const EmissionResultsScreen: FC = () => {
   const { goBack } = useEmissionResultsNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();
 
-  const { data: summaryData } = useEmissionsSummaryCategories(inventoryId);
+  const { data: summaryData, error: summaryError } =
+    useEmissionsSummaryCategories(inventoryId);
+
+  useInventoryErrorHandler(summaryError);
 
   const backButton: FooterButton = {
     text: "Volver",

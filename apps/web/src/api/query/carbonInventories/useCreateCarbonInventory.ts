@@ -4,6 +4,8 @@ import {
   CreateCarbonInventoryResponse,
 } from "@repo/types";
 import { apiClient } from "@/api/http";
+import { CarbonInventoryQueryKey } from "./keys";
+import { saveInventoryUuidToLocalStorage } from "./authHeaders";
 
 export const useCreateCarbonInventory = () => {
   const queryClient = useQueryClient();
@@ -15,10 +17,11 @@ export const useCreateCarbonInventory = () => {
   >({
     mutationFn: (data) =>
       apiClient.post("carbon-inventories", { json: data }).json(),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
+      saveInventoryUuidToLocalStorage(data.id, data.uuid);
       await queryClient.invalidateQueries({
         predicate: (query) =>
-          query.queryKey.includes("carbonInventoryCreationDependency"),
+          query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
       });
     },
   });

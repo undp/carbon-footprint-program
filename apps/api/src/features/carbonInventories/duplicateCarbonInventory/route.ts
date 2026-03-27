@@ -4,6 +4,7 @@ import {
   DuplicateCarbonInventoryResponseSchema,
   type DuplicateCarbonInventoryParams,
 } from "@repo/types";
+import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
@@ -23,6 +24,7 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
         params: DuplicateCarbonInventoryParamsSchema,
         response: {
           200: DuplicateCarbonInventoryResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
@@ -31,7 +33,13 @@ export const duplicateCarbonInventoryRoute: StandardRouteSignature = (
       },
       preHandler: [
         fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
+          extractCarbonInventoryIdFromParams,
+          {
+            requiredOrganizationRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
         ),
       ],
     },

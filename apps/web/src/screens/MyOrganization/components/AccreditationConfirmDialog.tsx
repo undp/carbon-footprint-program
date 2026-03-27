@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { FormFileUpload } from "@/components";
+import { VOCAB } from "@/config/vocab";
 
 interface AccreditationFormValues {
   files: File[];
@@ -54,7 +55,7 @@ export const AccreditationConfirmDialog: FC<
       }}
     >
       <DialogTitle sx={{ pr: 6, fontWeight: 600 }}>
-        Solicitar acreditación
+        {`Solicitar ${VOCAB.inscription.noun.singular}`}
       </DialogTitle>
 
       <IconButton
@@ -74,9 +75,11 @@ export const AccreditationConfirmDialog: FC<
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent sx={{ pt: 1 }}>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            ¿Está seguro de que desea solicitar la acreditación de su
-            organización? Esta acción enviará una solicitud al administrador
-            para revisar la acreditación.
+            ¿Está seguro de que desea solicitar{" "}
+            {VOCAB.inscription.article.singular} de su{" "}
+            {VOCAB.organization.noun.singular}? Esta acción enviará una
+            solicitud al administrador para revisar su{" "}
+            {VOCAB.inscription.noun.singular}.
           </Typography>
 
           <Divider sx={{ mb: 2 }} />
@@ -91,11 +94,6 @@ export const AccreditationConfirmDialog: FC<
             disabled={isLoading}
             required
             requiredMessage="Al menos un archivo es requerido"
-            accept={{
-              "image/png": [".png"],
-              "image/jpeg": [".jpg", ".jpeg"],
-              "application/pdf": [".pdf"],
-            }}
           />
         </DialogContent>
 

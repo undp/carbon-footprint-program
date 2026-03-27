@@ -15,11 +15,15 @@ export interface CategoryColorSet {
 export function getColorPalette(hexColor: string): CategoryColorSet {
   // Normalize: strip alpha channel from 8-digit hex (#RRGGBBAA → #RRGGBB)
   const normalized = hexColor.length === 9 ? hexColor.slice(0, 7) : hexColor;
+  const fallback = "#90A4AE";
+  const safeColor = /^#[0-9A-Fa-f]{6}$/.test(normalized)
+    ? normalized
+    : fallback;
   return {
-    main: normalized,
-    dark: darken(normalized, 0.6),
-    light: alpha(normalized, 0.3),
-    background: alpha(normalized, 0.8),
+    main: safeColor,
+    dark: darken(safeColor, 0.6),
+    light: alpha(safeColor, 0.3),
+    background: alpha(safeColor, 0.8),
     contrastText: "#414046",
   };
 }

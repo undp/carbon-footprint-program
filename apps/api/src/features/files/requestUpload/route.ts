@@ -1,6 +1,9 @@
 import {
+  RequestUploadBody,
   RequestUploadBodySchema,
+  RequestUploadResponse,
   RequestUploadResponseSchema,
+  SystemRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
@@ -11,7 +14,10 @@ export const requestUploadRoute: StandardRouteSignature = (
   fastify: FastifyZodInstance,
   _options
 ) => {
-  fastify.post(
+  fastify.post<{
+    Body: RequestUploadBody;
+    Reply: RequestUploadResponse;
+  }>(
     "/request-upload",
     {
       schema: {
@@ -24,6 +30,13 @@ export const requestUploadRoute: StandardRouteSignature = (
           503: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireRoles([
+          SystemRole.USER,
+          SystemRole.ADMIN,
+          SystemRole.SUPERADMIN,
+        ]),
+      ],
     },
     requestUploadHandler
   );

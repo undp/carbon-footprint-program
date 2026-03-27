@@ -195,6 +195,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.DELETED,
         },
       });
 
@@ -221,13 +222,15 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
 
       expect(response.statusCode).toBe(200);
 
-      // Verify updatedById is set
+      // Verify updatedById is set on the deleted membership
       const membership = await prisma.userOrganizationMembership.findFirst({
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.DELETED,
         },
       });
+      expect(membership).toBeDefined();
       expect(membership!.updatedById).toBe(testUser.id);
     });
 
@@ -254,6 +257,7 @@ describe("DELETE /api/app/organizations/:organizationId/users/:userId - Integrat
         where: {
           userId: adminUser.id,
           organizationId: organization.id,
+          status: MembershipStatus.DELETED,
         },
       });
 

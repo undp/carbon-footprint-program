@@ -29,6 +29,7 @@ import {
 } from "@repo/database";
 import { ApiErrorResponse } from "../../../src/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "../../../src/features/carbonInventories/helpers.js";
+import { createTestMembership } from "../../factories/membershipFactory.js";
 
 describe("POST /api/carbon-inventories/:id/request-verification - Integration Tests", () => {
   let app: FastifyInstance;
@@ -70,6 +71,8 @@ describe("POST /api/carbon-inventories/:id/request-verification - Integration Te
       SubmissionStatus.APPROVED,
       user.id
     );
+
+    await createTestMembership(prisma, user.id, org.id);
 
     const inventory = await createInventoryFromPattern(
       prisma,
@@ -171,6 +174,7 @@ describe("POST /api/carbon-inventories/:id/request-verification - Integration Te
       const orgData = await createTestOrganizationData(prisma, org.id, {
         status: OrganizationDataStatus.ACTIVE,
       });
+      await createTestMembership(prisma, user.id, org.id);
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
@@ -201,6 +205,7 @@ describe("POST /api/carbon-inventories/:id/request-verification - Integration Te
       const orgData = await createTestOrganizationData(prisma, org.id, {
         status: OrganizationDataStatus.ACTIVE,
       });
+      await createTestMembership(prisma, user.id, org.id);
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,

@@ -7,6 +7,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 interface UnblockOrganizationDialogProps {
   open: boolean;
@@ -30,11 +32,15 @@ export const UnblockOrganizationDialog: FC<UnblockOrganizationDialogProps> = ({
       aria-labelledby="unblock-org-dialog-title"
       aria-describedby="unblock-org-dialog-description"
     >
-      <DialogTitle id="unblock-org-dialog-title">Restaurar empresa</DialogTitle>
+      <DialogTitle id="unblock-org-dialog-title">
+        Restaurar {VOCAB.organization.article.singular}
+      </DialogTitle>
       <DialogContent>
         <DialogContentText id="unblock-org-dialog-description">
-          ¿Estás seguro de que deseas restaurar la empresa{" "}
-          <strong>{organizationName}</strong>? La empresa será desbloqueada y
+          ¿Estás seguro de que deseas restaurar{" "}
+          {VOCAB.organization.article.singular}{" "}
+          <strong>{organizationName}</strong>?{" "}
+          {capitalize(VOCAB.organization.article.singular)} será desbloqueada y
           podrá volver a usar las funcionalidades del sistema.
         </DialogContentText>
       </DialogContent>

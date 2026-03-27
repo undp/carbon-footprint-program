@@ -116,6 +116,7 @@ function mapBaseCarbonInventory(
 
   return {
     id: item.id.toString(),
+    uuid: item.uuid,
     name: item.name ?? null,
     organizationId: item.organizationId?.toString() ?? null,
     organizationBranchId: item.organizationBranchId?.toString() ?? null,

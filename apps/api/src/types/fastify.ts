@@ -151,7 +151,8 @@ declare module "fastify" {
      * ```
      */
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
-      carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>
+      carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
+      options?: { requiredOrganizationRoles?: OrganizationRole[] }
     ) => (
       request: FastifyRequest<{ Params: P }>,
       reply: FastifyReply

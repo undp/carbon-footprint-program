@@ -9,6 +9,7 @@ declare module "@mui/material/styles" {
   interface CommonColors {
     deepForest: string;
     brightGreen: string;
+    glossyTeal: string;
   }
 
   interface Palette {
@@ -19,6 +20,8 @@ declare module "@mui/material/styles" {
       snackbar: string;
       ratingFull: string;
       fluor: string;
+      gradient: string;
+      gradient20: string;
     };
     requestTypeColors: Record<RequestType, string>;
   }
@@ -31,6 +34,8 @@ declare module "@mui/material/styles" {
       snackbar?: string;
       ratingFull?: string;
       fluor?: string;
+      gradient?: string;
+      gradient20?: string;
     };
     requestTypeColors?: Record<RequestType, string>;
   }
