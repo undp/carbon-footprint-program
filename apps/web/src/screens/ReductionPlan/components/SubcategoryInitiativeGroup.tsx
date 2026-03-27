@@ -33,12 +33,14 @@ export const SubcategoryInitiativeGroup: FC<
         <Box
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
           sx={{
-            backgroundColor: "rgba(65,64,70,0.03)",
+            backgroundColor: `${categoryColorPalette.light}`,
             "& svg": { width: "60%", height: "60%" },
           }}
         >
           {IconComponent && (
-            <IconComponent sx={{ fill: "#414046", opacity: 0.6 }} />
+            <IconComponent
+              sx={{ fill: categoryColorPalette.dark, opacity: 0.6 }}
+            />
           )}
         </Box>
         <Box className="flex flex-col gap-1">
