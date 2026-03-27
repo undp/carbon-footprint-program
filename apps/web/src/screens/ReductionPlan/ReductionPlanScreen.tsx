@@ -3,6 +3,7 @@ import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import { orderBy, uniq } from "lodash-es";
 import { useCarbonInventoriesMinimalData, useReductionPlan } from "@/api/query";
+import { exportReductionPlanToExcel } from "@/utils/exportReductionPlanToExcel";
 import { ExplanationProvider } from "@/contexts/ExplanationContext";
 import { CategoryCard } from "@/screens/CarbonInventory/components/CategoryCard";
 import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
@@ -95,8 +96,11 @@ export const ReductionPlanScreen: FC = () => {
             <Button
               variant="outlined"
               startIcon={<Download />}
+              disabled={!reductionPlan}
               onClick={() => {
-                // TODO: implement download endpoint
+                if (reductionPlan) {
+                  exportReductionPlanToExcel(reductionPlan);
+                }
               }}
             >
               Descargar

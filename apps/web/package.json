@@ -53,6 +53,7 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "tailwindcss": "^4.1.17",
+    "xlsx": "^0.18.5",
     "zod": "catalog:shared",
     "zustand": "^5.0.8"
   },
