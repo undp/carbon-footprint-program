@@ -93,9 +93,7 @@ export const IconPickerCell: FC<IconPickerCellProps> = (props) => {
       );
   const hasError = isEditing && (!!iconError || !!colorError);
 
-  const IconComponent = iconName
-    ? CATEGORY_ICON_MAP[iconName as CategoryIconName]
-    : null;
+  const IconComponent = iconName ? CATEGORY_ICON_MAP[iconName] : null;
   const isInteractive = isEditing || !!onClick;
   const effectiveColor = hideColor
     ? color || "#E8E8E8"

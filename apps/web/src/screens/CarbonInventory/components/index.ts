@@ -8,3 +8,4 @@ export * from "./CarbonInventoryNavigationButton";
 export * from "./ExitInventoryDialog";
 export * from "./SubcategoryPreselectionCard";
 export * from "./SubcategoryPreselectionCarousel";
+export * from "./CategoryCarousel";

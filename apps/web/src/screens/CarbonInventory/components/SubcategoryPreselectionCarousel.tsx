@@ -18,8 +18,6 @@ export const SubcategoryPreselectionCarousel: FC<
     categories[0]?.id ?? ""
   );
 
-  const needsCarousel = categories.length > CAROUSEL_THRESHOLD;
-
   // If the focused category no longer exists in the list, fall back to the first one
   const resolvedFocusedId =
     categories.length > 0 && !categories.some((c) => c.id === focusedCategoryId)
@@ -28,16 +26,13 @@ export const SubcategoryPreselectionCarousel: FC<
 
   const focusedIndex = categories.findIndex((c) => c.id === resolvedFocusedId);
 
-  const handleBoxClick = useCallback(
-    (categoryId: string) => {
-      if (!needsCarousel) return;
-      setFocusedCategoryId(categoryId);
-    },
-    [needsCarousel]
-  );
+  const handleBoxClick = useCallback((categoryId: string) => {
+    setFocusedCategoryId(categoryId);
+  }, []);
 
   const handleFocusedIndexChange = useCallback(
     (index: number) => {
+      if (index < 0 || index >= categories.length) return;
       setFocusedCategoryId(categories[index].id);
     },
     [categories]

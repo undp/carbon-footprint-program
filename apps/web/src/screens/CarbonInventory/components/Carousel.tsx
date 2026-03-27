@@ -6,8 +6,9 @@ import {
   useRef,
   useState,
 } from "react";
+import { useResizeObserver } from "@/hooks/useResizeObserver";
 import { Box } from "@mui/material";
-import type { CSSProperties } from "react";
+import type { SxProps, Theme } from "@mui/material/styles";
 
 const DEFAULT_GAP = 16;
 const DEFAULT_PEEK_WIDTH = 48;
@@ -19,7 +20,7 @@ interface CarouselProps<T extends { id: string }> {
   peekWidth?: number;
   visibleCards?: number;
   renderItem: (item: T, index: number, isCarousel: boolean) => ReactNode;
-  carouselSx?: Record<string, CSSProperties[keyof CSSProperties]>;
+  carouselSx?: SxProps<Theme>;
   fallbackClassName?: string;
   /** When provided together with onFocusedIndexChange, enables keyboard navigation and auto-scroll */
   focusedIndex?: number;
@@ -46,27 +47,18 @@ function CarouselComponent<T extends { id: string }>({
   const needsCarousel = items.length > (carouselThreshold ?? visibleCards);
 
   // Measure container width with RAF-batched ResizeObserver
-  useEffect(() => {
-    if (!needsCarousel || !containerRef.current) return;
+  const handleResize = useCallback((entry: ResizeObserverEntry) => {
+    const width = entry.contentRect.width;
+    setContainerWidth((prev) => (prev === width ? prev : width));
+  }, []);
 
-    const el = containerRef.current;
-    setContainerWidth(el.getBoundingClientRect().width);
-
-    let rafId = 0;
-    const observer = new ResizeObserver(([entry]) => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(() => {
-        const width = entry.contentRect.width;
-        setContainerWidth((prev) => (prev === width ? prev : width));
-      });
-    });
-
-    observer.observe(el);
-    return () => {
-      cancelAnimationFrame(rafId);
-      observer.disconnect();
-    };
-  }, [needsCarousel]);
+  useResizeObserver(
+    needsCarousel ? containerRef : { current: null },
+    handleResize,
+    {
+      raf: true,
+    }
+  );
 
   const cardWidth = useMemo(() => {
     if (!needsCarousel || containerWidth === 0) return 0;
@@ -101,6 +93,7 @@ function CarouselComponent<T extends { id: string }>({
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (focusedIndex == null || !onFocusedIndexChange) return;
+      if (items.length === 0) return;
       if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
 
       e.preventDefault();

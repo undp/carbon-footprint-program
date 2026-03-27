@@ -8,11 +8,11 @@ import {
   StepHeader,
   ExitInventoryDialog,
   CarbonInventoryNavigationButton,
+  CategoryCarousel,
+  EmissionEditor,
+  TotalCategoryEmissionCard,
 } from "./components";
 import { useAuth } from "@/contexts";
-import { CategoryCarousel } from "./components/CategoryCarousel";
-import { EmissionEditor } from "./components/EmissionEditor";
-import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
 import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
@@ -23,6 +23,7 @@ import {
   SubcategoryWithLines,
   EmissionCaptureFormValues,
 } from "./types/EmissionCaptureTypes";
+import { areAllSubcategoriesFilled } from "./utils/emissionCaptureValidation";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
@@ -145,35 +146,7 @@ export const EmissionCaptureScreen: FC = () => {
 
   const checkAllSubcategoriesFilled = useCallback(
     (formValues: EmissionCaptureFormValues): boolean => {
-      if (!data?.categories) return true;
-      return data.categories.every((category) =>
-        (category.subcategories as SubcategoryWithLines[]).every(
-          (subcategory) => {
-            const formSub = formValues.subcategories?.[subcategory.id];
-            // Not visible: no lines and not in manual mode
-            if (
-              subcategory.lines.length === 0 &&
-              !subcategory.isTotalManualEmissionsModeActive
-            )
-              return true;
-            // Not visible: manual mode with all lines deleted
-            if (formSub?.isTotalManualEmissionsModeActive) {
-              const allDeleted = Object.values(formSub.lines ?? {}).every(
-                (l) => l.isDeleted
-              );
-              if (allDeleted) return true;
-            }
-            if (!formSub) return true;
-            // Filled if manual total mode is active
-            if (formSub.isTotalManualEmissionsModeActive) return true;
-            // Filled if at least one non-deleted line has a non-null quantity
-            return Object.values(formSub.lines ?? {}).some(
-              (line) =>
-                !line.isDeleted && line.quantity != null && line.quantity > 0
-            );
-          }
-        )
-      );
+      return areAllSubcategoriesFilled(data?.categories ?? [], formValues);
     },
     [data]
   );
@@ -290,42 +263,43 @@ export const EmissionCaptureScreen: FC = () => {
                 onCategorySelect={handleCategoryChangeWithSave}
               />
               {selectedCategoryData && (
-                <TotalCategoryEmissionCard category={selectedCategoryData} />
+                <>
+                  <TotalCategoryEmissionCard category={selectedCategoryData} />
+                  <Box className="flex min-h-0 flex-1 flex-col gap-4">
+                    {(
+                      selectedCategoryData.subcategories as SubcategoryWithLines[]
+                    ).map((subcategory) => {
+                      const formSubcategory =
+                        watchedSubcategories?.[subcategory.id];
+                      const allLinesDeleted = Object.values(
+                        formSubcategory?.lines ?? {}
+                      ).every(({ isDeleted }) => isDeleted);
+
+                      if (
+                        formSubcategory?.isTotalManualEmissionsModeActive &&
+                        allLinesDeleted
+                      )
+                        return null;
+
+                      if (
+                        subcategory.lines.length === 0 &&
+                        !subcategory.isTotalManualEmissionsModeActive
+                      )
+                        return null;
+                      return (
+                        <EmissionEditor
+                          key={subcategory.id}
+                          categoryColor={selectedCategoryData.color}
+                          subcategory={subcategory}
+                          inventoryUsageMode={
+                            data?.usageMode ?? UsageMode.SIMPLIFIED
+                          }
+                        />
+                      );
+                    })}
+                  </Box>
+                </>
               )}
-              <Box className="flex min-h-0 flex-1 flex-col gap-4">
-                {(
-                  selectedCategoryData?.subcategories ||
-                  ([] as SubcategoryWithLines[])
-                ).map((subcategory) => {
-                  const formSubcategory =
-                    watchedSubcategories?.[subcategory.id];
-                  const allLinesDeleted = Object.values(
-                    formSubcategory?.lines ?? {}
-                  ).every(({ isDeleted }) => isDeleted);
-
-                  if (
-                    formSubcategory?.isTotalManualEmissionsModeActive &&
-                    allLinesDeleted
-                  )
-                    return null;
-
-                  if (
-                    subcategory.lines.length === 0 &&
-                    !subcategory.isTotalManualEmissionsModeActive
-                  )
-                    return null;
-                  return (
-                    <EmissionEditor
-                      key={subcategory.id}
-                      categoryColor={selectedCategoryData!.color}
-                      subcategory={subcategory}
-                      inventoryUsageMode={
-                        data?.usageMode ?? UsageMode.SIMPLIFIED
-                      }
-                    />
-                  );
-                })}
-              </Box>
             </Box>
           </Box>
         </CarbonInventoryLayout>

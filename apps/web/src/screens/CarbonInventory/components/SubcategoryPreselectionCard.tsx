@@ -1,4 +1,5 @@
-import { FC, Fragment, useEffect, useRef, useState } from "react";
+import { FC, Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { useResizeObserver } from "@/hooks/useResizeObserver";
 import { Box, Divider } from "@mui/material";
 import { CategoryCard } from "./CategoryCard";
 import { SubcategoryPreselectionField } from "./SubcategoryPreselectionField";
@@ -21,24 +22,21 @@ export const SubcategoryPreselectionCard: FC<
   const scrollRef = useRef<HTMLDivElement>(null);
   const [hasMoreBelow, setHasMoreBelow] = useState(false);
 
+  const checkOverflow = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setHasMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+  }, []);
+
+  useResizeObserver(scrollRef, checkOverflow);
+
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
 
-    const check = () =>
-      setHasMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
-
-    check();
-    el.addEventListener("scroll", check, { passive: true });
-
-    const observer = new ResizeObserver(check);
-    observer.observe(el);
-
-    return () => {
-      el.removeEventListener("scroll", check);
-      observer.disconnect();
-    };
-  }, []);
+    el.addEventListener("scroll", checkOverflow, { passive: true });
+    return () => el.removeEventListener("scroll", checkOverflow);
+  }, [checkOverflow]);
 
   return (
     <Box

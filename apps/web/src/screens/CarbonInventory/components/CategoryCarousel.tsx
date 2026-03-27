@@ -1,4 +1,5 @@
 import { FC, useCallback } from "react";
+import type { IconName } from "@repo/types";
 import { CategoryCard } from "./CategoryCard";
 import { Carousel } from "./Carousel";
 
@@ -7,7 +8,7 @@ const VISIBLE_CARDS = 3;
 
 interface CategoryData {
   id: string;
-  icon: string;
+  icon: IconName;
   color: string;
   name: string;
   synonyms: string | null;
@@ -30,6 +31,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
 
   const handleFocusedIndexChange = useCallback(
     (index: number) => {
+      if (index < 0 || index >= categories.length) return;
       onCategorySelect(categories[index].id);
     },
     [categories, onCategorySelect]
