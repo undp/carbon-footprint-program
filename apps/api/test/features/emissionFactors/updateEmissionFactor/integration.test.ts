@@ -105,6 +105,44 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     expect(body.source).toBe("IPCC 2024");
   });
 
+  it("should reject source update when another active factor in the same subcategory has a different source", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Source Conflict EF",
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Source Conflict Category",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Source Conflict Subcategory",
+    });
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateUnitId,
+      { source: "Source A" }
+    );
+
+    const efToUpdate = await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateUnitId,
+      { source: "Source A" }
+    );
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/emission-factors/${efToUpdate.id.toString()}`,
+      payload: { source: "Source B" },
+    });
+
+    expect(response.statusCode).toBe(409);
+    const body = JSON.parse(response.body) as { code: string };
+    expect(body.code).toBe("EMISSION_FACTOR_SOURCE_CONFLICT");
+  });
+
   it("should return 404 when emission factor does not exist", async () => {
     const response = await app.inject({
       method: "PATCH",
