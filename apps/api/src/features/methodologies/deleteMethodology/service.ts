@@ -13,12 +13,18 @@ import {
   MethodologyIsPublishedError,
   MethodologyNotFoundError,
 } from "../errors.js";
+import { UserNotFoundError } from "../../users/errors.js";
 
 export const deleteMethodologyService = async (
   prismaClient: PrismaClient,
   id: string,
   user: User | null
 ): Promise<void> => {
+  // TODO: remove this if when handlerFactory folder is improved
+  if (!user) {
+    throw new UserNotFoundError();
+  }
+
   const methodologyId = BigInt(id);
 
   // Check if methodology exists and is active
@@ -52,7 +58,7 @@ export const deleteMethodologyService = async (
 
   // Use transaction to soft-delete methodology AND cascade to categories, subcategories, emission factors
   await prismaClient.$transaction(async (tx) => {
-    const updatedById = user ? BigInt(user.id) : null;
+    const updatedById = BigInt(user.id);
 
     await tx.emissionFactor.updateMany({
       where: {
