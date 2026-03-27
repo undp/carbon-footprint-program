@@ -1,21 +1,29 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetReductionPlanResponse } from "@repo/types";
 import { IconNameSchema } from "@repo/types";
-import { fetchInventory } from "../helpers.js";
+import { CarbonInventoryNotFoundError } from "../errors.js";
 
 export const getReductionPlanService = async (
   prismaClient: PrismaClient,
   id: string
 ): Promise<GetReductionPlanResponse> => {
-  const inventory = await fetchInventory(prismaClient, id);
-
-  // Get subcategory IDs from the carbon inventory's active lines
-  const inventoryLines = await prismaClient.carbonInventoryLine.findMany({
-    where: { carbonInventoryId: inventory.id, status: "ACTIVE" },
-    select: { subcategoryId: true },
+  const inventory = await prismaClient.carbonInventory.findUnique({
+    where: { id: BigInt(id) },
+    select: {
+      id: true,
+      lines: {
+        where: { status: "ACTIVE" },
+        select: { subcategoryId: true },
+      },
+    },
   });
+
+  if (!inventory) {
+    throw new CarbonInventoryNotFoundError(id);
+  }
+
   const subcategoryIds = [
-    ...new Set(inventoryLines.map((l) => l.subcategoryId)),
+    ...new Set(inventory.lines.map((l) => l.subcategoryId)),
   ];
 
   if (subcategoryIds.length === 0) {
