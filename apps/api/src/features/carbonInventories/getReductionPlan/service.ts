@@ -1,5 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetReductionPlanResponse } from "@repo/types";
+import {
+  CarbonInventoryLineStatus,
+  CategoryStatus,
+  InitiativeStatus,
+  type GetReductionPlanResponse,
+} from "@repo/types";
 import { IconNameSchema } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 
@@ -12,7 +17,7 @@ export const getReductionPlanService = async (
     select: {
       id: true,
       lines: {
-        where: { status: "ACTIVE" },
+        where: { status: CarbonInventoryLineStatus.ACTIVE },
         select: { subcategoryId: true },
       },
     },
@@ -33,11 +38,11 @@ export const getReductionPlanService = async (
   // Fetch categories with nested subcategories and initiatives in a single query
   const categories = await prismaClient.category.findMany({
     where: {
-      status: "ACTIVE",
+      status: CategoryStatus.ACTIVE,
       subcategories: {
         some: {
           id: { in: subcategoryIds },
-          initiatives: { some: { status: "ACTIVE" } },
+          initiatives: { some: { status: InitiativeStatus.ACTIVE } },
         },
       },
     },
@@ -53,7 +58,7 @@ export const getReductionPlanService = async (
       subcategories: {
         where: {
           id: { in: subcategoryIds },
-          initiatives: { some: { status: "ACTIVE" } },
+          initiatives: { some: { status: InitiativeStatus.ACTIVE } },
         },
         select: {
           id: true,
@@ -61,7 +66,7 @@ export const getReductionPlanService = async (
           icon: true,
           description: true,
           initiatives: {
-            where: { status: "ACTIVE" },
+            where: { status: InitiativeStatus.ACTIVE },
             select: { id: true, title: true, description: true },
             orderBy: { id: "asc" },
           },
