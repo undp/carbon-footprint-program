@@ -29,7 +29,6 @@ const CategoryWithSubcategoriesSchema = z.object({
   color: z.string(),
   description: z.string(),
   explanationId: IdSchema.nullable(),
-  initiativeCount: z.number().int().nonnegative(),
   subcategories: z.array(SubcategoryWithInitiativesSchema),
 });
 

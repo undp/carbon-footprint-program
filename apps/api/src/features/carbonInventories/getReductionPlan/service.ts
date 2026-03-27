@@ -3,7 +3,6 @@ import type { GetReductionPlanResponse } from "@repo/types";
 import { IconNameSchema } from "@repo/types";
 import { fetchInventory } from "../helpers.js";
 
-// TODO: reduction-plan I think this endpoint could be simpler if we try to move most of the logic to a single prisma query
 export const getReductionPlanService = async (
   prismaClient: PrismaClient,
   id: string
@@ -12,62 +11,28 @@ export const getReductionPlanService = async (
 
   // Get subcategory IDs from the carbon inventory's active lines
   const inventoryLines = await prismaClient.carbonInventoryLine.findMany({
-    where: {
-      carbonInventoryId: inventory.id,
-      status: "ACTIVE",
-    },
+    where: { carbonInventoryId: inventory.id, status: "ACTIVE" },
     select: { subcategoryId: true },
   });
-  const inventorySubcategoryIds = [
+  const subcategoryIds = [
     ...new Set(inventoryLines.map((l) => l.subcategoryId)),
   ];
 
-  if (inventorySubcategoryIds.length === 0) {
+  if (subcategoryIds.length === 0) {
     return { categories: [] };
   }
 
-  // Fetch active initiatives for those subcategories
-  const initiatives = await prismaClient.initiative.findMany({
-    where: {
-      subcategoryId: { in: inventorySubcategoryIds },
-      status: "ACTIVE",
-    },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      subcategoryId: true,
-    },
-    orderBy: { id: "asc" },
-  });
-
-  if (initiatives.length === 0) {
-    return { categories: [] };
-  }
-
-  // Get subcategory IDs that actually have initiatives
-  const subcategoryIdsWithInitiatives = [
-    ...new Set(initiatives.map((i) => i.subcategoryId)),
-  ];
-
-  // Fetch subcategory details with their category
-  const subcategories = await prismaClient.subcategory.findMany({
-    where: { id: { in: subcategoryIdsWithInitiatives } },
-    select: {
-      id: true,
-      name: true,
-      icon: true,
-      description: true,
-      categoryId: true,
-    },
-  });
-
-  // Get category IDs from those subcategories
-  const categoryIds = [...new Set(subcategories.map((s) => s.categoryId))];
-
-  // Fetch category details
+  // Fetch categories with nested subcategories and initiatives in a single query
   const categories = await prismaClient.category.findMany({
-    where: { id: { in: categoryIds }, status: "ACTIVE" },
+    where: {
+      status: "ACTIVE",
+      subcategories: {
+        some: {
+          id: { in: subcategoryIds },
+          initiatives: { some: { status: "ACTIVE" } },
+        },
+      },
+    },
     select: {
       id: true,
       name: true,
@@ -77,47 +42,29 @@ export const getReductionPlanService = async (
       color: true,
       description: true,
       explanationId: true,
+      subcategories: {
+        where: {
+          id: { in: subcategoryIds },
+          initiatives: { some: { status: "ACTIVE" } },
+        },
+        select: {
+          id: true,
+          name: true,
+          icon: true,
+          description: true,
+          initiatives: {
+            where: { status: "ACTIVE" },
+            select: { id: true, title: true, description: true },
+            orderBy: { id: "asc" },
+          },
+        },
+      },
     },
     orderBy: { position: "asc" },
   });
 
-  // Group initiatives by subcategory
-  const initiativesBySubcategory = new Map<bigint, typeof initiatives>();
-  for (const initiative of initiatives) {
-    const existing =
-      initiativesBySubcategory.get(initiative.subcategoryId) || [];
-    existing.push(initiative);
-    initiativesBySubcategory.set(initiative.subcategoryId, existing);
-  }
-
-  // Group subcategories by category, nesting initiatives
-  const subcategorysByCategory = new Map<bigint, typeof subcategories>();
-  for (const sub of subcategories) {
-    const existing = subcategorysByCategory.get(sub.categoryId) || [];
-    existing.push(sub);
-    subcategorysByCategory.set(sub.categoryId, existing);
-  }
-
-  // Build categories response with nested subcategories and initiatives
-  const categoriesResponse = categories.map((cat) => {
-    const catSubcategories = (subcategorysByCategory.get(cat.id) || []).map(
-      (sub) => ({
-        id: sub.id.toString(),
-        name: sub.name,
-        icon: IconNameSchema.parse(sub.icon),
-        description: sub.description,
-        initiatives: (initiativesBySubcategory.get(sub.id) || []).map((i) => ({
-          id: i.id.toString(),
-          title: i.title,
-          description: i.description,
-        })),
-      })
-    );
-    const initiativeCount = catSubcategories.reduce(
-      (sum, s) => sum + s.initiatives.length,
-      0
-    );
-    return {
+  return {
+    categories: categories.map((cat) => ({
       id: cat.id.toString(),
       name: cat.name,
       synonyms: cat.synonyms,
@@ -126,12 +73,17 @@ export const getReductionPlanService = async (
       color: cat.color,
       description: cat.description,
       explanationId: cat.explanationId?.toString() ?? null,
-      initiativeCount,
-      subcategories: catSubcategories,
-    };
-  });
-
-  return {
-    categories: categoriesResponse,
+      subcategories: cat.subcategories.map((sub) => ({
+        id: sub.id.toString(),
+        name: sub.name,
+        icon: IconNameSchema.parse(sub.icon),
+        description: sub.description,
+        initiatives: sub.initiatives.map((i) => ({
+          id: i.id.toString(),
+          title: i.title,
+          description: i.description,
+        })),
+      })),
+    })),
   };
 };
