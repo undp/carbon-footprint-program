@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
 import { Link, useLocation } from "@tanstack/react-router";
+import type { SystemRole } from "@repo/types";
 import { Item } from "./Item";
 
 export interface SidebarGroupItem {
@@ -19,6 +20,7 @@ export interface SidebarGroupItem {
   text: string;
   path: string;
   disabled?: boolean;
+  requiredRoles?: SystemRole[];
 }
 
 export interface SidebarGroupProps extends SidebarGroupItem {
