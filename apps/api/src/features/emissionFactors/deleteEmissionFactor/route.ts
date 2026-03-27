@@ -12,8 +12,7 @@ export const deleteEmissionFactorRoute = (fastify: FastifyZodInstance) => {
         summary: "Delete an emission factor",
         description: "Soft-delete an emission factor by its ID",
         params: DeleteEmissionFactorParamsSchema,
-        responses: {
-          200: null,
+        response: {
           404: ApiErrorResponseSchema,
         },
       },
