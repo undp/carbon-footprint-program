@@ -1,19 +1,19 @@
 export const Routes = {
   LANDING: "/",
   CARBON_INVENTORY_BUSINESS_PROFILING:
-    "/app/carbon-inventory/$inventoryId/business-profiling",
+    "/carbon-inventory/$inventoryId/business-profiling",
   CARBON_INVENTORY_SUBCATEGORY_PRESELECTION:
-    "/app/carbon-inventory/$inventoryId/subcategory-preselection",
+    "/carbon-inventory/$inventoryId/subcategory-preselection",
   CARBON_INVENTORY_EMISSION_CAPTURE:
-    "/app/carbon-inventory/$inventoryId/emission-capture",
+    "/carbon-inventory/$inventoryId/emission-capture",
   CARBON_INVENTORIES: "/app/carbon-inventories",
   CARBON_INVENTORY_EMISSION_SUMMARY:
-    "/app/carbon-inventory/$inventoryId/emission-summary",
+    "/carbon-inventory/$inventoryId/emission-summary",
   CARBON_INVENTORY_EMISSION_RESULTS:
-    "/app/carbon-inventory/$inventoryId/emission-results",
+    "/carbon-inventory/$inventoryId/emission-results",
   HOME: "/app/home",
   MY_ORGANIZATION: "/app/my-organization",
-  CARBON_INVENTORY: "/app/carbon-inventory",
+  CARBON_INVENTORY: "/carbon-inventory",
   REDUCTION_PROJECTS: "/app/reduction-projects",
   REDUCTION_PLAN: "/app/reduction-plan",
   AWARDS: "/app/awards",
