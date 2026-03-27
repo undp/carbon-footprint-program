@@ -31,6 +31,7 @@ interface GEIBreakdownModalProps {
   onClose: () => void;
 }
 
+// TODO: build the gas list from a centralized source of truth
 const GAS_FIELDS = [
   {
     key: "CO2_FOSSIL" as const,
