@@ -132,23 +132,6 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(body.dimensionValue1Id).toBeTruthy();
     });
 
-    it("should return 400 when dimension is not configured", async () => {
-      const { payload } = await buildEmissionFactorPayload({
-        dimensionValue1Name: "NonExistent",
-        source: "IPCC no-dim",
-      });
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/emission-factors/",
-        payload,
-      });
-
-      expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as { code: string };
-      expect(body.code).toBe("DIMENSION_NOT_CONFIGURED");
-    });
-
     it("should persist the emission factor in the database", async () => {
       const { payload } = await buildEmissionFactorPayload({
         source: "IPCC persist",
@@ -169,6 +152,25 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
 
       expect(dbRecord).toBeDefined();
       expect(dbRecord!.source).toBe("IPCC persist");
+    });
+  });
+
+  describe("Dimension validation", () => {
+    it("should return 400 when dimension is not configured", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        dimensionValue1Name: "NonExistent",
+        source: "IPCC no-dim",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_NOT_CONFIGURED");
     });
   });
 
