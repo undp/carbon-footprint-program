@@ -17,7 +17,7 @@ export const deleteEmissionFactorService = async (
   const emissionFactor = await prismaClient.emissionFactor.findFirst({
     where: {
       id: emissionFactorId,
-      status: { not: EmissionFactorStatus.DELETED },
+      status: EmissionFactorStatus.ACTIVE,
     },
     select: { status: true },
   });

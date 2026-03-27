@@ -14,7 +14,10 @@ import {
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { findDimensionValue, checkDuplicateEmissionFactor } from "../helpers.js";
+import {
+  findDimensionValue,
+  checkDuplicateEmissionFactor,
+} from "../helpers.js";
 
 export const updateEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -31,9 +34,17 @@ export const updateEmissionFactorService = async (
   const existing = await prismaClient.emissionFactor.findFirst({
     where: {
       id: emissionFactorId,
-      status: { not: EmissionFactorStatus.DELETED },
+      status: EmissionFactorStatus.ACTIVE,
     },
-    select: { id: true, subcategoryId: true, source: true, dimensionValue1Id: true, dimensionValue2Id: true, gasDetails: true, value: true },
+    select: {
+      id: true,
+      subcategoryId: true,
+      source: true,
+      dimensionValue1Id: true,
+      dimensionValue2Id: true,
+      gasDetails: true,
+      value: true,
+    },
   });
 
   if (!existing) {
@@ -51,7 +62,7 @@ export const updateEmissionFactorService = async (
     const existingSource = await prismaClient.emissionFactor.findFirst({
       where: {
         subcategoryId: targetSubcategoryId,
-        status: { not: EmissionFactorStatus.DELETED },
+        status: EmissionFactorStatus.ACTIVE,
         id: { not: emissionFactorId },
       },
       select: { source: true },
@@ -153,14 +164,12 @@ export const updateEmissionFactorService = async (
           updateData.subcategoryId != null
             ? BigInt(updateData.subcategoryId as bigint)
             : existing.subcategoryId;
-        const effectiveDim1Id =
-          dim1Changed
-            ? (updateData.dimensionValue1Id as bigint | null) ?? null
-            : existing.dimensionValue1Id;
-        const effectiveDim2Id =
-          dim2Changed
-            ? (updateData.dimensionValue2Id as bigint | null) ?? null
-            : existing.dimensionValue2Id;
+        const effectiveDim1Id = dim1Changed
+          ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
+          : existing.dimensionValue1Id;
+        const effectiveDim2Id = dim2Changed
+          ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
+          : existing.dimensionValue2Id;
 
         await checkDuplicateEmissionFactor(
           tx,
@@ -221,4 +230,3 @@ export const updateEmissionFactorService = async (
     throw error;
   }
 };
-

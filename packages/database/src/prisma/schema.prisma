@@ -474,8 +474,8 @@ model EmissionFactorDimension {
   values        EmissionFactorDimensionValue[]
 
   // Partial unique indexes exist in SQL migration:
-  // ("subcategory_id", "code") WHERE status <> 'DELETED'
-  // ("subcategory_id", "position") WHERE status <> 'DELETED'
+  // ("subcategory_id", "code") WHERE status == 'ACTIVE'
+  // ("subcategory_id", "position") WHERE status == 'ACTIVE'
 
   @@map("emission_factor_dimension")
 }

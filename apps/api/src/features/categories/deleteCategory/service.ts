@@ -23,7 +23,7 @@ export const deleteCategoryService = async (
   const categoryId = BigInt(id);
 
   const category = await prismaClient.category.findUnique({
-    where: { id: categoryId, status: { not: CategoryStatus.DELETED } },
+    where: { id: categoryId, status: CategoryStatus.ACTIVE },
     select: { status: true, position: true, methodologyVersionId: true },
   });
 
@@ -43,15 +43,18 @@ export const deleteCategoryService = async (
     await tx.emissionFactor.updateMany({
       where: {
         subcategory: { categoryId },
-        status: { not: EmissionFactorStatus.DELETED },
+        status: EmissionFactorStatus.ACTIVE,
       },
-      data: { status: EmissionFactorStatus.DELETED, updatedById: BigInt(user.id) },
+      data: {
+        status: EmissionFactorStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
     });
 
     await tx.emissionFactorDimensionValue.updateMany({
       where: {
         dimension: { subcategory: { categoryId } },
-        status: { not: EmissionFactorDimensionValueStatus.DELETED },
+        status: EmissionFactorDimensionValueStatus.ACTIVE,
       },
       data: {
         status: EmissionFactorDimensionValueStatus.DELETED,
@@ -62,7 +65,7 @@ export const deleteCategoryService = async (
     await tx.emissionFactorDimension.updateMany({
       where: {
         subcategory: { categoryId },
-        status: { not: EmissionFactorDimensionStatus.DELETED },
+        status: EmissionFactorDimensionStatus.ACTIVE,
       },
       data: {
         status: EmissionFactorDimensionStatus.DELETED,
@@ -73,7 +76,7 @@ export const deleteCategoryService = async (
     await tx.subcategory.updateMany({
       where: {
         categoryId,
-        status: { not: SubcategoryStatus.DELETED },
+        status: SubcategoryStatus.ACTIVE,
       },
       data: {
         status: SubcategoryStatus.DELETED,

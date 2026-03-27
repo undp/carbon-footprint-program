@@ -31,7 +31,7 @@ export const createEmissionFactorDimensionService = async (
       const subcategory = await tx.subcategory.findFirst({
         where: {
           id: subcategoryId,
-          status: { not: SubcategoryStatus.DELETED },
+          status: SubcategoryStatus.ACTIVE,
         },
         select: { id: true },
       });

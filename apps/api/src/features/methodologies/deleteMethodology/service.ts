@@ -29,7 +29,7 @@ export const deleteMethodologyService = async (
         select: {
           carbonInventories: {
             where: {
-              status: { not: InventoryStatus.DELETED },
+              status: InventoryStatus.ACTIVE,
             },
           },
         },
@@ -57,15 +57,17 @@ export const deleteMethodologyService = async (
     await tx.emissionFactor.updateMany({
       where: {
         subcategory: { category: { methodologyVersionId: methodologyId } },
-        status: { not: EmissionFactorStatus.DELETED },
+        status: EmissionFactorStatus.ACTIVE,
       },
       data: { status: EmissionFactorStatus.DELETED, updatedById },
     });
 
     await tx.emissionFactorDimensionValue.updateMany({
       where: {
-        dimension: { subcategory: { category: { methodologyVersionId: methodologyId } } },
-        status: { not: EmissionFactorDimensionValueStatus.DELETED },
+        dimension: {
+          subcategory: { category: { methodologyVersionId: methodologyId } },
+        },
+        status: EmissionFactorDimensionValueStatus.ACTIVE,
       },
       data: { status: EmissionFactorDimensionValueStatus.DELETED, updatedById },
     });
@@ -73,7 +75,7 @@ export const deleteMethodologyService = async (
     await tx.emissionFactorDimension.updateMany({
       where: {
         subcategory: { category: { methodologyVersionId: methodologyId } },
-        status: { not: EmissionFactorDimensionStatus.DELETED },
+        status: EmissionFactorDimensionStatus.ACTIVE,
       },
       data: { status: EmissionFactorDimensionStatus.DELETED, updatedById },
     });
@@ -81,7 +83,7 @@ export const deleteMethodologyService = async (
     await tx.subcategory.updateMany({
       where: {
         category: { methodologyVersionId: methodologyId },
-        status: { not: SubcategoryStatus.DELETED },
+        status: SubcategoryStatus.ACTIVE,
       },
       data: { status: SubcategoryStatus.DELETED, updatedById },
     });
@@ -89,7 +91,7 @@ export const deleteMethodologyService = async (
     await tx.category.updateMany({
       where: {
         methodologyVersionId: methodologyId,
-        status: { not: CategoryStatus.DELETED },
+        status: CategoryStatus.ACTIVE,
       },
       data: { status: CategoryStatus.DELETED, updatedById },
     });

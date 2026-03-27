@@ -37,15 +37,18 @@ export const deleteSubcategoryService = async (
     await tx.emissionFactor.updateMany({
       where: {
         subcategoryId: parsedSubcategoryId,
-        status: { not: EmissionFactorStatus.DELETED },
+        status: EmissionFactorStatus.ACTIVE,
       },
-      data: { status: EmissionFactorStatus.DELETED, updatedById: BigInt(user.id) },
+      data: {
+        status: EmissionFactorStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
     });
 
     await tx.emissionFactorDimensionValue.updateMany({
       where: {
         dimension: { subcategoryId: parsedSubcategoryId },
-        status: { not: EmissionFactorDimensionValueStatus.DELETED },
+        status: EmissionFactorDimensionValueStatus.ACTIVE,
       },
       data: {
         status: EmissionFactorDimensionValueStatus.DELETED,
@@ -56,7 +59,7 @@ export const deleteSubcategoryService = async (
     await tx.emissionFactorDimension.updateMany({
       where: {
         subcategoryId: parsedSubcategoryId,
-        status: { not: EmissionFactorDimensionStatus.DELETED },
+        status: EmissionFactorDimensionStatus.ACTIVE,
       },
       data: {
         status: EmissionFactorDimensionStatus.DELETED,

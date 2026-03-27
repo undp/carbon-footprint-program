@@ -59,7 +59,7 @@ export const updateEmissionFactorDimensionService = async (
         const activeEfCount = await tx.emissionFactor.count({
           where: {
             subcategoryId: dimension.subcategoryId,
-            status: { not: EmissionFactorStatus.DELETED },
+            status: EmissionFactorStatus.ACTIVE,
           },
         });
         if (activeEfCount > 0) {

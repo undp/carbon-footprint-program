@@ -15,7 +15,10 @@ import {
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { findDimensionValue, checkDuplicateEmissionFactor } from "../helpers.js";
+import {
+  findDimensionValue,
+  checkDuplicateEmissionFactor,
+} from "../helpers.js";
 
 export const createEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -30,7 +33,7 @@ export const createEmissionFactorService = async (
   const subcategory = await prismaClient.subcategory.findFirst({
     where: {
       id: BigInt(data.subcategoryId),
-      status: { not: SubcategoryStatus.DELETED },
+      status: SubcategoryStatus.ACTIVE,
     },
     select: { id: true, name: true },
   });
@@ -53,7 +56,7 @@ export const createEmissionFactorService = async (
   const existingSource = await prismaClient.emissionFactor.findFirst({
     where: {
       subcategoryId: subcategory.id,
-      status: { not: EmissionFactorStatus.DELETED },
+      status: EmissionFactorStatus.ACTIVE,
     },
     select: { source: true },
   });
@@ -159,4 +162,3 @@ export const createEmissionFactorService = async (
     throw error;
   }
 };
-
