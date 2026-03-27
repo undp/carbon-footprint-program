@@ -8,5 +8,5 @@ export const Route = createFileRoute(Routes.ADMIN_EMISSION_FACTORS)({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
     redirectTo: Routes.ADMIN_DASHBOARD,
   }),
-  component: () => <EmissionFactorsMaintainerScreen />,
+  component: EmissionFactorsMaintainerScreen,
 });
