@@ -31,20 +31,21 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   onClick,
 }) => {
   const { openExplanation } = useExplanationDialog();
+  const isUnfocused = variant === "unfocused";
+  const isFocused = variant === "focused";
 
   const categoryColorPalette = getColorPalette(categoryColor);
   const IconComponent = CATEGORY_ICON_MAP[icon as CategoryIconName];
   const backgroundColor = categoryColorPalette.light;
-  const border =
-    variant === "focused" ? `1px solid ${categoryColorPalette.main}` : "none";
-  const opacity = variant === "unfocused" ? "opacity-50" : "";
+  const border = isFocused ? `1px solid ${categoryColorPalette.main}` : "none";
+  const opacity = isUnfocused ? "opacity-50" : "";
   const textColor = categoryColorPalette.dark;
 
   const isClickable = Boolean(variant !== "default" && onClick);
 
   return (
     <Card
-      elevation={variant === "focused" ? 2 : 0}
+      elevation={isFocused ? 2 : 0}
       onClick={isClickable ? onClick : undefined}
       className={`flex w-full flex-row items-center justify-start gap-2 ${opacity}`}
       sx={{
@@ -93,6 +94,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       <Box className="flex flex-col items-end justify-center">
         <InfoButton
           label="Más información de la categoría"
+          disabled={isUnfocused}
           onClick={(e) => {
             e.stopPropagation();
             openExplanation(explanationId);
