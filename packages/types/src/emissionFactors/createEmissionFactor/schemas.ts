@@ -51,14 +51,15 @@ export const EmissionFactorFormSchema = z.object({
   source: z.string().min(1, "Fuente es requerida"),
   value: z
     .number({ error: "Valor es requerido" })
+    .nonnegative("Debe ser no negativo")
     .refine((v) => v !== 0, "Debe ser distinto de 0"),
   gasDetails: z.object({
-    CO2_FOSSIL: z.number(),
-    CH4: z.number(),
-    N2O: z.number(),
-    HFC: z.number(),
-    PFC: z.number(),
-    SF6: z.number(),
-    NF3: z.number(),
+    CO2_FOSSIL: z.number().nonnegative(),
+    CH4: z.number().nonnegative(),
+    N2O: z.number().nonnegative(),
+    HFC: z.number().nonnegative(),
+    PFC: z.number().nonnegative(),
+    SF6: z.number().nonnegative(),
+    NF3: z.number().nonnegative(),
   }),
 });
