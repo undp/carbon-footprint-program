@@ -19,15 +19,20 @@ import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
 import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
-import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
+import {
+  SubcategoryWithLines,
+  EmissionCaptureFormValues,
+} from "./types/EmissionCaptureTypes";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 export const EmissionCaptureScreen: FC = () => {
   const { inventoryId } = useParams({
@@ -66,24 +71,6 @@ export const EmissionCaptureScreen: FC = () => {
   // Form setup
   const methods = useEmissionCaptureForm({ data });
   const { handleSubmit, formState, resetAfterSave, getDirtyLineIds } = methods;
-
-  const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      onSuccess: goNext,
-      isDirty: formState.isDirty,
-      getDirtyLineIds,
-      resetAfterSave,
-      showNoChangesMessage: false,
-    });
-
-  const { submit: submitNoNavigate, isSubmitting: isSubmittingNoNavigating } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      isDirty: formState.isDirty,
-      getDirtyLineIds,
-      resetAfterSave,
-    });
 
   const { submit: submitAndGoBack, isSubmitting: isSubmittingAndGoingBack } =
     useEmissionCaptureSubmit({
@@ -127,10 +114,8 @@ export const EmissionCaptureScreen: FC = () => {
   const isBusy = activeActionsCount > 0;
 
   const globalSubmitting =
-    isSubmittingAndNavigating ||
     isSubmittingAndGoingToList ||
     isSubmittingAndGoingBack ||
-    isSubmittingNoNavigating ||
     isSubmittingOnCategoryChange;
 
   const handleCategoryChangeWithSave = useCallback(
@@ -142,6 +127,89 @@ export const EmissionCaptureScreen: FC = () => {
     },
     [handleSubmit, submitOnCategoryChange, handleCategoryChange]
   );
+
+  const selectedCategoryIndex = useMemo(
+    () => data?.categories.findIndex((c) => c.id === selectedCategory) ?? -1,
+    [data?.categories, selectedCategory]
+  );
+  const isLastCategory =
+    selectedCategoryIndex === (data?.categories.length ?? 0) - 1;
+  const nextCategoryId = !isLastCategory
+    ? (data?.categories[selectedCategoryIndex + 1]?.id ?? null)
+    : null;
+
+  const checkAllSubcategoriesFilled = useCallback(
+    (formValues: EmissionCaptureFormValues): boolean => {
+      if (!data?.categories) return true;
+      return data.categories.every((category) =>
+        (category.subcategories as SubcategoryWithLines[]).every(
+          (subcategory) => {
+            const formSub = formValues.subcategories?.[subcategory.id];
+            // Not visible: no lines and not in manual mode
+            if (
+              subcategory.lines.length === 0 &&
+              !subcategory.isTotalManualEmissionsModeActive
+            )
+              return true;
+            // Not visible: manual mode with all lines deleted
+            if (formSub?.isTotalManualEmissionsModeActive) {
+              const allDeleted = Object.values(formSub.lines ?? {}).every(
+                (l) => l.isDeleted
+              );
+              if (allDeleted) return true;
+            }
+            if (!formSub) return true;
+            // Filled if manual total mode is active
+            if (formSub.isTotalManualEmissionsModeActive) return true;
+            // Filled if at least one non-deleted line has a non-null quantity
+            return Object.values(formSub.lines ?? {}).some(
+              (line) =>
+                !line.isDeleted && line.quantity != null && line.quantity > 0
+            );
+          }
+        )
+      );
+    },
+    [data]
+  );
+
+  const confirmDialog = useConfirmDialog();
+
+  const handleWarningConfirm = useCallback(() => {
+    confirmDialog.closeConfirm();
+    goNext();
+  }, [confirmDialog, goNext]);
+
+  const handleNextClick = useCallback(() => {
+    if (!isLastCategory && nextCategoryId) {
+      handleCategoryChangeWithSave(nextCategoryId);
+    } else {
+      void handleSubmit(async (formValues) => {
+        await submitOnCategoryChange(formValues);
+        if (checkAllSubcategoriesFilled(formValues)) {
+          goNext();
+        } else {
+          confirmDialog.openConfirm({
+            title: "Subcategorías sin completar",
+            message:
+              "Hay subcategorías que no tienen datos cargados. Si continúas, quedarán sin emisiones calculadas.",
+            variant: "warning",
+            confirmLabel: "Continuar",
+            cancelLabel: "Revisar",
+          });
+        }
+      })();
+    }
+  }, [
+    isLastCategory,
+    nextCategoryId,
+    handleCategoryChangeWithSave,
+    handleSubmit,
+    submitOnCategoryChange,
+    checkAllSubcategoriesFilled,
+    goNext,
+    confirmDialog,
+  ]);
 
   // Watch subcategories for reactive updates
   const watchedSubcategories = useWatch({
@@ -170,38 +238,21 @@ export const EmissionCaptureScreen: FC = () => {
     },
   };
 
-  const nextButton: FooterButton = formState.isDirty
-    ? {
-        text: "Guardar",
-        align: "right",
-        buttonProps: {
-          startIcon: <SaveRounded />,
-          variant: "contained",
-          onClick: handleSubmit(submitNoNavigate),
-          loading: isSubmittingNoNavigating,
-          disabled: globalSubmitting || isBusy,
-        },
-      }
-    : {
-        text: "Siguiente",
-        align: "right",
-        buttonProps: {
-          endIcon: <ArrowRightAltRounded />,
-          variant: "contained",
-          type: "submit",
-          form: "emission-capture-form",
-          loading: isSubmittingAndNavigating,
-          disabled: globalSubmitting || isBusy,
-        },
-      };
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      onClick: handleNextClick,
+      loading: isSubmittingOnCategoryChange,
+      disabled: globalSubmitting || isBusy,
+    },
+  };
 
   return (
     <FormProvider {...methods}>
-      <form
-        id="emission-capture-form"
-        onSubmit={handleSubmit(submitAndNavigate)}
-        noValidate
-      >
+      <form id="emission-capture-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
@@ -276,6 +327,16 @@ export const EmissionCaptureScreen: FC = () => {
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
       <ExitInventoryDialog {...dialogProps} />
+      <ConfirmDialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.closeConfirm}
+        onConfirm={handleWarningConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+      />
     </FormProvider>
   );
 };

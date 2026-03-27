@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useCallback, useRef } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
@@ -23,6 +23,8 @@ import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 
 const ERROR_MESSAGE = {
   title:
@@ -86,6 +88,42 @@ export const SubcategoryPreselectionScreen: FC = () => {
     onGuestConfirm: goToLanding,
   });
 
+  const confirmDialog = useConfirmDialog();
+  const pendingSubmitRef = useRef<(() => void) | null>(null);
+
+  const hasUnselectedCategory = useCallback((): boolean => {
+    const formValues = methods.getValues();
+    return !!categories?.some((category) => {
+      if (category.subcategories.length === 0) return false;
+      return !category.subcategories.some((s) => formValues[s.id] === true);
+    });
+  }, [categories, methods]);
+
+  const handleNextClick = useCallback(() => {
+    const doSubmit = () =>
+      void handleSubmit((values) => submit(values, isDirty))();
+
+    if (hasUnselectedCategory()) {
+      pendingSubmitRef.current = doSubmit;
+      confirmDialog.openConfirm({
+        title: "Categorías sin subcategorías seleccionadas",
+        message:
+          "Hay categorías donde no seleccionaste ninguna subcategoría. Si continúas, no se incluirán en el inventario.",
+        variant: "warning",
+        confirmLabel: "Continuar",
+        cancelLabel: "Revisar",
+      });
+    } else {
+      doSubmit();
+    }
+  }, [handleSubmit, submit, isDirty, hasUnselectedCategory, confirmDialog]);
+
+  const handleWarningConfirm = useCallback(() => {
+    confirmDialog.closeConfirm();
+    pendingSubmitRef.current?.();
+    pendingSubmitRef.current = null;
+  }, [confirmDialog]);
+
   if (!isLoading && mustNavigateAway) return null;
 
   const isFormDisabled = globalSubmitting || hasError || isLoading;
@@ -106,8 +144,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     buttonProps: {
       endIcon: <ArrowRightAltRounded />,
       variant: "contained",
-      type: "submit",
-      form: "subcategory-preselection-form",
+      onClick: handleNextClick,
       loading: isSubmitting,
       disabled: isFormDisabled,
     },
@@ -115,11 +152,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   return (
     <FormProvider {...methods}>
-      <form
-        id="subcategory-preselection-form"
-        onSubmit={handleSubmit((values) => submit(values, isDirty))}
-        noValidate
-      >
+      <form id="subcategory-preselection-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
@@ -153,6 +186,16 @@ export const SubcategoryPreselectionScreen: FC = () => {
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
       <ExitInventoryDialog {...dialogProps} />
+      <ConfirmDialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.closeConfirm}
+        onConfirm={handleWarningConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+      />
     </FormProvider>
   );
 };
