@@ -1,4 +1,4 @@
-import { FC, Fragment } from "react";
+import { FC, Fragment, useEffect, useRef, useState } from "react";
 import { Box, Divider } from "@mui/material";
 import { CategoryCard } from "./CategoryCard";
 import { SubcategoryPreselectionField } from "./SubcategoryPreselectionField";
@@ -17,6 +17,28 @@ export const SubcategoryPreselectionCard: FC<
   const palette = getColorPalette(category.color);
   const isUnfocused = variant === "unfocused";
   const isNotDefault = variant !== "default";
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [hasMoreBelow, setHasMoreBelow] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const check = () =>
+      setHasMoreBelow(el.scrollTop + el.clientHeight < el.scrollHeight - 1);
+
+    check();
+    el.addEventListener("scroll", check, { passive: true });
+
+    const observer = new ResizeObserver(check);
+    observer.observe(el);
+
+    return () => {
+      el.removeEventListener("scroll", check);
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <Box
@@ -55,16 +77,36 @@ export const SubcategoryPreselectionCard: FC<
           explanationId={category.explanationId}
         />
         <Divider className="w-full pt-4" />
-        <Box className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
-          {category.subcategories.map((subcategory) => (
-            <Fragment key={subcategory.id}>
-              <SubcategoryPreselectionField
-                subcategory={subcategory}
-                disabled={isUnfocused}
-              />
-              <Divider className="w-full" />
-            </Fragment>
-          ))}
+        <Box
+          sx={{ position: "relative", minHeight: 0, flex: 1, width: "100%" }}
+        >
+          <Box
+            ref={scrollRef}
+            className="flex h-full min-h-0 w-full flex-col overflow-y-auto"
+          >
+            {category.subcategories.map((subcategory) => (
+              <Fragment key={subcategory.id}>
+                <SubcategoryPreselectionField
+                  subcategory={subcategory}
+                  disabled={isUnfocused}
+                />
+                <Divider className="w-full" />
+              </Fragment>
+            ))}
+          </Box>
+          {hasMoreBelow && (
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: 0,
+                left: 0,
+                right: 0,
+                height: "48px",
+                background: "linear-gradient(to bottom, transparent, white)",
+                pointerEvents: "none",
+              }}
+            />
+          )}
         </Box>
       </Box>
     </Box>
