@@ -47,3 +47,9 @@ export const DimensionValueNotFoundError = createError(
   "El valor '%s' no existe en la dimensión de posición %s",
   404
 );
+
+export const SubcategoryChangeMissingDimensionsError = createError(
+  "SUBCATEGORY_CHANGE_MISSING_DIMENSIONS",
+  "When changing subcategoryId, dimensionValue1Name and dimensionValue2Name must be explicitly provided",
+  400
+);

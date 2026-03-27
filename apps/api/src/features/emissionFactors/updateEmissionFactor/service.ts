@@ -10,6 +10,7 @@ import {
   EmissionFactorDuplicateError,
   EmissionFactorSourceConflictError,
   EmissionFactorGasDetailsMismatchError,
+  SubcategoryChangeMissingDimensionsError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
@@ -74,6 +75,20 @@ export const updateEmissionFactorService = async (
           declaredValue.toFixed(4)
         );
       }
+    }
+  }
+
+  // When changing subcategory, dimension values from the old subcategory are
+  // invalid — require the caller to explicitly provide them for the new one.
+  if (
+    data.subcategoryId !== undefined &&
+    BigInt(data.subcategoryId) !== existing.subcategoryId
+  ) {
+    if (
+      data.dimensionValue1Name === undefined ||
+      data.dimensionValue2Name === undefined
+    ) {
+      throw new SubcategoryChangeMissingDimensionsError();
     }
   }
 
