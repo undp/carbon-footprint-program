@@ -1,23 +1,13 @@
 import { FC, useCallback } from "react";
-import type { IconName } from "@repo/types";
 import { CategoryCard } from "./CategoryCard";
 import { Carousel } from "./Carousel";
+import type { MethodologyCategory } from "../types";
 
 const PEEK_WIDTH = 48;
 const VISIBLE_CARDS = 3;
 
-interface CategoryData {
-  id: string;
-  icon: IconName;
-  color: string;
-  name: string;
-  synonyms: string | null;
-  description: string | null;
-  explanationId: string | null;
-}
-
 interface CategoryCarouselProps {
-  categories: CategoryData[];
+  categories: MethodologyCategory[];
   selectedCategoryId: string;
   onCategorySelect: (categoryId: string) => void;
 }
@@ -46,7 +36,6 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
       onFocusedIndexChange={handleFocusedIndexChange}
       renderItem={(category) => (
         <CategoryCard
-          key={`category_${category.id}`}
           icon={category.icon}
           categoryColor={category.color}
           variant={selectedCategoryId === category.id ? "focused" : "unfocused"}

@@ -46,10 +46,8 @@ function CarouselComponent<T extends { id: string }>({
 
   const needsCarousel = items.length > (carouselThreshold ?? visibleCards);
 
-  // Measure container width with RAF-batched ResizeObserver
   const handleResize = useCallback((entry: ResizeObserverEntry) => {
-    const width = entry.contentRect.width;
-    setContainerWidth((prev) => (prev === width ? prev : width));
+    setContainerWidth(entry.contentRect.width);
   }, []);
 
   useResizeObserver(
@@ -83,13 +81,11 @@ function CarouselComponent<T extends { id: string }>({
     [cardWidth, gap, peekWidth]
   );
 
-  // Auto-scroll when focusedIndex changes
   useEffect(() => {
     if (focusedIndex == null || cardWidth <= 0) return;
     scrollToIndex(focusedIndex);
   }, [focusedIndex, scrollToIndex, cardWidth]);
 
-  // Keyboard navigation: scoped to container
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       if (focusedIndex == null || !onFocusedIndexChange) return;
@@ -109,7 +105,6 @@ function CarouselComponent<T extends { id: string }>({
     [focusedIndex, onFocusedIndexChange, items.length]
   );
 
-  // Simple layout for ≤visibleCards items
   if (!needsCarousel) {
     return (
       <Box className={fallbackClassName} role="listbox">
@@ -127,7 +122,6 @@ function CarouselComponent<T extends { id: string }>({
     );
   }
 
-  // Carousel layout (controlled scroll, no snap)
   return (
     <Box
       ref={containerRef}

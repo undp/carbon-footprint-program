@@ -1,19 +1,18 @@
-import { type RefObject, useEffect } from "react";
+import { type RefObject, useEffect, useRef } from "react";
 
 interface UseResizeObserverOptions {
   /** Wrap the callback in requestAnimationFrame for batching. */
   raf?: boolean;
 }
 
-/**
- * Observes size changes on the element referenced by `ref` and invokes
- * `callback` for every resize (and once on mount for the initial measurement).
- */
 export function useResizeObserver(
   ref: RefObject<HTMLElement | null>,
   callback: (entry: ResizeObserverEntry) => void,
   options?: UseResizeObserverOptions
 ) {
+  const callbackRef = useRef(callback);
+  callbackRef.current = callback;
+
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -26,9 +25,9 @@ export function useResizeObserver(
 
       if (options?.raf) {
         cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => callback(entry));
+        rafId = requestAnimationFrame(() => callbackRef.current(entry));
       } else {
-        callback(entry);
+        callbackRef.current(entry);
       }
     };
 
@@ -39,6 +38,5 @@ export function useResizeObserver(
       if (options?.raf) cancelAnimationFrame(rafId);
       observer.disconnect();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ref, options?.raf]);
 }
