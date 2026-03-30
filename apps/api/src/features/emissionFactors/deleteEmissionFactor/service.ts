@@ -14,23 +14,25 @@ export const deleteEmissionFactorService = async (
 
   const emissionFactorId = BigInt(id);
 
-  const emissionFactor = await prismaClient.emissionFactor.findFirst({
-    where: {
-      id: emissionFactorId,
-      status: EmissionFactorStatus.ACTIVE,
-    },
-    select: { status: true },
-  });
+  await prismaClient.$transaction(async (tx) => {
+    const emissionFactor = await tx.emissionFactor.findFirst({
+      where: {
+        id: emissionFactorId,
+        status: EmissionFactorStatus.ACTIVE,
+      },
+      select: { status: true },
+    });
 
-  if (!emissionFactor) {
-    throw new EmissionFactorNotFoundError(id);
-  }
+    if (!emissionFactor) {
+      throw new EmissionFactorNotFoundError(id);
+    }
 
-  await prismaClient.emissionFactor.update({
-    where: { id: emissionFactorId },
-    data: {
-      status: EmissionFactorStatus.DELETED,
-      updatedById: BigInt(user.id),
-    },
+    await tx.emissionFactor.update({
+      where: { id: emissionFactorId },
+      data: {
+        status: EmissionFactorStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
   });
 };

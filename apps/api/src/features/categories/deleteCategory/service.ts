@@ -22,16 +22,16 @@ export const deleteCategoryService = async (
 
   const categoryId = BigInt(id);
 
-  const category = await prismaClient.category.findUnique({
-    where: { id: categoryId, status: CategoryStatus.ACTIVE },
-    select: { status: true, position: true, methodologyVersionId: true },
-  });
-
-  if (!category) {
-    throw new CategoryNotFoundError();
-  }
-
   await prismaClient.$transaction(async (tx) => {
+    const category = await tx.category.findUnique({
+      where: { id: categoryId, status: CategoryStatus.ACTIVE },
+      select: { status: true, position: true, methodologyVersionId: true },
+    });
+
+    if (!category) {
+      throw new CategoryNotFoundError();
+    }
+
     await tx.category.update({
       where: { id: categoryId },
       data: {

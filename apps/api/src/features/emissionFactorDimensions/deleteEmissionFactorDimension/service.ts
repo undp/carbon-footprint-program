@@ -23,40 +23,38 @@ export const deleteEmissionFactorDimensionService = async (
   const dimensionId = BigInt(id);
   const userId = BigInt(user.id);
 
-  const dimension = await prismaClient.emissionFactorDimension.findFirst({
-    where: {
-      id: dimensionId,
-      status: EmissionFactorDimensionStatus.ACTIVE,
-    },
-    select: {
-      id: true,
-      subcategoryId: true,
-      position: true,
-      isRequired: true,
-      values: {
-        select: { id: true },
+  await prismaClient.$transaction(async (tx) => {
+    const dimension = await tx.emissionFactorDimension.findFirst({
+      where: {
+        id: dimensionId,
+        status: EmissionFactorDimensionStatus.ACTIVE,
       },
-    },
-  });
+      select: {
+        id: true,
+        subcategoryId: true,
+        position: true,
+        isRequired: true,
+        values: {
+          select: { id: true },
+        },
+      },
+    });
 
-  if (!dimension) {
-    throw new EmissionFactorDimensionNotFoundError();
-  }
+    if (!dimension) {
+      throw new EmissionFactorDimensionNotFoundError();
+    }
 
-  const activeDimensionCount = await prismaClient.emissionFactorDimension.count(
-    {
+    const activeDimensionCount = await tx.emissionFactorDimension.count({
       where: {
         subcategoryId: dimension.subcategoryId,
         status: EmissionFactorDimensionStatus.ACTIVE,
       },
+    });
+
+    if (activeDimensionCount > 1 && dimension.position === 1) {
+      throw new DimensionDeletionNotAllowedError();
     }
-  );
 
-  if (activeDimensionCount > 1 && dimension.position === 1) {
-    throw new DimensionDeletionNotAllowedError();
-  }
-
-  await prismaClient.$transaction(async (tx) => {
     const valueIds = dimension.values.map((v) => v.id);
 
     if (valueIds.length > 0) {

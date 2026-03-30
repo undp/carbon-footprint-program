@@ -27,37 +27,37 @@ export const deleteMethodologyService = async (
 
   const methodologyId = BigInt(id);
 
-  // Check if methodology exists and is active
-  const methodology = await prismaClient.methodologyVersion.findUnique({
-    where: { id: methodologyId },
-    include: {
-      _count: {
-        select: {
-          carbonInventories: {
-            where: {
-              status: InventoryStatus.ACTIVE,
+  // Use transaction to soft-delete methodology AND cascade to categories, subcategories, emission factors
+  await prismaClient.$transaction(async (tx) => {
+    // Check if methodology exists and is active
+    const methodology = await tx.methodologyVersion.findUnique({
+      where: { id: methodologyId },
+      include: {
+        _count: {
+          select: {
+            carbonInventories: {
+              where: {
+                status: InventoryStatus.ACTIVE,
+              },
             },
           },
         },
       },
-    },
-  });
+    });
 
-  if (!methodology || methodology.status === MethodologyVersionStatus.DELETED) {
-    throw new MethodologyNotFoundError();
-  }
+    if (!methodology || methodology.status === MethodologyVersionStatus.DELETED) {
+      throw new MethodologyNotFoundError();
+    }
 
-  if (methodology.status === MethodologyVersionStatus.PUBLISHED) {
-    throw new MethodologyIsPublishedError();
-  }
+    if (methodology.status === MethodologyVersionStatus.PUBLISHED) {
+      throw new MethodologyIsPublishedError();
+    }
 
-  // Check if methodology has active carbon inventories
-  if (methodology._count.carbonInventories > 0) {
-    throw new MethodologyHasActiveInventoriesError();
-  }
+    // Check if methodology has active carbon inventories
+    if (methodology._count.carbonInventories > 0) {
+      throw new MethodologyHasActiveInventoriesError();
+    }
 
-  // Use transaction to soft-delete methodology AND cascade to categories, subcategories, emission factors
-  await prismaClient.$transaction(async (tx) => {
     const updatedById = BigInt(user.id);
 
     await tx.emissionFactor.updateMany({

@@ -19,34 +19,36 @@ export const createCategoryService = async (
   data: CreateCategoryRequest,
   user: User | null
 ): Promise<CreateCategoryResponse> => {
-  // Validate methodology version exists and is not deleted
-  const methodologyVersion = await prismaClient.methodologyVersion.findUnique({
-    where: {
-      id: BigInt(data.methodologyVersionId),
-      status: { not: MethodologyVersionStatus.DELETED },
-    },
-    select: { id: true, status: true },
-  });
-
-  if (!methodologyVersion) {
-    throw new MethodologyVersionNotFoundForCategoryError();
-  }
-
   try {
-    const category = await prismaClient.category.create({
-      data: {
-        methodologyVersionId: BigInt(data.methodologyVersionId),
-        name: data.name,
-        icon: data.icon,
-        color: data.color,
-        synonyms: data.synonyms,
-        description: data.description,
-        examples: data.examples ?? null,
-        position: data.position,
-        status: CategoryStatus.ACTIVE,
-        createdById: user ? BigInt(user.id) : null,
-        updatedAt: null,
-      },
+    const category = await prismaClient.$transaction(async (tx) => {
+      // Validate methodology version exists and is not deleted
+      const methodologyVersion = await tx.methodologyVersion.findUnique({
+        where: {
+          id: BigInt(data.methodologyVersionId),
+          status: { not: MethodologyVersionStatus.DELETED },
+        },
+        select: { id: true, status: true },
+      });
+
+      if (!methodologyVersion) {
+        throw new MethodologyVersionNotFoundForCategoryError();
+      }
+
+      return tx.category.create({
+        data: {
+          methodologyVersionId: BigInt(data.methodologyVersionId),
+          name: data.name,
+          icon: data.icon,
+          color: data.color,
+          synonyms: data.synonyms,
+          description: data.description,
+          examples: data.examples ?? null,
+          position: data.position,
+          status: CategoryStatus.ACTIVE,
+          createdById: user ? BigInt(user.id) : null,
+          updatedAt: null,
+        },
+      });
     });
     return mapCategoryToResponse(category);
   } catch (error) {

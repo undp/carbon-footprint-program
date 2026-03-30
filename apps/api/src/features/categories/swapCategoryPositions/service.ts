@@ -24,30 +24,30 @@ export const swapCategoryPositionsService = async (
     throw new SameCategoryError();
   }
 
-  const [catA, catB] = await Promise.all([
-    prismaClient.category.findFirst({
-      where: { id: idA, status: { not: CategoryStatus.DELETED } },
-    }),
-    prismaClient.category.findFirst({
-      where: { id: idB, status: { not: CategoryStatus.DELETED } },
-    }),
-  ]);
-
-  if (!catA || !catB) {
-    const missingIds = [];
-    if (!catA) missingIds.push(idA);
-    if (!catB) missingIds.push(idB);
-    throw new CategoryNotFoundError(missingIds.join(", "));
-  }
-  if (catA.methodologyVersionId !== catB.methodologyVersionId) {
-    throw new CategoriesFromDifferentMethodologyVersionsError(catA.id, catB.id);
-  }
-
-  const positionA = catA.position;
-  const positionB = catB.position;
-  const methodologyVersionId = catA.methodologyVersionId;
-
   const [updatedA, updatedB] = await prismaClient.$transaction(async (tx) => {
+    const [catA, catB] = await Promise.all([
+      tx.category.findFirst({
+        where: { id: idA, status: { not: CategoryStatus.DELETED } },
+      }),
+      tx.category.findFirst({
+        where: { id: idB, status: { not: CategoryStatus.DELETED } },
+      }),
+    ]);
+
+    if (!catA || !catB) {
+      const missingIds = [];
+      if (!catA) missingIds.push(idA);
+      if (!catB) missingIds.push(idB);
+      throw new CategoryNotFoundError(missingIds.join(", "));
+    }
+    if (catA.methodologyVersionId !== catB.methodologyVersionId) {
+      throw new CategoriesFromDifferentMethodologyVersionsError(catA.id, catB.id);
+    }
+
+    const positionA = catA.position;
+    const positionB = catB.position;
+    const methodologyVersionId = catA.methodologyVersionId;
+
     // Find a safe temp position to avoid the unique constraint during the swap
     const aggregate = await tx.category.aggregate({
       where: {

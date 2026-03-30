@@ -19,18 +19,6 @@ export const updateCategoryService = async (
   data: UpdateCategoryRequest,
   user: User | null
 ): Promise<UpdateCategoryResponse> => {
-  const targetCategory = await prismaClient.category.findFirst({
-    where: {
-      id: BigInt(id),
-      status: { not: CategoryStatus.DELETED },
-    },
-    select: { status: true },
-  });
-
-  if (!targetCategory) {
-    throw new CategoryNotFoundError();
-  }
-
   // Build update data dynamically based on provided fields
   const updateData: Prisma.CategoryUncheckedUpdateInput = {};
 
@@ -47,9 +35,23 @@ export const updateCategoryService = async (
   }
 
   try {
-    const category = await prismaClient.category.update({
-      where: { id: BigInt(id) },
-      data: updateData,
+    const category = await prismaClient.$transaction(async (tx) => {
+      const targetCategory = await tx.category.findFirst({
+        where: {
+          id: BigInt(id),
+          status: { not: CategoryStatus.DELETED },
+        },
+        select: { status: true },
+      });
+
+      if (!targetCategory) {
+        throw new CategoryNotFoundError();
+      }
+
+      return tx.category.update({
+        where: { id: BigInt(id) },
+        data: updateData,
+      });
     });
     return mapCategoryToResponse(category);
   } catch (error) {

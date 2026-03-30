@@ -26,20 +26,20 @@ export const duplicateMethodologyService = async (
   id: string,
   user: User | null
 ): Promise<DuplicateMethodologyResponse> => {
-  // Find the original methodology
-  const original = await prismaClient.methodologyVersion.findUnique({
-    where: { id: BigInt(id) },
-  });
-
-  if (!original) {
-    throw new MethodologyNotFoundError();
-  }
-
   try {
     const userId = user ? BigInt(user.id) : null;
 
     // Use transaction to duplicate methodology AND its active categories
     const duplicated = await prismaClient.$transaction(async (tx) => {
+      // Find the original methodology
+      const original = await tx.methodologyVersion.findUnique({
+        where: { id: BigInt(id) },
+      });
+
+      if (!original) {
+        throw new MethodologyNotFoundError();
+      }
+
       // Generate unique copy name inside the transaction to minimize race window
       const existingNames = await tx.methodologyVersion.findMany({
         where: {

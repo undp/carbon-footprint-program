@@ -30,42 +30,6 @@ export const createEmissionFactorService = async (
     throw new UserNotFoundError();
   }
 
-  // Validate subcategory exists and is not deleted
-  const subcategory = await prismaClient.subcategory.findFirst({
-    where: {
-      id: BigInt(data.subcategoryId),
-      status: SubcategoryStatus.ACTIVE,
-    },
-    select: { id: true, name: true },
-  });
-
-  if (!subcategory) {
-    throw new SubcategoryNotFoundForEmissionFactorError();
-  }
-
-  // Validate rate measurement unit exists
-  const rateUnit = await prismaClient.rateMeasurementUnit.findUnique({
-    where: { id: BigInt(data.rateMeasurementUnitId) },
-    select: { id: true, name: true },
-  });
-
-  if (!rateUnit) {
-    throw new RateMeasurementUnitNotFoundError();
-  }
-
-  // Enforce: all active EFs for a subcategory must share the same source
-  const existingSource = await prismaClient.emissionFactor.findFirst({
-    where: {
-      subcategoryId: subcategory.id,
-      status: EmissionFactorStatus.ACTIVE,
-    },
-    select: { source: true },
-  });
-
-  if (existingSource && existingSource.source !== data.source) {
-    throw new EmissionFactorSourceConflictError(existingSource.source);
-  }
-
   // Validate gasDetails sum matches declared value (if breakdown is non-zero)
   const gd = data.gasDetails;
   const gasSum = Object.values(gd).reduce((sum, value) => sum + value, 0);
@@ -83,6 +47,42 @@ export const createEmissionFactorService = async (
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
+      // Validate subcategory exists and is not deleted
+      const subcategory = await tx.subcategory.findFirst({
+        where: {
+          id: BigInt(data.subcategoryId),
+          status: SubcategoryStatus.ACTIVE,
+        },
+        select: { id: true, name: true },
+      });
+
+      if (!subcategory) {
+        throw new SubcategoryNotFoundForEmissionFactorError();
+      }
+
+      // Validate rate measurement unit exists
+      const rateUnit = await tx.rateMeasurementUnit.findUnique({
+        where: { id: BigInt(data.rateMeasurementUnitId) },
+        select: { id: true, name: true },
+      });
+
+      if (!rateUnit) {
+        throw new RateMeasurementUnitNotFoundError();
+      }
+
+      // Enforce: all active EFs for a subcategory must share the same source
+      const existingSource = await tx.emissionFactor.findFirst({
+        where: {
+          subcategoryId: subcategory.id,
+          status: EmissionFactorStatus.ACTIVE,
+        },
+        select: { source: true },
+      });
+
+      if (existingSource && existingSource.source !== data.source) {
+        throw new EmissionFactorSourceConflictError(existingSource.source);
+      }
+
       // Find-or-create dimension values if provided
       let dimensionValue1Id: bigint | null = null;
       let dimensionValue2Id: bigint | null = null;

@@ -21,19 +21,19 @@ export const deleteSubcategoryService = async (
 
   const parsedSubcategoryId = BigInt(subcategoryId);
 
-  const subcategory = await prismaClient.subcategory.findFirst({
-    where: {
-      status: SubcategoryStatus.ACTIVE,
-      id: parsedSubcategoryId,
-    },
-    select: { status: true },
-  });
-
-  if (!subcategory) {
-    throw new SubcategoryNotFoundError();
-  }
-
   await prismaClient.$transaction(async (tx) => {
+    const subcategory = await tx.subcategory.findFirst({
+      where: {
+        status: SubcategoryStatus.ACTIVE,
+        id: parsedSubcategoryId,
+      },
+      select: { status: true },
+    });
+
+    if (!subcategory) {
+      throw new SubcategoryNotFoundError();
+    }
+
     await tx.emissionFactor.updateMany({
       where: {
         subcategoryId: parsedSubcategoryId,
