@@ -6,6 +6,7 @@ import {
   type CreateEmissionFactorRequest,
   type CreateEmissionFactorResponse,
 } from "@repo/types";
+import { EMISSION_FACTOR_GAS_DETAILS_TOLERANCE } from "@/config/constants.js";
 import {
   SubcategoryNotFoundForEmissionFactorError,
   RateMeasurementUnitNotFoundError,
@@ -70,7 +71,9 @@ export const createEmissionFactorService = async (
   const gasSum = Object.values(gd).reduce((sum, value) => sum + value, 0);
   if (gasSum > 0) {
     const declaredValue = data.value;
-    if (Math.abs(gasSum - declaredValue) > 1e-4) {
+    if (
+      Math.abs(gasSum - declaredValue) > EMISSION_FACTOR_GAS_DETAILS_TOLERANCE
+    ) {
       throw new EmissionFactorGasDetailsMismatchError(
         gasSum.toFixed(4),
         declaredValue.toFixed(4)
