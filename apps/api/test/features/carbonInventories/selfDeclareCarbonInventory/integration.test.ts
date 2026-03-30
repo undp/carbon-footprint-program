@@ -117,7 +117,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
 
       const submission = submissionSubjectCI!.subject.submissions[0];
       expect(submission.type).toBe(SubmissionType.CARBON_INVENTORY_CALCULATION);
-      expect(submission.status).toBe(SubmissionStatus.APPROVED);
+      expect(submission.status).toBe(SubmissionStatus.APPROVED_AUTOMATICALLY);
     });
 
     it("should assign active badge to the auto-approved submission when badge exists", async () => {
