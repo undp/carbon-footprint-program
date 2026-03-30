@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useLayoutEffect, useRef } from "react";
+import { type RefObject, useEffect } from "react";
 
 interface UseResizeObserverOptions {
   /** Wrap the callback in requestAnimationFrame for batching. */
@@ -10,12 +10,6 @@ export function useResizeObserver(
   callback: (entry: ResizeObserverEntry) => void,
   options?: UseResizeObserverOptions
 ) {
-  const callbackRef = useRef(callback);
-
-  useLayoutEffect(() => {
-    callbackRef.current = callback;
-  });
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -28,9 +22,9 @@ export function useResizeObserver(
 
       if (options?.raf) {
         cancelAnimationFrame(rafId);
-        rafId = requestAnimationFrame(() => callbackRef.current(entry));
+        rafId = requestAnimationFrame(() => callback(entry));
       } else {
-        callbackRef.current(entry);
+        callback(entry);
       }
     };
 
@@ -41,5 +35,5 @@ export function useResizeObserver(
       if (options?.raf) cancelAnimationFrame(rafId);
       observer.disconnect();
     };
-  }, [ref, options?.raf]);
+  }, [ref, callback, options?.raf]);
 }
