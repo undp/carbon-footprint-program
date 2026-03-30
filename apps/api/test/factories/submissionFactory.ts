@@ -108,6 +108,54 @@ export async function createTestOrganizationDataSubmission(
 }
 
 /**
+ * Creates a submission subject for a carbon inventory
+ */
+export async function createTestSubmissionSubjectForCarbonInventory(
+  prisma: PrismaClient,
+  carbonInventoryId: bigint
+): Promise<SubmissionSubject> {
+  const subject = await prisma.submissionSubject.create({
+    data: {},
+  });
+
+  await prisma.submissionSubjectCarbonInventory.create({
+    data: {
+      subjectId: subject.id,
+      carbonInventoryId,
+    },
+  });
+
+  return subject;
+}
+
+/**
+ * Creates a complete submission flow for a carbon inventory (subject + submission)
+ */
+export async function createTestCarbonInventorySubmission(
+  prisma: PrismaClient,
+  carbonInventoryId: bigint,
+  type: SubmissionType = SubmissionType.CARBON_INVENTORY_CALCULATION,
+  status: SubmissionStatus = SubmissionStatus.PENDING,
+  userId: bigint,
+  reviewerId?: bigint,
+  reviewComments?: string
+): Promise<{ subject: SubmissionSubject; submission: Submission }> {
+  const subject = await createTestSubmissionSubjectForCarbonInventory(
+    prisma,
+    carbonInventoryId
+  );
+
+  const submission = await createTestSubmission(prisma, subject.id, type, {
+    status,
+    reviewerId,
+    reviewComments,
+    createdById: userId,
+  });
+
+  return { subject, submission };
+}
+
+/**
  * Approves a pending submission
  */
 export async function approveSubmission(
