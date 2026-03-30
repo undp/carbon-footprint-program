@@ -38,13 +38,13 @@ export const EmissionFactorGasDetailsMismatchError = createError(
 
 export const DimensionNotConfiguredError = createError(
   "DIMENSION_NOT_CONFIGURED",
-  "No hay dimensión configurada en la posición %s para esta subcategoría",
+  "No dimension configured in position %s for this subcategory",
   400
 );
 
 export const DimensionValueNotFoundError = createError(
   "DIMENSION_VALUE_NOT_FOUND",
-  "El valor '%s' no existe en la dimensión de posición %s",
+  "Value '%s' does not exist in dimension of position %s",
   404
 );
 
