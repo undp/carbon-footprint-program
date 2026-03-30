@@ -42,7 +42,6 @@ export function Carousel<T extends { id: string }>({
   carouselThreshold,
 }: CarouselProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const nullRef = useRef<HTMLElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
   const needsCarousel = items.length > (carouselThreshold ?? visibleCards);
@@ -51,7 +50,7 @@ export function Carousel<T extends { id: string }>({
     setContainerWidth(entry.contentRect.width);
   }, []);
 
-  useResizeObserver(needsCarousel ? containerRef : nullRef, handleResize, {
+  useResizeObserver(needsCarousel ? containerRef : null, handleResize, {
     raf: true,
   });
 

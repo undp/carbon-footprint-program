@@ -11,12 +11,12 @@ interface UseResizeObserverOptions {
 }
 
 export function useResizeObserver(
-  ref: RefObject<HTMLElement | null>,
+  ref: RefObject<HTMLElement | null> | null,
   callback: (entry: ResizeObserverEntry) => void,
   options?: UseResizeObserverOptions
 ) {
   useEffect(() => {
-    const el = ref.current;
+    const el = ref?.current;
     if (!el) return;
 
     let rafId = 0;
