@@ -8,15 +8,15 @@ import {
 import {
   EmissionFactorNotFoundError,
   EmissionFactorDuplicateError,
-  EmissionFactorSourceConflictError,
-  EmissionFactorGasDetailsMismatchError,
-  SubcategoryChangeMissingDimensionsError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
+  validateSourceConsistency,
+  validateGasDetailsSum,
+  validateSubcategoryChangeDimensions,
 } from "../helpers.js";
 
 export const updateEmissionFactorService = async (
@@ -53,57 +53,30 @@ export const updateEmissionFactorService = async (
         throw new EmissionFactorNotFoundError(id);
       }
 
-      // Enforce: all active EFs for a subcategory must share the same source
       if (data.source !== undefined || data.subcategoryId !== undefined) {
-        const effectiveSource = data.source ?? existing.source;
         const targetSubcategoryId =
           data.subcategoryId !== undefined
             ? BigInt(data.subcategoryId)
             : existing.subcategoryId;
-
-        const existingSource = await tx.emissionFactor.findFirst({
-          where: {
-            subcategoryId: targetSubcategoryId,
-            status: EmissionFactorStatus.ACTIVE,
-            id: { not: emissionFactorId },
-          },
-          select: { source: true },
-        });
-
-        if (existingSource && existingSource.source !== effectiveSource) {
-          throw new EmissionFactorSourceConflictError(existingSource.source);
-        }
+        await validateSourceConsistency(
+          tx,
+          targetSubcategoryId,
+          data.source ?? existing.source,
+          emissionFactorId
+        );
       }
 
-      // Validate gasDetails sum matches declared value (if breakdown is non-zero)
       if (data.gasDetails !== undefined || data.value !== undefined) {
         const gd = data.gasDetails ?? parseGasDetails(existing.gasDetails, id);
-        const gasSum =
-          gd.CO2_FOSSIL + gd.CH4 + gd.N2O + gd.HFC + gd.PFC + gd.SF6 + gd.NF3;
-        if (gasSum > 0) {
-          const declaredValue = data.value ?? existing.value.toNumber();
-          if (Math.abs(gasSum - declaredValue) > 1e-4) {
-            throw new EmissionFactorGasDetailsMismatchError(
-              gasSum.toFixed(4),
-              declaredValue.toFixed(4)
-            );
-          }
-        }
+        validateGasDetailsSum(gd, data.value ?? existing.value.toNumber());
       }
 
-      // When changing subcategory, dimension values from the old subcategory are
-      // invalid — require the caller to explicitly provide them for the new one.
-      if (
-        data.subcategoryId !== undefined &&
-        BigInt(data.subcategoryId) !== existing.subcategoryId
-      ) {
-        if (
-          data.dimensionValue1Name === undefined ||
-          data.dimensionValue2Name === undefined
-        ) {
-          throw new SubcategoryChangeMissingDimensionsError();
-        }
-      }
+      validateSubcategoryChangeDimensions(
+        data.subcategoryId,
+        existing.subcategoryId,
+        data.dimensionValue1Name,
+        data.dimensionValue2Name
+      );
 
       const updateData: Prisma.EmissionFactorUncheckedUpdateInput = {
         updatedById: BigInt(user.id),

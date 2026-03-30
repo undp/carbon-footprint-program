@@ -6,19 +6,18 @@ import {
   type CreateEmissionFactorRequest,
   type CreateEmissionFactorResponse,
 } from "@repo/types";
-import { EMISSION_FACTOR_GAS_DETAILS_TOLERANCE } from "@/config/constants.js";
 import {
   SubcategoryNotFoundForEmissionFactorError,
   RateMeasurementUnitNotFoundError,
   EmissionFactorDuplicateError,
-  EmissionFactorSourceConflictError,
-  EmissionFactorGasDetailsMismatchError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
+  validateSourceConsistency,
+  validateGasDetailsSum,
 } from "../helpers.js";
 
 export const createEmissionFactorService = async (
@@ -30,20 +29,7 @@ export const createEmissionFactorService = async (
     throw new UserNotFoundError();
   }
 
-  // Validate gasDetails sum matches declared value (if breakdown is non-zero)
-  const gd = data.gasDetails;
-  const gasSum = Object.values(gd).reduce((sum, value) => sum + value, 0);
-  if (gasSum > 0) {
-    const declaredValue = data.value;
-    if (
-      Math.abs(gasSum - declaredValue) > EMISSION_FACTOR_GAS_DETAILS_TOLERANCE
-    ) {
-      throw new EmissionFactorGasDetailsMismatchError(
-        gasSum.toFixed(4),
-        declaredValue.toFixed(4)
-      );
-    }
-  }
+  validateGasDetailsSum(data.gasDetails, data.value);
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
@@ -70,18 +56,7 @@ export const createEmissionFactorService = async (
         throw new RateMeasurementUnitNotFoundError();
       }
 
-      // Enforce: all active EFs for a subcategory must share the same source
-      const existingSource = await tx.emissionFactor.findFirst({
-        where: {
-          subcategoryId: subcategory.id,
-          status: EmissionFactorStatus.ACTIVE,
-        },
-        select: { source: true },
-      });
-
-      if (existingSource && existingSource.source !== data.source) {
-        throw new EmissionFactorSourceConflictError(existingSource.source);
-      }
+      await validateSourceConsistency(tx, subcategory.id, data.source);
 
       // Find-or-create dimension values if provided
       let dimensionValue1Id: bigint | null = null;
