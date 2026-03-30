@@ -1,6 +1,6 @@
 import { FC, useCallback, useState } from "react";
 import { SubcategoryPreselectionCard } from "./SubcategoryPreselectionCard";
-import { Carousel } from "./Carousel";
+import { Carousel } from "@/components";
 import type { SubcategoryPreselectionMergedData } from "../types";
 
 const PEEK_WIDTH = 96;
@@ -50,7 +50,7 @@ export const SubcategoryPreselectionCarousel: FC<
         needsCarousel ? handleFocusedIndexChange : undefined
       }
       fallbackClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"
-      carouselSx={{ alignItems: "stretch", minHeight: 0, flex: 1 }}
+      sx={{ alignItems: "stretch", minHeight: 0, flex: 1 }}
       renderItem={(category, _index, isScrollable) =>
         isScrollable ? (
           <SubcategoryPreselectionCard

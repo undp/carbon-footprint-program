@@ -1,6 +1,6 @@
 import { FC, useCallback } from "react";
 import { CategoryCard } from "./CategoryCard";
-import { Carousel } from "./Carousel";
+import { Carousel } from "@/components";
 import type { MethodologyCategory } from "../types";
 
 const PEEK_WIDTH = 48;
