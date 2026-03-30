@@ -201,7 +201,13 @@ export const ReductionPlanScreen: FC = () => {
           )}
 
           {!isLoadingPlan && !isErrorPlan && !reductionPlan && (
-            <EmptyStateMessage message="Selecciona una huella para ver el plan de reducción." />
+            <EmptyStateMessage
+              message={
+                inventoriesForSelectedOrg.length === 0
+                  ? "Esta organización no tiene huellas autodeclaradas disponibles."
+                  : "Selecciona una huella autodeclarada para ver el plan de reducción."
+              }
+            />
           )}
         </Box>
       </Box>
