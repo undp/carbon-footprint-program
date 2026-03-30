@@ -537,7 +537,7 @@ model EmissionFactor {
   updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
   lineFactors           CarbonInventoryLineFactor[]
 
-  @@unique([subcategoryId, dimensionValue1Id, dimensionValue2Id, source], map: "emission_factor_unique_subcategory_dims_source")
+  // Partial unique index (status <> 'DELETED') managed in migration SQL
   @@map("emission_factor")
 }
 
