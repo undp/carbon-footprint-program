@@ -4,6 +4,7 @@ import {
   SubcategoryBaseSchema,
   EmissionFactorDimensionValueBaseSchema,
   RateMeasurementUnitBaseSchema,
+  EmissionFactorDimensionBaseSchema,
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
@@ -31,13 +32,13 @@ export const CreateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
   }
 ).extend({
   subcategoryId: SubcategoryBaseSchema.shape.id,
-  subcategoryName: z.string(),
+  subcategoryName: SubcategoryBaseSchema.shape.name,
   dimensionValue1Id: EmissionFactorDimensionValueBaseSchema.shape.id.nullable(),
-  dimensionValue1Name: z.string().nullable(),
+  dimensionValue1Name: EmissionFactorDimensionBaseSchema.shape.name.nullable(),
   dimensionValue2Id: EmissionFactorDimensionValueBaseSchema.shape.id.nullable(),
-  dimensionValue2Name: z.string().nullable(),
+  dimensionValue2Name: EmissionFactorDimensionBaseSchema.shape.name.nullable(),
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
-  rateMeasurementUnitName: z.string(),
+  rateMeasurementUnitName: RateMeasurementUnitBaseSchema.shape.name,
   gasDetails: GasDetailsSchema,
 });
 

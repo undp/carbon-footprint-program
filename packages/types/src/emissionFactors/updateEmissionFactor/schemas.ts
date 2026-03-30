@@ -5,6 +5,7 @@ import {
   EmissionFactorDimensionValueBaseSchema,
   RateMeasurementUnitBaseSchema,
   EmissionFactorBaseSchema,
+  EmissionFactorDimensionBaseSchema,
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
@@ -17,8 +18,10 @@ export const UpdateEmissionFactorParamsSchema = z
 export const UpdateEmissionFactorRequestSchema = z
   .object({
     subcategoryId: SubcategoryBaseSchema.shape.id,
-    dimensionValue1Name: z.string().nullable(),
-    dimensionValue2Name: z.string().nullable(),
+    dimensionValue1Name:
+      EmissionFactorDimensionBaseSchema.shape.name.nullable(),
+    dimensionValue2Name:
+      EmissionFactorDimensionBaseSchema.shape.name.nullable(),
     rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
     source: z.string().min(1),
     gasDetails: GasDetailsSchema,
@@ -37,12 +40,12 @@ export const UpdateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
   }
 ).extend({
   subcategoryId: SubcategoryBaseSchema.shape.id,
-  subcategoryName: z.string(),
+  subcategoryName: SubcategoryBaseSchema.shape.name,
   dimensionValue1Id: EmissionFactorDimensionValueBaseSchema.shape.id.nullable(),
-  dimensionValue1Name: z.string().nullable(),
+  dimensionValue1Name: EmissionFactorDimensionBaseSchema.shape.name.nullable(),
   dimensionValue2Id: EmissionFactorDimensionValueBaseSchema.shape.id.nullable(),
-  dimensionValue2Name: z.string().nullable(),
+  dimensionValue2Name: EmissionFactorDimensionBaseSchema.shape.name.nullable(),
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
-  rateMeasurementUnitName: z.string(),
+  rateMeasurementUnitName: RateMeasurementUnitBaseSchema.shape.name,
   gasDetails: GasDetailsSchema,
 });
