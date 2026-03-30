@@ -23,7 +23,10 @@ import {
   SubcategoryWithLines,
   EmissionCaptureFormValues,
 } from "./types/EmissionCaptureTypes";
-import { areAllSubcategoriesFilled } from "./utils/emissionCaptureValidation";
+import {
+  areAllSubcategoriesFilled,
+  shouldShowSubcategory,
+} from "./utils/emissionCaptureValidation";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
@@ -271,20 +274,7 @@ export const EmissionCaptureScreen: FC = () => {
                     ).map((subcategory) => {
                       const formSubcategory =
                         watchedSubcategories?.[subcategory.id];
-                      const allLinesDeleted = Object.values(
-                        formSubcategory?.lines ?? {}
-                      ).every(({ isDeleted }) => isDeleted);
-
-                      if (
-                        formSubcategory?.isTotalManualEmissionsModeActive &&
-                        allLinesDeleted
-                      )
-                        return null;
-
-                      if (
-                        subcategory.lines.length === 0 &&
-                        !subcategory.isTotalManualEmissionsModeActive
-                      )
+                      if (!shouldShowSubcategory(subcategory, formSubcategory))
                         return null;
                       return (
                         <EmissionEditor

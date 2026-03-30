@@ -4,6 +4,27 @@ import type {
   EmissionCaptureFormValues,
 } from "../types/EmissionCaptureTypes";
 
+export function shouldShowSubcategory(
+  subcategory: SubcategoryWithLines,
+  formSubcategory:
+    | EmissionCaptureFormValues["subcategories"][string]
+    | undefined
+): boolean {
+  if (
+    subcategory.lines.length === 0 &&
+    !subcategory.isTotalManualEmissionsModeActive
+  )
+    return false;
+
+  const allLinesDeleted = Object.values(formSubcategory?.lines ?? {}).every(
+    (l) => l.isDeleted
+  );
+  if (formSubcategory?.isTotalManualEmissionsModeActive && allLinesDeleted)
+    return false;
+
+  return true;
+}
+
 /**
  * Checks whether every visible subcategory across all categories
  * has at least some emission data filled in.
@@ -21,19 +42,7 @@ export function areAllSubcategoriesFilled(
   return categories.every((category) =>
     (category.subcategories as SubcategoryWithLines[]).every((subcategory) => {
       const formSub = formValues.subcategories?.[subcategory.id];
-      // Not visible: no lines and not in manual mode
-      if (
-        subcategory.lines.length === 0 &&
-        !subcategory.isTotalManualEmissionsModeActive
-      )
-        return true;
-      // Not visible: manual mode with all lines deleted
-      if (formSub?.isTotalManualEmissionsModeActive) {
-        const allDeleted = Object.values(formSub.lines ?? {}).every(
-          (l) => l.isDeleted
-        );
-        if (allDeleted) return true;
-      }
+      if (!shouldShowSubcategory(subcategory, formSub)) return true;
       if (!formSub) return true;
       // Filled if manual total mode is active
       if (formSub.isTotalManualEmissionsModeActive) return true;
