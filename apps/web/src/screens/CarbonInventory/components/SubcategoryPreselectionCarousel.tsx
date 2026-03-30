@@ -31,7 +31,7 @@ export const SubcategoryPreselectionCarousel: FC<
     setFocusedCategoryId(categoryId);
   }, []);
 
-  const handleFocusedIndexChange = useCallback(
+  const onFocusedIndexChange = useCallback(
     (index: number) => {
       if (index < 0 || index >= categories.length) return;
       setFocusedCategoryId(categories[index].id);
@@ -46,9 +46,7 @@ export const SubcategoryPreselectionCarousel: FC<
       visibleCards={VISIBLE_CARDS}
       carouselThreshold={CAROUSEL_THRESHOLD}
       focusedIndex={needsCarousel ? focusedIndex : undefined}
-      onFocusedIndexChange={
-        needsCarousel ? handleFocusedIndexChange : undefined
-      }
+      onFocusedIndexChange={needsCarousel ? onFocusedIndexChange : undefined}
       fallbackClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"
       sx={{ alignItems: "stretch", minHeight: 0, flex: 1 }}
       renderItem={(category, _index, isScrollable) =>
