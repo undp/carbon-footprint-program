@@ -7,6 +7,7 @@ export const NORMATIVA_OPTIONS: SelectOption[] = [
   { label: "PAS 2050", value: "PAS 2050" },
 ];
 
+// TODO: move to a database table and populate via seeds
 export const SOURCE_OPTIONS: SelectOption[] = [
   { label: "DEFRA 2025", value: "DEFRA 2025" },
   { label: "HuellaChile", value: "HuellaChile" },
