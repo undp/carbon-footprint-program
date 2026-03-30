@@ -76,4 +76,9 @@ server/dist
 public/dist
 
 # Claude
-.claude
+.claude/settings*
+.claude/skills/
+
+# Agents
+.agents/settings*
+.agents/skills/
