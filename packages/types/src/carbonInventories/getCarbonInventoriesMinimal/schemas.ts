@@ -6,6 +6,10 @@ export const GetCarbonInventoriesMinimalParamsSchema = z.object({
   statuses: listQueryParam()
     .pipe(CarbonInventoryDisplayStatusSchema.array())
     .optional(),
+  selfDeclared: z
+    .enum(["true", "false"])
+    .transform((val) => val === "true")
+    .optional(),
 });
 
 export type GetCarbonInventoriesMinimalParams = z.infer<

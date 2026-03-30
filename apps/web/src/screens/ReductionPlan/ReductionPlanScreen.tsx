@@ -19,7 +19,7 @@ export const ReductionPlanScreen: FC = () => {
   );
 
   const { data: inventories = [], isLoading: isLoadingInventories } =
-    useCarbonInventoriesMinimalData();
+    useCarbonInventoriesMinimalData(undefined, true);
 
   const availableYears = useMemo(() => {
     const years = inventories

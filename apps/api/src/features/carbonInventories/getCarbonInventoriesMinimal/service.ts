@@ -6,7 +6,7 @@ import {
 import {
   type GetCarbonInventoriesMinimalResponse,
   type User,
-  type CarbonInventoryDisplayStatus,
+  CarbonInventoryDisplayStatus,
   InventoryStatus,
 } from "@repo/types";
 import {
@@ -23,6 +23,14 @@ export const getCarbonInventoriesMinimalService = async (
   const baseFilters: Prisma.CarbonInventoryWhereInput = {
     status: InventoryStatus.ACTIVE,
   };
+
+  const selfDeclaredFilter: Prisma.CarbonInventoryWhereInput =
+    query?.selfDeclared !== undefined
+      ? {
+          isSelfDeclared: query.selfDeclared === "true",
+        }
+      : {};
+
   const accessControlFilter: Prisma.CarbonInventoryWhereInput = user
     ? {
         OR: [
@@ -47,7 +55,7 @@ export const getCarbonInventoriesMinimalService = async (
 
   const data = await prismaClient.carbonInventory.findMany({
     where: {
-      AND: [baseFilters, accessControlFilter],
+      AND: [baseFilters, accessControlFilter, selfDeclaredFilter],
     },
     select: {
       ...carbonInventoryWithSubmissionsMinimalSelect,

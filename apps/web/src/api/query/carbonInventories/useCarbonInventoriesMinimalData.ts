@@ -8,18 +8,24 @@ import type {
 } from "@repo/types";
 
 export const useCarbonInventoriesMinimalData = (
-  statuses?: CarbonInventoryDisplayStatus[]
+  statuses?: CarbonInventoryDisplayStatus[],
+  selfDeclared?: boolean
 ) =>
   useQuery<GetCarbonInventoriesMinimalResponse>({
-    queryKey: [...carbonInventoryKeys.minimal, statuses],
-    queryFn: () =>
-      apiClient
+    queryKey: [...carbonInventoryKeys.minimal, statuses, selfDeclared],
+    queryFn: () => {
+      const searchParams: Record<string, string> = {};
+      if (statuses?.length) searchParams.statuses = statuses.join(",");
+      if (selfDeclared !== undefined)
+        searchParams.selfDeclared = String(selfDeclared);
+      return apiClient
         .get("carbon-inventories/minimal", {
-          searchParams: statuses?.length
-            ? { statuses: statuses.join(",") }
+          searchParams: Object.keys(searchParams).length
+            ? searchParams
             : undefined,
         })
-        .json(),
+        .json();
+    },
     staleTime: STALE_TIME_MS,
     refetchInterval: REFETCH_INTERVAL_MS,
   });
