@@ -12,6 +12,7 @@ import { ApplicationFormIcon, CalculatorIcon } from "@/icons";
 import { Close } from "@mui/icons-material";
 import { UsageMode } from "@repo/types";
 import { useMyOrganizations, useCreateCarbonInventory } from "@/api/query";
+import type { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
 import { OrganizationSelector } from "@/components/OrganizationSelector/OrganizationSelector";
 import { useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
@@ -20,20 +21,20 @@ import { InventoryOptionRow } from "./InventoryOptionRow";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
 
-interface Props {
-  open: boolean;
+interface DialogContentProps {
   onClose: () => void;
   selectedOrganizationId?: string;
+  organizations: GetMyOrganizationsSelectorOptionsResponse;
+  isLoadingOrgs: boolean;
 }
 
-export const NewInventoryDialog: FC<Props> = ({
-  open,
+const NewInventoryDialogContent: FC<DialogContentProps> = ({
   onClose,
   selectedOrganizationId,
+  organizations,
+  isLoadingOrgs,
 }) => {
   const [orgId, setOrgId] = useState<string>(selectedOrganizationId ?? "none");
-  const { data: organizations = [], isLoading: isLoadingOrgs } =
-    useMyOrganizations();
   const createInventory = useCreateCarbonInventory();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -59,17 +60,7 @@ export const NewInventoryDialog: FC<Props> = ({
   );
 
   return (
-    <Dialog
-      maxWidth="md"
-      open={open}
-      onClose={onClose}
-      disablePortal={false}
-      keepMounted={false}
-      disableAutoFocus={false}
-      disableEnforceFocus={false}
-      aria-labelledby="newInventoryDialog-title"
-      aria-describedby="newInventoryDialog-description"
-    >
+    <>
       <DialogTitle id="newInventoryDialog-title">Crear huella</DialogTitle>
       <IconButton
         aria-label="close"
@@ -127,6 +118,40 @@ export const NewInventoryDialog: FC<Props> = ({
           </Box>
         </Box>
       </DialogContent>
+    </>
+  );
+};
+
+interface Props {
+  open: boolean;
+  onClose: () => void;
+  selectedOrganizationId?: string;
+}
+
+export const NewInventoryDialog: FC<Props> = ({
+  open,
+  onClose,
+  selectedOrganizationId,
+}) => {
+  const { data: organizations = [], isLoading: isLoadingOrgs } =
+    useMyOrganizations();
+
+  return (
+    <Dialog
+      maxWidth="md"
+      open={open}
+      onClose={onClose}
+      disablePortal={false}
+      keepMounted={false}
+      disableAutoFocus={false}
+      disableEnforceFocus={false}
+    >
+      <NewInventoryDialogContent
+        onClose={onClose}
+        selectedOrganizationId={selectedOrganizationId}
+        organizations={organizations}
+        isLoadingOrgs={isLoadingOrgs}
+      />
     </Dialog>
   );
 };
