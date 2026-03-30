@@ -25,7 +25,7 @@ export const SubcategoryPreselectionCarousel: FC<
       : focusedCategoryId;
 
   const focusedIndex = categories.findIndex((c) => c.id === resolvedFocusedId);
-  const needsCarousel = categories.length > VISIBLE_CARDS;
+  const needsCarousel = categories.length > CAROUSEL_THRESHOLD;
 
   const handleBoxClick = useCallback((categoryId: string) => {
     setFocusedCategoryId(categoryId);
@@ -51,8 +51,8 @@ export const SubcategoryPreselectionCarousel: FC<
       }
       fallbackClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"
       carouselSx={{ alignItems: "stretch", minHeight: 0, flex: 1 }}
-      renderItem={(category, _index, isCarousel) =>
-        isCarousel ? (
+      renderItem={(category, _index, isScrollable) =>
+        isScrollable ? (
           <SubcategoryPreselectionCard
             category={category}
             variant={
