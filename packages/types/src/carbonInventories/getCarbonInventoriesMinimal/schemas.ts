@@ -18,6 +18,7 @@ export type GetCarbonInventoriesMinimalParams = z.infer<
 
 export const GetCarbonInventoriesMinimalItemSchema = z.object({
   id: IdSchema,
+  organizationId: IdSchema.nullable(),
   name: z.string().nullable(),
   year: z.number().int().nullable(),
   status: CarbonInventoryDisplayStatusSchema,

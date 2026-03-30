@@ -1,16 +1,24 @@
 import { FC, useMemo, useState } from "react";
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { Download } from "@mui/icons-material";
-import { orderBy, uniq } from "lodash-es";
+import { useNavigate } from "@tanstack/react-router";
 import { useCarbonInventoriesMinimalData, useReductionPlan } from "@/api/query";
+import { useMyOrganizations } from "@/api/query/organizations";
 import { exportReductionPlanToExcel } from "@/utils/exportReductionPlanToExcel";
 import { ExplanationProvider } from "@/contexts/ExplanationContext";
 import { CategoryCard } from "@/screens/CarbonInventory/components/CategoryCard";
+import { LoadingErrorStateMessage } from "@/components/EmissionResults/LoadingErrorStateMessage";
+import { EmptyStateMessage } from "@/components/EmissionResults/EmptyStateMessage";
+import { ScreenEmptyState } from "@/components/ScreenEmptyState";
+import { Routes } from "@/interfaces/routes/routes.const";
 import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
 import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGroup";
 
 export const ReductionPlanScreen: FC = () => {
-  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [selectedOrganizationId, setSelectedOrganizationId] = useState<
+    string | null
+  >(null);
   const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] = useState<
     string | null
   >(null);
@@ -18,36 +26,37 @@ export const ReductionPlanScreen: FC = () => {
     null
   );
 
-  const { data: inventories = [], isLoading: isLoadingInventories } =
-    useCarbonInventoriesMinimalData(undefined, true);
+  const {
+    data: organizations = [],
+    isLoading: isLoadingOrganizations,
+    isError: isErrorOrganizations,
+  } = useMyOrganizations();
 
-  const availableYears = useMemo(() => {
-    const years = inventories
-      .filter((inv) => inv.year !== null && inv.year !== undefined)
-      .map((inv) => inv.year!.toString());
-    return orderBy(uniq(years), Number, "desc");
-  }, [inventories]);
+  const {
+    data: inventories = [],
+    isLoading: isLoadingInventories,
+    isError: isErrorInventories,
+  } = useCarbonInventoriesMinimalData(undefined, true);
 
-  const effectiveYear =
-    selectedYear && availableYears.includes(selectedYear)
-      ? selectedYear
-      : (availableYears[0] ?? "");
+  const activeOrganizationId = selectedOrganizationId ?? organizations[0]?.id;
 
-  const inventoriesForSelectedYear = useMemo(() => {
-    if (!effectiveYear) return [];
-    return inventories.filter((inv) => inv.year?.toString() === effectiveYear);
-  }, [inventories, effectiveYear]);
+  const inventoriesForSelectedOrg = useMemo(() => {
+    if (!activeOrganizationId) return [];
+    return inventories.filter(
+      (inv) =>
+        inv.organizationId != null &&
+        inv.organizationId === activeOrganizationId
+    );
+  }, [inventories, activeOrganizationId]);
 
-  const effectiveInventoryId =
-    selectedCarbonInventoryId &&
-    inventoriesForSelectedYear.some(
-      (inv) => inv.id === selectedCarbonInventoryId
-    )
-      ? selectedCarbonInventoryId
-      : (inventoriesForSelectedYear[0]?.id ?? "");
+  const activeInventoryId =
+    selectedCarbonInventoryId ?? inventoriesForSelectedOrg[0]?.id;
 
-  const { data: reductionPlan, isLoading: isLoadingPlan } =
-    useReductionPlan(effectiveInventoryId);
+  const {
+    data: reductionPlan,
+    isLoading: isLoadingPlan,
+    isError: isErrorPlan,
+  } = useReductionPlan(activeInventoryId);
 
   // Derive effective category: use selected if valid, otherwise first available
   const effectiveCategoryId = useMemo(() => {
@@ -67,7 +76,7 @@ export const ReductionPlanScreen: FC = () => {
     [reductionPlan?.categories, effectiveCategoryId]
   );
 
-  if (isLoadingInventories) {
+  if (isLoadingInventories || isLoadingOrganizations) {
     return (
       <Box className="flex flex-1 items-center justify-center">
         <CircularProgress />
@@ -75,15 +84,39 @@ export const ReductionPlanScreen: FC = () => {
     );
   }
 
+  if (isErrorInventories || isErrorOrganizations) {
+    return (
+      <Box className="flex flex-1 items-center justify-center">
+        <LoadingErrorStateMessage />
+      </Box>
+    );
+  }
+
+  if (inventories.length === 0) {
+    return (
+      <ScreenEmptyState
+        title="Aún no tienes una huella autodeclarada"
+        description="Crea tu primera huella o autodeclara una existente para comenzar a ver tu plan de reducción."
+        action={{
+          label: "Ir a Huellas Organizacional",
+          onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
+        }}
+      />
+    );
+  }
+
   return (
     <ExplanationProvider>
       <Box className="flex flex-1 flex-col gap-6">
         <ReductionPlanHeader
-          availableYears={availableYears}
-          inventories={inventoriesForSelectedYear}
-          selectedYear={effectiveYear}
-          selectedCarbonInventory={effectiveInventoryId}
-          onYearChange={setSelectedYear}
+          organizations={organizations}
+          inventories={inventoriesForSelectedOrg}
+          selectedOrganizationId={activeOrganizationId}
+          selectedCarbonInventory={activeInventoryId}
+          onOrganizationChange={(orgId) => {
+            setSelectedOrganizationId(orgId);
+            setSelectedCarbonInventoryId(null);
+          }}
           onCarbonInventoryChange={setSelectedCarbonInventoryId}
         />
 
@@ -113,71 +146,62 @@ export const ReductionPlanScreen: FC = () => {
             </Box>
           )}
 
-          {!isLoadingPlan && reductionPlan && (
-            <>
-              {/* Category cards */}
-              {reductionPlan.categories.length > 0 && (
-                <Box className="flex gap-4">
-                  {reductionPlan.categories.map((category) => (
-                    <CategoryCard
-                      key={category.id}
-                      icon={category.icon}
-                      categoryColor={category.color}
-                      title={category.name}
-                      subtitle={category.synonyms}
-                      description={category.description}
-                      explanationId={category.explanationId}
-                      variant={
-                        effectiveCategoryId === category.id
-                          ? "focused"
-                          : "unfocused"
-                      }
-                      onClick={() => setSelectedCategoryId(category.id)}
-                    />
-                  ))}
-                </Box>
-              )}
+          {!isLoadingPlan && isErrorPlan && (
+            <LoadingErrorStateMessage message="Ocurrió un error al cargar el plan de reducción." />
+          )}
 
-              {/* Subcategory groups with initiatives */}
-              {effectiveCategory &&
-              effectiveCategory.subcategories.length > 0 ? (
-                <Box className="flex flex-col gap-6">
-                  {effectiveCategory.subcategories.map((subcategory) => (
-                    <SubcategoryInitiativeGroup
-                      key={subcategory.id}
-                      name={subcategory.name}
-                      icon={subcategory.icon}
-                      description={subcategory.description}
-                      initiatives={subcategory.initiatives}
-                      categoryColor={effectiveCategory.color}
-                    />
-                  ))}
-                </Box>
+          {!isLoadingPlan && !isErrorPlan && reductionPlan && (
+            <>
+              {reductionPlan.categories.length === 0 ? (
+                <EmptyStateMessage message="No hay iniciativas de reducción para esta huella." />
               ) : (
-                <Box className="flex flex-1 items-center justify-center py-8">
-                  <Typography color="textSecondary">
-                    No hay iniciativas de reducción disponibles para esta
-                    huella.
-                  </Typography>
-                </Box>
+                <>
+                  {/* Category cards */}
+                  <Box className="flex gap-4">
+                    {reductionPlan.categories.map((category) => (
+                      <CategoryCard
+                        key={category.id}
+                        icon={category.icon}
+                        categoryColor={category.color}
+                        title={category.name}
+                        subtitle={category.synonyms}
+                        description={category.description}
+                        explanationId={category.explanationId}
+                        variant={
+                          effectiveCategoryId === category.id
+                            ? "focused"
+                            : "unfocused"
+                        }
+                        onClick={() => setSelectedCategoryId(category.id)}
+                      />
+                    ))}
+                  </Box>
+
+                  {/* Subcategory groups with initiatives */}
+                  {effectiveCategory &&
+                  effectiveCategory.subcategories.length > 0 ? (
+                    <Box className="flex flex-col gap-6">
+                      {effectiveCategory.subcategories.map((subcategory) => (
+                        <SubcategoryInitiativeGroup
+                          key={subcategory.id}
+                          name={subcategory.name}
+                          icon={subcategory.icon}
+                          description={subcategory.description}
+                          initiatives={subcategory.initiatives}
+                          categoryColor={effectiveCategory.color}
+                        />
+                      ))}
+                    </Box>
+                  ) : (
+                    <EmptyStateMessage message="No hay iniciativas de reducción disponibles para esta categoría." />
+                  )}
+                </>
               )}
             </>
           )}
 
-          {!isLoadingPlan && !reductionPlan && effectiveInventoryId && (
-            <Box className="flex flex-1 items-center justify-center py-8">
-              <Typography color="textSecondary">
-                No se pudo cargar el plan de reducción.
-              </Typography>
-            </Box>
-          )}
-
-          {!effectiveInventoryId && (
-            <Box className="flex flex-1 items-center justify-center py-8">
-              <Typography color="textSecondary">
-                Selecciona una huella para ver el plan de reducción.
-              </Typography>
-            </Box>
+          {!isLoadingPlan && !isErrorPlan && !reductionPlan && (
+            <EmptyStateMessage message="Selecciona una huella para ver el plan de reducción." />
           )}
         </Box>
       </Box>
