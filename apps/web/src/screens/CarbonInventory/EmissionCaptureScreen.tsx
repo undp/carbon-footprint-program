@@ -19,10 +19,7 @@ import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
 import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
-import {
-  SubcategoryWithLines,
-  EmissionCaptureFormValues,
-} from "./types/EmissionCaptureTypes";
+import { EmissionCaptureFormValues } from "./types/EmissionCaptureTypes";
 import {
   areAllSubcategoriesFilled,
   shouldShowSubcategory,
@@ -269,9 +266,7 @@ export const EmissionCaptureScreen: FC = () => {
                 <>
                   <TotalCategoryEmissionCard category={selectedCategoryData} />
                   <Box className="flex min-h-0 flex-1 flex-col gap-4">
-                    {(
-                      selectedCategoryData.subcategories as SubcategoryWithLines[]
-                    ).map((subcategory) => {
+                    {selectedCategoryData.subcategories.map((subcategory) => {
                       const formSubcategory =
                         watchedSubcategories?.[subcategory.id];
                       if (!shouldShowSubcategory(subcategory, formSubcategory))

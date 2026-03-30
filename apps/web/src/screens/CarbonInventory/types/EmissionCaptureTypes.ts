@@ -34,7 +34,10 @@ export type SubcategoryWithLines = MethodologySubcategory & {
   isTotalManualEmissionsModeActive: CarbonInventorySubcategory["isTotalManualEmissionsModeActive"];
 };
 
-export type CategoryWithSubcategoriesAndLines = MethodologyCategory & {
+export type CategoryWithSubcategoriesAndLines = Omit<
+  MethodologyCategory,
+  "subcategories"
+> & {
   subcategories: SubcategoryWithLines[];
 };
 

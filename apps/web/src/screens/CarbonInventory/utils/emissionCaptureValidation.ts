@@ -40,7 +40,7 @@ export function areAllSubcategoriesFilled(
   formValues: EmissionCaptureFormValues
 ): boolean {
   return categories.every((category) =>
-    (category.subcategories as SubcategoryWithLines[]).every((subcategory) => {
+    category.subcategories.every((subcategory) => {
       const formSub = formValues.subcategories?.[subcategory.id];
       if (!shouldShowSubcategory(subcategory, formSub)) return true;
       if (!formSub) return true;
