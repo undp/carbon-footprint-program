@@ -20,7 +20,7 @@ interface CarouselProps<T extends { id: string }> {
   peekWidth?: number;
   visibleCards?: number;
   renderItem: (item: T, index: number, isCarousel: boolean) => ReactNode;
-  carouselSx?: SxProps<Theme>;
+  sx?: SxProps<Theme>;
   fallbackClassName?: string;
   /** When provided together with onFocusedIndexChange, enables keyboard navigation and auto-scroll */
   focusedIndex?: number;
@@ -35,7 +35,7 @@ export function Carousel<T extends { id: string }>({
   peekWidth = DEFAULT_PEEK_WIDTH,
   visibleCards = DEFAULT_VISIBLE_CARDS,
   renderItem,
-  carouselSx,
+  sx: carouselSx,
   fallbackClassName = "flex flex-row gap-4",
   focusedIndex,
   onFocusedIndexChange,
