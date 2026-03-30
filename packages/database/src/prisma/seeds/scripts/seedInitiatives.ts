@@ -29,13 +29,14 @@ export async function seedInitiatives(
 ) {
   console.log("Seeding initiatives...");
 
-  const rawData = JSON.parse(
-    readFileSync(
-      generateSeedDataPath(__dirname, "initiatives.json", dataset),
-      "utf-8"
+  const initiativesData = InitiativesSeedDataSchema.parse(
+    JSON.parse(
+      readFileSync(
+        generateSeedDataPath(__dirname, "initiatives.json", dataset),
+        "utf-8"
+      )
     )
   );
-  const initiativesData = InitiativesSeedDataSchema.parse(rawData);
 
   // Fetch all subcategories to map by name
   const subcategories = await prisma.subcategory.findMany();
