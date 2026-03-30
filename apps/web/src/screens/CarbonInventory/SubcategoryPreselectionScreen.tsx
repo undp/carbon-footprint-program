@@ -73,24 +73,25 @@ export const SubcategoryPreselectionScreen: FC = () => {
     formState: { isDirty },
   } = methods;
 
-  const { submit, isSubmitting } = useSubcategoryPreselectionSubmit(
-    inventoryId,
-    { onSuccess: goNext }
-  );
+  const { saveSelections, isSavingSelections } =
+    useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goNext });
 
   const {
-    submit: submitAndGoToList,
-    isSubmitting: isSubmittingAndGoingToList,
+    saveSelections: saveSelectionsAndGoToList,
+    isSavingSelections: isSavingSelectionsAndGoingToList,
   } = useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goToList });
 
-  const globalSubmitting = isSubmitting || isSubmittingAndGoingToList;
+  const globalSubmitting =
+    isSavingSelections || isSavingSelectionsAndGoingToList;
 
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
   const { handleExitClick, dialogProps } = useExitDialog({
     user,
     onUserExit: () =>
-      void handleSubmit((values) => submitAndGoToList(values, isDirty))(),
+      void handleSubmit((values) =>
+        saveSelectionsAndGoToList(values, isDirty)
+      )(),
     onGuestConfirm: goToLanding,
   });
 
@@ -107,7 +108,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const onNextClick = useCallback(() => {
     const doSubmit = () =>
-      void handleSubmit((values) => submit(values, isDirty))();
+      void handleSubmit((values) => saveSelections(values, isDirty))();
 
     if (hasUnselectedCategory()) {
       pendingSubmitRef.current = doSubmit;
@@ -122,7 +123,13 @@ export const SubcategoryPreselectionScreen: FC = () => {
     } else {
       doSubmit();
     }
-  }, [handleSubmit, submit, isDirty, hasUnselectedCategory, confirmDialog]);
+  }, [
+    handleSubmit,
+    saveSelections,
+    isDirty,
+    hasUnselectedCategory,
+    confirmDialog,
+  ]);
 
   const onWarningConfirm = useCallback(() => {
     confirmDialog.closeConfirm();
@@ -151,7 +158,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
       endIcon: <ArrowRightAltRounded />,
       variant: "contained",
       onClick: onNextClick,
-      loading: isSubmitting,
+      loading: isSavingSelections,
       disabled: isFormDisabled,
     },
   };
@@ -169,7 +176,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
                 buttonProps={{
                   onClick: handleExitClick,
                   disabled: globalSubmitting,
-                  loading: isSubmittingAndGoingToList,
+                  loading: isSavingSelectionsAndGoingToList,
                 }}
               />
             ),
