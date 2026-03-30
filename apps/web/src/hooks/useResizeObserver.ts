@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useRef } from "react";
+import { type RefObject, useEffect, useLayoutEffect, useRef } from "react";
 
 interface UseResizeObserverOptions {
   /** Wrap the callback in requestAnimationFrame for batching. */
@@ -11,7 +11,10 @@ export function useResizeObserver(
   options?: UseResizeObserverOptions
 ) {
   const callbackRef = useRef(callback);
-  callbackRef.current = callback;
+
+  useLayoutEffect(() => {
+    callbackRef.current = callback;
+  });
 
   useEffect(() => {
     const el = ref.current;
