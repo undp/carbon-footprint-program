@@ -72,7 +72,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   const hasBreakdown = totalNum > 0;
   const mismatch =
     hasBreakdown &&
-    declaredValue > 0 &&
+    Number.isFinite(declaredValue) &&
     Math.abs(totalNum - declaredValue) > 1e-4;
 
   const handleChange = (key: keyof GasDetails, raw: string) => {
