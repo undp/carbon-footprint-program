@@ -105,7 +105,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     });
   }, [categories, methods]);
 
-  const handleNextClick = useCallback(() => {
+  const onNextClick = useCallback(() => {
     const doSubmit = () =>
       void handleSubmit((values) => submit(values, isDirty))();
 
@@ -124,7 +124,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     }
   }, [handleSubmit, submit, isDirty, hasUnselectedCategory, confirmDialog]);
 
-  const handleWarningConfirm = useCallback(() => {
+  const onWarningConfirm = useCallback(() => {
     confirmDialog.closeConfirm();
     pendingSubmitRef.current?.();
     pendingSubmitRef.current = null;
@@ -150,7 +150,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
     buttonProps: {
       endIcon: <ArrowRightAltRounded />,
       variant: "contained",
-      onClick: handleNextClick,
+      onClick: onNextClick,
       loading: isSubmitting,
       disabled: isFormDisabled,
     },
@@ -195,7 +195,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
       <ConfirmDialog
         open={confirmDialog.isOpen}
         onClose={confirmDialog.closeConfirm}
-        onConfirm={handleWarningConfirm}
+        onConfirm={onWarningConfirm}
         title={confirmDialog.title}
         message={confirmDialog.message}
         variant={confirmDialog.variant}
