@@ -8,6 +8,7 @@ import {
 import {
   EmissionFactorNotFoundError,
   EmissionFactorDuplicateError,
+  RateMeasurementUnitNotFoundError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
@@ -196,6 +197,9 @@ export const updateEmissionFactorService = async (
     return result;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        throw new RateMeasurementUnitNotFoundError();
+      }
       if (error.code === "P2002") {
         throw new EmissionFactorDuplicateError();
       }

@@ -8,8 +8,8 @@ import {
 } from "@repo/types";
 import {
   SubcategoryNotFoundForEmissionFactorError,
-  RateMeasurementUnitNotFoundError,
   EmissionFactorDuplicateError,
+  RateMeasurementUnitNotFoundError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
@@ -44,16 +44,6 @@ export const createEmissionFactorService = async (
 
       if (!subcategory) {
         throw new SubcategoryNotFoundForEmissionFactorError();
-      }
-
-      // Validate rate measurement unit exists
-      const rateUnit = await tx.rateMeasurementUnit.findUnique({
-        where: { id: BigInt(data.rateMeasurementUnitId) },
-        select: { id: true, name: true },
-      });
-
-      if (!rateUnit) {
-        throw new RateMeasurementUnitNotFoundError();
       }
 
       await validateSourceConsistency(tx, subcategory.id, data.source);
@@ -92,7 +82,7 @@ export const createEmissionFactorService = async (
           subcategoryId: subcategory.id,
           dimensionValue1Id,
           dimensionValue2Id,
-          rateMeasurementUnitId: rateUnit.id,
+          rateMeasurementUnitId: BigInt(data.rateMeasurementUnitId),
           source: data.source,
           gasDetails: data.gasDetails,
           value: new Prisma.Decimal(data.value),
@@ -132,6 +122,9 @@ export const createEmissionFactorService = async (
     return result;
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2003") {
+        throw new RateMeasurementUnitNotFoundError();
+      }
       if (error.code === "P2002") {
         throw new EmissionFactorDuplicateError();
       }
