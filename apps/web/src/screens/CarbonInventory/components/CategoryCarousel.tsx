@@ -19,7 +19,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
 }) => {
   const focusedIndex = categories.findIndex((c) => c.id === selectedCategoryId);
 
-  const handleFocusedIndexChange = useCallback(
+  const onFocusedIndexChange = useCallback(
     (index: number) => {
       if (index < 0 || index >= categories.length) return;
       onCategorySelect(categories[index].id);
@@ -33,7 +33,7 @@ export const CategoryCarousel: FC<CategoryCarouselProps> = ({
       peekWidth={PEEK_WIDTH}
       visibleCards={VISIBLE_CARDS}
       focusedIndex={focusedIndex}
-      onFocusedIndexChange={handleFocusedIndexChange}
+      onFocusedIndexChange={onFocusedIndexChange}
       renderItem={(category) => (
         <CategoryCard
           icon={category.icon}
