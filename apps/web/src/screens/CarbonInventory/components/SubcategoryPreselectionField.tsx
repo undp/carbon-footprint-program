@@ -1,8 +1,8 @@
 import { Box, Checkbox, Tooltip, Typography } from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 import { SubcategoryPreselectionMergedData } from "../types";
-import { InfoButton } from "../../../components";
-import { useExplanationDialog } from "../../../contexts";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 
 export const SubcategoryPreselectionField = ({
   subcategory,
@@ -13,8 +13,8 @@ export const SubcategoryPreselectionField = ({
 }) => {
   const { openExplanation } = useExplanationDialog();
   const { control } = useFormContext();
-  const editDisabled = subcategory.edited;
-  const disabled = disabledProp || editDisabled;
+  const isEdited = subcategory.edited;
+  const disabled = disabledProp || isEdited;
 
   return (
     <Controller
@@ -30,7 +30,7 @@ export const SubcategoryPreselectionField = ({
         return (
           <Tooltip
             title={
-              editDisabled
+              isEdited
                 ? "No se puede quitar porque tiene emisiones registradas. Elimine las emisiones primero."
                 : ""
             }
