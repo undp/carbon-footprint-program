@@ -61,7 +61,8 @@ function CarouselComponent<T extends { id: string }>({
   const cardWidth = useMemo(() => {
     if (!needsCarousel || containerWidth === 0) return 0;
     return Math.max(
-      (containerWidth - 2 * peekWidth - 2 * gap) / visibleCards,
+      (containerWidth - 2 * peekWidth - (visibleCards - 1) * gap) /
+        visibleCards,
       0
     );
   }, [needsCarousel, containerWidth, peekWidth, gap, visibleCards]);
