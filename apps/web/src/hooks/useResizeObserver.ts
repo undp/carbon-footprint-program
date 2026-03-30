@@ -1,7 +1,12 @@
 import { type RefObject, useEffect } from "react";
 
 interface UseResizeObserverOptions {
-  /** Wrap the callback in requestAnimationFrame for batching. */
+  /**
+   * Batches resize callbacks through requestAnimationFrame so that rapid
+   * back-to-back resize events only trigger one render per frame.
+   * Not the default because it adds one frame of delay, which can cause a
+   * visible flash on initial render when the layout depends on the measured size.
+   */
   raf?: boolean;
 }
 
