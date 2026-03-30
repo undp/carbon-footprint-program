@@ -67,8 +67,7 @@ export const createEmissionFactorService = async (
 
   // Validate gasDetails sum matches declared value (if breakdown is non-zero)
   const gd = data.gasDetails;
-  const gasSum =
-    gd.CO2_FOSSIL + gd.CH4 + gd.N2O + gd.HFC + gd.PFC + gd.SF6 + gd.NF3;
+  const gasSum = Object.values(gd).reduce((sum, value) => sum + value, 0);
   if (gasSum > 0) {
     const declaredValue = data.value;
     if (Math.abs(gasSum - declaredValue) > 1e-4) {
