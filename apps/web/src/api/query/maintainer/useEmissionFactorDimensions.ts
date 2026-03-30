@@ -42,9 +42,11 @@ export const useAddEmissionFactorDimension = (
         void queryClient.invalidateQueries({
           queryKey:
             maintainerKeys.emissionFactorDimensions.all(methodologyVersionId),
+          exact: true,
         });
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
+          exact: true,
         });
       }
     },

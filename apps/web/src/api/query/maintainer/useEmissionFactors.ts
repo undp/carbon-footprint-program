@@ -36,6 +36,7 @@ export const useAddEmissionFactor = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
+          exact: true,
         });
       }
     },
@@ -62,6 +63,7 @@ export const useUpdateEmissionFactor = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
+          exact: true,
         });
       }
     },
@@ -77,6 +79,7 @@ export const useDeleteEmissionFactor = (methodologyVersionId?: string) => {
       if (methodologyVersionId) {
         void queryClient.invalidateQueries({
           queryKey: maintainerKeys.emissionFactors.all(methodologyVersionId),
+          exact: true,
         });
       }
     },
