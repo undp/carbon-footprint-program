@@ -8,18 +8,20 @@ import {
 import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
+  GetAllEmissionFactorsResponse,
   EmissionFactorStatus,
 } from "@repo/types";
 
-const DEFAULT_GAS_DETAILS = {
-  CO2_FOSSIL: 0,
-  CH4: 0,
-  N2O: 0,
-  HFC: 0,
-  PFC: 0,
-  SF6: 0,
-  NF3: 0,
-};
+const DEFAULT_GAS_DETAILS: GetAllEmissionFactorsResponse[number]["gasDetails"] =
+  {
+    CO2_FOSSIL: 0,
+    CH4: 0,
+    N2O: 0,
+    HFC: 0,
+    PFC: 0,
+    SF6: 0,
+    NF3: 0,
+  };
 
 /**
  * Creates a test emission factor with sensible defaults.
