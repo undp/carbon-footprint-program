@@ -29,7 +29,7 @@ interface CarouselProps<T extends { id: string }> {
   carouselThreshold?: number;
 }
 
-function CarouselComponent<T extends { id: string }>({
+export function Carousel<T extends { id: string }>({
   items,
   gap = DEFAULT_GAP,
   peekWidth = DEFAULT_PEEK_WIDTH,
@@ -42,6 +42,7 @@ function CarouselComponent<T extends { id: string }>({
   carouselThreshold,
 }: CarouselProps<T>) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const nullRef = useRef<HTMLElement | null>(null);
   const [containerWidth, setContainerWidth] = useState(0);
 
   const needsCarousel = items.length > (carouselThreshold ?? visibleCards);
@@ -50,13 +51,9 @@ function CarouselComponent<T extends { id: string }>({
     setContainerWidth(entry.contentRect.width);
   }, []);
 
-  useResizeObserver(
-    needsCarousel ? containerRef : { current: null },
-    handleResize,
-    {
-      raf: true,
-    }
-  );
+  useResizeObserver(needsCarousel ? containerRef : nullRef, handleResize, {
+    raf: true,
+  });
 
   const cardWidth = useMemo(() => {
     if (!needsCarousel || containerWidth === 0) return 0;
@@ -82,9 +79,14 @@ function CarouselComponent<T extends { id: string }>({
     [cardWidth, gap, peekWidth]
   );
 
+  const hasScrolledRef = useRef(false);
   useEffect(() => {
     if (focusedIndex == null || cardWidth <= 0) return;
-    scrollToIndex(focusedIndex);
+    // Use "instant" on the first scroll so restoring a non-zero focusedIndex
+    // on mount doesn't animate from position 0.
+    const behavior = hasScrolledRef.current ? "smooth" : "instant";
+    hasScrolledRef.current = true;
+    scrollToIndex(focusedIndex, behavior);
   }, [focusedIndex, scrollToIndex, cardWidth]);
 
   const handleKeyDown = useCallback(
@@ -152,5 +154,3 @@ function CarouselComponent<T extends { id: string }>({
     </Box>
   );
 }
-
-export const Carousel = CarouselComponent;
