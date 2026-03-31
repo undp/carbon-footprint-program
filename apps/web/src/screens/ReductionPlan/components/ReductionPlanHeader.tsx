@@ -17,8 +17,8 @@ import { OrganizationSelector } from "@/components";
 interface ReductionPlanHeaderProps {
   organizations: GetMyOrganizationsSelectorOptionsResponse;
   inventories: GetCarbonInventoriesMinimalResponse;
-  selectedOrganizationId: string;
-  selectedCarbonInventory: string;
+  selectedOrganizationId?: string;
+  selectedCarbonInventory?: string;
   onOrganizationChange: (organizationId: string) => void;
   onCarbonInventoryChange: (inventoryId: string) => void;
 }
@@ -49,7 +49,7 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
       <Box className="flex shrink-0 flex-row gap-4">
         <OrganizationSelector
           organizations={organizations}
-          value={selectedOrganizationId}
+          value={selectedOrganizationId ?? ""}
           onChange={onOrganizationChange}
           label="Organización"
         />

@@ -27,22 +27,22 @@ export const ReductionPlanScreen: FC = () => {
   );
 
   const {
-    data: organizations = [],
+    data: organizations,
     isLoading: isLoadingOrganizations,
     isError: isErrorOrganizations,
   } = useMyOrganizations();
 
   const {
-    data: inventories = [],
+    data: inventories,
     isLoading: isLoadingInventories,
     isError: isErrorInventories,
   } = useCarbonInventoriesMinimalData(undefined, true);
 
-  const activeOrganizationId = selectedOrganizationId ?? organizations[0]?.id;
+  const activeOrganizationId = selectedOrganizationId ?? organizations?.[0]?.id;
 
   const inventoriesForSelectedOrg = useMemo(() => {
     if (!activeOrganizationId) return [];
-    return inventories.filter(
+    return inventories?.filter(
       (inv) =>
         inv.organizationId != null &&
         inv.organizationId === activeOrganizationId
@@ -50,7 +50,7 @@ export const ReductionPlanScreen: FC = () => {
   }, [inventories, activeOrganizationId]);
 
   const activeInventoryId =
-    selectedCarbonInventoryId ?? inventoriesForSelectedOrg[0]?.id;
+    selectedCarbonInventoryId ?? inventoriesForSelectedOrg?.[0]?.id;
 
   const {
     data: reductionPlan,
@@ -92,7 +92,7 @@ export const ReductionPlanScreen: FC = () => {
     );
   }
 
-  if (inventories.length === 0) {
+  if (inventories && inventories.length === 0) {
     return (
       <ScreenEmptyState
         title="Aún no tienes una huella autodeclarada"
@@ -109,8 +109,8 @@ export const ReductionPlanScreen: FC = () => {
     <ExplanationProvider>
       <Box className="flex flex-1 flex-col gap-6">
         <ReductionPlanHeader
-          organizations={organizations}
-          inventories={inventoriesForSelectedOrg}
+          organizations={organizations ?? []}
+          inventories={inventoriesForSelectedOrg ?? []}
           selectedOrganizationId={activeOrganizationId}
           selectedCarbonInventory={activeInventoryId}
           onOrganizationChange={(orgId) => {
@@ -203,6 +203,7 @@ export const ReductionPlanScreen: FC = () => {
           {!isLoadingPlan && !isErrorPlan && !reductionPlan && (
             <EmptyStateMessage
               message={
+                inventoriesForSelectedOrg &&
                 inventoriesForSelectedOrg.length === 0
                   ? "Esta organización no tiene huellas autodeclaradas disponibles."
                   : "Selecciona una huella autodeclarada para ver el plan de reducción."

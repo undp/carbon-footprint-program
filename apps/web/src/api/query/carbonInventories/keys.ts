@@ -112,10 +112,10 @@ export const carbonInventoryKeys = {
   ] as const,
   badges: (id?: string) =>
     [CarbonInventoryQueryKey.Root, id, CarbonInventoryQueryKey.Badges] as const,
-  reductionPlan: (id: string) =>
+  reductionPlan: (inventoryId?: string) =>
     [
       CarbonInventoryQueryKey.Root,
-      id,
+      inventoryId,
       CarbonInventoryQueryKey.AttributesUpdateDependency,
       CarbonInventoryQueryKey.EmissionsUpdateDependency,
       CarbonInventoryQueryKey.ReductionPlan,
