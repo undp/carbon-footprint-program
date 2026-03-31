@@ -21,7 +21,7 @@ interface CarouselProps<T extends { id: string }> {
   visibleCards?: number;
   renderItem: (item: T, index: number, isCarousel: boolean) => ReactNode;
   sx?: SxProps<Theme>;
-  fallbackClassName?: string;
+  staticCarouselClassName?: string;
   /** When provided together with onFocusedIndexChange, enables keyboard navigation and auto-scroll */
   focusedIndex?: number;
   onFocusedIndexChange?: (index: number) => void;
@@ -36,7 +36,7 @@ export function Carousel<T extends { id: string }>({
   visibleCards = DEFAULT_VISIBLE_CARDS,
   renderItem,
   sx: carouselSx,
-  fallbackClassName = "flex flex-row gap-4",
+  staticCarouselClassName = "flex flex-row gap-4",
   focusedIndex,
   onFocusedIndexChange,
   carouselThreshold,
@@ -109,7 +109,7 @@ export function Carousel<T extends { id: string }>({
 
   if (!needsCarousel) {
     return (
-      <Box className={fallbackClassName} role="listbox">
+      <Box className={staticCarouselClassName} role="listbox">
         {items.map((item, index) => (
           <Box
             key={item.id}

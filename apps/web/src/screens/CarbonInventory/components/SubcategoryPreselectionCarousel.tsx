@@ -47,7 +47,7 @@ export const SubcategoryPreselectionCarousel: FC<
       carouselThreshold={CAROUSEL_THRESHOLD}
       focusedIndex={needsCarousel ? focusedIndex : undefined}
       onFocusedIndexChange={needsCarousel ? onFocusedIndexChange : undefined}
-      fallbackClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"
+      staticCarouselClassName="flex min-h-0 flex-1 flex-row items-stretch gap-4 overflow-x-auto"
       sx={{ alignItems: "stretch", minHeight: 0, flex: 1 }}
       renderItem={(category, _index, isScrollable) =>
         isScrollable ? (
