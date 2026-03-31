@@ -2,6 +2,7 @@ import type { PrismaClient } from "@repo/database";
 import {
   CarbonInventoryLineStatus,
   CategoryStatus,
+  InventoryStatus,
   InitiativeStatus,
   type GetReductionPlanResponse,
 } from "@repo/types";
@@ -13,7 +14,7 @@ export const getReductionPlanService = async (
   id: string
 ): Promise<GetReductionPlanResponse> => {
   const inventory = await prismaClient.carbonInventory.findUnique({
-    where: { id: BigInt(id) },
+    where: { id: BigInt(id), status: InventoryStatus.ACTIVE },
     select: {
       id: true,
       lines: {
