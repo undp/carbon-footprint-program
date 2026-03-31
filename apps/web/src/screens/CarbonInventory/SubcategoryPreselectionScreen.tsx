@@ -96,7 +96,9 @@ export const SubcategoryPreselectionScreen: FC = () => {
   });
 
   const confirmDialog = useConfirmDialog();
-  const pendingSubmitRef = useRef<(() => void) | null>(null);
+  // Use a ref to store the submit closure, ensuring a stable reference for the
+  // confirm dialog while capturing the atomic form state at the moment of click.
+  const pendingActionRef = useRef<(() => void) | null>(null);
 
   const hasUnselectedCategory = useCallback((): boolean => {
     const formValues = methods.getValues();
@@ -111,7 +113,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
       void handleSubmit((values) => saveSelections(values, isDirty))();
 
     if (hasUnselectedCategory()) {
-      pendingSubmitRef.current = doSubmit;
+      pendingActionRef.current = doSubmit;
       confirmDialog.openConfirm({
         title: "Categorías sin subcategorías seleccionadas",
         message:
@@ -133,8 +135,8 @@ export const SubcategoryPreselectionScreen: FC = () => {
 
   const onWarningConfirm = useCallback(() => {
     confirmDialog.closeConfirm();
-    pendingSubmitRef.current?.();
-    pendingSubmitRef.current = null;
+    pendingActionRef.current?.();
+    pendingActionRef.current = null;
   }, [confirmDialog]);
 
   if (!isLoading && mustNavigateAway) return null;
