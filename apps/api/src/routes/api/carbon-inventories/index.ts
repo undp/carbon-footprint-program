@@ -48,7 +48,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getSubcategoriesRankingRoute(fastify, { public: true });
   getSectorRankingRoute(fastify, { public: true });
   getSuggestedReductionPlanRoute(fastify, { public: true });
-  getReductionPlanRoute(fastify, { public: true });
+  getReductionPlanRoute(fastify);
   getEmissionsDetailedSummaryRoute(fastify, { public: true });
   getEmissionFactorsRoute(fastify, { public: true });
   getCarbonInventoryMetadataRoute(fastify, { public: true });
