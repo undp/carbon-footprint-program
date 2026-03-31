@@ -38,6 +38,7 @@
     "@tanstack/react-router": "^1.139.3",
     "attr-accept": "^2.2.5",
     "date-fns": "^4.1.0",
+    "exceljs": "^4.4.0",
     "fuse.js": "^7.1.0",
     "katex": "^0.16.38",
     "ky": "^1.14.1",
@@ -53,7 +54,6 @@
     "remark-gfm": "^4.0.1",
     "remark-math": "^6.0.0",
     "tailwindcss": "^4.1.17",
-    "xlsx": "^0.18.5",
     "zod": "catalog:shared",
     "zustand": "^5.0.8"
   },

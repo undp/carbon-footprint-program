@@ -1,0 +1,23 @@
+import type ExcelJS from "exceljs";
+
+/**
+ * Generates a buffer from an ExcelJS workbook and triggers a browser download.
+ *
+ * @param workbook - The ExcelJS workbook instance to download.
+ * @param filename - The name of the file to be saved (including .xlsx extension).
+ */
+export async function downloadWorkbook(
+  workbook: ExcelJS.Workbook,
+  filename: string
+) {
+  const buffer = await workbook.xlsx.writeBuffer();
+  const blob = new Blob([buffer], {
+    type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  anchor.click();
+  window.URL.revokeObjectURL(url);
+}

@@ -15,10 +15,10 @@ export const InitiativeCard: FC<InitiativeCardProps> = ({
       className="flex flex-col gap-1 rounded-lg bg-white p-4"
       sx={{ minHeight: 0 }}
     >
-      <Typography variant="body1" fontWeight="medium" color="#414046">
+      <Typography variant="body1" fontWeight="medium" color="text.primary">
         {title}
       </Typography>
-      <Typography variant="caption" color="rgba(65,64,70,0.6)">
+      <Typography variant="caption" color="text.secondary">
         {description}
       </Typography>
     </Box>

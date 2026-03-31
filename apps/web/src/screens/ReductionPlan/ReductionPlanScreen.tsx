@@ -130,9 +130,9 @@ export const ReductionPlanScreen: FC = () => {
               variant="outlined"
               startIcon={<Download />}
               disabled={!reductionPlan}
-              onClick={() => {
+              onClick={async () => {
                 if (reductionPlan) {
-                  exportReductionPlanToExcel(reductionPlan);
+                  await exportReductionPlanToExcel(reductionPlan);
                 }
               }}
             >

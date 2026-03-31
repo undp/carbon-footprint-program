@@ -1,40 +1,42 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import type { GetReductionPlanResponse } from "@repo/types";
+import { downloadWorkbook } from "@/services/excel";
 
-export function exportReductionPlanToExcel(
+export async function exportReductionPlanToExcel(
   data: GetReductionPlanResponse,
   filename = "plan-de-reduccion.xlsx"
 ) {
-  const wb = XLSX.utils.book_new();
+  const workbook = new ExcelJS.Workbook();
 
   for (const category of data.categories) {
-    const rows: string[][] = [
-      ["Subcategoría", "Iniciativa", "Descripción Iniciativa"],
+    const sheetName = category.name.slice(0, 31);
+    const worksheet = workbook.addWorksheet(sheetName);
+
+    // Add headers
+    worksheet.columns = [
+      { header: "Subcategoría", key: "subcategory", width: 30 },
+      { header: "Iniciativa", key: "initiative", width: 35 },
+      { header: "Descripción Iniciativa", key: "description", width: 55 },
     ];
 
-    for (const sub of category.subcategories) {
-      if (sub.initiatives.length === 0) {
-        rows.push([sub.name, "", ""]);
-        continue;
-      }
+    // Style headers
+    worksheet.getRow(1).font = { bold: true };
 
+    for (const sub of category.subcategories) {
       for (const initiative of sub.initiatives) {
-        rows.push([sub.name, initiative.title, initiative.description]);
+        worksheet.addRow({
+          subcategory: sub.name,
+          initiative: initiative.title,
+          description: initiative.description,
+        });
       }
     }
-
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    ws["!cols"] = [{ wch: 30 }, { wch: 35 }, { wch: 55 }];
-
-    const sheetName = category.name.slice(0, 31);
-    XLSX.utils.book_append_sheet(wb, ws, sheetName);
   }
 
-  if (wb.SheetNames.length === 0) {
-    const ws = XLSX.utils.aoa_to_sheet([["No hay datos disponibles"]]);
-    XLSX.utils.book_append_sheet(wb, ws, "Sin datos");
+  if (workbook.worksheets.length === 0) {
+    const worksheet = workbook.addWorksheet("Sin datos");
+    worksheet.addRow(["No hay datos disponibles"]);
   }
 
-  XLSX.writeFile(wb, filename);
+  await downloadWorkbook(workbook, filename);
 }
