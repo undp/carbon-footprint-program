@@ -7,7 +7,7 @@ import {
   Typography,
   Divider,
 } from "@mui/material";
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 import { ApplicationFormIcon, CalculatorIcon } from "@/icons";
 import { Close } from "@mui/icons-material";
 import { UsageMode } from "@repo/types";
@@ -24,6 +24,7 @@ import { capitalize } from "lodash-es";
 interface DialogContentProps {
   onClose: () => void;
   selectedOrganizationId?: string;
+  defaultOrganizationId?: string;
   organizations: GetMyOrganizationsSelectorOptionsResponse;
   isLoadingOrgs: boolean;
 }
@@ -43,10 +44,25 @@ interface DialogContentProps {
 const NewInventoryDialogContent: FC<DialogContentProps> = ({
   onClose,
   selectedOrganizationId,
+  defaultOrganizationId,
   organizations,
   isLoadingOrgs,
 }) => {
-  const [orgId, setOrgId] = useState<string>(selectedOrganizationId ?? "none");
+  const [orgId, setOrgId] = useState<string>(
+    selectedOrganizationId ?? defaultOrganizationId ?? "none"
+  );
+
+  // `useState` only runs once on mount. If the organizations query was still
+  // loading when this component mounted, `defaultOrganizationId` was undefined
+  // at that point. This effect applies it once loading finishes, but only when
+  // the user hasn't already made an explicit selection.
+  useEffect(() => {
+    if (!selectedOrganizationId && orgId === "none" && defaultOrganizationId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setOrgId(defaultOrganizationId);
+    }
+  }, [defaultOrganizationId, selectedOrganizationId, orgId]);
+
   const createInventory = useCreateCarbonInventory();
   const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
@@ -161,6 +177,9 @@ export const NewInventoryDialog: FC<Props> = ({
       <NewInventoryDialogContent
         onClose={onClose}
         selectedOrganizationId={selectedOrganizationId}
+        defaultOrganizationId={
+          organizations.length === 1 ? organizations[0].id : undefined
+        }
         organizations={organizations}
         isLoadingOrgs={isLoadingOrgs}
       />
