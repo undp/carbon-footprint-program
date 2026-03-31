@@ -17,6 +17,10 @@ export const SubmissionBaseSchema = z.object({
     .string()
     .nullable()
     .describe("The review comments for the submission"),
+  reviewedAt: z.iso
+    .datetime()
+    .nullable()
+    .describe("The date and time when the submission was reviewed"),
   createdAt: z.iso
     .datetime()
     .describe("The date and time when the submission was created"),

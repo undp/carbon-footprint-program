@@ -28,6 +28,7 @@ export const updatePendingSubmissionStatus = async (
     data: {
       status: targetStatus,
       reviewerId: BigInt(userId),
+      reviewedAt: new Date(),
       updatedById: BigInt(userId),
       ...additionalData,
     },
