@@ -123,7 +123,7 @@ export const ReductionPlanScreen: FC = () => {
         <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
           {/* Title row */}
           <Box className="flex items-center justify-between">
-            <Typography variant="h6" color="#414046">
+            <Typography variant="h6" color="text.primary">
               Plan de reducción por categoría
             </Typography>
             <Button

@@ -44,10 +44,10 @@ export const SubcategoryInitiativeGroup: FC<
           )}
         </Box>
         <Box className="flex flex-col gap-1">
-          <Typography variant="body1" fontWeight="medium" color="#414046">
+          <Typography variant="body1" fontWeight="medium" color="text.primary">
             {name}
           </Typography>
-          <Typography variant="caption" color="rgba(65,64,70,0.6)">
+          <Typography variant="caption" color="text.secondary">
             {description}
           </Typography>
         </Box>
