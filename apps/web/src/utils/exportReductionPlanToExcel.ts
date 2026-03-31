@@ -9,7 +9,9 @@ export async function exportReductionPlanToExcel(
   const workbook = new ExcelJS.Workbook();
 
   for (const category of data.categories) {
-    const sheetName = category.name.slice(0, 31);
+    // Excel sheet names cannot contain / \ ? * [ ] : and must be ≤31 chars
+    const sanitizedName = category.name.replace(/[/\\?*[\]:]/g, "-");
+    const sheetName = sanitizedName.slice(0, 31);
     const worksheet = workbook.addWorksheet(sheetName);
 
     // Add headers
