@@ -78,11 +78,7 @@ export const useDimensionsForm = () => {
   });
 
   const handleCellChange = useCallback(
-    (
-      rowIndex: number,
-      field: keyof DimensionFormRow,
-      value: unknown
-    ) => {
+    (rowIndex: number, field: keyof DimensionFormRow, value: unknown) => {
       const currentRow = form.getValues(`dimensions.${rowIndex}`);
       if (currentRow) {
         const updatedRow = {
@@ -90,14 +86,10 @@ export const useDimensionsForm = () => {
           [field]: value,
         };
         fieldArray.update(rowIndex, updatedRow);
-        form.setValue(
-          `dimensions.${rowIndex}.${field}` as `dimensions.${number}.${keyof DimensionFormRow}`,
-          value as never,
-          { shouldDirty: true }
-        );
-        void form.trigger(
-          `dimensions.${rowIndex}.${field}` as `dimensions.${number}.${keyof DimensionFormRow}`
-        );
+        form.setValue(`dimensions.${rowIndex}.${field}`, value as never, {
+          shouldDirty: true,
+        });
+        void form.trigger(`dimensions.${rowIndex}.${field}`);
       }
     },
     [form, fieldArray]

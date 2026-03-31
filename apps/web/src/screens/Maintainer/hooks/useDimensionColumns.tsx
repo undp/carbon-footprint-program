@@ -102,7 +102,7 @@ export const useDimensionColumns = ({
   onSubcategoryChange,
   rows,
   subcategoryOptions,
-}: UseDimensionColumnsParams): GridColDef[] => {
+}: UseDimensionColumnsParams): GridColDef<DimensionFormRow>[] => {
   const getDeleteState = useCallback(
     (row: DimensionFormRow | undefined) => {
       if (!row) {
@@ -153,14 +153,14 @@ export const useDimensionColumns = ({
     return groups;
   }, [subcategoryOptions]);
 
-  return useMemo<GridColDef[]>(() => {
+  return useMemo<GridColDef<DimensionFormRow>[]>(() => {
     const cols: GridColDef[] = [
       {
         field: "subcategoryId",
         headerName: "Sub-categoría",
         flex: 0.3,
         minWidth: 200,
-        renderCell: (params: GridRenderCellParams) => {
+        renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
@@ -229,7 +229,7 @@ export const useDimensionColumns = ({
         width: 60,
         headerAlign: "center",
         align: "center",
-        renderCell: (params: GridRenderCellParams) => {
+        renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
           const formRow = rows[rowIndex];
@@ -245,7 +245,7 @@ export const useDimensionColumns = ({
         headerName: "Dimensión",
         flex: 0.3,
         minWidth: 200,
-        renderCell: (params: GridRenderCellParams) => {
+        renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
@@ -270,7 +270,7 @@ export const useDimensionColumns = ({
         width: 100,
         headerAlign: "center",
         align: "center",
-        renderCell: (params: GridRenderCellParams) => {
+        renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
@@ -306,7 +306,7 @@ export const useDimensionColumns = ({
         align: "center",
         sortable: false,
         filterable: false,
-        renderCell: (params: GridRenderCellParams) => {
+        renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const rowId = String(params.row.id);
           const rowIndex = getRowIndex(rowId);
           const editing = isEditing(rowId);
@@ -334,7 +334,7 @@ export const useDimensionColumns = ({
         filterable: false,
         headerAlign: "center",
         align: "center",
-        renderCell: (params: GridRenderCellParams) => {
+        renderCell: (params: GridRenderCellParams<DimensionFormRow>) => {
           const anyEditing = editingRowId !== null;
           const rowId = String(params.row.id);
           const editing = isEditing(rowId);
