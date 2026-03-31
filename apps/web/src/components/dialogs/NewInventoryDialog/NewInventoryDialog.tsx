@@ -28,6 +28,18 @@ interface DialogContentProps {
   isLoadingOrgs: boolean;
 }
 
+/**
+ * The dialog content is intentionally split into a separate component so that
+ * the `useState` for `orgId` re-initialises from `selectedOrganizationId` on
+ * every mount.
+ *
+ * The outer `NewInventoryDialog` is always mounted in the parent (never
+ * conditionally rendered). Because MUI's Dialog uses `keepMounted={false}`,
+ * this inner component is unmounted when the dialog closes and remounted when
+ * it opens, which naturally reflects any changes to `selectedOrganizationId`
+ * that occurred while the dialog was closed. If the state lived in the outer
+ * component it would persist stale values across opens.
+ */
 const NewInventoryDialogContent: FC<DialogContentProps> = ({
   onClose,
   selectedOrganizationId,
