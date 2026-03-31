@@ -1,4 +1,4 @@
-import { FC, useMemo, useCallback } from "react";
+import { FC, useMemo, useCallback, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
@@ -8,26 +8,32 @@ import {
   StepHeader,
   ExitInventoryDialog,
   CarbonInventoryNavigationButton,
+  CategoryCarousel,
+  EmissionEditor,
+  TotalCategoryEmissionCard,
 } from "./components";
 import { useAuth } from "@/contexts";
-import { CategoryCard } from "./components/CategoryCard";
-import { EmissionEditor } from "./components/EmissionEditor";
-import { TotalCategoryEmissionCard } from "./components/TotalCategoryEmissionCard";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
 import { useEmissionCaptureNavigation } from "./hooks/useEmissionCaptureNavigation";
 import { useEmissionCaptureCategory } from "./hooks/useEmissionCaptureCategory";
 import { useEmissionCaptureForm } from "./hooks/useEmissionCaptureForm";
 import { useEmissionCaptureSubmit } from "./hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
-import { SubcategoryWithLines } from "./types/EmissionCaptureTypes";
+import { EmissionCaptureFormValues } from "./types/EmissionCaptureTypes";
+import {
+  areAllSubcategoriesFilled,
+  shouldShowSubcategory,
+} from "./utils/emissionCaptureValidation";
 import { IS_DEVELOPMENT } from "@/config/environment";
-import { ArrowRightAltRounded, SaveRounded } from "@mui/icons-material";
+import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { UsageMode } from "@repo/types";
 import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
 export const EmissionCaptureScreen: FC = () => {
@@ -51,6 +57,14 @@ export const EmissionCaptureScreen: FC = () => {
     inventoryId,
   });
 
+  // Default to first category once data loads if current selection doesn't match any category
+  useEffect(() => {
+    if (!data?.categories.length) return;
+    if (!data.categories.some((c) => c.id === selectedCategory)) {
+      handleCategoryChange(data.categories[0].id);
+    }
+  }, [data?.categories, selectedCategory, handleCategoryChange]);
+
   const { goBack, goNext } = useEmissionCaptureNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();
 
@@ -63,24 +77,6 @@ export const EmissionCaptureScreen: FC = () => {
   // Form setup
   const methods = useEmissionCaptureForm({ data });
   const { handleSubmit, formState, resetAfterSave, getDirtyLineIds } = methods;
-
-  const { submit: submitAndNavigate, isSubmitting: isSubmittingAndNavigating } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      onSuccess: goNext,
-      isDirty: formState.isDirty,
-      getDirtyLineIds,
-      resetAfterSave,
-      showNoChangesMessage: false,
-    });
-
-  const { submit: submitNoNavigate, isSubmitting: isSubmittingNoNavigating } =
-    useEmissionCaptureSubmit({
-      inventoryId,
-      isDirty: formState.isDirty,
-      getDirtyLineIds,
-      resetAfterSave,
-    });
 
   const { submit: submitAndGoBack, isSubmitting: isSubmittingAndGoingBack } =
     useEmissionCaptureSubmit({
@@ -124,10 +120,8 @@ export const EmissionCaptureScreen: FC = () => {
   const isBusy = activeActionsCount > 0;
 
   const globalSubmitting =
-    isSubmittingAndNavigating ||
     isSubmittingAndGoingToList ||
     isSubmittingAndGoingBack ||
-    isSubmittingNoNavigating ||
     isSubmittingOnCategoryChange;
 
   const handleCategoryChangeWithSave = useCallback(
@@ -139,6 +133,61 @@ export const EmissionCaptureScreen: FC = () => {
     },
     [handleSubmit, submitOnCategoryChange, handleCategoryChange]
   );
+
+  const selectedCategoryIndex = useMemo(
+    () => data?.categories.findIndex((c) => c.id === selectedCategory) ?? -1,
+    [data?.categories, selectedCategory]
+  );
+  const isLastCategory =
+    selectedCategoryIndex === (data?.categories.length ?? 0) - 1;
+  const nextCategoryId = !isLastCategory
+    ? (data?.categories[selectedCategoryIndex + 1]?.id ?? null)
+    : null;
+
+  const checkAllSubcategoriesFilled = useCallback(
+    (formValues: EmissionCaptureFormValues): boolean => {
+      return areAllSubcategoriesFilled(data?.categories ?? [], formValues);
+    },
+    [data]
+  );
+
+  const confirmDialog = useConfirmDialog();
+
+  const handleWarningConfirm = useCallback(() => {
+    confirmDialog.closeConfirm();
+    goNext();
+  }, [confirmDialog, goNext]);
+
+  const handleNextClick = useCallback(() => {
+    if (!isLastCategory && nextCategoryId) {
+      handleCategoryChangeWithSave(nextCategoryId);
+    } else {
+      void handleSubmit(async (formValues) => {
+        await submitOnCategoryChange(formValues);
+        if (checkAllSubcategoriesFilled(formValues)) {
+          goNext();
+        } else {
+          confirmDialog.openConfirm({
+            title: "Subcategorías sin completar",
+            message:
+              "Hay subcategorías que no tienen datos cargados. Si continúas, quedarán sin emisiones calculadas.",
+            variant: "warning",
+            confirmLabel: "Continuar",
+            cancelLabel: "Revisar",
+          });
+        }
+      })();
+    }
+  }, [
+    isLastCategory,
+    nextCategoryId,
+    handleCategoryChangeWithSave,
+    handleSubmit,
+    submitOnCategoryChange,
+    checkAllSubcategoriesFilled,
+    goNext,
+    confirmDialog,
+  ]);
 
   // Watch subcategories for reactive updates
   const watchedSubcategories = useWatch({
@@ -167,38 +216,21 @@ export const EmissionCaptureScreen: FC = () => {
     },
   };
 
-  const nextButton: FooterButton = formState.isDirty
-    ? {
-        text: "Guardar",
-        align: "right",
-        buttonProps: {
-          startIcon: <SaveRounded />,
-          variant: "contained",
-          onClick: handleSubmit(submitNoNavigate),
-          loading: isSubmittingNoNavigating,
-          disabled: globalSubmitting || isBusy,
-        },
-      }
-    : {
-        text: "Siguiente",
-        align: "right",
-        buttonProps: {
-          endIcon: <ArrowRightAltRounded />,
-          variant: "contained",
-          type: "submit",
-          form: "emission-capture-form",
-          loading: isSubmittingAndNavigating,
-          disabled: globalSubmitting || isBusy,
-        },
-      };
+  const nextButton: FooterButton = {
+    text: "Siguiente",
+    align: "right",
+    buttonProps: {
+      endIcon: <ArrowRightAltRounded />,
+      variant: "contained",
+      onClick: handleNextClick,
+      loading: isSubmittingOnCategoryChange,
+      disabled: globalSubmitting || isBusy,
+    },
+  };
 
   return (
     <FormProvider {...methods}>
-      <form
-        id="emission-capture-form"
-        onSubmit={handleSubmit(submitAndNavigate)}
-        noValidate
-      >
+      <form id="emission-capture-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
@@ -225,66 +257,50 @@ export const EmissionCaptureScreen: FC = () => {
                 title="Paso 3: Completa los datos de tus fuentes de emisión"
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
               />
-              <Box className="flex flex-row gap-4">
-                {data?.categories.map((category) => (
-                  <CategoryCard
-                    key={`category_${category.id}`}
-                    icon={category.icon}
-                    categoryColor={category.color}
-                    variant={
-                      selectedCategory === category.id ? "focused" : "unfocused"
-                    }
-                    title={category.name}
-                    subtitle={category.synonyms}
-                    description={category.description}
-                    explanationId={category.explanationId}
-                    onClick={() => handleCategoryChangeWithSave(category.id)}
-                  />
-                ))}
-              </Box>
+              <CategoryCarousel
+                categories={data?.categories ?? []}
+                selectedCategoryId={selectedCategory}
+                onCategorySelect={handleCategoryChangeWithSave}
+              />
               {selectedCategoryData && (
-                <TotalCategoryEmissionCard category={selectedCategoryData} />
+                <>
+                  <TotalCategoryEmissionCard category={selectedCategoryData} />
+                  <Box className="flex min-h-0 flex-1 flex-col gap-4">
+                    {selectedCategoryData.subcategories.map((subcategory) => {
+                      const formSubcategory =
+                        watchedSubcategories?.[subcategory.id];
+                      if (!shouldShowSubcategory(subcategory, formSubcategory))
+                        return null;
+                      return (
+                        <EmissionEditor
+                          key={subcategory.id}
+                          categoryColor={selectedCategoryData.color}
+                          subcategory={subcategory}
+                          inventoryUsageMode={
+                            data?.usageMode ?? UsageMode.SIMPLIFIED
+                          }
+                        />
+                      );
+                    })}
+                  </Box>
+                </>
               )}
-              <Box className="flex min-h-0 flex-1 flex-col gap-4">
-                {(
-                  selectedCategoryData?.subcategories ||
-                  ([] as SubcategoryWithLines[])
-                ).map((subcategory) => {
-                  const formSubcategory =
-                    watchedSubcategories?.[subcategory.id];
-                  const allLinesDeleted = Object.values(
-                    formSubcategory?.lines ?? {}
-                  ).every(({ isDeleted }) => isDeleted);
-
-                  if (
-                    formSubcategory?.isTotalManualEmissionsModeActive &&
-                    allLinesDeleted
-                  )
-                    return null;
-
-                  if (
-                    subcategory.lines.length === 0 &&
-                    !subcategory.isTotalManualEmissionsModeActive
-                  )
-                    return null;
-                  return (
-                    <EmissionEditor
-                      key={subcategory.id}
-                      categoryColor={selectedCategoryData!.color}
-                      subcategory={subcategory}
-                      inventoryUsageMode={
-                        data?.usageMode ?? UsageMode.SIMPLIFIED
-                      }
-                    />
-                  );
-                })}
-              </Box>
             </Box>
           </Box>
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
       <ExitInventoryDialog {...dialogProps} />
+      <ConfirmDialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.closeConfirm}
+        onConfirm={handleWarningConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+      />
     </FormProvider>
   );
 };

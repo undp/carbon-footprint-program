@@ -29,6 +29,8 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   onClick,
 }) => {
   const { openExplanation } = useExplanationDialog();
+  const isUnfocused = variant === "unfocused";
+  const isFocused = variant === "focused";
 
   const categoryColorPalette = getColorPalette(categoryColor);
   const IconComponent = CATEGORY_ICON_MAP[icon];
@@ -42,7 +44,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
 
   return (
     <Card
-      elevation={variant === "focused" ? 2 : 0}
+      elevation={isFocused ? 2 : 0}
       onClick={isClickable ? onClick : undefined}
       className={`flex w-full flex-row items-center justify-start gap-2 ${opacity}`}
       sx={{
@@ -91,6 +93,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
       <Box className="flex flex-col items-end justify-center">
         <InfoButton
           label="Más información de la categoría"
+          disabled={isUnfocused}
           onClick={(e) => {
             e.stopPropagation();
             openExplanation(explanationId);

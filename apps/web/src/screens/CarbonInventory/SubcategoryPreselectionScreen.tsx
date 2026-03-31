@@ -1,12 +1,12 @@
-import { FC, Fragment } from "react";
-import { Box, Divider } from "@mui/material";
+import { FC, useCallback, useRef } from "react";
+import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import {
   StepHeader,
-  SubcategoryPreselectionField,
+  SubcategoryPreselectionCarousel,
   ExitInventoryDialog,
   CarbonInventoryNavigationButton,
 } from "./components";
@@ -15,7 +15,6 @@ import { useSubcategoryPreselectionData } from "@/screens/CarbonInventory/hooks/
 import { useSubcategoryPreselectionForm } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionSubmit";
 import { useSubcategoryPreselectionNavigation } from "@/screens/CarbonInventory/hooks/useSubcategoryPreselectionNavigation";
-import { CategoryCard } from "./components/CategoryCard";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -24,6 +23,8 @@ import { useCarbonInventory } from "@/api/query";
 import { useInventoryEditGuard } from "./hooks/useInventoryEditGuard";
 import { useExitDialog } from "./hooks/useExitDialog";
 import { useCommonNavigation } from "./hooks/useCommonNavigation";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { VOCAB } from "@/config/vocab";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 
@@ -72,26 +73,71 @@ export const SubcategoryPreselectionScreen: FC = () => {
     formState: { isDirty },
   } = methods;
 
-  const { submit, isSubmitting } = useSubcategoryPreselectionSubmit(
-    inventoryId,
-    { onSuccess: goNext }
-  );
+  const { saveSelections, isSavingSelections } =
+    useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goNext });
 
   const {
-    submit: submitAndGoToList,
-    isSubmitting: isSubmittingAndGoingToList,
+    saveSelections: saveSelectionsAndGoToList,
+    isSavingSelections: isSavingSelectionsAndGoingToList,
   } = useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: goToList });
 
-  const globalSubmitting = isSubmitting || isSubmittingAndGoingToList;
+  const globalSubmitting =
+    isSavingSelections || isSavingSelectionsAndGoingToList;
 
   const isLoading = isSubcategoryPreselectionLoading || !isReady;
 
   const { handleExitClick, dialogProps } = useExitDialog({
     user,
     onUserExit: () =>
-      void handleSubmit((values) => submitAndGoToList(values, isDirty))(),
+      void handleSubmit((values) =>
+        saveSelectionsAndGoToList(values, isDirty)
+      )(),
     onGuestConfirm: goToLanding,
   });
+
+  const confirmDialog = useConfirmDialog();
+  // Use a ref to store the submit closure, ensuring a stable reference for the
+  // confirm dialog while capturing the atomic form state at the moment of click.
+  const pendingActionRef = useRef<(() => void) | null>(null);
+
+  const hasUnselectedCategory = useCallback((): boolean => {
+    const formValues = methods.getValues();
+    return !!categories?.some((category) => {
+      if (category.subcategories.length === 0) return false;
+      return !category.subcategories.some((s) => formValues[s.id] === true);
+    });
+  }, [categories, methods]);
+
+  const onNextClick = useCallback(() => {
+    const doSubmit = () =>
+      void handleSubmit((values) => saveSelections(values, isDirty))();
+
+    if (hasUnselectedCategory()) {
+      pendingActionRef.current = doSubmit;
+      confirmDialog.openConfirm({
+        title: "Categorías sin subcategorías seleccionadas",
+        message:
+          "Hay categorías donde no seleccionaste ninguna subcategoría. Si continúas, no se incluirán en el inventario.",
+        variant: "warning",
+        confirmLabel: "Continuar",
+        cancelLabel: "Revisar",
+      });
+    } else {
+      doSubmit();
+    }
+  }, [
+    handleSubmit,
+    saveSelections,
+    isDirty,
+    hasUnselectedCategory,
+    confirmDialog,
+  ]);
+
+  const onWarningConfirm = useCallback(() => {
+    confirmDialog.closeConfirm();
+    pendingActionRef.current?.();
+    pendingActionRef.current = null;
+  }, [confirmDialog]);
 
   if (!isLoading && mustNavigateAway) return null;
 
@@ -113,20 +159,15 @@ export const SubcategoryPreselectionScreen: FC = () => {
     buttonProps: {
       endIcon: <ArrowRightAltRounded />,
       variant: "contained",
-      type: "submit",
-      form: "subcategory-preselection-form",
-      loading: isSubmitting,
+      onClick: onNextClick,
+      loading: isSavingSelections,
       disabled: isFormDisabled,
     },
   };
 
   return (
     <FormProvider {...methods}>
-      <form
-        id="subcategory-preselection-form"
-        onSubmit={handleSubmit((values) => submit(values, isDirty))}
-        noValidate
-      >
+      <form id="subcategory-preselection-form" noValidate>
         <CarbonInventoryLayout
           headerProps={{
             title: "Simulador de Inventario Organizacional",
@@ -137,7 +178,7 @@ export const SubcategoryPreselectionScreen: FC = () => {
                 buttonProps={{
                   onClick: handleExitClick,
                   disabled: globalSubmitting,
-                  loading: isSubmittingAndGoingToList,
+                  loading: isSavingSelectionsAndGoingToList,
                 }}
               />
             ),
@@ -154,46 +195,22 @@ export const SubcategoryPreselectionScreen: FC = () => {
               title="Paso 2: Fuentes o actividades sugeridas"
               description={`Estas son las principales fuentes de emisión que te recomendamos medir según tu rubro. Marca y/o desmarca las que aplican a tu ${VOCAB.organization.noun.singular}.`}
             />
-            <Box className="flex min-h-0 flex-1 flex-row gap-4 overflow-x-auto">
-              {categories.map((category) => (
-                <Box
-                  key={category.id}
-                  className="flex min-w-[300px] flex-1 flex-col items-start overflow-hidden p-4"
-                  sx={{
-                    border: `1px solid #ECECEC`,
-                    borderRadius: `16px`,
-                  }}
-                >
-                  {/* Header */}
-                  <CategoryCard
-                    icon={category.icon}
-                    categoryColor={category.color}
-                    subtitle={category.synonyms || ""}
-                    title={category.name}
-                    description={category.description || ""}
-                    explanationId={category.explanationId}
-                  />
-                  {/*  Body */}
-                  <Divider className="w-full pt-4" />
-
-                  <Box className="flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
-                    {category.subcategories.map((subcategory) => (
-                      <Fragment key={subcategory.id}>
-                        <SubcategoryPreselectionField
-                          subcategory={subcategory}
-                        />
-                        <Divider className="w-full" />
-                      </Fragment>
-                    ))}
-                  </Box>
-                </Box>
-              ))}
-            </Box>
+            <SubcategoryPreselectionCarousel categories={categories} />
           </Box>
         </CarbonInventoryLayout>
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
       <ExitInventoryDialog {...dialogProps} />
+      <ConfirmDialog
+        open={confirmDialog.isOpen}
+        onClose={confirmDialog.closeConfirm}
+        onConfirm={onWarningConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        variant={confirmDialog.variant}
+        confirmLabel={confirmDialog.confirmLabel}
+        cancelLabel={confirmDialog.cancelLabel}
+      />
     </FormProvider>
   );
 };

@@ -10,3 +10,4 @@ export * from "./CarbonInventoryBadgesCard";
 export * from "./FileUpload";
 export * from "./OrganizationSelector";
 export * from "./ReadOnlyField";
+export * from "./Carousel";
