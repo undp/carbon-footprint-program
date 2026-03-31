@@ -165,15 +165,7 @@ export const NewInventoryDialog: FC<Props> = ({
     useMyOrganizations();
 
   return (
-    <Dialog
-      maxWidth="md"
-      open={open}
-      onClose={onClose}
-      disablePortal={false}
-      keepMounted={false}
-      disableAutoFocus={false}
-      disableEnforceFocus={false}
-    >
+    <Dialog maxWidth="md" open={open} onClose={onClose}>
       <NewInventoryDialogContent
         onClose={onClose}
         selectedOrganizationId={selectedOrganizationId}
