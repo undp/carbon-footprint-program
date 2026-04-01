@@ -6,7 +6,7 @@ import { mapFilesWithUrls } from "../../helpers/mapFilesWithUrls.js";
 import { ReadSasUrlSigner } from "../../services/blobService.js";
 import {
   SubmissionHistoryRow,
-  HistoryContext,
+  OrgSummaryInfo,
   buildSubmissionBaseEntry,
   groupSubmissionHistoryFiles,
   deriveEventType,
@@ -25,21 +25,14 @@ type OrgSummaryRow = {
 };
 
 /**
- * Maps an organization summary view row to the CommonOrganizationFields response shape.
+ * Groups a submission's files by type and signs their blob URLs in parallel.
+ * Returns empty arrays when no signer is available (i.e. no files exist in
+ * the entire history request).
  */
-export function mapOrgSummaryToCommonFields(orgSummary: OrgSummaryRow) {
-  return {
-    id: orgSummary.organizationId.toString(),
-    name: orgSummary.name,
-    lastSubmissionStatus: orgSummary.lastSubmissionStatus,
-    hasUnsubmittedChanges: orgSummary.hasUnsubmittedChanges,
-  };
-}
-
-async function mapSubmissionFiles(
+const mapSubmissionFiles = async (
   files: SubmissionHistoryRow["files"],
   signReadSasUrl: ReadSasUrlSigner | null
-) {
+) => {
   const groupedFiles = groupSubmissionHistoryFiles(files);
 
   if (!signReadSasUrl) {
@@ -57,16 +50,36 @@ async function mapSubmissionFiles(
   ]);
 
   return { attachments, recognitions, revisionAttachments };
-}
+};
 
 /**
- * Maps one submission into the timeline card pair shown in the modal.
+ * Converts an {@link OrgSummaryRow} from the database view into the
+ * {@link CommonOrganizationFieldsSchema} shape returned in API responses.
  */
-export async function mapSubmissionEventGroup(
+export const mapOrgSummaryToCommonFields = (orgSummary: OrgSummaryRow) => ({
+  id: orgSummary.organizationId.toString(),
+  name: orgSummary.name,
+  lastSubmissionStatus: orgSummary.lastSubmissionStatus,
+  hasUnsubmittedChanges: orgSummary.hasUnsubmittedChanges,
+});
+
+/**
+ * Transforms a single submission into a pair of timeline events:
+ *
+ * 1. **POSTULATION** — always created, dated at `createdAt`, with the
+ *    creator's name and the submission's attachment files.
+ * 2. **Reviewed event** (APPROVED | REJECTED | OBJECTED | APPROVED_AUTOMATICALLY)
+ *    — created only when the submission has been reviewed (status !== PENDING).
+ *    Dated at `reviewedAt`, carries the reviewer's name, review comments,
+ *    and either revision attachments (for OBJECTED) or recognition files.
+ *
+ * Returns `reviewedEvent: null` when the submission is still pending.
+ */
+export const mapSubmissionEventGroup = async (
   submission: SubmissionHistoryRow,
-  context: HistoryContext,
+  context: OrgSummaryInfo,
   signReadSasUrl: ReadSasUrlSigner | null
-): Promise<SubmissionEventGroup> {
+): Promise<SubmissionEventGroup> => {
   const { attachments, recognitions, revisionAttachments } =
     await mapSubmissionFiles(submission.files, signReadSasUrl);
 
@@ -107,8 +120,20 @@ export async function mapSubmissionEventGroup(
       recognitions,
     },
   };
-}
+};
 
+/**
+ * Assembles the final sorted timeline from submission event groups.
+ *
+ * For each reviewed submission (index > 0) an ON_REVIEW marker is inserted
+ * between the POSTULATION and the reviewed event. This marks the period
+ * where the submission was under review in multi-submission timelines.
+ *
+ * If a self-declaration event is provided (carbon inventory histories only),
+ * it is appended at the end before sorting.
+ *
+ * The resulting array is sorted by date descending (newest first).
+ */
 export const buildTimelineResponse = (
   submissionEventGroups: SubmissionEventGroup[],
   selfDeclarationEvent: SubmissionHistoryEntry | null
