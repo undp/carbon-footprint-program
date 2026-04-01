@@ -19,5 +19,6 @@ export async function downloadWorkbook(
   anchor.href = url;
   anchor.download = filename;
   anchor.click();
-  window.URL.revokeObjectURL(url);
+  // Defer revocation to ensure download starts
+  setTimeout(() => window.URL.revokeObjectURL(url), 100);
 }
