@@ -10,6 +10,12 @@ import {
 import { createTestOrganization } from "./organizationFactory.js";
 import { createTestOrganizationData } from "./organizationDataFactory.js";
 
+export type CarbonInventorySubmissionType =
+  | typeof SubmissionType.CARBON_INVENTORY_CALCULATION
+  | typeof SubmissionType.CARBON_INVENTORY_VERIFICATION
+  | typeof SubmissionType.REDUCTION_PLAN_VERIFICATION
+  | typeof SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION;
+
 /**
  * Builds a complete organization → organization data → submission chain with
  * sensible defaults (ACTIVE org, ACTIVE org data, PENDING submission).
@@ -134,7 +140,7 @@ export async function createTestSubmissionSubjectForCarbonInventory(
 export async function createTestCarbonInventorySubmission(
   prisma: PrismaClient,
   carbonInventoryId: bigint,
-  type: SubmissionType = SubmissionType.CARBON_INVENTORY_CALCULATION,
+  type: CarbonInventorySubmissionType = SubmissionType.CARBON_INVENTORY_CALCULATION,
   status: SubmissionStatus = SubmissionStatus.PENDING,
   userId: bigint,
   reviewerId?: bigint,
