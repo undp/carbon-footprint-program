@@ -1,13 +1,20 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
 import type { User } from "@repo/types";
-import { CarbonInventoryNotFoundError } from "../errors.js";
+import {
+  CarbonInventoryInvalidUuidError,
+  CarbonInventoryNotFoundError,
+} from "../errors.js";
 
 export const claimCarbonInventoryService = async (
   prismaClient: PrismaClient,
   id: string,
-  uuid: string,
+  uuid: string | string[] | undefined,
   user: User
 ): Promise<void> => {
+  if (typeof uuid !== "string") {
+    throw new CarbonInventoryInvalidUuidError(uuid);
+  }
+
   const { count } = await prismaClient.carbonInventory.updateMany({
     where: {
       id: BigInt(id),

@@ -9,7 +9,7 @@ export const claimCarbonInventoryHandler = async (
   const log = request.log.child({ module: "carbonInventories" });
   const user = request.currentUser!;
   const { id } = request.params;
-  const uuid = request.headers["x-carbon-inventory-uuid"] as string;
+  const uuid = request.headers["x-carbon-inventory-uuid"];
 
   log.info(`Claiming carbon inventory ${id}...`);
 
