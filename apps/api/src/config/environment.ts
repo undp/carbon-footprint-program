@@ -21,13 +21,13 @@ export const DATABASE_URL = process.env.DATABASE_URL;
 
 /**
  * JWKS URI for fetching public keys.
- * Can be set directly or computed from AZURE_EXTERNAL_TENANT_ID.
+ * Can be set directly or computed from Azure tenant configuration.
  */
 export const JWKS_URI = process.env.JWKS_URI;
 
 /**
  * Expected token issuer (iss claim).
- * Can be set directly or computed from AZURE_EXTERNAL_TENANT_ID.
+ * Can be set directly or computed from Azure tenant configuration.
  */
 export const JWKS_ISSUER = process.env.JWKS_ISSUER;
 
@@ -38,29 +38,63 @@ export const JWKS_ISSUER = process.env.JWKS_ISSUER;
 export const JWKS_AUDIENCE = process.env.JWKS_AUDIENCE;
 
 // ============================================================================
-// Azure AD / Entra External ID Configuration
+// Azure Entra ID Configuration
 // ============================================================================
 // Azure-specific configuration that computes JWKS values.
 // If JWKS_* variables are not set, these will be used as defaults.
+//
+// Supports two tenant types via AZURE_TENANT_TYPE:
+// - "external" (default): Azure Entra External ID (CIAM) — uses ciamlogin.com
+// - "organizational": Regular Azure Entra ID (Azure AD) — uses login.microsoftonline.com
 
 /**
- * Azure AD Tenant ID (Directory ID).
+ * Azure tenant type.
  *
- * For Azure Entra External ID (CIAM):
- * - This is your External ID tenant subdomain (e.g., "mycompany" from mycompany.ciamlogin.com)
- * - Found in Azure Portal > Microsoft Entra External ID > Overview > "Tenant subdomain"
- * - Format: lowercase alphanumeric string (not a GUID)
- * - Example: "mycompany" (not "mycompany.ciamlogin.com")
+ * - "external": Azure Entra External ID (CIAM) for B2C scenarios.
+ *   Uses ciamlogin.com authority and JWKS endpoints.
+ * - "organizational": Regular Azure Entra ID (Azure AD) for B2B/enterprise.
+ *   Uses login.microsoftonline.com authority and JWKS endpoints.
  *
- * For traditional Azure AD:
+ * Defaults to "external" for backward compatibility.
+ */
+export type AzureTenantType = "external" | "organizational";
+export const AZURE_TENANT_TYPE: AzureTenantType = (() => {
+  const raw = process.env.AZURE_TENANT_TYPE;
+  if (!raw) return "external";
+  const valid: AzureTenantType[] = ["external", "organizational"];
+  if (!valid.includes(raw as AzureTenantType)) {
+    throw new Error(
+      `Invalid AZURE_TENANT_TYPE value: "${raw}". Allowed values are: ${valid.join(", ")}.`
+    );
+  }
+  return raw as AzureTenantType;
+})();
+
+/**
+ * Azure Tenant ID (Directory ID).
+ *
+ * For Azure Entra External ID (CIAM) — AZURE_TENANT_TYPE="external":
+ * - This is your tenant ID GUID
+ * - Found in Azure Portal > Microsoft Entra External ID > Overview > "Tenant ID"
+ * - Format: UUID (e.g., "929aea96-b57c-43ad-8ee3-ee272a160970")
+ *
+ * For Azure Entra ID (organizational) — AZURE_TENANT_TYPE="organizational":
  * - This is your Directory (tenant) ID GUID
  * - Found in Azure Portal > Microsoft Entra ID > Overview > "Tenant ID"
  * - Format: UUID (e.g., "12345678-1234-1234-1234-123456789abc")
  */
-export const AZURE_EXTERNAL_TENANT_ID = process.env.AZURE_EXTERNAL_TENANT_ID;
+export const AZURE_TENANT_ID = process.env.AZURE_TENANT_ID;
 
-export const AZURE_EXTERNAL_TENANT_SUBDOMAIN =
-  process.env.AZURE_EXTERNAL_TENANT_SUBDOMAIN;
+/**
+ * Azure tenant subdomain.
+ *
+ * Only required for AZURE_TENANT_TYPE="external" (CIAM).
+ * - Found in Azure Portal > Microsoft Entra External ID > Overview > "Tenant subdomain"
+ * - Format: lowercase alphanumeric string (e.g., "mycompany" from mycompany.ciamlogin.com)
+ *
+ * Not used for AZURE_TENANT_TYPE="organizational".
+ */
+export const AZURE_TENANT_SUBDOMAIN = process.env.AZURE_TENANT_SUBDOMAIN;
 
 /**
  * Azure AD Application (Client) ID.
@@ -71,22 +105,49 @@ export const AZURE_EXTERNAL_TENANT_SUBDOMAIN =
  * - This value is used as the expected audience (aud) claim in JWT tokens
  * - Required for token validation to ensure tokens are issued for your application
  *
- * Note: This is the same for both Azure Entra External ID and traditional Azure AD.
+ * Note: This is the same for both external and organizational tenant types.
  */
 export const AZURE_API_CLIENT_ID = process.env.AZURE_API_CLIENT_ID;
 
-// Computed Azure AD values for Azure Entra External ID (CIAM)
-// CIAM uses ciamlogin.com instead of login.microsoftonline.com
-// Note: Azure CIAM tokens use the tenant ID (not the subdomain) in the issuer claim,
-// e.g. https://<tenant-id>.ciamlogin.com/<tenant-id>/v2.0
-const AZURE_AD_ISSUER =
-  AZURE_EXTERNAL_TENANT_ID && AZURE_EXTERNAL_TENANT_SUBDOMAIN
-    ? `https://${AZURE_EXTERNAL_TENANT_ID}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0`
-    : undefined;
-const AZURE_AD_JWKS_URI =
-  AZURE_EXTERNAL_TENANT_ID && AZURE_EXTERNAL_TENANT_SUBDOMAIN
-    ? `https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/discovery/v2.0/keys`
-    : undefined;
+// Computed Azure Entra values based on tenant type
+// For organizational tenants, the iss claim depends on the app's accessTokenAcceptedVersion:
+//   v1 (default): https://sts.windows.net/{tenant-id}/
+//   v2:           https://login.microsoftonline.com/{tenant-id}/v2.0
+// We accept both to avoid issues with app registration configuration.
+const AZURE_AD_ISSUERS: string[] = (() => {
+  if (
+    AZURE_TENANT_TYPE === "external" &&
+    AZURE_TENANT_ID &&
+    AZURE_TENANT_SUBDOMAIN
+  ) {
+    // CIAM uses ciamlogin.com with tenant ID in the issuer
+    return [`https://${AZURE_TENANT_ID}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0`];
+  }
+  if (AZURE_TENANT_TYPE === "organizational" && AZURE_TENANT_ID) {
+    return [
+      // v1 tokens (accessTokenAcceptedVersion: null or 1)
+      `https://sts.windows.net/${AZURE_TENANT_ID}/`,
+      // v2 tokens (accessTokenAcceptedVersion: 2)
+      `https://login.microsoftonline.com/${AZURE_TENANT_ID}/v2.0`,
+    ];
+  }
+  return [];
+})();
+
+const AZURE_AD_JWKS_URI = (() => {
+  if (
+    AZURE_TENANT_TYPE === "external" &&
+    AZURE_TENANT_ID &&
+    AZURE_TENANT_SUBDOMAIN
+  ) {
+    // CIAM uses subdomain.ciamlogin.com for JWKS endpoint
+    return `https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/discovery/v2.0/keys`;
+  }
+  if (AZURE_TENANT_TYPE === "organizational" && AZURE_TENANT_ID) {
+    return `https://login.microsoftonline.com/${AZURE_TENANT_ID}/discovery/v2.0/keys`;
+  }
+  return undefined;
+})();
 
 // ============================================================================
 // Resolved JWKS Configuration
@@ -101,16 +162,25 @@ const AZURE_AD_JWKS_URI =
 export const RESOLVED_JWKS_URI = JWKS_URI || AZURE_AD_JWKS_URI;
 
 /**
- * Resolved issuer - used for token validation.
- * Priority: JWKS_ISSUER > Azure AD computed value
+ * Resolved allowed issuers - used for token validation.
+ * Priority: JWKS_ISSUER (single value) > Azure AD computed values
  */
-export const RESOLVED_JWKS_ISSUER = JWKS_ISSUER || AZURE_AD_ISSUER;
+export const RESOLVED_JWKS_ISSUERS: string[] = JWKS_ISSUER
+  ? [JWKS_ISSUER]
+  : AZURE_AD_ISSUERS;
 
 /**
  * Resolved audience - used for token validation.
- * Priority: JWKS_AUDIENCE > AZURE_API_CLIENT_ID
+ * Priority: JWKS_AUDIENCE > computed from AZURE_API_CLIENT_ID
+ *
+ * For organizational tenants, the aud claim is "api://{client-id}" (with prefix).
+ * For external (CIAM) tenants, the aud claim is the bare client ID GUID.
  */
-export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_API_CLIENT_ID;
+export const RESOLVED_JWKS_AUDIENCE =
+  JWKS_AUDIENCE ||
+  (AZURE_API_CLIENT_ID && AZURE_TENANT_TYPE === "organizational"
+    ? `api://${AZURE_API_CLIENT_ID}`
+    : AZURE_API_CLIENT_ID);
 
 // ============================================================================
 // Authentication Provider Configuration

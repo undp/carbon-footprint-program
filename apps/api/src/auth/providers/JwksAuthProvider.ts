@@ -54,11 +54,18 @@ export class JwksAuthProvider implements AuthProvider {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
       }
 
-      // Accept either `email` or `preferred_username` as the user's email
-      const email = payload.email ?? payload.preferred_username;
+      // Extract user email from token claims.
+      // Different token versions use different claims:
+      //   - v2.0 / CIAM: `email` or `preferred_username`
+      //   - v1.0 (organizational): `upn` or `unique_name`
+      const email =
+        payload.email ??
+        payload.preferred_username ??
+        payload.upn ??
+        payload.unique_name;
       if (!email) {
         throw new Error(
-          "Token payload missing 'email' or 'preferred_username' claim"
+          "Token payload missing email claim ('email', 'preferred_username', 'upn', or 'unique_name')"
         );
       }
 

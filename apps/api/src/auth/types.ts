@@ -23,8 +23,12 @@ export interface OidcTokenPayload {
   sub: string;
   /** User's email address */
   email?: string;
-  /** User's preferred username (often the email) */
+  /** User's preferred username (often the email, common in v2.0 tokens) */
   preferred_username?: string;
+  /** User Principal Name (organizational tenant v1.0 tokens) */
+  upn?: string;
+  /** Unique name (organizational tenant v1.0 tokens, often same as UPN) */
+  unique_name?: string;
   /** User's display name */
   name?: string;
   /** User's given/first name */

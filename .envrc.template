@@ -1,8 +1,10 @@
 # Azure Authentication
-export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
-export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
-export AZURE_EXTERNAL_TENANT_SUBDOMAIN="" # External Tenant Subdomain  for Azure Entra External Authentication
-export AZURE_EXTERNAL_TENANT_ID=""   # External Tenant ID for Azure Entra External Authentication
+# AZURE_TENANT_TYPE: "external" (CIAM / ciamlogin.com) or "organizational" (Azure AD / login.microsoftonline.com)
+export AZURE_TENANT_TYPE="external"
+export AZURE_TENANT_ID=""            # Tenant ID (GUID)
+export AZURE_TENANT_SUBDOMAIN=""     # Tenant subdomain (only required for AZURE_TENANT_TYPE="external")
+export AZURE_API_CLIENT_ID=""        # API App Registration ID
+export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
 
 # Azure Blob Storage (local development only)
 # In production these are set automatically by the Bicep infrastructure (appService.bicep).
@@ -26,7 +28,10 @@ export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=      # Must be set when using AUTH_PR
 export VITE_API_BASE_URL=""  # URL for the API
 export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
-export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0" # Authority URL for Azure Entra External Authentication
+# Authority URL: depends on AZURE_TENANT_TYPE
+# External (CIAM): "https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+# Organizational:  "https://login.microsoftonline.com/${AZURE_TENANT_ID}"
+export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
 export VITE_FRONT_BASE_URL=""
 
 # Common
