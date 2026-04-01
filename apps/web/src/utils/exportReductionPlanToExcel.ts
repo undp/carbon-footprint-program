@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import type { GetReductionPlanResponse } from "@repo/types";
-import { downloadWorkbook } from "@/services/excel";
+import { downloadWorkbook, sanitizeExcelSheetName } from "@/services/excel";
 
 export async function exportReductionPlanToExcel(
   data: GetReductionPlanResponse,
@@ -9,10 +9,8 @@ export async function exportReductionPlanToExcel(
   const workbook = new ExcelJS.Workbook();
 
   for (const category of data.categories) {
-    // Excel sheet names cannot contain / \ ? * [ ] : and must be ≤31 chars
-    const sanitizedName = category.name.replace(/[/\\?*[\]:]/g, "-");
-    const sheetName = sanitizedName.slice(0, 31);
-    const worksheet = workbook.addWorksheet(sheetName);
+    const sanitizedSheetName = sanitizeExcelSheetName(category.name);
+    const worksheet = workbook.addWorksheet(sanitizedSheetName);
 
     // Add headers
     worksheet.columns = [
