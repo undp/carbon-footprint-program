@@ -7,3 +7,4 @@ export { IndirectEmissionCategoryIcon } from "./IndirectEmissionCategoryIcon";
 export { OthersCategoryIcon } from "./OthersCategoryIcon";
 export { BarGraphIcon } from "./BarGraphIcon";
 export { EmissionResultsScreenTrashIcon } from "./EmissionResultsScreenTrashIcon";
+export { UnpluggedCablesIcon } from "./UnpluggedCablesIcon";
