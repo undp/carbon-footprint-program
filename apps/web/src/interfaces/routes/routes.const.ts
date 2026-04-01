@@ -11,6 +11,7 @@ export const Routes = {
     "/carbon-inventory/$inventoryId/emission-summary",
   CARBON_INVENTORY_EMISSION_RESULTS:
     "/carbon-inventory/$inventoryId/emission-results",
+  APP: "/app",
   HOME: "/app/home",
   MY_ORGANIZATION: "/app/my-organization",
   CARBON_INVENTORY: "/carbon-inventory",
@@ -22,6 +23,7 @@ export const Routes = {
   TRANSPARENCY: "/transparency",
   CAPINAUT: "/capinaut",
   SIGN_IN: "/sign-in",
+  ADMIN: "/admin",
   ADMIN_DASHBOARD: "/admin/dashboard",
   ADMIN_METHODOLOGIES: "/admin/methodologies",
   ADMIN_CATEGORIES: "/admin/categories",
