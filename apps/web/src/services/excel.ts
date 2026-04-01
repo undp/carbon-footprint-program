@@ -21,6 +21,7 @@ export const downloadWorkbook = async (
   anchor.click();
   // Defer revocation to ensure download starts
   setTimeout(() => window.URL.revokeObjectURL(url), 100);
+  anchor.remove();
 };
 
 export const sanitizeExcelSheetName = (name: string) => {
