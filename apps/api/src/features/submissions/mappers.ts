@@ -1,56 +1,21 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
-import type { SubmissionStatus as SubmissionStatusType } from "@repo/database";
-import { SubmissionFileType, SubmissionStatus } from "@repo/database";
-import type { SubmissionHistoryEntry } from "@repo/types";
+import { SubmissionHistoryEntry } from "@repo/types";
 import { SubmissionEventType } from "@repo/types";
-import { mapFilesWithUrls } from "@/helpers/mapFilesWithUrls.js";
+import { buildUserName } from "@repo/utils";
+import { sortBy } from "lodash-es";
+import { mapFilesWithUrls } from "../../helpers/mapFilesWithUrls.js";
+import { ReadSasUrlSigner } from "../../services/blobService.js";
+import {
+  SubmissionHistoryRow,
+  HistoryContext,
+  buildSubmissionBaseEntry,
+  groupSubmissionHistoryFiles,
+  deriveEventType,
+} from "./helpers.js";
 
-/**
- * Derives a user-facing event type from the raw submission status.
- */
-export function deriveEventType(
-  status: SubmissionStatusType
-): SubmissionEventType {
-  switch (status) {
-    case SubmissionStatus.PENDING:
-      return SubmissionEventType.POSTULATION;
-    case SubmissionStatus.APPROVED_AUTOMATICALLY:
-      return SubmissionEventType.APPROVED_AUTOMATICALLY;
-    case SubmissionStatus.APPROVED:
-      return SubmissionEventType.APPROVED;
-    case SubmissionStatus.REJECTED:
-      return SubmissionEventType.REJECTED;
-    case SubmissionStatus.OBJECTED:
-      return SubmissionEventType.OBJECTED;
-    default:
-      return SubmissionEventType.POSTULATION;
-  }
-}
-
-/**
- * Filters submission files by type and maps them to response shape with signed URLs.
- */
-export async function mapFilesByType(
-  files: Array<{
-    type: SubmissionFileType;
-    file: {
-      uuid: string;
-      originalName: string;
-      mimeType: string;
-      sizeBytes: number;
-      blobPath: string;
-      createdAt: Date;
-    };
-  }>,
-  fileType: SubmissionFileType,
-  blobServiceClient: BlobServiceClient,
-  containerName: string
-): Promise<SubmissionHistoryEntry["files"]> {
-  const rows = files.filter((f) => f.type === fileType).map((f) => f.file);
-  return rows.length > 0
-    ? mapFilesWithUrls(rows, blobServiceClient, containerName)
-    : [];
-}
+type SubmissionEventGroup = {
+  postulationEvent: SubmissionHistoryEntry;
+  reviewedEvent: SubmissionHistoryEntry | null;
+};
 
 type OrgSummaryRow = {
   organizationId: bigint;
@@ -70,3 +35,114 @@ export function mapOrgSummaryToCommonFields(orgSummary: OrgSummaryRow) {
     hasUnsubmittedChanges: orgSummary.hasUnsubmittedChanges,
   };
 }
+
+async function mapSubmissionFiles(
+  files: SubmissionHistoryRow["files"],
+  signReadSasUrl: ReadSasUrlSigner | null
+) {
+  const groupedFiles = groupSubmissionHistoryFiles(files);
+
+  if (!signReadSasUrl) {
+    return {
+      attachments: [],
+      recognitions: [],
+      revisionAttachments: [],
+    };
+  }
+
+  const [attachments, recognitions, revisionAttachments] = await Promise.all([
+    mapFilesWithUrls(groupedFiles.attachments, signReadSasUrl),
+    mapFilesWithUrls(groupedFiles.recognitions, signReadSasUrl),
+    mapFilesWithUrls(groupedFiles.revisionAttachments, signReadSasUrl),
+  ]);
+
+  return { attachments, recognitions, revisionAttachments };
+}
+
+/**
+ * Maps one submission into the timeline card pair shown in the modal.
+ */
+export async function mapSubmissionEventGroup(
+  submission: SubmissionHistoryRow,
+  context: HistoryContext,
+  signReadSasUrl: ReadSasUrlSigner | null
+): Promise<SubmissionEventGroup> {
+  const { attachments, recognitions, revisionAttachments } =
+    await mapSubmissionFiles(submission.files, signReadSasUrl);
+
+  const baseEntry = buildSubmissionBaseEntry(submission, context);
+  const reviewedEventType = deriveEventType(submission.status);
+  const postulationEvent: SubmissionHistoryEntry = {
+    ...baseEntry,
+    eventType: SubmissionEventType.POSTULATION,
+    date: submission.createdAt.toISOString(),
+    userName: buildUserName(
+      submission.creator?.firstName ?? null,
+      submission.creator?.lastName ?? null
+    ),
+    comment: "",
+    files: attachments,
+    recognitions: [],
+  };
+
+  if (reviewedEventType === SubmissionEventType.POSTULATION) {
+    return { postulationEvent, reviewedEvent: null };
+  }
+
+  return {
+    postulationEvent,
+    reviewedEvent: {
+      ...baseEntry,
+      eventType: reviewedEventType,
+      userName: buildUserName(
+        submission.reviewer?.firstName ?? null,
+        submission.reviewer?.lastName ?? null
+      ),
+      date: (submission.reviewedAt ?? submission.createdAt).toISOString(),
+      comment: submission.reviewComments ?? "",
+      files:
+        reviewedEventType === SubmissionEventType.OBJECTED
+          ? revisionAttachments
+          : [],
+      recognitions,
+    },
+  };
+}
+
+export const buildTimelineResponse = (
+  submissionEventGroups: SubmissionEventGroup[],
+  selfDeclarationEvent: SubmissionHistoryEntry | null
+): SubmissionHistoryEntry[] => {
+  if (!submissionEventGroups.length) {
+    return selfDeclarationEvent ? [selfDeclarationEvent] : [];
+  }
+
+  const response = submissionEventGroups.flatMap<SubmissionHistoryEntry>(
+    ({ postulationEvent, reviewedEvent }, submissionIndex) => {
+      if (!reviewedEvent) {
+        return [postulationEvent];
+      }
+
+      const timelineEvents: SubmissionHistoryEntry[] = [postulationEvent];
+
+      if (submissionIndex > 0) {
+        timelineEvents.push({
+          ...postulationEvent,
+          eventType: SubmissionEventType.ON_REVIEW,
+          comment: "",
+          files: [],
+          recognitions: [],
+        });
+      }
+
+      timelineEvents.push(reviewedEvent);
+      return timelineEvents;
+    }
+  );
+
+  if (selfDeclarationEvent) {
+    response.push(selfDeclarationEvent);
+  }
+
+  return sortBy(response, "date").reverse();
+};
