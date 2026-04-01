@@ -3,7 +3,7 @@ import {
   CarbonInventoryLineStatus,
   CategoryStatus,
   InventoryStatus,
-  InitiativeStatus,
+  ReductionPlanInitiativeStatus,
   type GetReductionPlanResponse,
 } from "@repo/types";
 import { IconNameSchema } from "@repo/types";
@@ -43,7 +43,9 @@ export const getReductionPlanService = async (
       subcategories: {
         some: {
           id: { in: subcategoryIds },
-          initiatives: { some: { status: InitiativeStatus.ACTIVE } },
+          reductionPlanInitiatives: {
+            some: { status: ReductionPlanInitiativeStatus.ACTIVE },
+          },
         },
       },
     },
@@ -59,15 +61,17 @@ export const getReductionPlanService = async (
       subcategories: {
         where: {
           id: { in: subcategoryIds },
-          initiatives: { some: { status: InitiativeStatus.ACTIVE } },
+          reductionPlanInitiatives: {
+            some: { status: ReductionPlanInitiativeStatus.ACTIVE },
+          },
         },
         select: {
           id: true,
           name: true,
           icon: true,
           description: true,
-          initiatives: {
-            where: { status: InitiativeStatus.ACTIVE },
+          reductionPlanInitiatives: {
+            where: { status: ReductionPlanInitiativeStatus.ACTIVE },
             select: { id: true, title: true, description: true },
             orderBy: { id: "asc" },
           },
@@ -92,7 +96,7 @@ export const getReductionPlanService = async (
         name: sub.name,
         icon: IconNameSchema.parse(sub.icon),
         description: sub.description,
-        initiatives: sub.initiatives.map((i) => ({
+        initiatives: sub.reductionPlanInitiatives.map((i) => ({
           id: i.id.toString(),
           title: i.title,
           description: i.description,

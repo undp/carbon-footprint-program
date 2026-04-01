@@ -17,5 +17,5 @@ export {
   InputType,
   OrganizationSummaryDisplayStatus,
   SubcategoryStatus,
-  InitiativeStatus,
+  ReductionPlanInitiativeStatus,
 } from "@repo/database/enums";

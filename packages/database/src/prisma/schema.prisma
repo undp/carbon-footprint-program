@@ -262,8 +262,8 @@ model User {
   filesUploaded                        File[]                         @relation("file_created_by")
   explanationsCreated                  Explanation[]                  @relation("explanation_created_by")
   explanationsUpdated                  Explanation[]                  @relation("explanation_updated_by")
-  initiativesCreated                   Initiative[]                   @relation("initiative_created_by")
-  initiativesUpdated                   Initiative[]                   @relation("initiative_updated_by")
+  reductionPlanInitiativesCreated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_created_by")
+  reductionPlanInitiativesUpdated      ReductionPlanInitiative[]      @relation("reduction_plan_initiative_updated_by")
 
   @@map("user")
 }
@@ -421,7 +421,7 @@ model Subcategory {
   emissionFactors             EmissionFactor[]
   inventoryLines              CarbonInventoryLine[]
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
-  initiatives                 Initiative[]
+  reductionPlanInitiatives    ReductionPlanInitiative[]
 
   // Partial unique index exists in SQL migration:
   // ("category_id", "name") WHERE status <> 'DELETED'
@@ -464,26 +464,26 @@ model EmissionFactorDimension {
 }
 
 model EmissionFactorDimensionValue {
-  id                          BigInt                         @id @default(autoincrement())
-  dimensionId                 BigInt                         @map("dimension_id")
-  parentValueId               BigInt?                        @map("parent_value_id")
-  value                       String
-  isActive                    Boolean                        @default(true) @map("is_active")
-  createdAt                   DateTime                       @default(now()) @map("created_at")
-  updatedAt                   DateTime?                      @updatedAt @map("updated_at")
-  createdById                 BigInt?                        @map("created_by_id")
-  updatedById                 BigInt?                        @map("updated_by_id")
-  dimension                   EmissionFactorDimension        @relation(fields: [dimensionId], references: [id])
-  parentValue                 EmissionFactorDimensionValue?  @relation("dimension_value_hierarchy", fields: [parentValueId], references: [id])
-  childValues                 EmissionFactorDimensionValue[] @relation("dimension_value_hierarchy")
-  emissionFactorsAsDimension1 EmissionFactor[]               @relation("emission_factor_dimension_value_1")
-  emissionFactorsAsDimension2 EmissionFactor[]               @relation("emission_factor_dimension_value_2")
-  lineInputsAsSelection1      CarbonInventoryLineInput[]     @relation("line_input_selection_1")
-  lineInputsAsSelection2      CarbonInventoryLineInput[]     @relation("line_input_selection_2")
-  initiativesAsDimension1     Initiative[]                   @relation("initiative_dimension_value_1")
-  initiativesAsDimension2     Initiative[]                   @relation("initiative_dimension_value_2")
-  creator                     User?                          @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id])
-  updater                     User?                          @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id])
+  id                                   BigInt                         @id @default(autoincrement())
+  dimensionId                          BigInt                         @map("dimension_id")
+  parentValueId                        BigInt?                        @map("parent_value_id")
+  value                                String
+  isActive                             Boolean                        @default(true) @map("is_active")
+  createdAt                            DateTime                       @default(now()) @map("created_at")
+  updatedAt                            DateTime?                      @updatedAt @map("updated_at")
+  createdById                          BigInt?                        @map("created_by_id")
+  updatedById                          BigInt?                        @map("updated_by_id")
+  dimension                            EmissionFactorDimension        @relation(fields: [dimensionId], references: [id])
+  parentValue                          EmissionFactorDimensionValue?  @relation("dimension_value_hierarchy", fields: [parentValueId], references: [id])
+  childValues                          EmissionFactorDimensionValue[] @relation("dimension_value_hierarchy")
+  emissionFactorsAsDimension1          EmissionFactor[]               @relation("emission_factor_dimension_value_1")
+  emissionFactorsAsDimension2          EmissionFactor[]               @relation("emission_factor_dimension_value_2")
+  lineInputsAsSelection1               CarbonInventoryLineInput[]     @relation("line_input_selection_1")
+  lineInputsAsSelection2               CarbonInventoryLineInput[]     @relation("line_input_selection_2")
+  reductionPlanInitiativesAsDimension1 ReductionPlanInitiative[]      @relation("reduction_plan_initiative_dimension_value_1")
+  reductionPlanInitiativesAsDimension2 ReductionPlanInitiative[]      @relation("reduction_plan_initiative_dimension_value_2")
+  creator                              User?                          @relation("emission_factor_dimension_value_created_by", fields: [createdById], references: [id])
+  updater                              User?                          @relation("emission_factor_dimension_value_updated_by", fields: [updatedById], references: [id])
 
   @@unique([dimensionId, value])
   @@map("emission_factor_dimension_value")
@@ -958,30 +958,30 @@ model Badge {
   @@map("badge")
 }
 
-enum InitiativeStatus {
+enum ReductionPlanInitiativeStatus {
   ACTIVE
   DELETED
 
-  @@map("initiative_status")
+  @@map("reduction_plan_initiative_status")
 }
 
-model Initiative {
+model ReductionPlanInitiative {
   id                BigInt                        @id @default(autoincrement())
   subcategoryId     BigInt                        @map("subcategory_id")
   dimensionValue1Id BigInt?                       @map("dimension_value_1_id")
   dimensionValue2Id BigInt?                       @map("dimension_value_2_id")
   title             String
   description       String
-  status            InitiativeStatus              @default(ACTIVE)
+  status            ReductionPlanInitiativeStatus @default(ACTIVE)
   createdAt         DateTime                      @default(now()) @map("created_at")
   updatedAt         DateTime?                     @updatedAt @map("updated_at")
   createdById       BigInt?                       @map("created_by_id")
   updatedById       BigInt?                       @map("updated_by_id")
   subcategory       Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  dimensionValue1   EmissionFactorDimensionValue? @relation("initiative_dimension_value_1", fields: [dimensionValue1Id], references: [id])
-  dimensionValue2   EmissionFactorDimensionValue? @relation("initiative_dimension_value_2", fields: [dimensionValue2Id], references: [id])
-  creator           User?                         @relation("initiative_created_by", fields: [createdById], references: [id])
-  updater           User?                         @relation("initiative_updated_by", fields: [updatedById], references: [id])
+  dimensionValue1   EmissionFactorDimensionValue? @relation("reduction_plan_initiative_dimension_value_1", fields: [dimensionValue1Id], references: [id])
+  dimensionValue2   EmissionFactorDimensionValue? @relation("reduction_plan_initiative_dimension_value_2", fields: [dimensionValue2Id], references: [id])
+  creator           User?                         @relation("reduction_plan_initiative_created_by", fields: [createdById], references: [id])
+  updater           User?                         @relation("reduction_plan_initiative_updated_by", fields: [updatedById], references: [id])
 
-  @@map("initiative")
+  @@map("reduction_plan_initiative")
 }

@@ -1,4 +1,4 @@
-import { InitiativeStatus, type PrismaClient } from "@/index.js";
+import { ReductionPlanInitiativeStatus, type PrismaClient } from "@/index.js";
 import { readFileSync } from "fs";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
@@ -11,10 +11,10 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const InitiativesSeedDataSchema = z.array(
+const ReductionPlanInitiativesSeedDataSchema = z.array(
   z.object({
     subcategoryName: z.string().min(1),
-    initiatives: z.array(
+    reductionPlanInitiatives: z.array(
       z.object({
         title: z.string().min(1),
         description: z.string().min(1),
@@ -27,16 +27,17 @@ export async function seedInitiatives(
   prisma: PrismaClient,
   dataset: SeedsDataset
 ) {
-  console.log("Seeding initiatives...");
+  console.log("Seeding reduction plan initiatives...");
 
-  const initiativesData = InitiativesSeedDataSchema.parse(
-    JSON.parse(
-      readFileSync(
-        generateSeedDataPath(__dirname, "initiatives.json", dataset),
-        "utf-8"
+  const reductionPlanInitiativesData =
+    ReductionPlanInitiativesSeedDataSchema.parse(
+      JSON.parse(
+        readFileSync(
+          generateSeedDataPath(__dirname, "initiatives.json", dataset),
+          "utf-8"
+        )
       )
-    )
-  );
+    );
 
   // Fetch all subcategories to map by name
   const subcategories = await prisma.subcategory.findMany();
@@ -49,10 +50,10 @@ export async function seedInitiatives(
     subcategoryId: bigint;
     title: string;
     description: string;
-    status: InitiativeStatus;
+    status: ReductionPlanInitiativeStatus;
   }[] = [];
 
-  for (const group of initiativesData) {
+  for (const group of reductionPlanInitiativesData) {
     const subcategory = subcategoryByName.get(group.subcategoryName);
     if (!subcategory) {
       throw new Error(
@@ -60,21 +61,21 @@ export async function seedInitiatives(
       );
     }
 
-    for (const initiative of group.initiatives) {
+    for (const reductionPlanInitiative of group.reductionPlanInitiatives) {
       initiativesToCreate.push({
         subcategoryId: subcategory.id,
-        title: initiative.title,
-        description: initiative.description,
-        status: InitiativeStatus.ACTIVE,
+        title: reductionPlanInitiative.title,
+        description: reductionPlanInitiative.description,
+        status: ReductionPlanInitiativeStatus.ACTIVE,
       });
     }
   }
 
-  await prisma.initiative.createMany({
+  await prisma.reductionPlanInitiative.createMany({
     data: initiativesToCreate,
     skipDuplicates: true,
   });
 
-  const count = await prisma.initiative.count();
+  const count = await prisma.reductionPlanInitiative.count();
   console.log(`   ✓ Ensured ${count} initiatives exist for dataset ${dataset}`);
 }
