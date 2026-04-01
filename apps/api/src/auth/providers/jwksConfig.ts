@@ -90,6 +90,15 @@ export function getJwksUri(): string | undefined {
  * When not configured:
  * - Falls back to static JWT_SECRET for development
  */
+// Warn at startup if JWKS is configured but issuer validation will be skipped
+if (RESOLVED_JWKS_URI && RESOLVED_JWKS_ISSUERS.length === 0) {
+  console.warn(
+    `[auth] WARNING: JWKS URI is configured (${RESOLVED_JWKS_URI}) but no issuers are set. ` +
+      "Issuer validation is DISABLED — tokens from any issuer will be accepted. " +
+      "Set JWKS_ISSUER or configure Azure AD issuer variables to enable issuer validation."
+  );
+}
+
 export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
   ? {
       // Decode with complete: true so the secret callback receives the full
