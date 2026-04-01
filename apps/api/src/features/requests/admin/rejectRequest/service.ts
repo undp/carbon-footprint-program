@@ -1,11 +1,14 @@
 import type { PrismaClient } from "@repo/database";
-import { SubmissionStatus } from "@repo/database";
+import { SubmissionStatus, SubmissionFileType } from "@repo/database";
 import type {
   RejectRequestBody,
   RejectRequestResponse,
   User,
 } from "@repo/types";
-import { updatePendingSubmissionStatus } from "../helpers.js";
+import {
+  attachFilesToSubmission,
+  updatePendingSubmissionStatus,
+} from "../helpers.js";
 
 export const rejectRequestService = async (
   prismaClient: PrismaClient,
@@ -13,12 +16,26 @@ export const rejectRequestService = async (
   body: RejectRequestBody,
   userId: User["id"]
 ): Promise<RejectRequestResponse> => {
-  await updatePendingSubmissionStatus(
-    prismaClient,
-    submissionId,
-    SubmissionStatus.REJECTED,
-    userId,
-    { reviewComments: body.reviewComments }
-  );
+  await prismaClient.$transaction(async (tx) => {
+    const submissionIdBigInt = BigInt(submissionId);
+
+    await updatePendingSubmissionStatus(
+      tx,
+      submissionId,
+      SubmissionStatus.REJECTED,
+      userId,
+      { reviewComments: body.reviewComments }
+    );
+
+    if (body.revisionFileUuids?.length) {
+      await attachFilesToSubmission(tx, submissionIdBigInt, [
+        {
+          uuids: body.revisionFileUuids,
+          type: SubmissionFileType.REVISION_ATTACHMENT,
+        },
+      ]);
+    }
+  });
+
   return {};
 };
