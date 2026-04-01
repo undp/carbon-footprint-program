@@ -20,7 +20,7 @@ export const UserMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isAdminRoute = location.pathname.startsWith(Routes.ADMIN_DASHBOARD);
+  const isAdminRoute = location.pathname.startsWith(Routes.ADMIN);
   const imAdmin =
     me?.role === SystemRole.ADMIN || me?.role === SystemRole.SUPERADMIN;
 
