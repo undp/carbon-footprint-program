@@ -5,7 +5,8 @@ import { SubmissionUpdateError } from "../errors.js";
 
 type SubmissionTargetStatus =
   | typeof SubmissionStatus.APPROVED
-  | typeof SubmissionStatus.REJECTED;
+  | typeof SubmissionStatus.REJECTED
+  | typeof SubmissionStatus.OBJECTED;
 
 export const updatePendingSubmissionStatus = async (
   prismaClient: PrismaClient | Prisma.TransactionClient,
