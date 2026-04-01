@@ -6,6 +6,7 @@ import {
   afterAll,
   afterEach,
   inject,
+  vi,
 } from "vitest";
 import type { FastifyInstance } from "fastify";
 import {
@@ -19,6 +20,7 @@ import {
   SubmissionEventType,
   type GetSubmissionHistoryResponse,
 } from "@repo/types";
+import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { createTestApp } from "@test/factories/appFactory.js";
 import {
   cleanupCarbonInventoryTestData,
@@ -43,6 +45,29 @@ import {
 } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 
+const { mockCreateReadSasUrlSigner, mockSignReadSasUrl } = vi.hoisted(() => ({
+  mockCreateReadSasUrlSigner: vi.fn(),
+  mockSignReadSasUrl: vi.fn(),
+}));
+
+vi.mock("@/services/blobService.js", async () => {
+  const actual = await vi.importActual<
+    typeof import("@/services/blobService.js")
+  >("@/services/blobService.js");
+
+  return {
+    ...actual,
+    createReadSasUrlSigner: mockCreateReadSasUrlSigner.mockResolvedValue(
+      mockSignReadSasUrl.mockImplementation((blobPath: string) =>
+        Promise.resolve({
+          url: `https://mock.blob.core.windows.net/test/${blobPath}?sig=mock`,
+          expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+        })
+      )
+    ),
+  };
+});
+
 describe("GET /api/submissions/history - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
@@ -61,6 +86,7 @@ describe("GET /api/submissions/history - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    vi.clearAllMocks();
     await cleanupTestFiles(prisma);
     await cleanupTestSubmissions(prisma);
     await cleanupCarbonInventoryTestData(prisma);
@@ -76,13 +102,32 @@ describe("GET /api/submissions/history - Integration Tests", () => {
   async function getHistory(
     query: URLSearchParams
   ): Promise<GetSubmissionHistoryResponse> {
-    const response = await app.inject({
-      method: "GET",
-      url: `/api/submissions/history?${query.toString()}`,
-    });
+    const response = await requestHistory(query);
 
     expect(response.statusCode).toBe(200);
     return JSON.parse(response.body) as GetSubmissionHistoryResponse;
+  }
+
+  async function requestHistory(query: URLSearchParams) {
+    return app.inject({
+      method: "GET",
+      url: `/api/submissions/history?${query.toString()}`,
+    });
+  }
+
+  async function withStorageDisabled<T>(run: () => Promise<T>): Promise<T> {
+    const originalBlobServiceClient = app.blobServiceClient;
+    const originalContainerName = app.storageContainerName;
+
+    app.blobServiceClient = undefined;
+    app.storageContainerName = undefined;
+
+    try {
+      return await run();
+    } finally {
+      app.blobServiceClient = originalBlobServiceClient;
+      app.storageContainerName = originalContainerName;
+    }
   }
 
   it("returns a single POSTULATION event dated with createdAt for pending submissions", async () => {
@@ -371,6 +416,72 @@ describe("GET /api/submissions/history - Integration Tests", () => {
         carbonInventoryId: inventory.id.toString(),
       }),
     ]);
+  });
+
+  it("returns 403 when the user is not a member of the organization", async () => {
+    const organization = await createTestOrganization(prisma);
+
+    const response = await requestHistory(
+      new URLSearchParams({ organizationId: organization.id.toString() })
+    );
+
+    expect(response.statusCode).toBe(403);
+    expect(JSON.parse(response.body) as ApiErrorResponse).toMatchObject({
+      code: "SUBMISSION_FORBIDDEN",
+    });
+  });
+
+  it("returns 503 when there are attached files but storage is not configured", async () => {
+    const organization = await createMemberOrganization();
+    const organizationData = await createTestOrganizationData(
+      prisma,
+      organization.id
+    );
+    const { submission } = await createTestOrganizationDataSubmission(
+      prisma,
+      organizationData.id,
+      SubmissionStatus.PENDING,
+      testUser.id
+    );
+
+    await createTestFileForSubmission(prisma, testUser.id, submission.id, {
+      type: SubmissionFileType.ATTACHMENT,
+    });
+
+    const response = await withStorageDisabled(() =>
+      requestHistory(
+        new URLSearchParams({ organizationId: organization.id.toString() })
+      )
+    );
+
+    expect(response.statusCode).toBe(503);
+    expect(JSON.parse(response.body) as ApiErrorResponse).toMatchObject({
+      code: "STORAGE_NOT_CONFIGURED",
+    });
+  });
+
+  it("still returns 200 without storage when the history has no files", async () => {
+    const organization = await createMemberOrganization();
+    const organizationData = await createTestOrganizationData(
+      prisma,
+      organization.id
+    );
+
+    await createTestOrganizationDataSubmission(
+      prisma,
+      organizationData.id,
+      SubmissionStatus.PENDING,
+      testUser.id
+    );
+
+    const response = await withStorageDisabled(() =>
+      requestHistory(
+        new URLSearchParams({ organizationId: organization.id.toString() })
+      )
+    );
+
+    expect(response.statusCode).toBe(200);
+    expect(mockCreateReadSasUrlSigner).not.toHaveBeenCalled();
   });
 
   it("orders the timeline by event date instead of submission createdAt only", async () => {
