@@ -22,7 +22,7 @@ export const Routes = {
   TRANSPARENCY: "/transparency",
   CAPINAUT: "/capinaut",
   SIGN_IN: "/sign-in",
-  ADMIN: "/admin",
+  ADMIN_DASHBOARD: "/admin/dashboard",
   ADMIN_METHODOLOGIES: "/admin/methodologies",
   ADMIN_CATEGORIES: "/admin/categories",
   ADMIN_ITEMS: "/admin/items",

@@ -6,7 +6,7 @@ import { MethodologiesMaintainerScreen } from "@/screens/Maintainer/screens/Meth
 
 export const Route = createFileRoute(Routes.ADMIN_METHODOLOGIES)({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
-    redirectTo: Routes.ADMIN,
+    redirectTo: Routes.ADMIN_DASHBOARD,
   }),
   component: () => <MethodologiesMaintainerScreen />,
 });

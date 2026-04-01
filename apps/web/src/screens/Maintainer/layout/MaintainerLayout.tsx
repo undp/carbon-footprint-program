@@ -27,7 +27,7 @@ const SIDEBAR_DEFS: SidebarDef[] = [
   {
     text: "Dashboard",
     icon: <DashboardOutlined />,
-    path: Routes.ADMIN,
+    path: Routes.ADMIN_DASHBOARD,
   },
   {
     text: "Metodologías",

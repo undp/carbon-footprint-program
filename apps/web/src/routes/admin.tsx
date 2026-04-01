@@ -5,7 +5,7 @@ import { MaintainerLayout } from "@/screens/Maintainer/layout/MaintainerLayout";
 import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
 
-export const Route = createFileRoute(Routes.ADMIN)({
+export const Route = createFileRoute(Routes.ADMIN_DASHBOARD)({
   beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
   pendingComponent: RouteLoadingFallback,
   component: () => (
@@ -13,5 +13,5 @@ export const Route = createFileRoute(Routes.ADMIN)({
       <Outlet />
     </MaintainerLayout>
   ),
-  notFoundComponent: () => <Navigate to={Routes.ADMIN} />,
+  notFoundComponent: () => <Navigate to={Routes.ADMIN_DASHBOARD} />,
 });

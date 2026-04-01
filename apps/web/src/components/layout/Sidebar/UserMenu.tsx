@@ -20,7 +20,7 @@ export const UserMenu = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const isAdminRoute = location.pathname.startsWith(Routes.ADMIN);
+  const isAdminRoute = location.pathname.startsWith(Routes.ADMIN_DASHBOARD);
   const imAdmin =
     me?.role === SystemRole.ADMIN || me?.role === SystemRole.SUPERADMIN;
 
@@ -43,7 +43,7 @@ export const UserMenu = () => {
 
   const navigateToAdmin = useCallback(() => {
     void navigate({
-      to: Routes.ADMIN,
+      to: Routes.ADMIN_DASHBOARD,
     });
   }, [navigate]);
 

@@ -1,9 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConstructionScreen";
-import { Routes } from "@/interfaces/routes";
+import { createFileRoute, Navigate } from "@tanstack/react-router";
+import { Routes } from "@/interfaces";
 
-// No beforeLoad guard needed — ADMIN/SUPERADMIN role check is enforced
-// in the parent route (admin.tsx), which wraps all child routes via its Outlet.
-export const Route = createFileRoute(Routes.ADMIN)({
-  component: () => <UnderConstructionScreen />,
+// No beforeLoad guard needed
+// only redirecting to another admin route,
+// which is protected by the parent route's role check.
+export const Route = createFileRoute("/admin/")({
+  component: () => <Navigate to={Routes.ADMIN_DASHBOARD} />,
 });

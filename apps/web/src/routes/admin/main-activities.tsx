@@ -6,7 +6,7 @@ import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConst
 
 export const Route = createFileRoute(Routes.ADMIN_MAIN_ACTIVITIES)({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
-    redirectTo: Routes.ADMIN,
+    redirectTo: Routes.ADMIN_DASHBOARD,
   }),
   component: () => <UnderConstructionScreen />,
 });

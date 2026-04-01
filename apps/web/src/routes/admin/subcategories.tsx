@@ -6,7 +6,7 @@ import { SubcategoriesMaintainerScreen } from "@/screens/Maintainer/screens/Subc
 
 export const Route = createFileRoute(Routes.ADMIN_SUBCATEGORIES)({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
-    redirectTo: Routes.ADMIN,
+    redirectTo: Routes.ADMIN_DASHBOARD,
   }),
   component: SubcategoriesMaintainerScreen,
 });
