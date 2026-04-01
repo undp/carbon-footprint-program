@@ -6,7 +6,7 @@ import { useCarbonInventoriesMinimalData, useReductionPlan } from "@/api/query";
 import { useMyOrganizations } from "@/api/query/organizations";
 import { exportReductionPlanToExcel } from "@/utils/exportReductionPlanToExcel";
 import { ExplanationProvider } from "@/contexts/ExplanationContext";
-import { CategoryCard } from "@/screens/CarbonInventory/components/CategoryCard";
+import { CategoryCarousel } from "@/screens/CarbonInventory/components/CategoryCarousel";
 import { LoadingErrorStateMessage } from "@/components/EmissionResults/LoadingErrorStateMessage";
 import { EmptyStateMessage } from "@/components/EmissionResults/EmptyStateMessage";
 import { ScreenEmptyState } from "@/components/ScreenEmptyState";
@@ -159,26 +159,12 @@ export const ReductionPlanScreen: FC = () => {
                 <EmptyStateMessage message="No hay iniciativas de reducción para esta huella." />
               ) : (
                 <>
-                  {/* Category cards */}
-                  <Box className="flex gap-4">
-                    {reductionPlan.categories.map((category) => (
-                      <CategoryCard
-                        key={category.id}
-                        icon={category.icon}
-                        categoryColor={category.color}
-                        title={category.name}
-                        subtitle={category.synonyms}
-                        description={category.description}
-                        explanationId={category.explanationId}
-                        variant={
-                          effectiveCategoryId === category.id
-                            ? "focused"
-                            : "unfocused"
-                        }
-                        onClick={() => setSelectedCategoryId(category.id)}
-                      />
-                    ))}
-                  </Box>
+                  {/* Category carousel */}
+                  <CategoryCarousel
+                    categories={reductionPlan.categories}
+                    selectedCategoryId={effectiveCategoryId ?? ""}
+                    onCategorySelect={setSelectedCategoryId}
+                  />
 
                   {/* Subcategory groups with initiatives */}
                   {effectiveCategory &&

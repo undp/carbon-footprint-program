@@ -14,7 +14,7 @@ const __dirname = dirname(__filename);
 const ReductionPlanInitiativesSeedDataSchema = z.array(
   z.object({
     subcategoryName: z.string().min(1),
-    reductionPlanInitiatives: z.array(
+    initiatives: z.array(
       z.object({
         title: z.string().min(1),
         description: z.string().min(1),
@@ -61,7 +61,7 @@ export async function seedInitiatives(
       );
     }
 
-    for (const reductionPlanInitiative of group.reductionPlanInitiatives) {
+    for (const reductionPlanInitiative of group.initiatives) {
       initiativesToCreate.push({
         subcategoryId: subcategory.id,
         title: reductionPlanInitiative.title,
