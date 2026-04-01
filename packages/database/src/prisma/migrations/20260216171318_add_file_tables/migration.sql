@@ -2,7 +2,7 @@
 CREATE TYPE "file_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateEnum
-CREATE TYPE "submission_file_type" AS ENUM ('ATTACHMENT', 'RECOGNITION');
+CREATE TYPE "submission_file_type" AS ENUM ('ATTACHMENT', 'RECOGNITION', 'REVISION_ATTACHMENT');
 
 -- CreateTable
 CREATE TABLE "file" (

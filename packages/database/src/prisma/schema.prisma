@@ -790,6 +790,7 @@ model OrganizationData {
 enum SubmissionFileType {
   ATTACHMENT
   RECOGNITION
+  REVISION_ATTACHMENT
 
   @@map("submission_file_type")
 }
