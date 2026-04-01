@@ -17,6 +17,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CarbonInventoryIndexRouteImport } from './routes/carbon-inventory/index'
+import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction-projects'
 import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-plan'
@@ -81,6 +82,11 @@ const CarbonInventoryIndexRoute = CarbonInventoryIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => CarbonInventoryRoute,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -234,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
   '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
   '/app/user/form': typeof AppUserFormRoute
   '/carbon-inventory/$inventoryId/business-profiling': typeof CarbonInventoryInventoryIdBusinessProfilingRoute
@@ -245,7 +252,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/app': typeof AppRouteWithChildren
   '/capinaut': typeof CapinautRoute
   '/transparency': typeof TransparencyRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -266,6 +272,7 @@ export interface FileRoutesByTo {
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
   '/admin': typeof AdminIndexRoute
+  '/app': typeof AppIndexRoute
   '/carbon-inventory': typeof CarbonInventoryIndexRoute
   '/app/user/form': typeof AppUserFormRoute
   '/carbon-inventory/$inventoryId/business-profiling': typeof CarbonInventoryInventoryIdBusinessProfilingRoute
@@ -301,6 +308,7 @@ export interface FileRoutesById {
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
   '/admin/': typeof AdminIndexRoute
+  '/app/': typeof AppIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
   '/app/user/form': typeof AppUserFormRoute
   '/carbon-inventory/$inventoryId/business-profiling': typeof CarbonInventoryInventoryIdBusinessProfilingRoute
@@ -337,6 +345,7 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/admin/'
+    | '/app/'
     | '/carbon-inventory/'
     | '/app/user/form'
     | '/carbon-inventory/$inventoryId/business-profiling'
@@ -348,7 +357,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
-    | '/app'
     | '/capinaut'
     | '/transparency'
     | '/admin/categories'
@@ -369,6 +377,7 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/admin'
+    | '/app'
     | '/carbon-inventory'
     | '/app/user/form'
     | '/carbon-inventory/$inventoryId/business-profiling'
@@ -403,6 +412,7 @@ export interface FileRouteTypes {
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/admin/'
+    | '/app/'
     | '/carbon-inventory/'
     | '/app/user/form'
     | '/carbon-inventory/$inventoryId/business-profiling'
@@ -479,6 +489,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/carbon-inventory/'
       preLoaderRoute: typeof CarbonInventoryIndexRouteImport
       parentRoute: typeof CarbonInventoryRoute
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -690,6 +707,7 @@ interface AppRouteChildren {
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
   AppReductionProjectsRoute: typeof AppReductionProjectsRoute
+  AppIndexRoute: typeof AppIndexRoute
   AppUserFormRoute: typeof AppUserFormRoute
 }
 
@@ -700,6 +718,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppMyOrganizationRoute: AppMyOrganizationRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,
   AppReductionProjectsRoute: AppReductionProjectsRoute,
+  AppIndexRoute: AppIndexRoute,
   AppUserFormRoute: AppUserFormRoute,
 }
 
