@@ -29,7 +29,7 @@ export const Header: FC = () => {
   }, [navigate]);
 
   const navigateToAdmin = useCallback(() => {
-    void navigate({ to: Routes.ADMIN });
+    void navigate({ to: Routes.ADMIN_DASHBOARD });
   }, [navigate]);
 
   const handleSignInClick = useCallback(() => {

@@ -43,7 +43,7 @@ export const UserMenu = () => {
 
   const navigateToAdmin = useCallback(() => {
     void navigate({
-      to: Routes.ADMIN,
+      to: Routes.ADMIN_DASHBOARD,
     });
   }, [navigate]);
 

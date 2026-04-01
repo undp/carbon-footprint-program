@@ -9,11 +9,22 @@ import { msalConfig } from "@/config/msalConfig";
 // Initialize MSAL instance
 export const msalInstance = new PublicClientApplication(msalConfig);
 
+let msalInitPromise: Promise<void> | null = null;
+
 /**
- * Initialize MSAL and handle authentication flow
- * Must be called before rendering the React app
+ * Initialize MSAL and handle authentication flow.
+ * Idempotent — safe to call multiple times; only runs once.
  */
-export async function initializeMsal(): Promise<void> {
+export function initializeMsal(): Promise<void> {
+  if (msalInitPromise) return msalInitPromise;
+  msalInitPromise = doInitializeMsal().catch((error) => {
+    msalInitPromise = null;
+    throw error;
+  });
+  return msalInitPromise;
+}
+
+async function doInitializeMsal(): Promise<void> {
   // Wait for MSAL to initialize
   await msalInstance.initialize();
 

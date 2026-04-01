@@ -1,6 +1,9 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Navigate, Outlet, createRootRoute } from "@tanstack/react-router";
 import { ThemeProvider } from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
+import Typography from "@mui/material/Typography";
 import { theme } from "@/theme";
 import { SnackbarProvider } from "notistack";
 import { initializeMsal, msalInstance } from "../auth/initializeMsal";
@@ -11,6 +14,8 @@ import { AuthProvider, ExplanationProvider } from "../contexts";
 import { useEffect } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { IS_DEVELOPMENT } from "../config/environment";
+import { Routes } from "@/interfaces";
+import { UnpluggedCablesIcon } from "../icons";
 
 function RootComponent() {
   useEffect(() => {
@@ -39,4 +44,65 @@ function RootComponent() {
 
 export const Route = createRootRoute({
   component: RootComponent,
+  notFoundComponent: () => <Navigate to={Routes.LANDING} />,
+  errorComponent: ({ error }) => (
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <Box
+        sx={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          bgcolor: "background.default",
+          px: 3,
+          textAlign: "center",
+        }}
+      >
+        <UnpluggedCablesIcon sx={{ fontSize: 500, my: -12 }} />
+        <Typography variant="h4" fontWeight={700} gutterBottom>
+          Algo salió mal
+        </Typography>
+        <Typography
+          variant="body1"
+          color="text.secondary"
+          sx={{ maxWidth: 480, mb: 4 }}
+        >
+          Ocurrió un error inesperado al cargar la página. Por favor, intenta
+          recargar o vuelve al inicio.
+        </Typography>
+        {IS_DEVELOPMENT && (
+          <Typography
+            variant="body2"
+            component="pre"
+            sx={{
+              // bgcolor: "grey.100",
+              color: "error.dark",
+              p: 2,
+              borderRadius: 1,
+              maxWidth: 600,
+              overflow: "auto",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
+              mb: 4,
+            }}
+          >
+            Debug: {error.message}
+          </Typography>
+        )}
+        <Box sx={{ display: "flex", gap: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={() => (window.location.href = "/")}
+          >
+            Volver al inicio
+          </Button>
+          <Button variant="contained" onClick={() => window.location.reload()}>
+            Recargar página
+          </Button>
+        </Box>
+      </Box>
+    </ThemeProvider>
+  ),
 });
