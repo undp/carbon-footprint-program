@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
+import { useCarbonInventorySubcategoryRecommendations } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoryRecommendations";
 import { SubcategoryPreselectionMergedData } from "../types";
 
 export interface UseSubcategoryPreselectionDataResult {
@@ -23,6 +24,9 @@ export const useSubcategoryPreselectionData = (
     isError: isSubcategoriesSummaryError,
   } = useCarbonInventorySubcategoriesSummary(inventoryId);
 
+  const { data: recommendations } =
+    useCarbonInventorySubcategoryRecommendations(inventoryId);
+
   const mergedData = useMemo<SubcategoryPreselectionMergedData>(() => {
     if (!methodology || !subcategoriesSummary) return [];
 
@@ -32,6 +36,8 @@ export const useSubcategoryPreselectionData = (
         subcategorySummary,
       ])
     );
+
+    const recommendedIds = new Set(recommendations?.subcategoryIds ?? []);
 
     return methodology.categories.map((category) => ({
       id: category.id,
@@ -51,10 +57,11 @@ export const useSubcategoryPreselectionData = (
           explanationId: subcategory.explanationId,
           included: !!summary?.included,
           edited: !!summary?.edited,
+          isRecommended: recommendedIds.has(subcategory.id),
         };
       }),
     }));
-  }, [methodology, subcategoriesSummary]);
+  }, [methodology, subcategoriesSummary, recommendations]);
 
   return {
     data: mergedData,

@@ -1,4 +1,12 @@
-import { Box, Checkbox, Tooltip, Typography } from "@mui/material";
+import {
+  alpha,
+  Box,
+  Checkbox,
+  Chip,
+  Tooltip,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { Controller, useFormContext } from "react-hook-form";
 import { SubcategoryPreselectionMergedData } from "../types";
 import { InfoButton } from "@/components";
@@ -13,6 +21,7 @@ export const SubcategoryPreselectionField = ({
 }) => {
   const { openExplanation } = useExplanationDialog();
   const { control } = useFormContext();
+  const theme = useTheme();
   const isEdited = subcategory.edited;
   const disabled = disabledProp || isEdited;
 
@@ -53,6 +62,23 @@ export const SubcategoryPreselectionField = ({
                 <Box className="flex flex-col">
                   <Box className="flex flex-row items-center gap-2">
                     <Typography variant="body1">{subcategory.name}</Typography>
+                    {subcategory.isRecommended && (
+                      <Chip
+                        label="Recomendada"
+                        size="small"
+                        sx={{
+                          backgroundColor: alpha(
+                            theme.palette.primary.main,
+                            0.12
+                          ),
+                          color: "primary.main",
+                          border: "1px solid",
+                          borderColor: alpha(theme.palette.primary.main, 0.4),
+                          fontWeight: 500,
+                          height: 22,
+                        }}
+                      />
+                    )}
                     <InfoButton
                       label="Más información de la subcategoría"
                       onClick={(e) => {
