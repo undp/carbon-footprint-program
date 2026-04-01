@@ -8,33 +8,23 @@ export const claimCarbonInventoryService = async (
   uuid: string,
   user: User
 ): Promise<void> => {
-  const inventory = await prismaClient.carbonInventory.findUnique({
-    where: { id: BigInt(id), status: InventoryStatus.ACTIVE },
-    select: {
-      uuid: true,
-      createdById: true,
-      organizationId: true,
-      status: true,
+  const { count } = await prismaClient.carbonInventory.updateMany({
+    where: {
+      id: BigInt(id),
+      status: InventoryStatus.ACTIVE,
+      uuid: uuid,
+      createdById: null,
+      organizationId: null,
+    },
+    data: {
+      createdById: BigInt(user.id),
     },
   });
 
   // Treat "not found" and "uuid mismatch" identically to prevent ID enumeration.
   // An attacker scanning sequential IDs must not be able to distinguish between
   // a non-existent inventory and one they simply don't own.
-  if (
-    !inventory ||
-    inventory.uuid !== uuid ||
-    inventory.createdById !== null ||
-    inventory.organizationId !== null
-  ) {
+  if (count === 0) {
     throw new CarbonInventoryNotFoundError(id);
   }
-
-  await prismaClient.carbonInventory.update({
-    where: { id: BigInt(id) },
-    data: {
-      createdById: BigInt(user.id),
-      updatedById: BigInt(user.id),
-    },
-  });
 };
