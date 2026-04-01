@@ -101,6 +101,13 @@ export const CarbonInventoriesScreen: FC = () => {
         },
         {
           field: "name",
+          renderHeader: () => (
+            <Tooltip title="Nombre borrador huella">
+              <Typography variant="body2" noWrap>
+                Nombre
+              </Typography>
+            </Tooltip>
+          ),
           headerName: "Nombre",
           align: "center",
           headerAlign: "center",
@@ -131,6 +138,13 @@ export const CarbonInventoriesScreen: FC = () => {
         },
         {
           field: "year",
+          renderHeader: () => (
+            <Tooltip title="Año de medición">
+              <Typography variant="body2" noWrap>
+                Año
+              </Typography>
+            </Tooltip>
+          ),
           headerName: "Año",
           align: "center",
           headerAlign: "center",
