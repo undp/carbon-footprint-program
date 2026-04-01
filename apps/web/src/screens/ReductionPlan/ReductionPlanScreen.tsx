@@ -98,7 +98,7 @@ export const ReductionPlanScreen: FC = () => {
         title="Aún no tienes una huella autodeclarada"
         description="Crea tu primera huella o autodeclara una existente para comenzar a ver tu plan de reducción."
         action={{
-          label: "Ir a Huellas Organizacional",
+          label: "Ir a Huella Organizacional",
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
         }}
       />
