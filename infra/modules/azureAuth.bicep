@@ -1,20 +1,20 @@
 // ============================================
-// Azure Entra External ID Configuration
+// Azure Entra ID Configuration
 // ============================================
 //
 // This module creates the necessary Azure resources for:
-// - External ID tenant authentication
+// - Azure Entra ID tenant authentication (external/CIAM or organizational)
 // - Application registration
 // - User flow configuration
 //
-// Note: Azure Entra External ID (CIAM) is not directly deployable via ARM/Bicep.
+// Note: Azure Entra tenants are not directly deployable via ARM/Bicep.
 // This module creates supporting resources and provides configuration outputs.
-// The actual External ID tenant must be created manually in the Azure Portal.
+// The actual tenant must be created manually in the Azure Portal.
 //
 // Manual steps required:
-// 1. Create External ID tenant in Azure Portal
+// 1. Create tenant in Azure Portal (External ID or organizational)
 // 2. Register application
-// 3. Configure Email OTP authentication method
+// 3. Configure authentication method
 // 4. Note down Tenant ID and Client ID
 // 5. Create client secret
 // 6. Store credentials in Key Vault using this module
@@ -23,18 +23,22 @@
 @description('Name of the Key Vault where auth secrets will be stored')
 param keyVaultName string
 
-@description('Azure Entra External ID Tenant subdomain (e.g., "undphuella" from undphuella.ciamlogin.com)')
-param externalTenantSubdomain string
+@description('Azure Entra ID tenant type: "external" (CIAM) or "organizational" (Azure AD)')
+@allowed(['external', 'organizational'])
+param tenantType string = 'external'
 
-@description('Azure Entra External ID Tenant ID (GUID format)')
+@description('Azure Entra ID Tenant subdomain (only required for external/CIAM tenants)')
+param tenantSubdomain string = ''
+
+@description('Azure Entra ID Tenant ID (GUID format)')
 @secure()
-param externalTenantId string
+param tenantId string
 
-@description('Azure Entra External ID Application App (Client) ID')
+@description('Azure Entra ID API Application (Client) ID')
 @secure()
 param apiAppId string
 
-@description('Azure Entra External ID Front App Registration ID')
+@description('Azure Entra ID Front App Registration ID')
 @secure()
 param frontAppId string
 
@@ -46,11 +50,11 @@ resource keyVault 'Microsoft.KeyVault/vaults@2023-07-01' existing = {
   name: keyVaultName
 }
 
-resource externalTenantSubdomainSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+resource tenantSubdomainSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'azure-auth-external-tenant-subdomain'
+  name: 'azure-auth-tenant-subdomain'
   properties: {
-    value: externalTenantSubdomain
+    value: tenantSubdomain
     contentType: 'text/plain'
     attributes: {
       enabled: true
@@ -59,12 +63,12 @@ resource externalTenantSubdomainSecret 'Microsoft.KeyVault/vaults/secrets@2023-0
   tags: tags
 }
 
-// Store Azure Entra External ID Tenant ID in Key Vault
-resource externalTenantIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
+// Store Azure Entra ID Tenant ID in Key Vault
+resource tenantIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
-  name: 'azure-auth-external-tenant-id'
+  name: 'azure-auth-tenant-id'
   properties: {
-    value: externalTenantId
+    value: tenantId
     contentType: 'text/plain'
     attributes: {
       enabled: true
@@ -73,7 +77,7 @@ resource externalTenantIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' =
   tags: tags
 }
 
-// Store Azure Entra External ID Api App Registration ID in Key Vault
+// Store Azure Entra ID Api App Registration ID in Key Vault
 resource apiAppIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
   name: 'azure-auth-api-app-id'
@@ -87,7 +91,7 @@ resource apiAppIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   tags: tags
 }
 
-// Store Azure Entra External ID Front App Registration ID in Key Vault
+// Store Azure Entra ID Front App Registration ID in Key Vault
 resource frontAppIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   parent: keyVault
   name: 'azure-auth-front-app-id'
@@ -101,11 +105,12 @@ resource frontAppIdSecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
   tags: tags
 }
 
-
-
-// Generate authority URL with correct format
-// Format: https://{tenant-subdomain}.ciamlogin.com/{external-tenant-id}/v2.0/
-var authorityUrl = 'https://${externalTenantSubdomain}.ciamlogin.com/${externalTenantId}/v2.0/'
+// Generate authority URL based on tenant type
+// External (CIAM): https://{tenant-subdomain}.ciamlogin.com/{tenant-id}/v2.0/
+// Organizational:  https://login.microsoftonline.com/{tenant-id}/v2.0/
+var authorityUrl = tenantType == 'external'
+  ? 'https://${tenantSubdomain}.ciamlogin.com/${tenantId}/v2.0/'
+  : 'https://login.microsoftonline.com/${tenantId}/v2.0/'
 
 // Store Authority URL in Key Vault
 resource authoritySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
@@ -126,22 +131,21 @@ resource authoritySecret 'Microsoft.KeyVault/vaults/secrets@2023-07-01' = {
 // ============================================
 
 @description('Name of the tenant ID secret in Key Vault')
-output externalTenantIdSecretName string = externalTenantIdSecret.name
+output tenantIdSecretName string = tenantIdSecret.name
 
 @description('Name of the client ID secret in Key Vault')
 output clientIdSecretName string = apiAppIdSecret.name
 
-
 @description('Name of the authority URL secret in Key Vault')
 output authoritySecretName string = authoritySecret.name
 
-@description('Authority URL for Azure Entra External ID')
+@description('Authority URL for Azure Entra ID')
 output authorityUrl string = authorityUrl
 
 @description('Configuration summary for application settings')
 output configuration object = {
-  externalTenantIdSecretUri: externalTenantIdSecret.properties.secretUri
-  externalTenantSubdomainSecretUri: externalTenantSubdomainSecret.properties.secretUri
+  tenantIdSecretUri: tenantIdSecret.properties.secretUri
+  tenantSubdomainSecretUri: tenantSubdomainSecret.properties.secretUri
   apiAppIdSecretUri: apiAppIdSecret.properties.secretUri
   frontAppIdSecretUri: frontAppIdSecret.properties.secretUri
   authoritySecretUri: authoritySecret.properties.secretUri

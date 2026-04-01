@@ -6,12 +6,16 @@ export AZURE_RESOURCE_GROUP="undp-huella-latam-$ENVIRONMENT-rg"
 # Optional: Azure AD group for dev access to Key Vault and Storage (requires enableDevGroup*Access in bicepparam)
 # export AZURE_SUBSCRIPTION_GROUP="Devs-Contributors"
 
-# Azure Entra
-export AZURE_EXTERNAL_TENANT_SUBDOMAIN=""
-export AZURE_EXTERNAL_TENANT_ID=""
-export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
-export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
-export AZURE_AUTH_AUTHORITY="https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0"
+# Azure Entra ID — "external" (CIAM) or "organizational" (Azure AD)
+export AZURE_TENANT_TYPE="external"
+export AZURE_TENANT_SUBDOMAIN=""     # Only required for AZURE_TENANT_TYPE="external"
+export AZURE_TENANT_ID=""
+export AZURE_API_CLIENT_ID=""        # API App Registration ID
+export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
+# Authority URL: depends on AZURE_TENANT_TYPE
+# External (CIAM): "https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+# Organizational:  "https://login.microsoftonline.com/${AZURE_TENANT_ID}"
+export AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
 
 # Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
 export LOCATION="eastus2"
