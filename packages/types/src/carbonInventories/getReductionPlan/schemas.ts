@@ -1,34 +1,40 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import { IconNameSchema } from "../../common/index.js";
+import {
+  CategoryBaseSchema,
+  ReductionPlanInitiativeBaseSchema,
+  SubcategoryBaseSchema,
+} from "../../baseSchemas/index.js";
 
 export const GetReductionPlanParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
 
-const InitiativeItemSchema = z.object({
-  id: IdSchema,
-  title: z.string(),
-  description: z.string(),
+const SubcategoryWithInitiativesSchema = SubcategoryBaseSchema.pick({
+  id: true,
+  name: true,
+  icon: true,
+  description: true,
+}).extend({
+  initiatives: z.array(
+    ReductionPlanInitiativeBaseSchema.pick({
+      id: true,
+      title: true,
+      description: true,
+    })
+  ),
 });
 
-const SubcategoryWithInitiativesSchema = z.object({
-  id: IdSchema,
-  name: z.string(),
-  icon: IconNameSchema,
-  description: z.string(),
-  initiatives: z.array(InitiativeItemSchema),
-});
-
-const CategoryWithSubcategoriesSchema = z.object({
-  id: IdSchema,
-  name: z.string(),
-  synonyms: z.string(),
-  position: z.number().int().min(1),
-  icon: IconNameSchema,
-  color: z.string(),
-  description: z.string(),
-  explanationId: IdSchema.nullable(),
+const CategoryWithSubcategoriesSchema = CategoryBaseSchema.pick({
+  id: true,
+  name: true,
+  synonyms: true,
+  position: true,
+  icon: true,
+  color: true,
+  description: true,
+  explanationId: true,
+}).extend({
   subcategories: z.array(SubcategoryWithInitiativesSchema),
 });
 
