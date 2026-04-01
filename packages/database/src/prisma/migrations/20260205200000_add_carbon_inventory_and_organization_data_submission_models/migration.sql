@@ -78,5 +78,5 @@ ALTER TABLE "submission" ADD CONSTRAINT "submission_created_by_id_fkey" FOREIGN 
 -- AddForeignKey
 ALTER TABLE "submission" ADD CONSTRAINT "submission_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
--- Only one submission can be PENDING or APPROVED for a submission subject
+-- Only one submission can be PENDING, APPROVED, or APPROVED_AUTOMATICALLY for a submission subject
 CREATE UNIQUE INDEX "submission_only_one_pending_or_approved_per_subject" ON "submission"("type", "subject_id") WHERE "status" IN ('PENDING', 'APPROVED', 'APPROVED_AUTOMATICALLY');
