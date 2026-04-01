@@ -4,6 +4,7 @@ import { getRequestsKpisRoute } from "@/features/requests/admin/getRequestsKpis/
 import { approveRequestRoute } from "@/features/requests/admin/approveRequest/route.js";
 import { rejectRequestRoute } from "@/features/requests/admin/rejectRequest/route.js";
 import { SystemRole } from "@repo/database";
+import { reviewSubmissionRoute } from "@/features/requests/admin/reviewSubmission/route.js";
 
 export default function adminRequestsRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
@@ -15,4 +16,5 @@ export default function adminRequestsRoutes(fastify: FastifyZodInstance) {
   getAllRequestsRoute(fastify);
   approveRequestRoute(fastify);
   rejectRequestRoute(fastify);
+  reviewSubmissionRoute(fastify);
 }
