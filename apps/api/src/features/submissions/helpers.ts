@@ -1,17 +1,11 @@
 import {
-  MembershipStatus,
   Prisma,
   SubmissionFileType,
   SubmissionStatus,
   type PrismaClient,
 } from "@repo/database";
-import { SubmissionForbiddenError } from "./errors.js";
 import { BlobServiceClient } from "@azure/storage-blob";
-import {
-  SubmissionHistoryEntry,
-  GetSubmissionHistoryQuery,
-  SubmissionEventType,
-} from "@repo/types";
+import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import {
   ReadSasUrlSigner,
   createReadSasUrlSigner,
@@ -40,7 +34,9 @@ export type SubmissionHistoryFileLink = {
 };
 
 /**
- * Derives a user-facing event type from the raw submission status.
+ * Maps a raw {@link SubmissionStatus} to its corresponding timeline
+ * {@link SubmissionEventType}. PENDING submissions become POSTULATION events;
+ * all other statuses map 1-to-1. Falls back to POSTULATION for unknown values.
  */
 export function deriveEventType(status: SubmissionStatus): SubmissionEventType {
   switch (status) {
@@ -60,7 +56,10 @@ export function deriveEventType(status: SubmissionStatus): SubmissionEventType {
 }
 
 /**
- * Groups submission files once so the timeline mapper can reuse the buckets.
+ * Categorizes a flat list of submission file links into three buckets:
+ * attachments, recognitions, and revision attachments.
+ * Called once per submission so the timeline mapper can reference each
+ * bucket independently when building POSTULATION and reviewed events.
  */
 export function groupSubmissionHistoryFiles(
   files: SubmissionHistoryFileLink[]
@@ -90,26 +89,10 @@ export function groupSubmissionHistoryFiles(
 }
 
 /**
- * Ensures the user has an active membership in the target organization.
+ * Prisma select clause shared by both history services.
+ * Fetches the submission metadata, creator/reviewer names,
+ * the linked carbon inventory ID, and all associated files.
  */
-export async function verifyUserOrganizationMembership(
-  prisma: PrismaClient,
-  userId: bigint,
-  organizationId: bigint
-): Promise<void> {
-  const membership = await prisma.userOrganizationMembership.findFirst({
-    where: {
-      userId,
-      organizationId,
-      status: MembershipStatus.ACTIVE,
-    },
-  });
-
-  if (!membership) {
-    throw new SubmissionForbiddenError(organizationId.toString());
-  }
-}
-
 export const submissionHistorySelect = {
   id: true,
   type: true,
@@ -152,19 +135,7 @@ export type SubmissionHistoryRow = Prisma.SubmissionGetPayload<{
   select: typeof submissionHistorySelect;
 }>;
 
-export type SubmissionHistoryUser = {
-  id: bigint;
-  isSystemAdmin: boolean;
-};
-
-export type HistoryScope = {
-  organizationId: bigint;
-  carbonInventoryId: string | null;
-  selfDeclaredAt: Date | null;
-  submissionWhere: Prisma.SubmissionWhereInput;
-};
-
-export type HistoryContext = {
+export type OrgSummaryInfo = {
   organizationId: bigint;
   organizationIdString: string;
   organizationData: ReturnType<typeof mapOrgSummaryToCommonFields> | null;
@@ -172,85 +143,14 @@ export type HistoryContext = {
 };
 
 /**
- * Builds the data-access scope for the submission history endpoint.
- *
- * This helper handles both supported query modes:
- * by `carbonInventoryId` and by `organizationId`. It loads the owning
- * organization, enforces membership for non-admin users, captures the
- * self-declaration timestamp when the timeline is inventory-based, and
- * returns the Prisma `where` clause the service uses to fetch the matching
- * submissions for the modal timeline.
+ * Loads the organization summary view and returns the context object
+ * (name, last submission status, pending-changes flag) that every
+ * timeline entry shares. Returns nulls when the org has no summary row.
  */
-export async function determineSubmissionScope(
-  prisma: PrismaClient,
-  query: GetSubmissionHistoryQuery,
-  user: SubmissionHistoryUser
-): Promise<HistoryScope | null> {
-  if (query.carbonInventoryId) {
-    const carbonInventoryId = BigInt(query.carbonInventoryId);
-    const carbonInventory = await prisma.carbonInventory.findUnique({
-      where: { id: carbonInventoryId },
-      select: {
-        organizationId: true,
-        selfDeclaredAt: true,
-      },
-    });
-
-    if (!carbonInventory?.organizationId) {
-      return null;
-    }
-
-    if (!user.isSystemAdmin) {
-      await verifyUserOrganizationMembership(
-        prisma,
-        user.id,
-        carbonInventory.organizationId
-      );
-    }
-
-    return {
-      organizationId: carbonInventory.organizationId,
-      carbonInventoryId: query.carbonInventoryId,
-      selfDeclaredAt: carbonInventory.selfDeclaredAt ?? null,
-      submissionWhere: {
-        subject: {
-          carbonInventory: {
-            carbonInventoryId,
-          },
-        },
-      },
-    };
-  }
-
-  const organizationId = BigInt(query.organizationId!);
-
-  if (!user.isSystemAdmin) {
-    await verifyUserOrganizationMembership(prisma, user.id, organizationId);
-  }
-
-  return {
-    organizationId,
-    carbonInventoryId: null,
-    selfDeclaredAt: null,
-    submissionWhere: {
-      subject: {
-        organizationData: {
-          organizationData: {
-            organizationId,
-          },
-        },
-      },
-    },
-  };
-}
-
-/**
- * Fetches the shared organization metadata reused across all timeline entries.
- */
-export async function fetchOrgHistoryDetails(
+export async function getOrgSummaryDetails(
   prisma: PrismaClient,
   organizationId: bigint
-): Promise<HistoryContext> {
+): Promise<OrgSummaryInfo> {
   const orgSummary = await prisma.organizationSummaryView.findUnique({
     where: { organizationId },
   });
@@ -266,13 +166,16 @@ export async function fetchOrgHistoryDetails(
 }
 
 /**
- * Creates a request-scoped read signer only when the history includes files.
+ * Creates a single Azure Blob Storage SAS signer for the entire request,
+ * but only when at least one submission carries files. Returns null when
+ * no files exist, and throws {@link StorageNotConfiguredError} if files
+ * are present but blob storage is not configured.
  */
-export async function createHistoryReadSasSigner(
+export const createHistoryReadSasSigner = async (
   submissions: SubmissionHistoryRow[],
   blobServiceClient: BlobServiceClient | null,
   containerName: string | null
-): Promise<ReadSasUrlSigner | null> {
+): Promise<ReadSasUrlSigner | null> => {
   const hasFiles = submissions.some(
     (submission) => submission.files.length > 0
   );
@@ -286,45 +189,49 @@ export async function createHistoryReadSasSigner(
   }
 
   return createReadSasUrlSigner(blobServiceClient, containerName);
-}
+};
 
-export function buildSubmissionBaseEntry(
+/**
+ * Builds the common fields shared by every timeline entry for a given
+ * submission: IDs, type, status, organization metadata, and the linked
+ * carbon inventory ID (if any).
+ */
+export const buildSubmissionBaseEntry = (
   submission: SubmissionHistoryRow,
-  context: HistoryContext
-) {
-  return {
-    submissionId: submission.id.toString(),
-    submissionType: submission.type,
-    status: submission.status,
-    userMetadata: context.orgName,
-    carbonInventoryId:
-      submission.subject.carbonInventory?.carbonInventoryId.toString() ?? null,
-    organizationId: context.organizationIdString,
-    organizationData: context.organizationData,
-  };
-}
+  context: OrgSummaryInfo
+) => ({
+  submissionId: submission.id.toString(),
+  submissionType: submission.type,
+  status: submission.status,
+  userMetadata: context.orgName,
+  carbonInventoryId:
+    submission.subject.carbonInventory?.carbonInventoryId.toString() ?? null,
+  organizationId: context.organizationIdString,
+  organizationData: context.organizationData,
+});
 
-export function buildSelfDeclarationEvent(
-  scope: HistoryScope,
-  context: HistoryContext
-): SubmissionHistoryEntry | null {
-  if (!scope.selfDeclaredAt || !scope.carbonInventoryId) {
-    return null;
-  }
-
-  return {
-    submissionId: null,
-    submissionType: null,
-    status: null,
-    eventType: SubmissionEventType.SELF_DECLARATION,
-    date: scope.selfDeclaredAt.toISOString(),
-    userName: null,
-    userMetadata: null,
-    carbonInventoryId: scope.carbonInventoryId,
-    organizationId: context.organizationIdString,
-    organizationData: context.organizationData,
-    comment: "",
-    files: [],
-    recognitions: [],
-  };
-}
+/**
+ * Creates the SELF_DECLARATION timeline entry shown at the bottom of a
+ * carbon inventory history when the inventory has been self-declared.
+ * Only called by the carbon inventory history service when selfDeclaredAt
+ * is present.
+ */
+export const buildSelfDeclarationEvent = (
+  carbonInventoryId: string,
+  selfDeclaredAt: Date,
+  context: OrgSummaryInfo
+): SubmissionHistoryEntry => ({
+  submissionId: null,
+  submissionType: null,
+  status: null,
+  eventType: SubmissionEventType.SELF_DECLARATION,
+  date: selfDeclaredAt.toISOString(),
+  userName: null,
+  userMetadata: null,
+  carbonInventoryId,
+  organizationId: context.organizationIdString,
+  organizationData: context.organizationData,
+  comment: "",
+  files: [],
+  recognitions: [],
+});
