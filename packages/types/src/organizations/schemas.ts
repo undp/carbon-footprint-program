@@ -1,13 +1,11 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { SubmissionStatus } from "@repo/database/enums";
-import {
-  CountryJobPositionBaseSchema,
-  CountryOrganizationSizeBaseSchema,
-  CountrySectorBaseSchema,
-  CountrySubsectorBaseSchema,
-  OrganizationMainActivityBaseSchema,
-} from "../index.js";
+import { CountryJobPositionBaseSchema } from "../baseSchemas/countryJobPosition.js";
+import { CountryOrganizationSizeBaseSchema } from "../baseSchemas/organizationSize.js";
+import { CountrySectorBaseSchema } from "../baseSchemas/countrySector.js";
+import { CountrySubsectorBaseSchema } from "../baseSchemas/countrySubsector.js";
+import { OrganizationMainActivityBaseSchema } from "../baseSchemas/organizationMainActivity.js";
 
 export const OrganizationDisplayStatusSchema = z.enum([
   "ACCREDITED",
