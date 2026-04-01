@@ -1,5 +1,4 @@
-import type { BlobServiceClient } from "@azure/storage-blob";
-import { generateReadSasUrl } from "@/services/blobService.js";
+import type { ReadSasUrlSigner } from "@/services/blobService.js";
 
 type FileRow = {
   uuid: string;
@@ -15,19 +14,15 @@ type FileRow = {
  */
 export async function mapFilesWithUrls(
   files: FileRow[],
-  blobServiceClient: BlobServiceClient,
-  containerName: string
+  signReadSasUrl: ReadSasUrlSigner
 ) {
   if (files.length === 0) return [];
 
   return Promise.all(
     files.map(async (file) => {
-      const { url, expiresAt } = await generateReadSasUrl(
-        blobServiceClient,
-        containerName,
-        file.blobPath,
-        { contentType: file.mimeType }
-      );
+      const { url, expiresAt } = await signReadSasUrl(file.blobPath, {
+        contentType: file.mimeType,
+      });
       return {
         uuid: file.uuid,
         originalName: file.originalName,
