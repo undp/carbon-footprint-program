@@ -4,8 +4,8 @@ import { VOCAB } from "@/config/vocab";
 type NamedItem = { name?: string };
 
 const BASE_LABELS = {
-  nameLabel: "Nombre Borrador Huella",
-  yearLabel: "Año de Medición",
+  nameLabel: "Nombre borrador huella",
+  yearLabel: "Año de medición",
   companyNameLabel: `Nombre de ${VOCAB.organization.article.singular} (Opcional)`,
   companySizeLabel: "Tamaño (Opcional)",
   sectorLabel: "Rubro",
