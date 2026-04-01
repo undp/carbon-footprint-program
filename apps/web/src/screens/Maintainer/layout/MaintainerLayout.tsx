@@ -75,9 +75,6 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     icon: <TuneOutlined />,
     path: Routes.ADMIN_PARAMETERS,
     requiredRoles: [SystemRole.SUPERADMIN],
-    // children: [
-    //   { text: "Alias", icon: <TuneOutlined />, path: "#", disabled: true },
-    // ],
   },
   {
     text: capitalize(VOCAB.organization.noun.plural),
