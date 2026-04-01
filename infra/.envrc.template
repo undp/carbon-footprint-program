@@ -12,10 +12,12 @@ export AZURE_TENANT_SUBDOMAIN=""     # Only required for AZURE_TENANT_TYPE="exte
 export AZURE_TENANT_ID=""
 export AZURE_API_CLIENT_ID=""        # API App Registration ID
 export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
-# Authority URL: depends on AZURE_TENANT_TYPE
-# External (CIAM): "https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
-# Organizational:  "https://login.microsoftonline.com/${AZURE_TENANT_ID}"
-export AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+# Authority URL: derived from AZURE_TENANT_TYPE
+if [ "$AZURE_TENANT_TYPE" = "organizational" ]; then
+  export AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}"
+else
+  export AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+fi
 
 # Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
 export LOCATION="eastus2"

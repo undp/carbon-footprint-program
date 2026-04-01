@@ -28,10 +28,12 @@ export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=      # Must be set when using AUTH_PR
 export VITE_API_BASE_URL=""  # URL for the API
 export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
-# Authority URL: depends on AZURE_TENANT_TYPE
-# External (CIAM): "https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
-# Organizational:  "https://login.microsoftonline.com/${AZURE_TENANT_ID}"
-export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+# Authority URL: derived from AZURE_TENANT_TYPE
+if [ "$AZURE_TENANT_TYPE" = "organizational" ]; then
+  export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}"
+else
+  export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+fi
 export VITE_FRONT_BASE_URL=""
 
 # Common
