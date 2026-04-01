@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
 import { MaintainerLayout } from "@/screens/Maintainer/layout/MaintainerLayout";
@@ -13,4 +13,5 @@ export const Route = createFileRoute(Routes.ADMIN)({
       <Outlet />
     </MaintainerLayout>
   ),
+  notFoundComponent: () => <Navigate to={Routes.ADMIN} />,
 });

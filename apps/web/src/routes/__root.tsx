@@ -1,4 +1,4 @@
-import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { Navigate, Outlet, createRootRoute } from "@tanstack/react-router";
 import { ThemeProvider } from "@mui/material";
 import CssBaseline from "@mui/material/CssBaseline";
 import { theme } from "@/theme";
@@ -11,6 +11,7 @@ import { AuthProvider, ExplanationProvider } from "../contexts";
 import { useEffect } from "react";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { IS_DEVELOPMENT } from "../config/environment";
+import { Routes } from "@/interfaces";
 
 function RootComponent() {
   useEffect(() => {
@@ -39,4 +40,5 @@ function RootComponent() {
 
 export const Route = createRootRoute({
   component: RootComponent,
+  notFoundComponent: () => <Navigate to={Routes.LANDING} />,
 });

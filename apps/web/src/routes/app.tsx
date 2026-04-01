@@ -1,7 +1,8 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
 import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
+import { Routes } from "@/interfaces";
 
 export const Route = createFileRoute("/app")({
   beforeLoad: requireRole([
@@ -11,4 +12,5 @@ export const Route = createFileRoute("/app")({
   ]),
   pendingComponent: RouteLoadingFallback,
   component: () => <Outlet />,
+  notFoundComponent: () => <Navigate to={Routes.HOME} />,
 });
