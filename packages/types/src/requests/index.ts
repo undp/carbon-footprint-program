@@ -6,3 +6,5 @@ export * from "./admin/approveRequest/schemas.js";
 export * from "./admin/approveRequest/types.js";
 export * from "./admin/rejectRequest/schemas.js";
 export * from "./admin/rejectRequest/types.js";
+export * from "./admin/reviewSubmission/schema.js";
+export * from "./admin/reviewSubmission/type.js";
