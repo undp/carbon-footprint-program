@@ -3,9 +3,10 @@ import type { GetReductionPlanResponse } from "@repo/types";
 import { downloadWorkbook, sanitizeExcelSheetName } from "@/services/excel";
 
 export async function exportReductionPlanToExcel(
-  data: GetReductionPlanResponse,
-  filename = "plan-de-reduccion.xlsx"
+  inventoryName: string,
+  data: GetReductionPlanResponse
 ) {
+  const filename = `${sanitizeExcelSheetName(inventoryName)}-plan-de-reduccion.xlsx`;
   const workbook = new ExcelJS.Workbook();
 
   for (const category of data.categories) {

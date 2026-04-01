@@ -105,6 +105,10 @@ export const ReductionPlanScreen: FC = () => {
     );
   }
 
+  const activeInventoryName =
+    inventoriesForSelectedOrg?.find((inv) => inv.id === activeInventoryId)
+      ?.name ?? "";
+
   return (
     <ExplanationProvider>
       <Box className="flex flex-1 flex-col gap-6">
@@ -130,11 +134,10 @@ export const ReductionPlanScreen: FC = () => {
               variant="outlined"
               startIcon={<Download />}
               disabled={!reductionPlan}
-              onClick={async () => {
-                if (reductionPlan) {
-                  await exportReductionPlanToExcel(reductionPlan);
-                }
-              }}
+              onClick={() =>
+                reductionPlan &&
+                exportReductionPlanToExcel(activeInventoryName, reductionPlan)
+              }
             >
               Descargar
             </Button>
