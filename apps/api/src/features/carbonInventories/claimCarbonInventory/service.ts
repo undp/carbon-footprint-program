@@ -1,7 +1,6 @@
-import { type PrismaClient } from "@repo/database";
+import { InventoryStatus, type PrismaClient } from "@repo/database";
 import type { User } from "@repo/types";
 import {
-  CarbonInventoryNotFoundError,
   CarbonInventoryAlreadyClaimedError,
   CarbonInventoryInvalidUuidError,
 } from "../errors.js";
@@ -22,11 +21,14 @@ export const claimCarbonInventoryService = async (
     },
   });
 
-  if (!inventory || inventory.status === "DELETED") {
-    throw new CarbonInventoryNotFoundError(id);
-  }
-
-  if (inventory.uuid !== uuid) {
+  // Treat "not found" and "uuid mismatch" identically to prevent ID enumeration.
+  // An attacker scanning sequential IDs must not be able to distinguish between
+  // a non-existent inventory and one they simply don't own.
+  if (
+    !inventory ||
+    inventory.status === InventoryStatus.DELETED ||
+    inventory.uuid !== uuid
+  ) {
     throw new CarbonInventoryInvalidUuidError(id);
   }
 

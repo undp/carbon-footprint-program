@@ -20,7 +20,6 @@ export const claimCarbonInventoryRoute: StandardRouteSignature = (fastify) => {
         response: {
           200: ClaimCarbonInventoryResponseSchema,
           403: ApiErrorResponseSchema,
-          404: ApiErrorResponseSchema,
           409: ApiErrorResponseSchema,
         },
       },
