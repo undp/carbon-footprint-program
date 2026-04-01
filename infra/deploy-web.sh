@@ -214,6 +214,21 @@ if [ -z "$AZURE_FRONT_CLIENT_ID" ] || [ -z "$AZURE_API_CLIENT_ID" ] || [ -z "$AZ
   exit 1
 fi
 
+# For external (CIAM) tenants, the authority URL must contain the tenant subdomain
+# (e.g. https://<subdomain>.ciamlogin.com/<tenant-id>/v2.0). Either set
+# AZURE_AUTH_AUTHORITY directly in .envrc or provide AZURE_TENANT_SUBDOMAIN so
+# the .envrc.template can construct it automatically.
+if [ "${AZURE_TENANT_TYPE:-external}" = "external" ]; then
+  if [[ "$AZURE_AUTH_AUTHORITY" == *".ciamlogin.com/"* ]]; then
+    # Authority looks like a CIAM URL — verify it has a real subdomain (not empty)
+    if [[ "$AZURE_AUTH_AUTHORITY" =~ ^https://\.ciamlogin\.com ]]; then
+      log "${RED}Error: AZURE_AUTH_AUTHORITY has an empty subdomain for external (CIAM) tenant.${NC}"
+      log "Set AZURE_TENANT_SUBDOMAIN in infra/.envrc or provide the full AZURE_AUTH_AUTHORITY."
+      exit 1
+    fi
+  fi
+fi
+
 export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
