@@ -11,7 +11,7 @@ export const ReviewSubmissionBodySchema = z.object({
     .trim()
     .min(1)
     .max(2000)
-    .describe("Optional reviewer comments"),
+    .describe("Required reviewer comments"),
   revisionFileUuids: z
     .array(z.uuid())
     .optional()
