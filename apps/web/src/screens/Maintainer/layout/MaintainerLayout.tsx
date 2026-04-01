@@ -21,7 +21,7 @@ import type { SidebarDef } from "@/components/layout/Sidebar";
 import { APP_VERSION } from "@/config/environment";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
-import { useUserStore } from "@/stores/userStore";
+import { useMe } from "@/api/query/users/useMe";
 
 const SIDEBAR_DEFS: SidebarDef[] = [
   {
@@ -94,7 +94,8 @@ const SIDEBAR_DEFS: SidebarDef[] = [
 ];
 
 export const MaintainerLayout: FC<PropsWithChildren> = ({ children }) => {
-  const userRole = useUserStore((state) => state.user?.role);
+  const { data: me } = useMe(true);
+  const userRole = me?.role;
 
   const visibleItems = useMemo(
     () =>
