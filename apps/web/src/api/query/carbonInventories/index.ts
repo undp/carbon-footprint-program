@@ -20,3 +20,4 @@ export * from "./useCarbonInventoriesMinimalData";
 export * from "./useDuplicateCarbonInventory";
 export * from "./useDeleteCarbonInventory";
 export * from "./useSelfDeclareCarbonInventory";
+export * from "./useClaimCarbonInventory";
