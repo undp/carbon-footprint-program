@@ -1,6 +1,10 @@
 import type { PrismaClient } from "@repo/database";
 import { SubmissionStatus, SubmissionFileType } from "@repo/database";
-import { RejectRequestBody, RejectRequestResponse, User } from "@repo/types";
+import {
+  ReviewSubmissionBody,
+  ReviewSubmissionResponse,
+  User,
+} from "@repo/types";
 import {
   attachFilesToSubmission,
   updatePendingSubmissionStatus,
@@ -10,9 +14,9 @@ import {
 export const reviewSubmissionService = async (
   prismaClient: PrismaClient,
   submissionId: string,
-  body: RejectRequestBody,
+  body: ReviewSubmissionBody,
   userId: User["id"]
-): Promise<RejectRequestResponse> => {
+): Promise<ReviewSubmissionResponse> => {
   await prismaClient.$transaction(async (tx) => {
     const submissionIdBigInt = BigInt(submissionId);
 
