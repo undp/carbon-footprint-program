@@ -11,7 +11,8 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
 import type { ApproveRequestResponse, ApproveRequestBody } from "@repo/types";
-import { SubmissionStatus } from "@repo/database";
+import { SubmissionFileType, SubmissionStatus } from "@repo/database";
+import { randomUUID } from "crypto";
 import {
   createTestOrganization,
   cleanupTestOrganization,
@@ -19,6 +20,10 @@ import {
 import { createTestOrganizationData } from "@test/factories/organizationDataFactory.js";
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import {
+  cleanupTestFiles,
+  createTestFile,
+} from "@test/factories/fileFactory.js";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 
 describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
@@ -39,6 +44,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
   });
 
   afterEach(async () => {
+    await cleanupTestFiles(prisma);
     await cleanupTestOrganization(prisma);
   });
 
@@ -62,7 +68,9 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as ApproveRequestResponse;
+      const body = JSON.parse(
+        response.body
+      ) as unknown as ApproveRequestResponse;
       expect(body).toEqual({});
 
       // Verify: Submission status updated to APPROVED
@@ -98,7 +106,9 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as ApproveRequestResponse;
+      const body = JSON.parse(
+        response.body
+      ) as unknown as ApproveRequestResponse;
       expect(body).toEqual({});
 
       // Verify: Review comments saved
@@ -168,6 +178,56 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
       expect(updatedSubmission!.updatedById).toBe(testUser.id);
     });
+
+    it("should attach revision and recognition files when UUIDs are repeated", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      const { submission } = await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.PENDING,
+        testUser.id
+      );
+
+      const revisionFile = await createTestFile(prisma, testUser.id);
+      const recognitionFile = await createTestFile(prisma, testUser.id);
+
+      const requestBody: ApproveRequestBody = {
+        revisionFileUuids: [revisionFile.uuid, revisionFile.uuid],
+        recognitionFileUuids: [recognitionFile.uuid, recognitionFile.uuid],
+      };
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/admin/requests/${submission.id}/approve`,
+        payload: requestBody,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const submissionFiles = await prisma.submissionFile.findMany({
+        where: { submissionId: submission.id },
+        include: { file: { select: { uuid: true } } },
+        orderBy: { fileId: "asc" },
+      });
+
+      expect(submissionFiles).toHaveLength(2);
+      expect(
+        submissionFiles.map((submissionFile) => ({
+          type: submissionFile.type,
+          uuid: submissionFile.file.uuid,
+        }))
+      ).toEqual([
+        {
+          type: SubmissionFileType.REVISION_ATTACHMENT,
+          uuid: revisionFile.uuid,
+        },
+        {
+          type: SubmissionFileType.RECOGNITION,
+          uuid: recognitionFile.uuid,
+        },
+      ]);
+    });
   });
 
   describe("Error cases", () => {
@@ -181,9 +241,46 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
+      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(nonExistentId);
+    });
+
+    it("should return 404 when any attachment UUID does not exist", async () => {
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      const { submission } = await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.PENDING,
+        testUser.id
+      );
+
+      const revisionFile = await createTestFile(prisma, testUser.id);
+      const missingUuid = randomUUID();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/admin/requests/${submission.id}/approve`,
+        payload: {
+          revisionFileUuids: [revisionFile.uuid, missingUuid],
+        } satisfies ApproveRequestBody,
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      expect(body.code).toBe("MISSING_FILES");
+      expect(body.message).toContain(missingUuid);
+
+      const updatedSubmission = await prisma.submission.findUnique({
+        where: { id: submission.id },
+      });
+      expect(updatedSubmission!.status).toBe(SubmissionStatus.PENDING);
+
+      const submissionFiles = await prisma.submissionFile.findMany({
+        where: { submissionId: submission.id },
+      });
+      expect(submissionFiles).toHaveLength(0);
     });
 
     it("should return 400 when trying to approve an already APPROVED submission", async () => {
@@ -206,7 +303,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
+      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });
@@ -232,7 +329,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
+      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });
