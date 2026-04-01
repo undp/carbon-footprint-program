@@ -167,7 +167,7 @@ This guide explains how to configure authentication for the Huella Latam applica
    - **Tenant**: Choose **External Configuration**
    - **App registration type**: "Provide the details of an existing app registration"
      - **Application (client) ID**: Your API App Registration ID
-     - **Issuer URL**: `https://<subdomain>.ciamlogin.com/<tenant-id>/v2.0`
+     - **Issuer URL**: `https://<tenant-id>.ciamlogin.com/<tenant-id>/v2.0`
      - **Allowed token audiences**: Your API App Registration ID
    - **Client application requirement**: "Allow requests from specific client applications"
      - Add your **Frontend App Registration ID**
