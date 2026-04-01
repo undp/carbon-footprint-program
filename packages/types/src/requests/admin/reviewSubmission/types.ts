@@ -3,7 +3,7 @@ import {
   ReviewSubmissionBodySchema,
   ReviewSubmissionParamsSchema,
   ReviewSubmissionResponseSchema,
-} from "./schema.js";
+} from "./schemas.js";
 
 export type ReviewSubmissionParams = z.infer<
   typeof ReviewSubmissionParamsSchema
