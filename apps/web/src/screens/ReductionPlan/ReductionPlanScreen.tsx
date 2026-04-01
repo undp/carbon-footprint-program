@@ -13,6 +13,7 @@ import { ScreenEmptyState } from "@/components/ScreenEmptyState";
 import { Routes } from "@/interfaces/routes/routes.const";
 import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
 import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGroup";
+import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 
 export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
@@ -36,7 +37,13 @@ export const ReductionPlanScreen: FC = () => {
     data: inventories,
     isLoading: isLoadingInventories,
     isError: isErrorInventories,
-  } = useCarbonInventoriesMinimalData(undefined, true);
+  } = useCarbonInventoriesMinimalData(
+    Object.values(CarbonInventoryDisplayStatusEnum).filter(
+      (status) =>
+        status !== CarbonInventoryDisplayStatusEnum.DRAFT &&
+        status !== CarbonInventoryDisplayStatusEnum.DELETED
+    )
+  );
 
   const activeOrganizationId = selectedOrganizationId ?? organizations?.[0]?.id;
 

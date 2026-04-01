@@ -24,13 +24,6 @@ export const getCarbonInventoriesMinimalService = async (
     status: InventoryStatus.ACTIVE,
   };
 
-  const selfDeclaredFilter: Prisma.CarbonInventoryWhereInput =
-    query?.selfDeclared !== undefined
-      ? {
-          isSelfDeclared: query.selfDeclared === "true",
-        }
-      : {};
-
   const accessControlFilter: Prisma.CarbonInventoryWhereInput = user
     ? {
         OR: [
@@ -55,7 +48,7 @@ export const getCarbonInventoriesMinimalService = async (
 
   const data = await prismaClient.carbonInventory.findMany({
     where: {
-      AND: [baseFilters, accessControlFilter, selfDeclaredFilter],
+      AND: [baseFilters, accessControlFilter],
     },
     select: {
       ...carbonInventoryWithSubmissionsMinimalSelect,

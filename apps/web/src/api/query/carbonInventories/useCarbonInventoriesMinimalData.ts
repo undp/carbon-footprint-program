@@ -8,16 +8,13 @@ import type {
 } from "@repo/types";
 
 export const useCarbonInventoriesMinimalData = (
-  statuses?: CarbonInventoryDisplayStatus[],
-  selfDeclared?: boolean
+  statuses?: CarbonInventoryDisplayStatus[]
 ) =>
   useQuery<GetCarbonInventoriesMinimalResponse>({
-    queryKey: [...carbonInventoryKeys.minimal, statuses, selfDeclared],
+    queryKey: [...carbonInventoryKeys.minimal, statuses],
     queryFn: () => {
       const searchParams: Record<string, string> = {};
       if (statuses?.length) searchParams.statuses = statuses.join(",");
-      if (selfDeclared !== undefined)
-        searchParams.selfDeclared = String(selfDeclared);
       return apiClient
         .get("carbon-inventories/minimal", {
           searchParams: Object.keys(searchParams).length
