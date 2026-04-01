@@ -77,15 +77,3 @@ export const CarbonInventoryCannotRequestVerificationError = createError(
   "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or an OBJECTED VERIFICATION submission",
   422
 );
-
-export const CarbonInventoryInvalidUuidError = createError(
-  "CARBON_INVENTORY_INVALID_UUID",
-  "Invalid UUID for carbon inventory %s",
-  403
-);
-
-export const CarbonInventoryAlreadyClaimedError = createError(
-  "CARBON_INVENTORY_ALREADY_CLAIMED",
-  "Carbon inventory %s is already associated to a user or organization",
-  409
-);

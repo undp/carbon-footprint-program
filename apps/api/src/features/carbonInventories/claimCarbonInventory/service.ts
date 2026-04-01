@@ -1,9 +1,6 @@
 import { InventoryStatus, type PrismaClient } from "@repo/database";
 import type { User } from "@repo/types";
-import {
-  CarbonInventoryAlreadyClaimedError,
-  CarbonInventoryInvalidUuidError,
-} from "../errors.js";
+import { CarbonInventoryNotFoundError } from "../errors.js";
 
 export const claimCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -12,7 +9,7 @@ export const claimCarbonInventoryService = async (
   user: User
 ): Promise<void> => {
   const inventory = await prismaClient.carbonInventory.findUnique({
-    where: { id: BigInt(id) },
+    where: { id: BigInt(id), status: InventoryStatus.ACTIVE },
     select: {
       uuid: true,
       createdById: true,
@@ -26,14 +23,11 @@ export const claimCarbonInventoryService = async (
   // a non-existent inventory and one they simply don't own.
   if (
     !inventory ||
-    inventory.status === InventoryStatus.DELETED ||
-    inventory.uuid !== uuid
+    inventory.uuid !== uuid ||
+    inventory.createdById !== null ||
+    inventory.organizationId !== null
   ) {
-    throw new CarbonInventoryInvalidUuidError(id);
-  }
-
-  if (inventory.createdById !== null || inventory.organizationId !== null) {
-    throw new CarbonInventoryAlreadyClaimedError(id);
+    throw new CarbonInventoryNotFoundError(id);
   }
 
   await prismaClient.carbonInventory.update({
