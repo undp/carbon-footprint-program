@@ -4,13 +4,14 @@ import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
 import { Routes } from "@/interfaces";
 
-export const Route = createFileRoute("/app")({
-  beforeLoad: requireRole([
-    SystemRole.USER,
-    SystemRole.ADMIN,
-    SystemRole.SUPERADMIN,
-  ]),
+export const Route = createFileRoute(Routes.APP)({
+  beforeLoad: requireRole(
+    [SystemRole.USER, SystemRole.ADMIN, SystemRole.SUPERADMIN],
+    {
+      redirectTo: Routes.LANDING,
+    }
+  ),
   pendingComponent: RouteLoadingFallback,
   component: () => <Outlet />,
-  notFoundComponent: () => <Navigate to={Routes.HOME} />,
+  notFoundComponent: () => <Navigate to={Routes.APP} />,
 });

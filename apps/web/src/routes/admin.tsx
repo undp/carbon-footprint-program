@@ -5,13 +5,15 @@ import { MaintainerLayout } from "@/screens/Maintainer/layout/MaintainerLayout";
 import { requireRole } from "@/utils/requireRole";
 import { RouteLoadingFallback } from "@/components/RouteLoadingFallback";
 
-export const Route = createFileRoute(Routes.ADMIN_DASHBOARD)({
-  beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN]),
+export const Route = createFileRoute(Routes.ADMIN)({
+  beforeLoad: requireRole([SystemRole.ADMIN, SystemRole.SUPERADMIN], {
+    redirectTo: Routes.HOME,
+  }),
   pendingComponent: RouteLoadingFallback,
   component: () => (
     <MaintainerLayout>
       <Outlet />
     </MaintainerLayout>
   ),
-  notFoundComponent: () => <Navigate to={Routes.ADMIN_DASHBOARD} />,
+  notFoundComponent: () => <Navigate to={Routes.ADMIN} />,
 });
