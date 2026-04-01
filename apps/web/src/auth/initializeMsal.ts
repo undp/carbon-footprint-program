@@ -17,7 +17,10 @@ let msalInitPromise: Promise<void> | null = null;
  */
 export function initializeMsal(): Promise<void> {
   if (msalInitPromise) return msalInitPromise;
-  msalInitPromise = doInitializeMsal();
+  msalInitPromise = doInitializeMsal().catch((error) => {
+    msalInitPromise = null;
+    throw error;
+  });
   return msalInitPromise;
 }
 
