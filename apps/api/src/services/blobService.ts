@@ -16,6 +16,64 @@ export interface ReadSasOptions {
   contentDisposition?: string;
 }
 
+export type ReadSasUrlSigner = (
+  blobPath: string,
+  options?: ReadSasOptions
+) => Promise<SasUrlResult>;
+
+function buildBlobUrl(
+  accountName: string,
+  containerName: string,
+  blobPath: string,
+  sasToken: string
+): string {
+  const encodedBlobPath = blobPath.split("/").map(encodeURIComponent).join("/");
+  return `https://${accountName}.blob.core.windows.net/${containerName}/${encodedBlobPath}?${sasToken}`;
+}
+
+/**
+ * Creates a reusable read-only SAS signer for many blobs within one request.
+ */
+export async function createReadSasUrlSigner(
+  blobServiceClient: BlobServiceClient,
+  containerName: string,
+  expiresInMinutes = SAS_URL_EXPIRY_MINUTES
+): Promise<ReadSasUrlSigner> {
+  const startsOn = new Date();
+  const expiresAt = new Date(startsOn.getTime() + expiresInMinutes * 60 * 1000);
+  const { accountName } = blobServiceClient;
+  const userDelegationKey = await blobServiceClient.getUserDelegationKey(
+    startsOn,
+    expiresAt
+  );
+
+  return (blobPath, options) =>
+    Promise.resolve({
+      url: buildBlobUrl(
+        accountName,
+        containerName,
+        blobPath,
+        generateBlobSASQueryParameters(
+          {
+            containerName,
+            blobName: blobPath,
+            permissions: BlobSASPermissions.parse("r"),
+            startsOn,
+            expiresOn: expiresAt,
+            protocol: SASProtocol.Https,
+            ...(options?.contentType && { contentType: options.contentType }),
+            ...(options?.contentDisposition && {
+              contentDisposition: options.contentDisposition,
+            }),
+          },
+          userDelegationKey,
+          accountName
+        ).toString()
+      ),
+      expiresAt,
+    });
+}
+
 /**
  * Generates a read-only SAS URL for a blob.
  * Uses User Delegation SAS (Azure AD-based, no account keys needed).
@@ -27,37 +85,13 @@ export async function generateReadSasUrl(
   options?: ReadSasOptions,
   expiresInMinutes = SAS_URL_EXPIRY_MINUTES
 ): Promise<SasUrlResult> {
-  const startsOn = new Date();
-  const expiresAt = new Date(startsOn.getTime() + expiresInMinutes * 60 * 1000);
-
-  const { accountName } = blobServiceClient;
-
-  const userDelegationKey = await blobServiceClient.getUserDelegationKey(
-    startsOn,
-    expiresAt
+  const signReadSasUrl = await createReadSasUrlSigner(
+    blobServiceClient,
+    containerName,
+    expiresInMinutes
   );
 
-  const sasToken = generateBlobSASQueryParameters(
-    {
-      containerName,
-      blobName: blobPath,
-      permissions: BlobSASPermissions.parse("r"),
-      startsOn,
-      expiresOn: expiresAt,
-      protocol: SASProtocol.Https,
-      ...(options?.contentType && { contentType: options.contentType }),
-      ...(options?.contentDisposition && {
-        contentDisposition: options.contentDisposition,
-      }),
-    },
-    userDelegationKey,
-    accountName
-  ).toString();
-
-  const encodedBlobPath = blobPath.split("/").map(encodeURIComponent).join("/");
-  const url = `https://${accountName}.blob.core.windows.net/${containerName}/${encodedBlobPath}?${sasToken}`;
-
-  return { url, expiresAt };
+  return signReadSasUrl(blobPath, options);
 }
 
 /**
