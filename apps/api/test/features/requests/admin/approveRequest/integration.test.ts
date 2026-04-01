@@ -68,9 +68,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as unknown as ApproveRequestResponse;
+      const body = JSON.parse(response.body) as ApproveRequestResponse;
       expect(body).toEqual({});
 
       // Verify: Submission status updated to APPROVED
@@ -106,9 +104,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as unknown as ApproveRequestResponse;
+      const body = JSON.parse(response.body) as ApproveRequestResponse;
       expect(body).toEqual({});
 
       // Verify: Review comments saved
@@ -241,7 +237,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(nonExistentId);
     });
@@ -268,7 +264,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("MISSING_FILES");
       expect(body.message).toContain(missingUuid);
 
@@ -303,7 +299,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });
@@ -329,7 +325,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });

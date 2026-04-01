@@ -72,9 +72,7 @@ describe("POST /api/admin/requests/:id/reject - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as unknown as RejectRequestResponse;
+      const body = JSON.parse(response.body) as RejectRequestResponse;
       expect(body).toEqual({});
 
       // Verify: Submission status updated to REJECTED
@@ -249,7 +247,7 @@ Rejection reasons:
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
     });
 
@@ -278,7 +276,7 @@ Rejection reasons:
       });
 
       expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("MISSING_FILES");
       expect(body.message).toContain(missingUuid);
 
@@ -317,7 +315,7 @@ Rejection reasons:
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });
@@ -347,7 +345,7 @@ Rejection reasons:
       });
 
       expect(response.statusCode).toBe(400);
-      const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+      const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("SUBMISSION_UPDATE_ERROR");
       expect(body.message).toContain(submission.id.toString());
     });

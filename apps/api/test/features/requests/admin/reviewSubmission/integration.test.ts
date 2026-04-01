@@ -75,9 +75,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(
-      JSON.parse(response.body) as unknown as ReviewSubmissionResponse
-    ).toEqual({});
+    expect(JSON.parse(response.body) as ReviewSubmissionResponse).toEqual({});
 
     const updatedSubmission = await prisma.submission.findUnique({
       where: { id: submission.id },
@@ -131,7 +129,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
     });
 
     expect(response.statusCode).toBe(404);
-    const body = JSON.parse(response.body) as unknown as ApiErrorResponse;
+    const body = JSON.parse(response.body) as ApiErrorResponse;
     expect(body.code).toBe("MISSING_FILES");
     expect(body.message).toContain(missingUuid);
 
