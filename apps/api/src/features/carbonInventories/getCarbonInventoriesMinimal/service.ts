@@ -69,7 +69,7 @@ export const getCarbonInventoriesMinimalService = async (
   return data
     .map((inv) => ({
       id: inv.id.toString(),
-      organizationId: inv.organizationId ? inv.organizationId.toString() : null,
+      organizationId: inv.organizationId?.toString() ?? null,
       name: inv.name,
       year: inv.year,
       status: calculateDisplayStatus(inv),
