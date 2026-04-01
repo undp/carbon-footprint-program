@@ -38,6 +38,12 @@ param azureAuthTenantId string = ''
 @description('Azure Frontend App Client ID')
 param azureAuthClientId string = ''
 
+@description('Azure tenant type: "external" (CIAM) or "organizational"')
+param azureAuthTenantType string = 'external'
+
+@description('Azure tenant subdomain (required for external/CIAM tenants)')
+param azureAuthTenantSubdomain string = ''
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -124,6 +130,14 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         {
           name: 'AZURE_API_CLIENT_ID'
           value: azureAuthClientId
+        }
+        {
+          name: 'AZURE_TENANT_TYPE'
+          value: azureAuthTenantType
+        }
+        {
+          name: 'AZURE_TENANT_SUBDOMAIN'
+          value: azureAuthTenantSubdomain
         }
         {
           name: 'AUTH_PROVIDER'

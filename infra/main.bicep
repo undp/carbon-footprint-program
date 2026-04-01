@@ -308,6 +308,8 @@ module appService 'modules/appService.bicep' = {
     enableAzureAuth: enableAzureAuth
     azureAuthTenantId: azureAuthTenantId
     azureAuthClientId: azureAuthApiAppId
+    azureAuthTenantType: azureAuthTenantType
+    azureAuthTenantSubdomain: azureAuthTenantSubdomain
     tags: tags
   }
 }
