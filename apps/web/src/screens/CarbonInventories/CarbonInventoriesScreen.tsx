@@ -12,7 +12,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { OrganizationSelector } from "@/components";
+import { OrganizationSelector, ResponsiveTypography } from "@/components";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
@@ -75,11 +75,11 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "organizationName",
           renderHeader: () => (
-            <Tooltip title={isDesktop ? null : "Nombre Organización"}>
-              <Typography variant="body2" fontWeight={500} noWrap>
-                {isDesktop ? "Nombre Organización" : "Nombre Org."}
-              </Typography>
-            </Tooltip>
+            <ResponsiveTypography
+              isResponsiveMode={!isDesktop}
+              ShortName="Nombre Org."
+              LongName="Nombre Organización"
+            />
           ),
           align: "center",
           headerAlign: "center",
@@ -111,11 +111,11 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "name",
           renderHeader: () => (
-            <Tooltip title={isDesktop ? null : "Nombre borrador huella"}>
-              <Typography variant="body2" fontWeight={500} noWrap>
-                {isDesktop ? "Nombre borrador huella" : "Nombre"}
-              </Typography>
-            </Tooltip>
+            <ResponsiveTypography
+              isResponsiveMode={!isDesktop}
+              ShortName="Nombre"
+              LongName="Nombre borrador huella"
+            />
           ),
           align: "center",
           headerAlign: "center",
@@ -147,11 +147,11 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "year",
           renderHeader: () => (
-            <Tooltip title={isDesktop ? null : "Año de medición"}>
-              <Typography variant="body2" fontWeight={500} noWrap>
-                {isDesktop ? "Año de medición" : "Año"}
-              </Typography>
-            </Tooltip>
+            <ResponsiveTypography
+              isResponsiveMode={!isDesktop}
+              ShortName="Año"
+              LongName="Año de medición"
+            />
           ),
           align: "center",
           headerAlign: "center",
@@ -181,11 +181,11 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "totalEmissions",
           renderHeader: () => (
-            <Tooltip title={isDesktop ? null : "Emisiones tCO₂e"}>
-              <Typography variant="body2" fontWeight={500} noWrap>
-                {isDesktop ? "Emisiones tCO₂e" : "Emisiones"}
-              </Typography>
-            </Tooltip>
+            <ResponsiveTypography
+              isResponsiveMode={!isDesktop}
+              ShortName="Emisiones"
+              LongName="Emisiones tCO₂e"
+            />
           ),
           align: "center",
           headerAlign: "center",
