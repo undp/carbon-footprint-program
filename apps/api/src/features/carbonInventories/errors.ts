@@ -77,3 +77,9 @@ export const CarbonInventoryCannotRequestVerificationError = createError(
   "Carbon inventory %s cannot request verification: must have an APPROVED CALCULATION submission or a REVIEWED VERIFICATION submission",
   422
 );
+
+export const CarbonInventoryInvalidUuidError = createError(
+  "CARBON_INVENTORY_INVALID_UUID",
+  "Invalid UUID for carbon inventory %s",
+  400
+);

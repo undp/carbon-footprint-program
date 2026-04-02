@@ -1,8 +1,12 @@
-import { FC } from "react";
+import { FC, useState } from "react";
 import { Box } from "@mui/material";
 import { useParams } from "@tanstack/react-router";
 import { CarbonInventoryLayout, type FooterButton } from "./layout";
-import { StepHeader, CarbonInventoryNavigationButton } from "./components";
+import {
+  StepHeader,
+  CarbonInventoryNavigationButton,
+  SaveDraftAuthModal,
+} from "./components";
 import { Routes } from "@/interfaces";
 import { useEmissionResultsNavigation } from "./hooks/useEmissionResultsNavigation";
 import { ArrowRightAltRounded } from "@mui/icons-material";
@@ -21,7 +25,8 @@ export const EmissionResultsScreen: FC = () => {
 
   const { user } = useAuth();
   const { goBack } = useEmissionResultsNavigation(inventoryId);
-  const { goToList, goToLanding } = useCommonNavigation();
+  const { goToList } = useCommonNavigation();
+  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   const { data: summaryData, error: summaryError } =
     useEmissionsSummaryCategories(inventoryId);
@@ -48,9 +53,12 @@ export const EmissionResultsScreen: FC = () => {
         buttonProps: { variant: "contained", onClick: goToList },
       }
     : {
-        text: "Volver a empezar",
+        text: "Guardar Borrador",
         align: "right",
-        buttonProps: { variant: "contained", onClick: goToLanding },
+        buttonProps: {
+          variant: "contained",
+          onClick: () => setAuthModalOpen(true),
+        },
       };
 
   return (
@@ -87,6 +95,11 @@ export const EmissionResultsScreen: FC = () => {
         </Box>
         <EmissionResultsContent inventoryId={inventoryId} />
       </Box>
+      <SaveDraftAuthModal
+        open={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        inventoryId={inventoryId}
+      />
     </CarbonInventoryLayout>
   );
 };
