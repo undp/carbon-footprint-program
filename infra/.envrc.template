@@ -21,7 +21,7 @@ fi
 
 # Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
 export LOCATION="eastus2"
-
-export DRY_RUN="false"
-
+export AUTH_PROVIDER="easy-auth"
 export APP_VERSION=""
+export FRONT_DOOR_CUSTOM_DOMAIN=""
+export DRY_RUN="false"
