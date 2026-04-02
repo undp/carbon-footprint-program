@@ -48,8 +48,8 @@ export function deriveEventType(status: SubmissionStatus): SubmissionEventType {
       return SubmissionEventType.APPROVED;
     case SubmissionStatus.REJECTED:
       return SubmissionEventType.REJECTED;
-    case SubmissionStatus.OBJECTED:
-      return SubmissionEventType.OBJECTED;
+    case SubmissionStatus.REVIEWED:
+      return SubmissionEventType.REVIEWED;
     default:
       return SubmissionEventType.POSTULATION;
   }
@@ -67,13 +67,13 @@ export function groupSubmissionHistoryFiles(
   return files.reduce<GroupedSubmissionHistoryFiles>(
     (grouped, fileLink) => {
       switch (fileLink.type) {
-        case SubmissionFileType.ATTACHMENT:
+        case SubmissionFileType.SUBMIT_ATTACHMENT:
           grouped.attachments.push(fileLink.file);
           break;
         case SubmissionFileType.RECOGNITION:
           grouped.recognitions.push(fileLink.file);
           break;
-        case SubmissionFileType.REVISION_ATTACHMENT:
+        case SubmissionFileType.REVIEW_ATTACHMENT:
           grouped.revisionAttachments.push(fileLink.file);
           break;
       }

@@ -68,10 +68,10 @@ export const mapOrgSummaryToCommonFields = (orgSummary: OrgSummaryRow) => ({
  *
  * 1. **POSTULATION** — always created, dated at `createdAt`, with the
  *    creator's name and the submission's attachment files.
- * 2. **Reviewed event** (APPROVED | REJECTED | OBJECTED | APPROVED_AUTOMATICALLY)
+ * 2. **Reviewed event** (APPROVED | REJECTED | REVIEWED | APPROVED_AUTOMATICALLY)
  *    — created only when the submission has been reviewed (status !== PENDING).
  *    Dated at `reviewedAt`, carries the reviewer's name, review comments,
- *    and either revision attachments (for OBJECTED) or recognition files.
+ *    and either revision attachments (for REVIEWED) or recognition files.
  *
  * Returns `reviewedEvent: null` when the submission is still pending.
  */
@@ -114,7 +114,7 @@ export const mapSubmissionEventGroup = async (
       date: (submission.reviewedAt ?? submission.createdAt).toISOString(),
       comment: submission.reviewComments ?? "",
       files:
-        reviewedEventType === SubmissionEventType.OBJECTED
+        reviewedEventType === SubmissionEventType.REVIEWED
           ? revisionAttachments
           : [],
       recognitions,

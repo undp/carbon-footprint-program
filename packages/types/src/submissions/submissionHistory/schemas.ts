@@ -15,7 +15,7 @@ export const SubmissionEventTypeSchema = z.enum([
   SubmissionEventType.APPROVED,
   SubmissionEventType.APPROVED_AUTOMATICALLY,
   SubmissionEventType.REJECTED,
-  SubmissionEventType.OBJECTED,
+  SubmissionEventType.REVIEWED,
 ]);
 
 export const SubmissionFileWithUrlSchema = FileBaseSchema.omit({

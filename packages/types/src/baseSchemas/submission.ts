@@ -10,8 +10,8 @@ export const SubmissionEventType = {
   ON_REVIEW: "ON_REVIEW",
   APPROVED: "APPROVED",
   APPROVED_AUTOMATICALLY: "APPROVED_AUTOMATICALLY",
+  REVIEWED: "REVIEWED",
   REJECTED: "REJECTED",
-  OBJECTED: "OBJECTED",
 } as const;
 
 export type SubmissionEventType =
