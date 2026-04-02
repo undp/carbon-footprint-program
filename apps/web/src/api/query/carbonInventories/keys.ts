@@ -116,7 +116,6 @@ export const carbonInventoryKeys = {
     [
       CarbonInventoryQueryKey.Root,
       inventoryId,
-      CarbonInventoryQueryKey.AttributesUpdateDependency,
       CarbonInventoryQueryKey.EmissionsUpdateDependency,
       CarbonInventoryQueryKey.ReductionPlan,
     ] as const,
