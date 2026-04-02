@@ -6,7 +6,7 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 
 - `pnpm type-check`: Use to check for TypeScript compilation errors.
 - `pnpm lint`: needs to be run after any code changes
-- `pnpm test --filter api test /{feature-name}/integration.test.ts`: Use to run a single test file.
-  - Example: `pnpm test --filter api test /getOrganizationById/integration.test.ts`
-- `pnpm test --filter api test /{domain}`: Runs all tests for a domain.
-  - Example: `pnpm test --filter api test organizations`: Runs all tests for the organizations feature
+- `pnpm test --filter=api -- /{feature-name}/integration.test.ts --coverage=false`: Use to run a single test file.
+  - Example: `pnpm test --filter=api -- /getOrganizationById/integration.test.ts --coverage=false`
+- `pnpm test --filter=api -- /{domain} --coverage=false`: Runs all tests for a domain.
+  - Example: `pnpm test --filter=api -- organizations --coverage=false`: Runs all tests for the organizations feature
