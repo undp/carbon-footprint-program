@@ -3,6 +3,7 @@ import { listQueryParam } from "../../zod.js";
 
 export const SystemParameterKeySchema = z.enum([
   "CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR",
+  "SUBCATEGORY_RECOMMENDATION_MODE",
 ]);
 
 export const SystemParameterKeyEnum = SystemParameterKeySchema.enum;
@@ -15,6 +16,14 @@ export const MeasurementRecognitionBehaviorSchema = z.enum([
 
 export const MeasurementRecognitionBehaviorEnum =
   MeasurementRecognitionBehaviorSchema.enum;
+
+export const SubcategoryRecommendationModeSchema = z.enum([
+  "UNION",
+  "SPECIFIC",
+]);
+
+export const SubcategoryRecommendationModeEnum =
+  SubcategoryRecommendationModeSchema.enum;
 
 /**
  * IMPORTANT: Every system parameter key MUST have an entry in this discriminated union.
@@ -32,6 +41,10 @@ export const SystemParameterEntrySchema = z.discriminatedUnion("key", [
       SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR
     ),
     value: MeasurementRecognitionBehaviorSchema,
+  }),
+  z.object({
+    key: z.literal(SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE),
+    value: SubcategoryRecommendationModeSchema,
   }),
 ]);
 

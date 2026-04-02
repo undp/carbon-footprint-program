@@ -1,5 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetCarbonInventorySubcategoryRecommendationsResponse } from "@repo/types";
+import {
+  type GetCarbonInventorySubcategoryRecommendationsResponse,
+  SubcategoryRecommendationModeEnum,
+  SystemParameterKeyEnum,
+} from "@repo/types";
+import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 import { safeParseCarbonInventoryOrganizationData } from "../utils.js";
 
@@ -29,15 +34,27 @@ export const getCarbonInventorySubcategoryRecommendationsService = async (
 
   const subsectorId = orgData?.subsectorId ?? null;
 
+  const mode = await getSystemParameterValue(
+    prismaClient,
+    SystemParameterKeyEnum.SUBCATEGORY_RECOMMENDATION_MODE
+  );
+
+  const isSpecific = mode === SubcategoryRecommendationModeEnum.SPECIFIC;
+
   const recommendations = await prismaClient.subcategoryRecommendation.findMany(
     {
-      where: {
-        sectorId: BigInt(sectorId),
-        OR: [
-          { subsectorId: subsectorId ? BigInt(subsectorId) : null },
-          { subsectorId: null },
-        ],
-      },
+      where: isSpecific
+        ? {
+            sectorId: BigInt(sectorId),
+            subsectorId: subsectorId ? BigInt(subsectorId) : null,
+          }
+        : {
+            sectorId: BigInt(sectorId),
+            OR: [
+              { subsectorId: subsectorId ? BigInt(subsectorId) : null },
+              { subsectorId: null },
+            ],
+          },
       select: { subcategoryId: true },
     }
   );

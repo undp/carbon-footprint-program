@@ -5,5 +5,12 @@
     "description": "Defines how carbon inventory measurements are recognized. HIDDEN: measurement recognition is disabled. MANUAL: requires manual review and approval. AUTOMATIC: measurements are automatically recognized and approved.",
     "type": "selector",
     "options": ["HIDDEN", "MANUAL", "AUTOMATIC"]
+  },
+  {
+    "key": "SUBCATEGORY_RECOMMENDATION_MODE",
+    "value": "UNION",
+    "description": "Defines how subcategory recommendations are retrieved. UNION: returns sector-level recommendations combined with subsector-specific recommendations. SPECIFIC: returns only subsector-specific recommendations.",
+    "type": "selector",
+    "options": ["UNION", "SPECIFIC"]
   }
 ]
