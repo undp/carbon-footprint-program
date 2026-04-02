@@ -7,7 +7,7 @@ import {
   getOrgSummaryDetails,
   submissionHistorySelect,
 } from "../helpers.js";
-import { buildTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
+import { mapTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
 
 export const getCarbonInventoryHistoryService = async (
   prisma: PrismaClient,
@@ -58,5 +58,5 @@ export const getCarbonInventoryHistoryService = async (
       )
     : null;
 
-  return buildTimelineResponse(submissionEventGroups, selfDeclarationEvent);
+  return mapTimelineResponse(submissionEventGroups, selfDeclarationEvent);
 };

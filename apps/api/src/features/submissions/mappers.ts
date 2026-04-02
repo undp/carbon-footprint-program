@@ -115,7 +115,7 @@ export const mapSubmissionEventGroup = async (
  *
  * The resulting array is sorted by date descending (newest first).
  */
-export const buildTimelineResponse = (
+export const mapTimelineResponse = (
   submissionEventGroups: SubmissionEventGroup[],
   selfDeclarationEvent: SubmissionHistoryEntry | null
 ): SubmissionHistoryEntry[] => {

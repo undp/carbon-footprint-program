@@ -6,7 +6,7 @@ import {
   getOrgSummaryDetails,
   submissionHistorySelect,
 } from "../helpers.js";
-import { buildTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
+import { mapTimelineResponse, mapSubmissionEventGroup } from "../mappers.js";
 
 export const getOrganizationHistoryService = async (
   prisma: PrismaClient,
@@ -43,5 +43,5 @@ export const getOrganizationHistoryService = async (
     )
   );
 
-  return buildTimelineResponse(submissionEventGroups, null);
+  return mapTimelineResponse(submissionEventGroups, null);
 };
