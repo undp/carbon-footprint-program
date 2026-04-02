@@ -135,6 +135,7 @@ export const mapTimelineResponse = (
         timelineEvents.push({
           ...postulationEvent,
           eventType: SubmissionEventType.ON_REVIEW,
+          status: null,
           comment: "",
           files: [],
           recognitions: [],
