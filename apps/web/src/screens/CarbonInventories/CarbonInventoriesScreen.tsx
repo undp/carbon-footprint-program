@@ -67,7 +67,7 @@ export const CarbonInventoriesScreen: FC = () => {
     [inventories]
   );
 
-  const isDesktop = useMediaQuery((theme) => theme.breakpoints.up(1400));
+  const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
 
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
@@ -76,7 +76,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "organizationName",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isDesktop}
+              isResponsiveMode={!isWiderScreen}
               ShortName="Nombre Org."
               LongName="Nombre Organización"
             />
@@ -112,7 +112,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "name",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isDesktop}
+              isResponsiveMode={!isWiderScreen}
               ShortName="Nombre"
               LongName="Nombre borrador huella"
             />
@@ -148,7 +148,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "year",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isDesktop}
+              isResponsiveMode={!isWiderScreen}
               ShortName="Año"
               LongName="Año de medición"
             />
@@ -182,7 +182,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "totalEmissions",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isDesktop}
+              isResponsiveMode={!isWiderScreen}
               ShortName="Emisiones"
               LongName="Emisiones tCO₂e"
             />
@@ -229,7 +229,7 @@ export const CarbonInventoriesScreen: FC = () => {
           ),
         },
       ],
-      [filteredInventories, isDesktop]
+      [filteredInventories, isWiderScreen]
     );
 
   return (
