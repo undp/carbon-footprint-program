@@ -241,7 +241,11 @@ export const useSubcategoryColumns = ({
             return (
               <ActionButtons
                 isActiveRow={false}
-                onConfigureVariables={onConfigureVariables ? () => onConfigureVariables(params.row.id) : undefined}
+                onConfigureVariables={
+                  onConfigureVariables
+                    ? () => onConfigureVariables(params.row.id)
+                    : undefined
+                }
               />
             );
           }

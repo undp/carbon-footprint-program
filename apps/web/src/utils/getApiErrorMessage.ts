@@ -31,20 +31,16 @@ const ERROR_MESSAGES: Record<string, string> = {
     "La suma del desglose GEI debe coincidir con el valor declarado.",
 
   // Emission factor dimensions
-  EMISSION_FACTOR_DIMENSION_NOT_FOUND:
-    "La dimensión no fue encontrada.",
-  DIMENSION_NOT_CONFIGURED:
-    "La dimensión no está configurada.",
-  DIMENSION_VALUE_NOT_FOUND:
-    "La variable de la dimensión no fue encontrada.",
+  EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",
+  DIMENSION_NOT_CONFIGURED: "La dimensión no está configurada.",
+  DIMENSION_VALUE_NOT_FOUND: "La variable de la dimensión no fue encontrada.",
   DIMENSION_VALUES_CANNOT_BE_REMOVED:
     "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos.",
   DIMENSION_IS_REQUIRED_CHANGE_BLOCKED:
     "No se puede cambiar el campo 'requerido' porque existen factores de emisión activos para esta subcategoría.",
   DIMENSION_VALUE_NOT_FOUND_FOR_RENAME:
     "La variable a renombrar no fue encontrada.",
-  MAX_DIMENSIONS_PER_SUBCATEGORY:
-    "La subcategoría ya tiene 2 dimensiones.",
+  MAX_DIMENSIONS_PER_SUBCATEGORY: "La subcategoría ya tiene 2 dimensiones.",
   DIMENSION_POSITION_ALREADY_TAKEN:
     "La posición ya está ocupada para esta subcategoría.",
   DIMENSION_MUST_HAVE_AT_LEAST_ONE_VALUE:

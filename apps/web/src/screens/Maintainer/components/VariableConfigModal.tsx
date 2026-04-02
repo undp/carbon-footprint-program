@@ -124,7 +124,11 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
           >
             <Info color="info" sx={{ mt: 0.25 }} />
             <Box>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mb: 0.5 }}
+              >
                 <strong>Instrucciones:</strong> Define las variables de esta
                 sub-categoría y si son requeridas.
               </Typography>
@@ -145,8 +149,8 @@ const VariableConfigContent: FC<Omit<VariableConfigModalProps, "open">> = ({
                 {hasEmissionFactors && (
                   <li>
                     Esta sub-categoría tiene factores de emisión asociados, solo
-                    se puede modificar el <strong>nombre</strong> de las variables
-                    existentes
+                    se puede modificar el <strong>nombre</strong> de las
+                    variables existentes
                   </li>
                 )}
               </Typography>

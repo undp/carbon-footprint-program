@@ -41,7 +41,10 @@ export const swapCategoryPositionsService = async (
       throw new CategoryNotFoundError(missingIds.join(", "));
     }
     if (catA.methodologyVersionId !== catB.methodologyVersionId) {
-      throw new CategoriesFromDifferentMethodologyVersionsError(catA.id, catB.id);
+      throw new CategoriesFromDifferentMethodologyVersionsError(
+        catA.id,
+        catB.id
+      );
     }
 
     const positionA = catA.position;

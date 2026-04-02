@@ -118,12 +118,9 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     });
     const rateUnitId = await getTestRateMeasurementUnitId(prisma);
 
-    await createTestEmissionFactor(
-      prisma,
-      subcategory.id,
-      rateUnitId,
-      { source: "Source A" }
-    );
+    await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+      source: "Source A",
+    });
 
     const efToUpdate = await createTestEmissionFactor(
       prisma,

@@ -211,7 +211,8 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
     });
 
     it("should reject deleting position 1 when the subcategory has two dimensions", async () => {
-      const { dimension1, dimension2 } = await buildSubcategoryWithTwoDimensions();
+      const { dimension1, dimension2 } =
+        await buildSubcategoryWithTwoDimensions();
 
       const response = await app.inject({
         method: "DELETE",

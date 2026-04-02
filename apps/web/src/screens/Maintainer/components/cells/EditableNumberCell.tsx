@@ -67,7 +67,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
     errors as unknown as Record<string, unknown>,
     formArrayName,
     rowIndex,
-    fieldName,
+    fieldName
   );
 
   if (!isEditing) {

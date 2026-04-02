@@ -71,8 +71,9 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body =
-        JSON.parse(response.body) as CreateEmissionFactorDimensionResponse;
+      const body = JSON.parse(
+        response.body
+      ) as CreateEmissionFactorDimensionResponse;
 
       expect(body.id).toBeTruthy();
       expect(body.subcategoryId).toBe(subcategory.id.toString());
@@ -116,8 +117,9 @@ describe("POST /api/emission-factor-dimensions/ - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(201);
-      const body =
-        JSON.parse(response.body) as CreateEmissionFactorDimensionResponse;
+      const body = JSON.parse(
+        response.body
+      ) as CreateEmissionFactorDimensionResponse;
       expect(body.position).toBe(2);
     });
   });

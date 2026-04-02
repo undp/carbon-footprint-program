@@ -15,7 +15,10 @@ import type {
   EmissionFactorForm,
 } from "@repo/types";
 
-import { EditableNumberCell, EmissionFactorSourceCell } from "../components/cells";
+import {
+  EditableNumberCell,
+  EmissionFactorSourceCell,
+} from "../components/cells";
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 
@@ -543,9 +546,7 @@ export const useEmissionFactorColumns = ({
           const allRows = getValues();
           const otherRowsWithSameSubcategory = subcategoryId
             ? allRows.filter(
-                (r) =>
-                  r.subcategoryId === subcategoryId &&
-                  r.id !== formRow?.id
+                (r) => r.subcategoryId === subcategoryId && r.id !== formRow?.id
               )
             : [];
           const isSourceLocked = otherRowsWithSameSubcategory.length > 0;

@@ -62,10 +62,10 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   const [deleteOpen, setDeleteOpen] = useState(false);
   const isDeleteDisabled = isActiveRow || deleteDisabled;
   const resolvedDeleteTooltipTitle = isDeleteDisabled
-    ? deleteTooltipTitle ??
+    ? (deleteTooltipTitle ??
       (isActiveRow
         ? "Finaliza la edición actual para eliminar"
-        : "No se puede eliminar este registro")
+        : "No se puede eliminar este registro"))
     : "Eliminar";
 
   return (

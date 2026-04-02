@@ -45,7 +45,10 @@ export const deleteMethodologyService = async (
       },
     });
 
-    if (!methodology || methodology.status === MethodologyVersionStatus.DELETED) {
+    if (
+      !methodology ||
+      methodology.status === MethodologyVersionStatus.DELETED
+    ) {
       throw new MethodologyNotFoundError();
     }
 

@@ -500,7 +500,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
     });
 
     // Create emission factors using same source (trigger enforces single source per subcategory)
-      const factor1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+    const factor1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
       dimensionValue1Id: val1.id,
       source: "IPCC",
       value: "2.5",
