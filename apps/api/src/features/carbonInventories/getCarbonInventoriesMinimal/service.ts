@@ -6,7 +6,7 @@ import {
 import {
   type GetCarbonInventoriesMinimalResponse,
   type User,
-  type CarbonInventoryDisplayStatus,
+  CarbonInventoryDisplayStatus,
   InventoryStatus,
 } from "@repo/types";
 import {
@@ -23,6 +23,7 @@ export const getCarbonInventoriesMinimalService = async (
   const baseFilters: Prisma.CarbonInventoryWhereInput = {
     status: InventoryStatus.ACTIVE,
   };
+
   const accessControlFilter: Prisma.CarbonInventoryWhereInput = user
     ? {
         OR: [
@@ -51,6 +52,7 @@ export const getCarbonInventoriesMinimalService = async (
     },
     select: {
       ...carbonInventoryWithSubmissionsMinimalSelect,
+      organizationId: true,
       name: true,
       year: true,
     },
@@ -60,6 +62,7 @@ export const getCarbonInventoriesMinimalService = async (
   return data
     .map((inv) => ({
       id: inv.id.toString(),
+      organizationId: inv.organizationId?.toString() ?? null,
       name: inv.name,
       year: inv.year,
       status: calculateDisplayStatus(inv),

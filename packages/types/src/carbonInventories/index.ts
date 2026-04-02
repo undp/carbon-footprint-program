@@ -52,3 +52,7 @@ export * from "./selfDeclareCarbonInventory/schemas.js";
 export * from "./selfDeclareCarbonInventory/types.js";
 export * from "./getCarbonInventorySubcategoryRecommendations/schemas.js";
 export * from "./getCarbonInventorySubcategoryRecommendations/types.js";
+export * from "./getReductionPlan/schemas.js";
+export * from "./getReductionPlan/types.js";
+export * from "./claimCarbonInventory/schemas.js";
+export * from "./claimCarbonInventory/types.js";

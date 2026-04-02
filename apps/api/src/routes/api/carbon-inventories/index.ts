@@ -14,6 +14,7 @@ import { getMainActivityEquivalenceRoute } from "@/features/carbonInventories/ge
 import { getSubcategoriesRankingRoute } from "@/features/carbonInventories/getSubcategoriesRanking/route.js";
 import { getSectorRankingRoute } from "@/features/carbonInventories/getSectorRanking/route.js";
 import { getSuggestedReductionPlanRoute } from "@/features/carbonInventories/getSuggestedReductionPlan/route.js";
+import { getReductionPlanRoute } from "@/features/carbonInventories/getReductionPlan/route.js";
 import { getEmissionsDetailedSummaryRoute } from "@/features/carbonInventories/getEmissionsDetailedSummary/route.js";
 import { getEmissionFactorsRoute } from "@/features/carbonInventories/getEmissionFactors/route.js";
 import { getCarbonInventoryMetadataRoute } from "@/features/carbonInventories/getCarbonInventoryMetadata/route.js";
@@ -25,6 +26,7 @@ import { duplicateCarbonInventoryRoute } from "@/features/carbonInventories/dupl
 import { deleteCarbonInventoryRoute } from "@/features/carbonInventories/deleteCarbonInventory/route.js";
 import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/selfDeclareCarbonInventory/route.js";
 import { getCarbonInventorySubcategoryRecommendationsRoute } from "@/features/carbonInventories/getCarbonInventorySubcategoryRecommendations/route.js";
+import { claimCarbonInventoryRoute } from "@/features/carbonInventories/claimCarbonInventory/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
@@ -48,6 +50,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getSubcategoriesRankingRoute(fastify, { public: true });
   getSectorRankingRoute(fastify, { public: true });
   getSuggestedReductionPlanRoute(fastify, { public: true });
+  getReductionPlanRoute(fastify);
   getEmissionsDetailedSummaryRoute(fastify, { public: true });
   getEmissionFactorsRoute(fastify, { public: true });
   getCarbonInventoryMetadataRoute(fastify, { public: true });
@@ -65,6 +68,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getCarbonInventoryBadgesRoute(fastify);
 
   /* MANAGEMENT */
+  claimCarbonInventoryRoute(fastify);
   // user needs at least CONTRIBUTOR org. role for this inventory
   selfDeclareCarbonInventoryRoute(fastify);
   requestCalculationRoute(fastify);

@@ -1,0 +1,79 @@
+import { FC, useCallback } from "react";
+import {
+  Box,
+  Typography,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  SelectChangeEvent,
+} from "@mui/material";
+import type {
+  GetCarbonInventoriesMinimalResponse,
+  GetMyOrganizationsSelectorOptionsResponse,
+} from "@repo/types";
+import { OrganizationSelector } from "@/components";
+
+interface ReductionPlanHeaderProps {
+  organizations: GetMyOrganizationsSelectorOptionsResponse;
+  inventories: GetCarbonInventoriesMinimalResponse;
+  selectedOrganizationId?: string;
+  selectedCarbonInventory?: string;
+  onOrganizationChange: (organizationId: string) => void;
+  onCarbonInventoryChange: (inventoryId: string) => void;
+}
+
+export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
+  organizations,
+  inventories,
+  selectedOrganizationId,
+  selectedCarbonInventory,
+  onOrganizationChange,
+  onCarbonInventoryChange,
+}) => {
+  const onCarbonInventorySelectChange = useCallback(
+    (event: SelectChangeEvent) => {
+      onCarbonInventoryChange(event.target.value);
+    },
+    [onCarbonInventoryChange]
+  );
+
+  const selectedInventoryName =
+    inventories.find((inv) => inv.id === selectedCarbonInventory)?.name ?? "";
+
+  return (
+    <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
+      <Typography variant="h5" fontWeight={600} noWrap maxWidth="30dvw">
+        {selectedInventoryName || "Plan de reducción"}
+      </Typography>
+      <Box className="flex shrink-0 flex-row gap-4">
+        <OrganizationSelector
+          organizations={organizations}
+          value={selectedOrganizationId ?? ""}
+          onChange={onOrganizationChange}
+          label="Organización"
+        />
+        <FormControl
+          sx={{ minHeight: 40, minWidth: 216, maxWidth: "10dvw" }}
+          size="small"
+        >
+          <InputLabel id="reduction-inventory-select-label">Huella</InputLabel>
+          <Select
+            labelId="reduction-inventory-select-label"
+            label="Huella"
+            value={selectedCarbonInventory}
+            onChange={onCarbonInventorySelectChange}
+            disabled={inventories.length === 0}
+          >
+            {inventories.map(({ id, name, year }) => (
+              <MenuItem key={id} value={id}>
+                {name}
+                {year != null ? ` (${year})` : ""}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+      </Box>
+    </Box>
+  );
+};
