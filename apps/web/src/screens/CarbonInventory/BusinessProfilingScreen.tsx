@@ -22,7 +22,6 @@ import { EXIT_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
-import { useBusinessProfilingNavigation } from "./hooks/useBusinessProfilingNavigation";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { useSnackbar } from "notistack";
@@ -117,8 +116,14 @@ export const BusinessProfilingScreen: FC = () => {
     selectedActivity,
   });
 
-  const { goBack, goNext } = useBusinessProfilingNavigation(inventoryId);
   const { goToList, goToLanding } = useCommonNavigation();
+
+  const goNext = useCallback(() => {
+    void navigate({
+      to: Routes.CARBON_INVENTORY_SUBCATEGORY_PRESELECTION,
+      params: { inventoryId },
+    });
+  }, [navigate, inventoryId]);
 
   const { submit, isSubmitting } = useBusinessProfilingSubmit({
     inventoryId,
@@ -159,7 +164,7 @@ export const BusinessProfilingScreen: FC = () => {
     align: "right",
     buttonProps: {
       startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      onClick: goBack,
+      onClick: goToListOrLanding,
     },
   };
   const nextButton: FooterButton = {
@@ -202,7 +207,7 @@ export const BusinessProfilingScreen: FC = () => {
           hasError={hasInventoryError}
           errorMessage={ERROR_MESSAGE}
         >
-          <Box className="flex min-h-0 flex-1 flex-col gap-6">
+          <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
               <StepHeader
                 title="Paso 1: Perfilamiento"
@@ -312,7 +317,7 @@ export const BusinessProfilingScreen: FC = () => {
 
                 <Box>
                   <Typography variant="body1" fontWeight="fontWeightBold">
-                    ¿Cuál es la actividad principal de tu $
+                    ¿Cuál es la actividad principal de tu{" "}
                     {VOCAB.organization.noun.singular}?
                   </Typography>
                   <Typography variant="body1">
@@ -323,8 +328,8 @@ export const BusinessProfilingScreen: FC = () => {
                   <Typography variant="body2" color="text.secondary">
                     Ejemplo: Actividad principal de{" "}
                     {VOCAB.organization.article.singular} → cómo mides tu
-                    operación (ej: paquetes entregados). Actividad principal al
-                    año → cuántos hiciste el último año (ej: 220.000 paquetes).
+                    operación (ej: envíos). Actividad principal al año → cuántos
+                    hiciste el último año (ej: 800 envíos).
                   </Typography>
                 </Box>
               </Box>
