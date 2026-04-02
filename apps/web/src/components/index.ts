@@ -11,3 +11,4 @@ export * from "./FileUpload";
 export * from "./OrganizationSelector";
 export * from "./ReadOnlyField";
 export * from "./Carousel";
+export * from "./ResponsiveTypography";

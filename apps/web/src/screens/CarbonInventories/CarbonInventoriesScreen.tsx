@@ -9,9 +9,10 @@ import {
   InputLabel,
   FormControl,
   Tooltip,
+  useMediaQuery,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
-import { OrganizationSelector } from "@/components";
+import { OrganizationSelector, ResponsiveTypography } from "@/components";
 import { MainLayout } from "@/components/layout";
 import { InventoryActionsCell } from "./components/InventoryActionsCell";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
@@ -66,12 +67,20 @@ export const CarbonInventoriesScreen: FC = () => {
     [inventories]
   );
 
+  const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
+
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
       () => [
         {
           field: "organizationName",
-          headerName: "Nombre Org.",
+          renderHeader: () => (
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Nombre Org."
+              LongName="Nombre Organización"
+            />
+          ),
           align: "center",
           headerAlign: "center",
           minWidth: 100,
@@ -101,7 +110,13 @@ export const CarbonInventoriesScreen: FC = () => {
         },
         {
           field: "name",
-          headerName: "Nombre",
+          renderHeader: () => (
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Nombre"
+              LongName="Nombre borrador huella"
+            />
+          ),
           align: "center",
           headerAlign: "center",
           minWidth: 100,
@@ -131,7 +146,13 @@ export const CarbonInventoriesScreen: FC = () => {
         },
         {
           field: "year",
-          headerName: "Año",
+          renderHeader: () => (
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Año"
+              LongName="Año de medición"
+            />
+          ),
           align: "center",
           headerAlign: "center",
           cellClassName: "content-center",
@@ -159,7 +180,13 @@ export const CarbonInventoriesScreen: FC = () => {
         },
         {
           field: "totalEmissions",
-          headerName: "Emisiones tCO₂e",
+          renderHeader: () => (
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Emisiones"
+              LongName="Emisiones tCO₂e"
+            />
+          ),
           align: "center",
           headerAlign: "center",
           minWidth: 120,
@@ -202,7 +229,7 @@ export const CarbonInventoriesScreen: FC = () => {
           ),
         },
       ],
-      [filteredInventories]
+      [filteredInventories, isWiderScreen]
     );
 
   return (
