@@ -10,6 +10,7 @@ import { seedUsers } from "./scripts/seedUsers.js";
 import { seedMethodologyData } from "./scripts/seedMethodologyData/index.js";
 import { seedExplanations } from "./scripts/seedExplanations.js";
 import { seedSystemParameters } from "./scripts/seedSystemParameters.js";
+import { seedSubcategoryRecommendations } from "./scripts/seedSubcategoryRecommendations.js";
 
 const prisma = new PrismaClient({
   adapter: generatePrismaAdapter(),
@@ -27,6 +28,7 @@ async function main() {
   await seedUsers(prisma, SEEDS_DATASET); // needs the countries and job positions to be seeded first
   await seedMethodologyData(prisma, SEEDS_DATASET); // needs countries and status_catalog to be seeded first
   await seedExplanations(prisma, SEEDS_DATASET); // needs subcategories to be seeded first
+  await seedSubcategoryRecommendations(prisma, SEEDS_DATASET); // needs subcategories and sectors to be seeded first
 }
 
 main()
