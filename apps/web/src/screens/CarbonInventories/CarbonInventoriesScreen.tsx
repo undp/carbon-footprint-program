@@ -9,6 +9,7 @@ import {
   InputLabel,
   FormControl,
   Tooltip,
+  useMediaQuery,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { OrganizationSelector } from "@/components";
@@ -66,12 +67,20 @@ export const CarbonInventoriesScreen: FC = () => {
     [inventories]
   );
 
+  const isDesktop = useMediaQuery((theme) => theme.breakpoints.up(1400));
+
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
     useMemo(
       () => [
         {
           field: "organizationName",
-          headerName: "Nombre Org.",
+          renderHeader: () => (
+            <Tooltip title="Nombre Organización">
+              <Typography variant="body2" fontWeight={500} noWrap>
+                {isDesktop ? "Nombre Organización" : "Nombre Org."}
+              </Typography>
+            </Tooltip>
+          ),
           align: "center",
           headerAlign: "center",
           minWidth: 100,
@@ -104,7 +113,7 @@ export const CarbonInventoriesScreen: FC = () => {
           renderHeader: () => (
             <Tooltip title="Nombre borrador huella">
               <Typography variant="body2" fontWeight={500} noWrap>
-                Nombre
+                {isDesktop ? "Nombre borrador huella" : "Nombre"}
               </Typography>
             </Tooltip>
           ),
@@ -140,7 +149,7 @@ export const CarbonInventoriesScreen: FC = () => {
           renderHeader: () => (
             <Tooltip title="Año de medición">
               <Typography variant="body2" fontWeight={500} noWrap>
-                Año
+                {isDesktop ? "Año de medición" : "Año"}
               </Typography>
             </Tooltip>
           ),
@@ -171,7 +180,13 @@ export const CarbonInventoriesScreen: FC = () => {
         },
         {
           field: "totalEmissions",
-          headerName: "Emisiones tCO₂e",
+          renderHeader: () => (
+            <Tooltip title="Emisiones tCO₂e">
+              <Typography variant="body2" fontWeight={500} noWrap>
+                {isDesktop ? "Emisiones tCO₂e" : "Emisiones"}
+              </Typography>
+            </Tooltip>
+          ),
           align: "center",
           headerAlign: "center",
           minWidth: 120,
@@ -214,7 +229,7 @@ export const CarbonInventoriesScreen: FC = () => {
           ),
         },
       ],
-      [filteredInventories]
+      [filteredInventories, isDesktop]
     );
 
   return (
