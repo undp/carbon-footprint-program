@@ -110,26 +110,14 @@ export const AZURE_TENANT_SUBDOMAIN = process.env.AZURE_TENANT_SUBDOMAIN;
 export const AZURE_API_CLIENT_ID = process.env.AZURE_API_CLIENT_ID;
 
 // Computed Azure Entra values based on tenant type
-// For organizational tenants, the iss claim depends on the app's accessTokenAcceptedVersion:
-//   v1 (default): https://sts.windows.net/{tenant-id}/
-//   v2:           https://login.microsoftonline.com/{tenant-id}/v2.0
-// We accept both to avoid issues with app registration configuration.
+// Only v2.0 tokens are accepted. For organizational tenants, the app registration
+// manifest must have accessTokenAcceptedVersion set to 2.
 const AZURE_AD_ISSUERS: string[] = (() => {
-  if (
-    AZURE_TENANT_TYPE === "external" &&
-    AZURE_TENANT_ID &&
-    AZURE_TENANT_SUBDOMAIN
-  ) {
-    // CIAM uses ciamlogin.com with tenant ID in the issuer
+  if (AZURE_TENANT_TYPE === "external" && AZURE_TENANT_ID) {
     return [`https://${AZURE_TENANT_ID}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0`];
   }
   if (AZURE_TENANT_TYPE === "organizational" && AZURE_TENANT_ID) {
-    return [
-      // v1 tokens (accessTokenAcceptedVersion: null or 1)
-      `https://sts.windows.net/${AZURE_TENANT_ID}/`,
-      // v2 tokens (accessTokenAcceptedVersion: 2)
-      `https://login.microsoftonline.com/${AZURE_TENANT_ID}/v2.0`,
-    ];
+    return [`https://login.microsoftonline.com/${AZURE_TENANT_ID}/v2.0`];
   }
   return [];
 })();
@@ -173,14 +161,19 @@ export const RESOLVED_JWKS_ISSUERS: string[] = JWKS_ISSUER
  * Resolved audience - used for token validation.
  * Priority: JWKS_AUDIENCE > computed from AZURE_API_CLIENT_ID
  *
- * For organizational tenants, the aud claim is "api://{client-id}" (with prefix).
- * For external (CIAM) tenants, the aud claim is the bare client ID GUID.
+ * With v2.0 tokens enforced, the aud claim is the bare client ID GUID
+ * for both organizational and external (CIAM) tenants.
  */
-export const RESOLVED_JWKS_AUDIENCE =
-  JWKS_AUDIENCE ||
-  (AZURE_API_CLIENT_ID && AZURE_TENANT_TYPE === "organizational"
-    ? `api://${AZURE_API_CLIENT_ID}`
-    : AZURE_API_CLIENT_ID);
+export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_API_CLIENT_ID;
+
+/**
+ * Resolved required scope - used for token validation.
+ * Enforces "access_as_user" for Azure tenants.
+ * Skipped when custom JWKS_* overrides are used (JWKS_AUDIENCE is set).
+ */
+export const RESOLVED_JWKS_REQUIRED_SCOPE: string | undefined = JWKS_AUDIENCE
+  ? undefined
+  : "access_as_user";
 
 // ============================================================================
 // Authentication Provider Configuration

@@ -21,16 +21,16 @@ This guide explains how to configure authentication for the Huella Latam applica
 
 ## Choosing a Tenant Type
 
-|                         | External (CIAM)                                      | Organizational (Azure AD)                       |
-| ----------------------- | ---------------------------------------------------- | ----------------------------------------------- |
-| **Use case**            | Public-facing, self-service sign-up                  | Enterprise, managed user directory              |
-| **User management**     | Users self-register via Email OTP                    | Admin assigns users or invites guests (B2B)     |
-| **Authority URL**       | `https://{subdomain}.ciamlogin.com/{tenant-id}/v2.0` | `https://login.microsoftonline.com/{tenant-id}` |
-| **Token version**       | v2.0                                                 | v1.0 (default) or v2.0                          |
-| **Email claim**         | `email` or `preferred_username`                      | `upn` or `unique_name`                          |
-| **Requires subdomain**  | Yes (`AZURE_TENANT_SUBDOMAIN`)                       | No                                              |
-| **User flows**          | Required (Email OTP sign-up/sign-in)                 | Not needed                                      |
-| **`AZURE_TENANT_TYPE`** | `"external"`                                         | `"organizational"`                              |
+|                         | External (CIAM)                                      | Organizational (Azure AD)                            |
+| ----------------------- | ---------------------------------------------------- | ---------------------------------------------------- |
+| **Use case**            | Public-facing, self-service sign-up                  | Enterprise, managed user directory                   |
+| **User management**     | Users self-register via Email OTP                    | Admin assigns users or invites guests (B2B)          |
+| **Authority URL**       | `https://{subdomain}.ciamlogin.com/{tenant-id}/v2.0` | `https://login.microsoftonline.com/{tenant-id}/v2.0` |
+| **Token version**       | v2.0                                                 | v2.0 (required)                                      |
+| **Email claim**         | `email` or `preferred_username`                      | `email` or `preferred_username`                      |
+| **Requires subdomain**  | Yes (`AZURE_TENANT_SUBDOMAIN`)                       | No                                                   |
+| **User flows**          | Required (Email OTP sign-up/sign-in)                 | Not needed                                           |
+| **`AZURE_TENANT_TYPE`** | `"external"`                                         | `"organizational"`                                   |
 
 > The application code handles both types automatically. The only difference is the Azure Portal setup and environment variable configuration.
 
@@ -260,6 +260,11 @@ Users are managed directly within the organizational tenant. Self-service sign-u
    - **Name**: e.g. `Huella Latam API - Node`
    - **Supported account types**: "Accounts in this organizational directory only (Single tenant)"
 4. Click **"Register"**
+5. Set the token version to v2.0:
+   - Go to **Manage** → **Manifest**
+   - Find `"accessTokenAcceptedVersion"` (it defaults to `null`, which means v1.0)
+   - Change it to `2`
+   - Click **Save**
 
 > Save the **API App Registration ID**.
 
@@ -343,7 +348,7 @@ export AZURE_FRONT_CLIENT_ID=""              # Frontend App Registration ID
 
 # Authority URL — depends on tenant type:
 # External (CIAM): "https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
-# Organizational:  "https://login.microsoftonline.com/${AZURE_TENANT_ID}"
+# Organizational:  "https://login.microsoftonline.com/${AZURE_TENANT_ID}/v2.0"
 export AZURE_AUTH_AUTHORITY="..."
 ```
 
@@ -381,13 +386,13 @@ The Bicep deployment will:
 
 **Auto-computed values based on `AZURE_TENANT_TYPE`:**
 
-| Value    | External (CIAM)                                                     | Organizational                                                                                           |
-| -------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Issuer   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://sts.windows.net/{tenant-id}/` (v1) or `https://login.microsoftonline.com/{tenant-id}/v2.0` (v2) |
-| JWKS URI | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys`                                      |
-| Audience | `{API_CLIENT_ID}` (bare GUID)                                       | `api://{API_CLIENT_ID}` (with prefix)                                                                    |
+| Value    | External (CIAM)                                                     | Organizational                                                      |
+| -------- | ------------------------------------------------------------------- | ------------------------------------------------------------------- |
+| Issuer   | `https://{tenant-id}.ciamlogin.com/{tenant-id}/v2.0`                | `https://login.microsoftonline.com/{tenant-id}/v2.0`                |
+| JWKS URI | `https://{subdomain}.ciamlogin.com/{tenant-id}/discovery/v2.0/keys` | `https://login.microsoftonline.com/{tenant-id}/discovery/v2.0/keys` |
+| Audience | `{API_CLIENT_ID}` (bare GUID)                                       | `{API_CLIENT_ID}` (bare GUID)                                       |
 
-> For organizational tenants, the API automatically accepts both v1 and v2 issuer formats.
+> Only v2.0 tokens are accepted. For organizational tenants, ensure the API app registration manifest has `accessTokenAcceptedVersion` set to `2`.
 
 ### Web (apps/web)
 
@@ -405,7 +410,7 @@ The Bicep deployment will:
 VITE_AZURE_AUTH_AUTHORITY="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
 
 # Organizational:
-VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-..."
+VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 ```
 
 ---
@@ -434,14 +439,16 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 
 ### Token Claim Differences
 
-The API automatically handles different token formats:
+Only v2.0 tokens are accepted for both tenant types:
 
-| Claim    | External (CIAM) v2.0            | Organizational v1.0     | Organizational v2.0                   |
-| -------- | ------------------------------- | ----------------------- | ------------------------------------- |
-| Email    | `email` or `preferred_username` | `upn` or `unique_name`  | `email` or `preferred_username`       |
-| User ID  | `sub`                           | `oid` or `sub`          | `oid` or `sub`                        |
-| Audience | `{client-id}`                   | `api://{client-id}`     | `api://{client-id}`                   |
-| Issuer   | `{id}.ciamlogin.com/{id}/v2.0`  | `sts.windows.net/{id}/` | `login.microsoftonline.com/{id}/v2.0` |
+| Claim    | External (CIAM)                 | Organizational (Azure AD)             |
+| -------- | ------------------------------- | ------------------------------------- |
+| Email    | `email` or `preferred_username` | `email` or `preferred_username`       |
+| User ID  | `sub`                           | `oid` or `sub`                        |
+| Audience | `{client-id}`                   | `{client-id}`                         |
+| Issuer   | `{id}.ciamlogin.com/{id}/v2.0`  | `login.microsoftonline.com/{id}/v2.0` |
+| Scope    | `access_as_user`                | `access_as_user`                      |
+| Version  | `2.0`                           | `2.0`                                 |
 
 ---
 
@@ -458,7 +465,7 @@ See `apps/web/src/config/msalConfig.ts` for the current configuration.
 export VITE_AZURE_AUTH_AUTHORITY="https://undphuella.ciamlogin.com/929aea96-.../v2.0"
 
 # .envrc — Organizational tenant example
-export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-..."
+export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/1c49a94b-.../v2.0"
 ```
 
 ---
@@ -508,12 +515,15 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 
 ### Token Validation Errors
 
-| Error                                | Cause                   | Solution                                                                                                                                                                                   |
-| ------------------------------------ | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| "The iss claim value is not allowed" | Issuer mismatch         | Check `AZURE_TENANT_TYPE` and `AZURE_TENANT_ID`. For organizational v1 tokens, the issuer is `sts.windows.net/{id}/`, not `login.microsoftonline.com`. The API accepts both automatically. |
-| "The aud claim value is not allowed" | Audience mismatch       | Organizational tokens use `api://{client-id}` as audience. Check `AZURE_API_CLIENT_ID` is correct.                                                                                         |
-| "Token payload missing email claim"  | Token lacks email field | Organizational v1 tokens use `upn`/`unique_name` instead of `email`. The API handles this automatically. If still failing, check the app registration's token configuration.               |
-| "Token expired"                      | Access token expired    | MSAL handles refresh tokens automatically; check `offline_access` scope is included.                                                                                                       |
+| Error                                | Cause                    | Solution                                                                                                                                               |
+| ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| "Token version X is not supported"   | v1.0 token received      | Set `accessTokenAcceptedVersion` to `2` in the API app registration manifest (App registrations > [API App] > Manifest).                               |
+| "Token issuer is not a v2.0 issuer"  | v1.0 issuer in token     | Same fix: set `accessTokenAcceptedVersion` to `2` in the manifest. Ensure authority URL includes `/v2.0`.                                              |
+| "Token missing required scope"       | Missing `access_as_user` | Ensure the API app exposes the `access_as_user` scope and the frontend requests `api://{client-id}/access_as_user`.                                    |
+| "The iss claim value is not allowed" | Issuer mismatch          | Check `AZURE_TENANT_TYPE` and `AZURE_TENANT_ID`. The expected issuer is `https://login.microsoftonline.com/{tenant-id}/v2.0` for organizational.       |
+| "The aud claim value is not allowed" | Audience mismatch        | With v2.0 tokens, the audience is the bare client ID GUID. Check `AZURE_API_CLIENT_ID` matches the token's `aud` claim.                                |
+| "Token payload missing email claim"  | Token lacks email field  | Ensure the app registration includes `email` and `profile` in the token's optional claims, or that users have email addresses in their Azure profiles. |
+| "Token expired"                      | Access token expired     | MSAL handles refresh tokens automatically; check `offline_access` scope is included.                                                                   |
 
 ### Easy-Auth Errors
 

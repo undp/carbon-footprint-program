@@ -14,7 +14,7 @@ export AZURE_API_CLIENT_ID=""        # API App Registration ID
 export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
 # Authority URL: derived from AZURE_TENANT_TYPE
 if [ "$AZURE_TENANT_TYPE" = "organizational" ]; then
-  export AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}"
+  export AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}/v2.0"
 else
   export AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
 fi

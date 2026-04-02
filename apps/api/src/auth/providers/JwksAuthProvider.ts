@@ -13,6 +13,7 @@
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "../AuthProvider.js";
 import type { AuthUser, OidcTokenPayload } from "../types.js";
+import { RESOLVED_JWKS_REQUIRED_SCOPE } from "@/config/environment.js";
 
 /**
  * JWKS-based authentication provider.
@@ -45,27 +46,48 @@ export class JwksAuthProvider implements AuthProvider {
       // so forged or tampered tokens are rejected.
       const payload = await request.jwtVerify<OidcTokenPayload>();
 
+      console.log(payload);
+
       request.log.debug(
         { sub: payload.sub, oid: payload.oid },
         "JwksAuthProvider: token verified"
       );
 
+      // Enforce v2.0 tokens only (ver claim is present in all Azure AD tokens)
+      if (payload.ver && payload.ver !== "2.0") {
+        throw new Error(
+          `Token version "${payload.ver}" is not supported. Only v2.0 tokens are accepted. ` +
+            "Ensure accessTokenAcceptedVersion is set to 2 in the API app registration manifest."
+        );
+      }
+      if (payload.iss && !payload.iss.includes("/v2.0")) {
+        throw new Error(
+          `Token issuer "${payload.iss}" is not a v2.0 issuer. ` +
+            "Expected issuer URL to contain '/v2.0'."
+        );
+      }
+
+      // Enforce required scope (e.g. "access_as_user" for Azure tenants)
+      if (RESOLVED_JWKS_REQUIRED_SCOPE) {
+        const scopes = payload.scp?.split(" ") ?? [];
+        if (!scopes.includes(RESOLVED_JWKS_REQUIRED_SCOPE)) {
+          const tokenScopes = payload.scp ?? "(none)";
+          throw new Error(
+            `Token missing required scope "${RESOLVED_JWKS_REQUIRED_SCOPE}". ` +
+              `Token scopes: "${tokenScopes}".`
+          );
+        }
+      }
+
       if (!payload.sub && !payload.oid) {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
       }
 
-      // Extract user email from token claims.
-      // Different token versions use different claims:
-      //   - v2.0 / CIAM: `email` or `preferred_username`
-      //   - v1.0 (organizational): `upn` or `unique_name`
-      const email =
-        payload.email ??
-        payload.preferred_username ??
-        payload.upn ??
-        payload.unique_name;
+      // Extract user email from v2.0 token claims
+      const email = payload.email ?? payload.preferred_username;
       if (!email) {
         throw new Error(
-          "Token payload missing email claim ('email', 'preferred_username', 'upn', or 'unique_name')"
+          "Token payload missing email claim ('email' or 'preferred_username')"
         );
       }
 

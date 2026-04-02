@@ -23,12 +23,12 @@ export interface OidcTokenPayload {
   sub: string;
   /** User's email address */
   email?: string;
-  /** User's preferred username (often the email, common in v2.0 tokens) */
+  /** User's preferred username (often the email) */
   preferred_username?: string;
-  /** User Principal Name (organizational tenant v1.0 tokens) */
-  upn?: string;
-  /** Unique name (organizational tenant v1.0 tokens, often same as UPN) */
-  unique_name?: string;
+  /** Token version (Azure AD: must be "2.0") */
+  ver?: string;
+  /** Space-delimited scopes (Azure AD: e.g. "access_as_user") */
+  scp?: string;
   /** User's display name */
   name?: string;
   /** User's given/first name */
