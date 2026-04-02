@@ -92,6 +92,7 @@ export function getJwksUri(): string | undefined {
  */
 // Warn at startup if JWKS is configured but issuer validation will be skipped
 if (RESOLVED_JWKS_URI && RESOLVED_JWKS_ISSUERS.length === 0) {
+  // eslint-disable-next-line no-console
   console.warn(
     `[auth] WARNING: JWKS URI is configured (${RESOLVED_JWKS_URI}) but no issuers are set. ` +
       "Issuer validation is DISABLED — tokens from any issuer will be accepted. " +
