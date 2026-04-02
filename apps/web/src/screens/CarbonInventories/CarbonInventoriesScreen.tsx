@@ -75,7 +75,7 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "organizationName",
           renderHeader: () => (
-            <Tooltip title="Nombre Organización">
+            <Tooltip title={isDesktop ? null : "Nombre Organización"}>
               <Typography variant="body2" fontWeight={500} noWrap>
                 {isDesktop ? "Nombre Organización" : "Nombre Org."}
               </Typography>
@@ -111,7 +111,7 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "name",
           renderHeader: () => (
-            <Tooltip title="Nombre borrador huella">
+            <Tooltip title={isDesktop ? null : "Nombre borrador huella"}>
               <Typography variant="body2" fontWeight={500} noWrap>
                 {isDesktop ? "Nombre borrador huella" : "Nombre"}
               </Typography>
@@ -147,7 +147,7 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "year",
           renderHeader: () => (
-            <Tooltip title="Año de medición">
+            <Tooltip title={isDesktop ? null : "Año de medición"}>
               <Typography variant="body2" fontWeight={500} noWrap>
                 {isDesktop ? "Año de medición" : "Año"}
               </Typography>
@@ -181,7 +181,7 @@ export const CarbonInventoriesScreen: FC = () => {
         {
           field: "totalEmissions",
           renderHeader: () => (
-            <Tooltip title="Emisiones tCO₂e">
+            <Tooltip title={isDesktop ? null : "Emisiones tCO₂e"}>
               <Typography variant="body2" fontWeight={500} noWrap>
                 {isDesktop ? "Emisiones tCO₂e" : "Emisiones"}
               </Typography>
