@@ -51,7 +51,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
     await cleanupTestOrganization(prisma);
   });
 
-  it("should mark a pending submission as OBJECTED and attach revision files when UUIDs are repeated", async () => {
+  it("should mark a pending submission as REVIEWED and attach revision files when UUIDs are repeated", async () => {
     const org = await createTestOrganization(prisma);
     const orgData = await createTestOrganizationData(prisma, org.id);
     const { submission } = await createTestOrganizationDataSubmission(
@@ -82,7 +82,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
     });
     expect(updatedSubmission).toEqual(
       expect.objectContaining({
-        status: SubmissionStatus.OBJECTED,
+        status: SubmissionStatus.REVIEWED,
         reviewerId: testUser.id,
         updatedById: testUser.id,
         reviewComments: requestBody.reviewComments,

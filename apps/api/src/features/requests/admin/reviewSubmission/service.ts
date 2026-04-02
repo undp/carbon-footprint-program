@@ -23,7 +23,7 @@ export const reviewSubmissionService = async (
     await updatePendingSubmissionStatus(
       tx,
       submissionId,
-      SubmissionStatus.OBJECTED,
+      SubmissionStatus.REVIEWED,
       userId,
       { reviewComments: body.reviewComments }
     );

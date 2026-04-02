@@ -11,7 +11,7 @@ import {
 type SubmissionTargetStatus =
   | typeof SubmissionStatus.APPROVED
   | typeof SubmissionStatus.REJECTED
-  | typeof SubmissionStatus.OBJECTED;
+  | typeof SubmissionStatus.REVIEWED;
 
 export const updatePendingSubmissionStatus = async (
   prismaClient: PrismaClient | Prisma.TransactionClient,

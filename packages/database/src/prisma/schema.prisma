@@ -867,7 +867,7 @@ model SubmissionSubjectOrganizationData {
 enum SubmissionStatus {
   PENDING
   APPROVED
-  OBJECTED
+  REVIEWED
   REJECTED
 
   @@map("submission_status")
