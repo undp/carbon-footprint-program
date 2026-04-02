@@ -20,6 +20,7 @@ export const getReductionPlanRoute: StandardRouteSignature = (fastify) => {
         params: GetReductionPlanParamsSchema,
         response: {
           200: GetReductionPlanResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
