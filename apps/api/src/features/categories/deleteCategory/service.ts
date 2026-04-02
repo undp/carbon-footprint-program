@@ -1,5 +1,12 @@
 import type { PrismaClient } from "@repo/database";
-import { CategoryStatus, SubcategoryStatus, User } from "@repo/types";
+import {
+  CategoryStatus,
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
+  SubcategoryStatus,
+  User,
+} from "@repo/types";
 import { CategoryNotFoundError } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
@@ -15,16 +22,16 @@ export const deleteCategoryService = async (
 
   const categoryId = BigInt(id);
 
-  const category = await prismaClient.category.findUnique({
-    where: { id: categoryId, status: { not: CategoryStatus.DELETED } },
-    select: { status: true, position: true, methodologyVersionId: true },
-  });
-
-  if (!category) {
-    throw new CategoryNotFoundError();
-  }
-
   await prismaClient.$transaction(async (tx) => {
+    const category = await tx.category.findUnique({
+      where: { id: categoryId, status: CategoryStatus.ACTIVE },
+      select: { status: true, position: true, methodologyVersionId: true },
+    });
+
+    if (!category) {
+      throw new CategoryNotFoundError();
+    }
+
     await tx.category.update({
       where: { id: categoryId },
       data: {
@@ -33,10 +40,43 @@ export const deleteCategoryService = async (
       },
     });
 
+    await tx.emissionFactor.updateMany({
+      where: {
+        subcategory: { categoryId },
+        status: EmissionFactorStatus.ACTIVE,
+      },
+      data: {
+        status: EmissionFactorStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
+
+    await tx.emissionFactorDimensionValue.updateMany({
+      where: {
+        dimension: { subcategory: { categoryId } },
+        status: EmissionFactorDimensionValueStatus.ACTIVE,
+      },
+      data: {
+        status: EmissionFactorDimensionValueStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
+
+    await tx.emissionFactorDimension.updateMany({
+      where: {
+        subcategory: { categoryId },
+        status: EmissionFactorDimensionStatus.ACTIVE,
+      },
+      data: {
+        status: EmissionFactorDimensionStatus.DELETED,
+        updatedById: BigInt(user.id),
+      },
+    });
+
     await tx.subcategory.updateMany({
       where: {
         categoryId,
-        status: { not: SubcategoryStatus.DELETED },
+        status: SubcategoryStatus.ACTIVE,
       },
       data: {
         status: SubcategoryStatus.DELETED,

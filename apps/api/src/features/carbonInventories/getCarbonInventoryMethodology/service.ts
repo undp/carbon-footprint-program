@@ -2,8 +2,11 @@ import type { PrismaClient } from "@repo/database";
 import {
   GetCarbonInventoryMethodologyResponse,
   CategoryStatus,
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
   SubcategoryStatus,
   IconNameSchema,
+  EmissionFactorStatus,
 } from "@repo/types";
 import { z } from "zod";
 import {
@@ -78,6 +81,9 @@ export const getCarbonInventoryMethodologyService = async (
               examples: true,
               explanationId: true,
               dimensions: {
+                where: {
+                  status: EmissionFactorDimensionStatus.ACTIVE,
+                },
                 select: {
                   id: true,
                   name: true,
@@ -90,7 +96,7 @@ export const getCarbonInventoryMethodologyService = async (
                       value: true,
                     },
                     where: {
-                      isActive: true,
+                      status: EmissionFactorDimensionValueStatus.ACTIVE,
                     },
                     orderBy: {
                       value: "asc",
@@ -102,6 +108,45 @@ export const getCarbonInventoryMethodologyService = async (
                 },
               },
               emissionFactors: {
+                where: {
+                  status: EmissionFactorStatus.ACTIVE,
+                  AND: [
+                    {
+                      OR: [
+                        { dimensionValue1Id: null },
+                        {
+                          dimensionValue1: {
+                            is: {
+                              status: EmissionFactorDimensionValueStatus.ACTIVE,
+                              dimension: {
+                                is: {
+                                  status: EmissionFactorDimensionStatus.ACTIVE,
+                                },
+                              },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                    {
+                      OR: [
+                        { dimensionValue2Id: null },
+                        {
+                          dimensionValue2: {
+                            is: {
+                              status: EmissionFactorDimensionValueStatus.ACTIVE,
+                              dimension: {
+                                is: {
+                                  status: EmissionFactorDimensionStatus.ACTIVE,
+                                },
+                              },
+                            },
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
                 select: {
                   id: true,
                   dimensionValue1Id: true,

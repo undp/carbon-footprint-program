@@ -15,8 +15,17 @@ import {
   carbonInventoryPatterns,
 } from "@test/factories/carbonInventorySeeder.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import {
+  createTestEmissionFactor,
+  getTestRateMeasurementUnitId,
+} from "@test/factories/emissionFactorFactory.js";
 import type { DeleteMethodologyResponse } from "@repo/types";
-import { CategoryStatus } from "@repo/types";
+import {
+  CategoryStatus,
+  EmissionFactorStatus,
+  SubcategoryStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -125,6 +134,67 @@ describe("DELETE /api/methodologies/:id - Integration Tests", () => {
 
       expect(dbCategory1!.status).toBe(CategoryStatus.DELETED);
       expect(dbCategory2!.status).toBe(CategoryStatus.DELETED);
+    });
+
+    it("should cascade soft-delete subcategories when methodology is deleted", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Cascade Delete Subcategories",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat For Sub Cascade",
+        position: 1,
+      });
+      const sub1 = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub Cascade 1",
+      });
+      const sub2 = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub Cascade 2",
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/methodologies/${methodology.id}`,
+      });
+
+      const [dbSub1, dbSub2] = await Promise.all([
+        prisma.subcategory.findUnique({ where: { id: sub1.id } }),
+        prisma.subcategory.findUnique({ where: { id: sub2.id } }),
+      ]);
+
+      expect(dbSub1!.status).toBe(SubcategoryStatus.DELETED);
+      expect(dbSub2!.status).toBe(SubcategoryStatus.DELETED);
+    });
+
+    it("should cascade soft-delete emission factors when methodology is deleted", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Cascade Delete EFs",
+        status: MethodologyVersionStatus.UNPUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Cat For EF Cascade",
+        position: 1,
+      });
+      const sub = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Sub For EF Cascade",
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const ef1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId);
+      const ef2 = await createTestEmissionFactor(prisma, sub.id, rateUnitId);
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/methodologies/${methodology.id}`,
+      });
+
+      const [dbEf1, dbEf2] = await Promise.all([
+        prisma.emissionFactor.findUnique({ where: { id: ef1.id } }),
+        prisma.emissionFactor.findUnique({ where: { id: ef2.id } }),
+      ]);
+
+      expect(dbEf1!.status).toBe(EmissionFactorStatus.DELETED);
+      expect(dbEf2!.status).toBe(EmissionFactorStatus.DELETED);
     });
   });
 

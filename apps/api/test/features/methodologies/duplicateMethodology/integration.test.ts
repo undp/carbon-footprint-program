@@ -16,8 +16,18 @@ import {
   createTestSubcategoryUnits,
   getTestMeasurementUnitIds,
 } from "@test/factories/subcategoryFactory.js";
+import {
+  createTestEmissionFactor,
+  createTestEmissionFactorDimension,
+  createTestEmissionFactorDimensionValue,
+  getTestRateMeasurementUnitId,
+} from "@test/factories/emissionFactorFactory.js";
 import type { DuplicateMethodologyResponse } from "@repo/types";
-import { CategoryStatus, SubcategoryStatus } from "@repo/types";
+import {
+  CategoryStatus,
+  SubcategoryStatus,
+  EmissionFactorStatus,
+} from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -455,6 +465,218 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       expect(duplicatedCategories[0].name).toBe("Test - Active Category");
       expect(duplicatedCategories[0].status).toBe(CategoryStatus.ACTIVE);
     });
+  });
+
+  it("should duplicate emission factors with their dimensions and dimension values", async () => {
+    const original = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Duplicate With EFs",
+      status: MethodologyVersionStatus.UNPUBLISHED,
+    });
+
+    const category = await createTestCategory(prisma, original.id, {
+      name: "Test - EF Category",
+      position: 1,
+    });
+
+    const sub = await createTestSubcategory(prisma, category.id, {
+      name: "Test - EF Sub",
+    });
+
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    // Create dimension with values
+    const dim = await createTestEmissionFactorDimension(prisma, sub.id, {
+      code: "animal_type",
+      name: "Tipo de animal",
+      position: 1,
+      isRequired: true,
+    });
+
+    const val1 = await createTestEmissionFactorDimensionValue(prisma, dim.id, {
+      value: "Búfalos",
+    });
+    const val2 = await createTestEmissionFactorDimensionValue(prisma, dim.id, {
+      value: "Vacas",
+    });
+
+    // Create emission factors using same source (trigger enforces single source per subcategory)
+      const factor1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+      dimensionValue1Id: val1.id,
+      source: "IPCC",
+      value: "2.5",
+    });
+    await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+      dimensionValue1Id: val2.id,
+      source: "IPCC",
+      value: "3.0",
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: `/api/methodologies/${original.id}/duplicate`,
+    });
+
+    expect(response.statusCode).toBe(201);
+    const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+    // Find duplicated subcategory
+    const dupCategories = await prisma.category.findMany({
+      where: { methodologyVersionId: BigInt(body.id) },
+    });
+    const dupSubs = await prisma.subcategory.findMany({
+      where: { categoryId: dupCategories[0].id },
+    });
+    expect(dupSubs).toHaveLength(1);
+
+    // Check dimensions were duplicated
+    const dupDimensions = await prisma.emissionFactorDimension.findMany({
+      where: { subcategoryId: dupSubs[0].id },
+    });
+    expect(dupDimensions).toHaveLength(1);
+    expect(dupDimensions[0].code).toBe("animal_type");
+    expect(dupDimensions[0].name).toBe("Tipo de animal");
+    expect(dupDimensions[0].isRequired).toBe(true);
+
+    // Check dimension values were duplicated
+    const dupValues = await prisma.emissionFactorDimensionValue.findMany({
+      where: { dimensionId: dupDimensions[0].id },
+      orderBy: { value: "asc" },
+    });
+    expect(dupValues).toHaveLength(2);
+    expect(dupValues[0].value).toBe("Búfalos");
+    expect(dupValues[1].value).toBe("Vacas");
+
+    // Check emission factors were duplicated
+    const dupFactors = await prisma.emissionFactor.findMany({
+      where: { subcategoryId: dupSubs[0].id },
+      orderBy: { value: "asc" },
+    });
+    expect(dupFactors).toHaveLength(2);
+    expect(dupFactors[0].source).toBe("IPCC");
+    expect(dupFactors[0].value.toString()).toBe("2.5");
+    expect(dupFactors[0].dimensionValue1Id).toBe(dupValues[0].id);
+    expect(dupFactors[1].value.toString()).toBe("3");
+    expect(dupFactors[1].dimensionValue1Id).toBe(dupValues[1].id);
+
+    // Ensure new IDs are different from originals
+    expect(dupDimensions[0].id).not.toBe(dim.id);
+    expect(dupValues[0].id).not.toBe(val1.id);
+    expect(dupFactors[0].id).not.toBe(factor1.id);
+  });
+
+  it("should not duplicate deleted emission factors", async () => {
+    const original = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Duplicate Skip Deleted EFs",
+      status: MethodologyVersionStatus.UNPUBLISHED,
+    });
+
+    const category = await createTestCategory(prisma, original.id, {
+      name: "Test - EF Deleted Category",
+      position: 1,
+    });
+
+    const sub = await createTestSubcategory(prisma, category.id, {
+      name: "Test - EF Deleted Sub",
+    });
+
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+      source: "DEFRA 2025",
+      status: EmissionFactorStatus.ACTIVE,
+    });
+    await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
+      source: "DEFRA 2025",
+      status: EmissionFactorStatus.DELETED,
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: `/api/methodologies/${original.id}/duplicate`,
+    });
+
+    expect(response.statusCode).toBe(201);
+    const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+    const dupCategories = await prisma.category.findMany({
+      where: { methodologyVersionId: BigInt(body.id) },
+    });
+    const dupSubs = await prisma.subcategory.findMany({
+      where: { categoryId: dupCategories[0].id },
+    });
+
+    const dupFactors = await prisma.emissionFactor.findMany({
+      where: { subcategoryId: dupSubs[0].id },
+    });
+
+    expect(dupFactors).toHaveLength(1);
+    expect(dupFactors[0].status).toBe(EmissionFactorStatus.ACTIVE);
+  });
+
+  it("should duplicate dimension values with parent references", async () => {
+    const original = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Duplicate Parent Values",
+      status: MethodologyVersionStatus.UNPUBLISHED,
+    });
+
+    const category = await createTestCategory(prisma, original.id, {
+      name: "Test - Parent Val Category",
+      position: 1,
+    });
+
+    const sub = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Parent Val Sub",
+    });
+
+    const dim = await createTestEmissionFactorDimension(prisma, sub.id, {
+      code: "region",
+      name: "Región",
+      position: 1,
+    });
+
+    const parentVal = await createTestEmissionFactorDimensionValue(
+      prisma,
+      dim.id,
+      { value: "América" }
+    );
+    const childVal = await createTestEmissionFactorDimensionValue(
+      prisma,
+      dim.id,
+      { value: "Chile", parentValueId: parentVal.id }
+    );
+
+    const response = await app.inject({
+      method: "POST",
+      url: `/api/methodologies/${original.id}/duplicate`,
+    });
+
+    expect(response.statusCode).toBe(201);
+    const body = JSON.parse(response.body) as DuplicateMethodologyResponse;
+
+    const dupCategories = await prisma.category.findMany({
+      where: { methodologyVersionId: BigInt(body.id) },
+    });
+    const dupSubs = await prisma.subcategory.findMany({
+      where: { categoryId: dupCategories[0].id },
+    });
+    const dupDims = await prisma.emissionFactorDimension.findMany({
+      where: { subcategoryId: dupSubs[0].id },
+    });
+    const dupValues = await prisma.emissionFactorDimensionValue.findMany({
+      where: { dimensionId: dupDims[0].id },
+      orderBy: { value: "asc" },
+    });
+
+    expect(dupValues).toHaveLength(2);
+    const dupAmerica = dupValues.find((v) => v.value === "América")!;
+    const dupChile = dupValues.find((v) => v.value === "Chile")!;
+
+    expect(dupAmerica.parentValueId).toBeNull();
+    expect(dupChile.parentValueId).toBe(dupAmerica.id);
+
+    // Ensure IDs are different from originals
+    expect(dupAmerica.id).not.toBe(parentVal.id);
+    expect(dupChile.id).not.toBe(childVal.id);
   });
 
   describe("Error handling", () => {

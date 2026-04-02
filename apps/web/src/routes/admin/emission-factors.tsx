@@ -2,11 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
 import { requireRole } from "@/utils/requireRole";
-import { UnderConstructionScreen } from "@/screens/Maintainer/screens/UnderConstructionScreen";
+import { EmissionFactorsMaintainerScreen } from "@/screens/Maintainer/screens/EmissionFactorsMaintainerScreen";
 
 export const Route = createFileRoute(Routes.ADMIN_EMISSION_FACTORS)({
   beforeLoad: requireRole([SystemRole.SUPERADMIN], {
     redirectTo: Routes.ADMIN_DASHBOARD,
   }),
-  component: () => <UnderConstructionScreen />,
+  component: EmissionFactorsMaintainerScreen,
 });

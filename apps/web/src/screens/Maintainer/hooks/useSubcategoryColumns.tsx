@@ -26,6 +26,7 @@ interface UseSubcategoryColumnsParams {
   onCancelEditRow: () => void;
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
+  onConfigureVariables?: (rowId: string) => void;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -40,6 +41,7 @@ export const useSubcategoryColumns = ({
   onCancelEditRow,
   onDelete,
   onOpenExplanation,
+  onConfigureVariables,
   rows,
   categories,
   allMeasurementUnits,
@@ -218,37 +220,49 @@ export const useSubcategoryColumns = ({
           );
         },
       },
-      ...(!viewOnly
-        ? [
-            {
-              field: "actions",
-              headerName: "Acciones",
-              width: 100,
-              sortable: false,
-              filterable: false,
-              headerAlign: "center" as const,
-              align: "center" as const,
-              renderCell: (params: GridRenderCellParams<Subcategory>) => {
-                const anyEditing = editingRowId !== null;
-                const rowId = params.row.id;
-                const editing = isEditing(rowId);
-                const rowIndex = getRowIndex(rowId);
-                const formRow = rows[rowIndex];
+      {
+        field: "actions",
+        headerName: "Acciones",
+        width: viewOnly ? 90 : 130,
+        sortable: false,
+        filterable: false,
+        headerAlign: "center" as const,
+        align: "center" as const,
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const anyEditing = editingRowId !== null;
+          const rowId = params.row.id;
+          const editing = isEditing(rowId);
+          const rowIndex = getRowIndex(rowId);
+          const formRow = rows[rowIndex];
 
-                return (
-                  <ActionButtons
-                    isActiveRow={anyEditing && !editing}
-                    isEditing={editing}
-                    onStopEditCells={onStopEditRow}
-                    onCancelEdit={onCancelEditRow}
-                    onDelete={formRow ? () => onDelete(formRow) : undefined}
-                    deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta subcategoría?"
-                  />
-                );
-              },
-            },
-          ]
-        : []),
+          const isNewRow = params.row.id.startsWith("temp_");
+
+          if (viewOnly) {
+            return (
+              <ActionButtons
+                isActiveRow={false}
+                onConfigureVariables={onConfigureVariables ? () => onConfigureVariables(params.row.id) : undefined}
+              />
+            );
+          }
+
+          return (
+            <ActionButtons
+              isActiveRow={anyEditing && !editing}
+              isEditing={editing}
+              onStopEditCells={onStopEditRow}
+              onCancelEdit={onCancelEditRow}
+              onDelete={formRow ? () => onDelete(formRow) : undefined}
+              onConfigureVariables={
+                !isNewRow && onConfigureVariables
+                  ? () => onConfigureVariables(params.row.id)
+                  : undefined
+              }
+              deleteConfirmMessage="¿Estás seguro de que deseas eliminar esta subcategoría?"
+            />
+          );
+        },
+      },
     ],
     [
       viewOnly,
@@ -264,6 +278,7 @@ export const useSubcategoryColumns = ({
       onStopEditRow,
       onCancelEditRow,
       onDelete,
+      onConfigureVariables,
     ]
   );
 };

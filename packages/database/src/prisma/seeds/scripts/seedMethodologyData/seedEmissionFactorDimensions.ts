@@ -1,4 +1,8 @@
 import { type PrismaClient } from "@/index.js";
+import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+} from "@/enums.js";
 import { z } from "zod";
 import {
   checkForDuplicates,
@@ -81,6 +85,7 @@ export async function seedEmissionFactorDimensions(
       name: dimension.name,
       position: dimension.position,
       isRequired: dimension.isRequired,
+      status: EmissionFactorDimensionStatus.ACTIVE,
     };
   });
 
@@ -92,6 +97,9 @@ export async function seedEmissionFactorDimensions(
 
   // Verify all dimensions were created
   const dimensions = await prisma.emissionFactorDimension.findMany({
+    where: {
+      status: EmissionFactorDimensionStatus.ACTIVE,
+    },
     include: {
       subcategory: true,
     },
@@ -186,12 +194,16 @@ export async function seedEmissionFactorDimensions(
       dimensionId: v.dimensionId,
       value: v.value,
       parentValueId: null,
+      status: EmissionFactorDimensionValueStatus.ACTIVE,
     })),
     skipDuplicates: true,
   });
 
   // Fetch all created dimension values
   const dimensionValues = await prisma.emissionFactorDimensionValue.findMany({
+    where: {
+      status: EmissionFactorDimensionValueStatus.ACTIVE,
+    },
     include: {
       dimension: {
         include: {

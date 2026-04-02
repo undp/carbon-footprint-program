@@ -18,19 +18,6 @@ export const updateMethodologyService = async (
   data: UpdateMethodologyRequest,
   user: User | null
 ): Promise<UpdateMethodologyResponse> => {
-  const targetMethodology = await prismaClient.methodologyVersion.findUnique({
-    where: { id: BigInt(id) },
-    select: { countryId: true, status: true },
-  });
-
-  if (!targetMethodology) {
-    throw new MethodologyNotFoundError();
-  }
-
-  if (targetMethodology.status === MethodologyVersionStatus.DELETED) {
-    throw new MethodologyIsDeletedError();
-  }
-
   // Build the update data object dynamically based on provided fields
   const updateData: Prisma.MethodologyVersionUncheckedUpdateInput = {};
 
@@ -60,11 +47,22 @@ export const updateMethodologyService = async (
   }
 
   try {
-    // If setting status to PUBLISHED, unpublish other methodologies of the same country
-    if (data.status === MethodologyVersionStatus.PUBLISHED) {
-      // Use transaction to ensure atomicity
-      const methodology = await prismaClient.$transaction(async (tx) => {
-        // Unpublish all other PUBLISHED methodologies for this country
+    const methodology = await prismaClient.$transaction(async (tx) => {
+      const targetMethodology = await tx.methodologyVersion.findUnique({
+        where: { id: BigInt(id) },
+        select: { countryId: true, status: true },
+      });
+
+      if (!targetMethodology) {
+        throw new MethodologyNotFoundError();
+      }
+
+      if (targetMethodology.status === MethodologyVersionStatus.DELETED) {
+        throw new MethodologyIsDeletedError();
+      }
+
+      // If setting status to PUBLISHED, unpublish other methodologies of the same country
+      if (data.status === MethodologyVersionStatus.PUBLISHED) {
         await tx.methodologyVersion.updateMany({
           where: {
             countryId: targetMethodology.countryId,
@@ -76,23 +74,14 @@ export const updateMethodologyService = async (
             updatedById: null,
           },
         });
+      }
 
-        // Update the target methodology
-        return tx.methodologyVersion.update({
-          where: { id: BigInt(id) },
-          data: updateData,
-        });
+      return tx.methodologyVersion.update({
+        where: { id: BigInt(id) },
+        data: updateData,
       });
-
-      return mapMethodologyToResponse(methodology);
-    }
-
-    const methodology = await prismaClient.methodologyVersion.update({
-      where: {
-        id: BigInt(id),
-      },
-      data: updateData,
     });
+
     return mapMethodologyToResponse(methodology);
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

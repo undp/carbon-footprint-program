@@ -1,4 +1,8 @@
 import { type PrismaClient } from "@/index.js";
+import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+} from "@/enums.js";
 import { z } from "zod";
 import { type SeedsDataset } from "@/prisma/seeds/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
@@ -60,9 +64,16 @@ export async function seedEmissionFactors(
 
   // Fetch all dimensions and their values
   const dimensions = await prisma.emissionFactorDimension.findMany({
+    where: {
+      status: EmissionFactorDimensionStatus.ACTIVE,
+    },
     include: {
       subcategory: true,
-      values: true,
+      values: {
+        where: {
+          status: EmissionFactorDimensionValueStatus.ACTIVE,
+        },
+      },
     },
   });
 

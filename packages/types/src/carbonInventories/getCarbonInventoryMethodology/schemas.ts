@@ -35,9 +35,13 @@ const EmissionFactorItemSchema = EmissionFactorBaseSchema.pick({
   rateMeasurementUnitId: true,
   source: true,
   gasDetails: true,
-  value: true,
 })
   .extend({
+    value: z
+      .string()
+      .describe(
+        "The emission factor value as a string to preserve decimal precision"
+      ),
     id: z
       .string()
       .describe(

@@ -19,6 +19,7 @@ import {
   CloseOutlined,
   KeyboardArrowUpOutlined,
   KeyboardArrowDownOutlined,
+  TuneOutlined,
 } from "@mui/icons-material";
 
 interface ActionButtonProps {
@@ -32,8 +33,11 @@ interface ActionButtonProps {
   onDelete?: () => void;
   onMoveUp?: () => void;
   onMoveDown?: () => void;
+  onConfigureVariables?: () => void;
   moveUpDisabled?: boolean;
   moveDownDisabled?: boolean;
+  deleteDisabled?: boolean;
+  deleteTooltipTitle?: string;
   deleteConfirmMessage?: string;
 }
 
@@ -48,11 +52,21 @@ export const ActionButtons: FC<ActionButtonProps> = ({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onConfigureVariables,
   moveUpDisabled = false,
   moveDownDisabled = false,
+  deleteDisabled = false,
+  deleteTooltipTitle,
   deleteConfirmMessage = "¿Estás seguro de que deseas eliminar este registro?",
 }) => {
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const isDeleteDisabled = isActiveRow || deleteDisabled;
+  const resolvedDeleteTooltipTitle = isDeleteDisabled
+    ? deleteTooltipTitle ??
+      (isActiveRow
+        ? "Finaliza la edición actual para eliminar"
+        : "No se puede eliminar este registro")
+    : "Eliminar";
 
   return (
     <>
@@ -120,6 +134,15 @@ export const ActionButtons: FC<ActionButtonProps> = ({
             )}
           </Box>
         </>
+        {!isEditing && onConfigureVariables && !isActiveRow && (
+          <Tooltip title="Configurar variables">
+            <span className="content-center">
+              <IconButton size="small" onClick={onConfigureVariables}>
+                <TuneOutlined fontSize="small" />
+              </IconButton>
+            </span>
+          </Tooltip>
+        )}
         {!isEditing && onDuplicate && (
           <Tooltip title="Duplicar">
             <IconButton size="small" onClick={onDuplicate}>
@@ -128,12 +151,12 @@ export const ActionButtons: FC<ActionButtonProps> = ({
           </Tooltip>
         )}
         {!isEditing && onDelete && (
-          <Tooltip title="Eliminar">
+          <Tooltip title={resolvedDeleteTooltipTitle}>
             <span className="content-center">
               <IconButton
                 size="small"
                 onClick={() => setDeleteOpen(true)}
-                disabled={isActiveRow}
+                disabled={isDeleteDisabled}
               >
                 <DeleteOutlined fontSize="small" />
               </IconButton>

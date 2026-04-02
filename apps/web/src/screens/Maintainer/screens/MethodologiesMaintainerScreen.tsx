@@ -197,6 +197,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
             : r.status,
       })) as MethodologyVersionForm[];
       fieldArray.replace(updatedRows);
+      form.reset({ methodologies: updatedRows });
 
       updateMutation.mutate(
         {
@@ -215,6 +216,7 @@ export const MethodologiesMaintainerScreen: FC = () => {
           onError: (error) => {
             // Revert optimistic update on error
             fieldArray.replace(previousRows);
+            form.reset({ methodologies: previousRows });
             void enqueueSnackbar({
               message: getApiErrorMessage(
                 error,

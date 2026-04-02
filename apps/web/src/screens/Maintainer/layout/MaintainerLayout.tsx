@@ -13,6 +13,7 @@ import {
   SquareFootOutlined,
   TaskOutlined,
   BusinessOutlined,
+  ViewColumnOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -44,6 +45,11 @@ const SIDEBAR_DEFS: SidebarDef[] = [
         text: "Sub-categorías",
         icon: <AccountTreeOutlined fontSize="small" />,
         path: Routes.ADMIN_SUBCATEGORIES,
+      },
+      {
+        text: "Dimensiones / Variables",
+        icon: <ViewColumnOutlined fontSize="small" />,
+        path: Routes.ADMIN_DIMENSIONS,
       },
       {
         text: "Factores de emisión",
