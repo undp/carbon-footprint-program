@@ -45,7 +45,7 @@ const mapSubmissionFiles = async (
 };
 
 /**
- * Transforms a single submission into a pair of timeline events:
+ * Transforms a single submission into an object with a pair of timeline events:
  *
  * 1. **POSTULATION** — always created, dated at `createdAt`, with the
  *    creator's name and the submission's attachment files.
