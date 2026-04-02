@@ -60,6 +60,8 @@ export const getCarbonInventorySubcategoryRecommendationsService = async (
   );
 
   return {
-    subcategoryIds: recommendations.map((r) => r.subcategoryId.toString()),
+    subcategoryIds: [
+      ...new Set(recommendations.map((r) => r.subcategoryId.toString())),
+    ],
   };
 };
