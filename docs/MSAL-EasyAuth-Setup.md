@@ -491,6 +491,7 @@ AUTH_PROVIDER=jwks
 AZURE_TENANT_TYPE="organizational"  # or "external"
 AZURE_TENANT_ID="your-tenant-id"
 AZURE_API_CLIENT_ID="your-api-client-id"
+AZURE_TENANT_SUBDOMAIN="your-ciam-subdomain"  # required when AZURE_TENANT_TYPE="external"
 ```
 
 For local development without auth:
