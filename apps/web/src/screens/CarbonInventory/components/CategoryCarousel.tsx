@@ -7,7 +7,16 @@ const PEEK_WIDTH = 48;
 const VISIBLE_CARDS = 3;
 
 interface CategoryCarouselProps {
-  categories: MethodologyCategory[];
+  categories: Pick<
+    MethodologyCategory,
+    | "id"
+    | "name"
+    | "icon"
+    | "color"
+    | "synonyms"
+    | "description"
+    | "explanationId"
+  >[];
   selectedCategoryId: string;
   onCategorySelect: (categoryId: string) => void;
 }

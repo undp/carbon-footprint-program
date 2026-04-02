@@ -20,6 +20,7 @@ export * from "./organizationMainActivity.js";
 export * from "./organizationSize.js";
 export * from "./organizationSummary.js";
 export * from "./rateMeasurementUnit.js";
+export * from "./reductionPlanInitiative.js";
 export * from "./subcategory.js";
 export * from "./submission.js";
 export * from "./submissionSubject.js";

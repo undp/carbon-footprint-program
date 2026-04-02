@@ -30,6 +30,7 @@ export const createGetAllHandler =
 
     const prisma = request.server.prisma;
     const user = request.currentUser ?? null;
+    // TODO: refactor to parse query params correctly with zod
     const query = (request.query ?? null) as TQuery | null;
 
     // Call service with query params (if any)
