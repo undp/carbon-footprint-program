@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { FileBaseSchema } from "../../baseSchemas/file.js";
-import { CommonOrganizationFieldsSchema } from "../../organizations/schemas.js";
+import { CompleteOrganizationInfoSchema } from "../../organizations/schemas.js";
 import {
   SubmissionEventType,
   SubmissionStatusSchema,
@@ -53,7 +53,7 @@ export const SubmissionHistoryEntrySchema = z.object({
   organizationId: IdSchema.nullable().describe(
     "The ID of the organization, or null for self-declarations"
   ),
-  organizationData: CommonOrganizationFieldsSchema.nullable().describe(
+  organizationData: CompleteOrganizationInfoSchema.nullable().describe(
     "Organization data for accreditation submissions"
   ),
   comment: z.string().describe("Review comments or empty string"),
