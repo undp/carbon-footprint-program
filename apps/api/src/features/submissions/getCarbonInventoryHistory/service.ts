@@ -1,6 +1,7 @@
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
 import type { SubmissionHistoryEntry } from "@repo/types";
+import { CarbonInventoryNotFoundError } from "../../carbonInventories/errors.js";
 import {
   buildSelfDeclarationEvent,
   createHistoryReadSasSigner,
@@ -21,7 +22,11 @@ export const getCarbonInventoryHistoryService = async (
     select: { organizationId: true, selfDeclaredAt: true },
   });
 
-  if (!carbonInventory?.organizationId) {
+  if (!carbonInventory) {
+    throw new CarbonInventoryNotFoundError(carbonInventoryId);
+  }
+
+  if (!carbonInventory.organizationId) {
     return [];
   }
 
