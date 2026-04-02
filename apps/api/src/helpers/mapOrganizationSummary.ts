@@ -1,7 +1,7 @@
 import {
   OrganizationDisplayStatusValues,
-  type GetOrganizationByIdResponse,
   type OrganizationDisplayStatus,
+  type GetOrganizationByIdResponse,
 } from "@repo/types";
 import {
   SubmissionStatus,
@@ -14,16 +14,18 @@ import {
   type CountryJobPosition,
 } from "@repo/database";
 
-export const mapOrganizationSummaryToResponse = (
-  org: OrganizationSummaryView & {
-    organizationData: OrganizationData & {
-      sector: CountrySector | null;
-      subsector: CountrySubsector | null;
-      countryOrganizationSize: CountryOrganizationSize | null;
-      mainActivity: OrganizationMainActivity | null;
-      representativeCountryJobPosition: CountryJobPosition;
-    };
-  }
+export type OrganizationSummaryWithData = OrganizationSummaryView & {
+  organizationData: OrganizationData & {
+    sector: CountrySector | null;
+    subsector: CountrySubsector | null;
+    countryOrganizationSize: CountryOrganizationSize | null;
+    mainActivity: OrganizationMainActivity | null;
+    representativeCountryJobPosition: CountryJobPosition;
+  };
+};
+
+export const mapOrganizationSummary = (
+  org: OrganizationSummaryWithData
 ): GetOrganizationByIdResponse => {
   const orgData = org.organizationData;
 

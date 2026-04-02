@@ -1,5 +1,4 @@
-import { SubmissionHistoryEntry } from "@repo/types";
-import { SubmissionEventType } from "@repo/types";
+import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import { buildUserName } from "@repo/utils";
 import { sortBy } from "lodash-es";
 import { mapFilesWithUrls } from "../../helpers/mapFilesWithUrls.js";
@@ -15,13 +14,6 @@ import {
 type SubmissionEventGroup = {
   postulationEvent: SubmissionHistoryEntry;
   reviewedEvent: SubmissionHistoryEntry | null;
-};
-
-type OrgSummaryRow = {
-  organizationId: bigint;
-  name: string;
-  lastSubmissionStatus: SubmissionHistoryEntry["status"];
-  hasUnsubmittedChanges: boolean;
 };
 
 /**
@@ -51,17 +43,6 @@ const mapSubmissionFiles = async (
 
   return { attachments, recognitions, revisionAttachments };
 };
-
-/**
- * Converts an {@link OrgSummaryRow} from the database view into the
- * {@link CommonOrganizationFieldsSchema} shape returned in API responses.
- */
-export const mapOrgSummaryToCommonFields = (orgSummary: OrgSummaryRow) => ({
-  id: orgSummary.organizationId.toString(),
-  name: orgSummary.name,
-  lastSubmissionStatus: orgSummary.lastSubmissionStatus,
-  hasUnsubmittedChanges: orgSummary.hasUnsubmittedChanges,
-});
 
 /**
  * Transforms a single submission into a pair of timeline events:

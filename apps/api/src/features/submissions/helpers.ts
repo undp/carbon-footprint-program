@@ -11,7 +11,10 @@ import {
   createReadSasUrlSigner,
 } from "../../services/blobService.js";
 import { StorageNotConfiguredError } from "../files/errors.js";
-import { mapOrgSummaryToCommonFields } from "./mappers.js";
+import {
+  mapOrganizationSummary,
+  type OrganizationSummaryWithData,
+} from "../../helpers/mapOrganizationSummary.js";
 
 export type SubmissionHistoryFileRow = {
   uuid: string;
@@ -138,7 +141,7 @@ export type SubmissionHistoryRow = Prisma.SubmissionGetPayload<{
 export type OrgSummaryInfo = {
   organizationId: bigint;
   organizationIdString: string;
-  organizationData: ReturnType<typeof mapOrgSummaryToCommonFields> | null;
+  organizationData: ReturnType<typeof mapOrganizationSummary> | null;
   orgName: string | null;
 };
 
@@ -153,14 +156,27 @@ export async function getOrgSummaryDetails(
 ): Promise<OrgSummaryInfo> {
   const orgSummary = await prisma.organizationSummaryView.findUnique({
     where: { organizationId },
+    include: {
+      organizationData: {
+        include: {
+          sector: true,
+          subsector: true,
+          countryOrganizationSize: true,
+          mainActivity: true,
+          representativeCountryJobPosition: true,
+        },
+      },
+    },
   });
+
+  const hasOrgData = orgSummary?.organizationData;
 
   return {
     organizationId,
     organizationIdString: organizationId.toString(),
     orgName: orgSummary?.name ?? null,
-    organizationData: orgSummary
-      ? mapOrgSummaryToCommonFields(orgSummary)
+    organizationData: hasOrgData
+      ? mapOrganizationSummary(orgSummary as OrganizationSummaryWithData)
       : null,
   };
 }
