@@ -1,6 +1,3 @@
--- AlterTable
-ALTER TABLE "carbon_inventory" ALTER COLUMN "uuid" DROP DEFAULT;
-
 -- CreateTable
 CREATE TABLE "subcategory_recommendation" (
     "id" BIGSERIAL NOT NULL,
@@ -14,8 +11,7 @@ CREATE TABLE "subcategory_recommendation" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "subcategory_recommendation_subcategory_id_sector_id_subsect_key" ON "subcategory_recommendation"("subcategory_id", "sector_id", "subsector_id")
-ON "subcategory_recommendation"("subcategory_id", "sector_id", "subsector_id") NULLS NOT DISTINCT;
+CREATE UNIQUE INDEX "subcategory_recommendation_subcategory_id_sector_id_subsect_key" ON "subcategory_recommendation"("subcategory_id", "sector_id", "subsector_id") NULLS NOT DISTINCT;
 
 -- AddForeignKey
 ALTER TABLE "subcategory_recommendation" ADD CONSTRAINT "subcategory_recommendation_subcategory_id_fkey" FOREIGN KEY ("subcategory_id") REFERENCES "subcategory"("id") ON DELETE CASCADE ON UPDATE CASCADE;
