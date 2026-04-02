@@ -156,7 +156,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
   it.each([
     [SubmissionStatus.APPROVED, SubmissionEventType.APPROVED],
     [SubmissionStatus.REJECTED, SubmissionEventType.REJECTED],
-    [SubmissionStatus.OBJECTED, SubmissionEventType.OBJECTED],
+    [SubmissionStatus.REVIEWED, SubmissionEventType.REVIEWED],
   ])(
     "returns POSTULATION plus %s dated with reviewedAt",
     async (status, eventType) => {
@@ -202,7 +202,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     }
   );
 
-  it("shows revision attachments only on the OBJECTED reviewed event", async () => {
+  it("shows revision attachments only on the REVIEWED reviewed event", async () => {
     const organization = await createMemberOrganization();
     const organizationData = await createTestOrganizationData(
       prisma,
@@ -211,7 +211,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     const { submission } = await createTestOrganizationDataSubmission(
       prisma,
       organizationData.id,
-      SubmissionStatus.OBJECTED,
+      SubmissionStatus.REVIEWED,
       testUser.id,
       testUser.id,
       "Please fix these items"
@@ -229,7 +229,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
       testUser.id,
       submission.id,
       {
-        type: SubmissionFileType.ATTACHMENT,
+        type: SubmissionFileType.SUBMIT_ATTACHMENT,
         fileOverrides: { originalName: "original-attachment.pdf" },
       }
     );
@@ -238,7 +238,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
       testUser.id,
       submission.id,
       {
-        type: SubmissionFileType.REVISION_ATTACHMENT,
+        type: SubmissionFileType.REVIEW_ATTACHMENT,
         fileOverrides: { originalName: "revision-note.pdf" },
       }
     );
@@ -246,12 +246,12 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     const history = await getHistory(organization.id.toString());
 
     expect(history.map((entry) => entry.eventType)).toEqual([
-      SubmissionEventType.OBJECTED,
+      SubmissionEventType.REVIEWED,
       SubmissionEventType.POSTULATION,
     ]);
     expect(history[0]).toMatchObject({
       submissionId: submission.id.toString(),
-      eventType: SubmissionEventType.OBJECTED,
+      eventType: SubmissionEventType.REVIEWED,
       date: reviewedAt.toISOString(),
       comment: "Please fix these items",
       recognitions: [],
@@ -288,7 +288,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     );
 
     await createTestFileForSubmission(prisma, testUser.id, submission.id, {
-      type: SubmissionFileType.REVISION_ATTACHMENT,
+      type: SubmissionFileType.REVIEW_ATTACHMENT,
       fileOverrides: { originalName: "internal-note.pdf" },
     });
 
@@ -315,7 +315,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     );
 
     await createTestFileForSubmission(prisma, testUser.id, submission.id, {
-      type: SubmissionFileType.ATTACHMENT,
+      type: SubmissionFileType.SUBMIT_ATTACHMENT,
     });
 
     const response = await withStorageDisabled(() =>

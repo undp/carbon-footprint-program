@@ -50,7 +50,7 @@ describe("getOrganizationHistoryService", () => {
         findUnique: vi.fn().mockResolvedValue({
           organizationId: 1n,
           name: "Example S.A.",
-          lastSubmissionStatus: SubmissionStatus.OBJECTED,
+          lastSubmissionStatus: SubmissionStatus.REVIEWED,
           hasUnsubmittedChanges: false,
         }),
       },
@@ -59,7 +59,7 @@ describe("getOrganizationHistoryService", () => {
           {
             id: 10n,
             type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
-            status: SubmissionStatus.OBJECTED,
+            status: SubmissionStatus.REVIEWED,
             reviewComments: "Please update the files",
             createdAt: new Date("2026-01-10T09:00:00.000Z"),
             reviewedAt: new Date("2026-01-12T14:30:00.000Z"),
@@ -72,7 +72,7 @@ describe("getOrganizationHistoryService", () => {
             },
             files: [
               {
-                type: SubmissionFileType.ATTACHMENT,
+                type: SubmissionFileType.SUBMIT_ATTACHMENT,
                 file: {
                   uuid: "attachment-uuid",
                   originalName: "attachment.pdf",
@@ -94,7 +94,7 @@ describe("getOrganizationHistoryService", () => {
                 },
               },
               {
-                type: SubmissionFileType.REVISION_ATTACHMENT,
+                type: SubmissionFileType.REVIEW_ATTACHMENT,
                 file: {
                   uuid: "revision-uuid",
                   originalName: "revision.pdf",
@@ -118,7 +118,7 @@ describe("getOrganizationHistoryService", () => {
     );
 
     expect(history).toHaveLength(2);
-    expect(history[0]?.eventType).toBe("OBJECTED");
+    expect(history[0]?.eventType).toBe("REVIEWED");
     expect(history[1]?.eventType).toBe("POSTULATION");
     expect(
       createReadSasUrlSigner as MockedFunction<typeof createReadSasUrlSigner>
