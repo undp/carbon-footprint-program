@@ -1,0 +1,74 @@
+name: Nightly Repo Work
+
+on:
+  schedule:
+    - cron: "0 2 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-repo-work
+  cancel-in-progress: false
+
+jobs:
+  agents:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        role: [ui, tests, cleanup]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Prepare folders
+        run: mkdir -p artifacts
+
+      - name: Run role task
+        run: |
+          echo "# Report for ${{ matrix.role }}" > artifacts/${{ matrix.role }}.md
+          echo "" >> artifacts/${{ matrix.role }}.md
+
+          if [ "${{ matrix.role }}" = "tests" ]; then
+            echo "## Tests" >> artifacts/${{ matrix.role }}.md
+            if [ -f package.json ]; then
+              npm ci || true
+              npm test || true
+            fi
+          elif [ "${{ matrix.role }}" = "ui" ]; then
+            echo "## UI review" >> artifacts/${{ matrix.role }}.md
+            echo "- Revisar componentes de la nueva vista" >> artifacts/${{ matrix.role }}.md
+            echo "- Revisar loading / empty / error" >> artifacts/${{ matrix.role }}.md
+          elif [ "${{ matrix.role }}" = "cleanup" ]; then
+            echo "## Cleanup review" >> artifacts/${{ matrix.role }}.md
+            echo "- Revisar TODOs" >> artifacts/${{ matrix.role }}.md
+            echo "- Revisar imports no usados" >> artifacts/${{ matrix.role }}.md
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: report-${{ matrix.role }}
+          path: artifacts/${{ matrix.role }}.md
+
+  synth:
+    runs-on: ubuntu-latest
+    needs: agents
+
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: collected
+
+      - name: Build summary
+        run: |
+          mkdir -p out
+          echo "# Nightly summary" > out/final-summary.md
+          find collected -type f -name "*.md" -exec sh -c 'echo "\n## $(basename "$1")" >> out/final-summary.md; cat "$1" >> out/final-summary.md' _ {} \;
+
+      - name: Upload summary
+        uses: actions/upload-artifact@v4
+        with:
+          name: nightly-summary
+          path: out/final-summary.md
