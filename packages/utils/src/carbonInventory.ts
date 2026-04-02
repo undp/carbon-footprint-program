@@ -5,7 +5,7 @@ import {
 
 const EDITABLE_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.DRAFT,
-  CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED,
+  CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED,
   CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
 ];
 
@@ -28,7 +28,7 @@ export function isCarbonInventoryDeletable(
 const REQUEST_MEASUREMENT_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.DRAFT,
   CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
-  CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED,
+  CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED,
   CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
 ];
 
@@ -41,7 +41,7 @@ export function canSubmitToMeasurement(
 const REQUEST_VERIFICATION_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
   CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED,
+  CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED,
 ];
 
 export function canSubmitToVerification(

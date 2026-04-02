@@ -13,6 +13,14 @@ export const ApproveRequestBodySchema = z.object({
     .max(2000)
     .optional()
     .describe("Optional reviewer comments"),
+  reviewFileUuids: z
+    .array(z.uuid())
+    .optional()
+    .describe("UUIDs of admin-attached review files"),
+  recognitionFileUuids: z
+    .array(z.uuid())
+    .optional()
+    .describe("UUIDs of recognition certificate files"),
 });
 
 export const ApproveRequestResponseSchema = z.object({});

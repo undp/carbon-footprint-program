@@ -52,7 +52,7 @@ export async function createTestFileForSubmission(
     data: {
       fileId: file.id,
       submissionId,
-      type: options?.type ?? SubmissionFileType.ATTACHMENT,
+      type: options?.type ?? SubmissionFileType.SUBMIT_ATTACHMENT,
     },
   });
 

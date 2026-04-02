@@ -27,7 +27,7 @@ const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> = {
 const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   [SubmissionStatus.PENDING]: "Pendiente",
   [SubmissionStatus.APPROVED]: "Aprobada",
-  [SubmissionStatus.OBJECTED]: "Objetada",
+  [SubmissionStatus.REVIEWED]: "Con observaciones",
   [SubmissionStatus.REJECTED]: "Rechazada",
 };
 
@@ -50,7 +50,7 @@ const getSubmissionStatusColor = (
   const colorMap = {
     [SubmissionStatus.PENDING]: theme.palette.info.light,
     [SubmissionStatus.APPROVED]: theme.palette.success.light,
-    [SubmissionStatus.OBJECTED]: theme.palette.warning.light,
+    [SubmissionStatus.REVIEWED]: theme.palette.warning.light,
     [SubmissionStatus.REJECTED]: theme.palette.error.light,
   };
   return colorMap[status];

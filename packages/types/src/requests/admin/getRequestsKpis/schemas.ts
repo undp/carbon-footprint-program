@@ -22,7 +22,7 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
-    status: z.literal(SubmissionStatus.OBJECTED),
+    status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.ORGANIZATION_ACCREDITATION),
@@ -39,7 +39,7 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
-    status: z.literal(SubmissionStatus.OBJECTED),
+    status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_CALCULATION),
@@ -56,7 +56,7 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
-    status: z.literal(SubmissionStatus.OBJECTED),
+    status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
@@ -73,7 +73,7 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
-    status: z.literal(SubmissionStatus.OBJECTED),
+    status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
@@ -90,7 +90,7 @@ const RequestKpiCountSchema = z.union([
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),
-    status: z.literal(SubmissionStatus.OBJECTED),
+    status: z.literal(SubmissionStatus.REVIEWED),
   }),
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION),

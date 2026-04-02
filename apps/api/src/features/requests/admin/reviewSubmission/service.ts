@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@repo/database";
 import { SubmissionStatus, SubmissionFileType } from "@repo/database";
-import type {
-  RejectRequestBody,
-  RejectRequestResponse,
+import {
+  ReviewSubmissionBody,
+  ReviewSubmissionResponse,
   User,
 } from "@repo/types";
 import {
@@ -10,19 +10,20 @@ import {
   updatePendingSubmissionStatus,
 } from "../helpers.js";
 
-export const rejectRequestService = async (
+//TODO: Move this service to submissions routes and folder
+export const reviewSubmissionService = async (
   prismaClient: PrismaClient,
   submissionId: string,
-  body: RejectRequestBody,
+  body: ReviewSubmissionBody,
   userId: User["id"]
-): Promise<RejectRequestResponse> => {
+): Promise<ReviewSubmissionResponse> => {
   await prismaClient.$transaction(async (tx) => {
     const submissionIdBigInt = BigInt(submissionId);
 
     await updatePendingSubmissionStatus(
       tx,
       submissionId,
-      SubmissionStatus.REJECTED,
+      SubmissionStatus.REVIEWED,
       userId,
       { reviewComments: body.reviewComments }
     );

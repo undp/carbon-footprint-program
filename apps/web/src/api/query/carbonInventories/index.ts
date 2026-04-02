@@ -21,3 +21,4 @@ export * from "./useDuplicateCarbonInventory";
 export * from "./useDeleteCarbonInventory";
 export * from "./useSelfDeclareCarbonInventory";
 export * from "./useReductionPlan";
+export * from "./useClaimCarbonInventory";

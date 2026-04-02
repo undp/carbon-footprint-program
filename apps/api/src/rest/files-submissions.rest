@@ -51,7 +51,7 @@ GET {{baseUrl}}/api/files/submission/{{submissionId}}?status=ACTIVE HTTP/1.1
 
 
 ### Get Files - Submission (filter by attachment type)
-GET {{baseUrl}}/api/files/submission/{{submissionId}}?submissionFileType=ATTACHMENT HTTP/1.1
+GET {{baseUrl}}/api/files/submission/{{submissionId}}?submissionFileType=SUBMIT_ATTACHMENT HTTP/1.1
 
 
 ### ==========================================

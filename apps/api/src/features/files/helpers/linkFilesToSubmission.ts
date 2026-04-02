@@ -52,7 +52,7 @@ export interface BlobCopyResult {
  * @param fileUuids - Array of file UUIDs to link.
  * @param blobServiceClient - Azure Blob Service client.
  * @param containerName - Azure Blob container name.
- * @param fileType - The type of submission file (defaults to ATTACHMENT).
+ * @param fileType - The type of submission file (defaults to SUBMIT_ATTACHMENT).
  *
  * @returns {Promise<BlobCopyResult>} Cleanup context for deleting source blobs after commit.
  *
@@ -67,7 +67,7 @@ export async function linkFilesToSubmission(
   fileUuids: string[],
   blobServiceClient: BlobServiceClient,
   containerName: string,
-  fileType: SubmissionFileType = SubmissionFileType.ATTACHMENT
+  fileType: SubmissionFileType = SubmissionFileType.SUBMIT_ATTACHMENT
 ): Promise<BlobCopyResult> {
   const uniqueUuids = [...new Set(fileUuids)];
   const sourcePaths: string[] = [];

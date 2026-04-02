@@ -2,7 +2,7 @@
 CREATE TYPE "file_status" AS ENUM ('ACTIVE', 'DELETED');
 
 -- CreateEnum
-CREATE TYPE "submission_file_type" AS ENUM ('ATTACHMENT', 'RECOGNITION');
+CREATE TYPE "submission_file_type" AS ENUM ('SUBMIT_ATTACHMENT', 'RECOGNITION', 'REVIEW_ATTACHMENT');
 
 -- CreateTable
 CREATE TABLE "file" (
@@ -28,7 +28,7 @@ CREATE UNIQUE INDEX "file_uuid_key" ON "file"("uuid");
 CREATE TABLE "submission_file" (
     "file_id" BIGINT NOT NULL,
     "submission_id" BIGINT NOT NULL,
-    "type" "submission_file_type" NOT NULL DEFAULT 'ATTACHMENT',
+    "type" "submission_file_type" NOT NULL DEFAULT 'SUBMIT_ATTACHMENT',
 
     CONSTRAINT "submission_file_pkey" PRIMARY KEY ("file_id","submission_id")
 );
