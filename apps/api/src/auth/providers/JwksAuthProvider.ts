@@ -46,8 +46,6 @@ export class JwksAuthProvider implements AuthProvider {
       // so forged or tampered tokens are rejected.
       const payload = await request.jwtVerify<OidcTokenPayload>();
 
-      console.log(payload);
-
       request.log.debug(
         { sub: payload.sub, oid: payload.oid },
         "JwksAuthProvider: token verified"
