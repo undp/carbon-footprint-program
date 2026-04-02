@@ -1,12 +1,19 @@
 import type { PrismaClient } from "@repo/database";
-import { SubmissionStatus, BadgeStatus } from "@repo/database";
+import {
+  SubmissionStatus,
+  BadgeStatus,
+  SubmissionFileType,
+} from "@repo/database";
 import type {
   ApproveRequestBody,
   ApproveRequestResponse,
   User,
 } from "@repo/types";
 import { SubmissionUpdateError } from "../../errors.js";
-import { updatePendingSubmissionStatus } from "../helpers.js";
+import {
+  attachFilesToSubmission,
+  updatePendingSubmissionStatus,
+} from "../helpers.js";
 
 export const approveRequestService = async (
   prismaClient: PrismaClient,
@@ -15,9 +22,11 @@ export const approveRequestService = async (
   userId: User["id"]
 ): Promise<ApproveRequestResponse> => {
   await prismaClient.$transaction(async (tx) => {
+    const submissionIdBigInt = BigInt(submissionId);
+
     // 1. Get the submission to verify it's PENDING and get its type
     const submission = await tx.submission.findUnique({
-      where: { id: BigInt(submissionId) },
+      where: { id: submissionIdBigInt },
       select: { status: true, type: true },
     });
 
@@ -46,6 +55,19 @@ export const approveRequestService = async (
         badgeId: activeBadge?.id,
       }
     );
+
+    if (body.reviewFileUuids?.length || body.recognitionFileUuids?.length) {
+      await attachFilesToSubmission(tx, submissionIdBigInt, [
+        {
+          uuids: body.reviewFileUuids,
+          type: SubmissionFileType.REVIEW_ATTACHMENT,
+        },
+        {
+          uuids: body.recognitionFileUuids,
+          type: SubmissionFileType.RECOGNITION,
+        },
+      ]);
+    }
   });
 
   return {};

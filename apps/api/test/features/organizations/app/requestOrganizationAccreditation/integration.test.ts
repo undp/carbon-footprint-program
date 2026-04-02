@@ -642,7 +642,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       });
       expect(submission).toBeDefined();
 
-      const finalPath = `SUBMISSION/${submission!.id}/ATTACHMENT/${uuid}-${originalName}`;
+      const finalPath = `SUBMISSION/${submission!.id}/SUBMIT_ATTACHMENT/${uuid}-${originalName}`;
       expect(vi.mocked(copyBlob)).toHaveBeenCalledWith(
         expect.anything(),
         expect.any(String),
@@ -659,7 +659,7 @@ describe("POST /api/app/organizations/:id/request-accreditation - Integration Te
       expect(fileRecord?.submissionFiles).toHaveLength(1);
       expect(fileRecord?.submissionFiles[0]?.submissionId).toBe(submission!.id);
       expect(fileRecord?.submissionFiles[0]?.type).toBe(
-        SubmissionFileType.ATTACHMENT
+        SubmissionFileType.SUBMIT_ATTACHMENT
       );
     });
 

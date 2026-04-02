@@ -24,7 +24,7 @@ import { VOCAB } from "@/config/vocab";
 const STATUS_LABEL: Record<RequestStatus, string> = {
   [RequestStatus.PENDING]: "Pendiente",
   [RequestStatus.APPROVED]: "Aprobada",
-  [RequestStatus.OBJECTED]: "Objetada",
+  [RequestStatus.REVIEWED]: "Con observaciones",
   [RequestStatus.REJECTED]: "Rechazada",
 };
 
@@ -32,7 +32,7 @@ const getStatusColor = (status: RequestStatus, theme: Theme): string => {
   const map: Record<RequestStatus, string> = {
     [RequestStatus.PENDING]: theme.palette.warning.light,
     [RequestStatus.APPROVED]: theme.palette.success.light,
-    [RequestStatus.OBJECTED]: theme.palette.warning.light,
+    [RequestStatus.REVIEWED]: theme.palette.warning.light,
     [RequestStatus.REJECTED]: theme.palette.error.light,
   };
   return map[status];
@@ -41,7 +41,7 @@ const getStatusColor = (status: RequestStatus, theme: Theme): string => {
 const STATUS_SORT_ORDER: Record<string, number> = {
   [STATUS_LABEL[RequestStatus.PENDING]]: 0,
   [STATUS_LABEL[RequestStatus.APPROVED]]: 1,
-  [STATUS_LABEL[RequestStatus.OBJECTED]]: 2,
+  [STATUS_LABEL[RequestStatus.REVIEWED]]: 2,
   [STATUS_LABEL[RequestStatus.REJECTED]]: 3,
 };
 

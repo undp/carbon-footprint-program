@@ -26,7 +26,7 @@ const getStatusColor = (
       return theme.palette.info.main;
     case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION:
       return theme.palette.warning.main;
-    case CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED:
+    case CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED:
       return theme.palette.warning.main;
     case CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED:
       return theme.palette.error.main;
@@ -34,7 +34,7 @@ const getStatusColor = (
       return theme.palette.success.main;
     case CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION:
       return theme.palette.warning.main;
-    case CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED:
+    case CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED:
       return theme.palette.warning.main;
     case CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED:
       return theme.palette.error.main;
@@ -51,11 +51,11 @@ const STATUS_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.DRAFT]: "Borrador",
   [CarbonInventoryDisplayStatusEnum.SELF_DECLARED]: "Autodeclarada",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]: "En revisión",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]: "Con observaciones",
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED]: "Con observaciones",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]: "Rechazado",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]: "Aprobado",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]: "En revisión",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]: "Con observaciones",
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED]: "Con observaciones",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]: "Rechazado",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]: "Aprobado",
   [CarbonInventoryDisplayStatusEnum.DELETED]: "Eliminado",
@@ -67,7 +67,7 @@ const TOOLTIP_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.SELF_DECLARED]: "Huella autodeclarada",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
     "En revisión - Sello de medición",
-  [CarbonInventoryDisplayStatusEnum.CALCULATION_OBJECTED]:
+  [CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED]:
     "Con observaciones - Sello de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
     "Rechazado - Sello de medición",
@@ -75,7 +75,7 @@ const TOOLTIP_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
     "Aprobado - Sello de medición",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
     "En revisión - Sello de verificación",
-  [CarbonInventoryDisplayStatusEnum.VERIFICATION_OBJECTED]:
+  [CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED]:
     "Con observaciones - Sello de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
     "Rechazado - Sello de verificación",

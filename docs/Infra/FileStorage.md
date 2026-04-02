@@ -79,7 +79,7 @@ FileType:            SUBMISSION | BADGE
 FileStatus:          ACTIVE | DELETED
 BadgeType:           ORGANIZATION_ACCREDITATION | CARBON_INVENTORY_CALCULATION | CARBON_INVENTORY_VERIFICATION | REDUCTION_PLAN_VERIFICATION | NEUTRALIZATION_PLAN_VERIFICATION
 BadgeStatus:         ACTIVE | INACTIVE
-SubmissionFileType:  ATTACHMENT | RECOGNITION
+SubmissionFileType:  SUBMIT_ATTACHMENT | RECOGNITION | REVIEW_ATTACHMENT
 ```
 
 ### Tablas
@@ -116,11 +116,11 @@ Vincula un archivo a un tipo de badge. Solo un badge por tipo puede estar `ACTIV
 
 Vincula un archivo a una submission con un tipo opcional.
 
-| Columna         | Tipo                | Descripción                             |
-| --------------- | ------------------- | --------------------------------------- |
-| `file_id`       | BIGINT PK           | FK → `file(id)`                         |
-| `submission_id` | BIGINT FK           | FK → `submission(id)`                   |
-| `type`          | SubmissionFileType? | `ATTACHMENT` o `RECOGNITION` (nullable) |
+| Columna         | Tipo                | Descripción                                              |
+| --------------- | ------------------- | -------------------------------------------------------- |
+| `file_id`       | BIGINT PK           | FK → `file(id)`                                          |
+| `submission_id` | BIGINT FK           | FK → `submission(id)`                                    |
+| `type`          | SubmissionFileType? | `SUBMIT_ATTACHMENT`, `RECOGNITION` o `REVIEW_ATTACHMENT` |
 
 ### Diagrama ER (parcial)
 
@@ -149,7 +149,7 @@ erDiagram
     submission_file {
         BIGINT file_id PK
         BIGINT submission_id FK
-        enum type "ATTACHMENT | RECOGNITION"
+        enum type "SUBMIT_ATTACHMENT | RECOGNITION | REVIEW_ATTACHMENT"
     }
 
     file ||--o| badge : "linked via"
@@ -353,7 +353,7 @@ Todos los endpoints requieren autenticación.
 
 **`submissionId`**: ID numérico de la submission (string numérico, validado con regex `/^\d+$/`)
 
-Body de `request-upload` y `confirm-upload` para submissions incluye `submissionFileType: ATTACHMENT | RECOGNITION`.
+Body de `request-upload` y `confirm-upload` para submissions incluye `submissionFileType: SUBMIT_ATTACHMENT | RECOGNITION | REVIEW_ATTACHMENT`.
 
 #### Archivo individual (`/api/files`)
 
@@ -370,7 +370,7 @@ La ruta en Azure Blob Storage organiza los archivos por subdominio, propietario 
 | Subdominio | Formato                                                                 | Ejemplo                                             |
 | ---------- | ----------------------------------------------------------------------- | --------------------------------------------------- |
 | Badge      | `BADGE/{badgeType}/{uuid}-{sanitizedName}`                              | `BADGE/CARBON_INVENTORY_CALCULATION/a1b2-badge.svg` |
-| Submission | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/ATTACHMENT/a1b2-reporte.pdf`         |
+| Submission | `SUBMISSION/{submissionId}/{submissionFileType}/{uuid}-{sanitizedName}` | `SUBMISSION/42/SUBMIT_ATTACHMENT/a1b2-reporte.pdf`  |
 
 - `{sanitizedName}`: nombre original con caracteres especiales reemplazados por `_`
 - El `blobPath` se guarda en la base de datos; la URL completa se reconstruye en runtime mediante SAS
