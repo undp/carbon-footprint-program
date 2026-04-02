@@ -312,7 +312,7 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
         usageMode: "SIMPLIFIED",
       });
 
-      // First submission (objected)
+      // First submission (reviewed)
       await createTestCarbonInventorySubmission(
         prisma,
         ci.id,
@@ -323,7 +323,7 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
       );
 
       // Need a new subject for second submission since unique constraint
-      // Actually the unique constraint only applies to PENDING/APPROVED, so OBJECTED allows a new one
+      // Actually the unique constraint only applies to PENDING/APPROVED, so REVIEWED allows a new one
       const ci2 = await createCarbonInventory(prisma, {
         organizationId: org.id,
         year: 2025,
