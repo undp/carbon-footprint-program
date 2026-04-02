@@ -23,7 +23,7 @@ const ReductionPlanInitiativesSeedDataSchema = z.array(
   })
 );
 
-export async function seedInitiatives(
+export async function seedReductionPlanInitiatives(
   prisma: PrismaClient,
   dataset: SeedsDataset
 ) {
