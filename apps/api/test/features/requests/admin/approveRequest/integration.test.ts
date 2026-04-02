@@ -215,7 +215,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
         }))
       ).toEqual([
         {
-          type: SubmissionFileType.REVISION_ATTACHMENT,
+          type: SubmissionFileType.REVIEW_ATTACHMENT,
           uuid: revisionFile.uuid,
         },
         {

@@ -115,7 +115,7 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
         prisma,
         testUser.id,
         submission.id,
-        { type: SubmissionFileType.ATTACHMENT }
+        { type: SubmissionFileType.SUBMIT_ATTACHMENT }
       );
       await createTestFileForSubmission(prisma, testUser.id, submission.id, {
         type: SubmissionFileType.RECOGNITION,
@@ -123,7 +123,7 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
 
       const response = await app.inject({
         method: "GET",
-        url: `/api/files/submission/${submission.id}?submissionFileType=ATTACHMENT`,
+        url: `/api/files/submission/${submission.id}?submissionFileType=SUBMIT_ATTACHMENT`,
       });
 
       expect(response.statusCode).toBe(200);
@@ -139,7 +139,7 @@ describe("GET /api/files/submission/:submissionId - Integration Tests", () => {
       );
 
       await createTestFileForSubmission(prisma, testUser.id, submission.id, {
-        type: SubmissionFileType.ATTACHMENT,
+        type: SubmissionFileType.SUBMIT_ATTACHMENT,
       });
       await createTestFileForSubmission(prisma, testUser.id, submission.id, {
         type: SubmissionFileType.RECOGNITION,

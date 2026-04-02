@@ -788,9 +788,9 @@ model OrganizationData {
 }
 
 enum SubmissionFileType {
-  ATTACHMENT
+  SUBMIT_ATTACHMENT
   RECOGNITION
-  REVISION_ATTACHMENT
+  REVIEW_ATTACHMENT
 
   @@map("submission_file_type")
 }
@@ -824,7 +824,7 @@ model File {
 model SubmissionFile {
   fileId       BigInt             @map("file_id")
   submissionId BigInt             @map("submission_id")
-  type         SubmissionFileType @default(ATTACHMENT) @map("type")
+  type         SubmissionFileType @default(SUBMIT_ATTACHMENT) @map("type")
 
   file       File       @relation(fields: [fileId], references: [id])
   submission Submission @relation(fields: [submissionId], references: [id])

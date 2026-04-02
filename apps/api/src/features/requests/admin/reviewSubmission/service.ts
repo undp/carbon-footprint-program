@@ -32,7 +32,7 @@ export const reviewSubmissionService = async (
       await attachFilesToSubmission(tx, submissionIdBigInt, [
         {
           uuids: body.reviewFileUuids,
-          type: SubmissionFileType.REVISION_ATTACHMENT,
+          type: SubmissionFileType.REVIEW_ATTACHMENT,
         },
       ]);
     }

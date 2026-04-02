@@ -99,7 +99,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
       type: submissionFiles[0].type,
       uuid: submissionFiles[0].file.uuid,
     }).toEqual({
-      type: SubmissionFileType.REVISION_ATTACHMENT,
+      type: SubmissionFileType.REVIEW_ATTACHMENT,
       uuid: revisionFile.uuid,
     });
   });
