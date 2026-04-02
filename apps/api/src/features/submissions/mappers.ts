@@ -1,7 +1,7 @@
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import { buildUserName } from "@repo/utils";
 import { sortBy } from "lodash-es";
-import { mapFilesWithUrls } from "../../helpers/mapFilesWithUrls.js";
+import { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 import { ReadSasUrlSigner } from "../../services/blobService.js";
 import {
   SubmissionHistoryRow,

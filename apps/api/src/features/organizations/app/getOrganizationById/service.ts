@@ -1,7 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import type { GetOrganizationByIdResponse } from "@repo/types";
 import { OrganizationNotFoundError } from "../../errors.js";
-import { mapOrganizationSummary } from "../../../../helpers/mapOrganizationSummary.js";
+import { mapOrganizationSummary } from "../../../../mappers/index.js";
 
 export const getOrganizationByIdService = async (
   prismaClient: PrismaClient,

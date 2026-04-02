@@ -14,7 +14,7 @@ import { StorageNotConfiguredError } from "../files/errors.js";
 import {
   mapOrganizationSummary,
   type OrganizationSummaryWithData,
-} from "../../helpers/mapOrganizationSummary.js";
+} from "../../mappers/mapOrganizationSummary.js";
 
 export type SubmissionHistoryFileRow = {
   uuid: string;
