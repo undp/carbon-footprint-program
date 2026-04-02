@@ -1,4 +1,4 @@
-import { FC, useState } from "react";
+import { FC, useCallback, useState } from "react";
 import {
   Dialog,
   DialogTitle,
@@ -33,7 +33,7 @@ export const SaveDraftAuthModal: FC<Props> = ({
 
   const isLoading = isSigningIn || claimMutation.isPending;
 
-  const handleSignIn = async () => {
+  const handleSignIn = useCallback(async () => {
     setIsSigningIn(true);
     try {
       await signInPopup();
@@ -61,7 +61,14 @@ export const SaveDraftAuthModal: FC<Props> = ({
         { variant: "error" }
       );
     }
-  };
+  }, [
+    signInPopup,
+    inventoryId,
+    enqueueSnackbar,
+    goToList,
+    claimMutation,
+    onClose,
+  ]);
 
   return (
     <Dialog open={open} onClose={isLoading ? undefined : onClose}>
