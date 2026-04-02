@@ -13,10 +13,10 @@ export const ApproveRequestBodySchema = z.object({
     .max(2000)
     .optional()
     .describe("Optional reviewer comments"),
-  revisionFileUuids: z
+  reviewFileUuids: z
     .array(z.uuid())
     .optional()
-    .describe("UUIDs of admin-attached revision files"),
+    .describe("UUIDs of admin-attached review files"),
   recognitionFileUuids: z
     .array(z.uuid())
     .optional()

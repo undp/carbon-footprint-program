@@ -189,7 +189,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
       const recognitionFile = await createTestFile(prisma, testUser.id);
 
       const requestBody: ApproveRequestBody = {
-        revisionFileUuids: [revisionFile.uuid, revisionFile.uuid],
+        reviewFileUuids: [revisionFile.uuid, revisionFile.uuid],
         recognitionFileUuids: [recognitionFile.uuid, recognitionFile.uuid],
       };
 
@@ -259,7 +259,7 @@ describe("POST /api/admin/requests/:id/approve - Integration Tests", () => {
         method: "POST",
         url: `/api/admin/requests/${submission.id}/approve`,
         payload: {
-          revisionFileUuids: [revisionFile.uuid, missingUuid],
+          reviewFileUuids: [revisionFile.uuid, missingUuid],
         } satisfies ApproveRequestBody,
       });
 

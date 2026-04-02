@@ -65,7 +65,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
 
     const requestBody: ReviewSubmissionBody = {
       reviewComments: "Please address the marked observations.",
-      revisionFileUuids: [revisionFile.uuid, revisionFile.uuid],
+      reviewFileUuids: [revisionFile.uuid, revisionFile.uuid],
     };
 
     const response = await app.inject({
@@ -119,7 +119,7 @@ describe("POST /api/admin/requests/:id/review - Integration Tests", () => {
 
     const requestBody: ReviewSubmissionBody = {
       reviewComments: "Please address the marked observations.",
-      revisionFileUuids: [revisionFile.uuid, missingUuid],
+      reviewFileUuids: [revisionFile.uuid, missingUuid],
     };
 
     const response = await app.inject({

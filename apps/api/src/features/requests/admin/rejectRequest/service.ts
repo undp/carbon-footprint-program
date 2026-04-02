@@ -27,10 +27,10 @@ export const rejectRequestService = async (
       { reviewComments: body.reviewComments }
     );
 
-    if (body.revisionFileUuids?.length) {
+    if (body.reviewFileUuids?.length) {
       await attachFilesToSubmission(tx, submissionIdBigInt, [
         {
-          uuids: body.revisionFileUuids,
+          uuids: body.reviewFileUuids,
           type: SubmissionFileType.REVISION_ATTACHMENT,
         },
       ]);

@@ -12,10 +12,10 @@ export const RejectRequestBodySchema = z.object({
     .min(1)
     .max(2000)
     .describe("Optional reviewer comments"),
-  revisionFileUuids: z
+  reviewFileUuids: z
     .array(z.uuid())
     .optional()
-    .describe("UUIDs of admin-attached revision files"),
+    .describe("UUIDs of admin-attached review files"),
 });
 
 export const RejectRequestResponseSchema = z.object({});

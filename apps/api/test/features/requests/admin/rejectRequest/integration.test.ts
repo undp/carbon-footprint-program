@@ -205,7 +205,7 @@ Rejection reasons:
 
       const requestBody: RejectRequestBody = {
         reviewComments: "Missing required documentation",
-        revisionFileUuids: [revisionFile.uuid, revisionFile.uuid],
+        reviewFileUuids: [revisionFile.uuid, revisionFile.uuid],
       };
 
       const response = await app.inject({
@@ -266,7 +266,7 @@ Rejection reasons:
 
       const requestBody: RejectRequestBody = {
         reviewComments: "Missing required documentation",
-        revisionFileUuids: [revisionFile.uuid, missingUuid],
+        reviewFileUuids: [revisionFile.uuid, missingUuid],
       };
 
       const response = await app.inject({

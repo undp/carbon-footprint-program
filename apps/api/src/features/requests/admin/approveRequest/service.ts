@@ -56,10 +56,10 @@ export const approveRequestService = async (
       }
     );
 
-    if (body.revisionFileUuids?.length || body.recognitionFileUuids?.length) {
+    if (body.reviewFileUuids?.length || body.recognitionFileUuids?.length) {
       await attachFilesToSubmission(tx, submissionIdBigInt, [
         {
-          uuids: body.revisionFileUuids,
+          uuids: body.reviewFileUuids,
           type: SubmissionFileType.REVISION_ATTACHMENT,
         },
         {
