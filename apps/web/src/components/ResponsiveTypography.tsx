@@ -2,14 +2,14 @@ import { Typography, Tooltip, TypographyProps } from "@mui/material";
 import { FC } from "react";
 
 type ResponsiveTypographyProps = {
-  isResponsiveMode: boolean;
+  isWiderScreen: boolean;
   ShortName: string;
   LongName: string;
   props?: TypographyProps;
 };
 
 export const ResponsiveTypography: FC<ResponsiveTypographyProps> = ({
-  isResponsiveMode,
+  isWiderScreen: isResponsiveMode,
   ShortName,
   LongName,
 }) => {

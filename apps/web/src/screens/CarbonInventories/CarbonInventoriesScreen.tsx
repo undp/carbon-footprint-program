@@ -76,7 +76,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "organizationName",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isWiderScreen}
+              isWiderScreen={isWiderScreen}
               ShortName="Nombre Org."
               LongName="Nombre Organización"
             />
@@ -112,7 +112,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "name",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isWiderScreen}
+              isWiderScreen={isWiderScreen}
               ShortName="Nombre"
               LongName="Nombre borrador huella"
             />
@@ -148,7 +148,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "year",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isWiderScreen}
+              isWiderScreen={isWiderScreen}
               ShortName="Año"
               LongName="Año de medición"
             />
@@ -182,7 +182,7 @@ export const CarbonInventoriesScreen: FC = () => {
           field: "totalEmissions",
           renderHeader: () => (
             <ResponsiveTypography
-              isResponsiveMode={!isWiderScreen}
+              isWiderScreen={isWiderScreen}
               ShortName="Emisiones"
               LongName="Emisiones tCO₂e"
             />
