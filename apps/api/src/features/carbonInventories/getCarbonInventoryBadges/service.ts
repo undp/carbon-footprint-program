@@ -11,7 +11,7 @@ import { generateReadSasUrl } from "../../../services/index.js";
 const BADGE_SORT_ORDER: Record<BadgeType, number> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: 1,
   [BadgeType.CARBON_INVENTORY_VERIFICATION]: 2,
-  [BadgeType.REDUCTION_PLAN_VERIFICATION]: 3,
+  [BadgeType.REDUCTION_PROJECT_VERIFICATION]: 3,
   [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: 4,
   [BadgeType.ORGANIZATION_ACCREDITATION]: 5,
 };

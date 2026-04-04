@@ -106,7 +106,7 @@ BADGE_MAPPINGS=(
   "calculation-badge.svg:CARBON_INVENTORY_CALCULATION"
   "verification-badge.svg:CARBON_INVENTORY_VERIFICATION"
   "verification-badge.svg:ORGANIZATION_ACCREDITATION"
-  "reduction-badge.svg:REDUCTION_PLAN_VERIFICATION"
+  "reduction-badge.svg:REDUCTION_PROJECT_VERIFICATION"
   "neutralization-badge.svg:NEUTRALIZATION_PLAN_VERIFICATION"
 )
 

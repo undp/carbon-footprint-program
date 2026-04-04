@@ -17,7 +17,7 @@ export * from "./subcategories/index.js";
 export * from "./systemParameters/index.js";
 export * from "./emissionFactors/index.js";
 export * from "./emissionFactorDimensions/index.js";
-export * from "./submissions/index.js";
+export * from "./reductionProjects/index.js";
 export * from "./baseSchemas/index.js";
 export * from "./common/index.js";
 export * from "./badges/index.js";
