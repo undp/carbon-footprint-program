@@ -10,7 +10,7 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { SystemRole } from "@repo/database/enums";
+import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type {
   OrganizationIdExtractor,
   RequireOrganizationRoleOptions,
@@ -158,6 +158,17 @@ declare module "fastify" {
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
       carbonInventoryIdExtractor: IdExtractor<P>,
       options?: RequireCarbonInventoryAccessOptions
+    ) => (
+      request: FastifyRequest<{ Params: P }>,
+      reply: FastifyReply
+    ) => Promise<void>;
+
+    /**
+     * Require access to a reduction project (creator or active org member).
+     */
+    requireReductionProjectAccess: <P extends Record<string, string>>(
+      reductionProjectIdExtractor: ReductionProjectIdExtractor<P>,
+      options?: { requiredOrganizationRoles?: OrganizationRole[] }
     ) => (
       request: FastifyRequest<{ Params: P }>,
       reply: FastifyReply

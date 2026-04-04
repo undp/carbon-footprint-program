@@ -10,10 +10,6 @@ export const GetReductionProjectsMinimalParamsSchema = z.object({
     .describe("Optional year filter on the project `year` column"),
 });
 
-export type GetReductionProjectsMinimalParams = z.infer<
-  typeof GetReductionProjectsMinimalParamsSchema
->;
-
 export const GetReductionProjectsMinimalItemSchema = z.object({
   id: IdSchema,
   name: z.string().nullable(),

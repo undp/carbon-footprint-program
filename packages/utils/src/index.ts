@@ -9,3 +9,7 @@ export {
   canSubmitToMeasurement,
 } from "./carbonInventory.js";
 export { buildUserName } from "./user.js";
+export {
+  isReductionProjectDeletable,
+  canRequestReductionProjectVerification,
+} from "./reductionProject.js";
