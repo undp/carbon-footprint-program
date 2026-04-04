@@ -80,11 +80,10 @@ model SubmissionSubjectReductionProject {
 
 - `ReductionProjectBaseSchema` — mirrors the prisma model fields (id, name, organizationId, carbonInventoryId, implementationDate, description, subcategoryId, gwpUsed, useNationalGwp, consideredGei, reportedElsewhere, reportedElsewhereDescription, year, baselineScenario, projectScenario, status, createdAt, updatedAt, createdById, updatedById)
 
-**`packages/types/src/reductionProjects/schemas.ts`**
+**`packages/types/src/reductionProjects/`** (per-endpoint folders + shared `schemas.ts`)
 
-- `ReductionProjectDisplayStatusEnum` = { DRAFT, SUBMITTED, REVIEWED, REJECTED, APPROVED, DELETED }
-- `ReductionProjectDisplayStatusSchema`
-- Request/response schemas for all endpoints
+- Shared: `ReductionProjectDisplayStatusSchema` / enum
+- `updateReductionProject`: partial project fields plus optional `fileUuids` (see Key Design Decisions)
 
 Export from `packages/types/src/index.ts`.
 
@@ -94,6 +93,7 @@ Export from `packages/types/src/index.ts`.
 
 1. **Status derivation**: Same pattern as CarbonInventory — `ACTIVE/DELETED` stored on record, display status computed from submissions (types expose display enums; API computes values).
 2. **Single metrics row**: Year and scenario columns are on `reduction_project`. Updates are ordinary field updates on the project (no line sync / `CREATE/UPDATE/DELETE` array).
+3. **`updateReductionProject` request shape**: `UpdateReductionProjectRequestSchema` includes optional `fileUuids` (pre-uploaded UUIDs). Zod keeps them optional; the **API** requires them when display status is not `DRAFT`, matching the organization `UpdateOrganizationBodySchema` pattern — files are tied to **submissions**, not stored on the project row.
 
 ---
 

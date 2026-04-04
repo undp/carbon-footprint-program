@@ -97,13 +97,13 @@ Form sections:
 **`apps/web/src/screens/ReductionProject/components/SubmitReductionProjectDialog.tsx`**
 
 - File upload modal (reuse `FormFileUpload` component pattern from `VerifyConfirmationDialog`)
-- On confirm: `useSubmitReductionProject()` with file UUIDs
+- On confirm: `useRequestReductionProjectVerification()` with file UUIDs
 
 ### API hooks (new)
 
 - `query/reductionProjects/useReductionProject.ts` (by id)
-- `mutation/reductionProjects/useUpdateReductionProject.ts`
-- `mutation/reductionProjects/useSubmitReductionProject.ts`
+- `mutation/reductionProjects/useUpdateReductionProject.ts` — include `fileUuids` when saving a project whose display status is not `DRAFT` (same rule as organization PATCH + `usePreUploadSubmissionFiles`)
+- `mutation/reductionProjects/useRequestReductionProjectVerification.ts` (or equivalent) — first-time verification with `fileUuids`
 
 ### Reused hooks
 
@@ -118,6 +118,7 @@ Form sections:
 2. **No draft save for objected projects**: When `displayStatus === REVIEWED`, only submission button shown (no "GUARDAR BORRADOR")
 3. **Subcategory selector**: Reuse existing subcategories from the emission data endpoint or minimal API — align with whatever the API exposes
 4. **Year dropdown in list**: Derived from `useReductionProjectsMinimal()` — distinct non-null `year` values on projects
+5. **PATCH + files when not DRAFT**: Any save that happens while display status ≠ `DRAFT` must send pre-uploaded `fileUuids` together with the project fields on `useUpdateReductionProject` (see [api.plan.md](./api.plan.md)); mirrors app organization update behavior.
 
 ---
 
