@@ -27,15 +27,15 @@ Register all routes under `/reduction-projects` with `fastify.requireAuth`.
 
 #### Endpoints
 
-| Endpoint                              | Feature Dir                    | Notes                                                                   |
-| ------------------------------------- | ------------------------------ | ----------------------------------------------------------------------- |
-| `POST /reduction-projects`            | `createReductionProject/`      | Creates blank record, returns `{id}`                                    |
-| `GET /reduction-projects`             | `getAllReductionProjects/`     | Filters: organizationId, year (project `year` column)                   |
-| `GET /reduction-projects/minimal`     | `getReductionProjectsMinimal/` | Returns `{id, name, organizationId, status, year}` for year filter      |
-| `GET /reduction-projects/:id`         | `getReductionProjectById/`     | Full form data (includes `year`, `baselineScenario`, `projectScenario`) |
-| `PATCH /reduction-projects/:id`       | `updateReductionProject/`      | Save draft — partial project fields (including metrics columns)         |
-| `DELETE /reduction-projects/:id`      | `deleteReductionProject/`      | Sets status = DELETED                                                   |
-| `POST /reduction-projects/:id/submit` | `submitReductionProject/`      | Submission with file upload, uses `createSubmissionRequestHandler`      |
+| Endpoint                                            | Feature Dir                            | Notes                                                                                       |
+| --------------------------------------------------- | -------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `POST /reduction-projects`                          | `createReductionProject/`              | Creates blank record, returns `{id}`                                                        |
+| `GET /reduction-projects`                           | `getAllReductionProjects/`             | Filters: organizationId, year (project `year` column)                                       |
+| `GET /reduction-projects/minimal`                   | `getReductionProjectsMinimal/`         | Returns `{id, name, organizationId, status, year}` for year filter                          |
+| `GET /reduction-projects/:id`                       | `getReductionProjectById/`             | Full form data (includes `year`, `baselineScenario`, `projectScenario`)                     |
+| `PATCH /reduction-projects/:id`                     | `updateReductionProject/`              | Partial project fields + optional `fileUuids` (see below)                                   |
+| `DELETE /reduction-projects/:id`                    | `deleteReductionProject/`              | Sets status = DELETED                                                                       |
+| `POST /reduction-projects/:id/request-verification` | `requestReductionProjectVerification/` | First-time verification request; pre-uploaded `fileUuids`, `createSubmissionRequestHandler` |
 
 #### `getAllReductionProjects` response shape
 
@@ -56,7 +56,9 @@ Full project fields (single object; metrics on the same record).
 
 #### `updateReductionProject` body
 
-Partial project fields, including optional `year`, `baselineScenario`, `projectScenario` (no nested sync payload).
+- Partial project fields, including optional `year`, `baselineScenario`, `projectScenario` (no nested sync payload).
+- Optional `fileUuids: string[]` (pre-uploaded file UUIDs), same shape as [`updateOrganization` body schema](../packages/types/src/organizations/app/updateOrganization/schemas.ts).
+- **Behavior (enforce in service, not only in Zod):** When display status is **DRAFT**, clients may PATCH repeatedly with **only** project fields; files are not required. When display status is **not DRAFT** (e.g. user is fixing data after `REVIEWED` / resubmitting), the client must send **both** the full intended project payload and **`fileUuids`** in a single PATCH, because attachments belong to **submissions**, not to the `reduction_project` row — mirroring organization PATCH when the org is not in draft.
 
 #### Reused endpoints (no changes needed)
 
@@ -70,6 +72,7 @@ Partial project fields, including optional `year`, `baselineScenario`, `projectS
 1. **Status derivation**: Same pattern as CarbonInventory — `ACTIVE/DELETED` stored on record, display status computed from submissions
 2. **Metrics on project**: `year`, `baselineScenario`, and `projectScenario` are columns on `reduction_project`; PATCH updates them like any other field
 3. **Subcategory selector**: Reuse existing subcategories from the emission data endpoint or create a minimal subcategories endpoint — to be determined by what's available (`/subcategories` or fetch from categories endpoint)
+4. **PATCH + files (non-draft)**: Optional `fileUuids` on `UpdateReductionProjectRequestSchema`; when display status ≠ `DRAFT`, the API must require non-empty `fileUuids` and attach them to the relevant submission flow — same product rule as `PATCH` organization update when not in draft.
 
 ---
 

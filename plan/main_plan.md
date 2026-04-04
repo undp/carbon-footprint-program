@@ -112,15 +112,15 @@ Register all routes under `/reduction-projects` with `fastify.requireAuth`.
 
 #### Endpoints
 
-| Endpoint                              | Feature Dir                    | Notes                                                                   |
-| ------------------------------------- | ------------------------------ | ----------------------------------------------------------------------- |
-| `POST /reduction-projects`            | `createReductionProject/`      | Creates blank record, returns `{id}`                                    |
-| `GET /reduction-projects`             | `getAllReductionProjects/`     | Filters: organizationId, year (project `year` column)                   |
-| `GET /reduction-projects/minimal`     | `getReductionProjectsMinimal/` | Returns `{id, name, organizationId, status, year}` for year filter      |
-| `GET /reduction-projects/:id`         | `getReductionProjectById/`     | Full form data (includes `year`, `baselineScenario`, `projectScenario`) |
-| `PATCH /reduction-projects/:id`       | `updateReductionProject/`      | Save draft — partial project fields (including metrics columns)         |
-| `DELETE /reduction-projects/:id`      | `deleteReductionProject/`      | Sets status = DELETED                                                   |
-| `POST /reduction-projects/:id/submit` | `submitReductionProject/`      | Submission with file upload, uses `createSubmissionRequestHandler`      |
+| Endpoint                                            | Feature Dir                            | Notes                                                                                                             |
+| --------------------------------------------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `POST /reduction-projects`                          | `createReductionProject/`              | Creates blank record, returns `{id}`                                                                              |
+| `GET /reduction-projects`                           | `getAllReductionProjects/`             | Filters: organizationId, year (project `year` column)                                                             |
+| `GET /reduction-projects/minimal`                   | `getReductionProjectsMinimal/`         | Returns `{id, name, organizationId, status, year}` for year filter                                                |
+| `GET /reduction-projects/:id`                       | `getReductionProjectById/`             | Full form data (includes `year`, `baselineScenario`, `projectScenario`)                                           |
+| `PATCH /reduction-projects/:id`                     | `updateReductionProject/`              | Partial fields + optional `fileUuids`; API requires `fileUuids` when not DRAFT (see [api.plan.md](./api.plan.md)) |
+| `DELETE /reduction-projects/:id`                    | `deleteReductionProject/`              | Sets status = DELETED                                                                                             |
+| `POST /reduction-projects/:id/request-verification` | `requestReductionProjectVerification/` | First verification; pre-uploaded `fileUuids`                                                                      |
 
 #### `getAllReductionProjects` response shape
 
@@ -141,7 +141,7 @@ Full project fields (single object; metrics on the same record).
 
 #### `updateReductionProject` body
 
-Partial project fields, including optional `year`, `baselineScenario`, `projectScenario` (no nested sync payload).
+Partial project fields; optional `fileUuids`. When display status is not `DRAFT`, API requires `fileUuids` in the same request (files on submissions). See [api.plan.md](./api.plan.md).
 
 #### Reused endpoints (no changes needed)
 
@@ -234,13 +234,13 @@ Form sections:
 **`apps/web/src/screens/ReductionProject/components/SubmitReductionProjectDialog.tsx`**
 
 - File upload modal (reuse `FormFileUpload` component pattern from `VerifyConfirmationDialog`)
-- On confirm: `useSubmitReductionProject()` with file UUIDs
+- On confirm: `useRequestReductionProjectVerification()` (or equivalent) with file UUIDs
 
 ### API hooks (new)
 
 - `query/reductionProjects/useReductionProject.ts` (by id)
 - `mutation/reductionProjects/useUpdateReductionProject.ts`
-- `mutation/reductionProjects/useSubmitReductionProject.ts`
+- `mutation/reductionProjects/useRequestReductionProjectVerification.ts`
 
 ### Reused hooks
 
