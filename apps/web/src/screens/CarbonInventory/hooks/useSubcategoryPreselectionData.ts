@@ -1,6 +1,8 @@
+import { orderBy } from "lodash-es";
 import { useMemo } from "react";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
+import { useCarbonInventorySubcategoryRecommendations } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoryRecommendations";
 import { SubcategoryPreselectionMergedData } from "../types";
 
 export interface UseSubcategoryPreselectionDataResult {
@@ -23,6 +25,9 @@ export const useSubcategoryPreselectionData = (
     isError: isSubcategoriesSummaryError,
   } = useCarbonInventorySubcategoriesSummary(inventoryId);
 
+  const { data: recommendations } =
+    useCarbonInventorySubcategoryRecommendations(inventoryId);
+
   const mergedData = useMemo<SubcategoryPreselectionMergedData>(() => {
     if (!methodology || !subcategoriesSummary) return [];
 
@@ -33,6 +38,8 @@ export const useSubcategoryPreselectionData = (
       ])
     );
 
+    const recommendedIds = recommendations ?? [];
+
     return methodology.categories.map((category) => ({
       id: category.id,
       name: category.name,
@@ -42,19 +49,24 @@ export const useSubcategoryPreselectionData = (
       synonyms: category.synonyms,
       position: category.position,
       explanationId: category.explanationId,
-      subcategories: category.subcategories.map((subcategory) => {
-        const summary = subcategoriesSummaryMap.get(subcategory.id);
-        return {
-          id: subcategory.id,
-          name: subcategory.name,
-          description: subcategory.description,
-          explanationId: subcategory.explanationId,
-          included: !!summary?.included,
-          edited: !!summary?.edited,
-        };
-      }),
+      subcategories: orderBy(
+        category.subcategories.map((subcategory) => {
+          const summary = subcategoriesSummaryMap.get(subcategory.id);
+          return {
+            id: subcategory.id,
+            name: subcategory.name,
+            description: subcategory.description,
+            explanationId: subcategory.explanationId,
+            included: !!summary?.included,
+            edited: !!summary?.edited,
+            isRecommended: recommendedIds.includes(subcategory.id),
+          };
+        }),
+        ["isRecommended", "name"],
+        ["desc", "asc"]
+      ),
     }));
-  }, [methodology, subcategoriesSummary]);
+  }, [methodology, subcategoriesSummary, recommendations]);
 
   return {
     data: mergedData,

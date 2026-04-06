@@ -85,9 +85,10 @@ model CountrySector {
   country                    Country                    @relation(fields: [countryId], references: [id])
   creator                    User?                      @relation("country_sector_created_by", fields: [createdById], references: [id])
   updater                    User?                      @relation("country_sector_updated_by", fields: [updatedById], references: [id])
-  subsectors                 CountrySubsector[]
-  organizationMainActivities OrganizationMainActivity[]
-  organizationData           OrganizationData[]
+  subsectors                   CountrySubsector[]
+  organizationMainActivities   OrganizationMainActivity[]
+  organizationData             OrganizationData[]
+  subcategoryRecommendations   SubcategoryRecommendation[]
 
   @@unique([countryId, name])
   @@map("country_sector")
@@ -104,8 +105,9 @@ model CountrySubsector {
   countrySector              CountrySector              @relation(fields: [countrySectorId], references: [id])
   creator                    User?                      @relation("country_subsector_created_by", fields: [createdById], references: [id])
   updater                    User?                      @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
-  organizationMainActivities OrganizationMainActivity[]
-  organizationData           OrganizationData[]
+  organizationMainActivities   OrganizationMainActivity[]
+  organizationData             OrganizationData[]
+  subcategoryRecommendations   SubcategoryRecommendation[]
 
   @@unique([countrySectorId, name])
   @@map("country_subsector")
@@ -435,6 +437,7 @@ model Subcategory {
   emissionFactors             EmissionFactor[]
   inventoryLines              CarbonInventoryLine[]
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
+  recommendations             SubcategoryRecommendation[]
   reductionPlanInitiatives    ReductionPlanInitiative[]
 
   // Partial unique index exists in SQL migration:
@@ -453,6 +456,21 @@ model SubcategoryMeasurementUnit {
 
   @@unique([subcategoryId, measurementUnitId])
   @@map("subcategory_measurement_unit")
+}
+
+model SubcategoryRecommendation {
+  id            BigInt            @id @default(autoincrement())
+  subcategoryId BigInt            @map("subcategory_id")
+  sectorId      BigInt            @map("sector_id")
+  subsectorId   BigInt?           @map("subsector_id")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime?         @updatedAt @map("updated_at")
+  subcategory   Subcategory       @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  sector        CountrySector     @relation(fields: [sectorId], references: [id])
+  subsector     CountrySubsector? @relation(fields: [subsectorId], references: [id])
+
+  @@unique([subcategoryId, sectorId, subsectorId])
+  @@map("subcategory_recommendation")
 }
 
 model EmissionFactorDimension {

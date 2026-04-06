@@ -8,7 +8,9 @@ type SubcategoryItem = Pick<
   MethodologySubcategory,
   "id" | "name" | "description" | "explanationId"
 > &
-  Pick<SubcategorySummaryItem, "included" | "edited">;
+  Pick<SubcategorySummaryItem, "included" | "edited"> & {
+    isRecommended: boolean;
+  };
 
 type CategoryWithSubcategories = Pick<
   MethodologyCategory,

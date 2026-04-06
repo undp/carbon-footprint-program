@@ -16,6 +16,7 @@ export enum CarbonInventoryQueryKey {
   Metadata = "metadata",
   Minimal = "minimal",
   Badges = "badges",
+  SubcategoryRecommendations = "subcategory-recommendations",
   ReductionPlan = "reduction-plan",
 }
 
@@ -112,6 +113,13 @@ export const carbonInventoryKeys = {
   ] as const,
   badges: (id?: string) =>
     [CarbonInventoryQueryKey.Root, id, CarbonInventoryQueryKey.Badges] as const,
+  subcategoryRecommendations: (id: string) =>
+    [
+      CarbonInventoryQueryKey.Root,
+      id,
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
+      CarbonInventoryQueryKey.SubcategoryRecommendations,
+    ] as const,
   reductionPlan: (inventoryId?: string) =>
     [
       CarbonInventoryQueryKey.Root,
