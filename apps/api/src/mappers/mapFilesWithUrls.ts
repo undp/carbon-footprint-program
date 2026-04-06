@@ -1,19 +1,11 @@
 import type { ReadSasUrlSigner } from "@/services/blobService.js";
-
-type FileRow = {
-  uuid: string;
-  originalName: string;
-  mimeType: string;
-  sizeBytes: number;
-  blobPath: string;
-  createdAt: Date;
-};
+import type { SubmissionHistoryFileRow } from "../features/submissions/helpers.js";
 
 /**
  * Maps an array of file rows to their response shape with signed preview URLs.
  */
 export async function mapFilesWithUrls(
-  files: FileRow[],
+  files: SubmissionHistoryFileRow[],
   signReadSasUrl: ReadSasUrlSigner
 ) {
   if (files.length === 0) return [];
