@@ -1,8 +1,5 @@
 ---
-name: "OPSX: Explore"
-description: "Enter explore mode - think through ideas, investigate problems, clarify requirements"
-category: Workflow
-tags: [workflow, explore, experimental, thinking]
+description: Enter explore mode - think through ideas, investigate problems, clarify requirements
 ---
 
 Enter explore mode. Think deeply. Visualize freely. Follow the conversation wherever it goes.
@@ -12,12 +9,6 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 **This is a stance, not a workflow.** There are no fixed steps, no required sequence, no mandatory outputs. You're a thinking partner helping the user explore.
 
 **Input**: The argument after `/opsx:explore` is whatever the user wants to think about. Could be:
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - A vague idea: "real-time collaboration"
 - A specific problem: "the auth system is getting unwieldy"
 - A change name: "add-dark-mode" (to explore in context of that change)
@@ -42,48 +33,24 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 Depending on what the user brings, you might:
 
 **Explore the problem space**
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - Ask clarifying questions that emerge from what they said
 - Challenge assumptions
 - Reframe the problem
 - Find analogies
 
 **Investigate the codebase**
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - Map existing architecture relevant to the discussion
 - Find integration points
 - Identify patterns already in use
 - Surface hidden complexity
 
 **Compare options**
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - Brainstorm multiple approaches
 - Build comparison tables
 - Sketch tradeoffs
 - Recommend a path (if asked)
 
 **Visualize**
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 ```
 ┌─────────────────────────────────────────┐
 │     Use ASCII diagrams liberally        │
@@ -102,12 +69,6 @@ Depending on what the user brings, you might:
 ```
 
 **Surface risks and unknowns**
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - Identify what could go wrong
 - Find gaps in understanding
 - Suggest spikes or investigations
@@ -121,23 +82,11 @@ You have full context of the OpenSpec system. Use it naturally, don't force it.
 ### Check for context
 
 At the start, quickly check what exists:
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 ```bash
 openspec list --json
 ```
 
 This tells you:
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - If there are active changes
 - Their names, schemas, and status
 - What the user might be working on
@@ -167,14 +116,14 @@ If the user mentions a change or you detect one is relevant:
 
 3. **Offer to capture when decisions are made**
 
-   | Insight Type               | Where to Capture             |
-   | -------------------------- | ---------------------------- |
+   | Insight Type | Where to Capture |
+   |--------------|------------------|
    | New requirement discovered | `specs/<capability>/spec.md` |
-   | Requirement changed        | `specs/<capability>/spec.md` |
-   | Design decision made       | `design.md`                  |
-   | Scope changed              | `proposal.md`                |
-   | New work identified        | `tasks.md`                   |
-   | Assumption invalidated     | Relevant artifact            |
+   | Requirement changed | `specs/<capability>/spec.md` |
+   | Design decision made | `design.md` |
+   | Scope changed | `proposal.md` |
+   | New work identified | `tasks.md` |
+   | Assumption invalidated | Relevant artifact |
 
    Example offers:
    - "That's a design decision. Capture it in design.md?"

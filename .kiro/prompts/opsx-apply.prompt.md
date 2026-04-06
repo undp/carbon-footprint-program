@@ -1,8 +1,5 @@
 ---
-name: "OPSX: Apply"
 description: Implement tasks from an OpenSpec change (Experimental)
-category: Workflow
-tags: [workflow, artifacts, experimental]
 ---
 
 Implement tasks from an OpenSpec change.
@@ -21,11 +18,9 @@ Implement tasks from an OpenSpec change.
    Always announce: "Using change: <name>" and how to override (e.g., `/opsx:apply <other>`).
 
 2. **Check status to understand the schema**
-
    ```bash
    openspec status --change "<name>" --json
    ```
-
    Parse the JSON to understand:
    - `schemaName`: The workflow being used (e.g., "spec-driven")
    - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
@@ -137,12 +132,6 @@ What would you like to do?
 ```
 
 **Guardrails**
-<<<<<<< HEAD
-
-=======
-
-> > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
 - If task is ambiguous, pause and ask before implementing
