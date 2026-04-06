@@ -13,10 +13,13 @@ Enter explore mode. Think deeply. Visualize freely. Follow the conversation wher
 
 **Input**: The argument after `/opsx:explore` is whatever the user wants to think about. Could be:
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - A vague idea: "real-time collaboration"
 - A specific problem: "the auth system is getting unwieldy"
@@ -43,10 +46,13 @@ Depending on what the user brings, you might:
 
 **Explore the problem space**
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - Ask clarifying questions that emerge from what they said
 - Challenge assumptions
@@ -55,10 +61,13 @@ Depending on what the user brings, you might:
 
 **Investigate the codebase**
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - Map existing architecture relevant to the discussion
 - Find integration points
@@ -67,10 +76,13 @@ Depending on what the user brings, you might:
 
 **Compare options**
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - Brainstorm multiple approaches
 - Build comparison tables
@@ -79,10 +91,13 @@ Depending on what the user brings, you might:
 
 **Visualize**
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 ```
 ┌─────────────────────────────────────────┐
@@ -103,10 +118,13 @@ Depending on what the user brings, you might:
 
 **Surface risks and unknowns**
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - Identify what could go wrong
 - Find gaps in understanding
@@ -122,10 +140,13 @@ You have full context of the OpenSpec system. Use it naturally, don't force it.
 
 At the start, quickly check what exists:
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 ```bash
 openspec list --json
@@ -133,10 +154,13 @@ openspec list --json
 
 This tells you:
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - If there are active changes
 - Their names, schemas, and status

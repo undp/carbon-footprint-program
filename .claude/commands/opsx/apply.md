@@ -138,10 +138,13 @@ What would you like to do?
 
 **Guardrails**
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 =======
 
 > > > > > > > aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
+=======
+>>>>>>> 1d41dd745 (style: format pre-existing markdown and skills files)
 
 - Keep going through tasks until done or blocked
 - Always read context files before starting (from the apply instructions output)
