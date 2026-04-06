@@ -25,6 +25,7 @@ export const getSubcategoryRecommendationsRoute: StandardRouteSignature = (
         params: GetSubcategoryRecommendationsParamsSchema,
         response: {
           200: GetSubcategoryRecommendationsResponseSchema,
+          400: ApiErrorResponseSchema,
           403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
