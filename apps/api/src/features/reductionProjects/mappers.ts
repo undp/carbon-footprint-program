@@ -7,6 +7,8 @@ import type {
 } from "@repo/types";
 import type { ReductionProjectDisplayStatus } from "@repo/types";
 import type { InventoryStatus } from "@repo/types";
+import { GwpSourceSchema } from "@repo/types";
+import { ConsideredGeiSchema } from "@repo/types";
 
 type ReductionProjectRow = {
   id: bigint;
@@ -47,9 +49,11 @@ function mapPersistenceFields(
     implementationDate: row.implementationDate?.toISOString() ?? null,
     description: row.description,
     subcategoryId: row.subcategoryId?.toString() ?? null,
-    gwpUsed: row.gwpUsed,
+    gwpUsed: row.gwpUsed ? GwpSourceSchema.parse(row.gwpUsed) : null,
     useNationalGwp: row.useNationalGwp,
-    consideredGei: row.consideredGei,
+    consideredGei: row.consideredGei.map((gei) =>
+      ConsideredGeiSchema.parse(gei)
+    ),
     reportedElsewhere: row.reportedElsewhere,
     reportedElsewhereDescription: row.reportedElsewhereDescription,
     year: row.year,

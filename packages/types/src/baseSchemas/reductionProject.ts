@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
 import { InventoryStatus } from "../enums.js";
+import { ConsideredGeiSchema } from "../common/consideredGei/schemas.js";
+import { GwpSourceSchema } from "../common/gwpSource/schemas.js";
 
 export const ReductionProjectBaseSchema = z
   .object({
@@ -19,12 +21,14 @@ export const ReductionProjectBaseSchema = z
       .nullable()
       .describe("Description of the reduction project"),
     subcategoryId: IdSchema.nullable().describe("The ID of the subcategory"),
-    gwpUsed: z.string().nullable().describe("GWP set used for the assessment"),
+    gwpUsed: GwpSourceSchema.nullable().describe(
+      "GWP set used for the assessment"
+    ),
     useNationalGwp: z
       .boolean()
       .describe("Whether national GWP values are used"),
     consideredGei: z
-      .array(z.string())
+      .array(ConsideredGeiSchema)
       .describe("GHG species considered in the project"),
     reportedElsewhere: z
       .boolean()
