@@ -21,6 +21,7 @@ import { useDropzone, ErrorCode } from "react-dropzone";
 import type { Accept } from "react-dropzone";
 import accepts from "attr-accept";
 import { MAX_FILE_UPLOAD_SIZE_MB } from "../config/constants";
+import { mergeUniqueFiles } from "@/utils/files";
 
 interface FileWithPreview {
   file: File;
@@ -110,7 +111,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
     (incoming: File[], hadRejections = false) => {
       if (!incoming.length) return;
       if (!hadRejections) setDropError("");
-      onChange([...value, ...incoming]);
+      onChange(mergeUniqueFiles(value, incoming));
     },
     [value, onChange]
   );
@@ -242,6 +243,7 @@ export const FileUpload: FC<PropsWithChildren<Props>> = ({
                     variant: "caption",
                     noWrap: true,
                     title: file.name,
+                    marginRight: 3,
                   },
                 }}
               />
