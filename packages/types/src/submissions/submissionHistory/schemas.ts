@@ -48,7 +48,7 @@ export const SubmissionHistoryEntrySchema = z.object({
     .nullable()
     .describe("Additional user context, e.g. organization name"),
   carbonInventoryId: IdSchema.nullable().describe(
-    "The ID of the carbon inventory, or null for self-declarations"
+    "The ID of the carbon inventory; present for SELF_DECLARATION entries, null when not applicable"
   ),
   organizationId: IdSchema.nullable().describe(
     "The ID of the organization, or null for self-declarations"
