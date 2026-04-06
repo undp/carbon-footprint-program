@@ -3,7 +3,7 @@ import { RejectRequestBody, RejectRequestResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { requestsKeys } from "./keys.js";
 import { organizationKeys } from "../organizations/keys.js";
-import { submissionsKeys } from "../submissions/key.js";
+import { SubmissionQueryKey } from "../submissions/keys.js";
 
 export const useReviewSubmission = () => {
   const queryClient = useQueryClient();
@@ -17,7 +17,7 @@ export const useReviewSubmission = () => {
       apiClient
         .post(`admin/requests/${id}/review`, { json: body ?? {} })
         .json<RejectRequestResponse>(),
-    onSuccess: async ({ id }) => {
+    onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminAll,
@@ -40,12 +40,8 @@ export const useReviewSubmission = () => {
           exact: true,
         }),
         queryClient.invalidateQueries({
-          queryKey: submissionsKeys.carbonInventoryHistory(id),
-          exact: true,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: submissionsKeys.organizationHistory(id),
-          exact: true,
+          predicate: (query) =>
+            query.queryKey.includes(SubmissionQueryKey.HistoryUpdateDependency),
         }),
       ]);
     },
