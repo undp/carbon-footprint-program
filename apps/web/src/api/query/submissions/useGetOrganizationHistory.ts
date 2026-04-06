@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { GetSubmissionHistoryResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
-import { submissionsKeys } from "./key";
+import { submissionsKeys } from "./keys";
 import { STALE_TIME_MS } from "../../../config/constants";
 
 export const useGetOrganizationHistory = (
