@@ -2,7 +2,7 @@ import { FC, useState, useCallback, PropsWithChildren, useMemo } from "react";
 import { Box, IconButtonProps, IconButton, Tooltip } from "@mui/material";
 import {
   EditOutlined,
-  FileDownloadOutlined,
+  HistoryOutlined,
   VerifiedOutlined,
   DeleteOutlined,
   FileCopyOutlined,
@@ -47,6 +47,7 @@ import {
   SelfDeclareValidationDialog,
   type SelfDeclareValidationReason,
 } from "./Dialogs/SelfDeclareValidationDialog";
+import { ViewSubmissionDialog } from "@/components/dialogs/SubmissionHistory";
 
 const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
@@ -87,6 +88,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const [selfDeclareDialogOpen, setSelfDeclareDialogOpen] = useState(false);
   const [selfDeclareValidationReason, setSelfDeclareValidationReason] =
     useState<SelfDeclareValidationReason>(null);
+  const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
 
   // for now, we can use the same method to check if the inventory is editable as the one to check if the inventory can request calculation
@@ -329,10 +331,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     }
   }, [carbonInventory.id, duplicateInventory]);
 
-  const onDownloadClick = useCallback((_inventoryId: string) => {
-    //TODO: Implement download functionality
-  }, []);
-
   const onSelfDeclareClick = useCallback(() => {
     if (carbonInventory.organizationId === null) {
       setSelfDeclareValidationReason("missing-organization");
@@ -441,15 +439,14 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
 
-        {/* Download button */}
-        <Tooltip title="Descargar">
+        {/* History button */}
+        <Tooltip title="Historial">
           <span>
             <BaseIconButton
-              disabled
-              onClick={() => onDownloadClick(carbonInventory.id)}
-              aria-label="Descargar"
+              onClick={() => setHistoryDialogOpen(true)}
+              aria-label="Historial"
             >
-              <FileDownloadOutlined fontSize="small" />
+              <HistoryOutlined fontSize="small" />
             </BaseIconButton>
           </span>
         </Tooltip>
@@ -541,6 +538,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         open={incompleteDialogOpen}
         onClose={() => setIncompleteDialogOpen(false)}
         missingFields={missingFields}
+      />
+
+      <ViewSubmissionDialog
+        open={historyDialogOpen}
+        carbonInventoryId={carbonInventory.id}
+        organizationId={carbonInventory.organizationId}
+        onClose={() => setHistoryDialogOpen(false)}
       />
     </>
   );
