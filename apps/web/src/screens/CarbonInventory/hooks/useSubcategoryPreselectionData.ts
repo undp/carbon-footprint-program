@@ -1,3 +1,4 @@
+import { orderBy } from "lodash-es";
 import { useMemo } from "react";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
@@ -9,14 +10,6 @@ export interface UseSubcategoryPreselectionDataResult {
   isLoading: boolean;
   hasError: boolean;
 }
-
-const compareName = (a: string, b: string) => {
-  return a.localeCompare(b);
-};
-
-const compareRecommended = (a: boolean) => {
-  return a ? -1 : 1;
-};
 
 export const useSubcategoryPreselectionData = (
   inventoryId: string
@@ -56,8 +49,8 @@ export const useSubcategoryPreselectionData = (
       synonyms: category.synonyms,
       position: category.position,
       explanationId: category.explanationId,
-      subcategories: category.subcategories
-        .map((subcategory) => {
+      subcategories: orderBy(
+        category.subcategories.map((subcategory) => {
           const summary = subcategoriesSummaryMap.get(subcategory.id);
           return {
             id: subcategory.id,
@@ -68,11 +61,10 @@ export const useSubcategoryPreselectionData = (
             edited: !!summary?.edited,
             isRecommended: recommendedIds.includes(subcategory.id),
           };
-        })
-        .sort(
-          (a, b) =>
-            compareRecommended(a.isRecommended) || compareName(a.name, b.name)
-        ),
+        }),
+        ["isRecommended", "name"],
+        ["desc", "asc"]
+      ),
     }));
   }, [methodology, subcategoriesSummary, recommendations]);
 
