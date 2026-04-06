@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { GetCarbonInventoryHistoryParams } from "@repo/types";
 import { getCarbonInventoryHistoryService } from "./service.js";
+import { StorageNotConfiguredError } from "../../files/errors.js";
 
 export const getCarbonInventoryHistoryHandler = async (
   request: FastifyRequest<{ Params: GetCarbonInventoryHistoryParams }>,
@@ -12,6 +13,10 @@ export const getCarbonInventoryHistoryHandler = async (
   const prisma = request.server.prisma;
   const blobServiceClient = request.server.blobServiceClient ?? null;
   const containerName = request.server.storageContainerName ?? null;
+
+  if (!blobServiceClient || !containerName) {
+    throw new StorageNotConfiguredError();
+  }
 
   const result = await getCarbonInventoryHistoryService(
     prisma,
