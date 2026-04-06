@@ -56,6 +56,17 @@ export const getEventLabel = (entry: SubmissionHistoryEntry): string => {
   return EVENT_TYPE_LABEL[entry.eventType] ?? entry.eventType;
 };
 
+const REVIEW_TITLE_MAP: Partial<Record<SubmissionType, string>> = {
+  [SubmissionType.ORGANIZATION_ACCREDITATION]: `a ${capitalize(VOCAB.inscription.noun.singular)} de ${VOCAB.organization.noun.singular}`,
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "al Diploma de medición",
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "al Sello de verificación",
+};
+
+export const getReviewTitle = (type?: SubmissionType): string => {
+  if (!type) return "Solicitud";
+  return `Revisión de la postulación ${REVIEW_TITLE_MAP[type] ?? ""}`.trim();
+};
+
 export const getRequestStatusColor = (
   status: SubmissionStatus,
   theme: Theme
