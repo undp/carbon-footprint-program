@@ -7,6 +7,7 @@ export * from "./organizationMainActivities";
 export * from "./users";
 export * from "./measurementUnits";
 export * from "./organizations";
+export * from "./reductionProjects";
 export * from "./submissions";
 export * from "./systemParameters";
 export * from "./badges";
