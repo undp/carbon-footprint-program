@@ -1,8 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Routes } from "@/interfaces/routes";
-import { UnderConstructionScreen } from "../screens/UnderConstruction";
+import { TransparencyScreen } from "@/screens/Transparency";
 
 export const Route = createFileRoute(Routes.TRANSPARENCY)({
-  // TODO: Replace with real Transparency screen component
-  component: UnderConstructionScreen,
+  component: TransparencyScreen,
 });

@@ -39,14 +39,19 @@ export const Header: FC = () => {
   return (
     <AppBar color="transparent" elevation={0} position="static">
       <Toolbar className="px-6 py-4">
-        <HuellaLatamLogo
-          sx={{
-            width: 116,
-            height: 50,
-            mr: 5,
-          }}
-          contrast
-        />
+        <Box
+          onClick={() => void navigate({ to: "/" })}
+          sx={{ cursor: "pointer", display: "flex", alignItems: "center" }}
+        >
+          <HuellaLatamLogo
+            sx={{
+              width: 116,
+              height: 50,
+              mr: 5,
+            }}
+            contrast
+          />
+        </Box>
         <Box className="flex flex-1 gap-12">
           {!IS_DEMO &&
             pages.map((page) => (

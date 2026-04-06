@@ -11,6 +11,7 @@ export * from "./users/index.js";
 export * from "./files/index.js";
 export * from "./organizations/index.js";
 export * from "./enums.js";
+export * from "./transparency.js";
 export * from "./zod.js";
 export * from "./requests/index.js";
 export * from "./subcategories/index.js";
