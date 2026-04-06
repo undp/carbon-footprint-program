@@ -1,5 +1,11 @@
 import { FC, useState } from "react";
-import { Box, Card, ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { AdminDashboardKpisResponse } from "@repo/types";
 
@@ -58,7 +64,11 @@ export const SectorBarChart: FC<Props> = ({ data }) => {
           grid={{ vertical: true }}
         />
       ) : (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: "center" }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ py: 4, textAlign: "center" }}
+        >
           No hay datos disponibles
         </Typography>
       )}

@@ -13,7 +13,12 @@ interface SummaryCardProps {
   bgColor: string;
 }
 
-const SummaryCard: FC<SummaryCardProps> = ({ label, value, color, bgColor }) => (
+const SummaryCard: FC<SummaryCardProps> = ({
+  label,
+  value,
+  color,
+  bgColor,
+}) => (
   <Card
     sx={{
       flex: 1,

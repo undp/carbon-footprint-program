@@ -60,7 +60,11 @@ export const KpiCard: FC<Props> = ({
         {secondaryValue.toLocaleString("es-CL")}
       </Typography>
 
-      <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        sx={{ fontSize: 12 }}
+      >
         {subtitle}
       </Typography>
     </Card>
