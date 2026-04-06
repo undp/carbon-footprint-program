@@ -1,7 +1,12 @@
 import { z } from "zod";
 
 export const AdminDashboardKpisQuerySchema = z.object({
-  year: z.coerce.number().int().optional(),
+  year: z.coerce
+    .number()
+    .int()
+    .min(1900)
+    .max(new Date().getFullYear() + 1)
+    .optional(),
 });
 
 export const AdminDashboardKpisResponseSchema = z.object({
