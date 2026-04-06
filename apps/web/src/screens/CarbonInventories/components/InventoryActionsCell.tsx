@@ -540,12 +540,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         missingFields={missingFields}
       />
 
-      <ViewSubmissionDialog
-        open={historyDialogOpen}
-        carbonInventoryId={carbonInventory.id}
-        organizationId={carbonInventory.organizationId}
-        onClose={() => setHistoryDialogOpen(false)}
-      />
+      {historyDialogOpen && (
+        <ViewSubmissionDialog
+          open={historyDialogOpen}
+          carbonInventoryId={carbonInventory.id}
+          onClose={() => setHistoryDialogOpen(false)}
+        />
+      )}
     </>
   );
 };
