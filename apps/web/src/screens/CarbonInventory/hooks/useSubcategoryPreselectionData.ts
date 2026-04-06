@@ -10,6 +10,14 @@ export interface UseSubcategoryPreselectionDataResult {
   hasError: boolean;
 }
 
+const compareName = (a: string, b: string) => {
+  return a.localeCompare(b);
+};
+
+const compareRecommended = (a: boolean) => {
+  return a ? -1 : 1;
+};
+
 export const useSubcategoryPreselectionData = (
   inventoryId: string
 ): UseSubcategoryPreselectionDataResult => {
@@ -48,18 +56,23 @@ export const useSubcategoryPreselectionData = (
       synonyms: category.synonyms,
       position: category.position,
       explanationId: category.explanationId,
-      subcategories: category.subcategories.map((subcategory) => {
-        const summary = subcategoriesSummaryMap.get(subcategory.id);
-        return {
-          id: subcategory.id,
-          name: subcategory.name,
-          description: subcategory.description,
-          explanationId: subcategory.explanationId,
-          included: !!summary?.included,
-          edited: !!summary?.edited,
-          isRecommended: recommendedIds.includes(subcategory.id),
-        };
-      }),
+      subcategories: category.subcategories
+        .map((subcategory) => {
+          const summary = subcategoriesSummaryMap.get(subcategory.id);
+          return {
+            id: subcategory.id,
+            name: subcategory.name,
+            description: subcategory.description,
+            explanationId: subcategory.explanationId,
+            included: !!summary?.included,
+            edited: !!summary?.edited,
+            isRecommended: recommendedIds.includes(subcategory.id),
+          };
+        })
+        .sort(
+          (a, b) =>
+            compareRecommended(a.isRecommended) || compareName(a.name, b.name)
+        ),
     }));
   }, [methodology, subcategoriesSummary, recommendations]);
 

@@ -60,32 +60,34 @@ export const SubcategoryPreselectionField = ({
                   />
                 </Box>
                 <Box className="flex flex-col">
-                  <Box className="flex flex-row items-center gap-2">
+                  <Box className="flex flex-row items-center justify-between">
                     <Typography variant="body1">{subcategory.name}</Typography>
-                    {subcategory.isRecommended && (
-                      <Chip
-                        label="Recomendada"
-                        size="small"
-                        sx={{
-                          backgroundColor: alpha(
-                            theme.palette.primary.main,
-                            0.12
-                          ),
-                          color: "primary.main",
-                          border: "1px solid",
-                          borderColor: alpha(theme.palette.primary.main, 0.4),
-                          fontWeight: 500,
-                          height: 22,
+                    <Box className="flex flex-row items-center justify-between gap-1 pr-1">
+                      {subcategory.isRecommended && (
+                        <Chip
+                          label="Recomendada"
+                          size="small"
+                          sx={{
+                            backgroundColor: alpha(
+                              theme.palette.primary.main,
+                              0.12
+                            ),
+                            color: "primary.main",
+                            border: "1px solid",
+                            borderColor: alpha(theme.palette.primary.main, 0.4),
+                            fontWeight: 500,
+                            height: 22,
+                          }}
+                        />
+                      )}
+                      <InfoButton
+                        label="Más información de la subcategoría"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openExplanation(subcategory.explanationId);
                         }}
                       />
-                    )}
-                    <InfoButton
-                      label="Más información de la subcategoría"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openExplanation(subcategory.explanationId);
-                      }}
-                    />
+                    </Box>
                   </Box>
                   {subcategory.description && (
                     <Typography variant="body2" color="text.secondary">
