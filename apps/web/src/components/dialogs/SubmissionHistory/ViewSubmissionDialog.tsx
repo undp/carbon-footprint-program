@@ -1,0 +1,198 @@
+import { FC } from "react";
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  darken,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  IconButton,
+  Paper,
+  Stack,
+  Typography,
+  useTheme,
+} from "@mui/material";
+import { CloseOutlined, OpenInNewOutlined } from "@mui/icons-material";
+import { SubmissionType } from "@repo/types";
+import { formatDate } from "@/utils/formatting";
+import { getReviewTitle } from "@/utils/submissions";
+import { FilesSection } from "./FilesSection";
+import { CurrentStatusBanner } from "./CurrentStatusBanner";
+import { AdminActionsCard } from "./AdminActionsCard";
+import { SubmissionHistorySection } from "./SubmissionHistorySection";
+import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
+import { OrgDataSection } from "./OrgDataSection";
+import { AnyQuestionsBanner } from "./AnyQuestionsBanner";
+import { useViewSubmission } from "./hooks/useViewSubmission";
+
+type Props = {
+  open: boolean;
+  carbonInventoryId?: string | null;
+  organizationId?: string | null;
+  onClose: () => void;
+  isAdmin?: boolean;
+};
+
+export const ViewSubmissionDialog: FC<Props> = ({
+  open,
+  carbonInventoryId,
+  organizationId,
+  onClose,
+  isAdmin,
+}) => {
+  const theme = useTheme();
+
+  const {
+    submission,
+    historicalEntries,
+    isLoading,
+    isStatusPending,
+    isCarbonInventorySubmission,
+    isOrganizationAccreditation,
+    isBusy,
+    submissionComment,
+    subtitle,
+    handleApprove,
+    handleReviewSubmission,
+    handleNavigateToInventory,
+  } = useViewSubmission({ carbonInventoryId, organizationId, onClose });
+  return (
+    <Dialog
+      open={open}
+      onClose={onClose}
+      maxWidth="md"
+      fullWidth
+      slotProps={{ paper: { sx: { overflow: "hidden" } } }}
+    >
+      <DialogTitle component="div" sx={{ pb: 0.5, pr: 6 }}>
+        <Typography
+          variant="h6"
+          fontWeight={600}
+          sx={{ color: theme.palette.text.primary, fontSize: 18 }}
+        >
+          {getReviewTitle(submission?.submissionType as SubmissionType)}
+        </Typography>
+        <Typography
+          variant="body2"
+          sx={{ color: darken(theme.palette.background.default, 0.5), mt: 0.5 }}
+        >
+          {subtitle}
+        </Typography>
+        <IconButton
+          onClick={onClose}
+          size="small"
+          disabled={isBusy}
+          sx={{ position: "absolute", right: 12, top: 12, opacity: 0.7 }}
+        >
+          <CloseOutlined fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers sx={{ p: 2 }}>
+        {isLoading ? (
+          <Stack alignItems="center" justifyContent="center" sx={{ py: 4 }}>
+            <CircularProgress />
+          </Stack>
+        ) : submission ? (
+          <Stack spacing={2}>
+            {/* Main card */}
+            <Paper
+              variant="outlined"
+              sx={{
+                borderRadius: "10px",
+                overflow: "hidden",
+                borderColor: theme.palette.divider,
+              }}
+            >
+              {submission.status && (
+                <CurrentStatusBanner
+                  status={submission.status}
+                  type={submission.submissionType as SubmissionType}
+                />
+              )}
+
+              <Box sx={{ p: 2 }}>
+                {/* Date pill */}
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1}
+                  sx={{ mb: 1 }}
+                >
+                  <Chip
+                    label={formatDate(submission.date)}
+                    size="small"
+                    sx={{
+                      bgcolor: theme.palette.background.default,
+                      border: `1px solid ${theme.palette.divider}`,
+                      color: theme.palette.text.secondary,
+                      fontSize: 12,
+                      height: 26,
+                      borderRadius: "40px",
+                    }}
+                  />
+                </Stack>
+
+                {/* Inventory link */}
+                {submission.carbonInventoryId &&
+                  isCarbonInventorySubmission && (
+                    <Button
+                      variant="text"
+                      size="small"
+                      startIcon={
+                        <OpenInNewOutlined
+                          sx={{ fontSize: "12px !important" }}
+                        />
+                      }
+                      onClick={() =>
+                        handleNavigateToInventory(submission.carbonInventoryId!)
+                      }
+                      sx={{
+                        color: theme.palette.common.glossyTeal,
+                        px: 1,
+                        fontSize: 12,
+                        fontWeight: 500,
+                        textTransform: "none",
+                        mb: 1,
+                        minWidth: 0,
+                      }}
+                    >
+                      Ver resumen del cálculo de huella
+                    </Button>
+                  )}
+
+                {submissionComment && (
+                  <SubmissionCommentsSection comment={submissionComment} />
+                )}
+
+                <FilesSection files={submission.files} />
+
+                {submission.organizationData && isOrganizationAccreditation && (
+                  <OrgDataSection data={submission.organizationData} />
+                )}
+
+                {isAdmin && isStatusPending && (
+                  <AdminActionsCard
+                    onApprove={handleApprove}
+                    onReview={handleReviewSubmission}
+                    isBusy={isBusy}
+                  />
+                )}
+              </Box>
+            </Paper>
+
+            {/* History section */}
+            <SubmissionHistorySection
+              history={historicalEntries}
+              onNavigateToInventory={handleNavigateToInventory}
+            />
+
+            <AnyQuestionsBanner />
+          </Stack>
+        ) : null}
+      </DialogContent>
+    </Dialog>
+  );
+};
