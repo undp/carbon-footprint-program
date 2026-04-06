@@ -18,7 +18,7 @@ import {
   getPendingOrganizationData,
   createOrganizationData,
   createOrganizationDataSubmission,
-  getLastRejectedOrganizationData,
+  getLastReviewedOrganizationData,
 } from "../../helpers.js";
 import {
   linkFilesToSubmission,
@@ -135,7 +135,7 @@ export const updateOrganizationService = async (
       return { id: organization.id.toString() };
     }
 
-    const lastRejectedOrganizationData = await getLastRejectedOrganizationData(
+    const lastRejectedOrganizationData = await getLastReviewedOrganizationData(
       tx,
       organizationId
     );
