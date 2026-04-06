@@ -122,17 +122,16 @@ export const getDashboardKpisService = async (
   ]);
 
   // --- Organizations by sector ---
-  const organizationsWithSector =
-    await prismaClient.organizationData.findMany({
-      where: {
-        status: "ACTIVE",
-        sectorId: { not: null },
-      },
-      select: {
-        organizationId: true,
-        sector: { select: { name: true } },
-      },
-    });
+  const organizationsWithSector = await prismaClient.organizationData.findMany({
+    where: {
+      status: "ACTIVE",
+      sectorId: { not: null },
+    },
+    select: {
+      organizationId: true,
+      sector: { select: { name: true } },
+    },
+  });
 
   // Build a map of org → sector
   const orgSectorMap = new Map<bigint, string>();
