@@ -37,7 +37,7 @@ export const useSubcategoryPreselectionData = (
       ])
     );
 
-    const recommendedIds = new Set(recommendations ?? []);
+    const recommendedIds = recommendations ?? [];
 
     return methodology.categories.map((category) => ({
       id: category.id,
@@ -57,7 +57,7 @@ export const useSubcategoryPreselectionData = (
           explanationId: subcategory.explanationId,
           included: !!summary?.included,
           edited: !!summary?.edited,
-          isRecommended: recommendedIds.has(subcategory.id),
+          isRecommended: recommendedIds.includes(subcategory.id),
         };
       }),
     }));
