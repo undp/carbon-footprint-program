@@ -127,7 +127,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toContain(subcategoryId.toString());
+      expect(body).toContain(subcategoryId.toString());
     });
 
     it("should include recommendations with null subsector in UNION mode", async () => {
@@ -166,8 +166,8 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toContain(subcategoryId.toString());
-      expect(body.subcategoryIds).toContain(otherSubcategoryId.toString());
+      expect(body).toContain(subcategoryId.toString());
+      expect(body).toContain(otherSubcategoryId.toString());
     });
 
     it("should exclude recommendations for a different sector in UNION mode", async () => {
@@ -203,7 +203,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).not.toContain(otherSubcategoryId.toString());
+      expect(body).not.toContain(otherSubcategoryId.toString());
     });
 
     it("should return only exact sector+subsector match in SPECIFIC mode", async () => {
@@ -249,8 +249,8 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toContain(subcategoryId.toString());
-      expect(body.subcategoryIds).not.toContain(otherSubcategoryId.toString());
+      expect(body).toContain(subcategoryId.toString());
+      expect(body).not.toContain(otherSubcategoryId.toString());
     });
 
     it("should return empty when SPECIFIC mode finds no exact subsector match", async () => {
@@ -290,7 +290,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toHaveLength(0);
+      expect(body).toHaveLength(0);
     });
 
     it("should deduplicate subcategory IDs when the same subcategory appears in multiple recommendations", async () => {
@@ -326,9 +326,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      const occurrences = body.subcategoryIds.filter(
-        (id) => id === subcategoryId.toString()
-      );
+      const occurrences = body.filter((id) => id === subcategoryId.toString());
       expect(occurrences).toHaveLength(1);
     });
   });
@@ -359,7 +357,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toHaveLength(0);
+      expect(body).toHaveLength(0);
     });
 
     it("should return empty subcategoryIds when organizationData is null", async () => {
@@ -377,7 +375,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toHaveLength(0);
+      expect(body).toHaveLength(0);
     });
 
     it("should return empty subcategoryIds when no recommendations exist for the sector", async () => {
@@ -405,7 +403,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       const body = JSON.parse(
         response.body
       ) as GetCarbonInventorySubcategoryRecommendationsResponse;
-      expect(body.subcategoryIds).toHaveLength(0);
+      expect(body).toHaveLength(0);
     });
   });
 

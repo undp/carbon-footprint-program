@@ -7,6 +7,4 @@ export const GetCarbonInventorySubcategoryRecommendationsParamsSchema =
   });
 
 export const GetCarbonInventorySubcategoryRecommendationsResponseSchema =
-  z.object({
-    subcategoryIds: z.array(IdSchema),
-  });
+  z.array(IdSchema);

@@ -29,7 +29,7 @@ export const getCarbonInventorySubcategoryRecommendationsService = async (
   const sectorId = orgData?.sectorId ?? null;
 
   if (!sectorId) {
-    return { subcategoryIds: [] };
+    return [];
   }
 
   const subsectorId = orgData?.subsectorId ?? null;
@@ -59,9 +59,5 @@ export const getCarbonInventorySubcategoryRecommendationsService = async (
     }
   );
 
-  return {
-    subcategoryIds: [
-      ...new Set(recommendations.map((r) => r.subcategoryId.toString())),
-    ],
-  };
+  return [...new Set(recommendations.map((r) => r.subcategoryId.toString()))];
 };
