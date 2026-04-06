@@ -8,6 +8,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export default [
   ...webConfig,
   {
+    ignores: ["src/**/__tests__/**"],
+  },
+  {
     languageOptions: {
       parserOptions: {
         tsconfigRootDir: __dirname,

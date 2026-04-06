@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src", "eslint.config.ts", "vite.config.ts"],
+  "exclude": ["src/**/__tests__/**"],
   "compilerOptions": {
     "noEmit": true
   }

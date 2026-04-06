@@ -1,6 +1,7 @@
 {
   "extends": "@repo/typescript-config/web.json",
   "include": ["src"],
+  "exclude": ["src/**/__tests__/**"],
   "compilerOptions": {
     "jsx": "react-jsx",
     "baseUrl": ".",
