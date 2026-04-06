@@ -10,6 +10,7 @@ export {
 } from "./carbonInventory.js";
 export { buildUserName } from "./user.js";
 export {
+  isReductionProjectEditable,
   isReductionProjectDeletable,
   canRequestReductionProjectVerification,
 } from "./reductionProject.js";

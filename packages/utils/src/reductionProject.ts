@@ -3,6 +3,15 @@ import {
   type ReductionProjectDisplayStatus,
 } from "@repo/types";
 
+export function isReductionProjectEditable(
+  status: ReductionProjectDisplayStatus
+): boolean {
+  return (
+    status === ReductionProjectDisplayStatusEnum.DRAFT ||
+    status === ReductionProjectDisplayStatusEnum.REJECTED
+  );
+}
+
 export function isReductionProjectDeletable(
   status: ReductionProjectDisplayStatus
 ): boolean {
