@@ -1,12 +1,7 @@
 import { useMemo, useCallback } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import { alpha, IconButton, Stack, useTheme, type Theme } from "@mui/material";
-import { useSnackbar } from "notistack";
-import {
-  VisibilityOutlined,
-  CheckOutlined,
-  CloseOutlined,
-} from "@mui/icons-material";
+import { IconButton, Stack, useTheme } from "@mui/material";
+import { VisibilityOutlined, EditOutlined } from "@mui/icons-material";
 import { RequestStatusChip } from "../components/RequestStatusChip";
 import { RequestTypeChip } from "../components/RequestTypeChip";
 import {
@@ -14,47 +9,19 @@ import {
   SubmissionStatus as RequestStatus,
   SubmissionType as RequestType,
 } from "@repo/types";
-import { useApproveRequest } from "@/api/query/requests/useApproveRequest";
-import { useRejectRequest } from "@/api/query/requests/useRejectRequest";
 import { capitalize } from "lodash-es";
 import { VOCAB } from "@/config/vocab";
-
-// ASSETS FOR RENDERING THE STATUS COLUMN
-
-const STATUS_LABEL: Record<RequestStatus, string> = {
-  [RequestStatus.PENDING]: "Pendiente",
-  [RequestStatus.APPROVED]: "Aprobada",
-  [RequestStatus.REVIEWED]: "Con observaciones",
-  [RequestStatus.REJECTED]: "Rechazada",
-  [RequestStatus.APPROVED_AUTOMATICALLY]: "Aprobada Automáticamente",
-};
-
-const getStatusColor = (status: RequestStatus, theme: Theme): string => {
-  const map: Record<RequestStatus, string> = {
-    [RequestStatus.PENDING]: theme.palette.warning.light,
-    [RequestStatus.APPROVED]: theme.palette.success.light,
-    [RequestStatus.REVIEWED]: theme.palette.warning.light,
-    [RequestStatus.REJECTED]: theme.palette.error.light,
-    [RequestStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.light,
-  };
-  return map[status];
-};
+import {
+  REQUEST_STATUS_LABEL as STATUS_LABEL,
+  REQUEST_TYPE_LABEL as TYPE_LABEL,
+  getRequestStatusColor,
+} from "@/utils/submissions";
 
 const STATUS_SORT_ORDER: Record<string, number> = {
   [STATUS_LABEL[RequestStatus.PENDING]]: 0,
   [STATUS_LABEL[RequestStatus.APPROVED]]: 1,
   [STATUS_LABEL[RequestStatus.REVIEWED]]: 2,
   [STATUS_LABEL[RequestStatus.REJECTED]]: 3,
-};
-
-// ASSETS FOR RENDERING THE TYPE COLUMN
-
-const TYPE_LABEL: Record<RequestType, string> = {
-  [RequestType.ORGANIZATION_ACCREDITATION]: "Acreditación",
-  [RequestType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
-  [RequestType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
-  [RequestType.REDUCTION_PLAN_VERIFICATION]: "Sello Reducción",
-  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello Neutralización",
 };
 
 const TYPE_SORT_ORDER: Record<string, number> = {
@@ -65,42 +32,19 @@ const TYPE_SORT_ORDER: Record<string, number> = {
   [TYPE_LABEL[RequestType.NEUTRALIZATION_PLAN_VERIFICATION]]: 4,
 };
 
-export const useRequestColumns = (): GridColDef<
-  GetAllAdminRequestsResponse[number]
->[] => {
-  const theme = useTheme();
-  const { enqueueSnackbar } = useSnackbar();
-  const cellClassName = "content-center";
-  const { mutateAsync: approveRequest, isPending: isApproving } =
-    useApproveRequest();
-  const { mutateAsync: rejectRequest, isPending: isRejecting } =
-    useRejectRequest();
+interface Props {
+  onView: (row: GetAllAdminRequestsResponse[number]) => void;
+}
 
-  const handleApprove = useCallback(
-    async (id: string) => {
-      try {
-        await approveRequest({ id });
-        enqueueSnackbar("Solicitud aprobada correctamente", {
-          variant: "success",
-        });
-      } catch {
-        enqueueSnackbar("Error al aprobar la solicitud", { variant: "error" });
-      }
-    },
-    [approveRequest, enqueueSnackbar]
-  );
-  const handleReject = useCallback(
-    async (id: string) => {
-      try {
-        await rejectRequest({ id });
-        enqueueSnackbar("Solicitud rechazada correctamente", {
-          variant: "success",
-        });
-      } catch {
-        enqueueSnackbar("Error al rechazar la solicitud", { variant: "error" });
-      }
-    },
-    [rejectRequest, enqueueSnackbar]
+export const useRequestColumns = ({
+  onView,
+}: Props): GridColDef<GetAllAdminRequestsResponse[number]>[] => {
+  const theme = useTheme();
+  const cellClassName = "content-center";
+
+  const handleView = useCallback(
+    (row: GetAllAdminRequestsResponse[number]) => onView(row),
+    [onView]
   );
 
   return useMemo<GridColDef<GetAllAdminRequestsResponse[number]>[]>(
@@ -144,7 +88,7 @@ export const useRequestColumns = (): GridColDef<
         renderCell: (params) => (
           <RequestStatusChip
             label={STATUS_LABEL[params.row.status]}
-            color={getStatusColor(params.row.status, theme)}
+            color={getRequestStatusColor(params.row.status, theme)}
           />
         ),
       },
@@ -163,55 +107,37 @@ export const useRequestColumns = (): GridColDef<
       },
       {
         field: "actions",
+        headerAlign: "center",
         headerName: "Acciones",
         cellClassName,
         flex: 0.5,
         sortable: false,
         filterable: false,
         disableColumnMenu: true,
-        renderCell: (params) => {
-          const status = params.row.status;
-          const showApproveReject = status === RequestStatus.PENDING;
-
-          return (
-            <Stack direction="row" spacing={0.5} alignItems="center">
-              {/* TODO: implement callback for this button */}
-              <IconButton size="small" aria-label="Ver solicitud">
+        renderCell: (params) => (
+          <Stack
+            direction="row"
+            spacing={0.5}
+            alignItems="center"
+            justifyContent="center"
+          >
+            <IconButton
+              size="small"
+              aria-label={
+                params.row.status ? "Editar solicitud" : "Ver solicitud"
+              }
+              onClick={() => handleView(params.row)}
+            >
+              {params.row.status === RequestStatus.PENDING ? (
+                <EditOutlined fontSize="small" />
+              ) : (
                 <VisibilityOutlined fontSize="small" />
-              </IconButton>
-              {showApproveReject && (
-                <>
-                  <IconButton
-                    size="small"
-                    color="success"
-                    aria-label="Aprobar solicitud"
-                    onClick={() => handleApprove(params.row.id)}
-                    disabled={isApproving || isRejecting}
-                    sx={(theme) => ({
-                      backgroundColor: alpha(theme.palette.success.light, 0.1),
-                    })}
-                  >
-                    <CheckOutlined fontSize="small" />
-                  </IconButton>
-                  <IconButton
-                    size="small"
-                    color="error"
-                    aria-label="Rechazar solicitud"
-                    onClick={() => handleReject(params.row.id)}
-                    disabled={isApproving || isRejecting}
-                    sx={(theme) => ({
-                      backgroundColor: alpha(theme.palette.error.light, 0.1),
-                    })}
-                  >
-                    <CloseOutlined fontSize="small" />
-                  </IconButton>
-                </>
               )}
-            </Stack>
-          );
-        },
+            </IconButton>
+          </Stack>
+        ),
       },
     ],
-    [theme, handleApprove, handleReject, isApproving, isRejecting]
+    [theme, handleView]
   );
 };
