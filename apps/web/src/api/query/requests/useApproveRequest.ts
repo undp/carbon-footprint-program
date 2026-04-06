@@ -3,6 +3,7 @@ import { ApproveRequestBody, ApproveRequestResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { requestsKeys } from "./keys.js";
 import { organizationKeys } from "../organizations/keys.js";
+import { submissionsKeys } from "../submissions/key.js";
 
 export const useApproveRequest = () => {
   const queryClient = useQueryClient();
@@ -13,11 +14,10 @@ export const useApproveRequest = () => {
     { id: string; body?: ApproveRequestBody }
   >({
     mutationFn: ({ id, body }) =>
-      // TODO: force 2000 character limit for review comments
       apiClient
         .post(`admin/requests/${id}/approve`, { json: body ?? {} })
         .json<ApproveRequestResponse>(),
-    onSuccess: async () => {
+    onSuccess: async ({ id }) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminAll,
@@ -37,6 +37,14 @@ export const useApproveRequest = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: submissionsKeys.carbonInventoryHistory(id),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: submissionsKeys.organizationHistory(id),
           exact: true,
         }),
       ]);

@@ -3,6 +3,7 @@ import { RejectRequestBody, RejectRequestResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { requestsKeys } from "./keys.js";
 import { organizationKeys } from "../organizations/keys.js";
+import { submissionsKeys } from "../submissions/key.js";
 
 export const useRejectRequest = () => {
   const queryClient = useQueryClient();
@@ -14,13 +15,9 @@ export const useRejectRequest = () => {
   >({
     mutationFn: ({ id, body }) =>
       apiClient
-        // TODO: Remove temporary comment
-        // TODO: force 2000 character limit for review comments
-        .post(`admin/requests/${id}/reject`, {
-          json: body ?? { reviewComments: "temporary comment" },
-        })
+        .post(`admin/requests/${id}/reject`, { json: body ?? {} })
         .json<RejectRequestResponse>(),
-    onSuccess: async () => {
+    onSuccess: async ({ id }) => {
       await Promise.all([
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminAll,
@@ -40,6 +37,14 @@ export const useRejectRequest = () => {
         }),
         queryClient.invalidateQueries({
           queryKey: organizationKeys.all,
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: submissionsKeys.carbonInventoryHistory(id),
+          exact: true,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: submissionsKeys.organizationHistory(id),
           exact: true,
         }),
       ]);
