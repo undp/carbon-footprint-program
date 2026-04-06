@@ -39,7 +39,7 @@ export type SubmissionHistoryFileLink = {
 /**
  * Maps a raw {@link SubmissionStatus} to its corresponding timeline
  * {@link SubmissionEventType}. PENDING submissions become POSTULATION events;
- * all other statuses map 1-to-1. Falls back to POSTULATION for unknown values.
+ * all other statuses map 1-to-1.
  */
 export function deriveEventType(status: SubmissionStatus): SubmissionEventType {
   switch (status) {
@@ -53,9 +53,10 @@ export function deriveEventType(status: SubmissionStatus): SubmissionEventType {
       return SubmissionEventType.REJECTED;
     case SubmissionStatus.REVIEWED:
       return SubmissionEventType.REVIEWED;
-    default:
-      return SubmissionEventType.POSTULATION;
   }
+
+  const unhandledStatus: never = status;
+  throw new Error(`Unhandled SubmissionStatus: ${String(unhandledStatus)}`);
 }
 
 /**
