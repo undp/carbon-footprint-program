@@ -1,5 +1,5 @@
 import { FC, useState } from "react";
-import { Box, Skeleton, Stack } from "@mui/material";
+import { Box, Skeleton, Stack, Typography } from "@mui/material";
 import { useDashboardKpis } from "@/api/query/adminDashboard/useDashboardKpis";
 import {
   DashboardHeader,
@@ -36,12 +36,22 @@ const DashboardSkeleton: FC = () => (
 
 export const AdminDashboardScreen: FC = () => {
   const [year, setYear] = useState(CURRENT_YEAR);
-  const { data, isLoading } = useDashboardKpis(year);
+  const { data, isLoading, isError } = useDashboardKpis(year);
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <Box>
         <DashboardSkeleton />
+      </Box>
+    );
+  }
+
+  if (isError || !data) {
+    return (
+      <Box sx={{ py: 4, textAlign: "center" }}>
+        <Typography variant="body1" color="text.secondary">
+          No se pudieron cargar los KPIs del dashboard.
+        </Typography>
       </Box>
     );
   }
