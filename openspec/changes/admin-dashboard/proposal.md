@@ -16,10 +16,12 @@ The platform lacks a centralized admin view that provides system-wide visibility
 ## Capabilities
 
 ### New Capabilities
+
 - `admin-dashboard-kpis`: API endpoint(s) that aggregate organization counts, emission totals, submission status counts, and recognition/badge counts — filterable by year
 - `admin-dashboard-screen`: Frontend screen implementing the dashboard layout with KPI cards, charts (bar + donut), submission summary, and recognition summary — all driven by the KPIs API
 
 ### Modified Capabilities
+
 <!-- No existing specs to modify — this is a new admin feature -->
 
 ## Impact
