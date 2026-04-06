@@ -1,7 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
-import { getCarbonInventorySubcategoryRecommendationsService } from "./service.js";
+import { getSubcategoryRecommendationsService } from "./service.js";
 
-export const getCarbonInventorySubcategoryRecommendationsHandler = async (
+export const getSubcategoryRecommendationsHandler = async (
   request: FastifyRequest<{ Params: { id: string } }>,
   reply: FastifyReply
 ) => {
@@ -17,7 +17,7 @@ export const getCarbonInventorySubcategoryRecommendationsHandler = async (
 
   const prisma = request.server.prisma;
 
-  const result = await getCarbonInventorySubcategoryRecommendationsService(
+  const result = await getSubcategoryRecommendationsService(
     prisma,
     carbonInventoryId
   );

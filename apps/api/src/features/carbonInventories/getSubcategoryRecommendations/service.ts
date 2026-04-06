@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
-  type GetCarbonInventorySubcategoryRecommendationsResponse,
+  type GetSubcategoryRecommendationsResponse,
   SubcategoryRecommendationModeEnum,
   SystemParameterKeyEnum,
 } from "@repo/types";
@@ -8,10 +8,10 @@ import { getSystemParameterValue } from "@/helpers/getSystemParameterValue.js";
 import { CarbonInventoryNotFoundError } from "../errors.js";
 import { safeParseCarbonInventoryOrganizationData } from "../utils.js";
 
-export const getCarbonInventorySubcategoryRecommendationsService = async (
+export const getSubcategoryRecommendationsService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: string
-): Promise<GetCarbonInventorySubcategoryRecommendationsResponse> => {
+): Promise<GetSubcategoryRecommendationsResponse> => {
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(carbonInventoryId) },
     select: { organizationData: true },

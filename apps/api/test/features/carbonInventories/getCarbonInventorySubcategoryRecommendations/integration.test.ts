@@ -16,7 +16,7 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import {
-  type GetCarbonInventorySubcategoryRecommendationsResponse,
+  type GetSubcategoryRecommendationsResponse,
   SubcategoryRecommendationModeEnum,
   SystemParameterKeyEnum,
 } from "@repo/types";
@@ -126,7 +126,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toContain(subcategoryId.toString());
     });
 
@@ -165,7 +165,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toContain(subcategoryId.toString());
       expect(body).toContain(otherSubcategoryId.toString());
     });
@@ -202,7 +202,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).not.toContain(otherSubcategoryId.toString());
     });
 
@@ -248,7 +248,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toContain(subcategoryId.toString());
       expect(body).not.toContain(otherSubcategoryId.toString());
     });
@@ -289,7 +289,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toHaveLength(0);
     });
 
@@ -325,7 +325,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       const occurrences = body.filter((id) => id === subcategoryId.toString());
       expect(occurrences).toHaveLength(1);
     });
@@ -356,7 +356,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toHaveLength(0);
     });
 
@@ -374,7 +374,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toHaveLength(0);
     });
 
@@ -402,7 +402,7 @@ describe("GET /api/carbon-inventories/:id/subcategory-recommendations - Integrat
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(
         response.body
-      ) as GetCarbonInventorySubcategoryRecommendationsResponse;
+      ) as GetSubcategoryRecommendationsResponse;
       expect(body).toHaveLength(0);
     });
   });

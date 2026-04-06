@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { carbonInventoryKeys } from "../keys";
 import { apiClient } from "@/api/http/client";
-import { GetCarbonInventorySubcategoryRecommendationsResponse } from "@repo/types";
+import { GetSubcategoryRecommendationsResponse } from "@repo/types";
 import { useAuthorizationHeader } from "../authHeaders";
 
 export const useCarbonInventorySubcategoryRecommendations = (
@@ -9,7 +9,7 @@ export const useCarbonInventorySubcategoryRecommendations = (
 ) => {
   const { headers } = useAuthorizationHeader(carbonInventoryId);
 
-  return useQuery<GetCarbonInventorySubcategoryRecommendationsResponse>({
+  return useQuery<GetSubcategoryRecommendationsResponse>({
     queryKey: [
       ...carbonInventoryKeys.subcategoryRecommendations(carbonInventoryId),
       headers,

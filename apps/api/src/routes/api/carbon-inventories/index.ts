@@ -25,7 +25,7 @@ import { getCarbonInventoriesMinimalRoute } from "@/features/carbonInventories/g
 import { duplicateCarbonInventoryRoute } from "@/features/carbonInventories/duplicateCarbonInventory/route.js";
 import { deleteCarbonInventoryRoute } from "@/features/carbonInventories/deleteCarbonInventory/route.js";
 import { selfDeclareCarbonInventoryRoute } from "@/features/carbonInventories/selfDeclareCarbonInventory/route.js";
-import { getCarbonInventorySubcategoryRecommendationsRoute } from "@/features/carbonInventories/getCarbonInventorySubcategoryRecommendations/route.js";
+import { getSubcategoryRecommendationsRoute } from "@/features/carbonInventories/getSubcategoryRecommendations/route.js";
 import { claimCarbonInventoryRoute } from "@/features/carbonInventories/claimCarbonInventory/route.js";
 import { SystemRole } from "@repo/types";
 
@@ -54,7 +54,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
   getEmissionsDetailedSummaryRoute(fastify, { public: true });
   getEmissionFactorsRoute(fastify, { public: true });
   getCarbonInventoryMetadataRoute(fastify, { public: true });
-  getCarbonInventorySubcategoryRecommendationsRoute(fastify, { public: true });
+  getSubcategoryRecommendationsRoute(fastify, { public: true });
   // At the following routes, user needs at least CONTRIBUTOR org. role for this inventory
   addSubcategoriesToCarbonInventoryRoute(fastify, { public: true });
   updateCarbonInventoryRoute(fastify, { public: true });
