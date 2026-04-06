@@ -131,13 +131,13 @@ export const getDashboardKpisService = async (
     sectorStats.get(sectorName)!.emissions += Number(row.value);
   }
 
-  const organizationsBySector = Array.from(sectorStats.entries()).map(
-    ([sectorName, stats]) => ({
+  const organizationsBySector = Array.from(sectorStats.entries())
+    .map(([sectorName, stats]) => ({
       sectorName,
       count: stats.count.size,
       emissions: Math.round(stats.emissions * 100) / 100,
-    })
-  );
+    }))
+    .sort((a, b) => b.count - a.count);
 
   // --- Emissions by scope ---
   // Categories with position 1, 2, 3 map to Scope 1, 2, 3
