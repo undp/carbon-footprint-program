@@ -85,7 +85,10 @@ export const AccreditationConfirmDialog: FC<
           <Divider sx={{ mb: 2 }} />
 
           <Typography variant="body2" fontWeight={500} sx={{ mb: 1 }}>
-            Documentos de respaldo
+            Documentos de respaldo{" "}
+            <Typography component="span" color="error">
+              *
+            </Typography>
           </Typography>
 
           <FormFileUpload
