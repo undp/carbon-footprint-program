@@ -1,6 +1,7 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import {
   Box,
+  Button,
   Typography,
   MenuItem,
   Select,
@@ -11,6 +12,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { useNavigate } from "@tanstack/react-router";
+import { useSnackbar } from "notistack";
 import { OrganizationSelector, ResponsiveTypography } from "@/components";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
@@ -18,7 +21,9 @@ import {
   useReductionProjects,
   useReductionProjectsMinimal,
   useMyOrganizations,
+  useCreateReductionProject,
 } from "@/api/query";
+import { Routes } from "@/interfaces";
 import { formatEmissions } from "@/utils/formatting";
 import {
   GetAllReductionProjectsResponse,
@@ -39,9 +44,25 @@ export const ReductionProjectsScreen: FC = () => {
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("all");
 
+  const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+  const createProject = useCreateReductionProject();
+
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
   }, []);
+
+  const handleCreateProject = useCallback(async () => {
+    try {
+      const created = await createProject.mutateAsync({});
+      void navigate({
+        to: Routes.REDUCTION_PROJECT,
+        params: { id: String(created.id) },
+      });
+    } catch {
+      enqueueSnackbar("No se pudo crear el proyecto", { variant: "error" });
+    }
+  }, [createProject, navigate, enqueueSnackbar]);
 
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
     useMyOrganizations();
@@ -228,8 +249,18 @@ export const ReductionProjectsScreen: FC = () => {
           Proyectos de Reducción
         </Typography>
 
-        {/* Container for selectors */}
+        {/* Container for selectors and button */}
         <Box className="flex gap-3">
+          {/* Create Project Button */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => void handleCreateProject()}
+            loading={createProject.isPending}
+          >
+            Ingresar Proyecto
+          </Button>
+
           {/* Organization Selector */}
           <OrganizationSelector
             organizations={organizations}
