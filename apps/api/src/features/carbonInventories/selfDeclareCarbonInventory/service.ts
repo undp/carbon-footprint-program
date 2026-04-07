@@ -35,7 +35,7 @@ export const selfDeclareCarbonInventoryService = async (
 ): Promise<void> => {
   await prismaClient.$transaction(async (tx) => {
     const inventoryId = BigInt(carbonInventoryId);
-    const createdById = user ? BigInt(user.id) : null;
+    const userId = user ? BigInt(user.id) : null;
 
     // Atomically claim the inventory row for self-declaration.
     // The isSelfDeclared: false predicate prevents concurrent requests
@@ -51,7 +51,8 @@ export const selfDeclareCarbonInventoryService = async (
       data: {
         isSelfDeclared: true,
         selfDeclaredAt: new Date(),
-        updatedById: createdById,
+        selfDeclaredById: userId,
+        updatedById: userId,
       },
     });
 
@@ -134,7 +135,7 @@ export const selfDeclareCarbonInventoryService = async (
       tx,
       inventoryId,
       SubmissionType.CARBON_INVENTORY_CALCULATION,
-      createdById
+      userId
     );
 
     const activeBadge = await tx.badge.findFirst({
@@ -150,8 +151,8 @@ export const selfDeclareCarbonInventoryService = async (
       data: {
         status: SubmissionStatus.APPROVED_AUTOMATICALLY,
         badgeId: activeBadge?.id,
-        reviewerId: createdById,
-        updatedById: createdById,
+        reviewerId: userId,
+        updatedById: userId,
         reviewedAt: new Date(),
       },
     });

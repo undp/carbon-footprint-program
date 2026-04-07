@@ -19,7 +19,11 @@ export const getCarbonInventoryHistoryService = async (
   const ciId = BigInt(carbonInventoryId);
   const carbonInventory = await prisma.carbonInventory.findUnique({
     where: { id: ciId },
-    select: { organizationId: true, selfDeclaredAt: true },
+    select: {
+      organizationId: true,
+      selfDeclaredAt: true,
+      selfDeclaredBy: { select: { firstName: true, lastName: true } },
+    },
   });
 
   if (!carbonInventory) {
@@ -59,7 +63,8 @@ export const getCarbonInventoryHistoryService = async (
     ? buildSelfDeclarationEvent(
         carbonInventoryId,
         carbonInventory.selfDeclaredAt,
-        orgHistorySummary
+        orgHistorySummary,
+        carbonInventory.selfDeclaredBy
       )
     : null;
 
