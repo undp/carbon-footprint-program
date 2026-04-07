@@ -33,7 +33,9 @@ export const FilesSection: FC<Props> = ({ files }) => {
         <Stack spacing={1}>
           {files.map((file) => (
             <Box
-              onClick={() => window.open(file.previewUrl, "_blank")}
+              onClick={() =>
+                window.open(file.previewUrl, "_blank", "noopener,noreferrer")
+              }
               key={file.uuid}
               sx={{
                 display: "flex",
