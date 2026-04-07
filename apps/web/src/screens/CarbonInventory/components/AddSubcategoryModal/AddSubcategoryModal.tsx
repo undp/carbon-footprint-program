@@ -6,11 +6,6 @@ import {
   DialogActions,
   Button,
   TextField,
-  Table,
-  TableHead,
-  TableBody,
-  TableRow,
-  TableCell,
   Checkbox,
   Chip,
   Tooltip,
@@ -18,13 +13,20 @@ import {
   Box,
   Typography,
   InputAdornment,
-  CircularProgress,
 } from "@mui/material";
+import { GridColDef } from "@mui/x-data-grid";
 import { Close, SearchRounded } from "@mui/icons-material";
 import { Controller } from "react-hook-form";
+import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { useSubcategoryPreselectionData } from "../../hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "../../hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "../../hooks/useSubcategoryPreselectionSubmit";
+import { SubcategoryPreselectionMergedData } from "../../types";
+
+type SubcategoryRow = {
+  category: SubcategoryPreselectionMergedData[number];
+  subcategory: SubcategoryPreselectionMergedData[number]["subcategories"][number];
+};
 
 interface AddSubcategoryModalProps {
   open: boolean;
@@ -70,6 +72,86 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         (subcategory.description?.toLowerCase().includes(term) ?? false)
     );
   }, [rows, searchTerm]);
+
+  const columns: GridColDef<SubcategoryRow>[] = useMemo(
+    () => [
+      {
+        field: "category",
+        headerName: "Categoría/Alcance",
+        width: 180,
+        renderCell: ({ row }) => (
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            {row.category.synonyms && (
+              <Chip
+                label={row.category.synonyms}
+                size="small"
+                sx={{
+                  fontSize: 10,
+                  height: 20,
+                  bgcolor: `${row.category.color}4D`,
+                  color: row.category.color,
+                  fontWeight: 600,
+                  alignSelf: "flex-start",
+                  maxWidth: "100%",
+                }}
+              />
+            )}
+            <Typography variant="body2">{row.category.name}</Typography>
+          </Box>
+        ),
+      },
+      {
+        field: "subcategoryName",
+        headerName: "Sub-categoría",
+        width: 220,
+        renderCell: ({ row }) => (
+          <Typography variant="body2">{row.subcategory.name}</Typography>
+        ),
+      },
+      {
+        field: "description",
+        headerName: "Descripción",
+        flex: 1,
+        renderCell: ({ row }) => (
+          <Typography variant="body2" color="text.secondary">
+            {row.subcategory.description}
+          </Typography>
+        ),
+      },
+      {
+        field: "select",
+        headerName: "Agregar",
+        width: 80,
+        align: "center",
+        headerAlign: "center",
+        renderCell: ({ row }) => (
+          <Tooltip
+            title={
+              row.subcategory.edited
+                ? "No se puede quitar porque tiene emisiones registradas"
+                : ""
+            }
+            placement="left"
+          >
+            <span>
+              <Controller
+                control={control}
+                name={row.subcategory.id}
+                render={({ field }) => (
+                  <Checkbox
+                    checked={!!field.value}
+                    disabled={row.subcategory.edited}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                  />
+                )}
+              />
+            </span>
+          </Tooltip>
+        ),
+      },
+    ],
+    [control]
+  );
 
   const handleSave = useCallback(() => {
     void handleSubmit((values) => saveSelections(values, isDirty))();
@@ -135,122 +217,14 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
           }}
         />
 
-        {isLoading ? (
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              flex: 1,
-            }}
-          >
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box
-            sx={{
-              overflow: "auto",
-              flex: 1,
-              border: "1px solid",
-              borderColor: "divider",
-              borderRadius: 1,
-            }}
-          >
-            <Table stickyHeader size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell sx={{ width: 180 }}>Categoría/Alcance</TableCell>
-                  <TableCell sx={{ width: 220 }}>Sub-categoría</TableCell>
-                  <TableCell>Descripción</TableCell>
-                  <TableCell sx={{ width: 80, textAlign: "center" }}>
-                    Agregar
-                  </TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredRows.map(({ category, subcategory }) => (
-                  <TableRow key={subcategory.id} hover>
-                    <TableCell>
-                      <Box
-                        sx={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 0.5,
-                        }}
-                      >
-                        {category.synonyms && (
-                          <Chip
-                            label={category.synonyms}
-                            size="small"
-                            sx={{
-                              fontSize: 10,
-                              height: 20,
-                              bgcolor: `${category.color}4D`,
-                              color: category.color,
-                              fontWeight: 600,
-                              alignSelf: "flex-start",
-                              maxWidth: "100%",
-                            }}
-                          />
-                        )}
-                        <Typography variant="body2">{category.name}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2">
-                        {subcategory.name}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">
-                        {subcategory.description}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="center">
-                      <Tooltip
-                        title={
-                          subcategory.edited
-                            ? "No se puede quitar porque tiene emisiones registradas"
-                            : ""
-                        }
-                        placement="left"
-                      >
-                        <span>
-                          <Controller
-                            control={control}
-                            name={subcategory.id}
-                            render={({ field }) => (
-                              <Checkbox
-                                checked={!!field.value}
-                                disabled={subcategory.edited}
-                                onChange={(e) =>
-                                  field.onChange(e.target.checked)
-                                }
-                              />
-                            )}
-                          />
-                        </span>
-                      </Tooltip>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredRows.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">
-                      <Typography
-                        variant="body2"
-                        color="text.secondary"
-                        sx={{ py: 2 }}
-                      >
-                        No se encontraron subcategorías
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Box>
-        )}
+        <StylizedDataGrid
+          columns={columns}
+          rows={filteredRows}
+          getRowId={(row: SubcategoryRow) => row.subcategory.id}
+          loading={isLoading}
+          localeText={{ noRowsLabel: "No se encontraron subcategorías" }}
+          sx={{ flex: 1 }}
+        />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
