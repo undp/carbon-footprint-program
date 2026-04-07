@@ -69,7 +69,9 @@ export const useViewSubmission = ({
         });
         onClose();
       } catch {
-        enqueueSnackbar("Error al aprobar la postulación", { variant: "error" });
+        enqueueSnackbar("Error al aprobar la postulación", {
+          variant: "error",
+        });
       }
     },
     [submission, approveRequest, enqueueSnackbar, onClose]
