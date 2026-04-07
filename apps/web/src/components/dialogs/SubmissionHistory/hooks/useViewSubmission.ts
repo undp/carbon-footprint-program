@@ -85,7 +85,7 @@ export const useViewSubmission = ({
         });
         onClose();
       } catch {
-        enqueueSnackbar("Error al solicitar cambios en la solicitud", {
+        enqueueSnackbar("Error al solicitar cambios en la postulación", {
           variant: "error",
         });
       }
