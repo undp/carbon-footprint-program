@@ -124,7 +124,9 @@ export const useRequestColumns = ({
             <IconButton
               size="small"
               aria-label={
-                params.row.status === RequestStatus.PENDING ? "Editar solicitud" : "Ver solicitud"
+                params.row.status === RequestStatus.PENDING
+                  ? "Editar solicitud"
+                  : "Ver solicitud"
               }
               onClick={() => handleView(params.row)}
             >
