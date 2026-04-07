@@ -111,6 +111,25 @@ export const ReductionProjectFormFields: FC<Props> = ({
         <Box className="flex-1">
           <Tooltip
             title={
+              !selectedOrganizationId
+                ? "Seleccione una organización primero"
+                : ""
+            }
+          >
+            <span>
+              <FormSelectField
+                name="carbonInventoryId"
+                control={control}
+                label="Inventario de carbono verificado"
+                options={inventoryOptions}
+                disabled={disabled || !selectedOrganizationId}
+              />
+            </span>
+          </Tooltip>
+        </Box>
+        <Box className="flex-1">
+          <Tooltip
+            title={
               !hasInventorySelected
                 ? "Seleccione un inventario de carbono verificado primero"
                 : ""
@@ -125,25 +144,6 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 disabled={
                   disabled || !hasInventorySelected || isLoadingSubcategories
                 }
-              />
-            </span>
-          </Tooltip>
-        </Box>
-        <Box className="flex-1">
-          <Tooltip
-            title={
-              !selectedOrganizationId
-                ? "Seleccione una organización primero"
-                : ""
-            }
-          >
-            <span>
-              <FormSelectField
-                name="carbonInventoryId"
-                control={control}
-                label="Inventario de carbono verificado"
-                options={inventoryOptions}
-                disabled={disabled || !selectedOrganizationId}
               />
             </span>
           </Tooltip>
