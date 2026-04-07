@@ -17,6 +17,8 @@
     "JWKS_URI",
     "JWKS_ISSUER",
     "JWKS_AUDIENCE",
+    "JWKS_REQUIRED_SCOPE",
+    "JWKS_SKIP_SCOPE_CHECK",
     "DEV",
     "APP_VERSION",
     "CI",

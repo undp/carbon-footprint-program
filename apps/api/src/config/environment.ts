@@ -37,6 +37,19 @@ export const JWKS_ISSUER = process.env.JWKS_ISSUER;
  */
 export const JWKS_AUDIENCE = process.env.JWKS_AUDIENCE;
 
+/**
+ * Override for the required scope claim (scp) in the token.
+ * Defaults to "access_as_user" when not set.
+ */
+export const JWKS_REQUIRED_SCOPE = process.env.JWKS_REQUIRED_SCOPE;
+
+/**
+ * When set to "true", disables the scope (scp) check entirely.
+ * Use this only when your IdP does not emit scp claims.
+ */
+export const JWKS_SKIP_SCOPE_CHECK =
+  process.env.JWKS_SKIP_SCOPE_CHECK?.toLowerCase() === "true";
+
 // ============================================================================
 // Azure Entra ID Configuration
 // ============================================================================
@@ -173,12 +186,13 @@ export const RESOLVED_JWKS_AUDIENCE = JWKS_AUDIENCE || AZURE_API_CLIENT_ID;
 
 /**
  * Resolved required scope - used for token validation.
- * Enforces "access_as_user" for Azure tenants.
- * Skipped when custom JWKS_* overrides are used (JWKS_AUDIENCE is set).
+ * Priority:
+ *  1. JWKS_SKIP_SCOPE_CHECK=true → undefined (no scope enforcement)
+ *  2. JWKS_REQUIRED_SCOPE → use the explicit override value
+ *  3. Default → "access_as_user"
  */
-export const RESOLVED_JWKS_REQUIRED_SCOPE: string | undefined = JWKS_AUDIENCE
-  ? undefined
-  : "access_as_user";
+export const RESOLVED_JWKS_REQUIRED_SCOPE: string | undefined =
+  JWKS_SKIP_SCOPE_CHECK ? undefined : (JWKS_REQUIRED_SCOPE ?? "access_as_user");
 
 // ============================================================================
 // Authentication Provider Configuration

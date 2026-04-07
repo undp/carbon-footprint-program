@@ -21,6 +21,13 @@ export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
+
+# Generic JWKS overrides (optional, for non-Azure IdPs)
+# export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
+# export JWKS_ISSUER=""           # Expected token issuer (overrides Azure-derived value)
+# export JWKS_AUDIENCE=""         # Expected token audience (overrides Azure-derived value)
+# export JWKS_REQUIRED_SCOPE=""   # Required scope claim (default: "access_as_user")
+# export JWKS_SKIP_SCOPE_CHECK="" # Set to "true" to disable scope enforcement entirely
 export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=     # Must be set when using AUTH_PROVIDER="forced-user"
 export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=      # Must be set when using AUTH_PROVIDER="forced-user"
 
