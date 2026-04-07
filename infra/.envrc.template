@@ -19,9 +19,24 @@ else
   export AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
 fi
 
+# Optional: JWKS overrides for non-Azure identity providers (e.g. Auth0, Okta, Keycloak)
+# When set, these take precedence over the Azure-derived JWKS configuration.
+# export JWKS_URI=""                 # JWKS endpoint URI (e.g. https://your-idp/.well-known/jwks.json)
+# export JWKS_ISSUER=""              # Expected token issuer claim
+# export JWKS_AUDIENCE=""            # Expected token audience claim
+# export JWKS_REQUIRED_SCOPE=""      # Required scope (e.g. "access_as_user")
+# export JWKS_SKIP_SCOPE_CHECK=""    # Set to "true" to skip scope validation
+
+# Azure Blob Storage (configured automatically by Bicep; override here only if needed)
+# export AZURE_STORAGE_ACCOUNT_NAME=""
+# export AZURE_STORAGE_CONTAINER_NAME="files"
+
 # Location 'eastus' is not available for subscriptions with free trial. Using 'eastus2' instead.
 export LOCATION="eastus2"
 export AUTH_PROVIDER="easy-auth"
 export APP_VERSION=""
 export FRONT_DOOR_CUSTOM_DOMAIN=""
 export DRY_RUN="false"
+
+# Web app: set to "true" to enable demo mode in the frontend
+# export VITE_IS_DEMO_APP=""
