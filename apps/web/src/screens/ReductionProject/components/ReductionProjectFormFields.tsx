@@ -1,7 +1,6 @@
 import { FC, useMemo } from "react";
-import { Box, Tooltip, Typography } from "@mui/material";
+import { Box, Tooltip } from "@mui/material";
 import { Control } from "react-hook-form";
-import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import { FormTextField, FormSelectField } from "@/components/form";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 import type {
@@ -80,33 +79,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
         </Box>
       </Box>
 
-      {/* Row 2: Implementation date + Description */}
-      <Box className="flex flex-row gap-6">
-        <Box className="flex-1">
-          <FormTextField
-            name="implementationDate"
-            control={control}
-            label="Fecha de implementación"
-            type="date"
-            disabled={disabled}
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-          />
-        </Box>
-        <Box className="flex-1">
-          <FormTextField
-            name="description"
-            control={control}
-            label="Descripción del proyecto"
-            multiline
-            rows={4}
-            disabled={disabled}
-          />
-        </Box>
-      </Box>
-
-      {/* Row 3: Subcategory + Carbon Inventory */}
+      {/* Row 2: Subcategory + Carbon Inventory */}
       <Box className="flex flex-row gap-6">
         <Box className="flex-1">
           <Tooltip
@@ -150,8 +123,20 @@ export const ReductionProjectFormFields: FC<Props> = ({
         </Box>
       </Box>
 
-      {/* Row 4: GWP + Info banner */}
+      {/* Row 3: Implementation date + Description */}
       <Box className="flex flex-row gap-6">
+        <Box className="flex-1">
+          <FormTextField
+            name="implementationDate"
+            control={control}
+            label="Fecha de implementación"
+            type="date"
+            disabled={disabled}
+            slotProps={{
+              inputLabel: { shrink: true },
+            }}
+          />
+        </Box>
         <Box className="flex-1">
           <FormSelectField
             name="gwpUsed"
@@ -161,17 +146,19 @@ export const ReductionProjectFormFields: FC<Props> = ({
             disabled={disabled}
           />
         </Box>
-        <Box className="flex flex-1 items-start pt-1">
-          <Box
-            className="flex items-center gap-2 rounded-lg px-4 py-3"
-            sx={{ bgcolor: "rgba(76, 175, 80, 0.1)" }}
-          >
-            <InfoOutlineIcon sx={{ color: "success.main" }} />
-            <Typography variant="body2" sx={{ color: "success.dark" }}>
-              Utilizar el potencial de calentamiento global del inventario
-              nacional
-            </Typography>
-          </Box>
+      </Box>
+
+      {/* Row 4: GWP + Info banner */}
+      <Box className="flex flex-row gap-6">
+        <Box className="flex-1">
+          <FormTextField
+            name="description"
+            control={control}
+            label="Descripción del proyecto"
+            multiline
+            rows={4}
+            disabled={disabled}
+          />
         </Box>
       </Box>
     </Box>
