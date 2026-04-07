@@ -133,6 +133,13 @@ export const ViewSubmissionDialog: FC<Props> = ({
                       borderRadius: "40px",
                     }}
                   />
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ fontSize: 12 }}
+                  >
+                    {submission.userName}
+                  </Typography>
                 </Stack>
 
                 {/* Inventory link */}
