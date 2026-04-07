@@ -1,6 +1,6 @@
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
-import type { SubmissionHistoryEntry } from "@repo/types";
+import type { GetCarbonInventoryHistoryResponse } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../../carbonInventories/errors.js";
 import {
   buildSelfDeclarationEvent,
@@ -15,7 +15,7 @@ export const getCarbonInventoryHistoryService = async (
   blobServiceClient: BlobServiceClient | null,
   containerName: string | null,
   carbonInventoryId: string
-): Promise<SubmissionHistoryEntry[]> => {
+): Promise<GetCarbonInventoryHistoryResponse> => {
   const ciId = BigInt(carbonInventoryId);
   const carbonInventory = await prisma.carbonInventory.findUnique({
     where: { id: ciId },

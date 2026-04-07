@@ -1,7 +1,7 @@
 import { getCarbonInventoryHistoryHandler } from "./handler.js";
 import {
   GetCarbonInventoryHistoryParamsSchema,
-  GetSubmissionHistoryResponseSchema,
+  GetCarbonInventoryHistoryResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
@@ -19,7 +19,7 @@ export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
           "Get the history of submissions for a specific carbon inventory.",
         params: GetCarbonInventoryHistoryParamsSchema,
         response: {
-          200: GetSubmissionHistoryResponseSchema,
+          200: GetCarbonInventoryHistoryResponseSchema,
           503: ApiErrorResponseSchema,
         },
       },
