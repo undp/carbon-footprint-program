@@ -309,7 +309,7 @@ Users are managed directly within the organizational tenant. Self-service sign-u
    - **Token store**: Enable
 4. Click **"Add"**
 
-> **Note on token audience**: Organizational tenants use `api://<API_CLIENT_ID>` as the audience (with the `api://` prefix), unlike external tenants which use the bare client ID GUID.
+> **Note on token audience**: Both organizational and external tenants set the `aud` claim in tokens to the bare Application ID (GUID). The `api://` prefix form (e.g., `api://<API_CLIENT_ID>`) is only used in the Azure App Service **"Allowed token audiences"** configuration — it is not present in the actual token. The backend config variable `JWKS_AUDIENCE` should be set to the bare client ID GUID to match the token's `aud` claim.
 
 ### Step 8: Customize Sign-in Branding (Optional)
 
