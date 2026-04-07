@@ -7,7 +7,6 @@ import {
   Button,
   TextField,
   Checkbox,
-  Chip,
   Tooltip,
   IconButton,
   Box,
@@ -18,6 +17,7 @@ import { GridColDef } from "@mui/x-data-grid";
 import { Close, SearchRounded } from "@mui/icons-material";
 import { Controller } from "react-hook-form";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
+import { CategoryChip } from "@/components/EmissionResults/CategoryChip";
 import { useSubcategoryPreselectionData } from "../../hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "../../hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "../../hooks/useSubcategoryPreselectionSubmit";
@@ -82,19 +82,19 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         renderCell: ({ row }) => (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
             {row.category.synonyms && (
-              <Chip
-                label={row.category.synonyms}
-                size="small"
-                sx={{
-                  fontSize: 10,
-                  height: 20,
-                  bgcolor: `${row.category.color}4D`,
-                  color: row.category.color,
-                  fontWeight: 600,
-                  alignSelf: "flex-start",
-                  maxWidth: "100%",
-                }}
-              />
+              <Tooltip title={row.category.synonyms} placement="top">
+                <span>
+                  <CategoryChip
+                    label={row.category.synonyms}
+                    categoryColor={row.category.color}
+                    sx={{
+                      fontSize: 8,
+                      height: 16,
+                      borderRadius: 8,
+                    }}
+                  />
+                </span>
+              </Tooltip>
             )}
             <Typography variant="body2">{row.category.name}</Typography>
           </Box>
