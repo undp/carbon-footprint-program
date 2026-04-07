@@ -1,9 +1,8 @@
 import { FC, useMemo } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
-import { Control, Controller } from "react-hook-form";
+import { Control } from "react-hook-form";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import { FormTextField, FormSelectField } from "@/components/form";
-import { OrganizationSelector } from "@/components/OrganizationSelector/OrganizationSelector";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
@@ -35,6 +34,15 @@ export const ReductionProjectFormFields: FC<Props> = ({
   isLoadingSubcategories,
   hasInventorySelected,
 }) => {
+  const organizationOptions = useMemo(
+    () =>
+      organizations.map((org) => ({
+        label: org.name,
+        value: org.id,
+      })),
+    [organizations]
+  );
+
   const filteredInventories = useMemo(
     () =>
       selectedOrganizationId
@@ -75,21 +83,13 @@ export const ReductionProjectFormFields: FC<Props> = ({
             disabled={disabled}
           />
         </Box>
-        <Box className="flex-1" sx={{ minHeight: "5rem" }}>
-          <Controller
+        <Box className="flex-1">
+          <FormSelectField
             name="organizationId"
             control={control}
-            render={({ field }) => (
-              <OrganizationSelector
-                organizations={organizations}
-                value={field.value}
-                onChange={field.onChange}
-                isLoading={isLoadingOrgs || disabled}
-                size="medium"
-                minWidth={0}
-                label="Organización"
-              />
-            )}
+            label="Organización"
+            options={organizationOptions}
+            disabled={disabled || isLoadingOrgs}
           />
         </Box>
       </Box>
