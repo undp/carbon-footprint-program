@@ -1,6 +1,6 @@
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
-import type { SubmissionHistoryEntry } from "@repo/types";
+import type { GetOrganizationHistoryResponse } from "@repo/types";
 import {
   createHistoryReadSasSigner,
   getOrgSummaryDetails,
@@ -13,7 +13,7 @@ export const getOrganizationHistoryService = async (
   blobServiceClient: BlobServiceClient | null,
   containerName: string | null,
   organizationId: string
-): Promise<SubmissionHistoryEntry[]> => {
+): Promise<GetOrganizationHistoryResponse> => {
   const orgId = BigInt(organizationId);
 
   const [orgHistorySummary, submissions] = await Promise.all([
