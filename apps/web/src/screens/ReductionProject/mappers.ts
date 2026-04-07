@@ -29,52 +29,22 @@ export const mapProjectToFormValues = (
 export const mapFormValuesToRequest = (
   values: Omit<ReductionProjectFormValues, "files">
 ): UpdateReductionProjectRequest => {
-  const request: Record<string, unknown> = {};
-
-  if (values.name) request.name = values.name;
-  else request.name = null;
-
-  if (values.organizationId)
-    request.organizationId = Number(values.organizationId);
-  else request.organizationId = null;
-
-  if (values.carbonInventoryId)
-    request.carbonInventoryId = Number(values.carbonInventoryId);
-  else request.carbonInventoryId = null;
-
-  if (values.implementationDate)
-    request.implementationDate = new Date(
-      values.implementationDate
-    ).toISOString();
-  else request.implementationDate = null;
-
-  if (values.description) request.description = values.description;
-  else request.description = null;
-
-  if (values.subcategoryId)
-    request.subcategoryId = Number(values.subcategoryId);
-  else request.subcategoryId = null;
-
-  if (values.gwpUsed) request.gwpUsed = values.gwpUsed;
-  else request.gwpUsed = null;
-
-  request.useNationalGwp = values.useNationalGwp;
-  request.consideredGei = values.consideredGei;
-  request.reportedElsewhere = values.reportedElsewhere;
-
-  if (values.reportedElsewhereDescription)
-    request.reportedElsewhereDescription = values.reportedElsewhereDescription;
-  else request.reportedElsewhereDescription = null;
-
-  if (values.year !== "") request.year = Number(values.year);
-  else request.year = null;
-
-  if (values.baselineScenario)
-    request.baselineScenario = values.baselineScenario;
-  else request.baselineScenario = null;
-
-  if (values.projectScenario) request.projectScenario = values.projectScenario;
-  else request.projectScenario = null;
-
-  return request as UpdateReductionProjectRequest;
+  return {
+    name: values.name || null,
+    organizationId: values.organizationId || null,
+    carbonInventoryId: values.carbonInventoryId || null,
+    implementationDate: values.implementationDate
+      ? new Date(values.implementationDate).toISOString()
+      : null,
+    description: values.description || null,
+    subcategoryId: values.subcategoryId || null,
+    gwpUsed: values.gwpUsed || null,
+    useNationalGwp: values.useNationalGwp,
+    consideredGei: values.consideredGei,
+    reportedElsewhere: values.reportedElsewhere,
+    reportedElsewhereDescription: values.reportedElsewhereDescription || null,
+    year: values.year !== "" ? values.year : null,
+    baselineScenario: values.baselineScenario || null,
+    projectScenario: values.projectScenario || null,
+  };
 };
