@@ -3,6 +3,7 @@ import { Box, Tooltip, Typography } from "@mui/material";
 import { Control } from "react-hook-form";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import { FormTextField, FormSelectField } from "@/components/form";
+import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
@@ -34,14 +35,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
   isLoadingSubcategories,
   hasInventorySelected,
 }) => {
-  const organizationOptions = useMemo(
-    () =>
-      organizations.map((org) => ({
-        label: org.name,
-        value: org.id,
-      })),
-    [organizations]
-  );
+  const organizationOptions = useSelectorOptions(organizations, "name", "id");
 
   const filteredInventories = useMemo(
     () =>
@@ -62,14 +56,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
     [filteredInventories]
   );
 
-  const subcategoryOptions = useMemo(
-    () =>
-      subcategories.map((sub) => ({
-        label: sub.name,
-        value: sub.id,
-      })),
-    [subcategories]
-  );
+  const subcategoryOptions = useSelectorOptions(subcategories, "name", "id");
 
   return (
     <Box className="flex flex-col gap-2">
