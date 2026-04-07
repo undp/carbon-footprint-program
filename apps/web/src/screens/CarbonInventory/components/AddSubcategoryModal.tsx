@@ -18,10 +18,10 @@ import { Close, SearchRounded } from "@mui/icons-material";
 import { Controller } from "react-hook-form";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { CategoryChip } from "@/components/EmissionResults/CategoryChip";
-import { useSubcategoryPreselectionData } from "../../hooks/useSubcategoryPreselectionData";
-import { useSubcategoryPreselectionForm } from "../../hooks/useSubcategoryPreselectionForm";
-import { useSubcategoryPreselectionSubmit } from "../../hooks/useSubcategoryPreselectionSubmit";
-import { SubcategoryPreselectionMergedData } from "../../types";
+import { useSubcategoryPreselectionData } from "../hooks/useSubcategoryPreselectionData";
+import { useSubcategoryPreselectionForm } from "../hooks/useSubcategoryPreselectionForm";
+import { useSubcategoryPreselectionSubmit } from "../hooks/useSubcategoryPreselectionSubmit";
+import { SubcategoryPreselectionMergedData } from "../types";
 
 type SubcategoryRow = {
   category: SubcategoryPreselectionMergedData[number];
