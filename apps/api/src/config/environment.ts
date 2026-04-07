@@ -123,13 +123,18 @@ const AZURE_AD_ISSUERS: string[] = (() => {
 })();
 
 const AZURE_AD_JWKS_URI = (() => {
-  if (
-    AZURE_TENANT_TYPE === "external" &&
-    AZURE_TENANT_ID &&
-    AZURE_TENANT_SUBDOMAIN
-  ) {
-    // CIAM uses subdomain.ciamlogin.com for JWKS endpoint
-    return `https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/discovery/v2.0/keys`;
+  if (AZURE_TENANT_TYPE === "external" && AZURE_TENANT_ID) {
+    if (!AZURE_TENANT_SUBDOMAIN && !JWKS_URI) {
+      throw new Error(
+        "AZURE_TENANT_TYPE is 'external' and AZURE_TENANT_ID is set, but AZURE_TENANT_SUBDOMAIN is missing. " +
+          "Either set AZURE_TENANT_SUBDOMAIN (required to compute the CIAM JWKS endpoint) or set JWKS_URI explicitly."
+      );
+    }
+    if (AZURE_TENANT_SUBDOMAIN) {
+      // CIAM uses subdomain.ciamlogin.com for JWKS endpoint
+      return `https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/discovery/v2.0/keys`;
+    }
+    return undefined;
   }
   if (AZURE_TENANT_TYPE === "organizational" && AZURE_TENANT_ID) {
     return `https://login.microsoftonline.com/${AZURE_TENANT_ID}/discovery/v2.0/keys`;
