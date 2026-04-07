@@ -7,7 +7,6 @@ import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
-  GetAllSubcategoriesResponse,
 } from "@repo/types";
 import type { ReductionProjectFormValues } from "../types";
 import { GWP_OPTIONS } from "../constants";
@@ -19,7 +18,7 @@ interface Props {
   isLoadingOrgs: boolean;
   verifiedInventories: GetCarbonInventoriesMinimalResponse;
   selectedOrganizationId: string;
-  subcategories: GetAllSubcategoriesResponse;
+  subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
   hasInventorySelected: boolean;
 }
