@@ -59,7 +59,7 @@ export const useViewSubmission = ({
   const year = submission ? new Date(submission.date).getFullYear() : undefined;
   const subtitle = orgName && year ? `${orgName} • Año ${year}` : "";
 
-  const handleApprove = useCallback(
+  const handleApproveSubmission = useCallback(
     async (body: ApproveRequestBody) => {
       if (!submission || !submission.submissionId) return;
       try {
@@ -114,7 +114,7 @@ export const useViewSubmission = ({
     isBusy,
     submissionComment,
     subtitle,
-    handleApprove,
+    handleApproveSubmission,
     handleReviewSubmission,
     handleNavigateToInventory,
   };

@@ -54,7 +54,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
     isBusy,
     submissionComment,
     subtitle,
-    handleApprove,
+    handleApproveSubmission,
     handleReviewSubmission,
     handleNavigateToInventory,
   } = useViewSubmission({ carbonInventoryId, organizationId, onClose });
@@ -175,7 +175,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
 
                 {isAdmin && isStatusPending && (
                   <AdminActionsCard
-                    onApprove={handleApprove}
+                    onApprove={handleApproveSubmission}
                     onReview={handleReviewSubmission}
                     isBusy={isBusy}
                   />
