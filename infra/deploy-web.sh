@@ -234,12 +234,18 @@ export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
 export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"
+if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
+  export VITE_IS_DEMO_APP
+fi
 
 log "${GREEN}   ✓ All required VITE_ environment variables are set.${NC}"
 log "  - VITE_AZURE_FRONT_CLIENT_ID=${VITE_AZURE_FRONT_CLIENT_ID:0:8}..."
 log "  - VITE_AZURE_API_CLIENT_ID=${VITE_AZURE_API_CLIENT_ID:0:8}..."
 log "  - VITE_AZURE_AUTH_AUTHORITY=${VITE_AZURE_AUTH_AUTHORITY:0:30}..."
 log "  - VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}"
+if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
+  log "  - VITE_IS_DEMO_APP=${VITE_IS_DEMO_APP}"
+fi
 echo ""
 
 # Get deployment token
