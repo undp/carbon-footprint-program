@@ -317,7 +317,7 @@ describe("GET /api/admin/requests/ - Integration Tests", () => {
         prisma,
         ci.id,
         SubmissionType.CARBON_INVENTORY_CALCULATION,
-        SubmissionStatus.OBJECTED,
+        SubmissionStatus.REVIEWED,
         testUser.id,
         testUser.id
       );
