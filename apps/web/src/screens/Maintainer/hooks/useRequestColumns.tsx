@@ -26,6 +26,7 @@ const STATUS_LABEL: Record<RequestStatus, string> = {
   [RequestStatus.APPROVED]: "Aprobada",
   [RequestStatus.REVIEWED]: "Con observaciones",
   [RequestStatus.REJECTED]: "Rechazada",
+  [RequestStatus.APPROVED_AUTOMATICALLY]: "Aprobada Automáticamente",
 };
 
 const getStatusColor = (status: RequestStatus, theme: Theme): string => {
@@ -34,6 +35,7 @@ const getStatusColor = (status: RequestStatus, theme: Theme): string => {
     [RequestStatus.APPROVED]: theme.palette.success.light,
     [RequestStatus.REVIEWED]: theme.palette.warning.light,
     [RequestStatus.REJECTED]: theme.palette.error.light,
+    [RequestStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.light,
   };
   return map[status];
 };

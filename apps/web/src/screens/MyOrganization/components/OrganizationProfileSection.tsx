@@ -29,6 +29,7 @@ const SUBMISSION_STATUS_LABELS: Record<SubmissionStatus, string> = {
   [SubmissionStatus.APPROVED]: "Aprobada",
   [SubmissionStatus.REVIEWED]: "Con observaciones",
   [SubmissionStatus.REJECTED]: "Rechazada",
+  [SubmissionStatus.APPROVED_AUTOMATICALLY]: "Aprobada Automáticamente",
 };
 
 const getDisplayStatusColor = (
@@ -52,6 +53,7 @@ const getSubmissionStatusColor = (
     [SubmissionStatus.APPROVED]: theme.palette.success.light,
     [SubmissionStatus.REVIEWED]: theme.palette.warning.light,
     [SubmissionStatus.REJECTED]: theme.palette.error.light,
+    [SubmissionStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.light,
   };
   return colorMap[status];
 };
