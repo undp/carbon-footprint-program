@@ -13,7 +13,10 @@
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "../AuthProvider.js";
 import type { AuthUser, OidcTokenPayload } from "../types.js";
-import { RESOLVED_JWKS_REQUIRED_SCOPE } from "@/config/environment.js";
+import {
+  RESOLVED_JWKS_REQUIRED_SCOPE,
+  AZURE_TENANT_ID,
+} from "@/config/environment.js";
 
 /**
  * JWKS-based authentication provider.
@@ -51,18 +54,20 @@ export class JwksAuthProvider implements AuthProvider {
         "JwksAuthProvider: token verified"
       );
 
-      // Enforce v2.0 tokens only (ver claim is present in all Azure AD tokens)
-      if (payload.ver && payload.ver !== "2.0") {
-        throw new Error(
-          `Token version "${payload.ver}" is not supported. Only v2.0 tokens are accepted. ` +
-            "Ensure accessTokenAcceptedVersion is set to 2 in the API app registration manifest."
-        );
-      }
-      if (payload.iss && !payload.iss.includes("/v2.0")) {
-        throw new Error(
-          `Token issuer "${payload.iss}" is not a v2.0 issuer. ` +
-            "Expected issuer URL to contain '/v2.0'."
-        );
+      // Enforce v2.0 tokens only when running against Azure AD
+      if (AZURE_TENANT_ID) {
+        if (payload.ver && payload.ver !== "2.0") {
+          throw new Error(
+            `Token version "${payload.ver}" is not supported. Only v2.0 tokens are accepted. ` +
+              "Ensure accessTokenAcceptedVersion is set to 2 in the API app registration manifest."
+          );
+        }
+        if (payload.iss && !payload.iss.includes("/v2.0")) {
+          throw new Error(
+            `Token issuer "${payload.iss}" is not a v2.0 issuer. ` +
+              "Expected issuer URL to contain '/v2.0'."
+          );
+        }
       }
 
       // Enforce required scope (e.g. "access_as_user" for Azure tenants)
