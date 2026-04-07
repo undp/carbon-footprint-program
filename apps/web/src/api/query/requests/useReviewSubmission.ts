@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RejectRequestBody, RejectRequestResponse } from "@repo/types";
+import { ReviewSubmissionBody, ReviewSubmissionResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { requestsKeys } from "./keys.js";
 import { organizationKeys } from "../organizations/keys.js";
@@ -9,14 +9,14 @@ export const useReviewSubmission = () => {
   const queryClient = useQueryClient();
 
   return useMutation<
-    RejectRequestResponse,
+    ReviewSubmissionResponse,
     Error,
-    { id: string; body?: RejectRequestBody }
+    { id: string; body?: ReviewSubmissionBody }
   >({
     mutationFn: ({ id, body }) =>
       apiClient
         .post(`admin/requests/${id}/review`, { json: body ?? {} })
-        .json<RejectRequestResponse>(),
+        .json<ReviewSubmissionResponse>(),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({
