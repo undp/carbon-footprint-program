@@ -10,7 +10,7 @@ import {
   useCarbonInventoriesMinimalData,
   useCarbonInventory,
 } from "@/api/query/carbonInventories";
-import { useSubcategories } from "@/api/query/maintainer/useSubcategories";
+import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
 import {
   ReductionProjectLayout,
@@ -48,11 +48,12 @@ export const ReductionProjectScreen: FC = () => {
   const { data: inventoryDetail } = useCarbonInventory(
     selectedCarbonInventoryId || ""
   );
-  const methodologyVersionId = inventoryDetail?.methodologyVersionId
-    ? String(inventoryDetail.methodologyVersionId)
-    : undefined;
-  const { data: subcategories = [], isLoading: isLoadingSubcategories } =
-    useSubcategories(methodologyVersionId);
+  const { data: methodology, isLoading: isLoadingSubcategories } =
+    useCarbonInventoryMethodology(selectedCarbonInventoryId || "");
+  const subcategories = useMemo(
+    () => methodology?.categories.flatMap((cat) => cat.subcategories) ?? [],
+    [methodology]
+  );
 
   // Derived state
   const status = project?.status;
