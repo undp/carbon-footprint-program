@@ -17,6 +17,16 @@ export const SubmissionEventType = {
 export type SubmissionEventType =
   (typeof SubmissionEventType)[keyof typeof SubmissionEventType];
 
+export const SubmissionEventTypeSchema = z.enum([
+  SubmissionEventType.POSTULATION,
+  SubmissionEventType.SELF_DECLARATION,
+  SubmissionEventType.ON_REVIEW,
+  SubmissionEventType.APPROVED,
+  SubmissionEventType.APPROVED_AUTOMATICALLY,
+  SubmissionEventType.REJECTED,
+  SubmissionEventType.REVIEWED,
+]);
+
 export const SubmissionTypeSchema = z.enum(SubmissionType);
 
 export const SubmissionBaseSchema = z.object({
