@@ -55,12 +55,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
     await cleanupTestOrganization(prisma);
     await prisma.badge.deleteMany();
     await prisma.file.deleteMany();
-    await prisma.systemParameter.update({
-      where: {
-        key: SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
-      },
-      data: { value: MeasurementRecognitionBehaviorEnum.AUTOMATIC },
-    });
+    await setRecognitionBehavior(MeasurementRecognitionBehaviorEnum.AUTOMATIC);
   });
 
   /**
