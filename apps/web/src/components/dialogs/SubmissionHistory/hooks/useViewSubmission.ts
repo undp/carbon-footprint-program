@@ -64,7 +64,7 @@ export const useViewSubmission = ({
       if (!submission || !submission.submissionId) return;
       try {
         await approveRequest({ id: submission.submissionId, body });
-        enqueueSnackbar("Solicitud aprobada correctamente", {
+        enqueueSnackbar("Postulación aprobada correctamente", {
           variant: "success",
         });
         onClose();
