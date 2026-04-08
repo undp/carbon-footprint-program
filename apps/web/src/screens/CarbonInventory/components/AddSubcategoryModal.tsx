@@ -53,10 +53,20 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
       data: categories,
     });
 
+  const handleClose = useCallback(() => {
+    reset();
+    setSearchTerm("");
+    onClose();
+  }, [onClose, reset]);
+
   const isDirty = formState.isDirty;
 
   const { saveSelections, isSavingSelections } =
-    useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: onClose });
+    useSubcategoryPreselectionSubmit(inventoryId, { onSuccess: handleClose });
+
+  const handleSave = useCallback(() => {
+    void handleSubmit((values) => saveSelections(values, isDirty))();
+  }, [handleSubmit, saveSelections, isDirty]);
 
   const rows = useMemo(
     () =>
@@ -157,16 +167,6 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
     ],
     [control]
   );
-
-  const handleSave = useCallback(() => {
-    void handleSubmit((values) => saveSelections(values, isDirty))();
-  }, [handleSubmit, saveSelections, isDirty]);
-
-  const handleClose = useCallback(() => {
-    reset();
-    setSearchTerm("");
-    onClose();
-  }, [onClose, reset]);
 
   return (
     <Dialog
