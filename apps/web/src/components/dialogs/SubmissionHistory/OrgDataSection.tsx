@@ -37,7 +37,7 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
           sx={{
             fontWeight: 500,
             color: theme.palette.text.primary,
-            fontSize: 12,
+            fontSize: "0.75rem",
           }}
         >
           {data?.tradeName ?? data?.legalName}
@@ -74,7 +74,7 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
           sx={{
             fontWeight: 500,
             color: theme.palette.text.primary,
-            fontSize: 12,
+            fontSize: "0.75rem",
           }}
         >
           {data?.representative?.fullName}

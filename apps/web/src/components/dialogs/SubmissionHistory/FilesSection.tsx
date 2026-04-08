@@ -26,7 +26,11 @@ export const FilesSection: FC<Props> = ({ files }) => {
       </Typography>
 
       {files.length === 0 ? (
-        <Typography variant="body2" color="text.secondary">
+        <Typography
+          variant="body2"
+          color="text.secondary"
+          sx={{ fontStyle: "italic", fontSize: "0.75rem" }}
+        >
           Sin archivos adjuntos
         </Typography>
       ) : (
@@ -69,7 +73,10 @@ export const FilesSection: FC<Props> = ({ files }) => {
                 </Typography>
                 <Typography
                   variant="caption"
-                  sx={{ color: theme.palette.text.secondary }}
+                  sx={{
+                    color: theme.palette.text.secondary,
+                    fontSize: "0.75rem",
+                  }}
                 >
                   {formatMimeType(file.mimeType)}{" "}
                   <Circle sx={{ fontSize: 5 }} />{" "}
