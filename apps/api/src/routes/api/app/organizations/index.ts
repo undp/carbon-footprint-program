@@ -8,6 +8,7 @@ import { getOrganizationByIdRoute } from "@/features/organizations/app/getOrgani
 import { createOrganizationRoute } from "@/features/organizations/app/createOrganization/route.js";
 import { updateOrganizationRoute } from "@/features/organizations/app/updateOrganization/route.js";
 import { requestOrganizationAccreditationRoute } from "@/features/organizations/app/requestOrganizationAccreditation/route.js";
+import { getOrganizationBadgesRoute } from "@/features/organizations/app/getOrganizationBadges/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
@@ -31,6 +32,7 @@ export default function appOrganizationsRoutes(fastify: FastifyZodInstance) {
   // ORG. ADMIN, CONTRIBUTOR, VIEWER
   getOrganizationUsersRoute(fastify);
   getOrganizationByIdRoute(fastify);
+  getOrganizationBadgesRoute(fastify);
 
   // AUTHENTICATED (No organization membership required)
   getMyOrganizationsRoute(fastify);
