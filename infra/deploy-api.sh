@@ -95,7 +95,7 @@ log "Setting app settings..."
 az webapp config appsettings set \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --name "$APP_SERVICE_NAME" \
-  --settings WEBSITES_PORT="$API_PORT" NODE_ENV=production APP_VERSION="${APP_VERSION:-unknown}" >/dev/null
+  --settings WEBSITES_PORT="$API_PORT" APP_VERSION="${APP_VERSION:-unknown}" >/dev/null
 
 log "Restarting app..."
 az webapp restart -g "$AZURE_RESOURCE_GROUP" -n "$APP_SERVICE_NAME"

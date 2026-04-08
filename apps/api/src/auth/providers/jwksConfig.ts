@@ -5,7 +5,7 @@
  * Supports any OAuth 2.0 / OpenID Connect provider that exposes a JWKS endpoint.
  *
  * Currently configured providers (via environment variables):
- * - Azure AD / Entra External ID (default if AZURE_EXTERNAL_TENANT_ID is set)
+ * - Azure Entra ID — external (CIAM) or organizational (default if AZURE_TENANT_ID is set)
  * - Any custom OIDC provider (via JWKS_URI, JWKS_ISSUER, JWKS_AUDIENCE)
  *
  * This configuration is used by:
@@ -20,7 +20,7 @@ import { JwksClient } from "jwks-rsa";
 import {
   JWT_SECRET,
   RESOLVED_JWKS_URI,
-  RESOLVED_JWKS_ISSUER,
+  RESOLVED_JWKS_ISSUERS,
   RESOLVED_JWKS_AUDIENCE,
 } from "@/config/environment.js";
 
@@ -47,7 +47,7 @@ const jwksClient = RESOLVED_JWKS_URI
 async function getSigningKey(kid?: string): Promise<string> {
   if (!jwksClient) {
     throw new Error(
-      "JWKS client not configured - check JWKS_URI or AZURE_EXTERNAL_TENANT_ID"
+      "JWKS client not configured - check JWKS_URI or AZURE_TENANT_ID"
     );
   }
 
@@ -83,13 +83,23 @@ export function getJwksUri(): string | undefined {
 /**
  * FastifyJWT configuration for JWKS validation.
  *
- * When JWKS is configured (via JWKS_URI or AZURE_EXTERNAL_TENANT_ID):
+ * When JWKS is configured (via JWKS_URI or AZURE_TENANT_ID):
  * - Uses dynamic secret resolution via JWKS
  * - Validates issuer and audience if configured
  *
  * When not configured:
  * - Falls back to static JWT_SECRET for development
  */
+// Warn at startup if JWKS is configured but issuer validation will be skipped
+if (RESOLVED_JWKS_URI && RESOLVED_JWKS_ISSUERS.length === 0) {
+  // eslint-disable-next-line no-console
+  console.warn(
+    `[auth] WARNING: JWKS URI is configured (${RESOLVED_JWKS_URI}) but no issuers are set. ` +
+      "Issuer validation is DISABLED — tokens from any issuer will be accepted. " +
+      "Set JWKS_ISSUER or configure Azure AD issuer variables to enable issuer validation."
+  );
+}
+
 export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
   ? {
       // Decode with complete: true so the secret callback receives the full
@@ -103,7 +113,8 @@ export const jwtConfig: FastifyJWTOptions = RESOLVED_JWKS_URI
       },
       verify: {
         // Verify the token issuer if configured
-        allowedIss: RESOLVED_JWKS_ISSUER ? [RESOLVED_JWKS_ISSUER] : undefined,
+        allowedIss:
+          RESOLVED_JWKS_ISSUERS.length > 0 ? RESOLVED_JWKS_ISSUERS : undefined,
         // Verify the token audience if configured
         allowedAud: RESOLVED_JWKS_AUDIENCE
           ? [RESOLVED_JWKS_AUDIENCE]

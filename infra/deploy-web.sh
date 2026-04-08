@@ -203,15 +203,30 @@ echo ""
 log "${YELLOW}[1c/5] Validating required VITE_ environment variables for Azure authentication...${NC}"
 log "Using values from infra/.envrc:"
 
-if [ -z "$AZURE_FRONT_CLIENT_ID" ] || [ -z "$AZURE_API_CLIENT_ID" ] || [ -z "$AZURE_AUTH_AUTHORITY" ] || [ -z "$AZURE_EXTERNAL_TENANT_ID" ] || [ -z "$AZURE_EXTERNAL_TENANT_SUBDOMAIN" ]; then
+if [ -z "$AZURE_FRONT_CLIENT_ID" ] || [ -z "$AZURE_API_CLIENT_ID" ] || [ -z "$AZURE_AUTH_AUTHORITY" ] || [ -z "$AZURE_TENANT_ID" ]; then
   log "${RED}Error: Missing required VITE_ environment variables for Azure authentication.${NC}"
   log "Please ensure the following are set in infra/.envrc:"
   log "  - AZURE_FRONT_CLIENT_ID=${AZURE_FRONT_CLIENT_ID:0:8}"
   log "  - AZURE_API_CLIENT_ID=${AZURE_API_CLIENT_ID:0:8}"
-  log "  - AZURE_EXTERNAL_TENANT_SUBDOMAIN=${AZURE_EXTERNAL_TENANT_SUBDOMAIN:0:8}"
-  log "  - AZURE_EXTERNAL_TENANT_ID=${AZURE_EXTERNAL_TENANT_ID:0:8}"
+  log "  - AZURE_TENANT_ID=${AZURE_TENANT_ID:0:8}"
+  log "  - AZURE_TENANT_TYPE=${AZURE_TENANT_TYPE:-external}"
   log "  - AZURE_AUTH_AUTHORITY=${AZURE_AUTH_AUTHORITY:0:30}"
   exit 1
+fi
+
+# For external (CIAM) tenants, the authority URL must contain the tenant subdomain
+# (e.g. https://<subdomain>.ciamlogin.com/<tenant-id>/v2.0). Either set
+# AZURE_AUTH_AUTHORITY directly in .envrc or provide AZURE_TENANT_SUBDOMAIN so
+# the .envrc.template can construct it automatically.
+if [ "${AZURE_TENANT_TYPE:-external}" = "external" ]; then
+  if [[ "$AZURE_AUTH_AUTHORITY" == *".ciamlogin.com/"* ]]; then
+    # Authority looks like a CIAM URL — verify it has a real subdomain (not empty)
+    if [[ "$AZURE_AUTH_AUTHORITY" =~ ^https://\.ciamlogin\.com ]]; then
+      log "${RED}Error: AZURE_AUTH_AUTHORITY has an empty subdomain for external (CIAM) tenant.${NC}"
+      log "Set AZURE_TENANT_SUBDOMAIN in infra/.envrc or provide the full AZURE_AUTH_AUTHORITY."
+      exit 1
+    fi
+  fi
 fi
 
 export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
@@ -219,13 +234,18 @@ export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
 export VITE_AZURE_AUTH_AUTHORITY=$AZURE_AUTH_AUTHORITY
 export VITE_FRONT_BASE_URL="https://$SWA_HOSTNAME"
 export VITE_APP_VERSION="${APP_VERSION:-unknown}"
-export VITE_IS_DEMO_APP="${IS_DEMO_APP:-}"
+if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
+  export VITE_IS_DEMO_APP
+fi
 
 log "${GREEN}   ✓ All required VITE_ environment variables are set.${NC}"
 log "  - VITE_AZURE_FRONT_CLIENT_ID=${VITE_AZURE_FRONT_CLIENT_ID:0:8}..."
 log "  - VITE_AZURE_API_CLIENT_ID=${VITE_AZURE_API_CLIENT_ID:0:8}..."
 log "  - VITE_AZURE_AUTH_AUTHORITY=${VITE_AZURE_AUTH_AUTHORITY:0:30}..."
 log "  - VITE_FRONT_BASE_URL=${VITE_FRONT_BASE_URL}"
+if [ -n "${VITE_IS_DEMO_APP:-}" ]; then
+  log "  - VITE_IS_DEMO_APP=${VITE_IS_DEMO_APP}"
+fi
 echo ""
 
 # Get deployment token

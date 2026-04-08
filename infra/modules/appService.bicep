@@ -29,14 +29,20 @@ param useAcrManagedIdentity bool = false
 @description('Azure Storage Account name for blob storage (file uploads)')
 param storageAccountName string = ''
 
-@description('Enable Azure Entra External ID authentication')
+@description('Enable Azure Entra ID authentication')
 param enableAzureAuth bool = false
 
-@description('Azure Entra External ID Tenant ID (subdomain)')
-param azureAuthExternalTenantId string = ''
+@description('Azure Entra ID Tenant ID (GUID)')
+param azureAuthTenantId string = ''
 
 @description('Azure Frontend App Client ID')
 param azureAuthClientId string = ''
+
+@description('Azure tenant type: "external" (CIAM) or "organizational"')
+param azureAuthTenantType string = 'external'
+
+@description('Azure tenant subdomain (required for external/CIAM tenants)')
+param azureAuthTenantSubdomain string = ''
 
 @description('Tags to apply to resources')
 param tags object = {}
@@ -118,12 +124,20 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
         }
       ] : [], enableAzureAuth ? [
         {
-          name: 'AZURE_EXTERNAL_TENANT_ID'
-          value: azureAuthExternalTenantId
+          name: 'AZURE_TENANT_ID'
+          value: azureAuthTenantId
         }
         {
           name: 'AZURE_API_CLIENT_ID'
           value: azureAuthClientId
+        }
+        {
+          name: 'AZURE_TENANT_TYPE'
+          value: azureAuthTenantType
+        }
+        {
+          name: 'AZURE_TENANT_SUBDOMAIN'
+          value: azureAuthTenantSubdomain
         }
         {
           name: 'AUTH_PROVIDER'
