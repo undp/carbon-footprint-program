@@ -169,7 +169,7 @@ export const SubmissionHistorySection: FC<Props> = ({
         {/* History cards */}
         {history.map((entry, index) => (
           <HistoryCard
-            key={`${index}-${entry.submissionId}-${entry.eventType}}`}
+            key={`${index}-${entry.submissionId}-${entry.eventType}`}
             entry={entry}
             onNavigateToInventory={onNavigateToInventory}
           />
