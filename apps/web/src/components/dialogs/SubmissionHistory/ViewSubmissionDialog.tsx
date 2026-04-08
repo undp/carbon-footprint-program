@@ -193,10 +193,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
             </Paper>
 
             {/* History section */}
-            <SubmissionHistorySection
-              history={historicalEntries}
-              onNavigateToInventory={handleNavigateToInventory}
-            />
+            <SubmissionHistorySection history={historicalEntries} />
 
             <AnyQuestionsBanner />
           </Stack>

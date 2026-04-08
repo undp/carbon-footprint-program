@@ -1,19 +1,7 @@
 import { FC } from "react";
-import {
-  Box,
-  Button,
-  Chip,
-  Paper,
-  Stack,
-  Typography,
-  useTheme,
-} from "@mui/material";
-import { CalendarTodayOutlined, OpenInNewOutlined } from "@mui/icons-material";
-import {
-  SubmissionEventType,
-  SubmissionType,
-  type SubmissionHistoryEntry,
-} from "@repo/types";
+import { Box, Chip, Paper, Stack, Typography, useTheme } from "@mui/material";
+import { CalendarTodayOutlined } from "@mui/icons-material";
+import { type SubmissionHistoryEntry } from "@repo/types";
 import { formatDateTime } from "@/utils/formatting";
 import { FilesSection } from "./FilesSection";
 import { getEventLabel } from "../../../utils/submissions";
@@ -21,20 +9,13 @@ import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
 
 type Props = {
   history: SubmissionHistoryEntry[];
-  onNavigateToInventory?: (inventoryId: string) => void;
 };
 
 const HistoryCard: FC<{
   entry: SubmissionHistoryEntry;
   onNavigateToInventory?: (id: string) => void;
-}> = ({ entry, onNavigateToInventory }) => {
+}> = ({ entry }) => {
   const theme = useTheme();
-  const showInventoryLink =
-    (entry.eventType === SubmissionEventType.POSTULATION ||
-      entry.eventType === SubmissionEventType.AUTOMATIC_POSTULATION) &&
-    entry.carbonInventoryId &&
-    (entry.submissionType === SubmissionType.CARBON_INVENTORY_CALCULATION ||
-      entry.submissionType === SubmissionType.CARBON_INVENTORY_VERIFICATION);
 
   return (
     <Paper
@@ -92,30 +73,6 @@ const HistoryCard: FC<{
           )}
         </Stack>
 
-        {/* Inventory link */}
-        {showInventoryLink && onNavigateToInventory && (
-          <Button
-            variant="text"
-            size="small"
-            startIcon={
-              <OpenInNewOutlined sx={{ fontSize: "12px !important" }} />
-            }
-            onClick={() => onNavigateToInventory(entry.carbonInventoryId!)}
-            sx={{
-              color: "glossyTeal.main",
-              px: 1,
-              fontSize: 12,
-              fontWeight: 500,
-              textTransform: "none",
-              mt: 1,
-              mb: 1,
-              minWidth: 0,
-            }}
-          >
-            Ver resumen del cálculo de huella
-          </Button>
-        )}
-
         {/* Comments */}
         {entry.comment && <SubmissionCommentsSection comment={entry.comment} />}
 
@@ -128,10 +85,7 @@ const HistoryCard: FC<{
   );
 };
 
-export const SubmissionHistorySection: FC<Props> = ({
-  history,
-  onNavigateToInventory,
-}) => {
+export const SubmissionHistorySection: FC<Props> = ({ history }) => {
   const theme = useTheme();
   if (history.length === 0) return null;
 
@@ -168,7 +122,6 @@ export const SubmissionHistorySection: FC<Props> = ({
           <HistoryCard
             key={`${index}-${entry.submissionId}-${entry.eventType}`}
             entry={entry}
-            onNavigateToInventory={onNavigateToInventory}
           />
         ))}
       </Stack>

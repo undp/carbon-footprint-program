@@ -1,5 +1,4 @@
 import { useCallback } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
 import { useGetCarbonInventoryHistory } from "@/api/query/submissions/useGetCarbonInventoryHistory";
 import { useGetOrganizationHistory } from "@/api/query/submissions/useGetOrganizationHistory";
@@ -24,7 +23,6 @@ export const useViewSubmission = ({
   organizationId,
   onClose,
 }: UseViewSubmissionParams) => {
-  const navigate = useNavigate();
   const { enqueueSnackbar } = useSnackbar();
 
   const ciHistory = useGetCarbonInventoryHistory(
@@ -100,16 +98,13 @@ export const useViewSubmission = ({
     [submission, reviewSubmission, enqueueSnackbar, onClose]
   );
 
-  const handleNavigateToInventory = useCallback(
-    (inventoryId: string) => {
-      void navigate({
-        to: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
-        params: { inventoryId },
-      });
-      onClose();
-    },
-    [navigate, onClose]
-  );
+  const handleNavigateToInventory = useCallback((inventoryId: string) => {
+    const href = Routes.CARBON_INVENTORY_EMISSION_SUMMARY.replace(
+      "$inventoryId",
+      inventoryId
+    );
+    window.open(href, "_blank");
+  }, []);
 
   return {
     submission,
