@@ -164,13 +164,16 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           body: { fileUuids },
         });
         setVerifyDialogOpen(false);
-        enqueueSnackbar("Solicitud de verificación enviada", {
+        enqueueSnackbar("Solicitud sello de verificación enviada", {
           variant: "success",
         });
       } catch {
-        enqueueSnackbar("No se pudo enviar la solicitud de verificación", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          "No se pudo enviar la solicitud de sello de verificación",
+          {
+            variant: "error",
+          }
+        );
       } finally {
         setIsVerifySubmitting(false);
       }
@@ -216,13 +219,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
-        {/* Enviar a verificación */}
-        <Tooltip title="Enviar a verificación">
+        {/* Enviar a sello de verificación */}
+        <Tooltip title="Enviar a sello de verificación">
           <span>
             <BaseActionButton
               onClick={onVerifyClick}
               disabled={!canRequestVerification}
-              aria-label="Enviar a verificación"
+              aria-label="Enviar a sello de verificación"
             >
               <VerifiedOutlined fontSize="small" />
             </BaseActionButton>
