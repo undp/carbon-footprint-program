@@ -179,13 +179,11 @@ export const ReductionReportSection: FC<Props> = ({
           </Box>
         ),
         renderCell: () => (
-          <Box className="w-full py-1">
-            <NumericInput
-              value={reduction}
-              onChange={() => {}}
-              disabled
-              suffix="tCO₂e"
-            />
+          <Box className="flex items-center justify-end px-10 py-4">
+            <Typography fontWeight={500}>
+              {reduction !== null && reduction !== undefined ? reduction : 0}{" "}
+              tCO₂e
+            </Typography>
           </Box>
         ),
       },
