@@ -121,12 +121,13 @@ export const InventoriesTab: FC<Props> = ({
               CarbonInventoryDisplayStatus
             >
           ) =>
-            params.value === CarbonInventoryDisplayStatusEnum.SELF_DECLARED ? (
+            params.value === CarbonInventoryDisplayStatusEnum.SELF_DECLARED ||
+            params.value == null ? (
               <Typography variant="body2" color="textSecondary">
                 —
               </Typography>
             ) : (
-              <CarbonInventoryStatusChip status={params.value!} />
+              <CarbonInventoryStatusChip status={params.value} />
             ),
         },
         {
