@@ -6,10 +6,6 @@ import {
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { User } from "@repo/types";
 import {
-  ReductionProjectOrganizationNotAccreditedError,
-  ReductionProjectOrganizationNotAssociatedError,
-} from "../errors.js";
-import {
   linkFilesToSubmission,
   cleanupSourceBlobs,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
@@ -17,6 +13,8 @@ import { canRequestReductionProjectVerification } from "@repo/utils";
 import {
   ReductionProjectCannotRequestVerificationError,
   ReductionProjectNotFoundError,
+  ReductionProjectOrganizationNotAccreditedError,
+  ReductionProjectOrganizationNotAssociatedError,
 } from "../errors.js";
 import {
   calculateReductionProjectDisplayStatus,
