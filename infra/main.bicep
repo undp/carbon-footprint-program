@@ -178,23 +178,27 @@ param tags object = {
   ManagedBy: 'Bicep'
 }
 
-// --------- Azure Entra External ID parameters ---------
-@description('Enable Azure Entra External ID authentication')
+// --------- Azure Entra ID parameters ---------
+@description('Enable Azure Entra ID authentication')
 param enableAzureAuth bool = false
 
-@description('Azure Entra External ID Tenant subdomain (e.g., "undphuella" from undphuella.ciamlogin.com)')
-param azureAuthExternalTenantSubdomain string = ''
+@description('Azure Entra ID tenant type: "external" (CIAM) or "organizational" (Azure AD)')
+@allowed(['external', 'organizational'])
+param azureAuthTenantType string = 'external'
+
+@description('Azure Entra ID Tenant subdomain (only required for external/CIAM tenants)')
+param azureAuthTenantSubdomain string = ''
 
 @secure()
-@description('Azure Entra External ID Tenant ID (GUID format)')
-param azureAuthExternalTenantId string = ''
+@description('Azure Entra ID Tenant ID (GUID format)')
+param azureAuthTenantId string = ''
 
 @secure()
-@description('Azure Entra External ID Api App Registration ID')
+@description('Azure Entra ID Api App Registration ID')
 param azureAuthApiAppId string = ''
 
 @secure()
-@description('Azure Entra External ID Front App Registration ID')
+@description('Azure Entra ID Front App Registration ID')
 param azureAuthFrontAppId string = ''
 
 
@@ -302,8 +306,10 @@ module appService 'modules/appService.bicep' = {
     useAcrManagedIdentity: true
     storageAccountName: storage.outputs.name
     enableAzureAuth: enableAzureAuth
-    azureAuthExternalTenantId: azureAuthExternalTenantId
+    azureAuthTenantId: azureAuthTenantId
     azureAuthClientId: azureAuthApiAppId
+    azureAuthTenantType: azureAuthTenantType
+    azureAuthTenantSubdomain: azureAuthTenantSubdomain
     tags: tags
   }
 }
@@ -394,8 +400,9 @@ module azureAuth 'modules/azureAuth.bicep' = if (enableAzureAuth) {
   name: 'azureAuthDeployment'
   params: {
     keyVaultName: keyVault.outputs.name
-    externalTenantSubdomain: azureAuthExternalTenantSubdomain
-    externalTenantId: azureAuthExternalTenantId
+    tenantType: azureAuthTenantType
+    tenantSubdomain: azureAuthTenantSubdomain
+    tenantId: azureAuthTenantId
     apiAppId: azureAuthApiAppId
     frontAppId: azureAuthFrontAppId
     tags: tags

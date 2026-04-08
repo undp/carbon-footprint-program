@@ -13,6 +13,10 @@
 import type { FastifyRequest } from "fastify";
 import type { AuthProvider, AuthResult } from "../AuthProvider.js";
 import type { AuthUser, OidcTokenPayload } from "../types.js";
+import {
+  RESOLVED_JWKS_REQUIRED_SCOPE,
+  AZURE_TENANT_ID,
+} from "@/config/environment.js";
 
 /**
  * JWKS-based authentication provider.
@@ -50,15 +54,43 @@ export class JwksAuthProvider implements AuthProvider {
         "JwksAuthProvider: token verified"
       );
 
+      // Enforce v2.0 tokens only when running against Azure AD
+      if (AZURE_TENANT_ID) {
+        if (payload.ver && payload.ver !== "2.0") {
+          throw new Error(
+            `Token version "${payload.ver}" is not supported. Only v2.0 tokens are accepted. ` +
+              "Ensure accessTokenAcceptedVersion is set to 2 in the API app registration manifest."
+          );
+        }
+        if (payload.iss && !payload.iss.includes("/v2.0")) {
+          throw new Error(
+            `Token issuer "${payload.iss}" is not a v2.0 issuer. ` +
+              "Expected issuer URL to contain '/v2.0'."
+          );
+        }
+      }
+
+      // Enforce required scope (e.g. "access_as_user" for Azure tenants)
+      if (RESOLVED_JWKS_REQUIRED_SCOPE) {
+        const scopes = payload.scp?.split(" ") ?? [];
+        if (!scopes.includes(RESOLVED_JWKS_REQUIRED_SCOPE)) {
+          const tokenScopes = payload.scp ?? "(none)";
+          throw new Error(
+            `Token missing required scope "${RESOLVED_JWKS_REQUIRED_SCOPE}". ` +
+              `Token scopes: "${tokenScopes}".`
+          );
+        }
+      }
+
       if (!payload.sub && !payload.oid) {
         throw new Error("Token payload missing 'sub' or 'oid' claim");
       }
 
-      // Accept either `email` or `preferred_username` as the user's email
+      // Extract user email from v2.0 token claims
       const email = payload.email ?? payload.preferred_username;
       if (!email) {
         throw new Error(
-          "Token payload missing 'email' or 'preferred_username' claim"
+          "Token payload missing email claim ('email' or 'preferred_username')"
         );
       }
 
