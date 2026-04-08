@@ -141,7 +141,7 @@ export const SubmissionHistorySection: FC<Props> = ({
   return (
     <Box
       sx={{
-        bgcolor: "#f9fafb",
+        bgcolor: theme.palette.background.default,
         borderRadius: "10px",
         p: 2,
       }}
