@@ -5,7 +5,7 @@ import {
   FileDownloadOutlined,
   SendOutlined,
   VerifiedOutlined,
-  HistoryOutlined,
+  DescriptionOutlined,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
@@ -236,7 +236,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               onClick={() => setHistoryDialogOpen(true)}
               aria-label="Historial"
             >
-              <HistoryOutlined fontSize="small" />
+              <DescriptionOutlined fontSize="small" />
             </BaseActionButton>
           </span>
         </Tooltip>
