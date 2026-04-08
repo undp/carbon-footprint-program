@@ -196,6 +196,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
           Agregar Subcategoría
         </Typography>
         <IconButton
+          aria-label="Cerrar Modal"
           onClick={handleClose}
           size="small"
           disabled={isSavingSelections}
