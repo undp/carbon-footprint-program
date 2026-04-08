@@ -1,15 +1,9 @@
 import { FC, useMemo } from "react";
-import {
-  Box,
-  MenuItem,
-  Select,
-  TextField,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import { Box, MenuItem, Select, Tooltip, Typography } from "@mui/material";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import { Control, Controller, useWatch } from "react-hook-form";
 import type { GridColDef } from "@mui/x-data-grid";
+import { NumericInput } from "@/components/NumericInput";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { InfoButton } from "@/components";
 import type { ReductionProjectFormValues } from "../types";
@@ -117,26 +111,17 @@ export const ReductionReportSection: FC<Props> = ({
           </Box>
         ),
         renderCell: () => (
-          <Box className="flex w-full items-center gap-1 py-1">
-            <Typography variant="caption" color="text.secondary">
-              tCO₂e
-            </Typography>
+          <Box className="w-full py-1">
             <Controller
               name="baselineScenario"
               control={control}
               render={({ field }) => (
-                <TextField
-                  size="small"
-                  type="number"
-                  value={field.value}
+                <NumericInput
+                  value={field.value === "" ? null : Number(field.value)}
                   onChange={field.onChange}
                   disabled={disabled}
-                  placeholder="0"
-                  sx={{
-                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      { WebkitAppearance: "none", margin: 0 },
-                    "& input[type=number]": { MozAppearance: "textfield" },
-                  }}
+                  suffix="tCO₂e"
+                  min={0}
                 />
               )}
             />
@@ -160,26 +145,17 @@ export const ReductionReportSection: FC<Props> = ({
           </Box>
         ),
         renderCell: () => (
-          <Box className="flex w-full items-center gap-1 py-1">
-            <Typography variant="caption" color="text.secondary">
-              tCO₂e
-            </Typography>
+          <Box className="w-full py-1">
             <Controller
               name="projectScenario"
               control={control}
               render={({ field }) => (
-                <TextField
-                  size="small"
-                  type="number"
-                  value={field.value}
+                <NumericInput
+                  value={field.value === "" ? null : Number(field.value)}
                   onChange={field.onChange}
                   disabled={disabled}
-                  placeholder="0"
-                  sx={{
-                    "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                      { WebkitAppearance: "none", margin: 0 },
-                    "& input[type=number]": { MozAppearance: "textfield" },
-                  }}
+                  suffix="tCO₂e"
+                  min={0}
                 />
               )}
             />
@@ -203,20 +179,12 @@ export const ReductionReportSection: FC<Props> = ({
           </Box>
         ),
         renderCell: () => (
-          <Box className="flex w-full items-center gap-1 py-1">
-            <Typography variant="caption" color="text.secondary">
-              tCO₂e
-            </Typography>
-            <TextField
-              size="small"
-              type="number"
+          <Box className="w-full py-1">
+            <NumericInput
               value={reduction}
+              onChange={() => {}}
               disabled
-              sx={{
-                "& input::-webkit-outer-spin-button, & input::-webkit-inner-spin-button":
-                  { WebkitAppearance: "none", margin: 0 },
-                "& input[type=number]": { MozAppearance: "textfield" },
-              }}
+              suffix="tCO₂e"
             />
           </Box>
         ),
@@ -231,7 +199,7 @@ export const ReductionReportSection: FC<Props> = ({
     <Box className="flex flex-col gap-4">
       <Box className="flex items-center justify-between">
         <Typography variant="body1" fontSize={18}>
-          Reporte de reducciones/remociones
+          Reporte de reducción
           {projectName ? ` - ${projectName}` : ""}
         </Typography>
         <Box
