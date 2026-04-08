@@ -13,6 +13,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
+import { useSnackbar } from "notistack";
 import {
   AdminPanelSettingsOutlined,
   CheckCircleOutlined,
@@ -53,6 +54,7 @@ export const AdminActionsCard: FC<Props> = ({
   isBusy,
 }) => {
   const theme = useTheme();
+  const { enqueueSnackbar } = useSnackbar();
   const [selectedAction, setSelectedAction] = useState<Action | null>(null);
   const [comment, setComment] = useState("");
   const [docFiles, setDocFiles] = useState<File[]>([]);
@@ -96,6 +98,10 @@ export const AdminActionsCard: FC<Props> = ({
           reviewFileUuids,
         });
       }
+    } catch {
+      enqueueSnackbar("Error al cargar los archivos adjuntos", {
+        variant: "error",
+      });
     } finally {
       setIsUploading(false);
     }
@@ -107,6 +113,7 @@ export const AdminActionsCard: FC<Props> = ({
     onApprove,
     onReview,
     preUploadFiles,
+    enqueueSnackbar,
   ]);
 
   return (
