@@ -11,14 +11,14 @@ import {
 import { DraftActionsCell } from "./DraftActionsCell";
 
 interface DraftsTabProps {
-  inventories: GetAllCarbonInventoriesResponse;
+  darftInventories: GetAllCarbonInventoriesResponse;
   allInventories: GetAllCarbonInventoriesResponse;
   isLoading: boolean;
   onNewInventory: () => void;
 }
 
 export const DraftsTab: FC<DraftsTabProps> = ({
-  inventories,
+  darftInventories,
   allInventories,
   isLoading,
   onNewInventory,
@@ -167,7 +167,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
       <StylizedDataGrid
         autoHeight
         columnHeaderHeight={40}
-        rows={inventories}
+        rows={darftInventories}
         columns={columns}
         localeText={{
           noRowsLabel: "No hay borradores disponibles",

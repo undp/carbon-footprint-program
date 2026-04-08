@@ -134,7 +134,7 @@ export const CarbonInventoriesScreen: FC = () => {
         {/* Tab Content */}
         {activeTab === 0 && (
           <DraftsTab
-            inventories={draftInventories}
+            darftInventories={draftInventories}
             allInventories={filteredInventories}
             isLoading={isLoadingInventories}
             onNewInventory={onNewInventory}
