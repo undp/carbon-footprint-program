@@ -167,7 +167,15 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
   return (
     <Dialog
       open={open}
-      onClose={handleClose}
+      onClose={(_event, reason) => {
+        if (
+          isSavingSelections &&
+          (reason === "backdropClick" || reason === "escapeKeyDown")
+        ) {
+          return;
+        }
+        handleClose();
+      }}
       fullWidth
       maxWidth="lg"
       slotProps={{ paper: { sx: { height: "700px" } } }}
