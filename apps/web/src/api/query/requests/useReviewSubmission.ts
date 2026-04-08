@@ -11,11 +11,11 @@ export const useReviewSubmission = () => {
   return useMutation<
     ReviewSubmissionResponse,
     Error,
-    { id: string; body?: ReviewSubmissionBody }
+    { id: string; body: ReviewSubmissionBody }
   >({
     mutationFn: ({ id, body }) =>
       apiClient
-        .post(`admin/requests/${id}/review`, { json: body ?? {} })
+        .post(`admin/requests/${id}/review`, { json: body })
         .json<ReviewSubmissionResponse>(),
     onSuccess: async () => {
       await Promise.all([
