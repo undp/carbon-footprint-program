@@ -128,7 +128,10 @@ export const DraftsTab: FC<DraftsTabProps> = ({
               GetAllCarbonInventoriesResponse[number],
               CarbonInventoryDisplayStatus
             >
-          ) => <CarbonInventoryStatusChip status={params.value!} />,
+          ) =>
+            params.value != null ? (
+              <CarbonInventoryStatusChip status={params.value} />
+            ) : null,
         },
         {
           field: "actions",
