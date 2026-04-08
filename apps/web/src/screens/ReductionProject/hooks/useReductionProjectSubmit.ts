@@ -7,6 +7,7 @@ import { mapFormValuesToRequest } from "../mappers";
 import type { ReductionProjectFormValues } from "../types";
 import type { ReductionProjectDisplayStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
+import { ReductionProjectDisplayStatusEnum } from "@repo/types";
 
 interface Params {
   projectId: string;
@@ -25,7 +26,10 @@ export const useReductionProjectSubmit = ({ projectId, status }: Params) => {
         const { files, ...formData } = data;
         const requestData = mapFormValuesToRequest(formData);
 
-        if (status === "REVIEWED" && files.length > 0) {
+        if (
+          status === ReductionProjectDisplayStatusEnum.REVIEWED &&
+          files.length > 0
+        ) {
           const fileUuids = await preUploadFiles(files);
           await updateMutation.mutateAsync({ ...requestData, fileUuids });
         } else {
