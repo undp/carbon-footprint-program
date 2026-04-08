@@ -24,4 +24,6 @@ export const organizationKeys = {
   updateUser: (id: string) => [...organizationKeys.addUser, id] as const,
   deleteUser: (id: string) =>
     [...organizationKeys.addUser, "delete", id] as const,
+  badges: (organizationId: string, year?: string) =>
+    [...organizationKeys.detail(organizationId), "badges", year] as const,
 };

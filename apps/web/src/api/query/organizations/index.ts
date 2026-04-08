@@ -8,3 +8,4 @@ export * from "./useOrganizationUsers";
 export * from "./useAddOrganizationUser";
 export * from "./useUpdateOrganizationUserRole";
 export * from "./useRemoveOrganizationUser";
+export * from "./useOrganizationBadges";
