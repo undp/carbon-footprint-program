@@ -14,7 +14,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
-import { Close, SearchRounded } from "@mui/icons-material";
+import { ClearRounded, Close, SearchRounded } from "@mui/icons-material";
 import { Controller } from "react-hook-form";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { CategoryChip } from "@/components/EmissionResults/CategoryChip";
@@ -226,7 +226,18 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <SearchRounded fontSize="small" />
+                  {searchTerm ? (
+                    <IconButton
+                      size="small"
+                      aria-label="Borrar búsqueda"
+                      edge="end"
+                      onClick={() => setSearchTerm("")}
+                    >
+                      <ClearRounded fontSize="small" />
+                    </IconButton>
+                  ) : (
+                    <SearchRounded fontSize="small" />
+                  )}
                 </InputAdornment>
               ),
             },
