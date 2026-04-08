@@ -76,6 +76,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
     [categories]
   );
 
+  // TODO: Implement fuzzy search
   const filteredRows = useMemo(() => {
     const term = searchTerm.trim().toLowerCase();
     if (!term) return rows;
