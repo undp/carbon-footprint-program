@@ -70,6 +70,24 @@ export function calculateReductionProjectDisplayStatus(
   return ReductionProjectDisplayStatusEnum.DRAFT;
 }
 
+export const reductionProjectSubmissionFilter: Prisma.ReductionProjectWhereInput =
+  {
+    OR: [
+      { submission: { is: null } },
+      {
+        submission: {
+          subject: {
+            submissions: {
+              some: {
+                type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+              },
+            },
+          },
+        },
+      },
+    ],
+  };
+
 export async function createReductionProjectSubmission(
   prismaClient: PrismaClient | Prisma.TransactionClient,
   reductionProjectId: bigint,

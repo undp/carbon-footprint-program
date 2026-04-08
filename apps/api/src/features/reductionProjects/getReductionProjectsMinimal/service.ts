@@ -11,6 +11,7 @@ import type {
 import { InventoryStatus } from "@repo/types";
 import {
   calculateReductionProjectDisplayStatus,
+  reductionProjectSubmissionFilter,
   reductionProjectWithSubmissionsMinimalSelect,
 } from "../helpers.js";
 import { mapReductionProjectToMinimalItem } from "../mappers.js";
@@ -48,7 +49,7 @@ export const getReductionProjectsMinimalService = async (
 
   const data = await prismaClient.reductionProject.findMany({
     where: {
-      AND: [baseFilters, accessControlFilter],
+      AND: [baseFilters, accessControlFilter, reductionProjectSubmissionFilter],
     },
     select: {
       ...reductionProjectWithSubmissionsMinimalSelect,
