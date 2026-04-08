@@ -127,24 +127,16 @@ export const AwardsScreen: FC = () => {
   }, [badges]);
 
   return (
-    <Box className="flex w-full flex-col gap-6">
+    <Box className="flex flex-1 flex-col gap-6">
       {/* Header */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: 2,
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+      <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white px-6 py-4">
+        <Box className="flex items-center gap-2">
           <EmojiEventsOutlined color="primary" />
           <Typography variant="h5" fontWeight={600}>
             Reconocimientos
           </Typography>
         </Box>
-        <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+        <Box className="flex flex-wrap gap-3">
           <FormControl size="small" sx={{ minWidth: 140 }}>
             <InputLabel id="year-select-label">Año</InputLabel>
             <Select
@@ -173,76 +165,75 @@ export const AwardsScreen: FC = () => {
       </Box>
 
       {/* Summary cards */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-          gap: 2,
-        }}
-      >
-        {AWARD_BADGE_TYPES.map((badgeType) => {
-          const previewUrl = previewMap.get(badgeType);
-          const count = badgeCounts[badgeType] ?? 0;
-          return (
-            <Card key={badgeType} elevation={1} sx={{ borderRadius: 2 }}>
-              <CardContent
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 1,
-                  py: 2,
-                }}
-              >
-                {previewUrl ? (
-                  <img
-                    src={previewUrl}
-                    alt={BADGE_LABELS[badgeType]}
-                    style={{
-                      width: 64,
-                      height: 64,
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <EmojiEventsOutlined
-                    sx={{ fontSize: 48, color: "text.disabled" }}
-                  />
-                )}
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  textAlign="center"
+      <Box className="rounded-lg bg-white p-6">
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+            gap: 2,
+          }}
+        >
+          {AWARD_BADGE_TYPES.map((badgeType) => {
+            const previewUrl = previewMap.get(badgeType);
+            const count = badgeCounts[badgeType] ?? 0;
+            return (
+              <Card key={badgeType} elevation={1} sx={{ borderRadius: 2 }}>
+                <CardContent
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 1,
+                    py: 2,
+                  }}
                 >
-                  {BADGE_LABELS[badgeType]}
-                </Typography>
-                <Typography variant="h4" fontWeight={700} color="primary">
-                  {count}
-                </Typography>
-              </CardContent>
-            </Card>
-          );
-        })}
+                  {previewUrl ? (
+                    <img
+                      src={previewUrl}
+                      alt={BADGE_LABELS[badgeType]}
+                      style={{
+                        width: 64,
+                        height: 64,
+                        objectFit: "contain",
+                      }}
+                    />
+                  ) : (
+                    <EmojiEventsOutlined
+                      sx={{ fontSize: 48, color: "text.disabled" }}
+                    />
+                  )}
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    textAlign="center"
+                  >
+                    {BADGE_LABELS[badgeType]}
+                  </Typography>
+                  <Typography variant="h4" fontWeight={700} color="primary">
+                    {count}
+                  </Typography>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </Box>
       </Box>
 
       {/* Table */}
-      <StylizedDataGrid
-        // sx={{
-        //   backgroundColor: "background.paper",
-        //   border: "none",
-        //   boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-        // }}
-        loading={isLoadingBadges}
-        disableColumnSorting={false}
-        columns={columns}
-        rows={badges}
-        getRowId={(row: GetOrganizationBadgesResponse[number]) =>
-          `${row.submissionId}-${row.badgeType}`
-        }
-        initialState={{
-          sorting: { sortModel: DEFAULT_SORT_MODEL },
-        }}
-      />
+      <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
+        <StylizedDataGrid
+          loading={isLoadingBadges}
+          disableColumnSorting={false}
+          columns={columns}
+          rows={badges}
+          getRowId={(row: GetOrganizationBadgesResponse[number]) =>
+            `${row.submissionId}-${row.badgeType}`
+          }
+          initialState={{
+            sorting: { sortModel: DEFAULT_SORT_MODEL },
+          }}
+        />
+      </Box>
 
       {/* Recognition diploma modal */}
       <RecognitionModal
