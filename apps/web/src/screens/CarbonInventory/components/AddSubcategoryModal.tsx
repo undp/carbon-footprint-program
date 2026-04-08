@@ -18,6 +18,7 @@ import { Close, SearchRounded } from "@mui/icons-material";
 import { Controller } from "react-hook-form";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { CategoryChip } from "@/components/EmissionResults/CategoryChip";
+import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { useSubcategoryPreselectionData } from "../hooks/useSubcategoryPreselectionData";
 import { useSubcategoryPreselectionForm } from "../hooks/useSubcategoryPreselectionForm";
 import { useSubcategoryPreselectionSubmit } from "../hooks/useSubcategoryPreselectionSubmit";
@@ -41,8 +42,11 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
 }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
-  const { data: categories, isLoading } =
-    useSubcategoryPreselectionData(inventoryId);
+  const {
+    data: categories,
+    isLoading,
+    hasError,
+  } = useSubcategoryPreselectionData(inventoryId);
 
   const { handleSubmit, formState, control, reset } =
     useSubcategoryPreselectionForm({
@@ -227,14 +231,19 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
           }}
         />
 
-        <StylizedDataGrid
-          columns={columns}
-          rows={filteredRows}
-          getRowId={(row: SubcategoryRow) => row.subcategory.id}
-          loading={isLoading}
-          localeText={{ noRowsLabel: "No se encontraron subcategorías" }}
-          sx={{ flex: 1 }}
-        />
+        {!isLoading && hasError && (
+          <LoadingErrorStateMessage message="Ocurrió un error al cargar las subcategorías" />
+        )}
+        {!isLoading && !hasError && (
+          <StylizedDataGrid
+            columns={columns}
+            rows={filteredRows}
+            getRowId={(row: SubcategoryRow) => row.subcategory.id}
+            loading={isLoading}
+            localeText={{ noRowsLabel: "No se encontraron subcategorías" }}
+            sx={{ flex: 1 }}
+          />
+        )}
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2 }}>
