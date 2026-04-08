@@ -50,7 +50,7 @@ import type {
   FastifyReply,
 } from "fastify";
 import type { OrganizationRole } from "@repo/database/enums";
-import { MembershipStatus } from "@repo/database/enums";
+import { MembershipStatus, SystemRole } from "@repo/database/enums";
 import { InventoryStatus } from "@repo/types";
 
 /**
@@ -62,13 +62,25 @@ export type CarbonInventoryIdExtractor<
 > = (request: FastifyRequest<{ Params: P }>) => string | null | undefined;
 
 /**
+ * Options for the requireCarbonInventoryAccess function.
+ */
+export type RequireCarbonInventoryAccessOptions = {
+  requiredOrganizationRoles?: OrganizationRole[];
+  /**
+   * When true, users with ADMIN or SUPERADMIN system roles bypass
+   * inventory creator and organization membership checks entirely.
+   */
+  canAdminsBypass?: boolean;
+};
+
+/**
  * Type for carbon inventory access checking function.
  */
 export type RequireCarbonInventoryAccessFunction = <
   P extends Record<string, string>,
 >(
   carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
-  options?: { requiredOrganizationRoles?: OrganizationRole[] }
+  options?: RequireCarbonInventoryAccessOptions
 ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
@@ -90,8 +102,9 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    */
   fastify.decorate("requireCarbonInventoryAccess", function <
     P extends Record<string, string>,
-  >(carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>, options?: { requiredOrganizationRoles?: OrganizationRole[] }) {
+  >(carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>, options?: RequireCarbonInventoryAccessOptions) {
     const requiredOrganizationRoles = options?.requiredOrganizationRoles;
+    const canAdminsBypass = options?.canAdminsBypass;
 
     return async function (
       request: FastifyRequest<{ Params: P }>,
@@ -191,6 +204,24 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
           code: "FORBIDDEN",
           message: "You do not have access to this carbon inventory",
         });
+      }
+
+      // Bypass inventory access checks for ADMIN and SUPERADMIN system roles
+      if (
+        canAdminsBypass &&
+        request.currentUser &&
+        (request.currentUser.role === SystemRole.ADMIN ||
+          request.currentUser.role === SystemRole.SUPERADMIN)
+      ) {
+        log.debug(
+          {
+            userId: request.currentUser.id,
+            systemRole: request.currentUser.role,
+            carbonInventoryId,
+          },
+          "Carbon inventory authorization bypassed for system admin"
+        );
+        return;
       }
 
       const membership = inventory.organization?.memberships?.[0];

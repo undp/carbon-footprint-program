@@ -10,12 +10,15 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { SystemRole, OrganizationRole } from "@repo/database/enums";
+import type { SystemRole } from "@repo/database/enums";
 import type {
   OrganizationIdExtractor,
   RequireOrganizationRoleOptions,
 } from "@/plugins/app/organizationAuthorizationPlugin.js";
-import type { CarbonInventoryIdExtractor } from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
+import type {
+  CarbonInventoryIdExtractor,
+  RequireCarbonInventoryAccessOptions,
+} from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -156,7 +159,7 @@ declare module "fastify" {
      */
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
       carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
-      options?: { requiredOrganizationRoles?: OrganizationRole[] }
+      options?: RequireCarbonInventoryAccessOptions
     ) => (
       request: FastifyRequest<{ Params: P }>,
       reply: FastifyReply
