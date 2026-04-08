@@ -8,3 +8,4 @@ export {
   canSelfDeclare,
   canSubmitToMeasurement,
 } from "./carbonInventory.js";
+export { buildUserName } from "./user.js";

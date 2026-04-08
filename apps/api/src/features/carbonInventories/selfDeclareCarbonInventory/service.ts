@@ -152,6 +152,7 @@ export const selfDeclareCarbonInventoryService = async (
         badgeId: activeBadge?.id,
         reviewerId: createdById,
         updatedById: createdById,
+        reviewedAt: new Date(),
       },
     });
   });

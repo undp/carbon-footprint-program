@@ -37,6 +37,7 @@ CREATE TABLE "submission" (
     "status" "submission_status" NOT NULL DEFAULT 'PENDING',
     "reviewer_id" BIGINT,
     "review_comments" TEXT,
+    "reviewed_at" TIMESTAMP(3),
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,

@@ -22,7 +22,7 @@ import {
 } from "../../errors.js";
 import { UserNotFoundError } from "../../../users/errors.js";
 import {
-  getLastRejectedOrganizationData,
+  getLastReviewedOrganizationData,
   cloneOrganizationData,
   hasApprovedOrganizationData,
 } from "../../helpers.js";
@@ -73,17 +73,17 @@ export const requestOrganizationAccreditationService = async (
       },
     });
 
-    const rejectedData = await getLastRejectedOrganizationData(
+    const reviewedData = await getLastReviewedOrganizationData(
       tx,
       organizationId
     );
 
     let resolvedActiveData = activeData;
-    if (!resolvedActiveData && rejectedData) {
-      // Files provided: clone rejected data into a new draft so the user can re-submit
+    if (!resolvedActiveData && reviewedData) {
+      // Files provided: clone reviewed data into a new draft so the user can re-submit
       resolvedActiveData = await cloneOrganizationData(
         tx,
-        rejectedData,
+        reviewedData,
         userId
       );
     }

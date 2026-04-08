@@ -75,7 +75,7 @@ export const hasApprovedOrganizationData = async (
     })
   );
 
-export const getLastRejectedOrganizationData = async (
+export const getLastReviewedOrganizationData = async (
   prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string
 ) => {
@@ -87,7 +87,7 @@ export const getLastRejectedOrganizationData = async (
         subject: {
           submissions: {
             some: {
-              status: SubmissionStatus.REJECTED,
+              status: SubmissionStatus.REVIEWED,
             },
           },
         },
