@@ -57,7 +57,12 @@ export const useViewSubmission = ({
 
   const orgName = submission?.userMetadata ?? undefined;
   const year = submission ? new Date(submission.date).getFullYear() : undefined;
-  const subtitle = orgName && year ? `${orgName} • Año ${year}` : "";
+  const subtitle =
+    !isOrganizationAccreditation && orgName && year
+      ? `${orgName} • Año ${year}`
+      : orgName
+        ? `${orgName}`
+        : "";
 
   const handleApproveSubmission = useCallback(
     async (body: ApproveRequestBody) => {
