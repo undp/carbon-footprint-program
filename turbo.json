@@ -23,7 +23,8 @@
     "APP_VERSION",
     "CI",
     "AZURE_STORAGE_ACCOUNT_NAME",
-    "AZURE_STORAGE_CONTAINER_NAME"
+    "AZURE_STORAGE_CONTAINER_NAME",
+    "ALLOWED_ORIGIN"
   ],
   "tasks": {
     "clean": {
