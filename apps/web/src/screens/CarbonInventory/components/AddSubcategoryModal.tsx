@@ -182,7 +182,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         handleClose();
       }}
       fullWidth
-      maxWidth="lg"
+      maxWidth="xl"
       slotProps={{ paper: { sx: { height: "700px" } } }}
     >
       <DialogTitle
