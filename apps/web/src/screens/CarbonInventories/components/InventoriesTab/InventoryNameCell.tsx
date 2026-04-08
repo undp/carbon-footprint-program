@@ -72,8 +72,6 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
                 border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
                 color: theme.palette.success.main,
                 fontWeight: 500,
-                fontSize: "0.75rem",
-                "& .MuiChip-label": { px: 0.5 },
                 "& .MuiChip-icon": { ml: 0.5 },
               }}
             />
@@ -97,8 +95,6 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
                 border: `1px solid ${alpha(theme.palette.secondary.main, 0.5)}`,
                 color: theme.palette.common.glossyTeal,
                 fontWeight: 500,
-                fontSize: "0.75rem",
-                "& .MuiChip-label": { px: 0.5 },
                 "& .MuiChip-icon": { ml: 0.5 },
               }}
             />
