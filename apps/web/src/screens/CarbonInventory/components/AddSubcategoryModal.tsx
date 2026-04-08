@@ -96,23 +96,25 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         headerName: "Categoría/Alcance",
         width: 180,
         renderCell: ({ row }) => (
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            {row.category.synonyms && (
-              <Tooltip title={row.category.synonyms} placement="top">
-                <span>
-                  <CategoryChip
-                    label={row.category.synonyms}
-                    categoryColor={row.category.color}
-                    sx={{
-                      fontSize: 8,
-                      height: 16,
-                      borderRadius: 8,
-                    }}
-                  />
-                </span>
-              </Tooltip>
-            )}
-            <Typography variant="body2">{row.category.name}</Typography>
+          <Box className="flex h-full w-full items-center">
+            <Box className="flex w-full flex-col">
+              {row.category.synonyms && (
+                <Tooltip title={row.category.synonyms} placement="top">
+                  <span>
+                    <CategoryChip
+                      label={row.category.synonyms}
+                      categoryColor={row.category.color}
+                      sx={{
+                        fontSize: 8,
+                        height: 16,
+                        borderRadius: 8,
+                      }}
+                    />
+                  </span>
+                </Tooltip>
+              )}
+              <Typography variant="body2">{row.category.name}</Typography>
+            </Box>
           </Box>
         ),
       },
@@ -121,7 +123,9 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         headerName: "Sub-categoría",
         width: 220,
         renderCell: ({ row }) => (
-          <Typography variant="body2">{row.subcategory.name}</Typography>
+          <Box className="flex h-full w-full items-center">
+            <Typography variant="body2">{row.subcategory.name}</Typography>
+          </Box>
         ),
       },
       {
@@ -129,9 +133,11 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         headerName: "Descripción",
         flex: 1,
         renderCell: ({ row }) => (
-          <Typography variant="body2" color="text.secondary">
-            {row.subcategory.description}
-          </Typography>
+          <Box className="flex h-full w-full items-center">
+            <Typography variant="body2" color="text.secondary">
+              {row.subcategory.description}
+            </Typography>
+          </Box>
         ),
       },
       {
