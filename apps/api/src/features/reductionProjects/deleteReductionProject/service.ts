@@ -15,28 +15,29 @@ export const deleteReductionProjectService = async (
   id: string,
   user: User | null
 ): Promise<void> => {
-  const project = await prismaClient.reductionProject.findUnique({
-    where: { id: BigInt(id) },
-    select: {
-      ...reductionProjectWithSubmissionsMinimalSelect,
-    },
-  });
+  await prismaClient.$transaction(async (tx) => {
+    const project = await tx.reductionProject.findUnique({
+      where: { id: BigInt(id) },
+      select: {
+        ...reductionProjectWithSubmissionsMinimalSelect,
+      },
+    });
 
-  if (!project) {
-    throw new ReductionProjectNotFoundError(id);
-  }
+    if (!project) {
+      throw new ReductionProjectNotFoundError(id);
+    }
 
-  const displayStatus = calculateReductionProjectDisplayStatus(project);
+    const displayStatus = calculateReductionProjectDisplayStatus(project);
+    if (!isReductionProjectDeletable(displayStatus)) {
+      throw new ReductionProjectNotDeletableError(id, displayStatus);
+    }
 
-  if (!isReductionProjectDeletable(displayStatus)) {
-    throw new ReductionProjectNotDeletableError(id, displayStatus);
-  }
-
-  await prismaClient.reductionProject.update({
-    where: { id: BigInt(id) },
-    data: {
-      status: InventoryStatus.DELETED,
-      updatedById: user ? BigInt(user.id) : null,
-    },
+    await tx.reductionProject.update({
+      where: { id: BigInt(id) },
+      data: {
+        status: InventoryStatus.DELETED,
+        updatedById: user ? BigInt(user.id) : null,
+      },
+    });
   });
 };
