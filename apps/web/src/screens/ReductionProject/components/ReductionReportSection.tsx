@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Box, MenuItem, Select, Tooltip, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import InfoOutlineIcon from "@mui/icons-material/InfoOutline";
 import { Control, Controller, useWatch } from "react-hook-form";
 import type { GridColDef } from "@mui/x-data-grid";
@@ -12,8 +12,6 @@ interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
   projectName: string;
-  availableYears: number[];
-  hasInventorySelected: boolean;
 }
 
 interface ReportRow {
@@ -24,11 +22,10 @@ export const ReductionReportSection: FC<Props> = ({
   control,
   disabled,
   projectName,
-  availableYears,
-  hasInventorySelected,
 }) => {
   const baselineScenario = useWatch({ control, name: "baselineScenario" });
   const projectScenario = useWatch({ control, name: "projectScenario" });
+  const year = useWatch({ control, name: "year" });
 
   const reduction = useMemo(() => {
     const base = Number(baselineScenario);
@@ -51,47 +48,15 @@ export const ReductionReportSection: FC<Props> = ({
               Año de reducción
             </Typography>
             <InfoButton
-              label="Año en que se reportan las reducciones. Debe estar entre el año del inventario y el año actual."
+              label="Año del inventario de carbono seleccionado."
               size="small"
             />
           </Box>
         ),
         renderCell: () => (
-          <Tooltip
-            title={
-              !hasInventorySelected
-                ? "Seleccione un inventario de carbono verificado primero"
-                : ""
-            }
-          >
-            <Box className="w-full py-1">
-              <Controller
-                name="year"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    size="small"
-                    fullWidth
-                    value={field.value}
-                    onChange={field.onChange}
-                    disabled={disabled || !hasInventorySelected}
-                    displayEmpty
-                  >
-                    <MenuItem value="" disabled>
-                      <Typography color="text.secondary" variant="body2">
-                        Selecciona
-                      </Typography>
-                    </MenuItem>
-                    {availableYears.map((y) => (
-                      <MenuItem key={y} value={y}>
-                        {y}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-            </Box>
-          </Tooltip>
+          <Box className="flex items-center px-2 py-4">
+            <Typography>{year || "—"}</Typography>
+          </Box>
         ),
       },
       {
@@ -188,7 +153,7 @@ export const ReductionReportSection: FC<Props> = ({
         ),
       },
     ],
-    [control, disabled, availableYears, hasInventorySelected, reduction]
+    [control, disabled, year, reduction]
   );
 
   const rows: ReportRow[] = [{ id: 1 }];

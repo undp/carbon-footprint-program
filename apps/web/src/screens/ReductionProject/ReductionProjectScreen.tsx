@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate, useParams } from "@tanstack/react-router";
 import { useWatch } from "react-hook-form";
@@ -44,6 +44,7 @@ export const ReductionProjectScreen: FC = () => {
   const {
     control,
     handleSubmit,
+    setValue,
     selectedOrganizationId,
     selectedCarbonInventoryId,
   } = form;
@@ -69,16 +70,11 @@ export const ReductionProjectScreen: FC = () => {
 
   const projectName = useWatch({ control, name: "name" });
 
-  const availableYears = useMemo(() => {
-    if (!inventoryDetail?.year) return [];
-    const currentYear = new Date().getFullYear();
-    const startYear = inventoryDetail.year;
-    const years: number[] = [];
-    for (let y = startYear; y <= currentYear; y++) {
-      years.push(y);
+  useEffect(() => {
+    if (inventoryDetail?.year) {
+      setValue("year", inventoryDetail.year);
     }
-    return years;
-  }, [inventoryDetail?.year]);
+  }, [inventoryDetail?.year, setValue]);
 
   // Submit
   const { submit, isSubmitting } = useReductionProjectSubmit({
@@ -161,8 +157,6 @@ export const ReductionProjectScreen: FC = () => {
           control={control}
           disabled={isFormDisabled}
           projectName={projectName}
-          availableYears={availableYears}
-          hasInventorySelected={hasInventorySelected}
         />
 
         {/* File upload (REVIEWED only) */}
