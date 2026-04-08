@@ -16,7 +16,7 @@ import {
 } from "@mui/material";
 import { CloseOutlined, OpenInNewOutlined } from "@mui/icons-material";
 import { SubmissionType } from "@repo/types";
-import { formatDate } from "@/utils/formatting";
+import { formatDateTime } from "@/utils/formatting";
 import { getReviewTitle } from "@/utils/submissions";
 import { FilesSection } from "./FilesSection";
 import { CurrentStatusBanner } from "./CurrentStatusBanner";
@@ -122,13 +122,13 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   sx={{ mb: 1 }}
                 >
                   <Chip
-                    label={formatDate(submission.date)}
+                    label={formatDateTime(submission.date)}
                     size="small"
                     sx={{
                       bgcolor: theme.palette.background.default,
                       border: `1px solid ${theme.palette.divider}`,
                       color: theme.palette.text.secondary,
-                      fontSize: 12,
+                      fontSize: "0.75rem",
                       height: 26,
                       borderRadius: "40px",
                     }}
@@ -136,7 +136,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   <Typography
                     variant="body2"
                     color="text.secondary"
-                    sx={{ fontSize: 12 }}
+                    sx={{ fontSize: "0.75rem" }}
                   >
                     {submission.userName}
                   </Typography>
@@ -150,7 +150,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                       size="small"
                       startIcon={
                         <OpenInNewOutlined
-                          sx={{ fontSize: "12px !important" }}
+                          sx={{ fontSize: "0.75rem !important" }}
                         />
                       }
                       onClick={() =>
@@ -159,7 +159,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                       sx={{
                         color: theme.palette.common.glossyTeal,
                         px: 1,
-                        fontSize: 12,
+                        fontSize: "0.75rem",
                         fontWeight: 500,
                         textTransform: "none",
                         mb: 1,
@@ -174,7 +174,9 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   <SubmissionCommentsSection comment={submissionComment} />
                 )}
 
-                <FilesSection files={submission.files} />
+                <FilesSection
+                  files={[submission.files, submission.recognitions].flat()}
+                />
 
                 {submission.organizationData && isOrganizationAccreditation && (
                   <OrgDataSection data={submission.organizationData} />
