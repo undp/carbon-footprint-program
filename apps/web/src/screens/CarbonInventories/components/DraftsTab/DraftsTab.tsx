@@ -31,12 +31,9 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         {
           field: "name",
           renderHeader: () => (
-            <ResponsiveTypography
-              className="uppercase"
-              isWiderScreen={isWiderScreen}
-              ShortName="Nombre"
-              LongName="Nombre"
-            />
+            <Typography className="uppercase" variant="body2">
+              Nombre
+            </Typography>
           ),
           align: "left",
           headerAlign: "left",
@@ -66,12 +63,9 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         {
           field: "year",
           renderHeader: () => (
-            <ResponsiveTypography
-              className="uppercase"
-              isWiderScreen={isWiderScreen}
-              ShortName="Año"
-              LongName="Año"
-            />
+            <Typography className="uppercase" variant="body2">
+              Año
+            </Typography>
           ),
           align: "left",
           headerAlign: "left",
