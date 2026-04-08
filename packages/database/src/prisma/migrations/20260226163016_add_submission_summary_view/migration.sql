@@ -8,7 +8,8 @@ WITH organization_data_submissions AS (
     od.organization_id,
     osv.name AS organization_name,
     EXTRACT(YEAR FROM od.created_at)::INTEGER AS period,
-    od.created_at AS requested_at
+    s.created_at AS requested_at,
+    NULL::BIGINT AS carbon_inventory_id
   FROM submission s
   INNER JOIN submission_subject ss ON s.subject_id = ss.id
   INNER JOIN submission_subject_organization_data ssod ON ss.id = ssod.subject_id
@@ -23,7 +24,8 @@ carbon_inventory_submissions AS (
     ci.organization_id,
     osv.name AS organization_name,
     ci.year AS period,
-    s.created_at AS requested_at
+    s.created_at AS requested_at,
+    ci.id AS carbon_inventory_id
   FROM submission s
   INNER JOIN submission_subject ss ON s.subject_id = ss.id
   INNER JOIN submission_subject_carbon_inventory ssci ON ss.id = ssci.subject_id

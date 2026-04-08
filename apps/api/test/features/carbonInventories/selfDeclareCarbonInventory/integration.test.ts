@@ -28,6 +28,7 @@ import {
 import {
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
+  MeasurementRecognitionBehavior,
 } from "@repo/types";
 import { ApiErrorResponse } from "../../../../src/commonSchemas/errors.js";
 import { createCarbonInventorySubmission } from "../../../../src/features/carbonInventories/helpers.js";
@@ -54,6 +55,7 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
     await cleanupTestOrganization(prisma);
     await prisma.badge.deleteMany();
     await prisma.file.deleteMany();
+    await setRecognitionBehavior(MeasurementRecognitionBehaviorEnum.AUTOMATIC);
   });
 
   /**
@@ -75,6 +77,15 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
     return { inventory, org, user };
   }
 
+  async function setRecognitionBehavior(value: MeasurementRecognitionBehavior) {
+    await prisma.systemParameter.update({
+      where: {
+        key: SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
+      },
+      data: { value },
+    });
+  }
+
   describe("Successful self-declaration", () => {
     it("should return 200 and set isSelfDeclared to true", async () => {
       const { inventory } = await createSelfDeclarableInventory();
@@ -92,35 +103,11 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
       expect(dbInventory?.isSelfDeclared).toBe(true);
     });
 
-    it("should auto-create and approve a CALCULATION submission when recognition is AUTOMATIC", async () => {
-      const { inventory } = await createSelfDeclarableInventory();
-
-      await app.inject({
-        method: "POST",
-        url: `/api/carbon-inventories/${inventory.id}/self-declare`,
-      });
-
-      const submissionSubjectCI =
-        await prisma.submissionSubjectCarbonInventory.findUnique({
-          where: { carbonInventoryId: inventory.id },
-          include: {
-            subject: {
-              include: {
-                submissions: true,
-              },
-            },
-          },
-        });
-
-      expect(submissionSubjectCI).not.toBeNull();
-      expect(submissionSubjectCI!.subject.submissions).toHaveLength(1);
-
-      const submission = submissionSubjectCI!.subject.submissions[0];
-      expect(submission.type).toBe(SubmissionType.CARBON_INVENTORY_CALCULATION);
-      expect(submission.status).toBe(SubmissionStatus.APPROVED);
-    });
-
     it("should assign active badge to the auto-approved submission when badge exists", async () => {
+      await setRecognitionBehavior(
+        MeasurementRecognitionBehaviorEnum.AUTOMATIC
+      );
+
       // Seed a file and an active badge for CARBON_INVENTORY_CALCULATION
       const file = await prisma.file.create({
         data: {
@@ -164,16 +151,53 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
   });
 
   describe("System parameter behavior", () => {
-    it("should not create submission when recognition behavior is not AUTOMATIC", async () => {
-      // Change system parameter to MANUAL
-      await prisma.systemParameter.update({
-        where: {
-          key: SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
-        },
-        data: { value: MeasurementRecognitionBehaviorEnum.MANUAL },
+    it("should auto-create and approve a CALCULATION submission when recognition behavior is AUTOMATIC", async () => {
+      await setRecognitionBehavior(
+        MeasurementRecognitionBehaviorEnum.AUTOMATIC
+      );
+
+      const { inventory } = await createSelfDeclarableInventory();
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${inventory.id}/self-declare`,
       });
 
-      try {
+      expect(response.statusCode).toBe(200);
+
+      const dbInventory = await prisma.carbonInventory.findUnique({
+        where: { id: inventory.id },
+      });
+      expect(dbInventory?.isSelfDeclared).toBe(true);
+
+      const submissionSubjectCI =
+        await prisma.submissionSubjectCarbonInventory.findUnique({
+          where: { carbonInventoryId: inventory.id },
+          include: {
+            subject: {
+              include: {
+                submissions: true,
+              },
+            },
+          },
+        });
+
+      expect(submissionSubjectCI).not.toBeNull();
+      expect(submissionSubjectCI!.subject.submissions).toHaveLength(1);
+
+      const submission = submissionSubjectCI!.subject.submissions[0];
+      expect(submission.type).toBe(SubmissionType.CARBON_INVENTORY_CALCULATION);
+      expect(submission.status).toBe(SubmissionStatus.APPROVED_AUTOMATICALLY);
+    });
+
+    it.each([
+      MeasurementRecognitionBehaviorEnum.MANUAL,
+      MeasurementRecognitionBehaviorEnum.HIDDEN,
+    ])(
+      "should self-declare without creating submission when recognition behavior is %s",
+      async (recognitionBehavior) => {
+        await setRecognitionBehavior(recognitionBehavior);
+
         const { inventory } = await createSelfDeclarableInventory();
 
         const response = await app.inject({
@@ -183,28 +207,18 @@ describe("POST /api/carbon-inventories/:id/self-declare - Integration Tests", ()
 
         expect(response.statusCode).toBe(200);
 
-        // isSelfDeclared should still be set
         const dbInventory = await prisma.carbonInventory.findUnique({
           where: { id: inventory.id },
         });
         expect(dbInventory?.isSelfDeclared).toBe(true);
 
-        // But no submission should be created
         const submissionSubjectCI =
           await prisma.submissionSubjectCarbonInventory.findUnique({
             where: { carbonInventoryId: inventory.id },
           });
         expect(submissionSubjectCI).toBeNull();
-      } finally {
-        // Restore system parameter
-        await prisma.systemParameter.update({
-          where: {
-            key: SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
-          },
-          data: { value: MeasurementRecognitionBehaviorEnum.AUTOMATIC },
-        });
       }
-    });
+    );
   });
 
   describe("Validation errors", () => {

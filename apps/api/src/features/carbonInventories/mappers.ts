@@ -129,6 +129,7 @@ function mapBaseCarbonInventory(
     isSelfDeclared: item.isSelfDeclared,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt?.toISOString() ?? null,
+    selfDeclaredAt: item.selfDeclaredAt?.toISOString() ?? null,
     createdById: item.createdById?.toString() ?? null,
     updatedById: item.updatedById?.toString() ?? null,
   };

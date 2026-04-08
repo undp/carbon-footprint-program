@@ -10,6 +10,12 @@ import {
 import { createTestOrganization } from "./organizationFactory.js";
 import { createTestOrganizationData } from "./organizationDataFactory.js";
 
+export type CarbonInventorySubmissionType =
+  | typeof SubmissionType.CARBON_INVENTORY_CALCULATION
+  | typeof SubmissionType.CARBON_INVENTORY_VERIFICATION
+  | typeof SubmissionType.REDUCTION_PLAN_VERIFICATION
+  | typeof SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION;
+
 /**
  * Builds a complete organization → organization data → submission chain with
  * sensible defaults (ACTIVE org, ACTIVE org data, PENDING submission).
@@ -103,6 +109,54 @@ export async function createTestOrganizationDataSubmission(
       createdById: userId,
     }
   );
+
+  return { subject, submission };
+}
+
+/**
+ * Creates a submission subject for a carbon inventory
+ */
+export async function createTestSubmissionSubjectForCarbonInventory(
+  prisma: PrismaClient,
+  carbonInventoryId: bigint
+): Promise<SubmissionSubject> {
+  const subject = await prisma.submissionSubject.create({
+    data: {},
+  });
+
+  await prisma.submissionSubjectCarbonInventory.create({
+    data: {
+      subjectId: subject.id,
+      carbonInventoryId,
+    },
+  });
+
+  return subject;
+}
+
+/**
+ * Creates a complete submission flow for a carbon inventory (subject + submission)
+ */
+export async function createTestCarbonInventorySubmission(
+  prisma: PrismaClient,
+  carbonInventoryId: bigint,
+  type: CarbonInventorySubmissionType = SubmissionType.CARBON_INVENTORY_CALCULATION,
+  status: SubmissionStatus = SubmissionStatus.PENDING,
+  userId: bigint,
+  reviewerId?: bigint,
+  reviewComments?: string
+): Promise<{ subject: SubmissionSubject; submission: Submission }> {
+  const subject = await createTestSubmissionSubjectForCarbonInventory(
+    prisma,
+    carbonInventoryId
+  );
+
+  const submission = await createTestSubmission(prisma, subject.id, type, {
+    status,
+    reviewerId,
+    reviewComments,
+    createdById: userId,
+  });
 
   return { subject, submission };
 }

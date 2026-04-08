@@ -29,7 +29,12 @@ export const getCarbonInventoryBadgesService = async (
       subject: {
         submissions: {
           some: {
-            status: SubmissionStatus.APPROVED,
+            status: {
+              in: [
+                SubmissionStatus.APPROVED,
+                SubmissionStatus.APPROVED_AUTOMATICALLY,
+              ],
+            },
             badge: {
               type: {
                 not: BadgeType.ORGANIZATION_ACCREDITATION, // Exclude organization data badges

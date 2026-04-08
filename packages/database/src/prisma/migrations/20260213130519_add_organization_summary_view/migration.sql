@@ -12,7 +12,7 @@ WITH accredited_organizations_ids AS (
     ON ssod.organization_data_id = od.id
   JOIN submission s
     ON s.subject_id = ssod.subject_id
-    AND s.status = 'APPROVED'
+    AND s.status IN ('APPROVED', 'APPROVED_AUTOMATICALLY')
   WHERE od.status = 'ACTIVE'
 ),
 
@@ -41,7 +41,7 @@ organizations_ids_with_unsubmitted_changes AS (
     )
 ),
 
--- 4. Organization displayed data: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED(3) > REJECTED(4), then newest
+-- 4. Organization displayed data: ACTIVE org_data ranked PENDING(1) > draft(2) > APPROVED/APPROVED_AUTOMATICALLY(3) > REJECTED(4), then newest
 organization_displayed_data AS (
   SELECT
     od.*,
@@ -51,7 +51,7 @@ organization_displayed_data AS (
         CASE
           WHEN s_active.status = 'PENDING'                    THEN 1
           WHEN s_active.status IS NULL AND s_any.id IS NULL   THEN 2  -- true draft (no submission)
-          WHEN s_active.status = 'APPROVED'                   THEN 3
+          WHEN s_active.status IN ('APPROVED', 'APPROVED_AUTOMATICALLY') THEN 3
           ELSE                                                     4  -- REJECTED
         END,
         od.id DESC
@@ -61,7 +61,7 @@ organization_displayed_data AS (
     ON ssod.organization_data_id = od.id
   LEFT JOIN submission s_active
     ON s_active.subject_id = ssod.subject_id
-    AND s_active.status IN ('PENDING', 'APPROVED')
+    AND s_active.status IN ('PENDING', 'APPROVED', 'APPROVED_AUTOMATICALLY')
   LEFT JOIN submission s_any
     ON s_any.subject_id = ssod.subject_id
   WHERE od.status = 'ACTIVE'

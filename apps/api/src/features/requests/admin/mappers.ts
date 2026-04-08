@@ -8,7 +8,9 @@ export const mapAdminSubmissionSummaryToResponse = (
   submission: SubmissionSummaryViewRow
 ): GetAllAdminRequestsResponse[number] => ({
   id: submission.submissionId.toString(),
+  organizationId: submission.organizationId.toString(),
   organizationName: submission.organizationName ?? "",
+  carbonInventoryId: submission.carbonInventoryId?.toString() ?? null,
   type: submission.type,
   year: submission.period,
   status: submission.status,

@@ -48,7 +48,11 @@ export const selfDeclareCarbonInventoryService = async (
         organizationId: { not: null },
         year: { not: null },
       },
-      data: { isSelfDeclared: true, updatedById: createdById },
+      data: {
+        isSelfDeclared: true,
+        selfDeclaredAt: new Date(),
+        updatedById: createdById,
+      },
     });
 
     // Single query for both diagnostics and happy-path logic.
@@ -144,7 +148,7 @@ export const selfDeclareCarbonInventoryService = async (
     await tx.submission.update({
       where: { id: submissionId },
       data: {
-        status: SubmissionStatus.APPROVED,
+        status: SubmissionStatus.APPROVED_AUTOMATICALLY,
         badgeId: activeBadge?.id,
         reviewerId: createdById,
         updatedById: createdById,
