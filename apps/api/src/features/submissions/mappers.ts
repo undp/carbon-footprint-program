@@ -3,7 +3,6 @@ import {
   SubmissionEventType,
   SubmissionStatus,
 } from "@repo/types";
-import { buildUserName } from "@repo/utils";
 import { sortBy } from "lodash-es";
 import { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 import { ReadSasUrlSigner } from "../../services/blobService.js";
@@ -78,10 +77,7 @@ export const mapSubmissionEventGroup = async (
     ...baseEntry,
     eventType: postulationEventType,
     date: submission.createdAt.toISOString(),
-    userName: buildUserName(
-      submission.creator?.firstName ?? null,
-      submission.creator?.lastName ?? null
-    ),
+    userName: submission.creator?.email ?? null,
     comment: "",
     files: attachments,
     recognitions: [],
@@ -96,10 +92,7 @@ export const mapSubmissionEventGroup = async (
     reviewedEvent: {
       ...baseEntry,
       eventType: reviewedEventType,
-      userName: buildUserName(
-        submission.reviewer?.firstName ?? null,
-        submission.reviewer?.lastName ?? null
-      ),
+      userName: submission.reviewer?.email ?? null,
       date: (submission.reviewedAt ?? submission.createdAt).toISOString(),
       comment: submission.reviewComments ?? "",
       files:

@@ -22,7 +22,7 @@ export const getCarbonInventoryHistoryService = async (
     select: {
       organizationId: true,
       selfDeclaredAt: true,
-      selfDeclaredBy: { select: { firstName: true, lastName: true } },
+      selfDeclaredBy: { select: { email: true } },
     },
   });
 

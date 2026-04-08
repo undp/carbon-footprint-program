@@ -10,7 +10,6 @@ import {
   ReadSasUrlSigner,
   createReadSasUrlSigner,
 } from "../../services/blobService.js";
-import { buildUserName } from "@repo/utils";
 import { StorageNotConfiguredError } from "../files/errors.js";
 import {
   mapOrganizationSummary,
@@ -106,10 +105,10 @@ export const submissionHistorySelect = {
   createdAt: true,
   reviewedAt: true,
   creator: {
-    select: { firstName: true, lastName: true },
+    select: { email: true },
   },
   reviewer: {
-    select: { firstName: true, lastName: true },
+    select: { email: true },
   },
   subject: {
     select: {
@@ -238,17 +237,14 @@ export const buildSelfDeclarationEvent = (
   carbonInventoryId: string,
   selfDeclaredAt: Date,
   context: OrgSummaryInfo,
-  selfDeclaredBy: { firstName: string | null; lastName: string | null } | null
+  selfDeclaredBy: { email: string | null } | null
 ): SubmissionHistoryEntry => ({
   submissionId: null,
   submissionType: null,
   status: null,
   eventType: SubmissionEventType.SELF_DECLARATION,
   date: selfDeclaredAt.toISOString(),
-  userName: buildUserName(
-    selfDeclaredBy?.firstName ?? null,
-    selfDeclaredBy?.lastName ?? null
-  ),
+  userName: selfDeclaredBy?.email ?? null,
   userMetadata: context.orgName,
   carbonInventoryId,
   organizationId: context.organizationIdString,
