@@ -1,5 +1,4 @@
 import {
-  SubmissionType,
   type Prisma,
   type PrismaClient,
   MembershipStatus,
@@ -11,7 +10,10 @@ import type {
 } from "@repo/types";
 import { InventoryStatus } from "@repo/types";
 import { mapReductionProjectToListItem } from "../mappers.js";
-import { calculateReductionProjectDisplayStatus } from "../helpers.js";
+import {
+  calculateReductionProjectDisplayStatus,
+  reductionProjectSubmissionFilter,
+} from "../helpers.js";
 
 export const getAllReductionProjectsService = async (
   prismaClient: PrismaClient,
@@ -48,26 +50,9 @@ export const getAllReductionProjectsService = async (
       }
     : {};
 
-  const submissionFilter: Prisma.ReductionProjectWhereInput = {
-    OR: [
-      { submission: { is: null } },
-      {
-        submission: {
-          subject: {
-            submissions: {
-              some: {
-                type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-              },
-            },
-          },
-        },
-      },
-    ],
-  };
-
   const data = await prismaClient.reductionProject.findMany({
     where: {
-      AND: [baseFilters, accessControlFilter, submissionFilter],
+      AND: [baseFilters, accessControlFilter, reductionProjectSubmissionFilter],
     },
     include: {
       organization: {
