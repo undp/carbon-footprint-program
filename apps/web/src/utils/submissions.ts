@@ -41,6 +41,10 @@ export const getPostulationLabel = (submissionType: SubmissionType): string => {
       return "POSTULACIÓN A DIPLOMA DE MEDICIÓN";
     case SubmissionType.ORGANIZATION_ACCREDITATION:
       return `POSTULACIÓN A ${VOCAB.inscription.noun.singular} ${VOCAB.organization.noun.singular}`.toUpperCase();
+    case SubmissionType.REDUCTION_PLAN_VERIFICATION:
+      return "POSTULACIÓN A SELLO DE REDUCCIÓN";
+    case SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION:
+      return "POSTULACIÓN A SELLO DE NEUTRALIZACIÓN";
     default:
       return "POSTULACIÓN";
   }
@@ -60,6 +64,9 @@ const REVIEW_TITLE_MAP: Partial<Record<SubmissionType, string>> = {
   [SubmissionType.ORGANIZATION_ACCREDITATION]: `a ${capitalize(VOCAB.inscription.noun.singular)} de ${VOCAB.organization.noun.singular}`,
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: "al Diploma de medición",
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "al Sello de verificación",
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "al Sello de reducción",
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
+    "al Sello de neutralización",
 };
 
 export const getReviewTitle = (type?: SubmissionType): string => {
