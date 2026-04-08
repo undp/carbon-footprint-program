@@ -126,6 +126,7 @@ export const EmissionCaptureScreen: FC = () => {
       showNoChangesMessage: false,
       resultFeedbackWithSnackbar: true,
       throwOnError: true,
+      onSuccess: () => setIsAddSubcategoryModalOpen(true),
     });
 
   const selectedCategoryData = useMemo(
@@ -145,7 +146,6 @@ export const EmissionCaptureScreen: FC = () => {
     void handleSubmit(async (formValues) => {
       try {
         await submitBeforeModal(formValues);
-        setIsAddSubcategoryModalOpen(true);
       } catch {
         // Error snackbar already shown; modal stays closed
       }
