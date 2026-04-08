@@ -77,16 +77,22 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
             fontSize: 12,
           }}
         >
-          {data?.representative.fullName}
+          {data?.representative?.fullName}
         </Typography>
         <Box>
           <InfoRow
             label="ID representante / Rut"
-            value={data?.representative.taxId}
+            value={data?.representative?.taxId ?? "-"}
           />
-          <InfoRow label="Cargo" value={data?.representative.position.name} />
-          <InfoRow label="Correo" value={data?.representative.email} />
-          <InfoRow label="Teléfono" value={data?.representative.phone} />
+          <InfoRow
+            label="Cargo"
+            value={data?.representative?.position?.name ?? "-"}
+          />
+          <InfoRow label="Correo" value={data?.representative?.email ?? "-"} />
+          <InfoRow
+            label="Teléfono"
+            value={data?.representative?.phone ?? "-"}
+          />
         </Box>
       </Box>
     </Stack>
