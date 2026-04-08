@@ -44,9 +44,10 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
   const { data: categories, isLoading } =
     useSubcategoryPreselectionData(inventoryId);
 
-  const { handleSubmit, formState, control } = useSubcategoryPreselectionForm({
-    data: categories,
-  });
+  const { handleSubmit, formState, control, reset } =
+    useSubcategoryPreselectionForm({
+      data: categories,
+    });
 
   const isDirty = formState.isDirty;
 
@@ -158,9 +159,10 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
   }, [handleSubmit, saveSelections, isDirty]);
 
   const handleClose = useCallback(() => {
+    reset();
     setSearchTerm("");
     onClose();
-  }, [onClose]);
+  }, [onClose, reset]);
 
   return (
     <Dialog
