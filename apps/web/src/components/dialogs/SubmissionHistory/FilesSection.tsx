@@ -33,9 +33,10 @@ export const FilesSection: FC<Props> = ({ files }) => {
         <Stack spacing={1}>
           {files.map((file) => (
             <Box
-              onClick={() =>
-                window.open(file.previewUrl, "_blank", "noopener,noreferrer")
-              }
+              component="a"
+              href={file.previewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
               key={file.uuid}
               sx={{
                 display: "flex",
@@ -46,6 +47,8 @@ export const FilesSection: FC<Props> = ({ files }) => {
                 borderRadius: "4px",
                 p: 1,
                 cursor: "pointer",
+                textDecoration: "none",
+                color: "inherit",
                 "&:hover": {
                   bgcolor: alpha(theme.palette.primary.main, 0.05),
                 },
