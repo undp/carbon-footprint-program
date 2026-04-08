@@ -135,7 +135,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
       },
       {
         field: "select",
-        headerName: "Agregar",
+        headerName: "Incluída",
         width: 80,
         align: "center",
         headerAlign: "center",
@@ -193,7 +193,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         }}
       >
         <Typography variant="h6" component="span">
-          Agregar Subcategoría
+          Gestionar Subcategorías
         </Typography>
         <IconButton
           aria-label="Cerrar Modal"
@@ -235,7 +235,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         {!isLoading && hasError && (
           <LoadingErrorStateMessage message="Ocurrió un error al cargar las subcategorías" />
         )}
-        {!isLoading && !hasError && (
+        {!hasError && (
           <StylizedDataGrid
             columns={columns}
             rows={filteredRows}
@@ -258,7 +258,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
         <Button
           variant="contained"
           onClick={handleSave}
-          loading={isSavingSelections}
+          loading={isSavingSelections || isLoading || hasError}
         >
           Guardar
         </Button>
