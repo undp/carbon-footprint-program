@@ -1,4 +1,8 @@
-import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
+import {
+  SubmissionHistoryEntry,
+  SubmissionEventType,
+  SubmissionStatus,
+} from "@repo/types";
 import { buildUserName } from "@repo/utils";
 import { sortBy } from "lodash-es";
 import { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
@@ -66,9 +70,13 @@ export const mapSubmissionEventGroup = async (
 
   const baseEntry = buildSubmissionBaseEntry(submission, context);
   const reviewedEventType = deriveEventType(submission.status);
+  const postulationEventType =
+    submission.status === SubmissionStatus.APPROVED_AUTOMATICALLY
+      ? SubmissionEventType.AUTOMATIC_POSTULATION
+      : SubmissionEventType.POSTULATION;
   const postulationEvent: SubmissionHistoryEntry = {
     ...baseEntry,
-    eventType: SubmissionEventType.POSTULATION,
+    eventType: postulationEventType,
     date: submission.createdAt.toISOString(),
     userName: buildUserName(
       submission.creator?.firstName ?? null,

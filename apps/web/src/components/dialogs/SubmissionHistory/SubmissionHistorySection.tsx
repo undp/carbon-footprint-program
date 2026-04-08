@@ -30,12 +30,11 @@ const HistoryCard: FC<{
 }> = ({ entry, onNavigateToInventory }) => {
   const theme = useTheme();
   const showInventoryLink =
-    entry.eventType === SubmissionEventType.POSTULATION &&
+    (entry.eventType === SubmissionEventType.POSTULATION ||
+      entry.eventType === SubmissionEventType.AUTOMATIC_POSTULATION) &&
     entry.carbonInventoryId &&
     (entry.submissionType === SubmissionType.CARBON_INVENTORY_CALCULATION ||
       entry.submissionType === SubmissionType.CARBON_INVENTORY_VERIFICATION);
-
-  const hasFiles = entry.files.length > 0;
 
   return (
     <Paper
@@ -121,11 +120,9 @@ const HistoryCard: FC<{
         {entry.comment && <SubmissionCommentsSection comment={entry.comment} />}
 
         {/* Files */}
-        {hasFiles && (
-          <Box sx={{ mt: 1.5 }}>
-            <FilesSection files={entry.files} />
-          </Box>
-        )}
+        <Box sx={{ mt: 1.5 }}>
+          <FilesSection files={entry.files} />
+        </Box>
       </Box>
     </Paper>
   );

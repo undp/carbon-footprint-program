@@ -25,6 +25,7 @@ export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
 
 const EVENT_TYPE_LABEL: Record<string, string> = {
   [SubmissionEventType.POSTULATION]: "POSTULACIÓN",
+  [SubmissionEventType.AUTOMATIC_POSTULATION]: "POSTULACIÓN AUTOMÁTICA",
   [SubmissionEventType.SELF_DECLARATION]: "AUTODECLARADA",
   [SubmissionEventType.ON_REVIEW]: "EN REVISIÓN",
   [SubmissionEventType.APPROVED]: "APROBADA",
@@ -33,20 +34,24 @@ const EVENT_TYPE_LABEL: Record<string, string> = {
   [SubmissionEventType.REVIEWED]: "CON OBSERVACIONES",
 };
 
-export const getPostulationLabel = (submissionType: SubmissionType): string => {
+export const getPostulationLabel = (
+  submissionType: SubmissionType,
+  automatic = false
+): string => {
+  const prefix = automatic ? "POSTULACIÓN AUTOMÁTICA" : "POSTULACIÓN";
   switch (submissionType) {
     case SubmissionType.CARBON_INVENTORY_VERIFICATION:
-      return "POSTULACIÓN A SELLO DE VERIFICACIÓN";
+      return `${prefix} A SELLO DE VERIFICACIÓN`;
     case SubmissionType.CARBON_INVENTORY_CALCULATION:
-      return "POSTULACIÓN A DIPLOMA DE MEDICIÓN";
+      return `${prefix} A DIPLOMA DE MEDICIÓN`;
     case SubmissionType.ORGANIZATION_ACCREDITATION:
-      return `POSTULACIÓN A ${VOCAB.inscription.noun.singular} ${VOCAB.organization.noun.singular}`.toUpperCase();
+      return `${prefix} A ${VOCAB.inscription.noun.singular} ${VOCAB.organization.noun.singular}`.toUpperCase();
     case SubmissionType.REDUCTION_PLAN_VERIFICATION:
-      return "POSTULACIÓN A SELLO DE REDUCCIÓN";
+      return `${prefix} A SELLO DE REDUCCIÓN`;
     case SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION:
-      return "POSTULACIÓN A SELLO DE NEUTRALIZACIÓN";
+      return `${prefix} A SELLO DE NEUTRALIZACIÓN`;
     default:
-      return "POSTULACIÓN";
+      return prefix;
   }
 };
 
@@ -56,6 +61,12 @@ export const getEventLabel = (entry: SubmissionHistoryEntry): string => {
     entry.submissionType
   ) {
     return getPostulationLabel(entry.submissionType);
+  }
+  if (
+    entry.eventType === SubmissionEventType.AUTOMATIC_POSTULATION &&
+    entry.submissionType
+  ) {
+    return getPostulationLabel(entry.submissionType, true);
   }
   return EVENT_TYPE_LABEL[entry.eventType] ?? entry.eventType;
 };
