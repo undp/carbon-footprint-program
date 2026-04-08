@@ -331,11 +331,13 @@ export const EmissionCaptureScreen: FC = () => {
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
       <ExitInventoryDialog {...dialogProps} />
-      <AddSubcategoryModal
-        open={isAddSubcategoryModalOpen}
-        onClose={() => setIsAddSubcategoryModalOpen(false)}
-        inventoryId={inventoryId}
-      />
+      {isAddSubcategoryModalOpen && (
+        <AddSubcategoryModal
+          open={isAddSubcategoryModalOpen}
+          onClose={() => setIsAddSubcategoryModalOpen(false)}
+          inventoryId={inventoryId}
+        />
+      )}
       <ConfirmDialog
         open={confirmDialog.isOpen}
         onClose={confirmDialog.closeConfirm}
