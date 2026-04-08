@@ -83,8 +83,8 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   const getInventoryMissingFields = useCallback(() => {
     const fields: string[] = [];
-    if (!carbonInventory.name) fields.push("nombre");
-    if (carbonInventory.year == null) fields.push("año");
+    if (!carbonInventory.name) fields.push("name");
+    if (carbonInventory.year == null) fields.push("year");
     return fields;
   }, [carbonInventory.name, carbonInventory.year]);
 
