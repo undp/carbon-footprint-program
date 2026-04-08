@@ -22,6 +22,10 @@ import { ReductionProjectFormFields } from "./components/ReductionProjectFormFie
 import { GeiConsideredSection } from "./components/GeiConsideredSection";
 import { ReductionReportSection } from "./components/ReductionReportSection";
 import { FileUploadSection } from "./components/FileUploadSection";
+import {
+  CarbonInventoryDisplayStatusEnum,
+  ReductionProjectDisplayStatusEnum,
+} from "@repo/types";
 
 export const ReductionProjectScreen: FC = () => {
   const { id } = useParams({ from: Routes.REDUCTION_PROJECT });
@@ -32,7 +36,7 @@ export const ReductionProjectScreen: FC = () => {
   const { data: organizations = [], isLoading: isLoadingOrgs } =
     useMyOrganizations();
   const { data: verifiedInventories = [] } = useCarbonInventoriesMinimalData([
-    "VERIFICATION_APPROVED",
+    CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
   ]);
 
   // Form
@@ -57,8 +61,10 @@ export const ReductionProjectScreen: FC = () => {
 
   // Derived state
   const status = project?.status;
-  const isFormDisabled = status === "SUBMITTED" || status === "APPROVED";
-  const isReviewed = status === "REVIEWED";
+  const isFormDisabled =
+    status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
+    status === ReductionProjectDisplayStatusEnum.APPROVED;
+  const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
   const hasInventorySelected = !!selectedCarbonInventoryId;
 
   const projectName = useWatch({ control, name: "name" });
