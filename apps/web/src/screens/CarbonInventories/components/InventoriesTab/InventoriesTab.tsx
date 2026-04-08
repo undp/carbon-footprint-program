@@ -166,7 +166,7 @@ export const InventoriesTab: FC<Props> = ({
 
       <StylizedDataGrid
         autoHeight
-        columnHeaderHeight={56}
+        columnHeaderHeight={40}
         rows={inventories}
         columns={columns}
         localeText={{
