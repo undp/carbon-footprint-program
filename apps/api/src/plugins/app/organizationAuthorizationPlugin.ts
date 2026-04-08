@@ -36,7 +36,7 @@ import type {
   FastifyReply,
 } from "fastify";
 import type { OrganizationRole } from "@repo/database/enums";
-import { MembershipStatus } from "@repo/database/enums";
+import { MembershipStatus, SystemRole } from "@repo/database/enums";
 
 /**
  * Function type that extracts the organization ID from a request.
@@ -49,13 +49,25 @@ export type OrganizationIdExtractor<
 > = (request: FastifyRequest<{ Params: P }>) => string | null | undefined;
 
 /**
+ * Options for the requireOrganizationRole function.
+ */
+export type RequireOrganizationRoleOptions = {
+  allowedRoles: OrganizationRole[];
+  /**
+   * When true, users with ADMIN or SUPERADMIN system roles bypass
+   * organization membership checks entirely.
+   */
+  canAdminsBypass?: boolean;
+};
+
+/**
  * Type for organization role checking function.
  */
 export type RequireOrganizationRoleFunction = <
   P extends Record<string, string>,
 >(
   organizationIdExtractor: OrganizationIdExtractor<P>,
-  allowedRoles: OrganizationRole[]
+  options: RequireOrganizationRoleOptions
 ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
 const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
@@ -85,7 +97,9 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    */
   fastify.decorate("requireOrganizationRole", function <
     P extends Record<string, string>,
-  >(organizationIdExtractor: OrganizationIdExtractor<P>, allowedRoles: OrganizationRole[]) {
+  >(organizationIdExtractor: OrganizationIdExtractor<P>, options: RequireOrganizationRoleOptions) {
+    const { allowedRoles, canAdminsBypass } = options;
+
     return async function (request: FastifyRequest, reply: FastifyReply) {
       const log = request.log.child({ module: "organization-authorization" });
 
@@ -110,6 +124,22 @@ const organizationAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
           code: "INTERNAL_SERVER_ERROR",
           message: "User resolution failed",
         });
+      }
+
+      // Bypass organization checks for ADMIN and SUPERADMIN system roles
+      if (
+        canAdminsBypass &&
+        (request.currentUser.role === SystemRole.ADMIN ||
+          request.currentUser.role === SystemRole.SUPERADMIN)
+      ) {
+        log.debug(
+          {
+            userId: request.currentUser.id,
+            systemRole: request.currentUser.role,
+          },
+          "Organization authorization bypassed for system admin"
+        );
+        return;
       }
 
       // Extract organization ID from request

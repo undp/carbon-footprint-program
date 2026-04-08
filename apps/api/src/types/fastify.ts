@@ -11,7 +11,10 @@ import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
-import type { OrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
+import type {
+  OrganizationIdExtractor,
+  RequireOrganizationRoleOptions,
+} from "@/plugins/app/organizationAuthorizationPlugin.js";
 import type { CarbonInventoryIdExtractor } from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
 
 /**
@@ -105,7 +108,8 @@ declare module "fastify" {
      * Must be used after requireAuth.
      *
      * @param organizationIdExtractor - Function to extract organization ID from request
-     * @param allowedRoles - Array of organization roles, user must have at least one
+     * @param options.allowedRoles - Array of organization roles, user must have at least one
+     * @param options.canAdminsBypass - When true, ADMIN and SUPERADMIN system roles bypass org checks
      * @returns Hook function for organization role-based authorization
      *
      * @example
@@ -119,14 +123,14 @@ declare module "fastify" {
      *   preHandler: [
      *     fastify.requireOrganizationRole(
      *       extractOrgId,
-     *       [OrganizationRole.ADMIN]
+     *       { allowedRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
      *     )
      *   ]
      * }, handler);
      */
     requireOrganizationRole: <P extends Record<string, string>>(
       organizationIdExtractor: OrganizationIdExtractor<P>,
-      allowedRoles: OrganizationRole[]
+      options: RequireOrganizationRoleOptions
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
     /**

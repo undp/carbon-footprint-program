@@ -34,11 +34,13 @@ export const getOrganizationUsersRoute: StandardRouteSignature = (
         },
       },
       preHandler: [
-        fastify.requireOrganizationRole(organizationIdRequestExtractor, [
-          OrganizationRole.ADMIN,
-          OrganizationRole.CONTRIBUTOR,
-          OrganizationRole.VIEWER,
-        ]),
+        fastify.requireOrganizationRole(organizationIdRequestExtractor, {
+          allowedRoles: [
+            OrganizationRole.ADMIN,
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.VIEWER,
+          ],
+        }),
       ],
     },
     getOrganizationUsersHandler
