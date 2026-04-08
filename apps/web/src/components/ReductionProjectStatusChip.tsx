@@ -22,7 +22,7 @@ const getStatusColor = (
     case ReductionProjectDisplayStatusEnum.DRAFT:
       return theme.palette.grey[400];
     case ReductionProjectDisplayStatusEnum.SUBMITTED:
-      return theme.palette.warning.main;
+      return theme.palette.info.main;
     case ReductionProjectDisplayStatusEnum.REVIEWED:
       return theme.palette.warning.main;
     case ReductionProjectDisplayStatusEnum.REJECTED:
