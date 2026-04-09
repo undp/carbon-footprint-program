@@ -34,7 +34,12 @@ export const getOrganizationBadgesService = async (
         subject: {
           submissions: {
             some: {
-              status: SubmissionStatus.APPROVED,
+              status: {
+                in: [
+                  SubmissionStatus.APPROVED,
+                  SubmissionStatus.APPROVED_AUTOMATICALLY,
+                ],
+              },
               badge: {
                 type: { not: BadgeType.ORGANIZATION_ACCREDITATION },
               },
@@ -51,7 +56,12 @@ export const getOrganizationBadgesService = async (
             select: {
               submissions: {
                 where: {
-                  status: SubmissionStatus.APPROVED,
+                  status: {
+                    in: [
+                      SubmissionStatus.APPROVED,
+                      SubmissionStatus.APPROVED_AUTOMATICALLY,
+                    ],
+                  },
                   badge: {
                     type: { not: BadgeType.ORGANIZATION_ACCREDITATION },
                   },
