@@ -8,7 +8,7 @@ export const SidebarRoutes: Record<string, ToPathOption> = {
   CARBON_INVENTORIES: Routes.CARBON_INVENTORIES,
   REDUCTION_PROJECTS: Routes.REDUCTION_PROJECTS,
   REDUCTION_PLAN: Routes.REDUCTION_PLAN,
-  AWARDS: Routes.AWARDS,
+  RECOGNITIONS: Routes.RECOGNITIONS,
 } as const;
 
 export type SidebarRoute = (typeof SidebarRoutes)[keyof typeof SidebarRoutes];
@@ -19,5 +19,5 @@ export const SidebarRoutesTranslations: Record<SidebarRoute, string> = {
   [SidebarRoutes.CARBON_INVENTORIES]: "Huella organizacional",
   [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
   [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",
-  [SidebarRoutes.AWARDS]: "Reconocimientos",
+  [SidebarRoutes.RECOGNITIONS]: "Reconocimientos",
 };

@@ -27,7 +27,7 @@ const SidebarIcons: Record<SidebarRoute, React.ReactNode> = {
   [SidebarRoutes.CARBON_INVENTORIES]: <SouthAmerica />,
   [SidebarRoutes.REDUCTION_PROJECTS]: <TrendingDown />,
   [SidebarRoutes.REDUCTION_PLAN]: <SsidChartRounded />,
-  [SidebarRoutes.AWARDS]: <EmojiEventsOutlined />,
+  [SidebarRoutes.RECOGNITIONS]: <EmojiEventsOutlined />,
 };
 
 const SIDEBAR_ITEMS: SidebarDef[] = Object.values(SidebarRoutes).map(

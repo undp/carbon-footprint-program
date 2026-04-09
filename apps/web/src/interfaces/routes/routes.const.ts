@@ -17,7 +17,7 @@ export const Routes = {
   CARBON_INVENTORY: "/carbon-inventory",
   REDUCTION_PROJECTS: "/app/reduction-projects",
   REDUCTION_PLAN: "/app/reduction-plan",
-  AWARDS: "/app/awards",
+  RECOGNITIONS: "/app/recognitions",
   USER_FORM: "/app/user/form",
   ABOUT_US: "/about",
   TRANSPARENCY: "/transparency",

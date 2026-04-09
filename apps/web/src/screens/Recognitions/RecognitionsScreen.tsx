@@ -15,14 +15,17 @@ import { Routes } from "@/interfaces";
 import { RecognitionsTable } from "./RecognitionsTable";
 import { RecognitionCard } from "./RecognitionCard";
 import { RecognitionScreenHeader } from "./RecognitionScreenHeader";
-import { AWARD_SUBMISSION_TYPES, AWARD_BADGE_TYPES } from "./constants";
+import {
+  RECOGNITION_SUBMISSION_TYPES,
+  RECOGNITION_BADGE_TYPES,
+} from "./constants";
 
 const APPROVED_STATUSES = [
   CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
   CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
 ];
 
-export const AwardsScreen: FC = () => {
+export const RecognitionsScreen: FC = () => {
   const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedOrganizationId, setSelectedOrganizationId] =
@@ -38,10 +41,12 @@ export const AwardsScreen: FC = () => {
     useOrganizationRecognitions(
       effectiveOrgId,
       selectedYear || undefined,
-      AWARD_SUBMISSION_TYPES
+      RECOGNITION_SUBMISSION_TYPES
     );
 
-  const { data: badgePreviews = [] } = useBadgePreviews(AWARD_BADGE_TYPES);
+  const { data: badgePreviews = [] } = useBadgePreviews(
+    RECOGNITION_BADGE_TYPES
+  );
 
   const {
     data: approvedInventories = [],
@@ -112,7 +117,7 @@ export const AwardsScreen: FC = () => {
           gap: 2,
         }}
       >
-        {AWARD_SUBMISSION_TYPES.map((submissionType) => (
+        {RECOGNITION_SUBMISSION_TYPES.map((submissionType) => (
           <RecognitionCard
             key={submissionType}
             submissionType={submissionType}
