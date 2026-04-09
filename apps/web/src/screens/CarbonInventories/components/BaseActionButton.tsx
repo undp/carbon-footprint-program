@@ -8,8 +8,8 @@ export const BaseActionButton: FC<PropsWithChildren<IconButtonProps>> = ({
 }) => {
   const baseStyles: SxProps<Theme> = (theme) => ({
     border: `1px solid ${props.disabled ? theme.palette.action.disabled : theme.palette.primary.main}`,
-    height: 36,
-    width: 36,
+    height: 30,
+    width: 30,
     borderRadius: "4px",
     padding: "4px",
   });
