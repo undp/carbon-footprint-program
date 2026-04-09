@@ -8,17 +8,24 @@ export const useReductionProjects = (
   year?: string,
   organizationId?: string
 ) => {
-  const normalizedYear = year === "all" ? undefined : year;
-  const orgSearchParam = organizationId !== "all" ? organizationId : undefined;
+  const normalizedYear = year && year !== "all" ? year : undefined;
+  const normalizedOrganizationId =
+    organizationId && organizationId !== "all" ? organizationId : undefined;
 
   return useQuery<GetAllReductionProjectsResponse>({
-    queryKey: [...reductionProjectKeys.all, normalizedYear, orgSearchParam],
+    queryKey: [
+      ...reductionProjectKeys.all,
+      normalizedYear,
+      normalizedOrganizationId,
+    ],
     queryFn: () =>
       apiClient
         .get("reduction-projects", {
           searchParams: {
             ...(normalizedYear && { year: normalizedYear }),
-            ...(orgSearchParam && { organizationId: orgSearchParam }),
+            ...(normalizedOrganizationId && {
+              organizationId: normalizedOrganizationId,
+            }),
           },
         })
         .json(),
