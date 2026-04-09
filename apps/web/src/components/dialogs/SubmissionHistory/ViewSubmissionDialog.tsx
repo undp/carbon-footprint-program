@@ -187,11 +187,12 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   <OrgDataSection data={submission.organizationData} />
                 )}
 
-                {isAdmin && isStatusPending && (
+                {isAdmin && isStatusPending && submission?.submissionType && (
                   <AdminActionsCard
                     onApprove={handleApproveSubmission}
                     onReview={handleReviewSubmission}
                     isBusy={isBusy}
+                    type={submission.submissionType}
                   />
                 )}
               </Box>
