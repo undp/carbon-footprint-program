@@ -50,7 +50,7 @@ const HistoryCard: FC<{
                 border: `1px solid ${theme.palette.divider}`,
                 fontSize: 12,
                 height: 20,
-                borderRadius: "9999px",
+                borderRadius: "40px",
                 "& .MuiChip-label": { px: 1 },
               }}
             />
