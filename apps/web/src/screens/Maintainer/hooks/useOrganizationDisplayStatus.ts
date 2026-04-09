@@ -1,5 +1,6 @@
 import { type Theme, useTheme } from "@mui/material";
 import { OrganizationStatus } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
 
 export enum AdminOrganizationDisplayStatus {
   WITH_MEASUREMENTS = "WITH_MEASUREMENTS",
@@ -42,7 +43,7 @@ const getStatusColor = (
 export const STATUS_LABEL: Record<AdminOrganizationDisplayStatus, string> = {
   [AdminOrganizationDisplayStatus.WITH_MEASUREMENTS]: "con Mediciones",
   [AdminOrganizationDisplayStatus.ACCREDITED]: "Acreditada",
-  [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: "No acreditada",
+  [AdminOrganizationDisplayStatus.NOT_ACCREDITED]: `No ${VOCAB.inscription.adjective.singular}`,
   [AdminOrganizationDisplayStatus.BLOCKED]: "Bloqueada",
 };
 

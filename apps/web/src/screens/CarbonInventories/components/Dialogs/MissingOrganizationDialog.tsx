@@ -32,9 +32,9 @@ export const MissingOrganizationDialog: FC<MissingOrganizationDialogProps> = ({
       <DialogContent>
         <DialogContentText id="missing-organization-dialog-description">
           No es posible enviar esta huella a cálculo porque no tiene una{" "}
-          {VOCAB.organization.noun.singular} acreditada asociada. Por favor,
-          asocie una {VOCAB.organization.noun.singular}
-          antes de continuar.
+          {VOCAB.organization.noun.singular}{" "}
+          {VOCAB.inscription.adjective.singular} asociada. Por favor, asocie una{" "}
+          {VOCAB.organization.noun.singular} antes de continuar.
         </DialogContentText>
       </DialogContent>
       <DialogActions>

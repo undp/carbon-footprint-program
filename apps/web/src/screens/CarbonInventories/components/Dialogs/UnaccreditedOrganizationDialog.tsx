@@ -26,13 +26,15 @@ export const UnaccreditedOrganizationDialog: FC<
       aria-describedby="unaccredited-organization-dialog-description"
     >
       <DialogTitle id="unaccredited-organization-dialog-title">
-        {capitalize(VOCAB.organization.noun.singular)} no acreditada
+        {capitalize(VOCAB.organization.noun.singular)} no{" "}
+        {VOCAB.inscription.adjective.singular}
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="unaccredited-organization-dialog-description">
           No es posible enviar esta huella a cálculo porque la{" "}
-          {VOCAB.organization.noun.singular} asociada aún no se encuentra
-          acreditada. Por favor, complete el proceso de acreditación de la{" "}
+          {VOCAB.organization.noun.singular} asociada aún no se encuentra{" "}
+          {VOCAB.inscription.adjective.singular}. Por favor, complete el proceso
+          de {VOCAB.inscription.noun.singular} de la{" "}
           {VOCAB.organization.noun.singular} antes de continuar.
         </DialogContentText>
       </DialogContent>
