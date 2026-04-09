@@ -21,10 +21,10 @@ import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AppReductionProjectsRouteImport } from './routes/app/reduction-projects'
 import { Route as AppReductionPlanRouteImport } from './routes/app/reduction-plan'
+import { Route as AppRecognitionsRouteImport } from './routes/app/recognitions'
 import { Route as AppMyOrganizationRouteImport } from './routes/app/my-organization'
 import { Route as AppHomeRouteImport } from './routes/app/home'
 import { Route as AppCarbonInventoriesRouteImport } from './routes/app/carbon-inventories'
-import { Route as AppAwardsRouteImport } from './routes/app/awards'
 import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
@@ -104,6 +104,11 @@ const AppReductionPlanRoute = AppReductionPlanRouteImport.update({
   path: '/reduction-plan',
   getParentRoute: () => AppRoute,
 } as any)
+const AppRecognitionsRoute = AppRecognitionsRouteImport.update({
+  id: '/recognitions',
+  path: '/recognitions',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppMyOrganizationRoute = AppMyOrganizationRouteImport.update({
   id: '/my-organization',
   path: '/my-organization',
@@ -117,11 +122,6 @@ const AppHomeRoute = AppHomeRouteImport.update({
 const AppCarbonInventoriesRoute = AppCarbonInventoriesRouteImport.update({
   id: '/carbon-inventories',
   path: '/carbon-inventories',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppAwardsRoute = AppAwardsRouteImport.update({
-  id: '/awards',
-  path: '/awards',
   getParentRoute: () => AppRoute,
 } as any)
 const AdminUnitsRoute = AdminUnitsRouteImport.update({
@@ -240,10 +240,10 @@ export interface FileRoutesByFullPath {
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
-  '/app/awards': typeof AppAwardsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/recognitions': typeof AppRecognitionsRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
   '/admin/': typeof AdminIndexRoute
@@ -273,10 +273,10 @@ export interface FileRoutesByTo {
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
-  '/app/awards': typeof AppAwardsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/recognitions': typeof AppRecognitionsRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
   '/admin': typeof AdminIndexRoute
@@ -310,10 +310,10 @@ export interface FileRoutesById {
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/units': typeof AdminUnitsRoute
-  '/app/awards': typeof AppAwardsRoute
   '/app/carbon-inventories': typeof AppCarbonInventoriesRoute
   '/app/home': typeof AppHomeRoute
   '/app/my-organization': typeof AppMyOrganizationRoute
+  '/app/recognitions': typeof AppRecognitionsRoute
   '/app/reduction-plan': typeof AppReductionPlanRoute
   '/app/reduction-projects': typeof AppReductionProjectsRoute
   '/admin/': typeof AdminIndexRoute
@@ -348,10 +348,10 @@ export interface FileRouteTypes {
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
-    | '/app/awards'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
+    | '/app/recognitions'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/admin/'
@@ -381,10 +381,10 @@ export interface FileRouteTypes {
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
-    | '/app/awards'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
+    | '/app/recognitions'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/admin'
@@ -417,10 +417,10 @@ export interface FileRouteTypes {
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/units'
-    | '/app/awards'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
+    | '/app/recognitions'
     | '/app/reduction-plan'
     | '/app/reduction-projects'
     | '/admin/'
@@ -530,6 +530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppReductionPlanRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/recognitions': {
+      id: '/app/recognitions'
+      path: '/recognitions'
+      fullPath: '/app/recognitions'
+      preLoaderRoute: typeof AppRecognitionsRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/my-organization': {
       id: '/app/my-organization'
       path: '/my-organization'
@@ -549,13 +556,6 @@ declare module '@tanstack/react-router' {
       path: '/carbon-inventories'
       fullPath: '/app/carbon-inventories'
       preLoaderRoute: typeof AppCarbonInventoriesRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/awards': {
-      id: '/app/awards'
-      path: '/awards'
-      fullPath: '/app/awards'
-      preLoaderRoute: typeof AppAwardsRouteImport
       parentRoute: typeof AppRoute
     }
     '/admin/units': {
@@ -722,10 +722,10 @@ const AdminRouteChildren: AdminRouteChildren = {
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface AppRouteChildren {
-  AppAwardsRoute: typeof AppAwardsRoute
   AppCarbonInventoriesRoute: typeof AppCarbonInventoriesRoute
   AppHomeRoute: typeof AppHomeRoute
   AppMyOrganizationRoute: typeof AppMyOrganizationRoute
+  AppRecognitionsRoute: typeof AppRecognitionsRoute
   AppReductionPlanRoute: typeof AppReductionPlanRoute
   AppReductionProjectsRoute: typeof AppReductionProjectsRoute
   AppIndexRoute: typeof AppIndexRoute
@@ -733,10 +733,10 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
-  AppAwardsRoute: AppAwardsRoute,
   AppCarbonInventoriesRoute: AppCarbonInventoriesRoute,
   AppHomeRoute: AppHomeRoute,
   AppMyOrganizationRoute: AppMyOrganizationRoute,
+  AppRecognitionsRoute: AppRecognitionsRoute,
   AppReductionPlanRoute: AppReductionPlanRoute,
   AppReductionProjectsRoute: AppReductionProjectsRoute,
   AppIndexRoute: AppIndexRoute,

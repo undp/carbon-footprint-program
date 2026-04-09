@@ -10,7 +10,7 @@ export type CarbonInventoryRecognitionsBadgeType = Exclude<
   "ORGANIZATION_ACCREDITATION"
 >;
 
-export const AWARD_SUBMISSION_TYPES: CarbonInventoryRecognitionsSubmissionType[] =
+export const RECOGNITION_SUBMISSION_TYPES: CarbonInventoryRecognitionsSubmissionType[] =
   [
     SubmissionType.CARBON_INVENTORY_CALCULATION,
     SubmissionType.CARBON_INVENTORY_VERIFICATION,
@@ -18,7 +18,7 @@ export const AWARD_SUBMISSION_TYPES: CarbonInventoryRecognitionsSubmissionType[]
     SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
   ];
 
-export const AWARD_BADGE_TYPES: CarbonInventoryRecognitionsBadgeType[] = [
+export const RECOGNITION_BADGE_TYPES: CarbonInventoryRecognitionsBadgeType[] = [
   BadgeType.CARBON_INVENTORY_CALCULATION,
   BadgeType.CARBON_INVENTORY_VERIFICATION,
   BadgeType.REDUCTION_PLAN_VERIFICATION,

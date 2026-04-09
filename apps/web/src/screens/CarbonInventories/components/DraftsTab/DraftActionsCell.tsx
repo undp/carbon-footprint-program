@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, Button, Tooltip, useTheme } from "@mui/material";
+import { Box, Button, Tooltip } from "@mui/material";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -39,7 +39,6 @@ export const DraftActionsCell: FC<Props> = ({
   carbonInventory,
   inventories,
 }) => {
-  const theme = useTheme();
   const navigate = useNavigate();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selfDeclareDialogOpen, setSelfDeclareDialogOpen] = useState(false);
