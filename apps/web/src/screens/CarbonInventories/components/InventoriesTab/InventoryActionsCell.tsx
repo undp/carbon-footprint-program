@@ -245,6 +245,18 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
 
+        {/* Historial */}
+        <Tooltip title="Historial">
+          <span>
+            <BaseActionButton
+              onClick={() => setHistoryDialogOpen(true)}
+              aria-label="Historial"
+            >
+              <DescriptionOutlined fontSize="small" />
+            </BaseActionButton>
+          </span>
+        </Tooltip>
+
         {/* Duplicar */}
         <Tooltip title="Duplicar huella">
           <span>
@@ -254,18 +266,6 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               aria-label="Duplicar huella"
             >
               <FileCopyOutlined fontSize="small" />
-            </BaseActionButton>
-          </span>
-        </Tooltip>
-
-        {/* Historial */}
-        <Tooltip title="Historial">
-          <span>
-            <BaseActionButton
-              onClick={() => setHistoryDialogOpen(true)}
-              aria-label="Historial"
-            >
-              <DescriptionOutlined fontSize="small" />
             </BaseActionButton>
           </span>
         </Tooltip>
