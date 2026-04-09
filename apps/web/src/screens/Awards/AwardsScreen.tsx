@@ -99,15 +99,20 @@ export const AwardsScreen: FC = () => {
 
   const { data: badgePreviews = [] } = useBadgePreviews(AWARD_BADGE_TYPES);
 
-  const { data: approvedInventories = [] } =
-    useCarbonInventoriesMinimalData(APPROVED_STATUSES);
+  const {
+    data: approvedInventories = [],
+    isLoading: isLoadingApprovedInventories,
+  } = useCarbonInventoriesMinimalData(APPROVED_STATUSES);
 
   const availableYears = useMemo(() => {
+    const orgInventories = approvedInventories.filter(
+      (inv) => inv.organizationId === effectiveOrgId
+    );
     const years = new Set(
-      approvedInventories.map((inv) => inv.year).filter((y) => y != null)
+      orgInventories.map((inv) => inv.year).filter((y) => y != null)
     );
     return Array.from(years).sort((a, b) => b - a);
-  }, [approvedInventories]);
+  }, [approvedInventories, effectiveOrgId]);
 
   const previewMap = useMemo(
     () => new Map(badgePreviews.map((p) => [p.badgeType, p.previewUrl])),
@@ -129,6 +134,10 @@ export const AwardsScreen: FC = () => {
     void navigate({ to: Routes.MY_ORGANIZATION });
   }, [navigate]);
 
+  const onNavigateToMyInventories = useCallback(() => {
+    void navigate({ to: Routes.CARBON_INVENTORIES });
+  }, [navigate]);
+
   if (!isLoadingOrgs && organizations.length === 0) {
     return (
       <ScreenEmptyState
@@ -137,6 +146,19 @@ export const AwardsScreen: FC = () => {
         action={{
           label: "Ir a Mi Organización",
           onClick: onNavigateToMyOrganization,
+        }}
+      />
+    );
+  }
+
+  if (!isLoadingApprovedInventories && availableYears.length === 0) {
+    return (
+      <ScreenEmptyState
+        title="Aún no tienes huellas con reconocimientos"
+        description="Haz clic en el botón para gestionar tus huellas"
+        action={{
+          label: "Ir a Mis Huellas",
+          onClick: onNavigateToMyInventories,
         }}
       />
     );
