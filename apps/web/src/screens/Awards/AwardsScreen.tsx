@@ -37,28 +37,30 @@ import { capitalize } from "lodash-es";
 import { useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
 
-const AWARD_BADGE_TYPES = [
+type AwardBadgeType = Exclude<BadgeType, "ORGANIZATION_ACCREDITATION">;
+
+const AWARD_BADGE_TYPES: AwardBadgeType[] = [
   BadgeType.CARBON_INVENTORY_CALCULATION,
   BadgeType.CARBON_INVENTORY_VERIFICATION,
   BadgeType.REDUCTION_PLAN_VERIFICATION,
   BadgeType.NEUTRALIZATION_PLAN_VERIFICATION,
 ];
 
-const BADGE_LABELS: Record<string, string> = {
+const BADGE_LABELS: Record<AwardBadgeType, string> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
   [BadgeType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
   [BadgeType.REDUCTION_PLAN_VERIFICATION]: "Sello Reducción",
   [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello Neutralización",
 };
 
-const BADGE_CARD_COLORS: Record<string, string> = {
+const BADGE_CARD_COLORS: Record<AwardBadgeType, string> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: "#e8f5e9",
   [BadgeType.CARBON_INVENTORY_VERIFICATION]: "#f5f5f5",
   [BadgeType.REDUCTION_PLAN_VERIFICATION]: "#fff8e1",
   [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: "#e0f7fa",
 };
 
-const BADGE_ACTION_ICON: Record<string, React.ReactElement> = {
+const BADGE_ACTION_ICON: Record<AwardBadgeType, React.ReactElement> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: (
     <EmojiEventsOutlined fontSize="small" />
   ),
@@ -189,7 +191,7 @@ export const AwardsScreen: FC = () => {
       field: "badgeType",
       headerName: "Reconocimiento",
       flex: 1.5,
-      valueFormatter: (value: string) => BADGE_LABELS[value] ?? value,
+      valueFormatter: (value: AwardBadgeType) => BADGE_LABELS[value],
     },
     {
       field: "totalEmissions",
@@ -226,7 +228,7 @@ export const AwardsScreen: FC = () => {
                 p: "4px",
               }}
             >
-              {BADGE_ACTION_ICON[params.row.badgeType] ?? (
+              {BADGE_ACTION_ICON[params.row.badgeType as AwardBadgeType] ?? (
                 <EmojiEventsOutlined fontSize="small" />
               )}
             </IconButton>
