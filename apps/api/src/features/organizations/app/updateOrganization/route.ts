@@ -9,7 +9,7 @@ import {
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
 import { OrganizationRole } from "@repo/database/enums";
-import { idRequestExtractor } from "../../helpers.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const updateOrganizationRoute: StandardRouteSignature = (
   fastify,

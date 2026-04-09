@@ -6,7 +6,7 @@ import {
 import { getCarbonInventoryBadgesHandler } from "./handler.js";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
   fastify,
@@ -29,11 +29,7 @@ export const getCarbonInventoryBadgesRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
-        ),
-      ],
+      preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
     },
     getCarbonInventoryBadgesHandler
   );

@@ -7,7 +7,7 @@ import {
 import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const deleteCarbonInventoryRoute: StandardRouteSignature = (
   fastify,
@@ -34,15 +34,12 @@ export const deleteCarbonInventoryRoute: StandardRouteSignature = (
         public: options?.public ?? false,
       },
       preHandler: [
-        fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams,
-          {
-            requiredOrganizationRoles: [
-              OrganizationRole.CONTRIBUTOR,
-              OrganizationRole.ADMIN,
-            ],
-          }
-        ),
+        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
+          requiredOrganizationRoles: [
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.ADMIN,
+          ],
+        }),
       ],
     },
     deleteCarbonInventoryHandler

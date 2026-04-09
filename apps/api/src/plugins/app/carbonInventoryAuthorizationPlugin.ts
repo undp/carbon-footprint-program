@@ -21,13 +21,13 @@
  * because they depend on request.currentUser being set by user-resolve-plugin.
  *
  * ```typescript
- * import { extractCarbonInventoryIdFromParams } from "@/features/carbonInventories/carbonInventoryIdExtractors.js";
+ * import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
  *
  * // Basic access check (any org member or creator):
  * fastify.get("/:id", {
  *   onRequest: [fastify.requireAuth],
  *   preHandler: [
- *     fastify.requireCarbonInventoryAccess(extractCarbonInventoryIdFromParams)
+ *     fastify.requireCarbonInventoryAccess(idRequestExtractor)
  *   ],
  * }, handler);
  *
@@ -35,7 +35,7 @@
  * fastify.put("/:id", {
  *   onRequest: [fastify.requireAuth],
  *   preHandler: [
- *     fastify.requireCarbonInventoryAccess(extractCarbonInventoryIdFromParams, {
+ *     fastify.requireCarbonInventoryAccess(idRequestExtractor, {
  *       requiredOrganizationRoles: [OrganizationRole.ADMIN],
  *     })
  *   ],
@@ -52,14 +52,7 @@ import type {
 import type { OrganizationRole } from "@repo/database/enums";
 import { MembershipStatus, SystemRole } from "@repo/database/enums";
 import { InventoryStatus } from "@repo/types";
-
-/**
- * Function type that extracts the carbon inventory ID from a request.
- * Can extract from params, body, query, or nested resources.
- */
-export type CarbonInventoryIdExtractor<
-  P extends Record<string, string> = Record<string, string>,
-> = (request: FastifyRequest<{ Params: P }>) => string | null | undefined;
+import { IdExtractor } from "@/helpers/idRequestExtractor.js";
 
 /**
  * Options for the requireCarbonInventoryAccess function.
@@ -79,7 +72,7 @@ export type RequireCarbonInventoryAccessOptions = {
 export type RequireCarbonInventoryAccessFunction = <
   P extends Record<string, string>,
 >(
-  carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
+  carbonInventoryIdExtractor: IdExtractor<P>,
   options?: RequireCarbonInventoryAccessOptions
 ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
@@ -102,7 +95,7 @@ const carbonInventoryAuthorizationPlugin: FastifyPluginCallback = (fastify) => {
    */
   fastify.decorate("requireCarbonInventoryAccess", function <
     P extends Record<string, string>,
-  >(carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>, options?: RequireCarbonInventoryAccessOptions) {
+  >(carbonInventoryIdExtractor: IdExtractor<P>, options?: RequireCarbonInventoryAccessOptions) {
     const requiredOrganizationRoles = options?.requiredOrganizationRoles;
     const canAdminsBypass = options?.canAdminsBypass;
 

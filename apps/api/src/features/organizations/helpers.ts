@@ -12,9 +12,6 @@ export const organizationIdRequestExtractor: OrganizationIdExtractor = (
   request
 ) => request.params.organizationId;
 
-export const idRequestExtractor: OrganizationIdExtractor = (request) =>
-  request.params.id;
-
 export const getPendingOrganizationData = (
   prisma: PrismaClient | Prisma.TransactionClient,
   organizationId: string

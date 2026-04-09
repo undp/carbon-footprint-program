@@ -6,7 +6,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const selfDeclareCarbonInventoryRoute: StandardRouteSignature = (
   fastify
@@ -27,15 +27,12 @@ export const selfDeclareCarbonInventoryRoute: StandardRouteSignature = (
         },
       },
       preHandler: [
-        fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams,
-          {
-            requiredOrganizationRoles: [
-              OrganizationRole.CONTRIBUTOR,
-              OrganizationRole.ADMIN,
-            ],
-          }
-        ),
+        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
+          requiredOrganizationRoles: [
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.ADMIN,
+          ],
+        }),
       ],
     },
     selfDeclareCarbonInventoryHandler
