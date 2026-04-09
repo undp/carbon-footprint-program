@@ -12,8 +12,7 @@ export const getSubmissionRecognitionFileHandler = async (
 
   log.info({ submissionId: id }, "Getting submission recognition file...");
 
-  const blobServiceClient = request.server.blobServiceClient;
-  const { storageContainerName } = request.server;
+  const { blobServiceClient, storageContainerName } = request.server;
 
   if (!blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
