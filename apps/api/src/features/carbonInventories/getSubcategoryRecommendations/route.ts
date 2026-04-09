@@ -6,7 +6,7 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getSubcategoryRecommendationsRoute: StandardRouteSignature = (
   fastify,
@@ -33,11 +33,7 @@ export const getSubcategoryRecommendationsRoute: StandardRouteSignature = (
       config: {
         public: options?.public ?? false,
       },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
-        ),
-      ],
+      preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
     },
     getSubcategoryRecommendationsHandler
   );

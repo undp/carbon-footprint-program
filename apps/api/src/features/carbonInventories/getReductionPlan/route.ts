@@ -6,7 +6,7 @@ import {
 import type { GetReductionPlanParams } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getReductionPlanRoute: StandardRouteSignature = (fastify) => {
   fastify.get<{ Params: GetReductionPlanParams }>(
@@ -24,11 +24,7 @@ export const getReductionPlanRoute: StandardRouteSignature = (fastify) => {
           404: ApiErrorResponseSchema,
         },
       },
-      preHandler: [
-        fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams
-        ),
-      ],
+      preHandler: [fastify.requireCarbonInventoryAccess(idRequestExtractor)],
     },
     getReductionPlanHandler
   );

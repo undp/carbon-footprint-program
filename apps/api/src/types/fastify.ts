@@ -15,10 +15,8 @@ import type {
   OrganizationIdExtractor,
   RequireOrganizationRoleOptions,
 } from "@/plugins/app/organizationAuthorizationPlugin.js";
-import type {
-  CarbonInventoryIdExtractor,
-  RequireCarbonInventoryAccessOptions,
-} from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
+import { RequireCarbonInventoryAccessOptions } from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
+import { IdExtractor } from "@/helpers/idRequestExtractor.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -147,18 +145,18 @@ declare module "fastify" {
      *
      * @example
      * ```typescript
-     * import { extractCarbonInventoryIdFromParams } from "@/features/carbonInventories/carbonInventoryIdExtractors.js";
+     * import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
      *
      * fastify.get("/:id", {
      *   onRequest: [fastify.requireAuth],
      *   preHandler: [
-     *     fastify.requireCarbonInventoryAccess(extractCarbonInventoryIdFromParams)
+     *     fastify.requireCarbonInventoryAccess(idRequestExtractor)
      *   ],
      * }, handler);
      * ```
      */
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
-      carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
+      carbonInventoryIdExtractor: IdExtractor<P>,
       options?: RequireCarbonInventoryAccessOptions
     ) => (
       request: FastifyRequest<{ Params: P }>,

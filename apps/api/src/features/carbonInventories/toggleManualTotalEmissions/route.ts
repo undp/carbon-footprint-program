@@ -9,7 +9,7 @@ import { OrganizationRole } from "@repo/database/enums";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { z } from "zod";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractCarbonInventoryIdFromParams } from "../carbonInventoryIdExtractors.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
   fastify,
@@ -40,15 +40,12 @@ export const toggleManualTotalEmissionsRoute: StandardRouteSignature = (
         public: options?.public ?? false,
       },
       preHandler: [
-        fastify.requireCarbonInventoryAccess(
-          extractCarbonInventoryIdFromParams,
-          {
-            requiredOrganizationRoles: [
-              OrganizationRole.CONTRIBUTOR,
-              OrganizationRole.ADMIN,
-            ],
-          }
-        ),
+        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
+          requiredOrganizationRoles: [
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.ADMIN,
+          ],
+        }),
       ],
     },
     toggleManualTotalEmissionsHandler
