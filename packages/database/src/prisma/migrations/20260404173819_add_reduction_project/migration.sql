@@ -38,6 +38,9 @@ CREATE TABLE "submission_subject_reduction_projects" (
 -- CreateIndex
 CREATE UNIQUE INDEX "submission_subject_reduction_projects_reduction_project_id_key" ON "submission_subject_reduction_projects"("reduction_project_id");
 
+-- CreateIndex
+CREATE INDEX "reduction_projects_organization_id_idx" ON "reduction_projects"("organization_id");
+
 -- AddForeignKey
 ALTER TABLE "reduction_projects" ADD CONSTRAINT "reduction_projects_organization_id_fkey" FOREIGN KEY ("organization_id") REFERENCES "organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
