@@ -23,14 +23,14 @@ import {
 } from "@/components";
 import {
   useMyOrganizations,
-  useOrganizationBadges,
+  useOrganizationRecognitions,
   useBadgePreviews,
   useCarbonInventoriesMinimalData,
 } from "@/api/query";
 import {
   BadgeType,
   CarbonInventoryDisplayStatusEnum,
-  GetOrganizationBadgesResponse,
+  GetOrganizationRecognitionsResponse,
 } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
@@ -94,8 +94,8 @@ export const AwardsScreen: FC = () => {
   const defaultOrgId = organizations[0]?.id ?? "";
   const effectiveOrgId = selectedOrganizationId || defaultOrgId;
 
-  const { data: badges = [], isLoading: isLoadingBadges } =
-    useOrganizationBadges(
+  const { data: recognitions = [], isLoading: isLoadingRecognitions } =
+    useOrganizationRecognitions(
       effectiveOrgId,
       selectedYear || undefined,
       AWARD_BADGE_TYPES
@@ -125,11 +125,11 @@ export const AwardsScreen: FC = () => {
 
   const badgeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const badge of badges) {
+    for (const badge of recognitions) {
       counts[badge.badgeType] = (counts[badge.badgeType] ?? 0) + 1;
     }
     return counts;
-  }, [badges]);
+  }, [recognitions]);
 
   const selectedOrgName =
     organizations.find((o) => o.id === effectiveOrgId)?.name ?? "";
@@ -160,7 +160,7 @@ export const AwardsScreen: FC = () => {
     );
   }
 
-  const columns: GridColDef<GetOrganizationBadgesResponse[number]>[] = [
+  const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     {
       field: "earningDate",
       headerName: "Fecha otorgado",
@@ -329,11 +329,11 @@ export const AwardsScreen: FC = () => {
           Reconocimientos
         </Typography>
         <StylizedDataGrid
-          loading={isLoadingBadges}
+          loading={isLoadingRecognitions}
           disableColumnSorting={false}
           columns={columns}
-          rows={badges}
-          getRowId={(row: GetOrganizationBadgesResponse[number]) =>
+          rows={recognitions}
+          getRowId={(row: GetOrganizationRecognitionsResponse[number]) =>
             `${row.submissionId}-${row.badgeType}`
           }
           initialState={{

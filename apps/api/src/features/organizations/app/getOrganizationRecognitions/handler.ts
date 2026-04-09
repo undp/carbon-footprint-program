@@ -1,14 +1,14 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type {
-  GetOrganizationBadgesParams,
-  GetOrganizationBadgesQuery,
+  GetOrganizationRecognitionsParams,
+  GetOrganizationRecognitionsQuery,
 } from "@repo/types";
-import { getOrganizationBadgesService } from "./service.js";
+import { getOrganizationRecognitionsService } from "./service.js";
 
-export const getOrganizationBadgesHandler = async (
+export const getOrganizationRecognitionsHandler = async (
   request: FastifyRequest<{
-    Params: GetOrganizationBadgesParams;
-    Querystring: GetOrganizationBadgesQuery;
+    Params: GetOrganizationRecognitionsParams;
+    Querystring: GetOrganizationRecognitionsQuery;
   }>,
   reply: FastifyReply
 ) => {
@@ -18,12 +18,12 @@ export const getOrganizationBadgesHandler = async (
 
   log.info(
     { organizationId: id, year, badgeTypes },
-    "Getting organization badges..."
+    "Getting organization recognitions..."
   );
 
   const prisma = request.server.prisma;
   const { blobServiceClient, storageContainerName } = request.server;
-  const data = await getOrganizationBadgesService(
+  const data = await getOrganizationRecognitionsService(
     prisma,
     id,
     year,
@@ -34,7 +34,7 @@ export const getOrganizationBadgesHandler = async (
 
   log.info(
     { organizationId: id },
-    "Organization badges retrieved successfully"
+    "Organization recognitions retrieved successfully"
   );
   return reply.status(200).send(data);
 };

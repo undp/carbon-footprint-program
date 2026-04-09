@@ -7,7 +7,7 @@ import {
 import {
   BadgeType,
   SubmissionStatus,
-  GetOrganizationBadgesResponse,
+  GetOrganizationRecognitionsResponse,
 } from "@repo/types";
 import { BlobServiceClient } from "@azure/storage-blob";
 
@@ -16,14 +16,14 @@ import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { kgToTon } from "@repo/utils";
 import { generateReadSasUrl } from "@/services/index.js";
 
-export const getOrganizationBadgesService = async (
+export const getOrganizationRecognitionsService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   year?: string,
   badgeTypes?: BadgeType[],
   blobServiceClient?: BlobServiceClient | null,
   containerName?: string | null
-): Promise<GetOrganizationBadgesResponse> => {
+): Promise<GetOrganizationRecognitionsResponse> => {
   const org = await prismaClient.organization.findUnique({
     where: { id: BigInt(organizationId), status: OrganizationStatus.ACTIVE },
     select: { id: true },
@@ -95,7 +95,7 @@ export const getOrganizationBadgesService = async (
     },
   });
 
-  const result: GetOrganizationBadgesResponse = [];
+  const result: GetOrganizationRecognitionsResponse = [];
 
   for (const inventory of inventories) {
     const submissions = inventory.submission?.subject.submissions ?? [];

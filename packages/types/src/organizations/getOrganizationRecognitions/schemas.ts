@@ -2,11 +2,11 @@ import { z } from "zod";
 import { IdSchema } from "../../zod.js";
 import { BadgeTypeSchema } from "../../baseSchemas/index.js";
 
-export const GetOrganizationBadgesParamsSchema = z.object({
+export const GetOrganizationRecognitionsParamsSchema = z.object({
   id: IdSchema.describe("The organization ID"),
 });
 
-export const GetOrganizationBadgesQuerySchema = z.object({
+export const GetOrganizationRecognitionsQuerySchema = z.object({
   year: z
     .string()
     .regex(/^\d{4}$/, "Year must be a 4-digit year")
@@ -21,7 +21,7 @@ export const GetOrganizationBadgesQuerySchema = z.object({
     .describe("Filter by badge type(s). Can be repeated."),
 });
 
-const GetOrganizationBadgesItemSchema = z.object({
+const GetOrganizationRecognitionsItemSchema = z.object({
   submissionId: IdSchema.describe("The submission ID"),
   earningDate: z.iso
     .datetime()
@@ -43,6 +43,6 @@ const GetOrganizationBadgesItemSchema = z.object({
     ),
 });
 
-export const GetOrganizationBadgesResponseSchema = z.array(
-  GetOrganizationBadgesItemSchema
+export const GetOrganizationRecognitionsResponseSchema = z.array(
+  GetOrganizationRecognitionsItemSchema
 );
