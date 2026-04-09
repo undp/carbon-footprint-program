@@ -63,7 +63,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     cellClassName: "content-center",
     renderCell: (params) =>
       params.row.recognitionFileUrl ? (
-        <Tooltip title="Ver reconocimiento" placement="top">
+        <Tooltip title="Ver archivo" placement="top">
           <IconButton
             size="small"
             color="success"
@@ -74,7 +74,6 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
                 "noopener,noreferrer"
               )
             }
-            title="Ver reconocimiento"
             sx={{
               border: 1,
               borderColor: "success.main",
@@ -86,7 +85,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
           </IconButton>
         </Tooltip>
       ) : (
-        <Tooltip title="No hay un reconocimiento disponible" placement="top">
+        <Tooltip title="No hay un archivo disponible" placement="top">
           <EmojiEventsOutlined fontSize="small" color="disabled" />
         </Tooltip>
       ),
