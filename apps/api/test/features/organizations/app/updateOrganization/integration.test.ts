@@ -257,25 +257,25 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
       expect(activeData).toHaveLength(2);
     });
 
-    it("should create new ACTIVE draft when updating rejected organization", async () => {
+    it("should create new ACTIVE draft when updating reviewed organization", async () => {
       const org = await createTestOrganization(prisma, {
         status: OrganizationStatus.ACTIVE,
       });
 
-      // Create rejected organization data
+      // Create reviewed organization data
       const orgData = await createTestOrganizationData(prisma, org.id, {
-        legalName: "Original Rejected Name",
+        legalName: "Original Reviewed Name",
         status: OrganizationDataStatus.ACTIVE,
       });
 
-      // Create rejected submission
+      // Create reviewed submission
       await createTestOrganizationDataSubmission(
         prisma,
         orgData.id,
-        SubmissionStatus.REJECTED,
+        SubmissionStatus.REVIEWED,
         testUser.id,
         testUser.id,
-        "Rejected for testing"
+        "Reviewed for testing"
       );
 
       await createTestMembership(prisma, testUser.id, org.id);
@@ -292,12 +292,12 @@ describe("PATCH /api/app/organizations/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as UpdateOrganizationResponse;
       expect(body).toEqual({ id: org.id.toString() });
 
-      // Verify old REJECTED data remains ACTIVE
+      // Verify old REVIEWED data remains ACTIVE
       const oldOrgData = await prisma.organizationData.findUnique({
         where: { id: orgData.id },
       });
       expect(oldOrgData!.status).toBe(OrganizationDataStatus.ACTIVE);
-      expect(oldOrgData!.legalName).toBe("Original Rejected Name");
+      expect(oldOrgData!.legalName).toBe("Original Reviewed Name");
 
       // Verify new ACTIVE draft was created
       const allOrgData = await prisma.organizationData.findMany({

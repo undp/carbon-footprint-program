@@ -239,6 +239,7 @@ model User {
   systemParametersUpdated              SystemParameter[]              @relation("system_parameter_updated_by")
   carbonInventoriesCreated             CarbonInventory[]              @relation("carbon_inventory_created_by")
   carbonInventoriesUpdated             CarbonInventory[]              @relation("carbon_inventory_updated_by")
+  carbonInventoriesSelfDeclared        CarbonInventory[]              @relation("carbon_inventory_self_declared_by")
   methodologyVersionsCreated           MethodologyVersion[]           @relation("methodology_version_created_by")
   methodologyVersionsUpdated           MethodologyVersion[]           @relation("methodology_version_updated_by")
   categoriesCreated                    Category[]                     @relation("category_created_by")
@@ -592,10 +593,12 @@ model CarbonInventory {
   selfDeclaredAt       DateTime?                         @map("self_declared_at")
   createdById          BigInt?                           @map("created_by_id")
   updatedById          BigInt?                           @map("updated_by_id")
+  selfDeclaredById     BigInt?                           @map("self_declared_by_id")
   isSelfDeclared       Boolean                           @default(false) @map("is_self_declared")
   methodologyVersion   MethodologyVersion?               @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
   updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
+  selfDeclaredBy       User?                             @relation("carbon_inventory_self_declared_by", fields: [selfDeclaredById], references: [id])
   lines                CarbonInventoryLine[]
   subtotals            CarbonInventorySubtotalsView[]
   organization         Organization?                     @relation(fields: [organizationId], references: [id])

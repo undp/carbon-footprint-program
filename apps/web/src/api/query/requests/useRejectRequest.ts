@@ -3,6 +3,7 @@ import { RejectRequestBody, RejectRequestResponse } from "@repo/types";
 import { apiClient } from "@/api/http";
 import { requestsKeys } from "./keys.js";
 import { organizationKeys } from "../organizations/keys.js";
+import { SubmissionQueryKey } from "../submissions/keys.js";
 
 export const useRejectRequest = () => {
   const queryClient = useQueryClient();
@@ -14,11 +15,7 @@ export const useRejectRequest = () => {
   >({
     mutationFn: ({ id, body }) =>
       apiClient
-        // TODO: Remove temporary comment
-        // TODO: force 2000 character limit for review comments
-        .post(`admin/requests/${id}/reject`, {
-          json: body ?? { reviewComments: "temporary comment" },
-        })
+        .post(`admin/requests/${id}/reject`, { json: body ?? {} })
         .json<RejectRequestResponse>(),
     onSuccess: async () => {
       await Promise.all([
@@ -41,6 +38,10 @@ export const useRejectRequest = () => {
         queryClient.invalidateQueries({
           queryKey: organizationKeys.all,
           exact: true,
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(SubmissionQueryKey.HistoryUpdateDependency),
         }),
       ]);
     },

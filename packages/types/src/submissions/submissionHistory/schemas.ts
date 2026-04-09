@@ -2,21 +2,11 @@ import { z } from "zod";
 import { FileBaseSchema } from "../../baseSchemas/file.js";
 import { CompleteOrganizationInfoSchema } from "../../organizations/schemas.js";
 import {
-  SubmissionEventType,
+  SubmissionEventTypeSchema,
   SubmissionStatusSchema,
   SubmissionTypeSchema,
 } from "../../baseSchemas/submission.js";
 import { IdSchema } from "../../zod.js";
-
-export const SubmissionEventTypeSchema = z.enum([
-  SubmissionEventType.POSTULATION,
-  SubmissionEventType.SELF_DECLARATION,
-  SubmissionEventType.ON_REVIEW,
-  SubmissionEventType.APPROVED,
-  SubmissionEventType.APPROVED_AUTOMATICALLY,
-  SubmissionEventType.REJECTED,
-  SubmissionEventType.REVIEWED,
-]);
 
 export const SubmissionFileWithUrlSchema = FileBaseSchema.omit({
   deletedAt: true,

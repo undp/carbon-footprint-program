@@ -24,6 +24,7 @@ CREATE TABLE "carbon_inventory" (
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
     "updated_by_id" BIGINT,
+    "self_declared_by_id" BIGINT,
 
     CONSTRAINT "carbon_inventory_pkey" PRIMARY KEY ("id")
 );
@@ -33,3 +34,6 @@ ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_created_by_id_fk
 
 -- AddForeignKey
 ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_updated_by_id_fkey" FOREIGN KEY ("updated_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "carbon_inventory" ADD CONSTRAINT "carbon_inventory_self_declared_by_id_fkey" FOREIGN KEY ("self_declared_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;

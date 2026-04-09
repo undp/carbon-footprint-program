@@ -1,7 +1,7 @@
 import { getOrganizationHistoryHandler } from "./handler.js";
 import {
   GetOrganizationHistoryParamsSchema,
-  GetSubmissionHistoryResponseSchema,
+  GetOrganizationHistoryResponseSchema,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
@@ -19,7 +19,7 @@ export const getOrganizationHistoryRoute: StandardRouteSignature = (
           "Get the history of submissions for a specific organization.",
         params: GetOrganizationHistoryParamsSchema,
         response: {
-          200: GetSubmissionHistoryResponseSchema,
+          200: GetOrganizationHistoryResponseSchema,
           503: ApiErrorResponseSchema,
         },
       },

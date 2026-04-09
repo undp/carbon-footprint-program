@@ -105,10 +105,10 @@ export const submissionHistorySelect = {
   createdAt: true,
   reviewedAt: true,
   creator: {
-    select: { firstName: true, lastName: true },
+    select: { email: true },
   },
   reviewer: {
-    select: { firstName: true, lastName: true },
+    select: { email: true },
   },
   subject: {
     select: {
@@ -236,15 +236,16 @@ export const buildSubmissionBaseEntry = (
 export const buildSelfDeclarationEvent = (
   carbonInventoryId: string,
   selfDeclaredAt: Date,
-  context: OrgSummaryInfo
+  context: OrgSummaryInfo,
+  selfDeclaredBy: { email: string | null } | null
 ): SubmissionHistoryEntry => ({
   submissionId: null,
   submissionType: null,
   status: null,
   eventType: SubmissionEventType.SELF_DECLARATION,
   date: selfDeclaredAt.toISOString(),
-  userName: null,
-  userMetadata: null,
+  userName: selfDeclaredBy?.email ?? null,
+  userMetadata: context.orgName,
   carbonInventoryId,
   organizationId: context.organizationIdString,
   organizationData: context.organizationData,

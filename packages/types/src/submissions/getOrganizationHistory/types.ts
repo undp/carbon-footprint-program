@@ -1,6 +1,13 @@
 import { z } from "zod";
-import { GetOrganizationHistoryParamsSchema } from "./schemas.js";
+import {
+  GetOrganizationHistoryParamsSchema,
+  GetOrganizationHistoryResponseSchema,
+} from "./schemas.js";
 
 export type GetOrganizationHistoryParams = z.infer<
   typeof GetOrganizationHistoryParamsSchema
+>;
+
+export type GetOrganizationHistoryResponse = z.infer<
+  typeof GetOrganizationHistoryResponseSchema
 >;
