@@ -8,6 +8,7 @@ import {
   SelectChangeEvent,
   InputLabel,
   FormControl,
+  Divider,
 } from "@mui/material";
 import { OrganizationSelector } from "@/components";
 import { MainLayout } from "@/components/layout";
@@ -82,7 +83,7 @@ export const CarbonInventoriesScreen: FC = () => {
 
   return (
     <MainLayout>
-      <Box className="flex flex-1 flex-col gap-6">
+      <Box className="flex flex-1 flex-col">
         {/* Header */}
         <Box className="flex flex-col rounded-lg bg-white">
           <Box className="flex flex-row items-center justify-between gap-4 px-6 py-4">
@@ -130,6 +131,7 @@ export const CarbonInventoriesScreen: FC = () => {
             activeTab={activeTab}
             onTabChange={(_, value) => setActiveTab(value)}
           />
+          <Divider />
         </Box>
 
         {/* Tab Content */}
