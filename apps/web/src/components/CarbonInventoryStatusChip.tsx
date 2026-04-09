@@ -66,13 +66,13 @@ const TOOLTIP_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.DRAFT]: "En Borrador",
   [CarbonInventoryDisplayStatusEnum.SELF_DECLARED]: "Huella autodeclarada",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
-    "En revisión - Sello de medición",
+    "En revisión - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED]:
-    "Con observaciones - Sello de medición",
+    "Con observaciones - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
-    "Rechazado - Sello de medición",
+    "Rechazado - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]:
-    "Aprobado - Sello de medición",
+    "Aprobado - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
     "En revisión - Sello de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED]:
