@@ -31,6 +31,12 @@ export const useReductionProjectSubmit = ({ projectId, status }: Params) => {
           files.length > 0
         ) {
           const fileUuids = await preUploadFiles(files);
+          if (!fileUuids.length) {
+            enqueueSnackbar("No se pudieron subir los archivos", {
+              variant: "error",
+            });
+            return;
+          }
           await updateMutation.mutateAsync({ ...requestData, fileUuids });
         } else {
           await updateMutation.mutateAsync(requestData);
