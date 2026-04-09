@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/api/http/client";
 import { requestsKeys } from "../requests/keys";
 import { CarbonInventoryQueryKey } from "./keys";
+import { SubmissionQueryKey } from "../submissions/keys";
 
 export const useRequestCalculation = () => {
   const queryClient = useQueryClient();
@@ -29,6 +30,10 @@ export const useRequestCalculation = () => {
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminKpis,
           exact: true,
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(SubmissionQueryKey.HistoryUpdateDependency),
         }),
       ]);
     },

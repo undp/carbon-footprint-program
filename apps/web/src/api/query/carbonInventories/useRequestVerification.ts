@@ -3,6 +3,7 @@ import { apiClient } from "@/api/http/client";
 import { requestsKeys } from "../requests/keys";
 import { RequestVerificationBody } from "@repo/types";
 import { CarbonInventoryQueryKey } from "./keys";
+import { SubmissionQueryKey } from "../submissions/keys";
 
 interface RequestVerificationInput {
   id: string;
@@ -40,6 +41,10 @@ export const useRequestVerification = () => {
         queryClient.invalidateQueries({
           queryKey: requestsKeys.adminKpis,
           exact: true,
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(SubmissionQueryKey.HistoryUpdateDependency),
         }),
       ]);
     },
