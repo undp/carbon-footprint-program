@@ -2,9 +2,11 @@ import { getCarbonInventoryHistoryHandler } from "./handler.js";
 import {
   GetCarbonInventoryHistoryParamsSchema,
   GetCarbonInventoryHistoryResponseSchema,
+  OrganizationRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
   fastify
@@ -23,6 +25,16 @@ export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
           503: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireOrganizationRole(idRequestExtractor, {
+          allowedRoles: [
+            OrganizationRole.ADMIN,
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.VIEWER,
+          ],
+          canAdminsBypass: true,
+        }),
+      ],
     },
     getCarbonInventoryHistoryHandler
   );
