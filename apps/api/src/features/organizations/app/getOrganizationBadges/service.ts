@@ -6,6 +6,7 @@ import {
 } from "@repo/types";
 
 import { OrganizationNotFoundError } from "../../errors.js";
+import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 
 const kgToTon = (kg: number) => kg / 1000;
 
@@ -76,6 +77,12 @@ export const getOrganizationBadgesService = async (
     const submissions = inventory.submission?.subject.submissions ?? [];
     if (submissions.length === 0) continue;
 
+    if (inventory.year === null) {
+      throw new DataIntegrityError(
+        `Carbon inventory ${inventory.id} has no year, but has approved submissions. This should not happen. Please investigate the data integrity of this inventory.`
+      );
+    }
+
     const subtotals = inventory.subtotals;
 
     const totalEmissions = subtotals.reduce(
@@ -88,9 +95,8 @@ export const getOrganizationBadgesService = async (
 
       result.push({
         submissionId: submission.id.toString(),
-        earningDate:
-          submission.updatedAt?.toISOString() ?? new Date().toISOString(),
-        measurementYear: inventory.year ?? 0,
+        earningDate: submission.updatedAt?.toISOString() ?? null,
+        measurementYear: inventory.year,
         badgeType: submission.badge.type,
         totalEmissions,
       });

@@ -20,6 +20,7 @@ const GetOrganizationBadgesItemSchema = z.object({
   submissionId: IdSchema.describe("The submission ID"),
   earningDate: z.iso
     .datetime()
+    .nullable()
     .describe("The date the badge was earned (submission updatedAt)"),
   measurementYear: z
     .number()
