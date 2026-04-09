@@ -14,6 +14,9 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     field: "earningDate",
     headerName: "Fecha otorgado",
     flex: 1,
+    headerAlign: "center",
+    align: "center",
+    cellClassName: "content-center",
     valueFormatter: (value: string) =>
       value
         ? new Date(value).toLocaleDateString("es", {
@@ -27,11 +30,17 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     field: "measurementYear",
     headerName: "Año medición",
     flex: 1,
+    headerAlign: "center",
+    align: "center",
+    cellClassName: "content-center",
   },
   {
     field: "submissionType",
     headerName: "Reconocimiento",
     flex: 1.5,
+    headerAlign: "center",
+    align: "center",
+    cellClassName: "content-center",
     valueFormatter: (value: CarbonInventoryRecognitionsSubmissionType) =>
       SUBMISSION_TABLE_LABELS[value],
   },
@@ -49,6 +58,9 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerName: "Acciones",
     flex: 0.5,
     sortable: false,
+    headerAlign: "center",
+    align: "center",
+    cellClassName: "content-center",
     renderCell: (params) =>
       params.row.recognitionFileUrl ? (
         <Tooltip title="Ver reconocimiento" placement="top">
