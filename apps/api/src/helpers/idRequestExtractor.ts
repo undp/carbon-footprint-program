@@ -1,4 +1,4 @@
-import { FastifyRequest } from "fastify";
+import type { FastifyRequest } from "fastify";
 
 /**
  * Function type that extracts the ID from a request.
