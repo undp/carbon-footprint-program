@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "reduction_project_status" AS ENUM ('ACTIVE', 'DELETED');
+
 -- CreateTable
 CREATE TABLE "reduction_projects" (
     "id" BIGSERIAL NOT NULL,
@@ -15,7 +18,7 @@ CREATE TABLE "reduction_projects" (
     "year" INTEGER,
     "baseline_scenario" DECIMAL(15,4),
     "project_scenario" DECIMAL(15,4),
-    "status" "inventory_status" NOT NULL DEFAULT 'ACTIVE',
+    "status" "reduction_project_status" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
