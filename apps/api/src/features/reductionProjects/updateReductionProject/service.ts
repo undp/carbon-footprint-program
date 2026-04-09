@@ -1,4 +1,9 @@
-import { SubmissionType, type PrismaClient, Prisma } from "@repo/database";
+import {
+  InventoryStatus,
+  SubmissionType,
+  type PrismaClient,
+  Prisma,
+} from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateReductionProjectRequest,
@@ -24,7 +29,10 @@ import {
   createReductionProjectSubmission,
   reductionProjectWithSubmissionsMinimalSelect,
 } from "../helpers.js";
-import { ReductionProjectDisplayStatusEnum } from "@repo/types";
+import {
+  ReductionProjectDisplayStatusEnum,
+  ReductionProjectStatus,
+} from "@repo/types";
 import { mapReductionProjectToUpdateResponse } from "../mappers.js";
 
 export const updateReductionProjectService = async (
@@ -39,7 +47,7 @@ export const updateReductionProjectService = async (
 
   return prismaClient.$transaction(async (tx) => {
     const existing = await tx.reductionProject.findUnique({
-      where: { id: BigInt(id) },
+      where: { id: BigInt(id), status: ReductionProjectStatus.ACTIVE },
       select: {
         ...reductionProjectWithSubmissionsMinimalSelect,
       },
