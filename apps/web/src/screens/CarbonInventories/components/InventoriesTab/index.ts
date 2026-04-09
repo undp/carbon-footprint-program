@@ -1,0 +1,1 @@
+export { InventoriesTab } from "./InventoriesTab";

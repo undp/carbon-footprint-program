@@ -1,21 +1,21 @@
 import { Typography, Tooltip, TypographyProps } from "@mui/material";
 import { FC } from "react";
 
-type ResponsiveTypographyProps = {
+interface Props extends TypographyProps {
   isWiderScreen: boolean;
   ShortName: string;
   LongName: string;
-  props?: TypographyProps;
-};
+}
 
-export const ResponsiveTypography: FC<ResponsiveTypographyProps> = ({
+export const ResponsiveTypography: FC<Props> = ({
   isWiderScreen: isResponsiveMode,
   ShortName,
   LongName,
+  ...props
 }) => {
   return (
     <Tooltip title={isResponsiveMode ? LongName : null}>
-      <Typography variant="body2" fontWeight={500} noWrap>
+      <Typography variant="body2" fontWeight={500} noWrap {...props}>
         {!isResponsiveMode ? ShortName : LongName}
       </Typography>
     </Tooltip>
