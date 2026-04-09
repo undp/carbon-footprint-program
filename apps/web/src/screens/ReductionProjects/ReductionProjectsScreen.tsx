@@ -73,14 +73,24 @@ export const ReductionProjectsScreen: FC = () => {
   const { data: minimalProjects = [], isLoading: isLoadingYears } =
     useReductionProjectsMinimal();
 
-  const availableYears = useMemo(
-    () =>
-      [...new Set(minimalProjects.map((p) => p.year))]
-        .filter((year): year is number => year !== null)
-        .sort((a, b) => b - a)
-        .map(String),
-    [minimalProjects]
-  );
+  const availableYears = useMemo(() => {
+    const filtered =
+      selectedOrganizationId === "all"
+        ? minimalProjects
+        : minimalProjects.filter(
+            (p) => String(p.organizationId) === selectedOrganizationId
+          );
+    return [...new Set(filtered.map((p) => p.year))]
+      .filter((year): year is number => year !== null)
+      .sort((a, b) => b - a)
+      .map(String);
+  }, [minimalProjects, selectedOrganizationId]);
+
+  const sanitizedYear = useMemo(() => {
+    if (selectedYear === "all") return "all";
+    if (availableYears.includes(selectedYear)) return selectedYear;
+    return "all";
+  }, [selectedYear, availableYears]);
 
   const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
 
@@ -276,7 +286,7 @@ export const ReductionProjectsScreen: FC = () => {
             <Select
               labelId="rp-year-select-label"
               label="Año"
-              value={selectedYear}
+              value={sanitizedYear}
               onChange={onYearSelectChange}
               disabled={isLoadingYears}
             >
