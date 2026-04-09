@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect } from "react";
+import { FC, ReactNode, useEffect, useRef } from "react";
 import {
   AppBar,
   Box,
@@ -141,9 +141,16 @@ export const ReductionProjectLayout: FC<ReductionProjectLayoutProps> = ({
   onRetry,
   onError,
 }) => {
+  const errorReportedRef = useRef(false);
+
   useEffect(() => {
-    if (hasError && onError) {
-      onError();
+    if (hasError) {
+      if (!errorReportedRef.current && onError) {
+        onError();
+        errorReportedRef.current = true;
+      }
+    } else {
+      errorReportedRef.current = false;
     }
   }, [hasError, onError]);
 
