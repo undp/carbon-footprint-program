@@ -1,4 +1,4 @@
-import { FC, useState, useMemo } from "react";
+import { FC, useState, useMemo, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -15,7 +15,11 @@ import {
   PublicOutlined,
 } from "@mui/icons-material";
 import { GridColDef, GridSortModel } from "@mui/x-data-grid";
-import { StylizedDataGrid, OrganizationSelector } from "@/components";
+import {
+  StylizedDataGrid,
+  OrganizationSelector,
+  ScreenEmptyState,
+} from "@/components";
 import {
   useMyOrganizations,
   useOrganizationBadges,
@@ -32,6 +36,8 @@ import { apiClient } from "@/api/http";
 import { enqueueSnackbar } from "notistack";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
+import { useNavigate } from "@tanstack/react-router";
+import { Routes } from "@/interfaces";
 
 const AWARD_BADGE_TYPES = [
   BadgeType.CARBON_INVENTORY_CALCULATION,
@@ -77,6 +83,7 @@ const APPROVED_STATUSES = [
 ];
 
 export const AwardsScreen: FC = () => {
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("");
@@ -117,6 +124,23 @@ export const AwardsScreen: FC = () => {
 
   const selectedOrgName =
     organizations.find((o) => o.id === effectiveOrgId)?.name ?? "";
+
+  const onNavigateToMyOrganization = useCallback(() => {
+    void navigate({ to: Routes.MY_ORGANIZATION });
+  }, [navigate]);
+
+  if (!isLoadingOrgs && organizations.length === 0) {
+    return (
+      <ScreenEmptyState
+        title="Aún no tienes organizaciones creadas"
+        description="Haz clic en el botón para crear tu primera organización."
+        action={{
+          label: "Ir a Mi Organización",
+          onClick: onNavigateToMyOrganization,
+        }}
+      />
+    );
+  }
 
   const columns: GridColDef<GetOrganizationBadgesResponse[number]>[] = [
     {

@@ -1,14 +1,17 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Box } from "@mui/material";
 import { useCarbonInventoriesMinimalData } from "@/api/query";
 import { Header } from "./components";
 import { orderBy, uniq } from "lodash-es";
-import { EmissionResultsContent } from "@/components";
+import { EmissionResultsContent, ScreenEmptyState } from "@/components";
 import { UnverifiedCarbonInventoriesContent } from "./components/UnverifiedCarbonInventoriesContent";
 import { HomeScreenSkeleton } from "./components/Skeletons/HomeScreenSkeleton";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import { useNavigate } from "@tanstack/react-router";
+import { Routes } from "@/interfaces";
 
 export const HomeScreen: FC = () => {
+  const navigate = useNavigate();
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] = useState<
     string | null
@@ -45,8 +48,25 @@ export const HomeScreen: FC = () => {
       ? selectedCarbonInventoryId
       : (inventoriesForSelectedYear[0]?.id ?? "");
 
+  const onNavigateToInventories = useCallback(() => {
+    void navigate({ to: Routes.CARBON_INVENTORIES });
+  }, [navigate]);
+
   if (isLoadingInventories) {
     return <HomeScreenSkeleton />;
+  }
+
+  if (!effectiveInventoryId) {
+    return (
+      <ScreenEmptyState
+        title="No tienes huellas verificadas"
+        description="Postula a verificación alguna de tus huellas"
+        action={{
+          label: "Ir a Huella Organizacional",
+          onClick: onNavigateToInventories,
+        }}
+      />
+    );
   }
 
   return (

@@ -9,7 +9,6 @@ import {
   OrganizationUsersTable,
   OrganizationUsersTableSkeleton,
   OrganizationFormDialog,
-  OrganizationEmptyState,
   AddUserDialog,
   EditUserRoleDialog,
   DeleteUserConfirmationDialog,
@@ -22,6 +21,7 @@ import {
 import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationDisplayStatusValues, OrganizationRole } from "@repo/types";
 import { DialogMode } from "./types";
+import { ScreenEmptyState } from "../../components";
 
 export const MyOrganizationScreen: FC = () => {
   // Fetch user's organizations list
@@ -135,10 +135,15 @@ export const MyOrganizationScreen: FC = () => {
   if (!organizations || organizations.length === 0) {
     return (
       <MainLayout>
-        <OrganizationEmptyState
-          onOpenFormDialog={() => onEditOrganizationProfile()}
+        <ScreenEmptyState
+          title="Aún no tienes organizaciones creadas"
+          description="Haz clic en el botón para crear tu primera organización y comenzar a
+            gestionar tu perfil, usuarios y huellas de carbono"
+          action={{
+            label: "Crear Organización",
+            onClick: onEditOrganizationProfile,
+          }}
         />
-
         <OrganizationFormDialog
           open={formDialogOpen}
           onClose={closeFormDialog}
