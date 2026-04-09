@@ -2,9 +2,11 @@ import { getOrganizationHistoryHandler } from "./handler.js";
 import {
   GetOrganizationHistoryParamsSchema,
   GetOrganizationHistoryResponseSchema,
+  OrganizationRole,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { StandardRouteSignature } from "@/routes/api/index.js";
+import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 
 export const getOrganizationHistoryRoute: StandardRouteSignature = (
   fastify
@@ -23,6 +25,16 @@ export const getOrganizationHistoryRoute: StandardRouteSignature = (
           503: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireOrganizationRole(idRequestExtractor, {
+          allowedRoles: [
+            OrganizationRole.ADMIN,
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.VIEWER,
+          ],
+          canAdminsBypass: true,
+        }),
+      ],
     },
     getOrganizationHistoryHandler
   );
