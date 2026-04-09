@@ -33,6 +33,7 @@ import {
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
+import { useCarbonInventoriesStore } from "../../hooks/useCarbonInventoriesStore";
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -72,6 +73,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     [systemParameters]
   );
 
+  const setActiveTab = useCarbonInventoriesStore((state) => state.setActiveTab);
   const { mutateAsync: requestCalculation } = useRequestCalculation();
   const { mutateAsync: requestVerification } = useRequestVerification();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
@@ -82,6 +84,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     try {
       await duplicateInventory(carbonInventory.id);
       enqueueSnackbar("Huella duplicada", { variant: "success" });
+      setActiveTab(0);
     } catch {
       enqueueSnackbar("No se pudo duplicar la huella", { variant: "error" });
     }

@@ -29,6 +29,7 @@ import {
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { BaseActionButton } from "../BaseActionButton";
+import { useCarbonInventoriesStore } from "../../hooks/useCarbonInventoriesStore";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -87,6 +88,7 @@ export const DraftActionsCell: FC<Props> = ({
     [systemParameters]
   );
 
+  const setActiveTab = useCarbonInventoriesStore((state) => state.setActiveTab);
   const { mutateAsync: selfDeclareClick, isPending: isSelfDeclareSubmitting } =
     useSelfDeclareCarbonInventory();
   const { mutateAsync: deleteInventory } = useDeleteCarbonInventory();
@@ -133,6 +135,7 @@ export const DraftActionsCell: FC<Props> = ({
     try {
       await selfDeclareClick(carbonInventory.id);
       enqueueSnackbar("Huella autodeclarada", { variant: "success" });
+      setActiveTab(1);
     } catch {
       enqueueSnackbar("No se pudo autodeclarar la huella", {
         variant: "error",

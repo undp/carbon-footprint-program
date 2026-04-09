@@ -1,4 +1,5 @@
 import { FC, useCallback, useMemo, useState } from "react";
+import { useCarbonInventoriesStore } from "./hooks/useCarbonInventoriesStore";
 import {
   Box,
   Typography,
@@ -22,7 +23,7 @@ import { DraftsTab } from "./components/DraftsTab";
 import { InventoriesTab } from "./components/InventoriesTab";
 
 export const CarbonInventoriesScreen: FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const { activeTab, setActiveTab } = useCarbonInventoriesStore();
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("all");
