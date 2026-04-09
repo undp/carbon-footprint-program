@@ -15,7 +15,6 @@ import {
   useTheme,
 } from "@mui/material";
 import { CloseOutlined, OpenInNewOutlined } from "@mui/icons-material";
-import { SubmissionType } from "@repo/types";
 import { formatDateTime } from "@/utils/formatting";
 import { getReviewTitle } from "@/utils/submissions";
 import { FilesSection } from "./FilesSection";
@@ -72,7 +71,9 @@ export const ViewSubmissionDialog: FC<Props> = ({
           fontWeight={600}
           sx={{ color: theme.palette.text.primary, fontSize: 18 }}
         >
-          {getReviewTitle(submission?.submissionType as SubmissionType)}
+          {submission?.submissionType
+            ? getReviewTitle(submission.submissionType)
+            : null}
         </Typography>
         <Typography
           variant="body2"
@@ -106,10 +107,10 @@ export const ViewSubmissionDialog: FC<Props> = ({
                 borderColor: theme.palette.divider,
               }}
             >
-              {submission.status && (
+              {submission.status && submission.submissionType && (
                 <CurrentStatusBanner
                   status={submission.status}
-                  type={submission.submissionType as SubmissionType}
+                  type={submission.submissionType}
                 />
               )}
 
