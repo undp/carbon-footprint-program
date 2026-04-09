@@ -71,7 +71,7 @@ export const useSubcategoryLinesColumns = (): GridColDef<LineRow>[] => {
       },
       {
         field: "emissions",
-        headerName: "Emisiones tCO₂e",
+        headerName: "Emisiones (tCO₂e)",
         minWidth: 130,
         flex: 0.8,
         headerClassName,

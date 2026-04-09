@@ -14,6 +14,7 @@ import { Routes } from "@/interfaces/routes/routes.const";
 import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
 import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGroup";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
 
 export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
@@ -201,7 +202,7 @@ export const ReductionPlanScreen: FC = () => {
               message={
                 inventoriesForSelectedOrg &&
                 inventoriesForSelectedOrg.length === 0
-                  ? "Esta organización no tiene huellas autodeclaradas disponibles."
+                  ? `Esta ${VOCAB.organization.noun.singular} no tiene huellas autodeclaradas disponibles.`
                   : "Selecciona una huella autodeclarada para ver el plan de reducción."
               }
             />

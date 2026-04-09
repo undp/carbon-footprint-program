@@ -90,7 +90,7 @@ export const InventoriesTab: FC<Props> = ({
               className="uppercase"
               isWiderScreen={isWiderScreen}
               ShortName="Emisiones"
-              LongName="Emisiones tCO₂e"
+              LongName="Emisiones (tCO₂e)"
             />
           ),
           align: "left",

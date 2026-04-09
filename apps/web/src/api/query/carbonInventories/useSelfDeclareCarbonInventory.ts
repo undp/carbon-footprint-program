@@ -35,6 +35,12 @@ export const useSelfDeclareCarbonInventory = () => {
           predicate: (query) =>
             query.queryKey.includes(SubmissionQueryKey.HistoryUpdateDependency),
         }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.StatusUpdateDependency
+            ),
+        }),
       ]);
     },
   });

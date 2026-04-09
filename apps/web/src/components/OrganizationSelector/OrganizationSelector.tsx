@@ -8,6 +8,8 @@ import {
 } from "@mui/material";
 import type { SelectProps } from "@mui/material";
 import type { GetMyOrganizationsSelectorOptionsResponse } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 export interface OrganizationSelectorProps {
   organizations: GetMyOrganizationsSelectorOptionsResponse;
@@ -30,7 +32,7 @@ export const OrganizationSelector: FC<OrganizationSelectorProps> = ({
   showAllOption = false,
   size = "small",
   minWidth = 240,
-  label = "Organización",
+  label = capitalize(VOCAB.organization.noun.singular),
 }) => {
   const labelId = `label-${useId()}`;
 
@@ -53,7 +55,7 @@ export const OrganizationSelector: FC<OrganizationSelectorProps> = ({
         {showNoneOption && (
           <MenuItem value="none">
             <Typography color="text.secondary" sx={{ fontStyle: "italic" }}>
-              sin organización
+              sin {VOCAB.organization.noun.singular}
             </Typography>
           </MenuItem>
         )}

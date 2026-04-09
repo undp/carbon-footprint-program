@@ -4,7 +4,6 @@ export { InfoCard } from "./InfoCard";
 export { OrganizationProfileSection } from "./OrganizationProfileSection";
 export { OrganizationHeader } from "./OrganizationHeader";
 export { OrganizationUsersTable } from "./OrganizationUsersTable";
-export { OrganizationEmptyState } from "./OrganizationEmptyState";
 export {
   OrganizationHeaderSkeleton,
   OrganizationProfileSectionSkeleton,

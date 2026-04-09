@@ -6,6 +6,7 @@ import {
   useRemoveOrganizationUser,
 } from "@/api/query/organizations";
 import { AddUserFormData, EditUserRoleFormData } from "../types";
+import { VOCAB } from "@/config/vocab";
 
 interface UserMutations {
   // Mutation handlers
@@ -51,7 +52,7 @@ export const useUserMutations = (
       // Guard: Don't execute if organizationId is undefined
       if (!organizationId) {
         enqueueSnackbar(
-          "No se puede agregar usuario: organización no cargada",
+          `No se puede agregar usuario: ${VOCAB.organization.noun.singular} no cargada`,
           {
             variant: "error",
           }
@@ -71,9 +72,12 @@ export const useUserMutations = (
           variant: "success",
         });
       } catch (error) {
-        enqueueSnackbar("No se pudo agregar el usuario a la organización", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `No se pudo agregar el usuario a la ${VOCAB.organization.noun.singular}`,
+          {
+            variant: "error",
+          }
+        );
         throw error;
       }
     },
@@ -85,9 +89,12 @@ export const useUserMutations = (
     async (userId: string, data: EditUserRoleFormData) => {
       // Guard: Don't execute if organizationId is undefined
       if (!organizationId) {
-        enqueueSnackbar("No se puede actualizar rol: organización no cargada", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `No se puede actualizar rol: ${VOCAB.organization.noun.singular} no cargada`,
+          {
+            variant: "error",
+          }
+        );
         throw new Error("Organization ID is undefined");
       }
 
@@ -103,9 +110,12 @@ export const useUserMutations = (
           variant: "success",
         });
       } catch (error) {
-        enqueueSnackbar("No se pudo actualizar el rol del usuario", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `No se pudo actualizar el rol del usuario en la ${VOCAB.organization.noun.singular}`,
+          {
+            variant: "error",
+          }
+        );
         throw error;
       }
     },
@@ -118,7 +128,7 @@ export const useUserMutations = (
       // Guard: Don't execute if organizationId is undefined
       if (!organizationId) {
         enqueueSnackbar(
-          "No se puede eliminar usuario: organización no cargada",
+          `No se puede eliminar usuario: ${VOCAB.organization.noun.singular} no cargada`,
           {
             variant: "error",
           }
@@ -135,9 +145,12 @@ export const useUserMutations = (
           variant: "success",
         });
       } catch (error) {
-        enqueueSnackbar("No se pudo eliminar el usuario de la organización", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `No se pudo eliminar el usuario de la ${VOCAB.organization.noun.singular}`,
+          {
+            variant: "error",
+          }
+        );
         throw error;
       }
     },

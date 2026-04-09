@@ -7,6 +7,8 @@ import {
 import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToRequest } from "../../../mappers";
 import { DialogMode, OrganizationFormValues } from "../../../types";
+import { VOCAB } from "@/config/vocab";
+import capitalize from "lodash-es/capitalize";
 
 interface UseOrganizationSubmitProps {
   mode: DialogMode;
@@ -40,7 +42,7 @@ export const useOrganizationSubmit = ({
         }
 
         enqueueSnackbar(
-          `Organización ${mode === DialogMode.create ? "creada" : "actualizada"} exitosamente`,
+          `${capitalize(VOCAB.organization.noun.singular)} ${mode === DialogMode.create ? "creada" : "actualizada"} exitosamente`,
           {
             variant: "success",
           }
@@ -48,7 +50,7 @@ export const useOrganizationSubmit = ({
         onSuccess?.();
       } catch (error) {
         enqueueSnackbar(
-          `No se pudo ${mode === DialogMode.create ? "crear" : "actualizar"} la organización`,
+          `No se pudo ${mode === DialogMode.create ? "crear" : "actualizar"} la ${VOCAB.organization.noun.singular}`,
           { variant: "error" }
         );
         throw error;

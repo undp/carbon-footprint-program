@@ -4,6 +4,8 @@ import { useSnackbar } from "notistack";
 import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationSelector } from "@/components";
 import { OrganizationHeaderSkeleton } from "./Skeletons";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 type OrganizationHeaderProps = {
   selectedOrganizationId?: string;
@@ -19,9 +21,12 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
 
   useEffect(() => {
     if (error) {
-      enqueueSnackbar("No se pudo cargar la lista de organizaciones", {
-        variant: "error",
-      });
+      enqueueSnackbar(
+        `No se pudo cargar la lista de ${VOCAB.organization.noun.plural}`,
+        {
+          variant: "error",
+        }
+      );
     }
   }, [error, enqueueSnackbar]);
 
@@ -43,7 +48,7 @@ export const OrganizationHeader: FC<OrganizationHeaderProps> = ({
         organizations={organizations}
         value={activeOrganization.id}
         onChange={onOrganizationChange}
-        label="Organizaciones"
+        label={capitalize(VOCAB.organization.noun.plural)}
       />
     </Box>
   );

@@ -5,6 +5,7 @@ export enum CarbonInventoryQueryKey {
   OrganizationStatusDependency = "organizationStatusDependency",
   AttributesUpdateDependency = "carbonInventoryAttributesUpdateDependency",
   EmissionsUpdateDependency = "carbonInventoryEmissionsUpdateDependency",
+  StatusUpdateDependency = "carbonInventoryStatusUpdateDependency",
   Methodology = "methodology",
   EmissionsSummaryCategories = "emissions-summary-categories",
   SubcategoriesRanking = "subcategories-ranking",

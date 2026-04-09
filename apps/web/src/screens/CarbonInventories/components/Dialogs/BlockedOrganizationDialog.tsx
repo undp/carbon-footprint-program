@@ -7,6 +7,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
+import capitalize from "lodash-es/capitalize";
 
 interface BlockedOrganizationDialogProps {
   open: boolean;
@@ -25,13 +27,13 @@ export const BlockedOrganizationDialog: FC<BlockedOrganizationDialogProps> = ({
       aria-describedby="blocked-organization-dialog-description"
     >
       <DialogTitle id="blocked-organization-dialog-title">
-        Organización bloqueada
+        {capitalize(VOCAB.organization.noun.singular)} bloqueada
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="blocked-organization-dialog-description">
-          No es posible enviar este inventario porque la organización asociada
-          se encuentra bloqueada. Por favor, contacte al administrador para más
-          información.
+          No es posible enviar este inventario porque la{" "}
+          {VOCAB.organization.noun.singular} asociada se encuentra bloqueada.
+          Por favor, contacte al administrador para más información.
         </DialogContentText>
       </DialogContent>
       <DialogActions>

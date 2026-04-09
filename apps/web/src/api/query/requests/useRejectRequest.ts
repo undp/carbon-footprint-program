@@ -4,6 +4,7 @@ import { apiClient } from "@/api/http";
 import { requestsKeys } from "./keys.js";
 import { organizationKeys } from "../organizations/keys.js";
 import { SubmissionQueryKey } from "../submissions/keys.js";
+import { CarbonInventoryQueryKey } from "../carbonInventories/keys.js";
 
 export const useRejectRequest = () => {
   const queryClient = useQueryClient();
@@ -42,6 +43,12 @@ export const useRejectRequest = () => {
         queryClient.invalidateQueries({
           predicate: (query) =>
             query.queryKey.includes(SubmissionQueryKey.HistoryUpdateDependency),
+        }),
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            query.queryKey.includes(
+              CarbonInventoryQueryKey.StatusUpdateDependency
+            ),
         }),
       ]);
     },

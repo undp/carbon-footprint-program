@@ -20,13 +20,18 @@ export const ScreenEmptyState: FC<ScreenEmptyStateProps> = ({
   icon,
 }) => {
   return (
-    <Box className="flex flex-1 items-center justify-center p-6">
-      <Box className="flex flex-col items-center justify-center gap-4 rounded-lg bg-white p-8 text-center">
+    <Box className="flex flex-1 items-center justify-center">
+      <Box className="flex h-1/3 w-2/3 flex-col items-center justify-center gap-6 rounded-lg bg-white p-50">
         {icon}
         <Typography variant="h6" color="text.primary">
           {title}
         </Typography>
-        <Typography className="max-w-sm" variant="body2" color="text.secondary">
+        <Typography
+          className="max-w-md"
+          variant="body2"
+          color="text.secondary"
+          align="center"
+        >
           {description}
         </Typography>
         {action && (

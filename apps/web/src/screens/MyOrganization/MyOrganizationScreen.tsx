@@ -9,7 +9,6 @@ import {
   OrganizationUsersTable,
   OrganizationUsersTableSkeleton,
   OrganizationFormDialog,
-  OrganizationEmptyState,
   AddUserDialog,
   EditUserRoleDialog,
   DeleteUserConfirmationDialog,
@@ -22,6 +21,9 @@ import {
 import { useMyOrganizations } from "@/api/query/organizations";
 import { OrganizationDisplayStatusValues, OrganizationRole } from "@repo/types";
 import { DialogMode } from "./types";
+import { ScreenEmptyState } from "../../components";
+import { VOCAB } from "../../config/vocab";
+import { capitalize } from "lodash-es";
 
 export const MyOrganizationScreen: FC = () => {
   // Fetch user's organizations list
@@ -107,7 +109,7 @@ export const MyOrganizationScreen: FC = () => {
       <MainLayout>
         <Box className="flex flex-1 flex-col items-center justify-center gap-4 p-8 text-center">
           <Typography variant="h5" color="text.primary" fontWeight="bold">
-            Hubo un error cargando tus organizaciones
+            Hubo un error cargando tus {VOCAB.organization.noun.plural}
           </Typography>
           <Typography
             variant="body1"
@@ -135,10 +137,15 @@ export const MyOrganizationScreen: FC = () => {
   if (!organizations || organizations.length === 0) {
     return (
       <MainLayout>
-        <OrganizationEmptyState
-          onOpenFormDialog={() => onEditOrganizationProfile()}
+        <ScreenEmptyState
+          title={`Aún no tienes ${VOCAB.organization.noun.plural} creadas`}
+          description={`Haz clic en el botón para crear tu primera ${VOCAB.organization.noun.singular} y comenzar a
+            gestionar tu perfil, usuarios y huellas de carbono`}
+          action={{
+            label: `Crear ${capitalize(VOCAB.organization.noun.singular)}`,
+            onClick: onEditOrganizationProfile,
+          }}
         />
-
         <OrganizationFormDialog
           open={formDialogOpen}
           onClose={closeFormDialog}

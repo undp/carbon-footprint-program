@@ -9,6 +9,7 @@ export enum SubmissionQueryKey {
 }
 
 export const submissionsKeys = {
+  all: ["submissions"] as const,
   detail: (id: string) =>
     [SubmissionQueryKey.Root, SubmissionQueryKey.Detail, id] as const,
   carbonInventoryHistory: (carbonInventoryId: string) =>
