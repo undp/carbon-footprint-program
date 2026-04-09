@@ -5,9 +5,9 @@ import { GridColDef, GridSortModel } from "@mui/x-data-grid";
 import { StylizedDataGrid } from "@/components";
 import { GetOrganizationRecognitionsResponse } from "@repo/types";
 import {
-  AwardSubmissionType,
+  CarbonInventoryRecognitionsSubmissionType,
   SUBMISSION_ACTION_ICON,
-  SUBMISSION_LABELS,
+  SUBMISSION_TABLE_LABELS,
 } from "./constants";
 
 const DEFAULT_SORT_MODEL: GridSortModel = [
@@ -37,7 +37,8 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     field: "submissionType",
     headerName: "Reconocimiento",
     flex: 1.5,
-    valueFormatter: (value: AwardSubmissionType) => SUBMISSION_LABELS[value],
+    valueFormatter: (value: CarbonInventoryRecognitionsSubmissionType) =>
+      SUBMISSION_TABLE_LABELS[value],
   },
   {
     field: "totalEmissions",
@@ -75,7 +76,8 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
             }}
           >
             {SUBMISSION_ACTION_ICON[
-              params.row.submissionType as AwardSubmissionType
+              params.row
+                .submissionType as CarbonInventoryRecognitionsSubmissionType
             ] ?? <EmojiEventsOutlined fontSize="small" />}
           </IconButton>
         </Tooltip>
