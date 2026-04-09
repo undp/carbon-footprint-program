@@ -18,7 +18,7 @@ export function isReductionProjectDeletable(
   return status === ReductionProjectDisplayStatusEnum.DRAFT;
 }
 
-/** First-time or resubmit after rejection. */
+/** First-time submission. */
 export function canRequestReductionProjectVerification(
   status: ReductionProjectDisplayStatus
 ): boolean {
