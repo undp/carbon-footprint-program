@@ -7,8 +7,7 @@ import {
 
 import { OrganizationNotFoundError } from "../../errors.js";
 import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
-
-const kgToTon = (kg: number) => kg / 1000;
+import { kgToTon } from "@repo/utils";
 
 export const getOrganizationBadgesService = async (
   prismaClient: PrismaClient,
