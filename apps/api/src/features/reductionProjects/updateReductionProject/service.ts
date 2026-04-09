@@ -1,9 +1,4 @@
-import {
-  InventoryStatus,
-  SubmissionType,
-  type PrismaClient,
-  Prisma,
-} from "@repo/database";
+import { SubmissionType, type PrismaClient, Prisma } from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateReductionProjectRequest,
