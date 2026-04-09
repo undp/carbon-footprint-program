@@ -109,12 +109,10 @@ export const updateReductionProjectService = async (
     }
     if (fields.year !== undefined) updateData.year = fields.year;
     if (fields.baselineScenario !== undefined) {
-      updateData.baselineScenario =
-        fields.baselineScenario === null ? null : fields.baselineScenario;
+      updateData.baselineScenario = fields.baselineScenario;
     }
     if (fields.projectScenario !== undefined) {
-      updateData.projectScenario =
-        fields.projectScenario === null ? null : fields.projectScenario;
+      updateData.projectScenario = fields.projectScenario;
     }
 
     let row;
