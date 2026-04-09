@@ -107,7 +107,13 @@ export const RecognitionsTable: FC<RecognitionsTableProps> = ({
       Reconocimientos
     </Typography>
     <StylizedDataGrid
+      sx={{
+        "& .MuiDataGrid-cell": {
+          padding: 0,
+        },
+      }}
       loading={loading}
+      getRowHeight={() => 48}
       disableColumnSorting={false}
       columns={columns}
       rows={rows}
