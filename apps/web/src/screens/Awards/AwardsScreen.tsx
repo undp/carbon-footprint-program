@@ -20,8 +20,13 @@ import {
   useMyOrganizations,
   useOrganizationBadges,
   useBadgePreviews,
+  useCarbonInventoriesMinimalData,
 } from "@/api/query";
-import { BadgeType, GetOrganizationBadgesResponse } from "@repo/types";
+import {
+  BadgeType,
+  CarbonInventoryDisplayStatusEnum,
+  GetOrganizationBadgesResponse,
+} from "@repo/types";
 import { RecognitionModal } from "./components/RecognitionModal";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
@@ -65,6 +70,11 @@ const DEFAULT_SORT_MODEL: GridSortModel = [
   { field: "badgeType", sort: "asc" },
 ];
 
+const APPROVED_STATUSES = [
+  CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
+  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+];
+
 export const AwardsScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedOrganizationId, setSelectedOrganizationId] =
@@ -85,10 +95,15 @@ export const AwardsScreen: FC = () => {
 
   const { data: badgePreviews = [] } = useBadgePreviews(AWARD_BADGE_TYPES);
 
+  const { data: approvedInventories = [] } =
+    useCarbonInventoriesMinimalData(APPROVED_STATUSES);
+
   const availableYears = useMemo(() => {
-    const years = new Set(badges.map((b) => b.measurementYear));
+    const years = new Set(
+      approvedInventories.map((inv) => inv.year).filter((y) => y != null)
+    );
     return Array.from(years).sort((a, b) => b - a);
-  }, [badges]);
+  }, [approvedInventories]);
 
   const previewMap = useMemo(
     () => new Map(badgePreviews.map((p) => [p.badgeType, p.previewUrl])),
