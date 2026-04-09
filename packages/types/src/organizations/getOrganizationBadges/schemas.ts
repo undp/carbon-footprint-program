@@ -9,7 +9,7 @@ export const GetOrganizationBadgesParamsSchema = z.object({
 export const GetOrganizationBadgesQuerySchema = z.object({
   year: z
     .string()
-    .regex(/^\d+$/, "Year must be a valid number")
+    .regex(/^\d{4}$/, "Year must be a 4-digit year")
     .optional()
     .describe(
       'Optional year filter. Must be a number (e.g., "2024"). Omit to get all years.'
