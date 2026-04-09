@@ -14,7 +14,7 @@ export const FileUploadSection: FC<FileUploadSectionProps> = ({
   control,
   isLoading,
 }) => {
-  const files = useWatch({ control, name: "files" });
+  const files = useWatch({ control, name: "files", defaultValue: [] });
 
   return (
     <Box className="flex flex-col gap-2">
