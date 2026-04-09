@@ -22,8 +22,5 @@ export function isReductionProjectDeletable(
 export function canRequestReductionProjectVerification(
   status: ReductionProjectDisplayStatus
 ): boolean {
-  return (
-    status === ReductionProjectDisplayStatusEnum.DRAFT ||
-    status === ReductionProjectDisplayStatusEnum.REVIEWED
-  );
+  return status === ReductionProjectDisplayStatusEnum.DRAFT;
 }
