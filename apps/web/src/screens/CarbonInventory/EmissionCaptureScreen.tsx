@@ -1,5 +1,6 @@
-import { FC, useMemo, useCallback, useEffect } from "react";
-import { Box } from "@mui/material";
+import { FC, useMemo, useCallback, useEffect, useState } from "react";
+import { Box, Button } from "@mui/material";
+import { AddRounded } from "@mui/icons-material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
@@ -11,6 +12,7 @@ import {
   CategoryCarousel,
   EmissionEditor,
   TotalCategoryEmissionCard,
+  AddSubcategoryModal,
 } from "./components";
 import { useAuth } from "@/contexts";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -112,6 +114,21 @@ export const EmissionCaptureScreen: FC = () => {
     showNoChangesMessage: false,
   });
 
+  const [isAddSubcategoryModalOpen, setIsAddSubcategoryModalOpen] =
+    useState(false);
+
+  const { submit: submitBeforeModal, isSubmitting: isSubmittingBeforeModal } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      isDirty: formState.isDirty,
+      getDirtyLineIds,
+      resetAfterSave,
+      showNoChangesMessage: false,
+      resultFeedbackWithSnackbar: true,
+      throwOnError: true,
+      onSuccess: () => setIsAddSubcategoryModalOpen(true),
+    });
+
   const selectedCategoryData = useMemo(
     () => data?.categories.find((category) => category.id === selectedCategory),
     [data, selectedCategory]
@@ -122,7 +139,18 @@ export const EmissionCaptureScreen: FC = () => {
   const globalSubmitting =
     isSubmittingAndGoingToList ||
     isSubmittingAndGoingBack ||
-    isSubmittingOnCategoryChange;
+    isSubmittingOnCategoryChange ||
+    isSubmittingBeforeModal;
+
+  const handleOpenAddSubcategoryModal = useCallback(() => {
+    void handleSubmit(async (formValues) => {
+      try {
+        await submitBeforeModal(formValues);
+      } catch {
+        // Error snackbar already shown; modal stays closed
+      }
+    })();
+  }, [handleSubmit, submitBeforeModal]);
 
   const handleCategoryChangeWithSave = useCallback(
     (categoryId: string) => {
@@ -256,6 +284,18 @@ export const EmissionCaptureScreen: FC = () => {
               <StepHeader
                 title="Paso 3: Completa los datos de tus fuentes de emisión"
                 description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
+                action={
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<AddRounded />}
+                    onClick={handleOpenAddSubcategoryModal}
+                    disabled={globalSubmitting || isBusy}
+                    loading={isSubmittingBeforeModal}
+                  >
+                    Gestionar Subcategorías
+                  </Button>
+                }
               />
               <CategoryCarousel
                 categories={data?.categories ?? []}
@@ -291,6 +331,13 @@ export const EmissionCaptureScreen: FC = () => {
       </form>
       {IS_DEVELOPMENT && <DevTool control={methods.control} />}
       <ExitInventoryDialog {...dialogProps} />
+      {isAddSubcategoryModalOpen && (
+        <AddSubcategoryModal
+          open={isAddSubcategoryModalOpen}
+          onClose={() => setIsAddSubcategoryModalOpen(false)}
+          inventoryId={inventoryId}
+        />
+      )}
       <ConfirmDialog
         open={confirmDialog.isOpen}
         onClose={confirmDialog.closeConfirm}
