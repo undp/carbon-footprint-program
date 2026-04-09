@@ -7,6 +7,7 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
 
 export type SelfDeclareValidationReason =
   | "missing-organization"
@@ -21,8 +22,7 @@ interface SelfDeclareValidationDialogProps {
 }
 
 const messages: Record<NonNullable<SelfDeclareValidationReason>, string> = {
-  "missing-organization":
-    "No es posible autodeclarar esta huella porque no tiene una organización asociada. Por favor, asocie una organización antes de continuar.",
+  "missing-organization": `No es posible autodeclarar esta huella porque no tiene una ${VOCAB.organization.noun.singular} asociada. Por favor, asocie una ${VOCAB.organization.noun.singular} antes de continuar.`,
   "missing-name":
     "No es posible autodeclarar esta huella porque no tiene un nombre asignado. Por favor, edite la huella para completar esta información antes de continuar.",
   "missing-year":

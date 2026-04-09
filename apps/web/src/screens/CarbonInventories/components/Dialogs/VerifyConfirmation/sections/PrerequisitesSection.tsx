@@ -1,10 +1,11 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
 
 const PREREQUISITES = [
   "Tener un cálculo de huella de carbono autodeclarado en la plataforma Huella Latam",
   "Contar con una verificación externa realizada por un organismo acreditado",
-  "Validar que los datos de contacto de tu organización estén actualizados en el sistema",
+  `Validar que los datos de contacto de tu ${VOCAB.organization.noun.singular} estén actualizados en el sistema`,
 ];
 
 export const PrerequisitesSection: FC = () => (

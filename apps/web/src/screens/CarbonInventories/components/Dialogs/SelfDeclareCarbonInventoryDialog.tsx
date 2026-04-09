@@ -13,6 +13,7 @@ import {
 import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome, Close, InfoOutlined } from "@mui/icons-material";
 import { FormSwornDeclarationField } from "@/components/form";
+import { VOCAB } from "@/config/vocab";
 
 interface FormValues {
   sworn: boolean;
@@ -112,9 +113,9 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                 >
                   Al <strong>autodeclarar</strong> tu huella de carbono,
                   recibirás automáticamente un{" "}
-                  <strong>Diploma de Medición</strong> que reconoce que tu
-                  organización ha calculado sus emisiones de gases de efecto
-                  invernadero.
+                  <strong>Diploma de Medición</strong> que reconoce que tu{" "}
+                  {VOCAB.organization.noun.singular} ha calculado sus emisiones
+                  de gases de efecto invernadero.
                 </Typography>
 
                 <Box
@@ -178,10 +179,10 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
             label={
               <Typography variant="body2">
                 Declaro que los datos del cálculo de huella de carbono
-                corresponden a la organización mencionada y comprendo que este
-                diploma es un reconocimiento por realizar el cálculo, y no
-                constituye una certificación oficial ni verificación por parte
-                de Huella Latam.
+                corresponden a la {VOCAB.organization.noun.singular} mencionada
+                y comprendo que este diploma es un reconocimiento por realizar
+                el cálculo, y no constituye una certificación oficial ni
+                verificación por parte de Huella Latam.
               </Typography>
             }
           />

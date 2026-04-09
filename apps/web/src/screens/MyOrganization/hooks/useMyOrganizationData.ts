@@ -4,6 +4,7 @@ import {
   useOrganization,
   useOrganizationUsers,
 } from "@/api/query/organizations";
+import { VOCAB } from "@/config/vocab";
 
 interface UseMyOrganizationDataProps {
   activeOrganizationId?: string | null;
@@ -59,9 +60,12 @@ export const useMyOrganizationData = ({
 
   useEffect(() => {
     if (organizationError) {
-      enqueueSnackbar("No se pudo cargar la información de la organización", {
-        variant: "error",
-      });
+      enqueueSnackbar(
+        `No se pudo cargar la información de la ${VOCAB.organization.noun.singular}`,
+        {
+          variant: "error",
+        }
+      );
     }
   }, [organizationError, enqueueSnackbar]);
 

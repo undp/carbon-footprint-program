@@ -145,10 +145,10 @@ export const AwardsScreen: FC = () => {
   if (!isLoadingOrgs && organizations.length === 0) {
     return (
       <ScreenEmptyState
-        title="Aún no tienes organizaciones creadas"
-        description="Haz clic en el botón para crear tu primera organización."
+        title={`Aún no tienes ${VOCAB.organization.noun.plural} creadas`}
+        description={`Haz clic en el botón para crear tu primera ${VOCAB.organization.noun.singular}.`}
         action={{
-          label: "Ir a Mi Organización",
+          label: `Ir a Mi ${capitalize(VOCAB.organization.noun.singular)}`,
           onClick: onNavigateToMyOrganization,
         }}
       />

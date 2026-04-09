@@ -7,6 +7,8 @@ import {
   DialogActions,
   Button,
 } from "@mui/material";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 interface MissingOrganizationDialogProps {
   open: boolean;
@@ -25,12 +27,13 @@ export const MissingOrganizationDialog: FC<MissingOrganizationDialogProps> = ({
       aria-describedby="missing-organization-dialog-description"
     >
       <DialogTitle id="missing-organization-dialog-title">
-        Organización no asociada
+        {capitalize(VOCAB.organization.noun.singular)} no asociada
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="missing-organization-dialog-description">
-          No es posible enviar esta huella a cálculo porque no tiene una
-          organización acreditada asociada. Por favor, asocie una organización
+          No es posible enviar esta huella a cálculo porque no tiene una{" "}
+          {VOCAB.organization.noun.singular} acreditada asociada. Por favor,
+          asocie una {VOCAB.organization.noun.singular}
           antes de continuar.
         </DialogContentText>
       </DialogContent>

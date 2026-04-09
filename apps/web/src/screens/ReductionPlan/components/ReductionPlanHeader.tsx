@@ -13,6 +13,8 @@ import type {
   GetMyOrganizationsSelectorOptionsResponse,
 } from "@repo/types";
 import { OrganizationSelector } from "@/components";
+import { VOCAB } from "@/config/vocab";
+import capitalize from "lodash-es/capitalize";
 
 interface ReductionPlanHeaderProps {
   organizations: GetMyOrganizationsSelectorOptionsResponse;
@@ -51,7 +53,7 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
           organizations={organizations}
           value={selectedOrganizationId ?? ""}
           onChange={onOrganizationChange}
-          label="Organización"
+          label={capitalize(VOCAB.organization.noun.singular)}
         />
         <FormControl
           sx={{ minHeight: 40, minWidth: 216, maxWidth: "10dvw" }}

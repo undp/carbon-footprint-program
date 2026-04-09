@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Box, Stack, Typography, useTheme } from "@mui/material";
 import { InfoRow } from "@/screens/MyOrganization/components/InfoRow";
 import { GetSubmissionHistoryResponse } from "@repo/types";
+import { VOCAB } from "@/config/vocab";
 
 type Props = {
   data: GetSubmissionHistoryResponse[number]["organizationData"];
@@ -51,7 +52,7 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
           />
           <InfoRow label="Sub-rubro" value={data?.subsector?.name ?? "-"} />
           <InfoRow
-            label="Tamaño de organización"
+            label={`Tamaño de ${VOCAB.organization.noun.singular}`}
             value={data?.countryOrganizationSize?.name ?? "-"}
           />
           <InfoRow
