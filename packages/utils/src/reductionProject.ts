@@ -8,7 +8,7 @@ export function isReductionProjectEditable(
 ): boolean {
   return (
     status === ReductionProjectDisplayStatusEnum.DRAFT ||
-    status === ReductionProjectDisplayStatusEnum.REJECTED
+    status === ReductionProjectDisplayStatusEnum.REVIEWED
   );
 }
 
@@ -24,6 +24,6 @@ export function canRequestReductionProjectVerification(
 ): boolean {
   return (
     status === ReductionProjectDisplayStatusEnum.DRAFT ||
-    status === ReductionProjectDisplayStatusEnum.REJECTED
+    status === ReductionProjectDisplayStatusEnum.REVIEWED
   );
 }
