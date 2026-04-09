@@ -1,3 +1,5 @@
+import { CarbonInventoryQueryKey } from "../carbonInventories/keys";
+
 export const organizationKeys = {
   all: ["organizations", "organizationStatusDependency"] as const,
   admin: () => [...organizationKeys.all, "admin"] as const,
@@ -28,6 +30,7 @@ export const organizationKeys = {
     [
       ...organizationKeys.detail(organizationId),
       "badges",
+      CarbonInventoryQueryKey.StatusUpdateDependency,
       year ?? null,
     ] as const,
 };
