@@ -20,7 +20,8 @@ export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Reconocimiento de medición",
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
     "Reconocimiento de verificación",
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "Reconocimiento de reducción",
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]:
+    "Reconocimiento de reducción",
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
     "Reconocimiento de neutralización",
 };
@@ -35,6 +36,27 @@ export const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
   [SubmissionEventType.REVIEWED]: "CON OBSERVACIONES",
 };
 
+export const getPostulationLabel = (
+  submissionType: SubmissionType,
+  automatic = false
+): string => {
+  const prefix = automatic ? "POSTULACIÓN AUTOMÁTICA" : "POSTULACIÓN";
+  switch (submissionType) {
+    case SubmissionType.CARBON_INVENTORY_VERIFICATION:
+      return `${prefix} A RECONOCIMIENTO DE VERIFICACIÓN`;
+    case SubmissionType.CARBON_INVENTORY_CALCULATION:
+      return `${prefix} A RECONOCIMIENTO DE MEDICIÓN`;
+    case SubmissionType.ORGANIZATION_ACCREDITATION:
+      return `${prefix} A ${VOCAB.inscription.noun.singular} ${VOCAB.organization.noun.singular}`.toUpperCase();
+    case SubmissionType.REDUCTION_PROJECT_VERIFICATION:
+      return `${prefix} A RECONOCIMIENTO DE REDUCCIÓN`;
+    case SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION:
+      return `${prefix} A RECONOCIMIENTO DE NEUTRALIZACIÓN`;
+    default:
+      return prefix;
+  }
+};
+
 export const getEventLabel = (entry: SubmissionHistoryEntry): string => {
   return EVENT_TYPE_LABEL[entry.eventType] ?? entry.eventType;
 };
@@ -45,7 +67,7 @@ const REVIEW_TITLE_MAP: Partial<Record<SubmissionType, string>> = {
     "al Reconocimiento de medición",
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
     "al Reconocimiento de verificación",
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]:
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]:
     "al Reconocimiento de reducción",
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
     "al Reconocimiento de neutralización",
