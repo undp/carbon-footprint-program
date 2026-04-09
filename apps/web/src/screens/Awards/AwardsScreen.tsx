@@ -26,8 +26,10 @@ import {
   BadgeType,
   CarbonInventoryDisplayStatusEnum,
   GetOrganizationBadgesResponse,
+  GetSubmissionRecognitionFileResponse,
 } from "@repo/types";
-import { RecognitionModal } from "./components/RecognitionModal";
+import { apiClient } from "@/api/http";
+import { enqueueSnackbar } from "notistack";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
 
@@ -79,10 +81,6 @@ export const AwardsScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("");
-  const [openModal, setOpenModal] = useState<{
-    submissionId: string;
-    badgeType: string;
-  } | null>(null);
 
   const { data: organizations = [], isLoading: isLoadingOrgs } =
     useMyOrganizations();
@@ -164,12 +162,19 @@ export const AwardsScreen: FC = () => {
         <IconButton
           size="small"
           color="success"
-          onClick={() =>
-            setOpenModal({
-              submissionId: params.row.submissionId,
-              badgeType: params.row.badgeType,
-            })
-          }
+          onClick={async () => {
+            try {
+              const data = await apiClient
+                .get(`submissions/${params.row.submissionId}/recognition-file`)
+                .json<GetSubmissionRecognitionFileResponse>();
+              window.open(data.previewUrl, "_blank", "noopener,noreferrer");
+            } catch {
+              enqueueSnackbar(
+                "No hay diploma disponible para este reconocimiento.",
+                { variant: "warning" }
+              );
+            }
+          }}
           title="Ver reconocimiento"
           sx={{
             border: 1,
@@ -294,13 +299,6 @@ export const AwardsScreen: FC = () => {
           }}
         />
       </Box>
-
-      {/* Recognition diploma modal */}
-      <RecognitionModal
-        submissionId={openModal?.submissionId ?? null}
-        badgeType={openModal?.badgeType ?? null}
-        onClose={() => setOpenModal(null)}
-      />
     </Box>
   );
 };
