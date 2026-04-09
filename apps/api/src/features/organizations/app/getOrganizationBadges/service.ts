@@ -13,7 +13,8 @@ const kgToTon = (kg: number) => kg / 1000;
 export const getOrganizationBadgesService = async (
   prismaClient: PrismaClient,
   organizationId: string,
-  year?: string
+  year?: string,
+  badgeTypes?: BadgeType[]
 ): Promise<GetOrganizationBadgesResponse> => {
   const org = await prismaClient.organization.findUnique({
     where: { id: BigInt(organizationId) },
@@ -25,6 +26,7 @@ export const getOrganizationBadgesService = async (
   }
 
   const yearFilter = year ? parseInt(year, 10) : undefined;
+  const badgeTypeFilter = badgeTypes?.length ? { in: badgeTypes } : undefined;
 
   const inventories = await prismaClient.carbonInventory.findMany({
     where: {
@@ -40,9 +42,7 @@ export const getOrganizationBadgesService = async (
                   SubmissionStatus.APPROVED_AUTOMATICALLY,
                 ],
               },
-              badge: {
-                type: { not: BadgeType.ORGANIZATION_ACCREDITATION },
-              },
+              ...(badgeTypeFilter && { badge: { type: badgeTypeFilter } }),
             },
           },
         },
@@ -62,9 +62,7 @@ export const getOrganizationBadgesService = async (
                       SubmissionStatus.APPROVED_AUTOMATICALLY,
                     ],
                   },
-                  badge: {
-                    type: { not: BadgeType.ORGANIZATION_ACCREDITATION },
-                  },
+                  ...(badgeTypeFilter && { badge: { type: badgeTypeFilter } }),
                 },
                 select: {
                   id: true,

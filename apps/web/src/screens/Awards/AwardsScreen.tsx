@@ -95,7 +95,11 @@ export const AwardsScreen: FC = () => {
   const effectiveOrgId = selectedOrganizationId || defaultOrgId;
 
   const { data: badges = [], isLoading: isLoadingBadges } =
-    useOrganizationBadges(effectiveOrgId, selectedYear || undefined);
+    useOrganizationBadges(
+      effectiveOrgId,
+      selectedYear || undefined,
+      AWARD_BADGE_TYPES
+    );
 
   const { data: badgePreviews = [] } = useBadgePreviews(AWARD_BADGE_TYPES);
 

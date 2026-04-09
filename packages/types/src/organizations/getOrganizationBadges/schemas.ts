@@ -14,6 +14,11 @@ export const GetOrganizationBadgesQuerySchema = z.object({
     .describe(
       'Optional year filter. Must be a number (e.g., "2024"). Omit to get all years.'
     ),
+  badgeTypes: z
+    .union([BadgeTypeSchema, z.array(BadgeTypeSchema)])
+    .transform((v) => (Array.isArray(v) ? v : [v]))
+    .optional()
+    .describe("Filter by badge type(s). Can be repeated."),
 });
 
 const GetOrganizationBadgesItemSchema = z.object({

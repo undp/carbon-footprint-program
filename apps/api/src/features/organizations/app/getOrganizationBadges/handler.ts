@@ -14,12 +14,15 @@ export const getOrganizationBadgesHandler = async (
 ) => {
   const log = request.log.child({ module: "app-organizations" });
   const { id } = request.params;
-  const { year } = request.query;
+  const { year, badgeTypes } = request.query;
 
-  log.info({ organizationId: id, year }, "Getting organization badges...");
+  log.info(
+    { organizationId: id, year, badgeTypes },
+    "Getting organization badges..."
+  );
 
   const prisma = request.server.prisma;
-  const data = await getOrganizationBadgesService(prisma, id, year);
+  const data = await getOrganizationBadgesService(prisma, id, year, badgeTypes);
 
   log.info(
     { organizationId: id },
