@@ -158,6 +158,7 @@ export const ReductionProjectActionsCell: FC<
             enqueueSnackbar("No se pudieron subir los archivos adjuntos", {
               variant: "error",
             });
+            setIsVerifySubmitting(false);
             return;
           }
         }
