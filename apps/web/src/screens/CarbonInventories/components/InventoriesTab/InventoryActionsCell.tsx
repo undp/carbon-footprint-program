@@ -218,16 +218,16 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
 
-        {/* Enviar a cálculo */}
+        {/* Postular a cálculo */}
         {recognitionBehavior === MeasurementRecognitionBehaviorEnum.MANUAL && (
-          <Tooltip title="Enviar a cálculo">
+          <Tooltip title="Postular a cálculo">
             <span>
               <BaseActionButton
                 onClick={onCalculationClick}
                 disabled={
                   !canRequestMeasurement || !carbonInventory.isSelfDeclared
                 }
-                aria-label="Enviar a cálculo"
+                aria-label="Postular a cálculo"
               >
                 <SendOutlined fontSize="small" />
               </BaseActionButton>
@@ -235,13 +235,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
-        {/* Enviar a sello de verificación */}
-        <Tooltip title="Enviar a sello de verificación">
+        {/* Postular a sello de verificación */}
+        <Tooltip title="Postular a sello de verificación">
           <span>
             <BaseActionButton
               onClick={onVerifyClick}
               disabled={!canRequestVerification}
-              aria-label="Enviar a sello de verificación"
+              aria-label="Postular a sello de verificación"
             >
               <VerifiedOutlined fontSize="small" />
             </BaseActionButton>
