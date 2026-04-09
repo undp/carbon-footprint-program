@@ -6,7 +6,6 @@ import { StylizedDataGrid } from "@/components";
 import { GetOrganizationRecognitionsResponse } from "@repo/types";
 import {
   CarbonInventoryRecognitionsSubmissionType,
-  SUBMISSION_ACTION_ICON,
   SUBMISSION_TABLE_LABELS,
 } from "./constants";
 
@@ -71,10 +70,7 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
               p: "4px",
             }}
           >
-            {SUBMISSION_ACTION_ICON[
-              params.row
-                .submissionType as CarbonInventoryRecognitionsSubmissionType
-            ] ?? <EmojiEventsOutlined fontSize="small" />}
+            <EmojiEventsOutlined fontSize="small" />
           </IconButton>
         </Tooltip>
       ) : (

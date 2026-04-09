@@ -1,9 +1,3 @@
-import {
-  Co2Outlined,
-  EmojiEventsOutlined,
-  PublicOutlined,
-  VerifiedOutlined,
-} from "@mui/icons-material";
 import { BadgeType, SubmissionType } from "@repo/types";
 
 export type CarbonInventoryRecognitionsSubmissionType = Exclude<
@@ -87,22 +81,4 @@ export const SUBMISSION_CARD_COLORS: Record<
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "#f5f5f5",
   [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "#fff8e1",
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "#e0f7fa",
-};
-
-export const SUBMISSION_ACTION_ICON: Record<
-  CarbonInventoryRecognitionsSubmissionType,
-  React.ReactElement
-> = {
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]: (
-    <EmojiEventsOutlined fontSize="small" />
-  ),
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: (
-    <VerifiedOutlined fontSize="small" />
-  ),
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: (
-    <Co2Outlined fontSize="small" />
-  ),
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: (
-    <PublicOutlined fontSize="small" />
-  ),
 };
