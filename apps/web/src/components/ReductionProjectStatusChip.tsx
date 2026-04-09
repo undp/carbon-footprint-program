@@ -69,15 +69,16 @@ export const ReductionProjectStatusChip: FC<
 
   const variant = size === "medium" ? "subtitle1" : "subtitle2";
   const fontWeight = size === "medium" ? "fontWeightMedium" : undefined;
+  const statusColor = getStatusColor(theme, status);
 
   return (
     <Tooltip title={TOOLTIP_LABELS[status]}>
       <Chip
         sx={{
           padding: "6px 16px",
-          backgroundColor: alpha(getStatusColor(theme, status), 0.3),
-          color: darken(getStatusColor(theme, status), 0.5),
-          border: `1px solid ${alpha(getStatusColor(theme, status), 0.3)}`,
+          backgroundColor: alpha(statusColor, 0.3),
+          color: darken(statusColor, 0.5),
+          border: `1px solid ${alpha(statusColor, 0.3)}`,
           textTransform: "uppercase",
         }}
         label={
