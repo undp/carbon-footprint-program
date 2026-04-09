@@ -258,7 +258,8 @@ export const AdminActionsCard: FC<Props> = ({
                   multiline
                   rows={4}
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
+                  onChange={(e) => setComment(e.target.value.slice(0, 2000))}
+                  slotProps={{ htmlInput: { maxLength: 2000 } }}
                   placeholder="Escriba sus observaciones o comentarios sobre la postulación..."
                   disabled={busy}
                   sx={{
@@ -268,6 +269,13 @@ export const AdminActionsCard: FC<Props> = ({
                     },
                   }}
                 />
+                <Typography
+                  variant="caption"
+                  color={theme.palette.text.secondary}
+                  textAlign="right"
+                >
+                  {comment.length} / 2000
+                </Typography>
               </Stack>
             )}
 
