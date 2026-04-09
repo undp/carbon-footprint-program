@@ -69,7 +69,6 @@ const BADGE_ACTION_ICON: Record<string, React.ReactElement> = {
 
 const DEFAULT_SORT_MODEL: GridSortModel = [
   { field: "measurementYear", sort: "desc" },
-  { field: "badgeType", sort: "asc" },
 ];
 
 const APPROVED_STATUSES = [
