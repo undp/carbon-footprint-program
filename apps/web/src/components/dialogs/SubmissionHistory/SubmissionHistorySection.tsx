@@ -13,7 +13,6 @@ type Props = {
 
 const HistoryCard: FC<{
   entry: SubmissionHistoryEntry;
-  onNavigateToInventory?: (id: string) => void;
 }> = ({ entry }) => {
   const theme = useTheme();
 
