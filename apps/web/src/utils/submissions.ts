@@ -23,7 +23,7 @@ export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello de Neutralización",
 };
 
-const EVENT_TYPE_LABEL: Record<string, string> = {
+const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
   [SubmissionEventType.POSTULATION]: "POSTULACIÓN",
   [SubmissionEventType.AUTOMATIC_POSTULATION]: "POSTULACIÓN AUTOMÁTICA",
   [SubmissionEventType.SELF_DECLARATION]: "AUTODECLARADA",
