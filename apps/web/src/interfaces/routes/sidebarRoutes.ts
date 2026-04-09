@@ -19,5 +19,5 @@ export const SidebarRoutesTranslations: Record<SidebarRoute, string> = {
   [SidebarRoutes.CARBON_INVENTORIES]: "Huella organizacional",
   [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
   [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",
-  [SidebarRoutes.AWARDS]: "Premios",
+  [SidebarRoutes.AWARDS]: "Reconocimientos",
 };
