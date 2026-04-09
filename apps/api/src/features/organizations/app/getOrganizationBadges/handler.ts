@@ -22,7 +22,15 @@ export const getOrganizationBadgesHandler = async (
   );
 
   const prisma = request.server.prisma;
-  const data = await getOrganizationBadgesService(prisma, id, year, badgeTypes);
+  const { blobServiceClient, storageContainerName } = request.server;
+  const data = await getOrganizationBadgesService(
+    prisma,
+    id,
+    year,
+    badgeTypes,
+    blobServiceClient,
+    storageContainerName
+  );
 
   log.info(
     { organizationId: id },

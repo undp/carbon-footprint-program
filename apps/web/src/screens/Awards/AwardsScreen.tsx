@@ -7,6 +7,7 @@ import {
   Select,
   MenuItem,
   IconButton,
+  Tooltip,
 } from "@mui/material";
 import {
   EmojiEventsOutlined,
@@ -30,10 +31,7 @@ import {
   BadgeType,
   CarbonInventoryDisplayStatusEnum,
   GetOrganizationBadgesResponse,
-  GetSubmissionRecognitionFileResponse,
 } from "@repo/types";
-import { apiClient } from "@/api/http";
-import { enqueueSnackbar } from "notistack";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
 import { useNavigate } from "@tanstack/react-router";
@@ -207,36 +205,37 @@ export const AwardsScreen: FC = () => {
       headerName: "Acciones",
       flex: 0.5,
       sortable: false,
-      renderCell: (params) => (
-        <IconButton
-          size="small"
-          color="success"
-          onClick={async () => {
-            try {
-              const data = await apiClient
-                .get(`submissions/${params.row.submissionId}/recognition-file`)
-                .json<GetSubmissionRecognitionFileResponse>();
-              window.open(data.previewUrl, "_blank", "noopener,noreferrer");
-            } catch {
-              enqueueSnackbar(
-                "No hay diploma disponible para este reconocimiento.",
-                { variant: "warning" }
-              );
-            }
-          }}
-          title="Ver reconocimiento"
-          sx={{
-            border: 1,
-            borderColor: "success.main",
-            borderRadius: 1,
-            p: "4px",
-          }}
-        >
-          {BADGE_ACTION_ICON[params.row.badgeType] ?? (
-            <EmojiEventsOutlined fontSize="small" />
-          )}
-        </IconButton>
-      ),
+      renderCell: (params) =>
+        params.row.recognitionFileUrl ? (
+          <Tooltip title="Ver reconocimiento" placement="top">
+            <IconButton
+              size="small"
+              color="success"
+              onClick={() =>
+                window.open(
+                  params.row.recognitionFileUrl!,
+                  "_blank",
+                  "noopener,noreferrer"
+                )
+              }
+              title="Ver reconocimiento"
+              sx={{
+                border: 1,
+                borderColor: "success.main",
+                borderRadius: 1,
+                p: "4px",
+              }}
+            >
+              {BADGE_ACTION_ICON[params.row.badgeType] ?? (
+                <EmojiEventsOutlined fontSize="small" />
+              )}
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="No hay un reconocimiento disponible" placement="top">
+            <EmojiEventsOutlined fontSize="small" color="disabled" />
+          </Tooltip>
+        ),
     },
   ];
 

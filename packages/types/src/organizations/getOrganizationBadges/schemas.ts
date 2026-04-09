@@ -35,6 +35,12 @@ const GetOrganizationBadgesItemSchema = z.object({
   totalEmissions: z
     .number()
     .describe("Total emissions in tCO₂e for the carbon inventory"),
+  recognitionFileUrl: z
+    .string()
+    .nullable()
+    .describe(
+      "Signed SAS URL for the recognition file associated with this submission, or null if not available"
+    ),
 });
 
 export const GetOrganizationBadgesResponseSchema = z.array(

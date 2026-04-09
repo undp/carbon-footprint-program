@@ -2,22 +2,27 @@ import {
   InventoryStatus,
   OrganizationStatus,
   PrismaClient,
+  SubmissionFileType,
 } from "@repo/database";
 import {
   BadgeType,
   SubmissionStatus,
   GetOrganizationBadgesResponse,
 } from "@repo/types";
+import { BlobServiceClient } from "@azure/storage-blob";
 
 import { OrganizationNotFoundError } from "../../errors.js";
 import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { kgToTon } from "@repo/utils";
+import { generateReadSasUrl } from "@/services/index.js";
 
 export const getOrganizationBadgesService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   year?: string,
-  badgeTypes?: BadgeType[]
+  badgeTypes?: BadgeType[],
+  blobServiceClient?: BlobServiceClient | null,
+  containerName?: string | null
 ): Promise<GetOrganizationBadgesResponse> => {
   const org = await prismaClient.organization.findUnique({
     where: { id: BigInt(organizationId), status: OrganizationStatus.ACTIVE },
@@ -74,6 +79,13 @@ export const getOrganizationBadgesService = async (
                   badge: {
                     select: { type: true },
                   },
+                  files: {
+                    where: { type: SubmissionFileType.RECOGNITION },
+                    select: {
+                      file: { select: { blobPath: true, mimeType: true } },
+                    },
+                    take: 1,
+                  },
                 },
               },
             },
@@ -102,17 +114,35 @@ export const getOrganizationBadgesService = async (
       0
     );
 
-    result.push(
-      ...submissions
+    const items = await Promise.all(
+      submissions
         .filter((s) => s.badge)
-        .map((submission) => ({
-          submissionId: submission.id.toString(),
-          earningDate: submission.updatedAt?.toISOString() ?? null,
-          measurementYear: inventory.year!,
-          badgeType: submission.badge!.type,
-          totalEmissions,
-        }))
+        .map(async (submission) => {
+          const recognitionFile = submission.files[0]?.file;
+          let recognitionFileUrl: string | null = null;
+
+          if (recognitionFile?.blobPath && blobServiceClient && containerName) {
+            const { url } = await generateReadSasUrl(
+              blobServiceClient,
+              containerName,
+              recognitionFile.blobPath,
+              { contentType: recognitionFile.mimeType ?? undefined }
+            );
+            recognitionFileUrl = url;
+          }
+
+          return {
+            submissionId: submission.id.toString(),
+            earningDate: submission.updatedAt?.toISOString() ?? null,
+            measurementYear: inventory.year!,
+            badgeType: submission.badge!.type,
+            totalEmissions,
+            recognitionFileUrl,
+          };
+        })
     );
+
+    result.push(...items);
   }
 
   return result;
