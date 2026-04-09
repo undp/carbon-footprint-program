@@ -294,6 +294,15 @@ export const calculateDisplayStatus = (
     return CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED;
 
   if (
+    verifSubs.some(
+      (s) =>
+        s.status === SubmissionStatus.APPROVED ||
+        s.status === SubmissionStatus.APPROVED_AUTOMATICALLY
+    )
+  )
+    return CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
+
+  if (
     calcSubs.some(
       (s) =>
         s.status === SubmissionStatus.APPROVED ||

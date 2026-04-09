@@ -34,6 +34,7 @@ const STATUS_ORDER: RequestStatus[] = [
   RequestStatus.APPROVED,
   RequestStatus.REVIEWED,
   RequestStatus.REJECTED,
+  RequestStatus.APPROVED_AUTOMATICALLY,
 ];
 
 export const RequestScreenKpiSection: FC = () => {

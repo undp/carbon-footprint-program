@@ -1,8 +1,10 @@
 # Azure Authentication
-export AZURE_API_CLIENT_ID=""   # API App Registration ID for Azure Entra External Authentication
-export AZURE_FRONT_CLIENT_ID=""  # Frontend App Registration ID for Azure Entra External Authentication
-export AZURE_EXTERNAL_TENANT_SUBDOMAIN="" # External Tenant Subdomain  for Azure Entra External Authentication
-export AZURE_EXTERNAL_TENANT_ID=""   # External Tenant ID for Azure Entra External Authentication
+# AZURE_TENANT_TYPE: "external" (CIAM / ciamlogin.com) or "organizational" (Azure AD / login.microsoftonline.com)
+export AZURE_TENANT_TYPE="external"
+export AZURE_TENANT_ID=""            # Tenant ID (GUID)
+export AZURE_TENANT_SUBDOMAIN=""     # Tenant subdomain (only required for AZURE_TENANT_TYPE="external")
+export AZURE_API_CLIENT_ID=""        # API App Registration ID
+export AZURE_FRONT_CLIENT_ID=""      # Frontend App Registration ID
 
 # Azure Blob Storage (local development only)
 # In production these are set automatically by the Bicep infrastructure (appService.bicep).
@@ -16,18 +18,29 @@ export AZURE_STORAGE_CONTAINER_NAME=""  # Blob container name. Defaults to "file
 export DATABASE_URL=""  # PostgreSQL connection string, e.g., postgresql://user:password@localhost:5432/dbname
 
 # API
+export APP_VERSION=""
 export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
-export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=     # Must be set when using AUTH_PROVIDER="forced-user"
-export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=      # Must be set when using AUTH_PROVIDER="forced-user"
+# export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=""     # Must be set when using AUTH_PROVIDER="forced-user"
+# export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
+
+# Generic JWKS overrides (optional, for non-Azure IdPs)
+# export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
+# export JWKS_ISSUER=""           # Expected token issuer (overrides Azure-derived value)
+# export JWKS_AUDIENCE=""         # Expected token audience (overrides Azure-derived value)
+# export JWKS_REQUIRED_SCOPE=""   # Required scope claim (default: "access_as_user")
+# export JWKS_SKIP_SCOPE_CHECK="" # Set to "true" to disable scope enforcement entirely
 
 # Web
+export VITE_APP_VERSION=""
 export VITE_API_BASE_URL=""  # URL for the API
 export VITE_AZURE_FRONT_CLIENT_ID=$AZURE_FRONT_CLIENT_ID
 export VITE_AZURE_API_CLIENT_ID=$AZURE_API_CLIENT_ID
-export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_EXTERNAL_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_EXTERNAL_TENANT_ID}/v2.0" # Authority URL for Azure Entra External Authentication
+# Authority URL: derived from AZURE_TENANT_TYPE
+if [ "$AZURE_TENANT_TYPE" = "organizational" ]; then
+  export VITE_AZURE_AUTH_AUTHORITY="https://login.microsoftonline.com/${AZURE_TENANT_ID:-organizations}/v2.0"
+else
+  export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
+fi
 export VITE_FRONT_BASE_URL=""
-
-# Common
-export APP_VERSION=""

@@ -14,7 +14,7 @@ export const IS_DEMO = VITE_IS_DEMO_APP === "true";
 
 export const API_BASE_URL = VITE_API_BASE_URL!;
 
-// Azure External ID Configuration
+// Azure Entra ID Configuration (supports external/CIAM and organizational tenants)
 export const AZURE_FRONT_CLIENT_ID = VITE_AZURE_FRONT_CLIENT_ID!;
 export const AZURE_AUTHORITY = VITE_AZURE_AUTH_AUTHORITY!;
 export const FRONT_BASE_URL = VITE_FRONT_BASE_URL!;

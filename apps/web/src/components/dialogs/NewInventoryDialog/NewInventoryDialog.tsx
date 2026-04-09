@@ -48,8 +48,8 @@ const NewInventoryDialogContent: FC<DialogContentProps> = ({
   organizations,
   isLoadingOrgs,
 }) => {
-  const [orgId, setOrgId] = useState<string>(
-    selectedOrganizationId ?? defaultOrganizationId ?? "none"
+  const [orgId, setOrgId] = useState<string | null>(
+    selectedOrganizationId ?? defaultOrganizationId ?? null
   );
 
   // `useState` only runs once on mount. If the organizations query was still
@@ -57,7 +57,7 @@ const NewInventoryDialogContent: FC<DialogContentProps> = ({
   // at that point. This effect applies it once loading finishes, but only when
   // the user hasn't already made an explicit selection.
   useEffect(() => {
-    if (!selectedOrganizationId && orgId === "none" && defaultOrganizationId) {
+    if (!selectedOrganizationId && orgId === null && defaultOrganizationId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setOrgId(defaultOrganizationId);
     }
@@ -110,7 +110,7 @@ const NewInventoryDialogContent: FC<DialogContentProps> = ({
           </Typography>
           <OrganizationSelector
             organizations={organizations}
-            value={orgId}
+            value={orgId ?? "none"}
             onChange={setOrgId}
             isLoading={isLoadingOrgs}
             showNoneOption

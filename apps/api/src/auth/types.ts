@@ -25,6 +25,10 @@ export interface OidcTokenPayload {
   email?: string;
   /** User's preferred username (often the email) */
   preferred_username?: string;
+  /** Token version (Azure AD: must be "2.0") */
+  ver?: string;
+  /** Space-delimited scopes (Azure AD: e.g. "access_as_user") */
+  scp?: string;
   /** User's display name */
   name?: string;
   /** User's given/first name */

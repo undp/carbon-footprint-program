@@ -130,30 +130,40 @@ fi
 # 4.5) Check Azure Authentication Configuration (Optional)
 log "Checking Azure authentication configuration..."
 
-# Check if Azure External ID authentication is configured
-# AZURE_EXTERNAL_EXTERNAL_TENANT_SUBDOMAIN should be the subdomain (e.g., "undphuella")
-# AZURE_EXTERNAL_TENANT_ID is the tenant GUID
-EXTERNAL_TENANT_SUBDOMAIN="${AZURE_EXTERNAL_TENANT_SUBDOMAIN:-}"
-EXTERNAL_TENANT_ID="${AZURE_EXTERNAL_TENANT_ID:-}"
+# Check if Azure Entra ID authentication is configured
+# AZURE_TENANT_SUBDOMAIN: only required for external (CIAM) tenants
+# AZURE_TENANT_ID: the tenant GUID
+EXTERNAL_TENANT_SUBDOMAIN="${AZURE_TENANT_SUBDOMAIN:-}"
+EXTERNAL_TENANT_ID="${AZURE_TENANT_ID:-}"
 AUTH_FRONTEND_CLIENT_ID="${AZURE_FRONT_CLIENT_ID:-}"
 AUTH_API_CLIENT_ID="${AZURE_API_CLIENT_ID:-}"
+AUTH_TENANT_TYPE="${AZURE_TENANT_TYPE:-external}"
 
-if [ -n "$EXTERNAL_TENANT_SUBDOMAIN" ] && [ -n "$EXTERNAL_TENANT_ID" ] && [ -n "$AUTH_FRONTEND_CLIENT_ID" ] && [ -n "$AUTH_API_CLIENT_ID" ]; then
-  log "Azure authentication enabled:"
-  log "  - Tenant Subdomain: $EXTERNAL_TENANT_SUBDOMAIN"
+# Core requirements: tenant ID, frontend client ID, and API client ID
+# AZURE_TENANT_SUBDOMAIN is only required for external (CIAM) tenants
+CORE_AUTH_CONFIGURED=false
+if [ -n "$EXTERNAL_TENANT_ID" ] && [ -n "$AUTH_FRONTEND_CLIENT_ID" ] && [ -n "$AUTH_API_CLIENT_ID" ]; then
+  if [ "$AUTH_TENANT_TYPE" = "organizational" ] || [ -n "$EXTERNAL_TENANT_SUBDOMAIN" ]; then
+    CORE_AUTH_CONFIGURED=true
+  fi
+fi
+
+if [ "$CORE_AUTH_CONFIGURED" = "true" ]; then
+  log "Azure authentication enabled (tenant type: $AUTH_TENANT_TYPE):"
+  if [ -n "$EXTERNAL_TENANT_SUBDOMAIN" ]; then
+    log "  - Tenant Subdomain: $EXTERNAL_TENANT_SUBDOMAIN"
+  fi
   log "  - Tenant GUID: ${EXTERNAL_TENANT_ID:0:8}..."
   log "  - Frontend Client ID: ${AUTH_FRONTEND_CLIENT_ID:0:8}..."
-  if [ -n "$AUTH_API_CLIENT_ID" ]; then
-    log "  - API Client ID: ${AUTH_API_CLIENT_ID:0:8}..."
-  fi
+  log "  - API Client ID: ${AUTH_API_CLIENT_ID:0:8}..."
   ENABLE_AZURE_AUTH="true"
 else
   log "Azure authentication not configured (optional)"
   log "  To enable authentication, set in infra/.env:"
-  log "    - AZURE_EXTERNAL_TENANT_SUBDOMAIN: Your External ID tenant subdomain (e.g., 'undphuella')"
-  log "    - AZURE_EXTERNAL_TENANT_ID: Your External ID tenant GUID"
+  log "    - AZURE_TENANT_ID: Your tenant GUID"
   log "    - AZURE_FRONT_CLIENT_ID: Your frontend app registration client ID"
-  log "    - AZURE_API_CLIENT_ID: Your API app registration client ID (optional)"
+  log "    - AZURE_API_CLIENT_ID: Your API app registration client ID"
+  log "    - AZURE_TENANT_SUBDOMAIN: Your tenant subdomain (only for AZURE_TENANT_TYPE=external)"
   ENABLE_AZURE_AUTH="false"
 fi
 
@@ -231,8 +241,9 @@ fi
 if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   log "Adding Azure authentication parameters to deployment..."
   DEPLOY_PARAMS+=(--parameters enableAzureAuth=true)
-  DEPLOY_PARAMS+=(--parameters azureAuthExternalTenantSubdomain="$EXTERNAL_TENANT_SUBDOMAIN")
-  DEPLOY_PARAMS+=(--parameters azureAuthExternalTenantId="$EXTERNAL_TENANT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthTenantSubdomain="$EXTERNAL_TENANT_SUBDOMAIN")
+  DEPLOY_PARAMS+=(--parameters azureAuthTenantId="$EXTERNAL_TENANT_ID")
+  DEPLOY_PARAMS+=(--parameters azureAuthTenantType="${AZURE_TENANT_TYPE:-external}")
   DEPLOY_PARAMS+=(--parameters azureAuthFrontAppId="$AUTH_FRONTEND_CLIENT_ID")
   DEPLOY_PARAMS+=(--parameters azureAuthApiAppId="$AUTH_API_CLIENT_ID")
 fi
@@ -352,8 +363,8 @@ else
   else
     echo "ℹ️  Authentication: Not configured (AUTH_PROVIDER=none)"
     echo "  To enable authentication, set in infra/.env:"
-    echo "    AZURE_EXTERNAL_TENANT_SUBDOMAIN=your-tenant-subdomain"
-    echo "    AZURE_EXTERNAL_TENANT_ID=your-tenant-guid"
+    echo "    AZURE_TENANT_SUBDOMAIN=your-tenant-subdomain"
+    echo "    AZURE_TENANT_ID=your-tenant-guid"
     echo "    AZURE_FRONT_CLIENT_ID=your-frontend-client-id"
     echo "    AZURE_API_CLIENT_ID=your-api-client-id"
     echo ""

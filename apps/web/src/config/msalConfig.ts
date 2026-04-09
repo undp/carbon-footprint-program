@@ -7,8 +7,9 @@ import {
 } from "./environment";
 
 /**
- * MSAL Configuration for Azure Entra External ID
- * Supports Email OTP authentication
+ * MSAL Configuration for Azure Entra ID
+ * Supports both external (CIAM) and organizational tenants.
+ * The authority URL (VITE_AZURE_AUTH_AUTHORITY) determines the tenant type.
  */
 export const msalConfig: Configuration = {
   auth: {
@@ -36,7 +37,7 @@ export const loginRequest = {
  * Scopes for API access tokens
  * Use this when calling your backend API
  *
- * For Azure Entra External ID with OTP:
+ * For both external (CIAM) and organizational tenants:
  * - Use the default scopes if your API doesn't require custom scopes
  * - Add custom API scopes here if you've exposed an API in Azure
  *   Format: "api://<client-id>/<scope-name>"
