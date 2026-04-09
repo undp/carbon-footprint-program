@@ -68,12 +68,16 @@ export const AdminActionsCard: FC<Props> = ({
   const isSubmitDisabled =
     busy || !selectedAction || (isCommentRequired && !comment.trim());
 
-  const resetState = useCallback((action: Action) => {
-    setSelectedAction(action);
-    setComment("");
-    setDocFiles([]);
-    setRecognitionFiles([]);
-  }, []);
+  const resetState = useCallback(
+    (action: Action) => {
+      if (action === selectedAction) return;
+      setSelectedAction(action);
+      setComment("");
+      setDocFiles([]);
+      setRecognitionFiles([]);
+    },
+    [selectedAction]
+  );
 
   const handleSubmit = useCallback(async () => {
     if (!selectedAction) return;
