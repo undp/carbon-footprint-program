@@ -19,7 +19,7 @@ export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
   [SubmissionType.ORGANIZATION_ACCREDITATION]: `${capitalize(VOCAB.inscription.noun.singular)} ${VOCAB.organization.noun.singular}`,
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Diploma de Medición",
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Sello de Verificación",
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "Sello de Reducción",
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: "Sello de Reducción",
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello de Neutralización",
 };
 
@@ -46,7 +46,7 @@ export const getPostulationLabel = (
       return `${prefix} A DIPLOMA DE MEDICIÓN`;
     case SubmissionType.ORGANIZATION_ACCREDITATION:
       return `${prefix} A ${VOCAB.inscription.noun.singular} ${VOCAB.organization.noun.singular}`.toUpperCase();
-    case SubmissionType.REDUCTION_PLAN_VERIFICATION:
+    case SubmissionType.REDUCTION_PROJECT_VERIFICATION:
       return `${prefix} A SELLO DE REDUCCIÓN`;
     case SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION:
       return `${prefix} A SELLO DE NEUTRALIZACIÓN`;
@@ -75,7 +75,7 @@ const REVIEW_TITLE_MAP: Partial<Record<SubmissionType, string>> = {
   [SubmissionType.ORGANIZATION_ACCREDITATION]: `a ${capitalize(VOCAB.inscription.noun.singular)} de ${VOCAB.organization.noun.singular}`,
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: "al Diploma de medición",
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "al Sello de verificación",
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "al Sello de reducción",
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: "al Sello de reducción",
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
     "al Sello de neutralización",
 };

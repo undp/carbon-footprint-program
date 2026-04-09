@@ -13,7 +13,7 @@ import { createTestOrganizationData } from "./organizationDataFactory.js";
 export type CarbonInventorySubmissionType =
   | typeof SubmissionType.CARBON_INVENTORY_CALCULATION
   | typeof SubmissionType.CARBON_INVENTORY_VERIFICATION
-  | typeof SubmissionType.REDUCTION_PLAN_VERIFICATION
+  | typeof SubmissionType.REDUCTION_PROJECT_VERIFICATION
   | typeof SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION;
 
 /**
