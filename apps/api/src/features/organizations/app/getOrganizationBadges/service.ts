@@ -1,4 +1,8 @@
-import { PrismaClient } from "@repo/database";
+import {
+  InventoryStatus,
+  OrganizationStatus,
+  PrismaClient,
+} from "@repo/database";
 import {
   BadgeType,
   SubmissionStatus,
@@ -16,7 +20,7 @@ export const getOrganizationBadgesService = async (
   badgeTypes?: BadgeType[]
 ): Promise<GetOrganizationBadgesResponse> => {
   const org = await prismaClient.organization.findUnique({
-    where: { id: BigInt(organizationId) },
+    where: { id: BigInt(organizationId), status: OrganizationStatus.ACTIVE },
     select: { id: true },
   });
 
@@ -31,6 +35,7 @@ export const getOrganizationBadgesService = async (
     where: {
       organizationId: BigInt(organizationId),
       ...(yearFilter !== undefined ? { year: yearFilter } : {}),
+      status: InventoryStatus.ACTIVE,
       submission: {
         subject: {
           submissions: {
