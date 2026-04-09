@@ -11,7 +11,7 @@ export const useSubmissionRecognitionFile = (
   useQuery<GetSubmissionRecognitionFileResponse, AppHttpError>({
     queryKey: submissionsKeys.recognitionFile(submissionId ?? ""),
     queryFn: async () =>
-      apiClient.get(`submissions/${submissionId}/recognition-file`).json(),
+      apiClient.get(`submissions/${submissionId!}/recognition-file`).json(),
     staleTime: STALE_TIME_MS,
     enabled: !!submissionId,
     retry: false,
