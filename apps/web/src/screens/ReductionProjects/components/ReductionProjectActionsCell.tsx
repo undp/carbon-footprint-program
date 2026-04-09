@@ -74,9 +74,8 @@ export const ReductionProjectActionsCell: FC<
   );
   const canDelete = isReductionProjectDeletable(reductionProject.status);
 
-  const { data: organization } = useOrganization(
-    reductionProject.organizationId ?? undefined
-  );
+  const { data: organization, isLoading: isOrganizationLoading } =
+    useOrganization(reductionProject.organizationId ?? undefined);
 
   const { mutateAsync: deleteProject, isPending: isDeleting } =
     useDeleteReductionProject();
@@ -210,7 +209,7 @@ export const ReductionProjectActionsCell: FC<
           <span>
             <BaseIconButton
               onClick={onVerifyClick}
-              disabled={!canRequestVerification}
+              disabled={!canRequestVerification || isOrganizationLoading}
               aria-label="Postular a sello de reducción"
             >
               <VerifiedOutlined fontSize="small" />
