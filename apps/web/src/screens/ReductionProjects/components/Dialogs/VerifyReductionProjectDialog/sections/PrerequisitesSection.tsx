@@ -18,8 +18,8 @@ export const PrerequisitesSection: FC = () => (
     </Typography>
 
     <Box component="ul" className="m-0 flex list-none flex-col gap-2 pl-0">
-      {PREREQUISITES.map((item) => (
-        <Box component="li" key={item}>
+      {PREREQUISITES.map((item, index) => (
+        <Box component="li" key={index}>
           <Typography variant="body2" color="text.secondary">
             • {item}
           </Typography>
