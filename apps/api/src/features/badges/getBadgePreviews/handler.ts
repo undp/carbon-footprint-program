@@ -11,8 +11,7 @@ export const getBadgePreviewsHandler = async (
 
   log.info("Getting badge previews...");
 
-  const blobServiceClient = request.server.blobServiceClient;
-  const { storageContainerName } = request.server;
+  const { blobServiceClient, storageContainerName } = request.server;
 
   if (!blobServiceClient || !storageContainerName) {
     throw new StorageNotConfiguredError();
