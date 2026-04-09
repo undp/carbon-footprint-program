@@ -195,7 +195,7 @@ export const AwardsScreen: FC = () => {
     },
     {
       field: "totalEmissions",
-      headerName: "Huella tCO₂e",
+      headerName: "Emisiones (tCO₂e)",
       flex: 1,
       valueFormatter: (value: number) =>
         value != null

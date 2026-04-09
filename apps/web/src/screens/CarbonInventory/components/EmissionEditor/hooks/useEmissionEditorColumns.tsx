@@ -251,7 +251,7 @@ export const useEmissionEditorColumns = ({
 
       // Total emissions column
       {
-        headerName: "Emisiones tCO₂e",
+        headerName: "Emisiones (tCO₂e)",
         field: "totalEmissions",
         headerAlign: "center",
         cellClassName: "content-center",
