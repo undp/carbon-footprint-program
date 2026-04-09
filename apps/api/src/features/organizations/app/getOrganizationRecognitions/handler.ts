@@ -14,10 +14,10 @@ export const getOrganizationRecognitionsHandler = async (
 ) => {
   const log = request.log.child({ module: "app-organizations" });
   const { id } = request.params;
-  const { year, badgeTypes } = request.query;
+  const { year, submissionTypes } = request.query;
 
   log.info(
-    { organizationId: id, year, badgeTypes },
+    { organizationId: id, year, submissionTypes },
     "Getting organization recognitions..."
   );
 
@@ -27,7 +27,7 @@ export const getOrganizationRecognitionsHandler = async (
     prisma,
     id,
     year,
-    badgeTypes,
+    submissionTypes,
     blobServiceClient,
     storageContainerName
   );

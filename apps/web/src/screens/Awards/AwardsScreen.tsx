@@ -29,6 +29,7 @@ import {
 } from "@/api/query";
 import {
   BadgeType,
+  SubmissionType,
   CarbonInventoryDisplayStatusEnum,
   GetOrganizationRecognitionsResponse,
 } from "@repo/types";
@@ -37,7 +38,18 @@ import { capitalize } from "lodash-es";
 import { useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
 
+type AwardSubmissionType = Exclude<
+  SubmissionType,
+  "ORGANIZATION_ACCREDITATION"
+>;
 type AwardBadgeType = Exclude<BadgeType, "ORGANIZATION_ACCREDITATION">;
+
+const AWARD_SUBMISSION_TYPES: AwardSubmissionType[] = [
+  SubmissionType.CARBON_INVENTORY_CALCULATION,
+  SubmissionType.CARBON_INVENTORY_VERIFICATION,
+  SubmissionType.REDUCTION_PLAN_VERIFICATION,
+  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
+];
 
 const AWARD_BADGE_TYPES: AwardBadgeType[] = [
   BadgeType.CARBON_INVENTORY_CALCULATION,
@@ -46,32 +58,50 @@ const AWARD_BADGE_TYPES: AwardBadgeType[] = [
   BadgeType.NEUTRALIZATION_PLAN_VERIFICATION,
 ];
 
-const BADGE_LABELS: Record<AwardBadgeType, string> = {
-  [BadgeType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
-  [BadgeType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
-  [BadgeType.REDUCTION_PLAN_VERIFICATION]: "Sello Reducción",
-  [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello Neutralización",
+// Maps each submission type to its corresponding badge type for preview icon lookup
+const SUBMISSION_TYPE_TO_BADGE_TYPE: Record<
+  AwardSubmissionType,
+  AwardBadgeType
+> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]:
+    BadgeType.CARBON_INVENTORY_CALCULATION,
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]:
+    BadgeType.CARBON_INVENTORY_VERIFICATION,
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]:
+    BadgeType.REDUCTION_PLAN_VERIFICATION,
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
+    BadgeType.NEUTRALIZATION_PLAN_VERIFICATION,
 };
 
-const BADGE_CARD_COLORS: Record<AwardBadgeType, string> = {
-  [BadgeType.CARBON_INVENTORY_CALCULATION]: "#e8f5e9",
-  [BadgeType.CARBON_INVENTORY_VERIFICATION]: "#f5f5f5",
-  [BadgeType.REDUCTION_PLAN_VERIFICATION]: "#fff8e1",
-  [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: "#e0f7fa",
+const SUBMISSION_LABELS: Record<AwardSubmissionType, string> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Sello Verificación",
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "Sello Reducción",
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Sello Neutralización",
 };
 
-const BADGE_ACTION_ICON: Record<AwardBadgeType, React.ReactElement> = {
-  [BadgeType.CARBON_INVENTORY_CALCULATION]: (
-    <EmojiEventsOutlined fontSize="small" />
-  ),
-  [BadgeType.CARBON_INVENTORY_VERIFICATION]: (
-    <VerifiedOutlined fontSize="small" />
-  ),
-  [BadgeType.REDUCTION_PLAN_VERIFICATION]: <Co2Outlined fontSize="small" />,
-  [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]: (
-    <PublicOutlined fontSize="small" />
-  ),
+const SUBMISSION_CARD_COLORS: Record<AwardSubmissionType, string> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "#e8f5e9",
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "#f5f5f5",
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "#fff8e1",
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "#e0f7fa",
 };
+
+const SUBMISSION_ACTION_ICON: Record<AwardSubmissionType, React.ReactElement> =
+  {
+    [SubmissionType.CARBON_INVENTORY_CALCULATION]: (
+      <EmojiEventsOutlined fontSize="small" />
+    ),
+    [SubmissionType.CARBON_INVENTORY_VERIFICATION]: (
+      <VerifiedOutlined fontSize="small" />
+    ),
+    [SubmissionType.REDUCTION_PLAN_VERIFICATION]: (
+      <Co2Outlined fontSize="small" />
+    ),
+    [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: (
+      <PublicOutlined fontSize="small" />
+    ),
+  };
 
 const DEFAULT_SORT_MODEL: GridSortModel = [
   { field: "measurementYear", sort: "desc" },
@@ -98,7 +128,7 @@ export const AwardsScreen: FC = () => {
     useOrganizationRecognitions(
       effectiveOrgId,
       selectedYear || undefined,
-      AWARD_BADGE_TYPES
+      AWARD_SUBMISSION_TYPES
     );
 
   const { data: badgePreviews = [] } = useBadgePreviews(AWARD_BADGE_TYPES);
@@ -123,10 +153,10 @@ export const AwardsScreen: FC = () => {
     [badgePreviews]
   );
 
-  const badgeCounts = useMemo(() => {
+  const submissionTypeCounts = useMemo(() => {
     const counts: Record<string, number> = {};
-    for (const badge of recognitions) {
-      counts[badge.badgeType] = (counts[badge.badgeType] ?? 0) + 1;
+    for (const r of recognitions) {
+      counts[r.submissionType] = (counts[r.submissionType] ?? 0) + 1;
     }
     return counts;
   }, [recognitions]);
@@ -180,10 +210,10 @@ export const AwardsScreen: FC = () => {
       flex: 1,
     },
     {
-      field: "badgeType",
+      field: "submissionType",
       headerName: "Reconocimiento",
       flex: 1.5,
-      valueFormatter: (value: AwardBadgeType) => BADGE_LABELS[value],
+      valueFormatter: (value: AwardSubmissionType) => SUBMISSION_LABELS[value],
     },
     {
       field: "totalEmissions",
@@ -220,9 +250,9 @@ export const AwardsScreen: FC = () => {
                 p: "4px",
               }}
             >
-              {BADGE_ACTION_ICON[params.row.badgeType as AwardBadgeType] ?? (
-                <EmojiEventsOutlined fontSize="small" />
-              )}
+              {SUBMISSION_ACTION_ICON[
+                params.row.submissionType as AwardSubmissionType
+              ] ?? <EmojiEventsOutlined fontSize="small" />}
             </IconButton>
           </Tooltip>
         ) : (
@@ -277,12 +307,13 @@ export const AwardsScreen: FC = () => {
           gap: 2,
         }}
       >
-        {AWARD_BADGE_TYPES.map((badgeType) => {
+        {AWARD_SUBMISSION_TYPES.map((submissionType) => {
+          const badgeType = SUBMISSION_TYPE_TO_BADGE_TYPE[submissionType];
           const previewUrl = previewMap.get(badgeType);
-          const count = badgeCounts[badgeType] ?? 0;
+          const count = submissionTypeCounts[submissionType] ?? 0;
           return (
             <Box
-              key={badgeType}
+              key={submissionType}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -290,13 +321,13 @@ export const AwardsScreen: FC = () => {
                 px: 2.5,
                 py: 2,
                 borderRadius: 2,
-                backgroundColor: BADGE_CARD_COLORS[badgeType],
+                backgroundColor: SUBMISSION_CARD_COLORS[submissionType],
               }}
             >
               {previewUrl ? (
                 <img
                   src={previewUrl}
-                  alt={BADGE_LABELS[badgeType]}
+                  alt={SUBMISSION_LABELS[submissionType]}
                   style={{
                     width: 56,
                     height: 56,
@@ -312,7 +343,7 @@ export const AwardsScreen: FC = () => {
               )}
               <Box>
                 <Typography variant="body2" color="text.secondary">
-                  {BADGE_LABELS[badgeType]}
+                  {SUBMISSION_LABELS[submissionType]}
                 </Typography>
                 <Typography variant="h4" fontWeight={700} color="text.primary">
                   {count > 0 ? count : "-"}
@@ -334,7 +365,7 @@ export const AwardsScreen: FC = () => {
           columns={columns}
           rows={recognitions}
           getRowId={(row: GetOrganizationRecognitionsResponse[number]) =>
-            `${row.submissionId}-${row.badgeType}`
+            `${row.submissionId}-${row.submissionType}`
           }
           initialState={{
             sorting: { sortModel: DEFAULT_SORT_MODEL },

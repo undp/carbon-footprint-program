@@ -29,13 +29,13 @@ export const organizationKeys = {
   recognitions: (
     organizationId: string,
     year?: string,
-    badgeTypes?: string[]
+    submissionTypes?: string[]
   ) =>
     [
       ...organizationKeys.detail(organizationId),
       "recognitions",
       CarbonInventoryQueryKey.StatusUpdateDependency,
       year ?? null,
-      badgeTypes ?? null,
+      submissionTypes ?? null,
     ] as const,
 };

@@ -5,7 +5,7 @@ import {
   SubmissionFileType,
 } from "@repo/database";
 import {
-  BadgeType,
+  SubmissionType,
   SubmissionStatus,
   GetOrganizationRecognitionsResponse,
 } from "@repo/types";
@@ -20,7 +20,7 @@ export const getOrganizationRecognitionsService = async (
   prismaClient: PrismaClient,
   organizationId: string,
   year?: string,
-  badgeTypes?: BadgeType[],
+  submissionTypes?: SubmissionType[],
   blobServiceClient?: BlobServiceClient | null,
   containerName?: string | null
 ): Promise<GetOrganizationRecognitionsResponse> => {
@@ -34,7 +34,9 @@ export const getOrganizationRecognitionsService = async (
   }
 
   const yearFilter = year ? parseInt(year, 10) : undefined;
-  const badgeTypeFilter = badgeTypes?.length ? { in: badgeTypes } : undefined;
+  const submissionTypeFilter = submissionTypes?.length
+    ? { in: submissionTypes }
+    : undefined;
 
   const inventories = await prismaClient.carbonInventory.findMany({
     where: {
@@ -51,7 +53,7 @@ export const getOrganizationRecognitionsService = async (
                   SubmissionStatus.APPROVED_AUTOMATICALLY,
                 ],
               },
-              ...(badgeTypeFilter && { badge: { type: badgeTypeFilter } }),
+              ...(submissionTypeFilter && { type: submissionTypeFilter }),
             },
           },
         },
@@ -71,14 +73,12 @@ export const getOrganizationRecognitionsService = async (
                       SubmissionStatus.APPROVED_AUTOMATICALLY,
                     ],
                   },
-                  ...(badgeTypeFilter && { badge: { type: badgeTypeFilter } }),
+                  ...(submissionTypeFilter && { type: submissionTypeFilter }),
                 },
                 select: {
                   id: true,
+                  type: true,
                   updatedAt: true,
-                  badge: {
-                    select: { type: true },
-                  },
                   files: {
                     where: { type: SubmissionFileType.RECOGNITION },
                     select: {
@@ -115,31 +115,29 @@ export const getOrganizationRecognitionsService = async (
     );
 
     const items = await Promise.all(
-      submissions
-        .filter((s) => s.badge)
-        .map(async (submission) => {
-          const recognitionFile = submission.files[0]?.file;
-          let recognitionFileUrl: string | null = null;
+      submissions.map(async (submission) => {
+        const recognitionFile = submission.files[0]?.file;
+        let recognitionFileUrl: string | null = null;
 
-          if (recognitionFile?.blobPath && blobServiceClient && containerName) {
-            const { url } = await generateReadSasUrl(
-              blobServiceClient,
-              containerName,
-              recognitionFile.blobPath,
-              { contentType: recognitionFile.mimeType ?? undefined }
-            );
-            recognitionFileUrl = url;
-          }
+        if (recognitionFile?.blobPath && blobServiceClient && containerName) {
+          const { url } = await generateReadSasUrl(
+            blobServiceClient,
+            containerName,
+            recognitionFile.blobPath,
+            { contentType: recognitionFile.mimeType ?? undefined }
+          );
+          recognitionFileUrl = url;
+        }
 
-          return {
-            submissionId: submission.id.toString(),
-            earningDate: submission.updatedAt?.toISOString() ?? null,
-            measurementYear: inventory.year!,
-            badgeType: submission.badge!.type,
-            totalEmissions,
-            recognitionFileUrl,
-          };
-        })
+        return {
+          submissionId: submission.id.toString(),
+          earningDate: submission.updatedAt?.toISOString() ?? null,
+          measurementYear: inventory.year!,
+          submissionType: submission.type,
+          totalEmissions,
+          recognitionFileUrl,
+        };
+      })
     );
 
     result.push(...items);

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { IdSchema } from "../../zod.js";
-import { BadgeTypeSchema } from "../../baseSchemas/index.js";
+import { SubmissionTypeSchema } from "../../baseSchemas/index.js";
 
 export const GetOrganizationRecognitionsParamsSchema = z.object({
   id: IdSchema.describe("The organization ID"),
@@ -14,11 +14,11 @@ export const GetOrganizationRecognitionsQuerySchema = z.object({
     .describe(
       'Optional year filter. Must be a number (e.g., "2024"). Omit to get all years.'
     ),
-  badgeTypes: z
-    .union([BadgeTypeSchema, z.array(BadgeTypeSchema)])
+  submissionTypes: z
+    .union([SubmissionTypeSchema, z.array(SubmissionTypeSchema)])
     .transform((v) => (Array.isArray(v) ? v : [v]))
     .optional()
-    .describe("Filter by badge type(s). Can be repeated."),
+    .describe("Filter by submission type(s). Can be repeated."),
 });
 
 const GetOrganizationRecognitionsItemSchema = z.object({
@@ -26,12 +26,12 @@ const GetOrganizationRecognitionsItemSchema = z.object({
   earningDate: z.iso
     .datetime()
     .nullable()
-    .describe("The date the badge was earned (submission updatedAt)"),
+    .describe("The date the recognition was earned (submission updatedAt)"),
   measurementYear: z
     .number()
     .int()
     .describe("The measurement year of the carbon inventory"),
-  badgeType: BadgeTypeSchema.describe("The type of badge"),
+  submissionType: SubmissionTypeSchema.describe("The type of submission"),
   totalEmissions: z
     .number()
     .describe("Total emissions in tCO₂e for the carbon inventory"),
