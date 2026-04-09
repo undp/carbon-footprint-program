@@ -102,17 +102,17 @@ export const getOrganizationBadgesService = async (
       0
     );
 
-    for (const submission of submissions) {
-      if (!submission.badge) continue;
-
-      result.push({
-        submissionId: submission.id.toString(),
-        earningDate: submission.updatedAt?.toISOString() ?? null,
-        measurementYear: inventory.year,
-        badgeType: submission.badge.type,
-        totalEmissions,
-      });
-    }
+    result.push(
+      ...submissions
+        .filter((s) => s.badge)
+        .map((submission) => ({
+          submissionId: submission.id.toString(),
+          earningDate: submission.updatedAt?.toISOString() ?? null,
+          measurementYear: inventory.year!,
+          badgeType: submission.badge!.type,
+          totalEmissions,
+        }))
+    );
   }
 
   return result;
