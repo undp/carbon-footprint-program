@@ -23,6 +23,8 @@ import {
 } from "@/api/query";
 import { BadgeType, GetOrganizationBadgesResponse } from "@repo/types";
 import { RecognitionModal } from "./components/RecognitionModal";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 const AWARD_BADGE_TYPES = [
   BadgeType.CARBON_INVENTORY_CALCULATION,
@@ -110,7 +112,13 @@ export const AwardsScreen: FC = () => {
       headerName: "Fecha otorgado",
       flex: 1,
       valueFormatter: (value: string) =>
-        value ? new Date(value).getFullYear().toString() : "-",
+        value
+          ? new Date(value).toLocaleDateString("es", {
+              day: "2-digit",
+              month: "2-digit",
+              year: "numeric",
+            })
+          : "-",
     },
     {
       field: "measurementYear",
@@ -194,7 +202,7 @@ export const AwardsScreen: FC = () => {
             isLoading={isLoadingOrgs}
             size="small"
             minWidth={200}
-            label="Organizaciones"
+            label={capitalize(VOCAB.organization.noun.singular)}
           />
         </Box>
       </Box>
