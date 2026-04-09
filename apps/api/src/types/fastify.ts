@@ -10,9 +10,15 @@ import type { ZodTypeProvider } from "fastify-type-provider-zod";
 import type { ContainerClient, BlobServiceClient } from "@azure/storage-blob";
 import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
-import type { SystemRole, OrganizationRole } from "@repo/database/enums";
-import type { OrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
-import type { CarbonInventoryIdExtractor } from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
+import type { SystemRole } from "@repo/database/enums";
+import type {
+  OrganizationIdExtractor,
+  RequireOrganizationRoleOptions,
+} from "@/plugins/app/organizationAuthorizationPlugin.js";
+import type {
+  CarbonInventoryIdExtractor,
+  RequireCarbonInventoryAccessOptions,
+} from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
 
 /**
  * Tipo personalizado que representa una instancia de Fastify con ZodTypeProvider ya configurado.
@@ -105,7 +111,8 @@ declare module "fastify" {
      * Must be used after requireAuth.
      *
      * @param organizationIdExtractor - Function to extract organization ID from request
-     * @param allowedRoles - Array of organization roles, user must have at least one
+     * @param options.allowedRoles - Array of organization roles, user must have at least one
+     * @param options.canAdminsBypass - When true, ADMIN and SUPERADMIN system roles bypass org checks
      * @returns Hook function for organization role-based authorization
      *
      * @example
@@ -119,14 +126,14 @@ declare module "fastify" {
      *   preHandler: [
      *     fastify.requireOrganizationRole(
      *       extractOrgId,
-     *       [OrganizationRole.ADMIN]
+     *       { allowedRoles: [OrganizationRole.ADMIN], canAdminsBypass: true }
      *     )
      *   ]
      * }, handler);
      */
     requireOrganizationRole: <P extends Record<string, string>>(
       organizationIdExtractor: OrganizationIdExtractor<P>,
-      allowedRoles: OrganizationRole[]
+      options: RequireOrganizationRoleOptions
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 
     /**
@@ -152,7 +159,7 @@ declare module "fastify" {
      */
     requireCarbonInventoryAccess: <P extends Record<string, string>>(
       carbonInventoryIdExtractor: CarbonInventoryIdExtractor<P>,
-      options?: { requiredOrganizationRoles?: OrganizationRole[] }
+      options?: RequireCarbonInventoryAccessOptions
     ) => (
       request: FastifyRequest<{ Params: P }>,
       reply: FastifyReply
