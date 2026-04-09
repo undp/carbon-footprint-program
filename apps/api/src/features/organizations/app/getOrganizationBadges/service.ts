@@ -43,6 +43,7 @@ export const getOrganizationBadgesService = async (
       },
     },
     include: {
+      subtotals: true,
       submission: {
         select: {
           subject: {
@@ -75,9 +76,7 @@ export const getOrganizationBadgesService = async (
     const submissions = inventory.submission?.subject.submissions ?? [];
     if (submissions.length === 0) continue;
 
-    const subtotals = await prismaClient.carbonInventorySubtotalsView.findMany({
-      where: { carbonInventoryId: inventory.id },
-    });
+    const subtotals = inventory.subtotals;
 
     const totalEmissions = subtotals.reduce(
       (sum, row) => sum + kgToTon(Number(row.value)),
