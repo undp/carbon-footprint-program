@@ -6,6 +6,7 @@ import {
   SendOutlined,
   VerifiedOutlined,
   DescriptionOutlined,
+  FileCopyOutlined,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
@@ -28,6 +29,7 @@ import {
   useRequestVerification,
   usePreUploadSubmissionFiles,
   useSystemParameters,
+  useDuplicateCarbonInventory,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
@@ -72,7 +74,18 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
 
   const { mutateAsync: requestCalculation } = useRequestCalculation();
   const { mutateAsync: requestVerification } = useRequestVerification();
+  const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
+    useDuplicateCarbonInventory();
   const { preUploadFiles } = usePreUploadSubmissionFiles();
+
+  const onDuplicateClick = useCallback(async () => {
+    try {
+      await duplicateInventory(carbonInventory.id);
+      enqueueSnackbar("Huella duplicada", { variant: "success" });
+    } catch {
+      enqueueSnackbar("No se pudo duplicar la huella", { variant: "error" });
+    }
+  }, [carbonInventory.id, duplicateInventory]);
 
   const onViewClick = useCallback(() => {
     void navigate({
@@ -240,6 +253,19 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
               aria-label="Historial"
             >
               <DescriptionOutlined fontSize="small" />
+            </BaseActionButton>
+          </span>
+        </Tooltip>
+
+        {/* Duplicar */}
+        <Tooltip title="Duplicar huella">
+          <span>
+            <BaseActionButton
+              onClick={onDuplicateClick}
+              disabled={isDuplicating}
+              aria-label="Duplicar huella"
+            >
+              <FileCopyOutlined fontSize="small" />
             </BaseActionButton>
           </span>
         </Tooltip>

@@ -13,7 +13,6 @@ import {
   MeasurementRecognitionBehaviorEnum,
 } from "@repo/types";
 import { isCarbonInventoryDeletable, canSelfDeclare } from "@repo/utils";
-
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
 import {
@@ -159,17 +158,7 @@ export const DraftActionsCell: FC<Props> = ({
       <Box className="justify-left flex items-center gap-2">
         {/* Editar */}
         <Tooltip title="Editar huella">
-          <BaseActionButton
-            sx={{
-              height: 36,
-              width: 36,
-              border: `1px solid ${theme.palette.primary.main}`,
-              borderRadius: "4px",
-              padding: "4px",
-            }}
-            onClick={onEditClick}
-            aria-label="Editar huella"
-          >
+          <BaseActionButton onClick={onEditClick} aria-label="Editar huella">
             <EditOutlined fontSize="small" />
           </BaseActionButton>
         </Tooltip>
@@ -207,7 +196,7 @@ export const DraftActionsCell: FC<Props> = ({
               disabled={selfDeclareDisabled}
               disableElevation
               sx={(theme) => ({
-                minHeight: 36,
+                minHeight: 30,
                 textTransform: "none",
                 fontWeight: 600,
                 fontSize: "0.75rem",

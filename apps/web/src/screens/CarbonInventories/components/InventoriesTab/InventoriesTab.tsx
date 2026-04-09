@@ -38,7 +38,7 @@ export const InventoriesTab: FC<Props> = ({
           align: "left",
           headerAlign: "left",
           minWidth: 180,
-          flex: 1.2,
+          flex: 1,
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
