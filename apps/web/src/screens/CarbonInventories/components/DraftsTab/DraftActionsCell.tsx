@@ -13,7 +13,6 @@ import {
   MeasurementRecognitionBehaviorEnum,
 } from "@repo/types";
 import { isCarbonInventoryDeletable, canSelfDeclare } from "@repo/utils";
-
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
 import {
