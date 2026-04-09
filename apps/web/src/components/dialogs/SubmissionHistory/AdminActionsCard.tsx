@@ -268,7 +268,11 @@ export const AdminActionsCard: FC<Props> = ({
             )}
 
             <Stack spacing={0.5}>
-              <Typography variant="caption" fontWeight={600} color="#101828">
+              <Typography
+                variant="caption"
+                fontWeight={600}
+                color={theme.palette.text.primary}
+              >
                 Adjuntar documentos
               </Typography>
               <FileUpload
@@ -285,7 +289,11 @@ export const AdminActionsCard: FC<Props> = ({
 
             {selectedAction === "approve" && (
               <Stack spacing={0.5}>
-                <Typography variant="caption" fontWeight={600} color="#101828">
+                <Typography
+                  variant="caption"
+                  fontWeight={600}
+                  color={theme.palette.text.primary}
+                >
                   Adjuntar reconocimiento
                 </Typography>
                 <FileUpload
@@ -345,13 +353,13 @@ const getRadioStyles = (
   if (action === "approve") {
     return {
       border: theme.palette.success.light,
-      bg: "#f0fdf4",
+      bg: alpha(theme.palette.success.light, 0.1),
       radioColor: theme.palette.success.light,
     };
   }
   return {
     border: theme.palette.warning.main,
-    bg: "#fffbeb",
+    bg: alpha(theme.palette.warning.light, 0.1),
     radioColor: theme.palette.warning.main,
   };
 };
