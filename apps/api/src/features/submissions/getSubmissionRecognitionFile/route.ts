@@ -23,6 +23,7 @@ export const getSubmissionRecognitionFileRoute: StandardRouteSignature = (
         response: {
           200: GetSubmissionRecognitionFileResponseSchema,
           404: ApiErrorResponseSchema,
+          500: ApiErrorResponseSchema,
         },
       },
     },
