@@ -1,4 +1,4 @@
-import { FC, useState, useMemo, useCallback } from "react";
+import { FC, useState, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -134,14 +134,6 @@ export const AwardsScreen: FC = () => {
   const selectedOrgName =
     organizations.find((o) => o.id === effectiveOrgId)?.name ?? "";
 
-  const onNavigateToMyOrganization = useCallback(() => {
-    void navigate({ to: Routes.MY_ORGANIZATION });
-  }, [navigate]);
-
-  const onNavigateToMyInventories = useCallback(() => {
-    void navigate({ to: Routes.CARBON_INVENTORIES });
-  }, [navigate]);
-
   if (!isLoadingOrgs && organizations.length === 0) {
     return (
       <ScreenEmptyState
@@ -149,7 +141,7 @@ export const AwardsScreen: FC = () => {
         description={`Haz clic en el botón para crear tu primera ${VOCAB.organization.noun.singular}.`}
         action={{
           label: `Ir a Mi ${capitalize(VOCAB.organization.noun.singular)}`,
-          onClick: onNavigateToMyOrganization,
+          onClick: () => navigate({ to: Routes.MY_ORGANIZATION }),
         }}
       />
     );
@@ -162,7 +154,7 @@ export const AwardsScreen: FC = () => {
         description="Haz clic en el botón para gestionar tus huellas"
         action={{
           label: "Ir a Mis Huellas",
-          onClick: onNavigateToMyInventories,
+          onClick: () => navigate({ to: Routes.CARBON_INVENTORIES }),
         }}
       />
     );
