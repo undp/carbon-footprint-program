@@ -12,6 +12,14 @@ import {
 import { BlobServiceClient } from "@azure/storage-blob";
 
 import { OrganizationNotFoundError } from "../../errors.js";
+
+const SUBMISSION_TYPE_ORDER: Record<SubmissionType, number> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: 0,
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: 1,
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: 2,
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: 3,
+  [SubmissionType.ORGANIZATION_ACCREDITATION]: 4,
+};
 import { DataIntegrityError } from "@/errors/DataIntegrityError.js";
 import { kgToTon } from "@repo/utils";
 import { generateReadSasUrl } from "@/services/index.js";
@@ -143,5 +151,10 @@ export const getOrganizationRecognitionsService = async (
     result.push(...items);
   }
 
-  return result;
+  return result.sort(
+    (a, b) =>
+      b.measurementYear - a.measurementYear ||
+      SUBMISSION_TYPE_ORDER[b.submissionType] -
+        SUBMISSION_TYPE_ORDER[a.submissionType]
+  );
 };

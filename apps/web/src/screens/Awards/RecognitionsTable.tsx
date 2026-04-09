@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { EmojiEventsOutlined } from "@mui/icons-material";
-import { GridColDef, GridSortModel } from "@mui/x-data-grid";
+import { GridColDef } from "@mui/x-data-grid";
 import { StylizedDataGrid } from "@/components";
 import { GetOrganizationRecognitionsResponse } from "@repo/types";
 import {
@@ -9,10 +9,6 @@ import {
   SUBMISSION_ACTION_ICON,
   SUBMISSION_TABLE_LABELS,
 } from "./constants";
-
-const DEFAULT_SORT_MODEL: GridSortModel = [
-  { field: "measurementYear", sort: "desc" },
-];
 
 const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
   {
@@ -110,9 +106,6 @@ export const RecognitionsTable: FC<RecognitionsTableProps> = ({
       getRowId={(row: GetOrganizationRecognitionsResponse[number]) =>
         `${row.submissionId}-${row.submissionType}`
       }
-      initialState={{
-        sorting: { sortModel: DEFAULT_SORT_MODEL },
-      }}
     />
   </Box>
 );
