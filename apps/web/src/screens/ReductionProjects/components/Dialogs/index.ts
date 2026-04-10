@@ -1,4 +1,3 @@
-export { DeleteReductionProjectDialog } from "./DeleteReductionProjectDialog";
 export { VerifyReductionProjectDialog } from "./VerifyReductionProjectDialog";
 export { MissingOrganizationDialog } from "./MissingOrganizationDialog";
 export { UnaccreditedOrganizationDialog } from "./UnaccreditedOrganizationDialog";

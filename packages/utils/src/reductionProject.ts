@@ -12,12 +12,6 @@ export function isReductionProjectEditable(
   );
 }
 
-export function isReductionProjectDeletable(
-  status: ReductionProjectDisplayStatus
-): boolean {
-  return status === ReductionProjectDisplayStatusEnum.DRAFT;
-}
-
 /** First-time submission. */
 export function canRequestReductionProjectVerification(
   status: ReductionProjectDisplayStatus
