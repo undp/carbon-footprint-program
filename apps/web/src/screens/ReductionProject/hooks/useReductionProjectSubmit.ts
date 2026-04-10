@@ -1,20 +1,24 @@
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
 import { useNavigate } from "@tanstack/react-router";
-import { useUpdateReductionProject } from "@/api/query/reductionProjects";
+import {
+  useCreateReductionProject,
+  useUpdateReductionProject,
+} from "@/api/query/reductionProjects";
 import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToMutationData } from "../mappers";
 import type { ReductionProjectFormValues } from "../types";
 import { Routes } from "@/interfaces";
 
 interface Params {
-  projectId: string;
+  projectId?: string;
 }
 
 export const useReductionProjectSubmit = ({ projectId }: Params) => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
-  const updateMutation = useUpdateReductionProject(projectId);
+  const createMutation = useCreateReductionProject();
+  const updateMutation = useUpdateReductionProject(projectId ?? "");
   const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const submit = useCallback(
@@ -37,22 +41,44 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
           return;
         }
 
-        const mutationData = mapFormValuesToMutationData(formData);
-        await updateMutation.mutateAsync({ ...mutationData, fileUuids });
+        const mutationData = mapFormValuesToMutationData(formData, fileUuids);
 
-        enqueueSnackbar("Proyecto guardado exitosamente", {
-          variant: "success",
-        });
+        if (projectId) {
+          await updateMutation.mutateAsync(mutationData);
+          enqueueSnackbar("Proyecto guardado exitosamente", {
+            variant: "success",
+          });
+        } else {
+          await createMutation.mutateAsync(mutationData);
+          enqueueSnackbar("Proyecto creado exitosamente", {
+            variant: "success",
+          });
+        }
+
         void navigate({ to: Routes.REDUCTION_PROJECTS });
       } catch {
-        enqueueSnackbar("No se pudo guardar el proyecto", { variant: "error" });
+        enqueueSnackbar(
+          projectId
+            ? "No se pudo guardar el proyecto"
+            : "No se pudo crear el proyecto",
+          { variant: "error" }
+        );
       }
     },
-    [preUploadFiles, updateMutation, enqueueSnackbar, navigate]
+    [
+      projectId,
+      createMutation,
+      updateMutation,
+      preUploadFiles,
+      enqueueSnackbar,
+      navigate,
+    ]
   );
 
   return {
     submit,
-    isSubmitting: updateMutation.isPending || isUploading,
+    isSubmitting:
+      (projectId ? updateMutation.isPending : createMutation.isPending) ||
+      isUploading,
   };
 };

@@ -50,3 +50,53 @@
 - [ ] 7.3 Manually test create flow: button click → navigate (no API call) → fill form → attach file → submit → list shows SUBMITTED project
 - [ ] 7.4 Manually test REVIEWED re-submission: open REVIEWED project → fields editable, file input empty → attach file → submit → transitions to SUBMITTED
 - [ ] 7.5 Confirm `POST /reduction-projects/:id/request-verification` returns 404
+
+## 8. Unify ReductionProject Screens
+
+- [x] 8.1 Add `mode: 'create' | 'edit'` and `id?: string` props to `ReductionProjectScreen`
+      (`apps/web/src/screens/ReductionProject/ReductionProjectScreen.tsx`)
+- [x] 8.2 Update `useReductionProject` query to accept `id?: string`
+      (`apps/web/src/api/query/reductionProjects/useReductionProject.ts`);
+      already has `enabled: !!id`, just update the TypeScript signature
+- [x] 8.3 Merge create-mode logic into unified `ReductionProjectScreen`: - `isLoading`/`hasError`: false in create mode, from project query in edit mode - Status chip: `{mode === 'edit' && status && <ReductionProjectStatusChip />}` - `FileUploadSection`: always rendered (disabled only when `isSubmitting`) - `isFormDisabled`: SUBMITTED or APPROVED status (create mode: always false) - Submit button label: `mode === 'create' ? "Ingresar Proyecto" : "Subir Cambios"` - Submit button: hidden only when `isFormDisabled`
+- [x] 8.4 Unify submit hooks: extend `useReductionProjectSubmit` to accept
+      `{ projectId?: string }` — no projectId → calls create mutation,
+      projectId present → calls update mutation;
+      success message: no projectId → "Proyecto creado exitosamente",
+      with projectId → "Proyecto guardado exitosamente"
+      (`apps/web/src/screens/ReductionProject/hooks/useReductionProjectSubmit.ts`)
+- [x] 8.5 Update route files to pass props: - `new.tsx`: render `<ReductionProjectScreen mode="create" />` - `$id.tsx`: call `Route.useParams()` to get id, render `<ReductionProjectScreen mode="edit" id={id} />`
+      (Note: `useParams({ from: Routes.REDUCTION_PROJECT })` must not be called inside the unified screen
+      because `new.tsx` has no `:id` segment — pass id as a prop from the route file instead)
+- [x] 8.6 Delete `apps/web/src/screens/ReductionProject/CreateReductionProjectScreen.tsx`
+- [x] 8.7 Delete `apps/web/src/screens/ReductionProject/hooks/useCreateReductionProjectSubmit.ts`
+- [x] 8.8 Remove `CreateReductionProjectScreen` export from
+      `apps/web/src/screens/ReductionProject/index.ts`
+- [x] 8.9 Run `pnpm type-check` and `pnpm lint`; fix any errors
+
+## 9. Migrate fileUuids to ReductionProjectMutationDataSchema
+
+- [x] 9.1 Add `fileUuids` field to `ReductionProjectMutationDataSchema`
+      in `packages/types/src/reductionProjects/schemas.ts`:
+      `ts
+fileUuids: z.array(z.uuid()).min(1, "At least one file is required")
+  .describe("UUIDs of pre-uploaded files to attach to the submission")
+`
+- [x] 9.2 Replace `CreateReductionProjectRequestSchema` with a type alias
+      in `packages/types/src/reductionProjects/createReductionProject/schemas.ts`:
+      `ts
+export const CreateReductionProjectRequestSchema = ReductionProjectMutationDataSchema;
+`
+- [x] 9.3 Replace `UpdateReductionProjectRequestSchema` with a type alias
+      in `packages/types/src/reductionProjects/updateReductionProject/schemas.ts`:
+      `ts
+export const UpdateReductionProjectRequestSchema = ReductionProjectMutationDataSchema;
+`
+- [x] 9.4 Update `mapFormValuesToMutationData` in `apps/web/src/screens/ReductionProject/mappers.ts`
+      to accept `(data: ReductionProjectFormValues, fileUuids: string[]): ReductionProjectMutationData`
+      and include `fileUuids` in the returned object
+- [x] 9.5 Update the unified `useReductionProjectSubmit` hook (task 8.4) to pass `fileUuids`
+      as the second argument to `mapFormValuesToMutationData` instead of spreading it separately
+- [x] 9.6 Delete `openspec/changes/reduction-project-unified-submission/specs/reduction-project-files-display/spec.md`
+      (SUBMITTED/APPROVED file display is a deferred future feature — will be a separate change)
+- [x] 9.7 Run `pnpm type-check` and `pnpm lint`; fix any errors

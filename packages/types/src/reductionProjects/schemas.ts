@@ -29,6 +29,11 @@ export const ReductionProjectMutationDataSchema =
     year: true,
     baselineScenario: true,
     projectScenario: true,
+  }).extend({
+    fileUuids: z
+      .array(z.uuid())
+      .min(1, "At least one file is required")
+      .describe("UUIDs of pre-uploaded files to attach to the submission"),
   });
 
 export type ReductionProjectMutationData = z.infer<
