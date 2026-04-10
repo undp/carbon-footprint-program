@@ -13,6 +13,7 @@ export type SelfDeclareValidationReason =
   | "missing-organization"
   | "missing-year"
   | "missing-name"
+  | "inventory-year-already-declared"
   | null;
 
 interface SelfDeclareValidationDialogProps {
@@ -27,6 +28,8 @@ const messages: Record<NonNullable<SelfDeclareValidationReason>, string> = {
     "No es posible autodeclarar esta huella porque no tiene un nombre asignado. Por favor, edite la huella para completar esta información antes de continuar.",
   "missing-year":
     "No es posible autodeclarar esta huella porque no tiene un año asignado. Por favor, edite la huella para completar esta información antes de continuar.",
+  "inventory-year-already-declared":
+    "No es posible autodeclarar esta huella porque ya se ha autodeclarado una huella para este año. Por favor, seleccione un año diferente antes de continuar.",
 };
 
 export const SelfDeclareValidationDialog: FC<

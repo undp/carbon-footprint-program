@@ -12,7 +12,7 @@ import {
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
 } from "@repo/types";
-import { isCarbonInventoryDeletable, canSelfDeclare } from "@repo/utils";
+import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
 import {
@@ -65,15 +65,6 @@ export const DraftActionsCell: FC<Props> = ({
     ]
   );
 
-  const selfDeclareDisabled =
-    !canSelfDeclare(carbonInventory.status) || isYearAlreadySelfDeclared;
-
-  const selfDeclareTooltip = carbonInventory.isSelfDeclared
-    ? "Esta huella ya fue autodeclarada"
-    : isYearAlreadySelfDeclared
-      ? "Ya existe una huella autodeclarada para este año"
-      : "Autodeclarar";
-
   const { data: systemParameters } = useSystemParameters([
     SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
   ]);
@@ -122,6 +113,10 @@ export const DraftActionsCell: FC<Props> = ({
     }
     if (carbonInventory.year == null) {
       setSelfDeclareValidationReason("missing-year");
+      return;
+    }
+    if (isYearAlreadySelfDeclared) {
+      setSelfDeclareValidationReason("inventory-year-already-declared");
       return;
     }
     setSelfDeclareDialogOpen(true);
@@ -188,14 +183,13 @@ export const DraftActionsCell: FC<Props> = ({
         </Tooltip>
 
         {/* Autodeclarar */}
-        <Tooltip title={selfDeclareTooltip}>
+        <Tooltip title={"Autodeclarar"}>
           <span>
             <Button
               variant="contained"
               size="small"
               startIcon={<TaskAltRounded sx={{ fontSize: 16 }} />}
               onClick={onSelfDeclareClick}
-              disabled={selfDeclareDisabled}
               disableElevation
               sx={(theme) => ({
                 minHeight: 30,
