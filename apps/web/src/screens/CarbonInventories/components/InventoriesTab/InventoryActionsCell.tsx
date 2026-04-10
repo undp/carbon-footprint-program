@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, Tooltip } from "@mui/material";
+import { Badge, Box, Tooltip } from "@mui/material";
 import {
   VisibilityOutlined,
   FileDownloadOutlined,
@@ -13,6 +13,7 @@ import {
   OrganizationDisplayStatusValues,
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
+  CarbonInventoryDisplayStatusEnum,
 } from "@repo/types";
 import { canSubmitToVerification, canSubmitToMeasurement } from "@repo/utils";
 import { BaseActionButton } from "../BaseActionButton";
@@ -251,12 +252,30 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         {/* Historial */}
         <Tooltip title="Historial">
           <span>
-            <BaseActionButton
-              onClick={() => setHistoryDialogOpen(true)}
-              aria-label="Historial"
+            <Badge
+              variant="dot"
+              invisible={
+                carbonInventory.status !==
+                  CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED &&
+                carbonInventory.status !==
+                  CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED
+              }
+              overlap="circular"
+              sx={{
+                "& .MuiBadge-badge": {
+                  top: 2,
+                  right: 2,
+                  backgroundColor: (theme) => theme.palette.warning.main,
+                },
+              }}
             >
-              <DescriptionOutlined fontSize="small" />
-            </BaseActionButton>
+              <BaseActionButton
+                onClick={() => setHistoryDialogOpen(true)}
+                aria-label="Historial"
+              >
+                <DescriptionOutlined fontSize="small" />
+              </BaseActionButton>
+            </Badge>
           </span>
         </Tooltip>
 
