@@ -75,10 +75,11 @@ const HistoryCard: FC<{
         {/* Comments */}
         {entry.comment && <SubmissionCommentsSection comment={entry.comment} />}
 
-        {/* Files */}
-        <Box sx={{ mt: 1.5 }}>
-          <FilesSection files={entry.files} />
-        </Box>
+        {entry.files.length > 0 && (
+          <Box sx={{ mt: 1.5 }}>
+            <FilesSection files={entry.files} />
+          </Box>
+        )}
       </Box>
     </Paper>
   );
