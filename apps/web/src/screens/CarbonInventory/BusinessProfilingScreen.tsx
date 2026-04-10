@@ -260,7 +260,7 @@ export const BusinessProfilingScreen: FC = () => {
                   labelId="sector-label"
                   options={sectorOptions}
                   loading={sectorsLoading}
-                  required
+                  required={!IS_DEVELOPMENT}
                 />
                 <FormAutocompleteField
                   name="subSector"
@@ -274,7 +274,7 @@ export const BusinessProfilingScreen: FC = () => {
                     subsectorSelectOptions.length === 0 ||
                     sectorsLoading
                   }
-                  required
+                  required={!IS_DEVELOPMENT}
                 />
               </Box>
               <Box className="flex flex-col gap-8">
