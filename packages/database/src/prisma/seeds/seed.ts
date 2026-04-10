@@ -10,6 +10,7 @@ import { seedUsers } from "./scripts/seedUsers.js";
 import { seedMethodologyData } from "./scripts/seedMethodologyData/index.js";
 import { seedExplanations } from "./scripts/seedExplanations.js";
 import { seedReductionPlanInitiatives } from "./scripts/seedReductionPlanInitiatives.js";
+import { seedBadges } from "./scripts/seedBadges.js";
 import { seedSystemParameters } from "./scripts/seedSystemParameters.js";
 import { seedSubcategoryRecommendations } from "./scripts/seedSubcategoryRecommendations.js";
 
@@ -31,6 +32,7 @@ async function main() {
   await seedExplanations(prisma, SEEDS_DATASET); // needs subcategories to be seeded first
   await seedSubcategoryRecommendations(prisma, SEEDS_DATASET); // needs subcategories and sectors to be seeded first
   await seedReductionPlanInitiatives(prisma, SEEDS_DATASET); // needs subcategories to be seeded first
+  await seedBadges(prisma, SEEDS_DATASET);
 }
 
 main()
