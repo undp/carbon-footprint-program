@@ -30,11 +30,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
       () => [
         {
           field: "name",
-          renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Nombre
-            </Typography>
-          ),
+          headerName: "NOMBRE",
           align: "left",
           headerAlign: "left",
           minWidth: 100,
@@ -62,16 +58,12 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         },
         {
           field: "year",
-          renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Año
-            </Typography>
-          ),
+          headerName: "AÑO",
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
           minWidth: 80,
-          flex: 0.5,
+          flex: 0.4,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
@@ -111,11 +103,18 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         },
         {
           field: "status",
-          headerName: "ESTADO",
+          renderHeader: () => (
+            <ResponsiveTypography
+              className="uppercase"
+              isWiderScreen={isWiderScreen}
+              ShortName="Estado"
+              LongName="Estado postulación"
+            />
+          ),
           headerAlign: "center",
           align: "center",
-          minWidth: 120,
-          flex: 0.7,
+          minWidth: 150,
+          flex: 0.8,
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
@@ -133,7 +132,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           headerAlign: "left",
           align: "left",
           minWidth: 300,
-          flex: 1.5,
+          flex: 1,
           cellClassName: "content-center max-h-[68px]",
           renderCell: (
             params: GridRenderCellParams<

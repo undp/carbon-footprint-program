@@ -30,11 +30,7 @@ export const InventoriesTab: FC<Props> = ({
       () => [
         {
           field: "name",
-          renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Nombre
-            </Typography>
-          ),
+          headerName: "NOMBRE",
           align: "left",
           headerAlign: "left",
           minWidth: 180,
@@ -53,11 +49,7 @@ export const InventoriesTab: FC<Props> = ({
         },
         {
           field: "year",
-          renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Año
-            </Typography>
-          ),
+          headerName: "AÑO",
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
@@ -135,7 +127,7 @@ export const InventoriesTab: FC<Props> = ({
           headerName: "ACCIONES",
           headerAlign: "left",
           align: "left",
-          minWidth: 212,
+          minWidth: 300,
           flex: 1,
           cellClassName: "content-center max-h-[98px]",
           renderCell: (
