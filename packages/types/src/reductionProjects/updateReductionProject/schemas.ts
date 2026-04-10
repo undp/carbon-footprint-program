@@ -8,12 +8,7 @@ export const UpdateReductionProjectParamsSchema = z.object({
 });
 
 export const UpdateReductionProjectRequestSchema =
-  ReductionProjectMutationDataSchema.extend({
-    fileUuids: z
-      .array(z.uuid())
-      .min(1, "At least one file is required")
-      .describe("UUIDs of pre-uploaded files to attach to the new submission"),
-  });
+  ReductionProjectMutationDataSchema;
 
 export const UpdateReductionProjectResponseSchema =
   ReductionProjectBaseSchema.omit({ status: true });

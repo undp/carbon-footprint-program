@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useWatch } from "react-hook-form";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces";
@@ -27,12 +27,20 @@ import {
   ReductionProjectDisplayStatusEnum,
 } from "@repo/types";
 
-export const ReductionProjectScreen: FC = () => {
-  const { id } = useParams({ from: Routes.REDUCTION_PROJECT });
+interface Props {
+  mode: "create" | "edit";
+  id?: string;
+}
+
+export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
   const navigate = useNavigate();
 
   // Queries
-  const { data: project, isLoading, isError } = useReductionProject(id);
+  const {
+    data: project,
+    isLoading: isProjectLoading,
+    isError: isProjectError,
+  } = useReductionProject(id);
   const { data: organizations = [], isLoading: isLoadingOrgs } =
     useMyOrganizations();
   const { data: verifiedInventories = [] } = useCarbonInventoriesMinimalData([
@@ -61,11 +69,14 @@ export const ReductionProjectScreen: FC = () => {
   );
 
   // Derived state
-  const status = project?.status;
+  const isLoading = mode === "edit" ? isProjectLoading : false;
+  const hasError = mode === "edit" ? isProjectError : false;
+  const status = mode === "edit" ? project?.status : undefined;
   const isFormDisabled =
     status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
     status === ReductionProjectDisplayStatusEnum.APPROVED;
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
+  const showFileUpload = mode === "create" || isReviewed;
   const hasInventorySelected = !!selectedCarbonInventoryId;
 
   const projectName = useWatch({ control, name: "name" });
@@ -77,7 +88,9 @@ export const ReductionProjectScreen: FC = () => {
   }, [inventoryDetail?.year, setValue]);
 
   // Submit
-  const { submit, isSubmitting } = useReductionProjectSubmit({ projectId: id });
+  const { submit, isSubmitting } = useReductionProjectSubmit({
+    projectId: id,
+  });
 
   const goBack = () => {
     void navigate({ to: Routes.REDUCTION_PROJECTS });
@@ -96,7 +109,7 @@ export const ReductionProjectScreen: FC = () => {
   const saveButton: FooterButton | undefined = isFormDisabled
     ? undefined
     : {
-        text: "Subir Cambios",
+        text: mode === "create" ? "Ingresar Proyecto" : "Subir Cambios",
         align: "right",
         buttonProps: {
           variant: "contained",
@@ -115,7 +128,7 @@ export const ReductionProjectScreen: FC = () => {
       }}
       footerProps={{ buttons: footerButtons }}
       isLoading={isLoading}
-      hasError={isError}
+      hasError={hasError}
     >
       <Box
         component="form"
@@ -128,7 +141,7 @@ export const ReductionProjectScreen: FC = () => {
           <Typography variant="body1" fontSize={18} fontWeight={500}>
             Proyecto de Reducción
           </Typography>
-          {status && (
+          {mode === "edit" && status && (
             <ReductionProjectStatusChip status={status} size="medium" />
           )}
         </Box>
@@ -156,8 +169,8 @@ export const ReductionProjectScreen: FC = () => {
           projectName={projectName}
         />
 
-        {/* File upload — visible only for REVIEWED (empty, user must attach new files) */}
-        {isReviewed && (
+        {/* File upload — visible in create mode and when REVIEWED */}
+        {showFileUpload && (
           <FileUploadSection control={control} disabled={isSubmitting} />
         )}
       </Box>
