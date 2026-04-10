@@ -6,12 +6,6 @@ export const ReductionProjectNotFoundError = createError(
   404
 );
 
-export const ReductionProjectNotDeletableError = createError(
-  "REDUCTION_PROJECT_NOT_DELETABLE",
-  "Reduction project %s cannot be deleted in its current status (%s)",
-  403
-);
-
 export const ReductionProjectCannotRequestVerificationError = createError(
   "REDUCTION_PROJECT_CANNOT_REQUEST_VERIFICATION",
   "Reduction project %s cannot request verification in its current state",
