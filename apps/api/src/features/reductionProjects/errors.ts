@@ -35,3 +35,21 @@ export const ReductionProjectOrganizationNotAccreditedError = createError(
   "The organization associated with reduction project %s is not accredited",
   422
 );
+
+export const ReductionProjectCarbonInventoryNotApprovedError = createError(
+  "REDUCTION_PROJECT_CARBON_INVENTORY_NOT_APPROVED",
+  "The carbon inventory linked to this reduction project does not have an approved verification",
+  422
+);
+
+export const ReductionProjectDraftNotUpdatableError = createError(
+  "REDUCTION_PROJECT_DRAFT_NOT_UPDATABLE",
+  "Reduction project %s is in DRAFT status and cannot be updated via this endpoint",
+  422
+);
+
+export const ReductionProjectNotSubmittableError = createError(
+  "REDUCTION_PROJECT_NOT_SUBMITTABLE",
+  "Reduction project %s cannot be updated because it is not in a REVIEWED state",
+  422
+);

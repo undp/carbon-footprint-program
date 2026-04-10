@@ -5,4 +5,3 @@ export * from "./useReductionProject";
 export * from "./useCreateReductionProject";
 export * from "./useDeleteReductionProject";
 export * from "./useUpdateReductionProject";
-export * from "./useRequestReductionProjectVerification";

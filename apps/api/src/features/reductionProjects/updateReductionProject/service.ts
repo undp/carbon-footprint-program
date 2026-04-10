@@ -5,10 +5,7 @@ import type {
   UpdateReductionProjectResponse,
   User,
 } from "@repo/types";
-import {
-  FileAttachmentsNotSupportedError,
-  FileAttachmentsRequiredError,
-} from "@/features/organizations/errors.js";
+import { FileAttachmentsRequiredError } from "@/features/organizations/errors.js";
 import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import {
   linkFilesToSubmission,
@@ -18,6 +15,8 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import {
   ReductionProjectNotFoundError,
   ReductionProjectUnderReviewError,
+  ReductionProjectDraftNotUpdatableError,
+  ReductionProjectNotSubmittableError,
 } from "../errors.js";
 import {
   calculateReductionProjectDisplayStatus,
@@ -54,23 +53,24 @@ export const updateReductionProjectService = async (
 
     const displayStatus = calculateReductionProjectDisplayStatus(existing);
 
+    if (displayStatus === ReductionProjectDisplayStatusEnum.DRAFT) {
+      throw new ReductionProjectDraftNotUpdatableError(id);
+    }
+
     if (displayStatus === ReductionProjectDisplayStatusEnum.SUBMITTED) {
       throw new ReductionProjectUnderReviewError();
     }
 
-    const isDraft = displayStatus === ReductionProjectDisplayStatusEnum.DRAFT;
+    if (displayStatus === ReductionProjectDisplayStatusEnum.APPROVED) {
+      throw new ReductionProjectNotSubmittableError(id);
+    }
 
-    if (isDraft) {
-      if (fileUuids !== undefined && fileUuids.length > 0) {
-        throw new FileAttachmentsNotSupportedError("draft");
-      }
-    } else {
-      if (!fileUuids?.length) {
-        throw new FileAttachmentsRequiredError();
-      }
-      if (!blobServiceClient || !containerName) {
-        throw new StorageNotConfiguredError();
-      }
+    // Only REVIEWED reaches here
+    if (!fileUuids?.length) {
+      throw new FileAttachmentsRequiredError();
+    }
+    if (!blobServiceClient || !containerName) {
+      throw new StorageNotConfiguredError();
     }
 
     const updateData: Prisma.ReductionProjectUncheckedUpdateInput = {};
@@ -143,7 +143,7 @@ export const updateReductionProjectService = async (
       }
     }
 
-    if (!isDraft && fileUuids?.length) {
+    if (fileUuids?.length) {
       const createdById = user ? BigInt(user.id) : null;
       const submissionId = await createReductionProjectSubmission(
         tx,
@@ -155,8 +155,8 @@ export const updateReductionProjectService = async (
         tx,
         submissionId,
         fileUuids,
-        blobServiceClient!,
-        containerName!
+        blobServiceClient,
+        containerName
       );
       await cleanupSourceBlobs(sourceCleanup);
     }

@@ -1,55 +1,45 @@
 import { FC, useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import { useNavigate, useParams } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useWatch } from "react-hook-form";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces";
-import { useReductionProject } from "@/api/query/reductionProjects";
 import { useMyOrganizations } from "@/api/query/organizations";
 import {
   useCarbonInventoriesMinimalData,
   useCarbonInventory,
 } from "@/api/query/carbonInventories";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
-import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
 import {
   ReductionProjectLayout,
   type FooterButton,
 } from "./layout/ReductionProjectLayout";
 import { useReductionProjectForm } from "./hooks/useReductionProjectForm";
-import { useReductionProjectSubmit } from "./hooks/useReductionProjectSubmit";
+import { useCreateReductionProjectSubmit } from "./hooks/useCreateReductionProjectSubmit";
 import { ReductionProjectFormFields } from "./components/ReductionProjectFormFields";
 import { GeiConsideredSection } from "./components/GeiConsideredSection";
 import { ReductionReportSection } from "./components/ReductionReportSection";
 import { FileUploadSection } from "./components/FileUploadSection";
-import {
-  CarbonInventoryDisplayStatusEnum,
-  ReductionProjectDisplayStatusEnum,
-} from "@repo/types";
+import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 
-export const ReductionProjectScreen: FC = () => {
-  const { id } = useParams({ from: Routes.REDUCTION_PROJECT });
+export const CreateReductionProjectScreen: FC = () => {
   const navigate = useNavigate();
 
-  // Queries
-  const { data: project, isLoading, isError } = useReductionProject(id);
   const { data: organizations = [], isLoading: isLoadingOrgs } =
     useMyOrganizations();
   const { data: verifiedInventories = [] } = useCarbonInventoriesMinimalData([
     CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
   ]);
 
-  // Form
-  const form = useReductionProjectForm({ project });
+  // Form initializes with empty default values (no existing project)
   const {
     control,
     handleSubmit,
     setValue,
     selectedOrganizationId,
     selectedCarbonInventoryId,
-  } = form;
+  } = useReductionProjectForm();
 
-  // Derived: carbon inventory detail for methodology + year
   const { data: inventoryDetail } = useCarbonInventory(
     selectedCarbonInventoryId || ""
   );
@@ -60,14 +50,7 @@ export const ReductionProjectScreen: FC = () => {
     [methodology]
   );
 
-  // Derived state
-  const status = project?.status;
-  const isFormDisabled =
-    status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
-    status === ReductionProjectDisplayStatusEnum.APPROVED;
-  const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
   const hasInventorySelected = !!selectedCarbonInventoryId;
-
   const projectName = useWatch({ control, name: "name" });
 
   useEffect(() => {
@@ -76,46 +59,39 @@ export const ReductionProjectScreen: FC = () => {
     }
   }, [inventoryDetail?.year, setValue]);
 
-  // Submit
-  const { submit, isSubmitting } = useReductionProjectSubmit({ projectId: id });
+  const { submit, isSubmitting } = useCreateReductionProjectSubmit();
 
   const goBack = () => {
     void navigate({ to: Routes.REDUCTION_PROJECTS });
   };
 
-  // Footer buttons
-  const backButton: FooterButton = {
-    text: "Volver",
-    align: "right",
-    buttonProps: {
-      startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
-      onClick: goBack,
+  const footerButtons: FooterButton[] = [
+    {
+      text: "Volver",
+      align: "right",
+      buttonProps: {
+        startIcon: <ArrowRightAltRounded className="-scale-x-100" />,
+        onClick: goBack,
+      },
     },
-  };
-
-  const saveButton: FooterButton | undefined = isFormDisabled
-    ? undefined
-    : {
-        text: "Subir Cambios",
-        align: "right",
-        buttonProps: {
-          variant: "contained",
-          type: "submit",
-          form: "reduction-project-form",
-          loading: isSubmitting,
-        },
-      };
-
-  const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
+    {
+      text: "Ingresar Proyecto",
+      align: "right",
+      buttonProps: {
+        variant: "contained",
+        type: "submit",
+        form: "reduction-project-form",
+        loading: isSubmitting,
+      },
+    },
+  ];
 
   return (
     <ReductionProjectLayout
-      headerProps={{
-        subtitle: projectName || undefined,
-      }}
+      headerProps={{ subtitle: projectName || undefined }}
       footerProps={{ buttons: footerButtons }}
-      isLoading={isLoading}
-      hasError={isError}
+      isLoading={false}
+      hasError={false}
     >
       <Box
         component="form"
@@ -123,20 +99,15 @@ export const ReductionProjectScreen: FC = () => {
         onSubmit={handleSubmit(submit)}
         className="flex flex-col gap-6 rounded-lg bg-white p-6"
       >
-        {/* Content header with status chip */}
         <Box className="flex items-center justify-between">
           <Typography variant="body1" fontSize={18} fontWeight={500}>
             Proyecto de Reducción
           </Typography>
-          {status && (
-            <ReductionProjectStatusChip status={status} size="medium" />
-          )}
         </Box>
 
-        {/* Form fields */}
         <ReductionProjectFormFields
           control={control}
-          disabled={isFormDisabled}
+          disabled={false}
           organizations={organizations}
           isLoadingOrgs={isLoadingOrgs}
           verifiedInventories={verifiedInventories}
@@ -146,20 +117,16 @@ export const ReductionProjectScreen: FC = () => {
           hasInventorySelected={hasInventorySelected}
         />
 
-        {/* GEI + Reported elsewhere */}
-        <GeiConsideredSection control={control} disabled={isFormDisabled} />
+        <GeiConsideredSection control={control} disabled={false} />
 
-        {/* Reduction report datagrid */}
         <ReductionReportSection
           control={control}
-          disabled={isFormDisabled}
+          disabled={false}
           projectName={projectName}
         />
 
-        {/* File upload — visible only for REVIEWED (empty, user must attach new files) */}
-        {isReviewed && (
-          <FileUploadSection control={control} disabled={isSubmitting} />
-        )}
+        {/* File upload — always shown and required for create */}
+        <FileUploadSection control={control} disabled={isSubmitting} />
       </Box>
     </ReductionProjectLayout>
   );
