@@ -8,7 +8,7 @@ import type {
   GetReductionProjectsMinimalResponse,
   User,
 } from "@repo/types";
-import { InventoryStatus } from "@repo/types";
+import { ReductionProjectStatus } from "@repo/types";
 import {
   calculateReductionProjectDisplayStatus,
   reductionProjectSubmissionFilter,
@@ -22,7 +22,7 @@ export const getReductionProjectsMinimalService = async (
   user: User | null
 ): Promise<GetReductionProjectsMinimalResponse> => {
   const baseFilters: Prisma.ReductionProjectWhereInput = {
-    status: InventoryStatus.ACTIVE,
+    status: ReductionProjectStatus.ACTIVE,
   };
 
   if (query?.year) {

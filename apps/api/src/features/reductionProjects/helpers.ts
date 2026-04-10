@@ -5,7 +5,7 @@ import {
   type PrismaClient,
 } from "@repo/database";
 import {
-  InventoryStatus,
+  ReductionProjectStatus,
   ReductionProjectDisplayStatusEnum,
   type ReductionProjectDisplayStatus,
 } from "@repo/types";
@@ -38,7 +38,7 @@ export type ReductionProjectWithSubmissionsMinimal =
 export function calculateReductionProjectDisplayStatus(
   project: ReductionProjectWithSubmissionsMinimal
 ): ReductionProjectDisplayStatus {
-  if (project.status === InventoryStatus.DELETED) {
+  if (project.status === ReductionProjectStatus.DELETED) {
     return ReductionProjectDisplayStatusEnum.DELETED;
   }
 

@@ -6,7 +6,7 @@ import type {
   UpdateReductionProjectResponse,
 } from "@repo/types";
 import type { ReductionProjectDisplayStatus } from "@repo/types";
-import type { InventoryStatus } from "@repo/types";
+import type { ReductionProjectStatus } from "@repo/types";
 import { GwpSourceSchema } from "@repo/types";
 import { ConsideredGeiSchema } from "@repo/types";
 
@@ -26,7 +26,7 @@ type ReductionProjectRow = {
   year: number | null;
   baselineScenario: Prisma.Decimal | null;
   projectScenario: Prisma.Decimal | null;
-  status: InventoryStatus;
+  status: ReductionProjectStatus;
   createdAt: Date;
   updatedAt: Date | null;
   createdById: bigint | null;

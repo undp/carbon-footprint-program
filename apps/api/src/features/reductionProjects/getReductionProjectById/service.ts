@@ -1,6 +1,6 @@
 import { type PrismaClient } from "@repo/database";
 import type { GetReductionProjectByIdResponse } from "@repo/types";
-import { InventoryStatus } from "@repo/types";
+import { ReductionProjectStatus } from "@repo/types";
 import { ReductionProjectNotFoundError } from "../errors.js";
 import { calculateReductionProjectDisplayStatus } from "../helpers.js";
 import { mapReductionProjectToGetByIdResponse } from "../mappers.js";
@@ -12,7 +12,7 @@ export const getReductionProjectByIdService = async (
   const row = await prismaClient.reductionProject.findFirst({
     where: {
       id: BigInt(id),
-      status: InventoryStatus.ACTIVE,
+      status: ReductionProjectStatus.ACTIVE,
     },
     include: {
       submission: {

@@ -8,7 +8,7 @@ import type {
   GetAllReductionProjectsResponse,
   User,
 } from "@repo/types";
-import { InventoryStatus } from "@repo/types";
+import { ReductionProjectStatus } from "@repo/types";
 import { mapReductionProjectToListItem } from "../mappers.js";
 import {
   calculateReductionProjectDisplayStatus,
@@ -21,7 +21,7 @@ export const getAllReductionProjectsService = async (
   user: User | null
 ): Promise<GetAllReductionProjectsResponse> => {
   const baseFilters: Prisma.ReductionProjectWhereInput = {
-    status: InventoryStatus.ACTIVE,
+    status: ReductionProjectStatus.ACTIVE,
   };
 
   if (query?.year) {
