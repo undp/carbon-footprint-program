@@ -1,20 +1,24 @@
 import { FC } from "react";
-import { Box, Chip, Tooltip, Typography, useTheme } from "@mui/material";
-import { TaskAltRounded, GppGoodOutlined } from "@mui/icons-material";
-import { alpha } from "@mui/material/styles";
+import { Box, Tooltip, Typography } from "@mui/material";
 import {
   CarbonInventoryDisplayStatus,
   CarbonInventoryDisplayStatusEnum,
   SubmissionType,
 } from "@repo/types";
 import { REQUEST_TYPE_LABEL } from "@/utils/submissions";
+import { RecognitionChip } from "../../../../components";
 
-const DIPLOMA_STATUSES: CarbonInventoryDisplayStatus[] = [
+const MEASUREMENT_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
   CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION,
   CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED,
   CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED,
   CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+];
+
+const VERIFICATION_STATUSES: CarbonInventoryDisplayStatus[] = [
+  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+  //TODO: Include reduction and neutralization plan statuses when they are defined
 ];
 
 interface InventoryNameCellProps {
@@ -26,11 +30,8 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
   name,
   status,
 }) => {
-  const theme = useTheme();
-
-  const hasDiploma = DIPLOMA_STATUSES.includes(status);
-  const hasSello =
-    status === CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
+  const hasMeasurementRecognition = MEASUREMENT_STATUSES.includes(status);
+  const hasVerificationRecognition = VERIFICATION_STATUSES.includes(status);
 
   return (
     <Box
@@ -53,64 +54,32 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
           (sin nombre)
         </Typography>
       )}
-      {(hasDiploma || hasSello) && (
+      {(hasMeasurementRecognition || hasVerificationRecognition) && (
         <Box sx={{ display: "flex", gap: 1 }}>
-          {hasDiploma && (
+          {hasMeasurementRecognition && (
             <Tooltip
               title={
                 REQUEST_TYPE_LABEL[SubmissionType.CARBON_INVENTORY_CALCULATION]
               }
             >
-              <Chip
-                icon={
-                  <TaskAltRounded
-                    sx={{
-                      fontSize: 14,
-                      color: `${theme.palette.success.main} !important`,
-                    }}
-                  />
-                }
-                label="Diploma"
-                size="small"
-                sx={{
-                  height: 22,
-                  borderRadius: "4px",
-                  backgroundColor: alpha(theme.palette.success.main, 0.1),
-                  border: `1px solid ${alpha(theme.palette.success.main, 0.4)}`,
-                  color: theme.palette.success.main,
-                  fontWeight: 500,
-                  "& .MuiChip-icon": { ml: 0.5 },
-                }}
-              />
+              <span>
+                <RecognitionChip
+                  type={SubmissionType.CARBON_INVENTORY_CALCULATION}
+                />
+              </span>
             </Tooltip>
           )}
-          {hasSello && (
+          {hasVerificationRecognition && (
             <Tooltip
               title={
                 REQUEST_TYPE_LABEL[SubmissionType.CARBON_INVENTORY_VERIFICATION]
               }
             >
-              <Chip
-                icon={
-                  <GppGoodOutlined
-                    sx={{
-                      fontSize: 14,
-                      color: `${theme.palette.common.glossyTeal} !important`,
-                    }}
-                  />
-                }
-                label="Sello"
-                size="small"
-                sx={{
-                  height: 22,
-                  borderRadius: "4px",
-                  backgroundColor: alpha(theme.palette.secondary.main, 0.15),
-                  border: `1px solid ${alpha(theme.palette.secondary.main, 0.5)}`,
-                  color: theme.palette.common.glossyTeal,
-                  fontWeight: 500,
-                  "& .MuiChip-icon": { ml: 0.5 },
-                }}
-              />
+              <span>
+                <RecognitionChip
+                  type={SubmissionType.CARBON_INVENTORY_VERIFICATION}
+                />
+              </span>
             </Tooltip>
           )}
         </Box>

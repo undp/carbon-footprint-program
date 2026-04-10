@@ -1,5 +1,6 @@
 import "@mui/material/styles";
-import { SubmissionType as RequestType } from "@repo/types";
+import { SubmissionType } from "@repo/types";
+import { RecognitionType } from "../utils/submissions";
 
 declare module "@mui/material/styles" {
   interface TypeText {
@@ -23,7 +24,8 @@ declare module "@mui/material/styles" {
       gradient: string;
       gradient20: string;
     };
-    requestTypeColors: Record<RequestType, string>;
+    requestTypeColors: Record<SubmissionType, string>;
+    recognitionTypeColors: Record<RecognitionType, string>;
   }
 
   interface PaletteOptions {
@@ -37,6 +39,7 @@ declare module "@mui/material/styles" {
       gradient?: string;
       gradient20?: string;
     };
-    requestTypeColors?: Record<RequestType, string>;
+    requestTypeColors?: Record<SubmissionType, string>;
+    recognitionTypeColors?: Record<RecognitionType, string>;
   }
 }

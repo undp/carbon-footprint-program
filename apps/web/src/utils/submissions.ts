@@ -6,6 +6,11 @@ import {
   SubmissionType,
 } from "@repo/types";
 import { VOCAB } from "../config/vocab";
+import {
+  SvgIconComponent,
+  VerifiedOutlined,
+  WorkspacePremiumOutlined,
+} from "@mui/icons-material";
 
 export const REQUEST_STATUS_LABEL: Record<SubmissionStatus, string> = {
   [SubmissionStatus.PENDING]: "Pendiente",
@@ -102,4 +107,31 @@ export const getRequestStatusColor = (
     [SubmissionStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.light,
   };
   return map[status];
+};
+
+export type RecognitionType = Exclude<
+  SubmissionType,
+  "ORGANIZATION_ACCREDITATION"
+>;
+
+export const RECOGNITION_TYPE_LABEL: Record<RecognitionType, string> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Reconocimiento Medición",
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Reconocimiento Verificación",
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "Reconocimiento Reducción",
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]:
+    "Reconocimiento Neutralización",
+};
+
+export const SHORT_RECOGNITION_TYPE_LABEL: Record<RecognitionType, string> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Medición",
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Verificación",
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "Reducción",
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Neutralización",
+};
+
+export const RECOGNITION_ICON: Record<RecognitionType, SvgIconComponent> = {
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: VerifiedOutlined,
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: WorkspacePremiumOutlined,
+  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: WorkspacePremiumOutlined,
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: WorkspacePremiumOutlined,
 };
