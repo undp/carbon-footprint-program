@@ -53,8 +53,7 @@ export const InventoriesTab: FC<Props> = ({
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
-          minWidth: 80,
-          flex: 0.4,
+          width: 81,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],

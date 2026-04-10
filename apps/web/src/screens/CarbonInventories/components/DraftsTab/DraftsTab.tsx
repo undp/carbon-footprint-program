@@ -33,7 +33,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           headerName: "NOMBRE",
           align: "left",
           headerAlign: "left",
-          minWidth: 100,
+          minWidth: 180,
           flex: 1,
           cellClassName: "content-center",
           renderCell: (
@@ -62,8 +62,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
-          minWidth: 80,
-          flex: 0.4,
+          width: 81,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
