@@ -124,6 +124,7 @@ export const DraftActionsCell: FC<Props> = ({
     carbonInventory.organizationId,
     carbonInventory.name,
     carbonInventory.year,
+    isYearAlreadySelfDeclared,
   ]);
 
   const onSelfDeclareConfirm = useCallback(async () => {
@@ -138,7 +139,7 @@ export const DraftActionsCell: FC<Props> = ({
     } finally {
       setSelfDeclareDialogOpen(false);
     }
-  }, [carbonInventory.id, selfDeclareClick]);
+  }, [carbonInventory.id, selfDeclareClick, setActiveTab]);
 
   const onDeleteConfirm = useCallback(async () => {
     try {

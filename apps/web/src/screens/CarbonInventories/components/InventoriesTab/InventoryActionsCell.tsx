@@ -89,7 +89,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     } catch {
       enqueueSnackbar("No se pudo duplicar la huella", { variant: "error" });
     }
-  }, [carbonInventory.id, duplicateInventory]);
+  }, [carbonInventory.id, duplicateInventory, setActiveTab]);
 
   const onViewClick = useCallback(() => {
     void navigate({
