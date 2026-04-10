@@ -18,7 +18,6 @@ const MEASUREMENT_STATUSES: CarbonInventoryDisplayStatus[] = [
 
 const VERIFICATION_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-  //TODO: Include reduction and neutralization plan statuses when they are defined
 ];
 
 interface InventoryNameCellProps {
@@ -45,7 +44,7 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
     >
       {name ? (
         <Tooltip title={name}>
-          <Typography variant="body2" noWrap>
+          <Typography variant="body2" noWrap maxWidth="stretch">
             {name}
           </Typography>
         </Tooltip>
