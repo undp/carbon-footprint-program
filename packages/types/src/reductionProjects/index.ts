@@ -12,5 +12,3 @@ export * from "./updateReductionProject/schemas.js";
 export * from "./updateReductionProject/types.js";
 export * from "./deleteReductionProject/schemas.js";
 export * from "./deleteReductionProject/types.js";
-export * from "./requestReductionProjectVerification/schemas.js";
-export * from "./requestReductionProjectVerification/types.js";

@@ -13,7 +13,6 @@ import {
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useNavigate } from "@tanstack/react-router";
-import { useSnackbar } from "notistack";
 import { OrganizationSelector, ResponsiveTypography } from "@/components";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
@@ -21,7 +20,6 @@ import {
   useReductionProjects,
   useReductionProjectsMinimal,
   useMyOrganizations,
-  useCreateReductionProject,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { formatEmissions } from "@/utils/formatting";
@@ -45,24 +43,14 @@ export const ReductionProjectsScreen: FC = () => {
     useState<string>("all");
 
   const navigate = useNavigate();
-  const { enqueueSnackbar } = useSnackbar();
-  const createProject = useCreateReductionProject();
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
   }, []);
 
-  const handleCreateProject = useCallback(async () => {
-    try {
-      const created = await createProject.mutateAsync({});
-      void navigate({
-        to: Routes.REDUCTION_PROJECT,
-        params: { id: String(created.id) },
-      });
-    } catch {
-      enqueueSnackbar("No se pudo crear el proyecto", { variant: "error" });
-    }
-  }, [createProject, navigate, enqueueSnackbar]);
+  const handleCreateProject = useCallback(() => {
+    void navigate({ to: Routes.REDUCTION_PROJECT_NEW });
+  }, [navigate]);
 
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
     useMyOrganizations();
@@ -265,8 +253,7 @@ export const ReductionProjectsScreen: FC = () => {
           <Button
             variant="contained"
             color="primary"
-            onClick={() => void handleCreateProject()}
-            loading={createProject.isPending}
+            onClick={handleCreateProject}
           >
             Ingresar Proyecto
           </Button>

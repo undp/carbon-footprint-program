@@ -1,6 +1,6 @@
 import type {
   GetReductionProjectByIdResponse,
-  UpdateReductionProjectRequest,
+  ReductionProjectMutationData,
 } from "@repo/types";
 import type { ReductionProjectFormValues } from "./types";
 
@@ -26,9 +26,9 @@ export const mapProjectToFormValues = (
   files: [],
 });
 
-export const mapFormValuesToRequest = (
+export const mapFormValuesToMutationData = (
   values: Omit<ReductionProjectFormValues, "files">
-): UpdateReductionProjectRequest => {
+): ReductionProjectMutationData => {
   return {
     name: values.name || null,
     organizationId: values.organizationId || null,

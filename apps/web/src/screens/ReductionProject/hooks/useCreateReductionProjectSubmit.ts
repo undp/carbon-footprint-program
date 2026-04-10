@@ -1,20 +1,16 @@
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
 import { useNavigate } from "@tanstack/react-router";
-import { useUpdateReductionProject } from "@/api/query/reductionProjects";
+import { useCreateReductionProject } from "@/api/query/reductionProjects";
 import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToMutationData } from "../mappers";
 import type { ReductionProjectFormValues } from "../types";
 import { Routes } from "@/interfaces";
 
-interface Params {
-  projectId: string;
-}
-
-export const useReductionProjectSubmit = ({ projectId }: Params) => {
+export const useCreateReductionProjectSubmit = () => {
   const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
-  const updateMutation = useUpdateReductionProject(projectId);
+  const createMutation = useCreateReductionProject();
   const { preUploadFiles, isUploading } = usePreUploadSubmissionFiles();
 
   const submit = useCallback(
@@ -38,21 +34,19 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
         }
 
         const mutationData = mapFormValuesToMutationData(formData);
-        await updateMutation.mutateAsync({ ...mutationData, fileUuids });
+        await createMutation.mutateAsync({ ...mutationData, fileUuids });
 
-        enqueueSnackbar("Proyecto guardado exitosamente", {
-          variant: "success",
-        });
+        enqueueSnackbar("Proyecto creado exitosamente", { variant: "success" });
         void navigate({ to: Routes.REDUCTION_PROJECTS });
       } catch {
-        enqueueSnackbar("No se pudo guardar el proyecto", { variant: "error" });
+        enqueueSnackbar("No se pudo crear el proyecto", { variant: "error" });
       }
     },
-    [preUploadFiles, updateMutation, enqueueSnackbar, navigate]
+    [createMutation, preUploadFiles, enqueueSnackbar, navigate]
   );
 
   return {
     submit,
-    isSubmitting: updateMutation.isPending || isUploading,
+    isSubmitting: createMutation.isPending || isUploading,
   };
 };
