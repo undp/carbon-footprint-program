@@ -25,11 +25,11 @@ export const CalculationConfirmationDialog: FC<
       aria-describedby="calculation-dialog-description"
     >
       <DialogTitle id="calculation-dialog-title">
-        Enviar para Cálculo
+        Postular para Cálculo
       </DialogTitle>
       <DialogContent>
         <DialogContentText id="calculation-dialog-description">
-          ¿Estás seguro de que deseas enviar esta huella de carbono para
+          ¿Estás seguro de que deseas postular esta huella de carbono para
           cálculo? Una vez enviado, no podrás realizar más cambios hasta que el
           proceso de cálculo se complete.
         </DialogContentText>
@@ -37,7 +37,7 @@ export const CalculationConfirmationDialog: FC<
       <DialogActions>
         <Button onClick={onClose}>Cancelar</Button>
         <Button onClick={onConfirm} color="primary" autoFocus>
-          Enviar
+          Postular
         </Button>
       </DialogActions>
     </Dialog>
