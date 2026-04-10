@@ -113,9 +113,9 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                 >
                   Al <strong>autodeclarar</strong> tu huella de carbono,
                   recibirás automáticamente un{" "}
-                  <strong>Diploma de Medición</strong> que reconoce que tu{" "}
-                  {VOCAB.organization.noun.singular} ha calculado sus emisiones
-                  de gases de efecto invernadero.
+                  <strong>Reconocimiento de Medición</strong> que reconoce que
+                  tu {VOCAB.organization.noun.singular} ha calculado sus
+                  emisiones de gases de efecto invernadero.
                 </Typography>
 
                 <Box
@@ -146,7 +146,7 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                       variant="body2"
                       sx={{ color: theme.palette.info.dark }}
                     >
-                      El diploma{" "}
+                      El reconocimiento de medición{" "}
                       <strong>NO es un reconocimiento oficial</strong> ni
                       certifica que la medición haya sido verificada por Huella
                       Latam. Es una felicitación por el esfuerzo de realizar el
@@ -161,7 +161,8 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                   }}
                   variant="body2"
                 >
-                  Si deseas obtener el <strong>Sello de Verificación</strong>{" "}
+                  Si deseas obtener el{" "}
+                  <strong>Reconocimiento de Verificación</strong>{" "}
                   (reconocimiento oficial), podrás postular tu huella al proceso
                   de verificación gubernamental desde la sección &quot;Mis
                   huellas&quot; una vez que hayas autodeclarado.
@@ -180,8 +181,8 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
               <Typography variant="body2">
                 Declaro que los datos del cálculo de huella de carbono
                 corresponden a la {VOCAB.organization.noun.singular} mencionada
-                y comprendo que este diploma es un reconocimiento por realizar
-                el cálculo, y no constituye una certificación oficial ni
+                y comprendo que este es un reconocimiento por realizar el
+                cálculo, y no constituye una certificación oficial ni
                 verificación por parte de Huella Latam.
               </Typography>
             }
