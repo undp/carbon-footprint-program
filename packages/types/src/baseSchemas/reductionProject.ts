@@ -7,26 +7,19 @@ import { GwpSourceSchema } from "../common/gwpSource/schemas.js";
 export const ReductionProjectBaseSchema = z
   .object({
     id: IdSchema.describe("The ID of the reduction project"),
-    name: z.string().nullable().describe("The name of the reduction project"),
-    organizationId: IdSchema.nullable().describe("The ID of the organization"),
-    carbonInventoryId: IdSchema.nullable().describe(
+    name: z.string().describe("The name of the reduction project"),
+    organizationId: IdSchema.describe("The ID of the organization"),
+    carbonInventoryId: IdSchema.describe(
       "The ID of the linked carbon inventory"
     ),
     implementationDate: z.iso
       .datetime()
-      .nullable()
       .describe("Implementation date of the project"),
-    description: z
-      .string()
-      .nullable()
-      .describe("Description of the reduction project"),
-    subcategoryId: IdSchema.nullable().describe("The ID of the subcategory"),
+    description: z.string().describe("Description of the reduction project"),
+    subcategoryId: IdSchema.describe("The ID of the subcategory"),
     gwpUsed: GwpSourceSchema.nullable().describe(
       "GWP set used for the assessment"
     ),
-    useNationalGwp: z
-      .boolean()
-      .describe("Whether national GWP values are used"),
     consideredGei: z
       .array(ConsideredGeiSchema)
       .describe("GHG species considered in the project"),
@@ -44,11 +37,9 @@ export const ReductionProjectBaseSchema = z
       .describe("Reporting year for scenario metrics"),
     baselineScenario: z
       .string()
-      .nullable()
       .describe("Baseline scenario emissions (decimal as string)"),
     projectScenario: z
       .string()
-      .nullable()
       .describe("Project scenario emissions (decimal as string)"),
     status: z
       .enum(InventoryStatus)

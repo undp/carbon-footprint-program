@@ -923,29 +923,28 @@ enum ReductionProjectStatus {
 
 model ReductionProject {
   id                           BigInt                 @id @default(autoincrement())
-  name                         String?
-  organizationId               BigInt?                @map("organization_id")
-  carbonInventoryId            BigInt?                @map("carbon_inventory_id")
-  implementationDate           DateTime?              @map("implementation_date")
-  description                  String?
-  subcategoryId                BigInt?                @map("subcategory_id")
+  name                         String
+  organizationId               BigInt                 @map("organization_id")
+  carbonInventoryId            BigInt                 @map("carbon_inventory_id")
+  implementationDate           DateTime               @map("implementation_date")
+  description                  String
+  subcategoryId                BigInt                 @map("subcategory_id")
   gwpUsed                      String?                @map("gwp_used")
-  useNationalGwp               Boolean                @default(false) @map("use_national_gwp")
   consideredGei                String[]               @map("considered_gei")
   reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
   reportedElsewhereDescription String?                @map("reported_elsewhere_description")
   year                         Int?
-  baselineScenario             Decimal?               @map("baseline_scenario") @db.Decimal(15, 4)
-  projectScenario              Decimal?               @map("project_scenario") @db.Decimal(15, 4)
+  baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(15, 4)
+  projectScenario              Decimal                @map("project_scenario") @db.Decimal(15, 4)
   status                       ReductionProjectStatus @default(ACTIVE)
   createdAt                    DateTime               @default(now()) @map("created_at")
   updatedAt                    DateTime?              @updatedAt @map("updated_at")
   createdById                  BigInt?                @map("created_by_id")
   updatedById                  BigInt?                @map("updated_by_id")
 
-  organization    Organization?                      @relation(fields: [organizationId], references: [id])
-  carbonInventory CarbonInventory?                   @relation("reduction_project_carbon_inventory", fields: [carbonInventoryId], references: [id])
-  subcategory     Subcategory?                       @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id])
+  organization    Organization                       @relation(fields: [organizationId], references: [id])
+  carbonInventory CarbonInventory                    @relation("reduction_project_carbon_inventory", fields: [carbonInventoryId], references: [id])
+  subcategory     Subcategory                        @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id])
   creator         User?                              @relation("reduction_project_created_by", fields: [createdById], references: [id])
   updater         User?                              @relation("reduction_project_updated_by", fields: [updatedById], references: [id])
   submission      SubmissionSubjectReductionProject?
