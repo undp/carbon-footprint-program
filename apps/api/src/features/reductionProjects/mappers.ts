@@ -45,10 +45,20 @@ export function mapReductionProjectToGetByIdResponse(
   };
 }
 
+type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
+  include: {
+    organization: {
+      include: {
+        summary: {
+          select: { name: true };
+        };
+      };
+    };
+  };
+}>;
+
 export function mapReductionProjectToListItem(
-  row: Prisma.ReductionProjectGetPayload<object> & {
-    organization?: { summary?: { name: string | null } | null } | null;
-  },
+  row: ReductionProjectListRow,
   displayStatus: ReductionProjectDisplayStatus
 ): GetAllReductionProjectsResponse[number] {
   const totalReduction =
@@ -57,7 +67,7 @@ export function mapReductionProjectToListItem(
 
   return {
     ...mapPersistenceFields(row),
-    organizationName: row.organization?.summary?.name ?? null,
+    organizationName: row.organization.summary?.name ?? null,
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
     reportedYears: row.year != null ? 1 : 0,
