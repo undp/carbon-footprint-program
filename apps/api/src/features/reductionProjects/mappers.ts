@@ -5,34 +5,11 @@ import type {
   GetReductionProjectsMinimalResponse,
 } from "@repo/types";
 import type { ReductionProjectDisplayStatus } from "@repo/types";
-import type { ReductionProjectStatus } from "@repo/types";
 import { GwpSourceSchema } from "@repo/types";
 import { ConsideredGeiSchema } from "@repo/types";
 
-type ReductionProjectRow = {
-  id: bigint;
-  name: string;
-  organizationId: bigint;
-  carbonInventoryId: bigint;
-  implementationDate: Date;
-  description: string;
-  subcategoryId: bigint;
-  gwpUsed: string | null;
-  consideredGei: string[];
-  reportedElsewhere: boolean;
-  reportedElsewhereDescription: string | null;
-  year: number | null;
-  baselineScenario: Prisma.Decimal;
-  projectScenario: Prisma.Decimal;
-  status: ReductionProjectStatus;
-  createdAt: Date;
-  updatedAt: Date | null;
-  createdById: bigint | null;
-  updatedById: bigint | null;
-};
-
 function mapPersistenceFields(
-  row: ReductionProjectRow
+  row: Prisma.ReductionProjectGetPayload<object>
 ): Omit<GetReductionProjectByIdResponse, "status"> {
   return {
     id: row.id.toString(),
@@ -59,7 +36,7 @@ function mapPersistenceFields(
 }
 
 export function mapReductionProjectToGetByIdResponse(
-  row: ReductionProjectRow,
+  row: Prisma.ReductionProjectGetPayload<object>,
   displayStatus: ReductionProjectDisplayStatus
 ): GetReductionProjectByIdResponse {
   return {
@@ -69,7 +46,7 @@ export function mapReductionProjectToGetByIdResponse(
 }
 
 export function mapReductionProjectToListItem(
-  row: ReductionProjectRow & {
+  row: Prisma.ReductionProjectGetPayload<object> & {
     organization?: { summary?: { name: string | null } | null } | null;
   },
   displayStatus: ReductionProjectDisplayStatus
@@ -89,7 +66,10 @@ export function mapReductionProjectToListItem(
 }
 
 export function mapReductionProjectToMinimalItem(
-  row: Pick<ReductionProjectRow, "id" | "name" | "organizationId" | "year">,
+  row: Pick<
+    Prisma.ReductionProjectGetPayload<object>,
+    "id" | "name" | "organizationId" | "year"
+  >,
   displayStatus: ReductionProjectDisplayStatus
 ): GetReductionProjectsMinimalResponse[number] {
   return {
