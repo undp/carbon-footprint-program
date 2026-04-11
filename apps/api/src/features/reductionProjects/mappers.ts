@@ -70,7 +70,6 @@ export function mapReductionProjectToListItem(
     organizationName: row.organization.summary?.name ?? null,
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
-    reportedYears: row.year != null ? 1 : 0,
     status: displayStatus,
   };
 }
