@@ -1,11 +1,15 @@
-import { SubmissionType, type PrismaClient, Prisma } from "@repo/database";
+import {
+  OrganizationRole,
+  Prisma,
+  SubmissionType,
+  type PrismaClient,
+} from "@repo/database";
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type {
   UpdateReductionProjectRequest,
   UpdateReductionProjectResponse,
   User,
 } from "@repo/types";
-import { FileAttachmentsRequiredError } from "@/features/organizations/errors.js";
 import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import {
   linkFilesToSubmission,
@@ -16,18 +20,19 @@ import {
   ReductionProjectNotFoundError,
   ReductionProjectUnderReviewError,
   ReductionProjectDraftNotUpdatableError,
-  ReductionProjectNotSubmittableError,
+  ReductionProjectRejectedError,
+  ReductionProjectNotEditableError,
 } from "../errors.js";
 import {
   calculateReductionProjectDisplayStatus,
   createReductionProjectSubmission,
   reductionProjectWithSubmissionsMinimalSelect,
+  validateReductionProjectPrerequisites,
 } from "../helpers.js";
 import {
   ReductionProjectDisplayStatusEnum,
   ReductionProjectStatus,
 } from "@repo/types";
-import { mapReductionProjectToUpdateResponse } from "../mappers.js";
 
 export const updateReductionProjectService = async (
   prismaClient: PrismaClient,
@@ -37,14 +42,24 @@ export const updateReductionProjectService = async (
   blobServiceClient?: BlobServiceClient,
   containerName?: string
 ): Promise<UpdateReductionProjectResponse> => {
-  const { fileUuids, ...fields } = data;
+  if (!blobServiceClient || !containerName) {
+    throw new StorageNotConfiguredError();
+  }
 
-  return prismaClient.$transaction(async (tx) => {
+  const userId = user?.id ? BigInt(user.id) : null;
+
+  const sourceCleanup = await prismaClient.$transaction(async (tx) => {
+    await validateReductionProjectPrerequisites(
+      tx,
+      data.organizationId,
+      data.carbonInventoryId,
+      userId,
+      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN]
+    );
+
     const existing = await tx.reductionProject.findUnique({
       where: { id: BigInt(id), status: ReductionProjectStatus.ACTIVE },
-      select: {
-        ...reductionProjectWithSubmissionsMinimalSelect,
-      },
+      select: { ...reductionProjectWithSubmissionsMinimalSelect },
     });
 
     if (!existing) {
@@ -61,106 +76,82 @@ export const updateReductionProjectService = async (
       throw new ReductionProjectUnderReviewError();
     }
 
+    if (displayStatus === ReductionProjectDisplayStatusEnum.REJECTED) {
+      throw new ReductionProjectRejectedError(id);
+    }
+
     if (displayStatus === ReductionProjectDisplayStatusEnum.APPROVED) {
-      throw new ReductionProjectNotSubmittableError(id);
+      throw new ReductionProjectNotEditableError(id);
     }
 
     // Only REVIEWED reaches here
-    if (!fileUuids?.length) {
-      throw new FileAttachmentsRequiredError();
-    }
-    if (!blobServiceClient || !containerName) {
-      throw new StorageNotConfiguredError();
-    }
+    const updateData: Prisma.ReductionProjectUncheckedUpdateInput = {
+      updatedById: userId,
+      name: data.name,
+      organizationId: mapBigIntField(data.organizationId),
+      carbonInventoryId: mapBigIntField(data.carbonInventoryId),
+      subcategoryId: mapBigIntField(data.subcategoryId),
+    };
 
-    const updateData: Prisma.ReductionProjectUncheckedUpdateInput = {};
-
-    if (fields.name !== undefined) updateData.name = fields.name;
-    const organizationId = mapBigIntField(fields.organizationId);
-    if (organizationId !== undefined) {
-      updateData.organizationId = organizationId;
-    }
-    const carbonInventoryId = mapBigIntField(fields.carbonInventoryId);
-    if (carbonInventoryId !== undefined) {
-      updateData.carbonInventoryId = carbonInventoryId;
-    }
-    if (fields.implementationDate !== undefined) {
-      updateData.implementationDate = fields.implementationDate
-        ? new Date(fields.implementationDate)
+    if (data.implementationDate !== undefined) {
+      updateData.implementationDate = data.implementationDate
+        ? new Date(data.implementationDate)
         : null;
     }
-    if (fields.description !== undefined) {
-      updateData.description = fields.description;
-    }
-    const subcategoryId = mapBigIntField(fields.subcategoryId);
-    if (subcategoryId !== undefined) {
-      updateData.subcategoryId = subcategoryId;
-    }
-    if (fields.gwpUsed !== undefined) updateData.gwpUsed = fields.gwpUsed;
-    if (fields.useNationalGwp !== undefined) {
-      updateData.useNationalGwp = fields.useNationalGwp;
-    }
-    if (fields.consideredGei !== undefined) {
-      updateData.consideredGei = fields.consideredGei;
-    }
-    if (fields.reportedElsewhere !== undefined) {
-      updateData.reportedElsewhere = fields.reportedElsewhere;
-    }
-    if (fields.reportedElsewhereDescription !== undefined) {
+    if (data.description !== undefined)
+      updateData.description = data.description;
+    if (data.gwpUsed !== undefined) updateData.gwpUsed = data.gwpUsed;
+    if (data.useNationalGwp !== undefined)
+      updateData.useNationalGwp = data.useNationalGwp;
+    if (data.consideredGei !== undefined)
+      updateData.consideredGei = data.consideredGei;
+    if (data.reportedElsewhere !== undefined)
+      updateData.reportedElsewhere = data.reportedElsewhere;
+    if (data.reportedElsewhereDescription !== undefined) {
       updateData.reportedElsewhereDescription =
-        fields.reportedElsewhereDescription;
+        data.reportedElsewhereDescription;
     }
-    if (fields.year !== undefined) updateData.year = fields.year;
-    if (fields.baselineScenario !== undefined) {
-      updateData.baselineScenario = fields.baselineScenario;
-    }
-    if (fields.projectScenario !== undefined) {
-      updateData.projectScenario = fields.projectScenario;
-    }
+    if (data.year !== undefined) updateData.year = data.year;
+    if (data.baselineScenario !== undefined)
+      updateData.baselineScenario = data.baselineScenario;
+    if (data.projectScenario !== undefined)
+      updateData.projectScenario = data.projectScenario;
 
-    let row;
-    if (Object.keys(updateData).length > 0) {
-      updateData.updatedById = user ? BigInt(user.id) : null;
-      try {
-        row = await tx.reductionProject.update({
-          where: { id: BigInt(id) },
-          data: updateData,
-        });
-      } catch (error) {
-        if (error instanceof Prisma.PrismaClientKnownRequestError) {
-          if (error.code === "P2025") {
-            throw new ReductionProjectNotFoundError(id);
-          }
-        }
-        throw error;
-      }
-    } else {
-      row = await tx.reductionProject.findUnique({
+    try {
+      await tx.reductionProject.update({
         where: { id: BigInt(id) },
+        data: updateData,
       });
-      if (!row) {
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
         throw new ReductionProjectNotFoundError(id);
       }
+      throw error;
     }
 
-    if (fileUuids?.length) {
-      const createdById = user ? BigInt(user.id) : null;
-      const submissionId = await createReductionProjectSubmission(
-        tx,
-        BigInt(id),
-        SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-        createdById
-      );
-      const { sourceCleanup } = await linkFilesToSubmission(
-        tx,
-        submissionId,
-        fileUuids,
-        blobServiceClient,
-        containerName
-      );
-      await cleanupSourceBlobs(sourceCleanup);
-    }
+    const submissionId = await createReductionProjectSubmission(
+      tx,
+      BigInt(id),
+      SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+      userId
+    );
 
-    return mapReductionProjectToUpdateResponse(row);
+    const { sourceCleanup: cleanup } = await linkFilesToSubmission(
+      tx,
+      submissionId,
+      data.fileUuids,
+      blobServiceClient,
+      containerName
+    );
+
+    return cleanup;
   });
+
+  // Cleanup source blobs after the transaction commits
+  await cleanupSourceBlobs(sourceCleanup);
+
+  return {};
 };

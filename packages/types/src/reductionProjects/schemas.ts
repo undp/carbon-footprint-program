@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ReductionProjectBaseSchema } from "../baseSchemas/index.js";
+import { IdSchema } from "../zod.js";
 
 export const ReductionProjectDisplayStatusSchema = z.enum([
   "DRAFT",
@@ -30,6 +31,10 @@ export const ReductionProjectMutationDataSchema =
     baselineScenario: true,
     projectScenario: true,
   }).extend({
+    name: z.string(),
+    organizationId: IdSchema,
+    carbonInventoryId: IdSchema,
+    subcategoryId: IdSchema,
     fileUuids: z
       .array(z.uuid())
       .min(1, "At least one file is required")

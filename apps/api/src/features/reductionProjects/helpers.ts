@@ -1,14 +1,19 @@
 import {
+  MembershipStatus,
+  OrganizationStatus,
   SubmissionStatus,
   SubmissionType,
   type Prisma,
   type PrismaClient,
 } from "@repo/database";
+import type { OrganizationRole } from "@repo/database/enums";
 import {
+  InventoryStatus,
   ReductionProjectStatus,
   ReductionProjectDisplayStatusEnum,
   type ReductionProjectDisplayStatus,
 } from "@repo/types";
+import { ReductionProjectInvalidDataError } from "./errors.js";
 
 export const reductionProjectWithSubmissionsMinimalSelect = {
   id: true,
@@ -131,4 +136,60 @@ export async function createReductionProjectSubmission(
     include: { submissions: { select: { id: true }, take: 1 } },
   });
   return subject.submissions[0].id;
+}
+
+/**
+ * Validates in a single query that:
+ * - The carbon inventory exists and is ACTIVE
+ * - The CI belongs to the specified organization
+ * - The organization is ACTIVE and accredited
+ * - The authenticated user is an active org member with one of the allowed roles
+ * - The CI has at least one approved CARBON_INVENTORY_VERIFICATION submission
+ *
+ * Throws a generic 422 if any condition fails (no detail exposed to prevent ID enumeration).
+ */
+export async function validateReductionProjectPrerequisites(
+  tx: PrismaClient | Prisma.TransactionClient,
+  organizationId: string,
+  carbonInventoryId: string,
+  userId: bigint | null,
+  allowedRoles: OrganizationRole[]
+): Promise<void> {
+  if (userId === null) {
+    throw new ReductionProjectInvalidDataError();
+  }
+
+  const valid = await tx.carbonInventory.findFirst({
+    where: {
+      id: BigInt(carbonInventoryId),
+      status: InventoryStatus.ACTIVE,
+      organizationId: BigInt(organizationId),
+      organization: {
+        status: OrganizationStatus.ACTIVE,
+        summary: { isAccredited: true },
+        memberships: {
+          some: {
+            userId,
+            status: MembershipStatus.ACTIVE,
+            role: { in: allowedRoles },
+          },
+        },
+      },
+      submission: {
+        subject: {
+          submissions: {
+            some: {
+              type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
+              status: SubmissionStatus.APPROVED,
+            },
+          },
+        },
+      },
+    },
+    select: { id: true },
+  });
+
+  if (!valid) {
+    throw new ReductionProjectInvalidDataError();
+  }
 }

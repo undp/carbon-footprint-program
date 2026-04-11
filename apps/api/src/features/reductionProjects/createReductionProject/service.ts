@@ -1,7 +1,5 @@
 import {
-  InventoryStatus,
-  OrganizationStatus,
-  SubmissionStatus,
+  OrganizationRole,
   SubmissionType,
   type PrismaClient,
 } from "@repo/database";
@@ -18,11 +16,9 @@ import {
 import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
-  ReductionProjectOrganizationNotAssociatedError,
-  ReductionProjectOrganizationNotAccreditedError,
-  ReductionProjectCarbonInventoryNotApprovedError,
-} from "../errors.js";
-import { createReductionProjectSubmission } from "../helpers.js";
+  createReductionProjectSubmission,
+  validateReductionProjectPrerequisites,
+} from "../helpers.js";
 
 export const createReductionProjectService = async (
   prismaClient: PrismaClient,
@@ -38,51 +34,13 @@ export const createReductionProjectService = async (
   const createdById = user?.id ? BigInt(user.id) : null;
 
   const result = await prismaClient.$transaction(async (tx) => {
-    // Validate organization association
-    if (!data.organizationId) {
-      throw new ReductionProjectOrganizationNotAssociatedError("new");
-    }
-
-    const organization = await tx.organization.findFirst({
-      where: {
-        id: BigInt(data.organizationId),
-        status: OrganizationStatus.ACTIVE,
-      },
-      select: {
-        summary: { select: { isAccredited: true } },
-      },
-    });
-
-    if (!organization?.summary?.isAccredited) {
-      throw new ReductionProjectOrganizationNotAccreditedError("new");
-    }
-
-    // Validate carbon inventory has an approved CARBON_INVENTORY_VERIFICATION submission
-    if (!data.carbonInventoryId) {
-      throw new ReductionProjectCarbonInventoryNotApprovedError();
-    }
-
-    const approvedInventory = await tx.carbonInventory.findFirst({
-      where: {
-        id: BigInt(data.carbonInventoryId),
-        status: InventoryStatus.ACTIVE,
-        submission: {
-          subject: {
-            submissions: {
-              some: {
-                type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
-                status: SubmissionStatus.APPROVED,
-              },
-            },
-          },
-        },
-      },
-      select: { id: true },
-    });
-
-    if (!approvedInventory) {
-      throw new ReductionProjectCarbonInventoryNotApprovedError();
-    }
+    await validateReductionProjectPrerequisites(
+      tx,
+      data.organizationId,
+      data.carbonInventoryId,
+      createdById,
+      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN]
+    );
 
     // Create the reduction project record
     const project = await tx.reductionProject.create({
