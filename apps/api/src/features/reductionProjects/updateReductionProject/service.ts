@@ -94,15 +94,11 @@ export const updateReductionProjectService = async (
     };
 
     if (data.implementationDate !== undefined) {
-      updateData.implementationDate = data.implementationDate
-        ? new Date(data.implementationDate)
-        : null;
+      updateData.implementationDate = new Date(data.implementationDate);
     }
     if (data.description !== undefined)
       updateData.description = data.description;
     if (data.gwpUsed !== undefined) updateData.gwpUsed = data.gwpUsed;
-    if (data.useNationalGwp !== undefined)
-      updateData.useNationalGwp = data.useNationalGwp;
     if (data.consideredGei !== undefined)
       updateData.consideredGei = data.consideredGei;
     if (data.reportedElsewhere !== undefined)

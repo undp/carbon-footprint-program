@@ -16,7 +16,6 @@ export const mapProjectToFormValues = (
   description: project.description ?? "",
   subcategoryId: project.subcategoryId ?? "",
   gwpUsed: project.gwpUsed ?? "",
-  useNationalGwp: project.useNationalGwp,
   consideredGei: project.consideredGei,
   reportedElsewhere: project.reportedElsewhere,
   reportedElsewhereDescription: project.reportedElsewhereDescription ?? "",
@@ -34,19 +33,16 @@ export const mapFormValuesToMutationData = (
     name: values.name,
     organizationId: values.organizationId,
     carbonInventoryId: values.carbonInventoryId,
-    implementationDate: values.implementationDate
-      ? new Date(values.implementationDate).toISOString()
-      : null,
-    description: values.description || null,
+    implementationDate: new Date(values.implementationDate).toISOString(),
+    description: values.description,
     subcategoryId: values.subcategoryId,
     gwpUsed: values.gwpUsed || null,
-    useNationalGwp: values.useNationalGwp,
     consideredGei: values.consideredGei,
     reportedElsewhere: values.reportedElsewhere,
     reportedElsewhereDescription: values.reportedElsewhereDescription || null,
     year: values.year !== "" ? values.year : null,
-    baselineScenario: values.baselineScenario || null,
-    projectScenario: values.projectScenario || null,
+    baselineScenario: values.baselineScenario,
+    projectScenario: values.projectScenario,
     fileUuids,
   };
 };

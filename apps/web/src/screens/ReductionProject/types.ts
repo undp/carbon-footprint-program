@@ -8,7 +8,6 @@ export interface ReductionProjectFormValues {
   description: string;
   subcategoryId: string;
   gwpUsed: GwpSource | "";
-  useNationalGwp: boolean;
   consideredGei: ConsideredGei[];
   reportedElsewhere: boolean;
   reportedElsewhereDescription: string;
@@ -26,7 +25,6 @@ export const defaultFormValues: ReductionProjectFormValues = {
   description: "",
   subcategoryId: "",
   gwpUsed: "",
-  useNationalGwp: false,
   consideredGei: [],
   reportedElsewhere: false,
   reportedElsewhereDescription: "",
