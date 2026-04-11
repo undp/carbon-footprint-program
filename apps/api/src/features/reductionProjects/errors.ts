@@ -18,22 +18,16 @@ export const ReductionProjectUnderReviewError = createError(
   409
 );
 
-export const ReductionProjectOrganizationNotAssociatedError = createError(
-  "REDUCTION_PROJECT_ORGANIZATION_NOT_ASSOCIATED",
-  "Reduction project with ID %s does not have an associated organization",
+export const ReductionProjectInvalidDataError = createError(
+  "REDUCTION_PROJECT_INVALID_DATA",
+  "The provided organization or carbon inventory data is invalid or inaccessible",
   422
 );
 
-export const ReductionProjectOrganizationNotAccreditedError = createError(
-  "REDUCTION_PROJECT_ORGANIZATION_NOT_ACCREDITED",
-  "The organization associated with reduction project %s is not accredited",
-  422
-);
-
-export const ReductionProjectCarbonInventoryNotApprovedError = createError(
-  "REDUCTION_PROJECT_CARBON_INVENTORY_NOT_APPROVED",
-  "The carbon inventory linked to this reduction project does not have an approved verification",
-  422
+export const ReductionProjectFileAttachmentsRequiredError = createError(
+  "REDUCTION_PROJECT_FILE_ATTACHMENTS_REQUIRED",
+  "File attachments are required to submit a reduction project",
+  400
 );
 
 export const ReductionProjectDraftNotUpdatableError = createError(
@@ -42,8 +36,14 @@ export const ReductionProjectDraftNotUpdatableError = createError(
   422
 );
 
-export const ReductionProjectNotSubmittableError = createError(
-  "REDUCTION_PROJECT_NOT_SUBMITTABLE",
-  "Reduction project %s cannot be updated because it is not in a REVIEWED state",
+export const ReductionProjectRejectedError = createError(
+  "REDUCTION_PROJECT_REJECTED",
+  "Reduction project %s has been rejected and cannot be updated",
+  422
+);
+
+export const ReductionProjectNotEditableError = createError(
+  "REDUCTION_PROJECT_NOT_EDITABLE",
+  "Reduction project %s is not in an editable state",
   422
 );

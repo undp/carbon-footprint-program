@@ -3,7 +3,6 @@ import type {
   GetAllReductionProjectsResponse,
   GetReductionProjectByIdResponse,
   GetReductionProjectsMinimalResponse,
-  UpdateReductionProjectResponse,
 } from "@repo/types";
 import type { ReductionProjectDisplayStatus } from "@repo/types";
 import type { ReductionProjectStatus } from "@repo/types";
@@ -74,12 +73,6 @@ export function mapReductionProjectToGetByIdResponse(
     ...mapPersistenceFields(row),
     status: displayStatus,
   };
-}
-
-export function mapReductionProjectToUpdateResponse(
-  row: ReductionProjectRow
-): UpdateReductionProjectResponse {
-  return mapPersistenceFields(row);
 }
 
 export function mapReductionProjectToListItem(

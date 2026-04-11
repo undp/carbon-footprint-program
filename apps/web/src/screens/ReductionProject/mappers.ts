@@ -31,14 +31,14 @@ export const mapFormValuesToMutationData = (
   fileUuids: string[]
 ): ReductionProjectMutationData => {
   return {
-    name: values.name || null,
-    organizationId: values.organizationId || null,
-    carbonInventoryId: values.carbonInventoryId || null,
+    name: values.name,
+    organizationId: values.organizationId,
+    carbonInventoryId: values.carbonInventoryId,
     implementationDate: values.implementationDate
       ? new Date(values.implementationDate).toISOString()
       : null,
     description: values.description || null,
-    subcategoryId: values.subcategoryId || null,
+    subcategoryId: values.subcategoryId,
     gwpUsed: values.gwpUsed || null,
     useNationalGwp: values.useNationalGwp,
     consideredGei: values.consideredGei,
