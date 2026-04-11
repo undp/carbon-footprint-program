@@ -32,12 +32,6 @@ const ReductionProjectListItemSchema = ReductionProjectBaseSchema.omit({
     .describe(
       "baselineScenario minus projectScenario when both are set; otherwise null"
     ),
-  reportedYears: z
-    .number()
-    .int()
-    .min(0)
-    .max(1)
-    .describe("1 if year is set, otherwise 0"),
   status: ReductionProjectDisplayStatusSchema.describe(
     "Workflow display status derived from submissions"
   ),
