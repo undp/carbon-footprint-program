@@ -12,7 +12,7 @@ import type {
 } from "fastify";
 import type { OrganizationRole } from "@repo/database/enums";
 import { MembershipStatus } from "@repo/database/enums";
-import { InventoryStatus } from "@repo/types";
+import { ReductionProjectStatus } from "@repo/types";
 
 export type ReductionProjectIdExtractor<
   P extends Record<string, string> = Record<string, string>,
@@ -68,6 +68,7 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
       const project = await fastify.prisma.reductionProject.findFirst({
         where: {
           id: BigInt(reductionProjectId),
+          status: ReductionProjectStatus.ACTIVE,
         },
         select: {
           id: true,
@@ -89,7 +90,7 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
         },
       });
 
-      if (!project || project.status === InventoryStatus.DELETED) {
+      if (!project || project.status === ReductionProjectStatus.DELETED) {
         log.warn(
           {
             userId: request.currentUser.id,
