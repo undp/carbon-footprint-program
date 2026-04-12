@@ -113,20 +113,10 @@ export const updateReductionProjectService = async (
     if (data.projectScenario !== undefined)
       updateData.projectScenario = data.projectScenario;
 
-    try {
-      await tx.reductionProject.update({
-        where: { id: BigInt(id) },
-        data: updateData,
-      });
-    } catch (error) {
-      if (
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === "P2025"
-      ) {
-        throw new ReductionProjectNotFoundError(id);
-      }
-      throw error;
-    }
+    await tx.reductionProject.update({
+      where: { id: BigInt(id) },
+      data: updateData,
+    });
 
     const submissionId = await createReductionProjectSubmission(
       tx,
