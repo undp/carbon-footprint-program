@@ -109,7 +109,7 @@ export const GeiConsideredSection: FC<Props> = ({ control, disabled }) => {
                 />
               }
               label={
-                <Typography variant="body2">
+                <Typography variant="body2" alignSelf="center">
                   Este proyecto se ha reportado en otra iniciativa o en la meta
                   nacional como mitigación del NDC
                 </Typography>

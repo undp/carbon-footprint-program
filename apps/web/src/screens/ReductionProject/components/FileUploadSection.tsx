@@ -34,7 +34,7 @@ export const FileUploadSection: FC<Props> = ({ control, disabled }) => {
         disabled={disabled}
         errorMessage="Debes aceptar la declaración jurada para continuar"
         label={
-          <Typography variant="body2">
+          <Typography variant="body2" alignSelf="center">
             Declaro bajo juramento que toda la información proporcionada en esta
             postulación es verídica y está respaldada por documentación oficial.
             Entiendo que cualquier falsedad puede resultar en sanciones
