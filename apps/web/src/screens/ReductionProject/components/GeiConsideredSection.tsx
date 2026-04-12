@@ -3,6 +3,7 @@ import {
   Box,
   Checkbox,
   FormControlLabel,
+  FormHelperText,
   Table,
   TableBody,
   TableCell,
@@ -58,7 +59,7 @@ export const GeiConsideredSection: FC<Props> = ({ control, disabled }) => {
               <Controller
                 name="consideredGei"
                 control={control}
-                render={({ field }) => (
+                render={({ field, fieldState }) => (
                   <>
                     {GEI_ITEMS.map((gei) => (
                       <TableRow key={gei.value}>
@@ -83,6 +84,15 @@ export const GeiConsideredSection: FC<Props> = ({ control, disabled }) => {
                         </TableCell>
                       </TableRow>
                     ))}
+                    {fieldState.error && (
+                      <TableRow>
+                        <TableCell colSpan={2} sx={{ border: 0, pt: 0 }}>
+                          <FormHelperText error role="alert">
+                            {fieldState.error.message}
+                          </FormHelperText>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </>
                 )}
               />
