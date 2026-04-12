@@ -134,7 +134,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
         component="form"
         id="reduction-project-form"
         onSubmit={handleSubmit(submit)}
-        className="flex flex-col gap-6 rounded-lg bg-white p-6"
+        className="flex min-h-0 flex-col gap-6 overflow-y-auto rounded-lg bg-white p-6"
       >
         {/* Content header with status chip */}
         <Box className="flex items-center justify-between">
