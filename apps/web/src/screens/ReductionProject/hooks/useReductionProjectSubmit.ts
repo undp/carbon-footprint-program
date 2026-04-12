@@ -26,13 +26,6 @@ export const useReductionProjectSubmit = ({ projectId }: Params) => {
       try {
         const { files, ...formData } = data;
 
-        if (!files.length) {
-          enqueueSnackbar("Debes adjuntar al menos un archivo", {
-            variant: "error",
-          });
-          return;
-        }
-
         const fileUuids = await preUploadFiles(files);
         if (!fileUuids.length) {
           enqueueSnackbar("No se pudieron subir los archivos", {

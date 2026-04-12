@@ -47,8 +47,18 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
     CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
   ]);
 
+  // Derived state
+  const isLoading = mode === "edit" ? isProjectLoading : false;
+  const hasError = mode === "edit" ? isProjectError : false;
+  const status = mode === "edit" ? project?.status : undefined;
+  const isFormDisabled =
+    status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
+    status === ReductionProjectDisplayStatusEnum.APPROVED;
+  const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
+  const showFileUpload = mode === "create" || isReviewed;
+
   // Form
-  const form = useReductionProjectForm({ project });
+  const form = useReductionProjectForm({ project, showFileUpload });
   const {
     control,
     handleSubmit,
@@ -68,15 +78,6 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
     [methodology]
   );
 
-  // Derived state
-  const isLoading = mode === "edit" ? isProjectLoading : false;
-  const hasError = mode === "edit" ? isProjectError : false;
-  const status = mode === "edit" ? project?.status : undefined;
-  const isFormDisabled =
-    status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
-    status === ReductionProjectDisplayStatusEnum.APPROVED;
-  const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
-  const showFileUpload = mode === "create" || isReviewed;
   const hasInventorySelected = !!selectedCarbonInventoryId;
 
   const projectName = useWatch({ control, name: "name" });
