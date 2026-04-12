@@ -1,6 +1,5 @@
 import { z } from "zod";
-import { IdSchema } from "../../zod.js";
-import { ReductionProjectDisplayStatusSchema } from "../schemas.js";
+import { ReductionProjectBaseSchema } from "../../baseSchemas/index.js";
 
 export const GetReductionProjectsMinimalParamsSchema = z.object({
   year: z
@@ -10,13 +9,14 @@ export const GetReductionProjectsMinimalParamsSchema = z.object({
     .describe("Optional year filter on the project `year` column"),
 });
 
-export const GetReductionProjectsMinimalItemSchema = z.object({
-  id: IdSchema,
-  name: z.string().nullable(),
-  organizationId: IdSchema.nullable(),
-  status: ReductionProjectDisplayStatusSchema,
-  year: z.number().int().nullable(),
-});
+export const GetReductionProjectsMinimalItemSchema =
+  ReductionProjectBaseSchema.pick({
+    id: true,
+    name: true,
+    organizationId: true,
+    status: true,
+    year: true,
+  });
 
 export const GetReductionProjectsMinimalResponseSchema = z.array(
   GetReductionProjectsMinimalItemSchema
