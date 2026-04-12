@@ -14,6 +14,7 @@ export interface ReductionProjectFormValues {
   year: number | "";
   baselineScenario: string;
   projectScenario: string;
+  sworn: boolean;
   files: File[];
 }
 
@@ -31,5 +32,6 @@ export const defaultFormValues: ReductionProjectFormValues = {
   year: "",
   baselineScenario: "",
   projectScenario: "",
+  sworn: false,
   files: [],
 };
