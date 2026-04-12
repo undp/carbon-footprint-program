@@ -1,17 +1,33 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { useResetOnChange } from "@/hooks";
 import { mapProjectToFormValues } from "../mappers";
-import { defaultFormValues, type ReductionProjectFormValues } from "../types";
+import {
+  createReductionProjectFormSchema,
+  defaultFormValues,
+  type ReductionProjectFormValues,
+} from "../types";
 
 interface Params {
   project?: GetReductionProjectByIdResponse;
+  showFileUpload?: boolean;
 }
 
-export const useReductionProjectForm = ({ project }: Params = {}) => {
+export const useReductionProjectForm = ({
+  project,
+  showFileUpload = false,
+}: Params = {}) => {
+  const schema = useMemo(
+    () => createReductionProjectFormSchema(showFileUpload),
+    [showFileUpload]
+  );
+
   const form = useForm<ReductionProjectFormValues>({
     defaultValues: defaultFormValues,
+    mode: "onBlur",
+    resolver: zodResolver(schema),
   });
 
   const { control, setValue, reset, clearErrors } = form;
