@@ -23,6 +23,7 @@ export const mapProjectToFormValues = (
   baselineScenario: project.baselineScenario ?? "",
   projectScenario: project.projectScenario ?? "",
   files: [],
+  sworn: false,
 });
 
 export const mapFormValuesToMutationData = (

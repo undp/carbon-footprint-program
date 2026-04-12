@@ -3,6 +3,8 @@ import { Box, Divider, Typography } from "@mui/material";
 import { Control } from "react-hook-form";
 import { FormFileUpload } from "@/components/form";
 import type { ReductionProjectFormValues } from "../types";
+import { FormSwornDeclarationField } from "@/components/form/FormSwornDeclarationField";
+import { RequiredDocumentsSection } from "./RequiredDocumentsSection";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
@@ -18,12 +20,27 @@ export const FileUploadSection: FC<Props> = ({ control, disabled }) => {
           Documentos de respaldo
         </Typography>
       </Box>
+      <RequiredDocumentsSection />
       <FormFileUpload
         control={control}
         name="files"
         disabled={disabled}
         required
         requiredMessage="Al menos un archivo es requerido"
+      />
+      <FormSwornDeclarationField
+        name="sworn"
+        control={control}
+        disabled={disabled}
+        errorMessage="Debes aceptar la declaración jurada para continuar"
+        label={
+          <Typography variant="body2">
+            Declaro bajo juramento que toda la información proporcionada en esta
+            postulación es verídica y está respaldada por documentación oficial.
+            Entiendo que cualquier falsedad puede resultar en sanciones
+            administrativas y la anulación del reconocimiento de reducción.
+          </Typography>
+        }
       />
     </>
   );
