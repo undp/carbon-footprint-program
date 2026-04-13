@@ -9,12 +9,14 @@ import {
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/types";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
 } from "@repo/types";
 import type { ReductionProjectFormValues } from "../types";
 import { GWP_OPTIONS } from "../constants";
+import { VOCAB } from "@/config/vocab";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
@@ -102,7 +104,9 @@ export const ReductionProjectFormFields: FC<Props> = ({
             title={
               !selectedOrganizationId
                 ? "Seleccione una organización primero"
-                : ""
+                : inventoryOptions.length === 0
+                  ? `No hay huellas con sello de verificación para la ${VOCAB.organization.noun.singular} seleccionada`
+                  : ""
             }
           >
             <span>
@@ -111,7 +115,11 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 control={control}
                 label="Inventario de carbono verificado"
                 options={inventoryOptions}
-                disabled={disabled || !selectedOrganizationId}
+                disabled={
+                  disabled ||
+                  !selectedOrganizationId ||
+                  inventoryOptions.length === 0
+                }
                 required
               />
             </span>
@@ -199,6 +207,11 @@ export const ReductionProjectFormFields: FC<Props> = ({
             rows={4}
             disabled={disabled}
             required
+            slotProps={{
+              htmlInput: {
+                maxLength: REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+              },
+            }}
           />
         </Box>
       </Box>

@@ -16,6 +16,7 @@ import { Control, Controller, useWatch } from "react-hook-form";
 import { FormTextField } from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/types";
 import type { ReductionProjectFormValues } from "../types";
 import { GEI_ITEMS } from "../constants";
 
@@ -160,6 +161,9 @@ export const GeiConsideredSection: FC<Props> = ({
           multiline
           rows={4}
           disabled={disabled || !reportedElsewhere}
+          slotProps={{
+            htmlInput: { maxLength: REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH },
+          }}
         />
       </Box>
     </Box>
