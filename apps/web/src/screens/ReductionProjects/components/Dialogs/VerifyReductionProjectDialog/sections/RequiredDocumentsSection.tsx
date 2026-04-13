@@ -36,8 +36,8 @@ export const RequiredDocumentsSection: FC = () => {
       </Box>
 
       <Typography variant="body2" color="text.secondary">
-        Para iniciar el proceso de postulación al Sello de Reducción, deberás
-        adjuntar los siguientes documentos en formato PDF o JPG:
+        Para iniciar el proceso de postulación al Reconocimiento de Reducción,
+        deberás adjuntar los siguientes documentos en formato PDF o JPG:
       </Typography>
 
       <Box className="flex flex-col gap-2 rounded-[10px] border border-gray-200 bg-gray-50 p-4">
