@@ -56,6 +56,17 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           message: "Debe aceptar la declaración jurada para continuar",
         });
       }
+      if (
+        data.implementationDate &&
+        data.year !== "" &&
+        Number(data.implementationDate.slice(0, 4)) > data.year
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["implementationDate"],
+          message: `El año no puede ser posterior al año del inventario (${data.year})`,
+        });
+      }
     });
 
 export type ReductionProjectFormValues = z.infer<

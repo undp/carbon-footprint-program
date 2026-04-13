@@ -131,16 +131,26 @@ export const ReductionProjectFormFields: FC<Props> = ({
       {/* Row 3: Implementation date + Description */}
       <Box className="flex flex-row gap-6">
         <Box className="flex-1">
-          <FormTextField
-            name="implementationDate"
-            control={control}
-            label="Fecha de implementación"
-            type="date"
-            disabled={disabled}
-            slotProps={{
-              inputLabel: { shrink: true },
-            }}
-          />
+          <Tooltip
+            title={
+              !hasInventorySelected
+                ? "Seleccione un inventario de carbono verificado primero"
+                : ""
+            }
+          >
+            <span>
+              <FormTextField
+                name="implementationDate"
+                control={control}
+                label="Fecha de implementación"
+                type="date"
+                disabled={disabled || !hasInventorySelected}
+                slotProps={{
+                  inputLabel: { shrink: true },
+                }}
+              />
+            </span>
+          </Tooltip>
         </Box>
         <Box className="flex flex-1 flex-row items-start gap-1">
           <Box className="flex-1">
