@@ -44,7 +44,7 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
     >
       {name ? (
         <Tooltip title={name}>
-          <Typography variant="body2" noWrap maxWidth="stretch">
+          <Typography variant="body2" noWrap maxWidth="100%">
             {name}
           </Typography>
         </Tooltip>
