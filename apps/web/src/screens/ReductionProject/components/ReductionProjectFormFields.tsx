@@ -105,7 +105,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
               !selectedOrganizationId
                 ? "Seleccione una organización primero"
                 : inventoryOptions.length === 0
-                  ? `No hay huellas con sello de verificación para la ${VOCAB.organization.noun.singular} seleccionada`
+                  ? `No hay huellas con reconocimiento de verificación para la ${VOCAB.organization.noun.singular} seleccionada`
                   : ""
             }
           >
