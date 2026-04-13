@@ -16,7 +16,7 @@ import { OrganizationNotFoundError } from "../../errors.js";
 const SUBMISSION_TYPE_ORDER: Record<SubmissionType, number> = {
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: 0,
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]: 1,
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: 2,
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: 2,
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: 3,
   [SubmissionType.ORGANIZATION_ACCREDITATION]: 4,
 };
