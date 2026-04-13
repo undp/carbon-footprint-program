@@ -71,7 +71,7 @@ export const VerifyReductionProjectDialog: FC<
         id="verify-reduction-project-dialog-title"
         sx={{ pr: 6, fontWeight: 600 }}
       >
-        Postular proyecto a Sello de Reducción
+        Postular proyecto a Reconocimiento de Reducción
       </DialogTitle>
 
       <IconButton

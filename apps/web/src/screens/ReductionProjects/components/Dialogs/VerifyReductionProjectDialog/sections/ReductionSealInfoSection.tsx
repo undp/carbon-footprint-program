@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Check, GppGoodOutlined } from "@mui/icons-material";
+import { VOCAB } from "@/config/vocab";
 
 export const ReductionSealInfoSection: FC = () => {
   const theme = useTheme();
@@ -21,7 +22,7 @@ export const ReductionSealInfoSection: FC = () => {
             variant="subtitle2"
             fontWeight={600}
           >
-            Sello de Reducción de Emisiones
+            Reconocimiento de Reducción de Emisiones
           </Typography>
 
           <Typography
@@ -29,10 +30,10 @@ export const ReductionSealInfoSection: FC = () => {
             sx={{ color: theme.palette.primary.dark }}
             variant="body2"
           >
-            El Sello de Reducción es el reconocimiento oficial mediante el cual
-            Huella Latam valida que tu proyecto de reducción de emisiones cumple
-            con los estándares establecidos y contribuye efectivamente a la
-            mitigación del cambio climático.
+            El Reconocimiento de Reducción es el reconocimiento oficial mediante
+            el cual Huella Latam valida que tu proyecto de reducción de
+            emisiones cumple con los estándares establecidos y contribuye
+            efectivamente a la mitigación del cambio climático.
           </Typography>
 
           <Box className="mt-3 rounded p-3" sx={gradientCardSx}>
@@ -41,7 +42,7 @@ export const ReductionSealInfoSection: FC = () => {
               fontWeight={500}
               sx={{ color: theme.palette.primary.main }}
             >
-              Al recibir el Sello de Reducción, obtendrás:
+              Al recibir el Reconocimiento de Reducción, obtendrás:
             </Typography>
 
             <Box component="ul" className="m-0 mt-1 list-none pl-0">
@@ -73,7 +74,8 @@ export const ReductionSealInfoSection: FC = () => {
                   variant="body2"
                   sx={{ color: theme.palette.primary.dark }}
                 >
-                  <strong>Reconocimiento público</strong> como organización
+                  <strong>Reconocimiento público</strong> como{" "}
+                  {VOCAB.organization.noun.singular}
                   comprometida con la reducción de emisiones de gases de efecto
                   invernadero
                 </Typography>
