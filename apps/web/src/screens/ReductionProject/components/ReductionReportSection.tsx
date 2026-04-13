@@ -80,13 +80,15 @@ export const ReductionReportSection: FC<Props> = ({
             <Controller
               name="baselineScenario"
               control={control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <NumericInput
                   value={field.value === "" ? null : Number(field.value)}
                   onChange={field.onChange}
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
+                  fieldError={fieldState.error}
+                  required
                 />
               )}
             />
@@ -114,13 +116,15 @@ export const ReductionReportSection: FC<Props> = ({
             <Controller
               name="projectScenario"
               control={control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <NumericInput
                   value={field.value === "" ? null : Number(field.value)}
                   onChange={field.onChange}
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
+                  required
+                  fieldError={fieldState.error}
                 />
               )}
             />
