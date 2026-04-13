@@ -222,16 +222,16 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
 
-        {/* Postular a cálculo */}
+        {/* Postular a reconocimiento de medición */}
         {recognitionBehavior === MeasurementRecognitionBehaviorEnum.MANUAL && (
-          <Tooltip title="Postular a cálculo">
+          <Tooltip title="Postular a reconocimiento de medición">
             <span>
               <BaseActionButton
                 onClick={onCalculationClick}
                 disabled={
                   !canRequestMeasurement || !carbonInventory.isSelfDeclared
                 }
-                aria-label="Postular a cálculo"
+                aria-label="Postular a reconocimiento de medición"
               >
                 <SendOutlined fontSize="small" />
               </BaseActionButton>
