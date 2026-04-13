@@ -236,13 +236,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
-        {/* Postular a sello de verificación */}
-        <Tooltip title="Postular a sello de verificación">
+        {/* Postular a Reconocimiento */}
+        <Tooltip title="Postular a reconocimiento de verificación">
           <span>
             <BaseActionButton
               onClick={onVerifyClick}
               disabled={!canRequestVerification}
-              aria-label="Postular a sello de verificación"
+              aria-label="Postular a reconocimiento de verificación"
             >
               <VerifiedOutlined fontSize="small" />
             </BaseActionButton>
