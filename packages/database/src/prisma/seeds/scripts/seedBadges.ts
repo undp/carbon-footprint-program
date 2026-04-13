@@ -19,10 +19,6 @@ const BADGE_MAPPINGS: Array<{ file: string; type: BadgeType }> = [
     file: "verification-badge.svg",
     type: BadgeType.CARBON_INVENTORY_VERIFICATION,
   },
-  {
-    file: "verification-badge.svg",
-    type: BadgeType.ORGANIZATION_ACCREDITATION,
-  },
   { file: "reduction-badge.svg", type: BadgeType.REDUCTION_PLAN_VERIFICATION },
   {
     file: "neutralization-badge.svg",
