@@ -2,6 +2,7 @@ import { getReductionProjectByIdHandler } from "./handler.js";
 import {
   GetReductionProjectByIdParamsSchema,
   GetReductionProjectByIdResponseSchema,
+  OrganizationRole,
   type GetReductionProjectByIdParams,
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
@@ -23,7 +24,15 @@ export const getReductionProjectByIdRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
-      preHandler: [fastify.requireReductionProjectAccess()],
+      preHandler: [
+        fastify.requireReductionProjectAccess({
+          requiredOrganizationRoles: [
+            OrganizationRole.ADMIN,
+            OrganizationRole.CONTRIBUTOR,
+            OrganizationRole.VIEWER,
+          ],
+        }),
+      ],
     },
     getReductionProjectByIdHandler
   );
