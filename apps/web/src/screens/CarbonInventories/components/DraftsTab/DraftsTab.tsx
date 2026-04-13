@@ -30,7 +30,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
       () => [
         {
           field: "name",
-          headerName: "NOMBRE",
+          headerName: "Nombre",
           align: "left",
           headerAlign: "left",
           minWidth: 180,
@@ -58,11 +58,17 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         },
         {
           field: "year",
-          headerName: "AÑO",
+          renderHeader: () => (
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Año"
+              LongName="Año de medición"
+            />
+          ),
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
-          width: 81,
+          minWidth: 125,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
@@ -87,7 +93,6 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           field: "totalEmissions",
           renderHeader: () => (
             <ResponsiveTypography
-              className="uppercase"
               isWiderScreen={isWiderScreen}
               ShortName="Emisiones"
               LongName="Emisiones (tCO₂e)"
@@ -104,7 +109,6 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           field: "status",
           renderHeader: () => (
             <ResponsiveTypography
-              className="uppercase"
               isWiderScreen={isWiderScreen}
               ShortName="Estado"
               LongName="Estado postulación"
@@ -127,7 +131,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         },
         {
           field: "actions",
-          headerName: "ACCIONES",
+          headerName: "Acciones",
           headerAlign: "left",
           align: "left",
           minWidth: 300,

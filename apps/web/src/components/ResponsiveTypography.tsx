@@ -14,7 +14,7 @@ export const ResponsiveTypography: FC<Props> = ({
   ...props
 }) => {
   return (
-    <Tooltip title={isResponsiveMode ? LongName : null}>
+    <Tooltip title={!isResponsiveMode ? LongName : null}>
       <Typography variant="body2" fontWeight={500} noWrap {...props}>
         {!isResponsiveMode ? ShortName : LongName}
       </Typography>
