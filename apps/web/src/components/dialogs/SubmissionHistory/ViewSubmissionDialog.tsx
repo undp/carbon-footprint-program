@@ -71,7 +71,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
       fullWidth
       slotProps={{ paper: { sx: { overflow: "hidden" } } }}
     >
-      <DialogTitle component="div" sx={{ pb: 0.5, pr: 6 }}>
+      <DialogTitle component="div" sx={{ pb: 0.5, pr: 6, minHeight: 46 }}>
         <Typography
           variant="h6"
           fontWeight={600}
