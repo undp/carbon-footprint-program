@@ -68,7 +68,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
-          minWidth: 125,
+          minWidth: isWiderScreen ? 125 : 80,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
