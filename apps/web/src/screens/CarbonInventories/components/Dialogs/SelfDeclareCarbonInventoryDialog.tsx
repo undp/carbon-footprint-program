@@ -181,8 +181,8 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
               <Typography variant="body2">
                 Declaro que los datos del cálculo de huella de carbono
                 corresponden a la {VOCAB.organization.noun.singular} mencionada
-                y comprendo que este es un reconocimiento por realizar el
-                cálculo, y no constituye una certificación oficial ni
+                y comprendo que este es un reconocimiento por realizar la
+                medición, y no constituye una certificación oficial ni
                 verificación por parte de Huella Latam.
               </Typography>
             }
