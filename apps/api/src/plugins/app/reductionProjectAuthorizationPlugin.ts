@@ -1,9 +1,3 @@
-/**
- * Access rules (authenticated requests only):
- * - Project without organization: only the creator has access.
- * - Project with organization: active org members; optional role filter.
- */
-
 import fp from "fastify-plugin";
 import type {
   FastifyPluginCallback,
