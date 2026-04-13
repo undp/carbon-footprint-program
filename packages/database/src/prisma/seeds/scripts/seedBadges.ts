@@ -86,27 +86,20 @@ export async function seedBadges(
       blobHTTPHeaders: { blobContentType: "image/svg+xml" },
     });
 
-    await prisma.$transaction(async (tx) => {
-      await tx.badge.updateMany({
-        where: { type, status: BadgeStatus.ACTIVE },
-        data: { status: BadgeStatus.INACTIVE },
-      });
-
-      await tx.file.create({
-        data: {
-          uuid,
-          originalName: file,
-          mimeType: "image/svg+xml",
-          sizeBytes,
-          blobPath,
-          badge: {
-            create: {
-              type,
-              status: BadgeStatus.ACTIVE,
-            },
+    await prisma.file.create({
+      data: {
+        uuid,
+        originalName: file,
+        mimeType: "image/svg+xml",
+        sizeBytes,
+        blobPath,
+        badge: {
+          create: {
+            type,
+            status: BadgeStatus.ACTIVE,
           },
         },
-      });
+      },
     });
 
     console.log(`  ✓ ${type}`);
