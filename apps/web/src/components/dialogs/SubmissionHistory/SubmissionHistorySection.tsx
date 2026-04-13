@@ -76,9 +76,7 @@ const HistoryCard: FC<{
         {entry.comment && <SubmissionCommentsSection comment={entry.comment} />}
 
         {entry.files.length > 0 && (
-          <Box sx={{ mt: 1.5 }}>
-            <FilesSection files={entry.files} />
-          </Box>
+          <FilesSection files={entry.files} sx={{ mt: 1.5 }} />
         )}
       </Box>
     </Paper>
