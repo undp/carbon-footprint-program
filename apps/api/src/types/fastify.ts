@@ -166,13 +166,9 @@ declare module "fastify" {
     /**
      * Require access to a reduction project (creator or active org member).
      */
-    requireReductionProjectAccess: <P extends Record<string, string>>(
-      reductionProjectIdExtractor: ReductionProjectIdExtractor<P>,
-      options?: { requiredOrganizationRoles?: OrganizationRole[] }
-    ) => (
-      request: FastifyRequest<{ Params: P }>,
-      reply: FastifyReply
-    ) => Promise<void>;
+    requireReductionProjectAccess: (options?: {
+      requiredOrganizationRoles?: OrganizationRole[];
+    }) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 
   interface FastifyRequest {

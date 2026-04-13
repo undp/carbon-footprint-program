@@ -6,8 +6,6 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
-import { extractReductionProjectIdFromParams } from "../reductionProjectIdExtractors.js";
-
 export const getReductionProjectByIdRoute: StandardRouteSignature = (
   fastify,
   _options
@@ -25,11 +23,7 @@ export const getReductionProjectByIdRoute: StandardRouteSignature = (
           404: ApiErrorResponseSchema,
         },
       },
-      preHandler: [
-        fastify.requireReductionProjectAccess(
-          extractReductionProjectIdFromParams
-        ),
-      ],
+      preHandler: [fastify.requireReductionProjectAccess()],
     },
     getReductionProjectByIdHandler
   );
