@@ -12,7 +12,7 @@ import {
 } from "@/api/query/carbonInventories";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
-import { InfoButton } from "@/components";
+import { InfoButton, ScreenEmptyState } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import {
   ReductionProjectLayout,
@@ -28,6 +28,8 @@ import {
   CarbonInventoryDisplayStatusEnum,
   ReductionProjectDisplayStatusEnum,
 } from "@repo/types";
+import { VOCAB } from "../../config/vocab";
+import { capitalize } from "lodash-es";
 
 interface Props {
   mode: "create" | "edit";
@@ -44,15 +46,28 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
     isLoading: isProjectLoading,
     isError: isProjectError,
   } = useReductionProject(id);
-  const { data: organizations = [], isLoading: isLoadingOrgs } =
-    useMyOrganizations();
-  const { data: verifiedInventories = [] } = useCarbonInventoriesMinimalData([
+  const {
+    data: organizations = [],
+    isLoading: isLoadingOrgs,
+    isError: isErrorOrgs,
+  } = useMyOrganizations();
+  const {
+    data: verifiedInventories = [],
+    isLoading: isLoadingInventories,
+    isError: isErrorInventories,
+  } = useCarbonInventoriesMinimalData([
     CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
   ]);
 
   // Derived state
-  const isLoading = mode === "edit" ? isProjectLoading : false;
-  const hasError = mode === "edit" ? isProjectError : false;
+  const isLoading =
+    mode === "edit"
+      ? isProjectLoading || isLoadingInventories || isLoadingOrgs
+      : false;
+  const hasError =
+    mode === "edit"
+      ? isProjectError || isErrorInventories || isErrorOrgs
+      : false;
   const status = mode === "edit" ? project?.status : undefined;
   const isFormDisabled =
     status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
@@ -120,20 +135,56 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
           type: "submit",
           form: "reduction-project-form",
           loading: isSubmitting,
+          disabled:
+            isSubmitting ||
+            isLoading ||
+            hasError ||
+            organizations.length === 0 ||
+            verifiedInventories.length === 0,
         },
       };
 
   const footerButtons = [backButton, ...(saveButton ? [saveButton] : [])];
 
+  const layoutProps = {
+    headerProps: { subtitle: projectName || undefined },
+    footerProps: { buttons: footerButtons },
+    isLoading,
+    hasError,
+  };
+
+  if (!isLoadingOrgs && organizations.length === 0) {
+    return (
+      <ReductionProjectLayout {...layoutProps}>
+        <ScreenEmptyState
+          title={`Sin ${VOCAB.organization.noun.plural} ${VOCAB.inscription.adjective.plural}`}
+          description={`Recuerda ${VOCAB.inscription.verb.singular} tu ${VOCAB.organization.noun.singular} antes de ingresar un proyecto de reducción.`}
+          action={{
+            label: `Ir a Mi ${capitalize(VOCAB.organization.noun.singular)}`,
+            onClick: () => void navigate({ to: Routes.MY_ORGANIZATION }),
+          }}
+        />
+      </ReductionProjectLayout>
+    );
+  }
+
+  if (!isLoadingInventories && verifiedInventories.length === 0) {
+    return (
+      <ReductionProjectLayout {...layoutProps}>
+        <ScreenEmptyState
+          title="Sin huellas con sello de verificación"
+          description="Debes tener al menos una huella con sello de verificación antes de poder ingresar un proyecto de reducción."
+          action={{
+            label: "Ir a Huella Organizacional",
+            onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
+          }}
+        />
+      </ReductionProjectLayout>
+    );
+  }
+
   return (
-    <ReductionProjectLayout
-      headerProps={{
-        subtitle: projectName || undefined,
-      }}
-      footerProps={{ buttons: footerButtons }}
-      isLoading={isLoading}
-      hasError={hasError}
-    >
+    <ReductionProjectLayout {...layoutProps}>
       <Box
         component="form"
         noValidate

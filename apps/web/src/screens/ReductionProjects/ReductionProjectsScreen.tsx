@@ -17,6 +17,7 @@ import {
   OrganizationSelector,
   ResponsiveTypography,
   InfoButton,
+  ScreenEmptyState,
 } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
@@ -25,14 +26,18 @@ import {
   useReductionProjects,
   useReductionProjectsMinimal,
   useMyOrganizations,
+  useCarbonInventoriesMinimalData,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { formatEmissions } from "@/utils/formatting";
 import {
   GetAllReductionProjectsResponse,
   ReductionProjectDisplayStatus,
+  CarbonInventoryDisplayStatusEnum,
 } from "@repo/types";
 import { StylizedDataGrid } from "@/components";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -60,6 +65,11 @@ export const ReductionProjectsScreen: FC = () => {
 
   const { data: organizations = [], isLoading: isLoadingOrganizations } =
     useMyOrganizations();
+
+  const { data: verifiedInventories = [], isLoading: isLoadingInventories } =
+    useCarbonInventoriesMinimalData([
+      CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+    ]);
 
   const { data: projects = [], isLoading: isLoadingProjects } =
     useReductionProjects(selectedYear, selectedOrganizationId);
@@ -245,6 +255,31 @@ export const ReductionProjectsScreen: FC = () => {
       [isWiderScreen]
     );
 
+  if (!isLoadingOrganizations && organizations.length === 0) {
+    return (
+      <ScreenEmptyState
+        title={`Sin ${VOCAB.organization.noun.plural} ${VOCAB.inscription.adjective.plural}`}
+        description={`Recuerda ${VOCAB.inscription.verb.singular} tu ${VOCAB.organization.noun.singular} antes de ingresar un proyecto de reducción.`}
+        action={{
+          label: `Ir a Mi ${capitalize(VOCAB.organization.noun.singular)}`,
+          onClick: () => void navigate({ to: Routes.MY_ORGANIZATION }),
+        }}
+      />
+    );
+  }
+  if (!isLoadingInventories && verifiedInventories.length === 0) {
+    return (
+      <ScreenEmptyState
+        title="Sin huellas con sello de verificación"
+        description="Debes tener al menos una huella con sello de verificación antes de poder ingresar un proyecto de reducción."
+        action={{
+          label: "Ir a Huella Organizacional",
+          onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
+        }}
+      />
+    );
+  }
+
   return (
     <Box className="flex flex-1 flex-col gap-6">
       {/* Header */}
@@ -296,7 +331,6 @@ export const ReductionProjectsScreen: FC = () => {
         </Box>
       </Box>
 
-      {/* Projects Table Section */}
       <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
         {/* Section Header */}
         <Box className="flex items-center gap-1">
