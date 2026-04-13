@@ -53,7 +53,11 @@ export const ReductionProjectFormFields: FC<Props> = ({
   const inventoryOptions = useMemo(
     () =>
       filteredInventories.map((inv) => ({
-        label: inv.name ?? `Inventario ${inv.year ?? inv.id}`,
+        label: inv.name
+          ? inv.year
+            ? `${inv.name} (${inv.year})`
+            : inv.name
+          : `Inventario ${inv.year ?? inv.id}`,
         value: inv.id,
       })),
     [filteredInventories]
