@@ -89,23 +89,28 @@ export async function seedBadges(
       blobHTTPHeaders: { blobContentType: "image/svg+xml" },
     });
 
-    await prisma.file.create({
-      data: {
-        uuid,
-        originalName: file,
-        mimeType: "image/svg+xml",
-        sizeBytes,
-        blobPath,
-        badge: {
-          create: {
-            type,
-            status: BadgeStatus.ACTIVE,
+    try {
+      await prisma.file.create({
+        data: {
+          uuid,
+          originalName: file,
+          mimeType: "image/svg+xml",
+          sizeBytes,
+          blobPath,
+          badge: {
+            create: {
+              type,
+              status: BadgeStatus.ACTIVE,
+            },
           },
         },
-      },
-    });
+      });
+    } catch (err) {
+      await containerClient.getBlockBlobClient(blobPath).deleteIfExists();
+      throw err;
+    }
 
-    console.log(`  ✓ ${type}`);
+    console.log(`  ✓ ${type} (${file})`);
     seeded++;
   }
 
