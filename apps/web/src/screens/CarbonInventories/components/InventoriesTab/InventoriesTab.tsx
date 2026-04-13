@@ -166,11 +166,11 @@ export const InventoriesTab: FC<Props> = ({
           borderTop: `1px solid ${theme.palette.divider}`,
           "& .MuiDataGrid-columnHeader": {
             backgroundColor: theme.palette.background.default,
-            padding: "10px 24px",
+            padding: "10px 8px",
           },
           "& .MuiDataGrid-cell": {
             py: "16.5px",
-            px: "24px",
+            px: "8px",
           },
         })}
       />

@@ -102,7 +102,7 @@ export const CarbonInventoryStatusChip: FC<CarbonInventoryStatusChipProps> = ({
     <Tooltip title={TOOLTIP_LABELS[status]}>
       <Chip
         sx={{
-          padding: "6px 16px",
+          padding: "6px 8px",
           backgroundColor: alpha(getStatusColor(theme, status), 0.3),
           color: darken(getStatusColor(theme, status), 0.5),
           border: `1px solid ${alpha(getStatusColor(theme, status), 0.3)}`,
