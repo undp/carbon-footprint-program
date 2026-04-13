@@ -76,6 +76,9 @@ export const AdminActionsCard: FC<Props> = ({
   const isSubmitDisabled =
     busy || !selectedAction || (isCommentRequired && !comment.trim());
 
+  const showDocumentUploadSection =
+    !isOrganizationInscription || selectedAction === "review";
+
   const resetState = useCallback(
     (action: Action) => {
       if (action === selectedAction) return;
@@ -287,8 +290,7 @@ export const AdminActionsCard: FC<Props> = ({
               </Stack>
             )}
 
-            {((isOrganizationInscription && selectedAction === "review") ||
-              !isOrganizationInscription) && (
+            {showDocumentUploadSection && (
               <Stack spacing={0.5}>
                 <Typography
                   variant="caption"
