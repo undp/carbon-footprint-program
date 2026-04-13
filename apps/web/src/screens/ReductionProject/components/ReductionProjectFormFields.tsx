@@ -1,6 +1,6 @@
 import { FC, useMemo } from "react";
 import { Box, Tooltip } from "@mui/material";
-import { Control } from "react-hook-form";
+import { Control, useWatch } from "react-hook-form";
 import { FormTextField, FormSelectField } from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
@@ -39,6 +39,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
 }) => {
   const { openExplanation } = useExplanationDialog();
   const organizationOptions = useSelectorOptions(organizations, "name", "id");
+  const selectedInventoryYear = useWatch({ control, name: "year" });
 
   const filteredInventories = useMemo(
     () =>
@@ -151,6 +152,13 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 disabled={disabled || !hasInventorySelected}
                 slotProps={{
                   inputLabel: { shrink: true },
+                  htmlInput: {
+                    max:
+                      selectedInventoryYear &&
+                      Number.isFinite(selectedInventoryYear)
+                        ? `${selectedInventoryYear}-12-31`
+                        : undefined,
+                  },
                 }}
               />
             </span>

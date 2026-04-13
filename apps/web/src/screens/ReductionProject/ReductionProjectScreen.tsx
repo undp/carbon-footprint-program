@@ -136,6 +136,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
     >
       <Box
         component="form"
+        noValidate
         id="reduction-project-form"
         onSubmit={handleSubmit(submit)}
         className="flex min-h-0 flex-col gap-6 overflow-y-auto rounded-lg bg-white p-6"
