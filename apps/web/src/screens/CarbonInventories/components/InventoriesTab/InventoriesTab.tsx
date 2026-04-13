@@ -43,7 +43,7 @@ export const InventoriesTab: FC<Props> = ({
           ) => (
             <InventoryNameCell
               name={params.row.name}
-              status={params.row.status}
+              recognitions={params.row.recognitions}
             />
           ),
         },

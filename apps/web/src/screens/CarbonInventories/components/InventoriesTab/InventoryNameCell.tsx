@@ -1,37 +1,19 @@
+import React from "react";
 import { FC } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
-import {
-  CarbonInventoryDisplayStatus,
-  CarbonInventoryDisplayStatusEnum,
-  SubmissionType,
-} from "@repo/types";
-import { REQUEST_TYPE_LABEL } from "@/utils/submissions";
-import { RecognitionChip } from "../../../../components";
-
-const MEASUREMENT_STATUSES: CarbonInventoryDisplayStatus[] = [
-  CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
-  CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION,
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED,
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED,
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-];
-
-const VERIFICATION_STATUSES: CarbonInventoryDisplayStatus[] = [
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-];
+import { GetAllCarbonInventoriesResponse } from "@repo/types";
+import { RECOGNITION_TYPE_LABEL } from "@/utils/submissions";
+import { RecognitionChip } from "@/components";
 
 interface InventoryNameCellProps {
   name: string | null;
-  status: CarbonInventoryDisplayStatus;
+  recognitions: GetAllCarbonInventoriesResponse[number]["recognitions"];
 }
 
 export const InventoryNameCell: FC<InventoryNameCellProps> = ({
   name,
-  status,
+  recognitions,
 }) => {
-  const hasMeasurementRecognition = MEASUREMENT_STATUSES.includes(status);
-  const hasVerificationRecognition = VERIFICATION_STATUSES.includes(status);
-
   return (
     <Box
       sx={{
@@ -53,34 +35,17 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
           (sin nombre)
         </Typography>
       )}
-      {(hasMeasurementRecognition || hasVerificationRecognition) && (
-        <Box sx={{ display: "flex", gap: 1 }}>
-          {hasMeasurementRecognition && (
-            <Tooltip
-              title={
-                REQUEST_TYPE_LABEL[SubmissionType.CARBON_INVENTORY_CALCULATION]
-              }
-            >
-              <span>
-                <RecognitionChip
-                  type={SubmissionType.CARBON_INVENTORY_CALCULATION}
-                />
-              </span>
-            </Tooltip>
-          )}
-          {hasVerificationRecognition && (
-            <Tooltip
-              title={
-                REQUEST_TYPE_LABEL[SubmissionType.CARBON_INVENTORY_VERIFICATION]
-              }
-            >
-              <span>
-                <RecognitionChip
-                  type={SubmissionType.CARBON_INVENTORY_VERIFICATION}
-                />
-              </span>
-            </Tooltip>
-          )}
+      {recognitions.length > 0 && (
+        <Box className="flex flex-row items-center gap-1">
+          {recognitions.map((recognition) => (
+            <React.Fragment key={`${recognition}-recognition`}>
+              <Tooltip title={RECOGNITION_TYPE_LABEL[recognition]}>
+                <span>
+                  <RecognitionChip type={recognition} />
+                </span>
+              </Tooltip>
+            </React.Fragment>
+          ))}
         </Box>
       )}
     </Box>

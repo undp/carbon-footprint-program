@@ -13,7 +13,10 @@ import {
 import { sumBy } from "lodash-es";
 import { mapCarbonInventoryToResponse } from "../mappers.js";
 import { toNumberOrNull, kgToTon } from "@/utils/number.js";
-import { calculateDisplayStatus } from "../helpers.js";
+import {
+  calculateDisplayStatus,
+  calculateEarnedRecognitions,
+} from "../helpers.js";
 
 export const getAllCarbonInventoriesService = async (
   prismaClient: PrismaClient,
@@ -130,5 +133,6 @@ export const getAllCarbonInventoriesService = async (
     organizationName: inventory.organization?.summary?.name ?? null,
     organizationDisplayStatus:
       inventory.organization?.summary?.displayStatus ?? null,
+    recognitions: calculateEarnedRecognitions(inventory),
   }));
 };
