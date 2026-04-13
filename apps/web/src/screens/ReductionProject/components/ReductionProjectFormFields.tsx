@@ -2,6 +2,8 @@ import { FC, useMemo } from "react";
 import { Box, Tooltip } from "@mui/material";
 import { Control } from "react-hook-form";
 import { FormTextField, FormSelectField } from "@/components/form";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
@@ -20,6 +22,7 @@ interface Props {
   subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
   hasInventorySelected: boolean;
+  gwpExplanationId?: string | null;
 }
 
 export const ReductionProjectFormFields: FC<Props> = ({
@@ -32,7 +35,9 @@ export const ReductionProjectFormFields: FC<Props> = ({
   subcategories,
   isLoadingSubcategories,
   hasInventorySelected,
+  gwpExplanationId,
 }) => {
+  const { openExplanation } = useExplanationDialog();
   const organizationOptions = useSelectorOptions(organizations, "name", "id");
 
   const filteredInventories = useMemo(
@@ -137,14 +142,22 @@ export const ReductionProjectFormFields: FC<Props> = ({
             }}
           />
         </Box>
-        <Box className="flex-1">
-          <FormSelectField
-            name="gwpUsed"
-            control={control}
-            label="Potencial de calentamiento global (PCG) utilizado"
-            options={GWP_OPTIONS}
-            disabled={disabled}
-          />
+        <Box className="flex flex-1 flex-row items-start gap-1">
+          <Box className="flex-1">
+            <FormSelectField
+              name="gwpUsed"
+              control={control}
+              label="Potencial de calentamiento global (PCG) utilizado"
+              options={GWP_OPTIONS}
+              disabled={disabled}
+            />
+          </Box>
+          <Box className="mt-4">
+            <InfoButton
+              label="Más información"
+              onClick={() => openExplanation(gwpExplanationId ?? null)}
+            />
+          </Box>
         </Box>
       </Box>
 

@@ -14,25 +14,41 @@ import {
 } from "@mui/material";
 import { Control, Controller, useWatch } from "react-hook-form";
 import { FormTextField } from "@/components/form";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import type { ReductionProjectFormValues } from "../types";
 import { GEI_ITEMS } from "../constants";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
   disabled: boolean;
+  geiExplanationId?: string | null;
+  reportedElsewhereExplanationId?: string | null;
 }
 
-export const GeiConsideredSection: FC<Props> = ({ control, disabled }) => {
+export const GeiConsideredSection: FC<Props> = ({
+  control,
+  disabled,
+  geiExplanationId,
+  reportedElsewhereExplanationId,
+}) => {
   const consideredGei = useWatch({ control, name: "consideredGei" });
   const reportedElsewhere = useWatch({ control, name: "reportedElsewhere" });
+  const { openExplanation } = useExplanationDialog();
 
   return (
     <Box className="flex flex-row gap-6">
       {/* Left: GEI Considerados */}
       <Box className="flex-1">
-        <Typography variant="body1" fontSize={18} className="mb-4">
-          GEI Considerados
-        </Typography>
+        <Box className="mb-4 flex items-center gap-1">
+          <Typography variant="body1" fontSize={18}>
+            GEI Considerados
+          </Typography>
+          <InfoButton
+            label="Más información"
+            onClick={() => openExplanation(geiExplanationId ?? null)}
+          />
+        </Box>
         <TableContainer
           sx={{
             border: 1,
@@ -103,9 +119,17 @@ export const GeiConsideredSection: FC<Props> = ({ control, disabled }) => {
 
       {/* Right: Reportado en otra iniciativa */}
       <Box className="flex-1">
-        <Typography variant="body1" fontSize={18} className="mb-4">
-          Reportado en otra iniciativa
-        </Typography>
+        <Box className="mb-4 flex items-center gap-1">
+          <Typography variant="body1" fontSize={18}>
+            Reportado en otra iniciativa
+          </Typography>
+          <InfoButton
+            label="Más información"
+            onClick={() =>
+              openExplanation(reportedElsewhereExplanationId ?? null)
+            }
+          />
+        </Box>
         <Controller
           name="reportedElsewhere"
           control={control}

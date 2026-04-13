@@ -158,10 +158,16 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
           subcategories={subcategories}
           isLoadingSubcategories={isLoadingSubcategories}
           hasInventorySelected={hasInventorySelected}
+          gwpExplanationId={null}
         />
 
         {/* GEI + Reported elsewhere */}
-        <GeiConsideredSection control={control} disabled={isFormDisabled} />
+        <GeiConsideredSection
+          control={control}
+          disabled={isFormDisabled}
+          geiExplanationId={null}
+          reportedElsewhereExplanationId={null}
+        />
 
         {/* Reduction report datagrid */}
         <ReductionReportSection
