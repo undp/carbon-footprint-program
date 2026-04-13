@@ -79,6 +79,9 @@ export const AdminActionsCard: FC<Props> = ({
   const showDocumentUploadSection =
     !isOrganizationInscription || selectedAction === "review";
 
+  const showRecognitionUploadSection =
+    selectedAction === "approve" && !isOrganizationInscription;
+
   const resetState = useCallback(
     (action: Action) => {
       if (action === selectedAction) return;
@@ -314,7 +317,7 @@ export const AdminActionsCard: FC<Props> = ({
               </Stack>
             )}
 
-            {selectedAction === "approve" && !isOrganizationInscription && (
+            {showRecognitionUploadSection && (
               <Stack spacing={0.5}>
                 <Typography
                   variant="caption"
