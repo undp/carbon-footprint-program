@@ -12,6 +12,8 @@ import {
 } from "@/api/query/carbonInventories";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
+import { InfoButton } from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import {
   ReductionProjectLayout,
   type FooterButton,
@@ -34,6 +36,7 @@ interface Props {
 
 export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
   const navigate = useNavigate();
+  const { openExplanation } = useExplanationDialog();
 
   // Queries
   const {
@@ -139,9 +142,15 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
       >
         {/* Content header with status chip */}
         <Box className="flex items-center justify-between">
-          <Typography variant="body1" fontSize={18} fontWeight={500}>
-            Proyecto de Reducción
-          </Typography>
+          <Box className="flex items-center gap-1">
+            <Typography variant="body1" fontSize={18} fontWeight={500}>
+              Proyecto de Reducción
+            </Typography>
+            <InfoButton
+              label="Más información"
+              onClick={() => openExplanation(null)}
+            />
+          </Box>
           {mode === "edit" && status && (
             <ReductionProjectStatusChip status={status} size="medium" />
           )}

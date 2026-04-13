@@ -13,7 +13,12 @@ import {
 } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { useNavigate } from "@tanstack/react-router";
-import { OrganizationSelector, ResponsiveTypography } from "@/components";
+import {
+  OrganizationSelector,
+  ResponsiveTypography,
+  InfoButton,
+} from "@/components";
+import { useExplanationDialog } from "@/contexts";
 import { ReductionProjectActionsCell } from "./components/ReductionProjectActionsCell";
 import { ReductionProjectStatusChip } from "@/components/ReductionProjectStatusChip";
 import {
@@ -43,6 +48,7 @@ export const ReductionProjectsScreen: FC = () => {
     useState<string>("all");
 
   const navigate = useNavigate();
+  const { openExplanation } = useExplanationDialog();
 
   const onYearSelectChange = useCallback((event: SelectChangeEvent) => {
     setSelectedYear(event.target.value);
@@ -293,9 +299,15 @@ export const ReductionProjectsScreen: FC = () => {
       {/* Projects Table Section */}
       <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
         {/* Section Header */}
-        <Typography variant="h6" fontWeight={600}>
-          Proyectos de reducción
-        </Typography>
+        <Box className="flex items-center gap-1">
+          <Typography variant="h6" fontWeight={600}>
+            Proyectos de reducción
+          </Typography>
+          <InfoButton
+            label="Más información"
+            onClick={() => openExplanation(null)}
+          />
+        </Box>
 
         <StylizedDataGrid
           autoHeight
