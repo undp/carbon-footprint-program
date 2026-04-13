@@ -134,7 +134,7 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
           );
           return reply.status(403).send({
             code: "FORBIDDEN",
-            message: "Insufficient permissions for this organization",
+            message: "You do not have access to this reduction project",
           });
         }
 
