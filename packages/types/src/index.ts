@@ -22,4 +22,3 @@ export * from "./baseSchemas/index.js";
 export * from "./common/index.js";
 export * from "./badges/index.js";
 export * from "./submissions/index.js";
-export * from "./constants.js";

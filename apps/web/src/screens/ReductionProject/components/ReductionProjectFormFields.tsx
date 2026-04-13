@@ -9,7 +9,7 @@ import {
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
-import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/types";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
@@ -64,7 +64,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           ? inv.year
             ? `${inv.name} (${inv.year})`
             : inv.name
-          : `Inventario ${inv.year ?? inv.id}`,
+          : `Huella ${inv.year ?? inv.id}`,
         value: inv.id,
       })),
     [filteredInventories]
@@ -113,7 +113,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
               <FormSelectField
                 name="carbonInventoryId"
                 control={control}
-                label="Inventario de carbono verificado"
+                label="Huella con reconocimiento de verificación"
                 options={inventoryOptions}
                 disabled={
                   disabled ||
@@ -129,7 +129,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Tooltip
             title={
               !hasInventorySelected
-                ? "Seleccione un inventario de carbono verificado primero"
+                ? "Seleccione una huella con reconocimiento de verificación primero"
                 : ""
             }
           >
@@ -155,7 +155,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Tooltip
             title={
               !hasInventorySelected
-                ? "Seleccione un inventario de carbono verificado primero"
+                ? "Seleccione una huella con reconocimiento de verificación primero"
                 : ""
             }
           >

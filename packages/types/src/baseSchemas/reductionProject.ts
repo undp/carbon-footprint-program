@@ -3,7 +3,7 @@ import { IdSchema } from "../zod.js";
 import { InventoryStatus } from "../enums.js";
 import { ConsideredGeiSchema } from "../common/consideredGei/schemas.js";
 import { GwpSourceSchema } from "../common/gwpSource/schemas.js";
-import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "../constants.js";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 
 export const ReductionProjectBaseSchema = z
   .object({
