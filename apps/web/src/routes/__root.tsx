@@ -1,5 +1,8 @@
 import { Navigate, Outlet, createRootRoute } from "@tanstack/react-router";
 import { ThemeProvider } from "@mui/material";
+import { LocalizationProvider } from "@mui/x-date-pickers";
+import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
+import { es } from "date-fns/locale";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -24,21 +27,23 @@ function RootComponent() {
   }, []);
 
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <SnackbarProvider preventDuplicate autoHideDuration={4000}>
-        <MsalProvider instance={msalInstance}>
-          <QueryClientProvider client={queryClient}>
-            {IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
-            <AuthProvider>
-              <ExplanationProvider>
-                <Outlet />
-              </ExplanationProvider>
-            </AuthProvider>
-          </QueryClientProvider>
-        </MsalProvider>
-      </SnackbarProvider>
-    </ThemeProvider>
+    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <SnackbarProvider preventDuplicate autoHideDuration={4000}>
+          <MsalProvider instance={msalInstance}>
+            <QueryClientProvider client={queryClient}>
+              {IS_DEVELOPMENT && <ReactQueryDevtools initialIsOpen={false} />}
+              <AuthProvider>
+                <ExplanationProvider>
+                  <Outlet />
+                </ExplanationProvider>
+              </AuthProvider>
+            </QueryClientProvider>
+          </MsalProvider>
+        </SnackbarProvider>
+      </ThemeProvider>
+    </LocalizationProvider>
   );
 }
 
