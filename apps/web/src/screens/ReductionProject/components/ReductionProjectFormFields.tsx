@@ -76,6 +76,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             control={control}
             label="Nombre de proyecto"
             disabled={disabled}
+            required
           />
         </Box>
         <Box className="flex-1">
@@ -85,6 +86,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             label="Organización"
             options={organizationOptions}
             disabled={disabled || isLoadingOrgs}
+            required
           />
         </Box>
       </Box>
@@ -106,6 +108,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 label="Inventario de carbono verificado"
                 options={inventoryOptions}
                 disabled={disabled || !selectedOrganizationId}
+                required
               />
             </span>
           </Tooltip>
@@ -127,6 +130,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 disabled={
                   disabled || !hasInventorySelected || isLoadingSubcategories
                 }
+                required
               />
             </span>
           </Tooltip>
@@ -160,6 +164,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                         : undefined,
                   },
                 }}
+                required
               />
             </span>
           </Tooltip>
@@ -194,6 +199,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             multiline
             rows={4}
             disabled={disabled}
+            required
           />
         </Box>
       </Box>
