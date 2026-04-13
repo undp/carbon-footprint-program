@@ -22,7 +22,7 @@ export const VerificationSealInfoSection: FC = () => {
             variant="subtitle2"
             fontWeight={600}
           >
-            Sello de Verificación de Huella de Carbono
+            Reconocimiento de Verificación de Huella de Carbono
           </Typography>
 
           <Typography
@@ -30,8 +30,9 @@ export const VerificationSealInfoSection: FC = () => {
             sx={{ color: theme.palette.primary.dark }}
             variant="body2"
           >
-            El Sello de Verificación es el reconocimiento oficial mediante el
-            cual Huella Latam valida que el cálculo de emisiones de tu
+            El Reconocimiento de Verificación es el reconocimiento oficial
+            mediante el cual Huella Latam valida que el cálculo de emisiones de
+            tu
             {VOCAB.organization.noun.singular} cumple con los estándares
             gubernamentales establecidos.
           </Typography>
@@ -42,7 +43,7 @@ export const VerificationSealInfoSection: FC = () => {
               fontWeight={500}
               sx={{ color: theme.palette.primary.main }}
             >
-              Al recibir el Sello de Verificación, obtendrás:
+              Al recibir el Reconocimiento de Verificación, obtendrás:
             </Typography>
 
             <Box component="ul" className="m-0 mt-1 list-none pl-0">
