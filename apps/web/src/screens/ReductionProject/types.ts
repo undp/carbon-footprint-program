@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { ConsideredGeiSchema, GwpSourceSchema } from "@repo/types";
+import {
+  ConsideredGeiSchema,
+  GwpSourceSchema,
+  REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+} from "@repo/types";
 
 export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
   z
@@ -12,14 +16,25 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
       implementationDate: z
         .string()
         .min(1, "La fecha de implementación es requerida"),
-      description: z.string().min(1, "La descripción es requerida"),
+      description: z
+        .string()
+        .min(1, "La descripción es requerida")
+        .max(
+          REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+          `La descripción no puede superar los ${REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH} caracteres`
+        ),
       subcategoryId: z.string().min(1, "La subcategoría es requerida"),
       gwpUsed: z.union([GwpSourceSchema, z.literal("")]),
       consideredGei: z
         .array(ConsideredGeiSchema)
         .min(1, "Debe seleccionar al menos un GEI considerado"),
       reportedElsewhere: z.boolean(),
-      reportedElsewhereDescription: z.string(),
+      reportedElsewhereDescription: z
+        .string()
+        .max(
+          REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+          `La descripción no puede superar los ${REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH} caracteres`
+        ),
       year: z.union([z.number().int(), z.literal("")]),
       baselineScenario: z
         .string()
