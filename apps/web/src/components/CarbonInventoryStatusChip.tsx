@@ -74,13 +74,13 @@ const TOOLTIP_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]:
     "Aprobado - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
-    "En revisión - Sello de verificación",
+    "En revisión - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED]:
-    "Con observaciones - Sello de verificación",
+    "Con observaciones - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
-    "Rechazado - Sello de verificación",
+    "Rechazado - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]:
-    "Aprobado - Sello de verificación",
+    "Aprobado - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.DELETED]: "Huella eliminada",
 };
 
