@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { ReductionProjectBaseSchema } from "../../baseSchemas/index.js";
+import { ReductionProjectDisplayStatusSchema } from "../schemas.js";
 
 export const GetReductionProjectsMinimalParamsSchema = z.object({
   year: z
@@ -14,8 +15,11 @@ export const GetReductionProjectsMinimalItemSchema =
     id: true,
     name: true,
     organizationId: true,
-    status: true,
     year: true,
+  }).extend({
+    status: ReductionProjectDisplayStatusSchema.describe(
+      "Workflow display status derived from submissions"
+    ),
   });
 
 export const GetReductionProjectsMinimalResponseSchema = z.array(
