@@ -1,18 +1,13 @@
 import { z } from "zod";
-import {
-  ConsideredGeiSchema,
-  GwpSourceSchema,
-  REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
-} from "@repo/types";
+import { ConsideredGeiSchema, GwpSourceSchema } from "@repo/types";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 
 export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
   z
     .object({
       name: z.string().min(1, "El nombre es requerido"),
       organizationId: z.string().min(1, "La organización es requerida"),
-      carbonInventoryId: z
-        .string()
-        .min(1, "El inventario de carbono es requerido"),
+      carbonInventoryId: z.string().min(1, "La huella es requerida"),
       implementationDate: z
         .string()
         .min(1, "La fecha de implementación es requerida"),
@@ -79,7 +74,7 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
         ctx.addIssue({
           code: "custom",
           path: ["implementationDate"],
-          message: `El año no puede ser posterior al año del inventario (${data.year})`,
+          message: `El año no puede ser posterior al año de la huella (${data.year})`,
         });
       }
     });
