@@ -21,7 +21,6 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
         flexDirection: "column",
         alignItems: "flex-start",
         gap: 0.75,
-        py: 1,
       }}
     >
       {name ? (

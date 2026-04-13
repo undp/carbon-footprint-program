@@ -182,7 +182,6 @@ export const DraftsTab: FC<DraftsTabProps> = ({
             padding: "10px 8px",
           },
           "& .MuiDataGrid-cell": {
-            py: "16.5px",
             px: "8px",
           },
         })}

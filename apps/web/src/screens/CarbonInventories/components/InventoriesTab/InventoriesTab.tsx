@@ -173,7 +173,6 @@ export const InventoriesTab: FC<Props> = ({
             padding: "10px 8px",
           },
           "& .MuiDataGrid-cell": {
-            py: "16.5px",
             px: "8px",
           },
         })}
