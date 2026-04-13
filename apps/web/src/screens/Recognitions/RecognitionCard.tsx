@@ -1,8 +1,10 @@
 import { FC } from "react";
 import { Avatar, Box, Typography } from "@mui/material";
-import { GetBadgePreviewsResponse } from "@repo/types";
 import {
-  CarbonInventoryRecognitionsSubmissionType,
+  GetBadgePreviewsResponse,
+  CarbonInventoryRecognitionsType,
+} from "@repo/types";
+import {
   SUBMISSION_CARD_COLORS,
   SUBMISSION_CARD_LABELS,
   SUBMISSION_LETTER,
@@ -10,7 +12,7 @@ import {
 } from "./constants";
 
 interface RecognitionCardProps {
-  submissionType: CarbonInventoryRecognitionsSubmissionType;
+  submissionType: CarbonInventoryRecognitionsType;
   badgePreviews: GetBadgePreviewsResponse;
   count: number;
 }

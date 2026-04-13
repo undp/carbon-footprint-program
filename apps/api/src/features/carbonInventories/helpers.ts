@@ -8,6 +8,7 @@ import {
   type GetAllCategoriesResponse,
   IconName,
   IconNameSchema,
+  type CarbonInventoryRecognitionsType,
 } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
@@ -253,12 +254,7 @@ export type CarbonInventoryWithSubmissionsMinimal =
     select: typeof carbonInventoryWithSubmissionsMinimalSelect;
   }>;
 
-type CarbonInventoryRecognitionType = Exclude<
-  SubmissionType,
-  typeof SubmissionType.ORGANIZATION_ACCREDITATION
->;
-
-const CARBON_INVENTORY_RECOGNITION_TYPES: CarbonInventoryRecognitionType[] = [
+const CARBON_INVENTORY_RECOGNITION_TYPES: CarbonInventoryRecognitionsType[] = [
   SubmissionType.CARBON_INVENTORY_CALCULATION,
   SubmissionType.CARBON_INVENTORY_VERIFICATION,
   SubmissionType.REDUCTION_PLAN_VERIFICATION,
@@ -272,7 +268,7 @@ const CARBON_INVENTORY_RECOGNITION_TYPES: CarbonInventoryRecognitionType[] = [
  */
 export const calculateEarnedRecognitions = (
   carbonInventory: CarbonInventoryWithSubmissionsMinimal
-): CarbonInventoryRecognitionType[] => {
+): CarbonInventoryRecognitionsType[] => {
   const submissions = carbonInventory.submission?.subject.submissions || [];
 
   return CARBON_INVENTORY_RECOGNITION_TYPES.filter((type) =>

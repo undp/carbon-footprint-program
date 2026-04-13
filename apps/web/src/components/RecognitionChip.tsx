@@ -4,12 +4,12 @@ import { alpha, darken } from "@mui/material/styles";
 import {
   RECOGNITION_ICON,
   RECOGNITION_TYPE_LABEL,
-  SHORT_RECOGNITION_TYPE_LABEL,
-  type RecognitionType,
-} from "@/utils/submissions";
+  RECOGNITION_TYPE_CHIP_LABEL,
+} from "@/utils/recognitions";
+import { CarbonInventoryRecognitionsType } from "@repo/types";
 
 interface RecognitionChipProps {
-  type: RecognitionType;
+  type: CarbonInventoryRecognitionsType;
   variant?: "short" | "full";
 }
 
@@ -22,7 +22,7 @@ export const RecognitionChip: FC<RecognitionChipProps> = ({
   const label =
     variant === "full"
       ? RECOGNITION_TYPE_LABEL[type]
-      : SHORT_RECOGNITION_TYPE_LABEL[type];
+      : RECOGNITION_TYPE_CHIP_LABEL[type];
   const IconComponent = RECOGNITION_ICON[type];
 
   return (

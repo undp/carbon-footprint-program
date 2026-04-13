@@ -3,11 +3,11 @@ import { Box, IconButton, Tooltip, Typography } from "@mui/material";
 import { EmojiEventsOutlined } from "@mui/icons-material";
 import { GridColDef } from "@mui/x-data-grid";
 import { StylizedDataGrid } from "@/components";
-import { GetOrganizationRecognitionsResponse } from "@repo/types";
 import {
-  CarbonInventoryRecognitionsSubmissionType,
-  SUBMISSION_TABLE_LABELS,
-} from "./constants";
+  GetOrganizationRecognitionsResponse,
+  CarbonInventoryRecognitionsType,
+} from "@repo/types";
+import { RECOGNITION_TYPE_LABEL } from "@/utils/recognitions";
 
 const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
   {
@@ -41,8 +41,8 @@ const columns: GridColDef<GetOrganizationRecognitionsResponse[number]>[] = [
     headerAlign: "center",
     align: "center",
     cellClassName: "content-center",
-    valueFormatter: (value: CarbonInventoryRecognitionsSubmissionType) =>
-      SUBMISSION_TABLE_LABELS[value],
+    valueFormatter: (value: CarbonInventoryRecognitionsType) =>
+      RECOGNITION_TYPE_LABEL[value],
   },
   {
     field: "totalEmissions",

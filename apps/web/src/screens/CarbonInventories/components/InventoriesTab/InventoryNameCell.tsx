@@ -2,7 +2,7 @@ import React from "react";
 import { FC } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import { GetAllCarbonInventoriesResponse } from "@repo/types";
-import { RECOGNITION_TYPE_LABEL } from "@/utils/submissions";
+import { RECOGNITION_TYPE_LABEL } from "@/utils/recognitions";
 import { RecognitionChip } from "@/components";
 
 interface InventoryNameCellProps {

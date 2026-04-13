@@ -16,9 +16,9 @@ import { RecognitionsTable } from "./RecognitionsTable";
 import { RecognitionCard } from "./RecognitionCard";
 import { RecognitionScreenHeader } from "./RecognitionScreenHeader";
 import {
-  RECOGNITION_SUBMISSION_TYPES,
   RECOGNITION_BADGE_TYPES,
-} from "./constants";
+  RECOGNITION_SUBMISSION_TYPES,
+} from "@/utils/recognitions";
 
 const APPROVED_STATUSES = [
   CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
