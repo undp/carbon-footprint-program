@@ -33,14 +33,14 @@ The organization selector SHALL default to the user's primary organization. The 
 
 ### Requirement: Badge summary cards
 
-The page SHALL display four summary cards, one per badge type: Diploma Medición, Sello Verificación, Sello Reducción, Sello Neutralización. Each card SHALL show the count of earned seals of that type matching the current filters.
+The page SHALL display four summary cards, one per badge type: Diploma Medición, Reconocimiento de Verificación, Reconocimiento de Reducción, Reconocimiento de Neutralización. Each card SHALL show the count of earned seals of that type matching the current filters.
 
 Badge type to display label mapping:
 
 - `CARBON_INVENTORY_CALCULATION` → "Diploma Medición"
-- `CARBON_INVENTORY_VERIFICATION` → "Sello Verificación"
-- `REDUCTION_PLAN_VERIFICATION` → "Sello Reducción"
-- `NEUTRALIZATION_PLAN_VERIFICATION` → "Sello Neutralización"
+- `CARBON_INVENTORY_VERIFICATION` → "Reconocimiento de Verificación"
+- `REDUCTION_PLAN_VERIFICATION` → "Reconocimiento de Reducción"
+- `NEUTRALIZATION_PLAN_VERIFICATION` → "Reconocimiento de Neutralización"
 
 #### Scenario: All badge types represented
 
