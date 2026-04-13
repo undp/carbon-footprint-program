@@ -59,8 +59,8 @@ export const VerificationSealInfoSection: FC = () => {
                   variant="body2"
                   sx={{ color: theme.palette.primary.dark }}
                 >
-                  <strong>Sello de Verificación Oficial</strong> que certifica
-                  que tu huella fue validada por Huella Latam
+                  <strong>Reconocimiento de Verificación Oficial</strong> que
+                  certifica que tu huella fue validada por Huella Latam
                 </Typography>
               </Box>
               <Box component="li" className="mt-1 flex gap-1">
