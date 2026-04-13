@@ -172,8 +172,8 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
-          title="Sin huellas con sello de verificación"
-          description="Debes tener al menos una huella con sello de verificación antes de poder ingresar un proyecto de reducción."
+          title="Sin huellas con reconocimiento de verificación"
+          description="Debes tener al menos una huella con reconocimiento de verificación antes de poder ingresar un proyecto de reducción."
           action={{
             label: "Ir a Huella Organizacional",
             onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
