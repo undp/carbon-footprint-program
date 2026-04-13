@@ -29,7 +29,6 @@ const REQUEST_MEASUREMENT_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.DRAFT,
   CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
   CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED,
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
 ];
 
 export function canSubmitToMeasurement(
