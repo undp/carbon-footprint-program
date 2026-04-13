@@ -113,7 +113,10 @@ export const submissionHistorySelect = {
   subject: {
     select: {
       carbonInventory: {
-        select: { carbonInventoryId: true },
+        select: {
+          carbonInventoryId: true,
+          carbonInventory: { select: { year: true } },
+        },
       },
     },
   },
@@ -223,6 +226,8 @@ export const buildSubmissionBaseEntry = (
   userMetadata: context.orgName,
   carbonInventoryId:
     submission.subject.carbonInventory?.carbonInventoryId.toString() ?? null,
+  carbonInventoryYear:
+    submission.subject.carbonInventory?.carbonInventory.year ?? null,
   organizationId: context.organizationIdString,
   organizationData: context.organizationData,
 });
@@ -235,6 +240,7 @@ export const buildSubmissionBaseEntry = (
  */
 export const buildSelfDeclarationEvent = (
   carbonInventoryId: string,
+  carbonInventoryYear: number | null,
   selfDeclaredAt: Date,
   context: OrgSummaryInfo,
   selfDeclaredBy: { email: string | null } | null
@@ -247,6 +253,7 @@ export const buildSelfDeclarationEvent = (
   userName: selfDeclaredBy?.email ?? null,
   userMetadata: context.orgName,
   carbonInventoryId,
+  carbonInventoryYear,
   organizationId: context.organizationIdString,
   organizationData: context.organizationData,
   comment: "",
