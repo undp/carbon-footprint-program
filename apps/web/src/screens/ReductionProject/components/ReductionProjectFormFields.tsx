@@ -165,6 +165,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           </Tooltip>
         </Box>
         <Box className="flex flex-1 flex-row items-start gap-1">
+          {/* TODO: move info button logic to the select field */}
           <Box className="flex-1">
             <FormSelectField
               name="gwpUsed"
