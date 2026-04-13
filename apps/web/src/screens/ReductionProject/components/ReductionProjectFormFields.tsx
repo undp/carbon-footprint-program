@@ -1,7 +1,11 @@
 import { FC, useMemo } from "react";
 import { Box, Tooltip } from "@mui/material";
 import { Control, useWatch } from "react-hook-form";
-import { FormTextField, FormSelectField } from "@/components/form";
+import {
+  FormTextField,
+  FormSelectField,
+  FormDateField,
+} from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
@@ -148,22 +152,17 @@ export const ReductionProjectFormFields: FC<Props> = ({
             }
           >
             <span>
-              <FormTextField
+              <FormDateField
                 name="implementationDate"
                 control={control}
                 label="Fecha de implementación"
-                type="date"
                 disabled={disabled || !hasInventorySelected}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: {
-                    max:
-                      selectedInventoryYear &&
-                      Number.isFinite(selectedInventoryYear)
-                        ? `${selectedInventoryYear}-12-31`
-                        : undefined,
-                  },
-                }}
+                maxDate={
+                  selectedInventoryYear &&
+                  Number.isFinite(selectedInventoryYear)
+                    ? new Date(selectedInventoryYear, 11, 31)
+                    : undefined
+                }
                 required
               />
             </span>
