@@ -1,13 +1,18 @@
 import { create } from "zustand";
 
+export enum CarbonInventoriesTab {
+  DRAFTS = 0,
+  HUELLAS = 1,
+}
+
 interface CarbonInventoriesState {
-  activeTab: number;
-  setActiveTab: (tab: number) => void;
+  activeTab: CarbonInventoriesTab;
+  setActiveTab: (tab: CarbonInventoriesTab) => void;
 }
 
 export const useCarbonInventoriesStore = create<CarbonInventoriesState>(
   (set) => ({
-    activeTab: 0,
+    activeTab: CarbonInventoriesTab.DRAFTS,
     setActiveTab: (tab) => set({ activeTab: tab }),
   })
 );

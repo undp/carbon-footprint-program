@@ -1,5 +1,8 @@
 import { FC, useCallback, useMemo, useState } from "react";
-import { useCarbonInventoriesStore } from "./hooks/useCarbonInventoriesStore";
+import {
+  useCarbonInventoriesStore,
+  CarbonInventoriesTab,
+} from "./hooks/useCarbonInventoriesStore";
 import {
   Box,
   Typography,
@@ -135,7 +138,7 @@ export const CarbonInventoriesScreen: FC = () => {
         </Box>
 
         {/* Tab Content */}
-        {activeTab === 0 && (
+        {activeTab === CarbonInventoriesTab.DRAFTS && (
           <DraftsTab
             darftInventories={draftInventories}
             allInventories={filteredInventories}
@@ -143,7 +146,7 @@ export const CarbonInventoriesScreen: FC = () => {
             onNewInventory={onNewInventory}
           />
         )}
-        {activeTab === 1 && (
+        {activeTab === CarbonInventoriesTab.HUELLAS && (
           <InventoriesTab
             inventories={huellasInventories}
             isLoading={isLoadingInventories}
