@@ -30,7 +30,7 @@ const BADGE_MAPPINGS: Array<{ file: string; type: BadgeType }> = [
 ];
 
 function buildBadgeBlobPath(
-  badgeType: string,
+  badgeType: BadgeType,
   uuid: string,
   name: string
 ): string {
