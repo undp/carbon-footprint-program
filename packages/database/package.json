@@ -41,6 +41,8 @@
     "typescript": "catalog:shared"
   },
   "dependencies": {
+    "@azure/identity": "^4.13.0",
+    "@azure/storage-blob": "^12.31.0",
     "@prisma/adapter-pg": "^7.0.1",
     "@prisma/client": "^7.0.1",
     "@prisma/client-runtime-utils": "^7.0.1",
