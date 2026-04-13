@@ -184,12 +184,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           body: { fileUuids },
         });
         setVerifyDialogOpen(false);
-        enqueueSnackbar("Solicitud sello de verificación enviada", {
+        enqueueSnackbar("Solicitud reconocimiento de verificación enviada", {
           variant: "success",
         });
       } catch {
         enqueueSnackbar(
-          "No se pudo enviar la solicitud de sello de verificación",
+          "No se pudo enviar la solicitud de reconocimiento de verificación",
           {
             variant: "error",
           }

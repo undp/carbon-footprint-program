@@ -59,8 +59,8 @@ export const HomeScreen: FC = () => {
   if (!effectiveInventoryId) {
     return (
       <ScreenEmptyState
-        title="No tienes huellas con sello de verificación"
-        description="Postula al sello de verificación alguna de tus huellas"
+        title="No tienes huellas con reconocimiento de verificación"
+        description="Postula al reconocimiento de verificación alguna de tus huellas"
         action={{
           label: "Ir a Huella Organizacional",
           onClick: onNavigateToInventories,
