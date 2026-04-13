@@ -56,6 +56,10 @@ export function calculateReductionProjectDisplayStatus(
     return ReductionProjectDisplayStatusEnum.DRAFT;
   }
 
+  if (verifSubs.some((s) => s.status === SubmissionStatus.APPROVED)) {
+    return ReductionProjectDisplayStatusEnum.APPROVED;
+  }
+
   if (verifSubs.some((s) => s.status === SubmissionStatus.PENDING)) {
     return ReductionProjectDisplayStatusEnum.SUBMITTED;
   }
@@ -66,10 +70,6 @@ export function calculateReductionProjectDisplayStatus(
 
   if (verifSubs.some((s) => s.status === SubmissionStatus.REJECTED)) {
     return ReductionProjectDisplayStatusEnum.REJECTED;
-  }
-
-  if (verifSubs.some((s) => s.status === SubmissionStatus.APPROVED)) {
-    return ReductionProjectDisplayStatusEnum.APPROVED;
   }
 
   return ReductionProjectDisplayStatusEnum.DRAFT;
