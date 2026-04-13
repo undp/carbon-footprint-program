@@ -18,6 +18,7 @@ interface Props {
   organizations: GetMyOrganizationsSelectorOptionsResponse;
   isLoadingOrgs: boolean;
   verifiedInventories: GetCarbonInventoriesMinimalResponse;
+  isLoadingInventories: boolean;
   selectedOrganizationId: string;
   subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
@@ -31,6 +32,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
   organizations,
   isLoadingOrgs,
   verifiedInventories,
+  isLoadingInventories,
   selectedOrganizationId,
   subcategories,
   isLoadingSubcategories,
@@ -85,6 +87,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             label="Organización"
             options={organizationOptions}
             disabled={disabled || isLoadingOrgs}
+            loading={isLoadingOrgs}
           />
         </Box>
       </Box>
@@ -106,6 +109,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 label="Inventario de carbono verificado"
                 options={inventoryOptions}
                 disabled={disabled || !selectedOrganizationId}
+                loading={isLoadingInventories}
               />
             </span>
           </Tooltip>
@@ -127,6 +131,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 disabled={
                   disabled || !hasInventorySelected || isLoadingSubcategories
                 }
+                loading={isLoadingSubcategories}
               />
             </span>
           </Tooltip>

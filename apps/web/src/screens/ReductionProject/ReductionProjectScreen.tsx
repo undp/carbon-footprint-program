@@ -215,6 +215,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
           organizations={organizations}
           isLoadingOrgs={isLoadingOrgs}
           verifiedInventories={verifiedInventories}
+          isLoadingInventories={isLoadingInventories}
           selectedOrganizationId={selectedOrganizationId}
           subcategories={subcategories}
           isLoadingSubcategories={isLoadingSubcategories}
