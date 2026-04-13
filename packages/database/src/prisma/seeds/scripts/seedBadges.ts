@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "fs";
+import { readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import { randomUUID } from "crypto";
@@ -81,7 +81,7 @@ export async function seedBadges(
 
     const filePath = join(badgesDir, file);
     const fileBuffer = readFileSync(filePath);
-    const sizeBytes = statSync(filePath).size;
+    const sizeBytes = fileBuffer.byteLength;
     const uuid = randomUUID();
     const blobPath = buildBadgeBlobPath(type, uuid, file);
 
