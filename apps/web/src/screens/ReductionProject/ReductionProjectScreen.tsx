@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useWatch } from "react-hook-form";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces";
@@ -33,11 +33,19 @@ import { capitalize } from "lodash-es";
 
 interface Props {
   mode: "create" | "edit";
-  id?: string;
 }
 
-export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
+export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const navigate = useNavigate();
+  const params = useParams({
+    from:
+      mode === "create"
+        ? Routes.REDUCTION_PROJECT_NEW
+        : Routes.REDUCTION_PROJECT,
+  });
+
+  const id = mode === "create" ? undefined : (params as { id: string }).id;
+
   const { openExplanation } = useExplanationDialog();
 
   // Queries
