@@ -60,7 +60,8 @@ export const VerificationSealInfoSection: FC = () => {
                   sx={{ color: theme.palette.primary.dark }}
                 >
                   <strong>Reconocimiento de Verificación Oficial</strong> que
-                  certifica que tu huella fue validada por un organismo externo acreditado
+                  certifica que tu huella fue validada por un organismo externo
+                  acreditado
                 </Typography>
               </Box>
               <Box component="li" className="mt-1 flex gap-1">
