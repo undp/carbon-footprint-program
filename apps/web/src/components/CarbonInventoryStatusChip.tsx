@@ -66,21 +66,21 @@ const TOOLTIP_LABELS: Record<CarbonInventoryDisplayStatus, string> = {
   [CarbonInventoryDisplayStatusEnum.DRAFT]: "En Borrador",
   [CarbonInventoryDisplayStatusEnum.SELF_DECLARED]: "Huella autodeclarada",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_CALCULATION]:
-    "En revisión - Sello de medición",
+    "En revisión - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED]:
-    "Con observaciones - Sello de medición",
+    "Con observaciones - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_REJECTED]:
-    "Rechazado - Sello de medición",
+    "Rechazado - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED]:
-    "Aprobado - Sello de medición",
+    "Aprobado - Reconocimiento de medición",
   [CarbonInventoryDisplayStatusEnum.SUBMITTED_TO_VERIFICATION]:
-    "En revisión - Sello de verificación",
+    "En revisión - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED]:
-    "Con observaciones - Sello de verificación",
+    "Con observaciones - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_REJECTED]:
-    "Rechazado - Sello de verificación",
+    "Rechazado - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED]:
-    "Aprobado - Sello de verificación",
+    "Aprobado - Reconocimiento de verificación",
   [CarbonInventoryDisplayStatusEnum.DELETED]: "Huella eliminada",
 };
 
@@ -102,7 +102,7 @@ export const CarbonInventoryStatusChip: FC<CarbonInventoryStatusChipProps> = ({
     <Tooltip title={TOOLTIP_LABELS[status]}>
       <Chip
         sx={{
-          padding: "6px 16px",
+          padding: "6px 8px",
           backgroundColor: alpha(getStatusColor(theme, status), 0.3),
           color: darken(getStatusColor(theme, status), 0.5),
           border: `1px solid ${alpha(getStatusColor(theme, status), 0.3)}`,

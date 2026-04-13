@@ -71,139 +71,148 @@ export const ViewSubmissionDialog: FC<Props> = ({
       fullWidth
       slotProps={{ paper: { sx: { overflow: "hidden" } } }}
     >
-      <DialogTitle component="div" sx={{ pb: 0.5, pr: 6 }}>
-        <Typography
-          variant="h6"
-          fontWeight={600}
-          sx={{ color: theme.palette.text.primary, fontSize: 18 }}
-        >
-          {submission?.submissionType
-            ? getReviewTitle(submission.submissionType)
-            : null}
-        </Typography>
-        <Typography
-          variant="body2"
-          sx={{ color: darken(theme.palette.background.default, 0.5), mt: 0.5 }}
-        >
-          {subtitle}
-        </Typography>
-        <IconButton
-          onClick={onClose}
-          size="small"
-          disabled={isBusy}
-          sx={{ position: "absolute", right: 12, top: 12, opacity: 0.7 }}
-        >
-          <CloseOutlined fontSize="small" />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent dividers sx={{ p: 2 }}>
-        {isLoading ? (
-          <Stack alignItems="center" justifyContent="center" sx={{ py: 4 }}>
-            <CircularProgress />
-          </Stack>
-        ) : submission ? (
-          <Stack spacing={2}>
-            {/* Main card */}
-            <Paper
-              variant="outlined"
+      {isLoading ? (
+        <Stack alignItems="center" justifyContent="center" sx={{ py: 4 }}>
+          <CircularProgress />
+        </Stack>
+      ) : submission ? (
+        <>
+          <DialogTitle component="div" sx={{ pb: 0.5, pr: 6, minHeight: 46 }}>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              sx={{ color: theme.palette.text.primary, fontSize: 18 }}
+            >
+              {submission.submissionType
+                ? getReviewTitle(submission.submissionType)
+                : null}
+            </Typography>
+            <Typography
+              variant="body2"
               sx={{
-                borderRadius: "10px",
-                overflow: "hidden",
-                borderColor: theme.palette.divider,
+                color: darken(theme.palette.background.default, 0.5),
+                mt: 0.5,
               }}
             >
-              {submission.status && submission.submissionType && (
-                <CurrentStatusBanner
-                  status={submission.status}
-                  type={submission.submissionType}
-                />
-              )}
+              {subtitle}
+            </Typography>
+            <IconButton
+              onClick={onClose}
+              size="small"
+              disabled={isBusy}
+              sx={{ position: "absolute", right: 12, top: 12, opacity: 0.7 }}
+            >
+              <CloseOutlined fontSize="small" />
+            </IconButton>
+          </DialogTitle>
 
-              <Box sx={{ p: 2 }}>
-                {/* Date pill */}
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={1}
-                  sx={{ mb: 1 }}
-                >
-                  <Chip
-                    label={formatDateTime(submission.date)}
-                    size="small"
-                    sx={{
-                      bgcolor: theme.palette.background.default,
-                      border: `1px solid ${theme.palette.divider}`,
-                      color: theme.palette.text.secondary,
-                      fontSize: "0.75rem",
-                      height: 26,
-                      borderRadius: "40px",
-                    }}
+          <DialogContent dividers sx={{ p: 2 }}>
+            <Stack spacing={2}>
+              {/* Main card */}
+              <Paper
+                variant="outlined"
+                sx={{
+                  borderRadius: "10px",
+                  overflow: "hidden",
+                  borderColor: theme.palette.divider,
+                }}
+              >
+                {submission.status && submission.submissionType && (
+                  <CurrentStatusBanner
+                    status={submission.status}
+                    type={submission.submissionType}
                   />
-                  <Typography
-                    variant="body2"
-                    color="text.secondary"
-                    sx={{ fontSize: "0.75rem" }}
-                  >
-                    {submission.userName}
-                  </Typography>
-                </Stack>
+                )}
 
-                {/* Inventory link */}
-                {submission.carbonInventoryId &&
-                  isCarbonInventorySubmission && (
-                    <Button
-                      variant="text"
+                <Box sx={{ p: 2 }}>
+                  {/* Date pill */}
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={1}
+                    sx={{ mb: 1 }}
+                  >
+                    <Chip
+                      label={formatDateTime(submission.date)}
                       size="small"
-                      startIcon={
-                        <OpenInNewOutlined
-                          sx={{ fontSize: "0.75rem !important" }}
-                        />
-                      }
-                      onClick={() =>
-                        handleNavigateToInventory(submission.carbonInventoryId!)
-                      }
                       sx={{
-                        color: theme.palette.common.glossyTeal,
-                        px: 1,
+                        bgcolor: theme.palette.background.default,
+                        border: `1px solid ${theme.palette.divider}`,
+                        color: theme.palette.text.secondary,
                         fontSize: "0.75rem",
-                        fontWeight: 500,
-                        textTransform: "none",
-                        mb: 1,
-                        minWidth: 0,
+                        height: 26,
+                        borderRadius: "40px",
                       }}
+                    />
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontSize: "0.75rem" }}
                     >
-                      Ver resumen del cálculo de huella
-                    </Button>
+                      {submission.userName}
+                    </Typography>
+                  </Stack>
+
+                  {/* Inventory link */}
+                  {submission.carbonInventoryId &&
+                    isCarbonInventorySubmission && (
+                      <Button
+                        variant="text"
+                        size="small"
+                        startIcon={
+                          <OpenInNewOutlined
+                            sx={{ fontSize: "0.75rem !important" }}
+                          />
+                        }
+                        onClick={() =>
+                          handleNavigateToInventory(
+                            submission.carbonInventoryId!
+                          )
+                        }
+                        sx={{
+                          color: theme.palette.common.glossyTeal,
+                          px: 1,
+                          fontSize: "0.75rem",
+                          fontWeight: 500,
+                          textTransform: "none",
+                          mb: 1,
+                          minWidth: 0,
+                        }}
+                      >
+                        Ver resumen del cálculo de huella
+                      </Button>
+                    )}
+
+                  {submissionComment && (
+                    <SubmissionCommentsSection comment={submissionComment} />
                   )}
 
-                {submissionComment && (
-                  <SubmissionCommentsSection comment={submissionComment} />
-                )}
+                  <FilesSection files={allFiles} />
 
-                <FilesSection files={allFiles} />
+                  {submission.organizationData &&
+                    isOrganizationAccreditation && (
+                      <OrgDataSection data={submission.organizationData} />
+                    )}
 
-                {submission.organizationData && isOrganizationAccreditation && (
-                  <OrgDataSection data={submission.organizationData} />
-                )}
+                  {isAdmin && isStatusPending && submission?.submissionType && (
+                    <AdminActionsCard
+                      onApprove={handleApproveSubmission}
+                      onReview={handleReviewSubmission}
+                      isBusy={isBusy}
+                      type={submission.submissionType}
+                    />
+                  )}
+                </Box>
+              </Paper>
 
-                {isAdmin && isStatusPending && (
-                  <AdminActionsCard
-                    onApprove={handleApproveSubmission}
-                    onReview={handleReviewSubmission}
-                    isBusy={isBusy}
-                  />
-                )}
-              </Box>
-            </Paper>
+              {/* History section */}
+              <SubmissionHistorySection history={historicalEntries} />
 
-            {/* History section */}
-            <SubmissionHistorySection history={historicalEntries} />
-
-            <AnyQuestionsBanner />
-          </Stack>
-        ) : null}
-      </DialogContent>
+              <AnyQuestionsBanner />
+            </Stack>
+          </DialogContent>
+        </>
+      ) : null}
     </Dialog>
   );
 };

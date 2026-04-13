@@ -2,10 +2,12 @@ import { z } from "zod";
 import {
   CarbonInventoryBaseSchema,
   OrganizationSummaryBaseSchema,
+  SubmissionTypeSchema,
 } from "../../baseSchemas/index.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
 import { OrganizationDisplayStatusSchema } from "../../organizations/index.js";
 import { IdSchema } from "../../zod.js";
+import { SubmissionType } from "../../enums.js";
 
 // Query schema
 export const GetAllCarbonInventoriesQuerySchema = z.object({
@@ -47,6 +49,11 @@ const CarbonInventoryItem = CarbonInventoryBaseSchema.omit({
     OrganizationDisplayStatusSchema.nullable().describe(
       "The display status of the associated organization, or null if no organization is associated."
     ),
+  recognitions: z
+    .array(
+      SubmissionTypeSchema.exclude([SubmissionType.ORGANIZATION_ACCREDITATION])
+    )
+    .describe("List of recognition types earned by this carbon inventory."),
 });
 
 // Response Schemas

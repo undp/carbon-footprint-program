@@ -5,7 +5,10 @@
 
 import { alpha } from "@mui/material/styles";
 import type { PaletteOptions } from "@mui/material/styles";
-import { SubmissionType as RequestType } from "@repo/types";
+import {
+  SubmissionType as RequestType,
+  CarbonInventoryRecognitionsType,
+} from "@repo/types";
 
 const requestTypeColors: Record<RequestType, string> = {
   [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
@@ -14,6 +17,14 @@ const requestTypeColors: Record<RequestType, string> = {
   [RequestType.REDUCTION_PLAN_VERIFICATION]: "#B8860B",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#117A65",
 };
+
+const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
+  [RequestType.CARBON_INVENTORY_CALCULATION]: `#89F8AF`,
+  [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
+  [RequestType.REDUCTION_PLAN_VERIFICATION]: "#F7D634",
+  [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
+};
+
 export const palette: PaletteOptions = {
   mode: "light",
   // Primary colors - Main brand colors (Green)
@@ -125,4 +136,5 @@ export const palette: PaletteOptions = {
   // Divider
   divider: alpha("#000000", 0.12),
   requestTypeColors,
+  recognitionTypeColors,
 } as const;

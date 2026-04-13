@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, Tooltip } from "@mui/material";
+import { Badge, Box, Tooltip } from "@mui/material";
 import {
   VisibilityOutlined,
   FileDownloadOutlined,
@@ -13,6 +13,7 @@ import {
   OrganizationDisplayStatusValues,
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
+  CarbonInventoryDisplayStatusEnum,
 } from "@repo/types";
 import { canSubmitToVerification, canSubmitToMeasurement } from "@repo/utils";
 import { BaseActionButton } from "../BaseActionButton";
@@ -33,6 +34,10 @@ import {
 } from "@/api/query";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
+import {
+  useCarbonInventoriesStore,
+  CarbonInventoriesTab,
+} from "../../hooks/useCarbonInventoriesStore";
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -72,6 +77,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     [systemParameters]
   );
 
+  const setActiveTab = useCarbonInventoriesStore((state) => state.setActiveTab);
   const { mutateAsync: requestCalculation } = useRequestCalculation();
   const { mutateAsync: requestVerification } = useRequestVerification();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
@@ -82,10 +88,11 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
     try {
       await duplicateInventory(carbonInventory.id);
       enqueueSnackbar("Huella duplicada", { variant: "success" });
+      setActiveTab(CarbonInventoriesTab.DRAFTS);
     } catch {
       enqueueSnackbar("No se pudo duplicar la huella", { variant: "error" });
     }
-  }, [carbonInventory.id, duplicateInventory]);
+  }, [carbonInventory.id, duplicateInventory, setActiveTab]);
 
   const onViewClick = useCallback(() => {
     void navigate({
@@ -177,12 +184,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           body: { fileUuids },
         });
         setVerifyDialogOpen(false);
-        enqueueSnackbar("Solicitud sello de verificación enviada", {
+        enqueueSnackbar("Solicitud reconocimiento de verificación enviada", {
           variant: "success",
         });
       } catch {
         enqueueSnackbar(
-          "No se pudo enviar la solicitud de sello de verificación",
+          "No se pudo enviar la solicitud de reconocimiento de verificación",
           {
             variant: "error",
           }
@@ -215,16 +222,16 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </span>
         </Tooltip>
 
-        {/* Enviar a cálculo */}
+        {/* Postular a reconocimiento de medición */}
         {recognitionBehavior === MeasurementRecognitionBehaviorEnum.MANUAL && (
-          <Tooltip title="Enviar a cálculo">
+          <Tooltip title="Postular a reconocimiento de medición">
             <span>
               <BaseActionButton
                 onClick={onCalculationClick}
                 disabled={
                   !canRequestMeasurement || !carbonInventory.isSelfDeclared
                 }
-                aria-label="Enviar a cálculo"
+                aria-label="Postular a reconocimiento de medición"
               >
                 <SendOutlined fontSize="small" />
               </BaseActionButton>
@@ -232,13 +239,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
-        {/* Enviar a sello de verificación */}
-        <Tooltip title="Enviar a sello de verificación">
+        {/* Postular a Reconocimiento */}
+        <Tooltip title="Postular a reconocimiento de verificación">
           <span>
             <BaseActionButton
               onClick={onVerifyClick}
               disabled={!canRequestVerification}
-              aria-label="Enviar a sello de verificación"
+              aria-label="Postular a reconocimiento de verificación"
             >
               <VerifiedOutlined fontSize="small" />
             </BaseActionButton>
@@ -248,12 +255,30 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
         {/* Historial */}
         <Tooltip title="Historial">
           <span>
-            <BaseActionButton
-              onClick={() => setHistoryDialogOpen(true)}
-              aria-label="Historial"
+            <Badge
+              variant="dot"
+              invisible={
+                carbonInventory.status !==
+                  CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED &&
+                carbonInventory.status !==
+                  CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED
+              }
+              overlap="circular"
+              sx={{
+                "& .MuiBadge-badge": {
+                  top: 2,
+                  right: 2,
+                  backgroundColor: (theme) => theme.palette.warning.main,
+                },
+              }}
             >
-              <DescriptionOutlined fontSize="small" />
-            </BaseActionButton>
+              <BaseActionButton
+                onClick={() => setHistoryDialogOpen(true)}
+                aria-label="Historial"
+              >
+                <DescriptionOutlined fontSize="small" />
+              </BaseActionButton>
+            </Badge>
           </span>
         </Tooltip>
 

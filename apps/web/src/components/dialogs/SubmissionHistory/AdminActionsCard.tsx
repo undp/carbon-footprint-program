@@ -22,7 +22,11 @@ import {
   FileUploadOutlined,
   WorkspacePremiumRounded,
 } from "@mui/icons-material";
-import { ApproveRequestBody, ReviewSubmissionBody } from "@repo/types";
+import {
+  ApproveRequestBody,
+  ReviewSubmissionBody,
+  SubmissionType,
+} from "@repo/types";
 import { FileUpload } from "@/components/FileUpload";
 import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 
@@ -32,13 +36,14 @@ type Props = {
   onApprove: (body: ApproveRequestBody) => Promise<void>;
   onReview: (body: ReviewSubmissionBody) => Promise<void>;
   isBusy: boolean;
+  type: SubmissionType;
 };
 
 const RADIO_OPTIONS: { value: Action; label: string; icon: React.ReactNode }[] =
   [
     {
       value: "approve",
-      label: "Aprobar Verificación",
+      label: "Aprobar solicitud",
       icon: <CheckCircleOutlined sx={{ fontSize: 18 }} />,
     },
     {
@@ -52,6 +57,7 @@ export const AdminActionsCard: FC<Props> = ({
   onApprove,
   onReview,
   isBusy,
+  type,
 }) => {
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
@@ -64,9 +70,17 @@ export const AdminActionsCard: FC<Props> = ({
   const { preUploadFiles } = usePreUploadSubmissionFiles();
 
   const isCommentRequired = selectedAction === "review";
+  const isOrganizationInscription =
+    type === SubmissionType.ORGANIZATION_ACCREDITATION;
   const busy = isBusy || isUploading;
   const isSubmitDisabled =
     busy || !selectedAction || (isCommentRequired && !comment.trim());
+
+  const showDocumentUploadSection =
+    !isOrganizationInscription || selectedAction === "review";
+
+  const showRecognitionUploadSection =
+    selectedAction === "approve" && !isOrganizationInscription;
 
   const resetState = useCallback(
     (action: Action) => {
@@ -279,27 +293,31 @@ export const AdminActionsCard: FC<Props> = ({
               </Stack>
             )}
 
-            <Stack spacing={0.5}>
-              <Typography
-                variant="caption"
-                fontWeight={600}
-                color={theme.palette.text.primary}
-              >
-                Adjuntar documentos
-              </Typography>
-              <FileUpload
-                value={docFiles}
-                onChange={setDocFiles}
-                disabled={busy}
-              >
-                <Box className="flex w-full items-center justify-center gap-1 rounded p-3">
-                  <FileUploadOutlined />
-                  <Typography variant="subtitle2">Adjuntar archivo</Typography>
-                </Box>
-              </FileUpload>
-            </Stack>
+            {showDocumentUploadSection && (
+              <Stack spacing={0.5}>
+                <Typography
+                  variant="caption"
+                  fontWeight={600}
+                  color={theme.palette.text.primary}
+                >
+                  Adjuntar documentos
+                </Typography>
+                <FileUpload
+                  value={docFiles}
+                  onChange={setDocFiles}
+                  disabled={busy}
+                >
+                  <Box className="flex w-full items-center justify-center gap-1 rounded p-3">
+                    <FileUploadOutlined />
+                    <Typography variant="subtitle2">
+                      Adjuntar archivo
+                    </Typography>
+                  </Box>
+                </FileUpload>
+              </Stack>
+            )}
 
-            {selectedAction === "approve" && (
+            {showRecognitionUploadSection && (
               <Stack spacing={0.5}>
                 <Typography
                   variant="caption"

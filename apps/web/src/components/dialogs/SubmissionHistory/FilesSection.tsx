@@ -1,5 +1,14 @@
 import { FC } from "react";
-import { alpha, darken, Box, Stack, Typography, useTheme } from "@mui/material";
+import {
+  alpha,
+  darken,
+  Box,
+  Stack,
+  Typography,
+  useTheme,
+  SxProps,
+  Theme,
+} from "@mui/material";
 import {
   InsertDriveFileOutlined,
   FileDownloadOutlined,
@@ -10,13 +19,14 @@ import { formatFileSize, formatMimeType } from "@/utils/files";
 
 type Props = {
   files: SubmissionHistoryEntry["files"];
+  sx?: SxProps<Theme>;
 };
 
-export const FilesSection: FC<Props> = ({ files }) => {
+export const FilesSection: FC<Props> = ({ files, sx }) => {
   const theme = useTheme();
 
   return (
-    <Stack spacing={1}>
+    <Stack spacing={1} sx={sx}>
       <Typography
         variant="caption"
         fontWeight={600}

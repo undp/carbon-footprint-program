@@ -1,5 +1,9 @@
 import { FC, useCallback, useMemo, useState } from "react";
 import {
+  useCarbonInventoriesStore,
+  CarbonInventoriesTab,
+} from "./hooks/useCarbonInventoriesStore";
+import {
   Box,
   Typography,
   MenuItem,
@@ -7,6 +11,7 @@ import {
   SelectChangeEvent,
   InputLabel,
   FormControl,
+  Divider,
 } from "@mui/material";
 import { OrganizationSelector } from "@/components";
 import { MainLayout } from "@/components/layout";
@@ -22,7 +27,7 @@ import { DraftsTab } from "./components/DraftsTab";
 import { InventoriesTab } from "./components/InventoriesTab";
 
 export const CarbonInventoriesScreen: FC = () => {
-  const [activeTab, setActiveTab] = useState(0);
+  const { activeTab, setActiveTab } = useCarbonInventoriesStore();
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("all");
@@ -81,7 +86,7 @@ export const CarbonInventoriesScreen: FC = () => {
 
   return (
     <MainLayout>
-      <Box className="flex flex-1 flex-col gap-6">
+      <Box className="flex flex-1 flex-col">
         {/* Header */}
         <Box className="flex flex-col rounded-lg bg-white">
           <Box className="flex flex-row items-center justify-between gap-4 px-6 py-4">
@@ -129,10 +134,11 @@ export const CarbonInventoriesScreen: FC = () => {
             activeTab={activeTab}
             onTabChange={(_, value) => setActiveTab(value)}
           />
+          <Divider />
         </Box>
 
         {/* Tab Content */}
-        {activeTab === 0 && (
+        {activeTab === CarbonInventoriesTab.DRAFTS && (
           <DraftsTab
             darftInventories={draftInventories}
             allInventories={filteredInventories}
@@ -140,7 +146,7 @@ export const CarbonInventoriesScreen: FC = () => {
             onNewInventory={onNewInventory}
           />
         )}
-        {activeTab === 1 && (
+        {activeTab === CarbonInventoriesTab.HUELLAS && (
           <InventoriesTab
             inventories={huellasInventories}
             isLoading={isLoadingInventories}

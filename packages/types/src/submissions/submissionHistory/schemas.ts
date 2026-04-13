@@ -40,6 +40,13 @@ export const SubmissionHistoryEntrySchema = z.object({
   carbonInventoryId: IdSchema.nullable().describe(
     "The ID of the carbon inventory; present for SELF_DECLARATION entries, null when not applicable"
   ),
+  carbonInventoryYear: z
+    .number()
+    .int()
+    .nullable()
+    .describe(
+      "The year of the carbon inventory; present for carbon inventory submissions, null otherwise"
+    ),
   organizationId: IdSchema.nullable().describe(
     "The ID of the organization, or null for self-declarations"
   ),

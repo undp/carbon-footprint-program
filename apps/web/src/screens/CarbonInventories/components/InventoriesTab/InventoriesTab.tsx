@@ -30,11 +30,7 @@ export const InventoriesTab: FC<Props> = ({
       () => [
         {
           field: "name",
-          renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Nombre
-            </Typography>
-          ),
+          headerName: "Nombre",
           align: "left",
           headerAlign: "left",
           minWidth: 180,
@@ -47,22 +43,23 @@ export const InventoriesTab: FC<Props> = ({
           ) => (
             <InventoryNameCell
               name={params.row.name}
-              status={params.row.status}
+              recognitions={params.row.recognitions}
             />
           ),
         },
         {
           field: "year",
           renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Año
-            </Typography>
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Año"
+              LongName="Año de medición"
+            />
           ),
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
-          minWidth: 80,
-          flex: 0.4,
+          minWidth: isWiderScreen ? 125 : 80,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
@@ -87,7 +84,6 @@ export const InventoriesTab: FC<Props> = ({
           field: "totalEmissions",
           renderHeader: () => (
             <ResponsiveTypography
-              className="uppercase"
               isWiderScreen={isWiderScreen}
               ShortName="Emisiones"
               LongName="Emisiones (tCO₂e)"
@@ -104,7 +100,6 @@ export const InventoriesTab: FC<Props> = ({
           field: "status",
           renderHeader: () => (
             <ResponsiveTypography
-              className="uppercase"
               isWiderScreen={isWiderScreen}
               ShortName="Estado"
               LongName="Estado postulación"
@@ -132,10 +127,10 @@ export const InventoriesTab: FC<Props> = ({
         },
         {
           field: "actions",
-          headerName: "ACCIONES",
+          headerName: "Acciones",
           headerAlign: "left",
           align: "left",
-          minWidth: 212,
+          minWidth: 300,
           flex: 1,
           cellClassName: "content-center max-h-[98px]",
           renderCell: (
@@ -175,11 +170,10 @@ export const InventoriesTab: FC<Props> = ({
           borderTop: `1px solid ${theme.palette.divider}`,
           "& .MuiDataGrid-columnHeader": {
             backgroundColor: theme.palette.background.default,
-            padding: "10px 24px",
+            padding: "10px 8px",
           },
           "& .MuiDataGrid-cell": {
-            py: "16.5px",
-            px: "24px",
+            px: "8px",
           },
         })}
       />

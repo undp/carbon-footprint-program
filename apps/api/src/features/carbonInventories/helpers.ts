@@ -8,6 +8,7 @@ import {
   type GetAllCategoriesResponse,
   IconName,
   IconNameSchema,
+  type CarbonInventoryRecognitionsType,
 } from "@repo/types";
 import {
   CarbonInventoryNotFoundError,
@@ -252,6 +253,33 @@ export type CarbonInventoryWithSubmissionsMinimal =
   Prisma.CarbonInventoryGetPayload<{
     select: typeof carbonInventoryWithSubmissionsMinimalSelect;
   }>;
+
+const CARBON_INVENTORY_RECOGNITION_TYPES: CarbonInventoryRecognitionsType[] = [
+  SubmissionType.CARBON_INVENTORY_CALCULATION,
+  SubmissionType.CARBON_INVENTORY_VERIFICATION,
+  SubmissionType.REDUCTION_PLAN_VERIFICATION,
+  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
+];
+
+/**
+ * Determines which recognitions a carbon inventory has earned based on its submissions.
+ * A recognition is earned when there is at least one submission of that type
+ * with status APPROVED or APPROVED_AUTOMATICALLY.
+ */
+export const calculateEarnedRecognitions = (
+  carbonInventory: CarbonInventoryWithSubmissionsMinimal
+): CarbonInventoryRecognitionsType[] => {
+  const submissions = carbonInventory.submission?.subject.submissions || [];
+
+  return CARBON_INVENTORY_RECOGNITION_TYPES.filter((type) =>
+    submissions.some(
+      (s) =>
+        s.type === type &&
+        (s.status === SubmissionStatus.APPROVED ||
+          s.status === SubmissionStatus.APPROVED_AUTOMATICALLY)
+    )
+  );
+};
 
 export const calculateDisplayStatus = (
   carbonInventory: CarbonInventoryWithSubmissionsMinimal

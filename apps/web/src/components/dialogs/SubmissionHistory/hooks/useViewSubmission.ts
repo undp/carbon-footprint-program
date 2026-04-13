@@ -54,7 +54,7 @@ export const useViewSubmission = ({
   const submissionComment = submission?.comment?.trim() ?? "";
 
   const orgName = submission?.userMetadata ?? undefined;
-  const year = submission ? new Date(submission.date).getFullYear() : undefined;
+  const year = submission?.carbonInventoryYear;
   const subtitle =
     !isOrganizationAccreditation && orgName && year
       ? `${orgName} • Año ${year}`

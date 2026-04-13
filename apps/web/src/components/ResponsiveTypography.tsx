@@ -8,15 +8,15 @@ interface Props extends TypographyProps {
 }
 
 export const ResponsiveTypography: FC<Props> = ({
-  isWiderScreen: isResponsiveMode,
+  isWiderScreen,
   ShortName,
   LongName,
   ...props
 }) => {
   return (
-    <Tooltip title={isResponsiveMode ? LongName : null}>
+    <Tooltip title={!isWiderScreen ? LongName : null}>
       <Typography variant="body2" fontWeight={500} noWrap {...props}>
-        {!isResponsiveMode ? ShortName : LongName}
+        {!isWiderScreen ? ShortName : LongName}
       </Typography>
     </Tooltip>
   );

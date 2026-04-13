@@ -2,10 +2,11 @@ import { z } from "zod";
 import {
   CarbonInventoryBaseSchema,
   OrganizationSummaryBaseSchema,
+  SubmissionTypeSchema,
 } from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 import { CarbonInventoryDisplayStatusSchema } from "../schemas.js";
-
+import { SubmissionType } from "../../enums.js";
 export const GetCarbonInventoryByIdParamsSchema = z.object({
   id: IdSchema.describe("The carbon inventory ID"),
 });
@@ -68,4 +69,11 @@ export const GetCarbonInventoryByIdResponseSchema =
     subcategories: z
       .array(SubcategoryItemSchema)
       .describe("The subcategories associated with this inventory"),
+    recognitions: z
+      .array(
+        SubmissionTypeSchema.exclude([
+          SubmissionType.ORGANIZATION_ACCREDITATION,
+        ])
+      )
+      .describe("List of recognition types earned by this carbon inventory."),
   });

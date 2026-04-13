@@ -21,6 +21,7 @@ export const getCarbonInventoryHistoryService = async (
     where: { id: ciId },
     select: {
       organizationId: true,
+      year: true,
       selfDeclaredAt: true,
       selfDeclaredBy: { select: { email: true } },
     },
@@ -62,6 +63,7 @@ export const getCarbonInventoryHistoryService = async (
   const selfDeclarationEvent = carbonInventory.selfDeclaredAt
     ? buildSelfDeclarationEvent(
         carbonInventoryId,
+        carbonInventory.year,
         carbonInventory.selfDeclaredAt,
         orgHistorySummary,
         carbonInventory.selfDeclaredBy

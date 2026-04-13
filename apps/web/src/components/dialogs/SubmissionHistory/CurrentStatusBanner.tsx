@@ -62,7 +62,7 @@ export const CurrentStatusBanner: FC<Props> = ({ status, type }) => {
             fontWeight={500}
             sx={{ color: statusColor, opacity: 0.8, lineHeight: "16px" }}
           >
-            Tipo de reconocimiento
+            Tipo de solicitud
           </Typography>
           <Typography
             variant="h6"

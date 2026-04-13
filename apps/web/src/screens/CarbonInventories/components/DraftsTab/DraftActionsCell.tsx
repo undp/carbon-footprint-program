@@ -12,7 +12,7 @@ import {
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
 } from "@repo/types";
-import { isCarbonInventoryDeletable, canSelfDeclare } from "@repo/utils";
+import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
 import {
@@ -29,6 +29,10 @@ import {
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
 import { BaseActionButton } from "../BaseActionButton";
+import {
+  useCarbonInventoriesStore,
+  CarbonInventoriesTab,
+} from "../../hooks/useCarbonInventoriesStore";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -64,15 +68,6 @@ export const DraftActionsCell: FC<Props> = ({
     ]
   );
 
-  const selfDeclareDisabled =
-    !canSelfDeclare(carbonInventory.status) || isYearAlreadySelfDeclared;
-
-  const selfDeclareTooltip = carbonInventory.isSelfDeclared
-    ? "Esta huella ya fue autodeclarada"
-    : isYearAlreadySelfDeclared
-      ? "Ya existe una huella autodeclarada para este año"
-      : "Autodeclarar";
-
   const { data: systemParameters } = useSystemParameters([
     SystemParameterKeyEnum.CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR,
   ]);
@@ -87,6 +82,7 @@ export const DraftActionsCell: FC<Props> = ({
     [systemParameters]
   );
 
+  const setActiveTab = useCarbonInventoriesStore((state) => state.setActiveTab);
   const { mutateAsync: selfDeclareClick, isPending: isSelfDeclareSubmitting } =
     useSelfDeclareCarbonInventory();
   const { mutateAsync: deleteInventory } = useDeleteCarbonInventory();
@@ -122,17 +118,23 @@ export const DraftActionsCell: FC<Props> = ({
       setSelfDeclareValidationReason("missing-year");
       return;
     }
+    if (isYearAlreadySelfDeclared) {
+      setSelfDeclareValidationReason("inventory-year-already-declared");
+      return;
+    }
     setSelfDeclareDialogOpen(true);
   }, [
     carbonInventory.organizationId,
     carbonInventory.name,
     carbonInventory.year,
+    isYearAlreadySelfDeclared,
   ]);
 
   const onSelfDeclareConfirm = useCallback(async () => {
     try {
       await selfDeclareClick(carbonInventory.id);
       enqueueSnackbar("Huella autodeclarada", { variant: "success" });
+      setActiveTab(CarbonInventoriesTab.HUELLAS);
     } catch {
       enqueueSnackbar("No se pudo autodeclarar la huella", {
         variant: "error",
@@ -140,7 +142,7 @@ export const DraftActionsCell: FC<Props> = ({
     } finally {
       setSelfDeclareDialogOpen(false);
     }
-  }, [carbonInventory.id, selfDeclareClick]);
+  }, [carbonInventory.id, selfDeclareClick, setActiveTab]);
 
   const onDeleteConfirm = useCallback(async () => {
     try {
@@ -185,14 +187,13 @@ export const DraftActionsCell: FC<Props> = ({
         </Tooltip>
 
         {/* Autodeclarar */}
-        <Tooltip title={selfDeclareTooltip}>
+        <Tooltip title={"Autodeclarar"}>
           <span>
             <Button
               variant="contained"
               size="small"
               startIcon={<TaskAltRounded sx={{ fontSize: 16 }} />}
               onClick={onSelfDeclareClick}
-              disabled={selfDeclareDisabled}
               disableElevation
               sx={(theme) => ({
                 minHeight: 30,

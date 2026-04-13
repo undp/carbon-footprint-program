@@ -30,14 +30,10 @@ export const DraftsTab: FC<DraftsTabProps> = ({
       () => [
         {
           field: "name",
-          renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Nombre
-            </Typography>
-          ),
+          headerName: "Nombre",
           align: "left",
           headerAlign: "left",
-          minWidth: 100,
+          minWidth: 180,
           flex: 1,
           cellClassName: "content-center",
           renderCell: (
@@ -63,15 +59,16 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         {
           field: "year",
           renderHeader: () => (
-            <Typography className="uppercase" variant="body2">
-              Año
-            </Typography>
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Año"
+              LongName="Año de medición"
+            />
           ),
           align: "left",
           headerAlign: "left",
           cellClassName: "content-center",
-          minWidth: 80,
-          flex: 0.5,
+          minWidth: isWiderScreen ? 125 : 80,
           renderCell: (
             params: GridRenderCellParams<
               GetAllCarbonInventoriesResponse[number],
@@ -96,7 +93,6 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           field: "totalEmissions",
           renderHeader: () => (
             <ResponsiveTypography
-              className="uppercase"
               isWiderScreen={isWiderScreen}
               ShortName="Emisiones"
               LongName="Emisiones (tCO₂e)"
@@ -111,11 +107,17 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         },
         {
           field: "status",
-          headerName: "ESTADO",
+          renderHeader: () => (
+            <ResponsiveTypography
+              isWiderScreen={isWiderScreen}
+              ShortName="Estado"
+              LongName="Estado postulación"
+            />
+          ),
           headerAlign: "center",
           align: "center",
-          minWidth: 120,
-          flex: 0.7,
+          minWidth: 150,
+          flex: 0.8,
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
@@ -129,11 +131,11 @@ export const DraftsTab: FC<DraftsTabProps> = ({
         },
         {
           field: "actions",
-          headerName: "ACCIONES",
+          headerName: "Acciones",
           headerAlign: "left",
           align: "left",
           minWidth: 300,
-          flex: 1.5,
+          flex: 1,
           cellClassName: "content-center max-h-[68px]",
           renderCell: (
             params: GridRenderCellParams<
@@ -177,11 +179,10 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           borderTop: `1px solid ${theme.palette.divider}`,
           "& .MuiDataGrid-columnHeader": {
             backgroundColor: theme.palette.background.default,
-            padding: "10px 24px",
+            padding: "10px 8px",
           },
           "& .MuiDataGrid-cell": {
-            py: "16.5px",
-            px: "24px",
+            px: "8px",
           },
         })}
       />

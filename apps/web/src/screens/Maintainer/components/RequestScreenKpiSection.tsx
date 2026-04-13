@@ -13,41 +13,39 @@ import { SubmissionStatus as RequestStatus } from "@repo/types";
 import { RequestScreenKpiCard } from "./RequestScreenKpiCard";
 import { RequestScreenKpiCardSkeleton } from "./RequestScreenKpiCardSkeleton";
 
-const ICON_BY_STATUS: Record<RequestStatus, SvgIconComponent> = {
+type FilteredRequestStatus = Exclude<RequestStatus, "APPROVED_AUTOMATICALLY">;
+
+const ICON_BY_STATUS: Record<FilteredRequestStatus, SvgIconComponent> = {
   [RequestStatus.PENDING]: AccessTimeOutlined,
   [RequestStatus.APPROVED]: CheckCircleOutlined,
   [RequestStatus.REVIEWED]: DisabledVisibleOutlined,
   [RequestStatus.REJECTED]: CancelOutlined,
-  [RequestStatus.APPROVED_AUTOMATICALLY]: CheckCircleOutlined,
 };
 
-const LABEL_BY_STATUS: Record<RequestStatus, string> = {
+const LABEL_BY_STATUS: Record<FilteredRequestStatus, string> = {
   [RequestStatus.PENDING]: "Pendientes",
   [RequestStatus.APPROVED]: "Aprobadas",
   [RequestStatus.REVIEWED]: "Con observaciones",
   [RequestStatus.REJECTED]: "Rechazadas",
-  [RequestStatus.APPROVED_AUTOMATICALLY]: "Aprobadas Automáticamente",
 };
 
-const STATUS_ORDER: RequestStatus[] = [
+const STATUS_ORDER: FilteredRequestStatus[] = [
   RequestStatus.PENDING,
   RequestStatus.APPROVED,
   RequestStatus.REVIEWED,
   RequestStatus.REJECTED,
-  RequestStatus.APPROVED_AUTOMATICALLY,
 ];
 
 export const RequestScreenKpiSection: FC = () => {
   const { data: kpisData, isLoading } = useAdminRequestsKpis();
   const theme = useTheme();
 
-  const REQUESTS_STATUS_COLORS = useMemo<Record<RequestStatus, string>>(
+  const REQUESTS_STATUS_COLORS = useMemo<Record<FilteredRequestStatus, string>>(
     () => ({
       [RequestStatus.PENDING]: theme.palette.warning.dark,
       [RequestStatus.APPROVED]: theme.palette.success.dark,
       [RequestStatus.REVIEWED]: theme.palette.error.dark,
       [RequestStatus.REJECTED]: theme.palette.error.dark,
-      [RequestStatus.APPROVED_AUTOMATICALLY]: theme.palette.success.dark,
     }),
     [theme]
   );
@@ -56,12 +54,11 @@ export const RequestScreenKpiSection: FC = () => {
 
   const valueByStatus = useMemo(() => {
     const counts = kpisData?.counts ?? [];
-    const map: Record<RequestStatus, number> = {
+    const map: Record<FilteredRequestStatus, number> = {
       [RequestStatus.PENDING]: 0,
       [RequestStatus.APPROVED]: 0,
       [RequestStatus.REVIEWED]: 0,
       [RequestStatus.REJECTED]: 0,
-      [RequestStatus.APPROVED_AUTOMATICALLY]: 0,
     };
     for (const kpi of counts) {
       map[kpi.status] += kpi.value;

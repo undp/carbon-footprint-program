@@ -70,7 +70,7 @@ export const VerifyConfirmationDialog: FC<VerifyConfirmationDialogProps> = ({
       }}
     >
       <DialogTitle id="verify-dialog-title" sx={{ pr: 6, fontWeight: 600 }}>
-        Postular huella a Sello de Verificación
+        Postular huella a Reconocimiento de Verificación
       </DialogTitle>
 
       <IconButton
