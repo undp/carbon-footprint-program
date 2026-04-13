@@ -30,8 +30,8 @@ export const CalculationConfirmationDialog: FC<
       <DialogContent>
         <DialogContentText id="calculation-dialog-description">
           ¿Estás seguro de que deseas postular esta huella de carbono para
-          cálculo? Una vez enviado, no podrás realizar más cambios hasta que el
-          proceso de cálculo se complete.
+          cálculo? Una vez postulado, no podrás realizar más cambios hasta que
+          el proceso de cálculo se complete.
         </DialogContentText>
       </DialogContent>
       <DialogActions>
