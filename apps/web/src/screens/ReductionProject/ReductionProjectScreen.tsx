@@ -30,6 +30,7 @@ import {
 } from "@repo/types";
 import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
+import { isReductionProjectEditable } from "@repo/utils";
 
 interface Props {
   mode: "create" | "edit";
@@ -77,9 +78,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
       ? isProjectError || isErrorInventories || isErrorOrgs
       : false;
   const status = mode === "edit" ? project?.status : undefined;
-  const isFormDisabled =
-    status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
-    status === ReductionProjectDisplayStatusEnum.APPROVED;
+  const isFormDisabled = Boolean(status && !isReductionProjectEditable(status));
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
   const showFileUpload = mode === "create" || isReviewed;
 
