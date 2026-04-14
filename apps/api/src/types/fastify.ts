@@ -12,7 +12,7 @@ import type { AuthService, AuthUser } from "@/auth/index.js";
 import type { GetMeResponse } from "@repo/types";
 import type { SystemRole, OrganizationRole } from "@repo/database/enums";
 import type {
-  OrganizationIdExtractor,
+  OrganizationIdExtractorFn,
   RequireOrganizationRoleOptions,
 } from "@/plugins/app/organizationAuthorizationPlugin.js";
 import { RequireCarbonInventoryAccessOptions } from "@/plugins/app/carbonInventoryAuthorizationPlugin.js";
@@ -129,8 +129,8 @@ declare module "fastify" {
      *   ]
      * }, handler);
      */
-    requireOrganizationRole: <P extends Record<string, string>>(
-      organizationIdExtractor: OrganizationIdExtractor<P>,
+    requireOrganizationRole: (
+      organizationIdExtractor: OrganizationIdExtractorFn,
       options: RequireOrganizationRoleOptions
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
 

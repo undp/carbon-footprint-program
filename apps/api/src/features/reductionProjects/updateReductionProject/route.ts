@@ -8,6 +8,8 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { OrganizationRole } from "@repo/database/enums";
+import { reductionProjectOrganizationIdExtractor } from "../helpers.js";
 
 export const updateReductionProjectRoute: StandardRouteSignature = (
   fastify,
@@ -34,6 +36,17 @@ export const updateReductionProjectRoute: StandardRouteSignature = (
           503: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireOrganizationRole(
+          reductionProjectOrganizationIdExtractor,
+          {
+            allowedRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
+        ),
+      ],
     },
     updateReductionProjectHandler
   );

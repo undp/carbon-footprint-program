@@ -7,6 +7,7 @@ import {
   type PrismaClient,
 } from "@repo/database";
 import type { OrganizationRole } from "@repo/database/enums";
+import type { BodyOrganizationIdExtractor } from "@/plugins/app/organizationAuthorizationPlugin.js";
 import {
   InventoryStatus,
   ReductionProjectStatus,
@@ -14,6 +15,12 @@ import {
   type ReductionProjectDisplayStatus,
 } from "@repo/types";
 import { ReductionProjectInvalidDataError } from "./errors.js";
+
+type ReductionProjectBody = { organizationId: string };
+
+export const reductionProjectOrganizationIdExtractor: BodyOrganizationIdExtractor<
+  ReductionProjectBody
+> = (request) => request.body.organizationId;
 
 export const reductionProjectWithSubmissionsMinimalSelect = {
   id: true,
@@ -153,10 +160,26 @@ export async function validateReductionProjectPrerequisites(
   organizationId: string,
   carbonInventoryId: string,
   userId: bigint | null,
-  allowedRoles: OrganizationRole[]
+  allowedRoles: OrganizationRole[],
+  options?: { skipRoleCheck?: boolean }
 ): Promise<void> {
   if (userId === null) {
     throw new ReductionProjectInvalidDataError();
+  }
+
+  const organizationWhere: Prisma.OrganizationWhereInput = {
+    status: OrganizationStatus.ACTIVE,
+    summary: { isAccredited: true },
+  };
+
+  if (!options?.skipRoleCheck) {
+    organizationWhere.memberships = {
+      some: {
+        userId,
+        status: MembershipStatus.ACTIVE,
+        role: { in: allowedRoles },
+      },
+    };
   }
 
   const valid = await tx.carbonInventory.findFirst({
@@ -164,17 +187,7 @@ export async function validateReductionProjectPrerequisites(
       id: BigInt(carbonInventoryId),
       status: InventoryStatus.ACTIVE,
       organizationId: BigInt(organizationId),
-      organization: {
-        status: OrganizationStatus.ACTIVE,
-        summary: { isAccredited: true },
-        memberships: {
-          some: {
-            userId,
-            status: MembershipStatus.ACTIVE,
-            role: { in: allowedRoles },
-          },
-        },
-      },
+      organization: organizationWhere,
       submission: {
         subject: {
           submissions: {

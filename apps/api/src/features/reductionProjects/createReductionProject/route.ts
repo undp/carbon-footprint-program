@@ -5,12 +5,15 @@ import {
 } from "@repo/types";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import { StandardRouteSignature } from "@/routes/api/index.js";
+import { OrganizationRole } from "@repo/database/enums";
+import { reductionProjectOrganizationIdExtractor } from "../helpers.js";
+import type { CreateReductionProjectRequest } from "@repo/types";
 
 export const createReductionProjectRoute: StandardRouteSignature = (
   fastify,
   _options
 ) => {
-  fastify.post(
+  fastify.post<{ Body: CreateReductionProjectRequest }>(
     "/",
     {
       schema: {
@@ -21,9 +24,21 @@ export const createReductionProjectRoute: StandardRouteSignature = (
         response: {
           201: CreateReductionProjectResponseSchema,
           400: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           422: ApiErrorResponseSchema,
         },
       },
+      preHandler: [
+        fastify.requireOrganizationRole(
+          reductionProjectOrganizationIdExtractor,
+          {
+            allowedRoles: [
+              OrganizationRole.CONTRIBUTOR,
+              OrganizationRole.ADMIN,
+            ],
+          }
+        ),
+      ],
     },
     createReductionProjectHandler
   );
