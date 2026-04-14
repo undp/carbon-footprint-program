@@ -22,6 +22,7 @@ import { useReductionProjectForm } from "./hooks/useReductionProjectForm";
 import { useReductionProjectSubmit } from "./hooks/useReductionProjectSubmit";
 import { ReductionProjectFormFields } from "./components/ReductionProjectFormFields";
 import { GeiConsideredSection } from "./components/GeiConsideredSection";
+import { ReportedElsewhereSection } from "./components/ReportedElsewhereSection";
 import { ReductionReportSection } from "./components/ReductionReportSection";
 import { FileUploadSection } from "./components/FileUploadSection";
 import {
@@ -230,12 +231,18 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         />
 
         {/* GEI + Reported elsewhere */}
-        <GeiConsideredSection
-          control={control}
-          disabled={isFormDisabled}
-          geiExplanationId={null}
-          reportedElsewhereExplanationId={null}
-        />
+        <Box className="flex flex-row gap-6">
+          <GeiConsideredSection
+            control={control}
+            disabled={isFormDisabled}
+            geiExplanationId={null}
+          />
+          <ReportedElsewhereSection
+            control={control}
+            disabled={isFormDisabled}
+            reportedElsewhereExplanationId={null}
+          />
+        </Box>
 
         {/* Reduction report datagrid */}
         <ReductionReportSection
