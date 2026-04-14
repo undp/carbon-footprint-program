@@ -167,83 +167,87 @@ const OrganizationProfileSectionComponent: FC<
                       theme
                     )}
                   />
-                  {lastSubmission?.eventType ===
-                    SubmissionEventType.REVIEWED && (
-                    <>
-                      <Tooltip
-                        title="Ver detalles de la revisión"
-                        placement="top"
-                      >
-                        <IconButton
-                          aria-describedby={id}
-                          aria-label="Ver detalles de la revisión"
-                          aria-expanded={open}
-                          onClick={handleClick}
-                          size="small"
+                  {lastSubmission?.eventType === SubmissionEventType.REVIEWED &&
+                    profile.lastSubmissionStatus ===
+                      SubmissionStatus.REVIEWED && (
+                      <>
+                        <Tooltip
+                          title="Ver detalles de la revisión"
+                          placement="top"
                         >
-                          <VisibilityOutlined />
-                        </IconButton>
-                      </Tooltip>
-                      <Popper
-                        id={id}
-                        open={open}
-                        anchorEl={anchorEl}
-                        transition
-                        placement="bottom"
-                        modifiers={[
-                          {
-                            name: "arrow",
-                            enabled: true,
-                            options: {
-                              element: arrowRef,
+                          <IconButton
+                            aria-describedby={id}
+                            aria-label="Ver detalles de la revisión"
+                            aria-expanded={open}
+                            onClick={handleClick}
+                            size="small"
+                          >
+                            <VisibilityOutlined />
+                          </IconButton>
+                        </Tooltip>
+                        <Popper
+                          id={id}
+                          open={open}
+                          anchorEl={anchorEl}
+                          transition
+                          placement="bottom"
+                          modifiers={[
+                            {
+                              name: "arrow",
+                              enabled: true,
+                              options: {
+                                element: arrowRef,
+                              },
                             },
-                          },
-                        ]}
-                        sx={{
-                          '&[data-popper-placement*="bottom"] .popper-arrow': {
-                            top: 0,
-                            marginTop: "-0.5em",
-                            "&::before": {
-                              borderWidth: "0 1em 1em 1em",
-                              borderColor: `transparent transparent white transparent`,
-                            },
-                          },
+                          ]}
+                          sx={{
+                            '&[data-popper-placement*="bottom"] .popper-arrow':
+                              {
+                                top: 0,
+                                marginTop: "-0.5em",
+                                "&::before": {
+                                  borderWidth: "0 1em 1em 1em",
+                                  borderColor: `transparent transparent white transparent`,
+                                },
+                              },
 
-                          ".popper-arrow": {
-                            position: "absolute",
-                            fontSize: 14,
-                            width: "3em",
-                            height: "3em",
-                            "&::before": {
-                              content: '""',
-                              margin: "auto",
-                              display: "block",
-                              width: 0,
-                              height: 0,
-                              borderStyle: "solid",
+                            ".popper-arrow": {
+                              position: "absolute",
+                              fontSize: 14,
+                              width: "3em",
+                              height: "3em",
+                              "&::before": {
+                                content: '""',
+                                margin: "auto",
+                                display: "block",
+                                width: 0,
+                                height: 0,
+                                borderStyle: "solid",
+                              },
                             },
-                          },
-                        }}
-                      >
-                        {({ TransitionProps }) => (
-                          <Fade {...TransitionProps} timeout={350}>
-                            <Box>
-                              <Box
-                                component="span"
-                                className="popper-arrow"
-                                ref={setArrowRef}
-                              />
-                              <ClickAwayListener onClickAway={handleClickAway}>
-                                <Box className="w-[700px] rounded-[10px] border-2 shadow-lg">
-                                  <HistoryCard entry={lastSubmission} />
-                                </Box>
-                              </ClickAwayListener>
-                            </Box>
-                          </Fade>
-                        )}
-                      </Popper>
-                    </>
-                  )}
+                          }}
+                        >
+                          {({ TransitionProps }) => (
+                            <Fade {...TransitionProps} timeout={350}>
+                              <Box>
+                                <Box
+                                  component="span"
+                                  className="popper-arrow"
+                                  ref={setArrowRef}
+                                />
+                                <ClickAwayListener
+                                  onClickAway={handleClickAway}
+                                >
+                                  <Box className="w-[700px] rounded-[10px] border-2 shadow-lg">
+                                    <HistoryCard entry={lastSubmission} />
+                                  </Box>
+                                </ClickAwayListener>
+                              </Box>
+                            </Fade>
+                          )}
+                        </Popper>
+                      </>
+                    )}
                 </Box>
               }
             />
