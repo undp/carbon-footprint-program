@@ -1,10 +1,7 @@
 import { z } from "zod";
-import {
-  ReductionProjectBaseSchema,
-  OrganizationSummaryBaseSchema,
-} from "../../baseSchemas/index.js";
 import { ReductionProjectDisplayStatusSchema } from "../schemas.js";
 import { IdSchema } from "../../zod.js";
+import { ReductionProjectBaseSchema } from "../../baseSchemas/reductionProject.js";
 
 export const GetAllReductionProjectsQuerySchema = z.object({
   organizationId: IdSchema.optional().describe(
@@ -17,12 +14,11 @@ export const GetAllReductionProjectsQuerySchema = z.object({
     .describe('Filter by reporting year (e.g. "2024")'),
 });
 
-const ReductionProjectListItemSchema = ReductionProjectBaseSchema.omit({
-  status: true,
+const ReductionProjectListItemSchema = ReductionProjectBaseSchema.pick({
+  id: true,
+  name: true,
+  year: true,
 }).extend({
-  organizationName: OrganizationSummaryBaseSchema.shape.name
-    .nullable()
-    .describe("Legal or trade name of the organization"),
   firstReportDate: z.iso
     .datetime()
     .describe("First report timestamp (creation time of the project row)"),

@@ -4,6 +4,7 @@ import type {
   UpdateReductionProjectRequest,
 } from "@repo/types";
 import { updateReductionProjectService } from "./service.js";
+import { StorageNotConfiguredError } from "@/features/files/errors.js";
 
 export const updateReductionProjectHandler = async (
   request: FastifyRequest<{
@@ -20,13 +21,17 @@ export const updateReductionProjectHandler = async (
   const user = request.currentUser ?? null;
   const { blobServiceClient, storageContainerName } = request.server;
 
+  if (blobServiceClient === undefined || storageContainerName === undefined) {
+    throw new StorageNotConfiguredError();
+  }
+
   const data = await updateReductionProjectService(
     prisma,
     id,
     request.body,
     user,
-    blobServiceClient ?? undefined,
-    storageContainerName ?? undefined
+    blobServiceClient,
+    storageContainerName
   );
 
   log.info(`Reduction project ${id} updated successfully`);

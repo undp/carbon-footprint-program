@@ -1,9 +1,3 @@
-/**
- * Access rules (authenticated requests only):
- * - Project without organization: only the creator has access.
- * - Project with organization: active org members; optional role filter.
- */
-
 import fp from "fastify-plugin";
 import type {
   FastifyPluginCallback,
@@ -140,7 +134,7 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
           );
           return reply.status(403).send({
             code: "FORBIDDEN",
-            message: "Insufficient permissions for this organization",
+            message: "You do not have access to this reduction project",
           });
         }
 

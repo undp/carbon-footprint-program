@@ -1,25 +1,35 @@
 import { z } from "zod";
 import { ConsideredGeiSchema, GwpSourceSchema } from "@repo/types";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 
 export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
   z
     .object({
       name: z.string().min(1, "El nombre es requerido"),
       organizationId: z.string().min(1, "La organización es requerida"),
-      carbonInventoryId: z
-        .string()
-        .min(1, "El inventario de carbono es requerido"),
+      carbonInventoryId: z.string().min(1, "La huella es requerida"),
       implementationDate: z
         .string()
         .min(1, "La fecha de implementación es requerida"),
-      description: z.string().min(1, "La descripción es requerida"),
+      description: z
+        .string()
+        .min(1, "La descripción es requerida")
+        .max(
+          REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+          `La descripción no puede superar los ${REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH} caracteres`
+        ),
       subcategoryId: z.string().min(1, "La subcategoría es requerida"),
       gwpUsed: z.union([GwpSourceSchema, z.literal("")]),
       consideredGei: z
         .array(ConsideredGeiSchema)
         .min(1, "Debe seleccionar al menos un GEI considerado"),
       reportedElsewhere: z.boolean(),
-      reportedElsewhereDescription: z.string(),
+      reportedElsewhereDescription: z
+        .string()
+        .max(
+          REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+          `La descripción no puede superar los ${REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH} caracteres`
+        ),
       year: z.union([z.number().int(), z.literal("")]),
       baselineScenario: z
         .string()
@@ -59,12 +69,12 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
       if (
         data.implementationDate &&
         data.year !== "" &&
-        Number(data.implementationDate.slice(0, 4)) > data.year
+        new Date(data.implementationDate).getFullYear() > data.year
       ) {
         ctx.addIssue({
           code: "custom",
           path: ["implementationDate"],
-          message: `El año no puede ser posterior al año del inventario (${data.year})`,
+          message: `El año no puede ser posterior al año de la huella (${data.year})`,
         });
       }
     });

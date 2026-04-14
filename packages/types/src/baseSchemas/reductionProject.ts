@@ -1,8 +1,9 @@
 import { z } from "zod";
 import { IdSchema } from "../zod.js";
-import { InventoryStatus } from "../enums.js";
+import { ReductionProjectStatus } from "../enums.js";
 import { ConsideredGeiSchema } from "../common/consideredGei/schemas.js";
 import { GwpSourceSchema } from "../common/gwpSource/schemas.js";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 
 export const ReductionProjectBaseSchema = z
   .object({
@@ -15,7 +16,10 @@ export const ReductionProjectBaseSchema = z
     implementationDate: z.iso
       .datetime()
       .describe("Implementation date of the project"),
-    description: z.string().describe("Description of the reduction project"),
+    description: z
+      .string()
+      .max(REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH)
+      .describe("Description of the reduction project"),
     subcategoryId: IdSchema.describe("The ID of the subcategory"),
     gwpUsed: GwpSourceSchema.nullable().describe(
       "GWP set used for the assessment"
@@ -28,6 +32,7 @@ export const ReductionProjectBaseSchema = z
       .describe("Whether emissions are reported elsewhere"),
     reportedElsewhereDescription: z
       .string()
+      .max(REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH)
       .nullable()
       .describe("Details when reported elsewhere"),
     year: z
@@ -42,7 +47,7 @@ export const ReductionProjectBaseSchema = z
       .string()
       .describe("Project scenario emissions (decimal as string)"),
     status: z
-      .enum(InventoryStatus)
+      .enum(ReductionProjectStatus)
       .describe("Persistence status of the reduction project record"),
     createdAt: z.iso
       .datetime()

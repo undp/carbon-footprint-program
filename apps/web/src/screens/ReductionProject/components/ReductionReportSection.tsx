@@ -47,10 +47,7 @@ export const ReductionReportSection: FC<Props> = ({
             <Typography variant="body2" fontWeight={500}>
               Año de reducción
             </Typography>
-            <InfoButton
-              label="Año del inventario de carbono seleccionado."
-              size="small"
-            />
+            <InfoButton label="Año de la huella seleccionada." size="small" />
           </Box>
         ),
         renderCell: () => (
@@ -80,13 +77,15 @@ export const ReductionReportSection: FC<Props> = ({
             <Controller
               name="baselineScenario"
               control={control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <NumericInput
                   value={field.value === "" ? null : Number(field.value)}
                   onChange={field.onChange}
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
+                  required
+                  fieldError={fieldState.error}
                 />
               )}
             />
@@ -114,13 +113,15 @@ export const ReductionReportSection: FC<Props> = ({
             <Controller
               name="projectScenario"
               control={control}
-              render={({ field }) => (
+              render={({ field, fieldState }) => (
                 <NumericInput
                   value={field.value === "" ? null : Number(field.value)}
                   onChange={field.onChange}
                   disabled={disabled}
                   suffix="tCO₂e"
                   min={0}
+                  required
+                  fieldError={fieldState.error}
                 />
               )}
             />

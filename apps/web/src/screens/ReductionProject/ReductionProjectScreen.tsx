@@ -1,6 +1,6 @@
 import { FC, useEffect, useMemo } from "react";
 import { Box, Typography } from "@mui/material";
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useParams } from "@tanstack/react-router";
 import { useWatch } from "react-hook-form";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { Routes } from "@/interfaces";
@@ -22,6 +22,7 @@ import { useReductionProjectForm } from "./hooks/useReductionProjectForm";
 import { useReductionProjectSubmit } from "./hooks/useReductionProjectSubmit";
 import { ReductionProjectFormFields } from "./components/ReductionProjectFormFields";
 import { GeiConsideredSection } from "./components/GeiConsideredSection";
+import { ReportedElsewhereSection } from "./components/ReportedElsewhereSection";
 import { ReductionReportSection } from "./components/ReductionReportSection";
 import { FileUploadSection } from "./components/FileUploadSection";
 import {
@@ -30,14 +31,23 @@ import {
 } from "@repo/types";
 import { VOCAB } from "../../config/vocab";
 import { capitalize } from "lodash-es";
+import { isReductionProjectEditable } from "@repo/utils";
 
 interface Props {
   mode: "create" | "edit";
-  id?: string;
 }
 
-export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
+export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const navigate = useNavigate();
+  const params = useParams({
+    from:
+      mode === "create"
+        ? Routes.REDUCTION_PROJECT_NEW
+        : Routes.REDUCTION_PROJECT,
+  });
+
+  const id = mode === "create" ? undefined : (params as { id: string }).id;
+
   const { openExplanation } = useExplanationDialog();
 
   // Queries
@@ -69,9 +79,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
       ? isProjectError || isErrorInventories || isErrorOrgs
       : false;
   const status = mode === "edit" ? project?.status : undefined;
-  const isFormDisabled =
-    status === ReductionProjectDisplayStatusEnum.SUBMITTED ||
-    status === ReductionProjectDisplayStatusEnum.APPROVED;
+  const isFormDisabled = Boolean(status && !isReductionProjectEditable(status));
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
   const showFileUpload = mode === "create" || isReviewed;
 
@@ -172,8 +180,8 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
     return (
       <ReductionProjectLayout {...layoutProps}>
         <ScreenEmptyState
-          title="Sin huellas con sello de verificación"
-          description="Debes tener al menos una huella con sello de verificación antes de poder ingresar un proyecto de reducción."
+          title="Sin huellas con reconocimiento de verificación"
+          description="Debes tener al menos una huella con reconocimiento de verificación antes de poder ingresar un proyecto de reducción."
           action={{
             label: "Ir a Huella Organizacional",
             onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
@@ -195,8 +203,8 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
         {/* Content header with status chip */}
         <Box className="flex items-center justify-between">
           <Box className="flex items-center gap-1">
-            <Typography variant="body1" fontSize={18} fontWeight={500}>
-              Proyecto de Reducción
+            <Typography variant="body1" fontSize={18}>
+              Datos base
             </Typography>
             <InfoButton
               label="Más información"
@@ -224,12 +232,18 @@ export const ReductionProjectScreen: FC<Props> = ({ mode, id }) => {
         />
 
         {/* GEI + Reported elsewhere */}
-        <GeiConsideredSection
-          control={control}
-          disabled={isFormDisabled}
-          geiExplanationId={null}
-          reportedElsewhereExplanationId={null}
-        />
+        <Box className="flex flex-row gap-6">
+          <GeiConsideredSection
+            control={control}
+            disabled={isFormDisabled}
+            geiExplanationId={null}
+          />
+          <ReportedElsewhereSection
+            control={control}
+            disabled={isFormDisabled}
+            reportedElsewhereExplanationId={null}
+          />
+        </Box>
 
         {/* Reduction report datagrid */}
         <ReductionReportSection

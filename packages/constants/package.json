@@ -1,5 +1,5 @@
 {
-  "name": "@repo/types",
+  "name": "@repo/constants",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -15,11 +15,6 @@
     "lint": "eslint .",
     "type-check": "tsc --noEmit --project tsconfig.build.json",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo"
-  },
-  "dependencies": {
-    "@repo/constants": "workspace:*",
-    "@repo/database": "workspace:*",
-    "zod": "catalog:shared"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

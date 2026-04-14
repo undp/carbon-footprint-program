@@ -1,6 +1,7 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { CreateReductionProjectRequest } from "@repo/types";
 import { createReductionProjectService } from "./service.js";
+import { StorageNotConfiguredError } from "@/features/files/errors.js";
 
 export const createReductionProjectHandler = async (
   request: FastifyRequest<{ Body: CreateReductionProjectRequest }>,
@@ -13,12 +14,16 @@ export const createReductionProjectHandler = async (
   const user = request.currentUser ?? null;
   const { blobServiceClient, storageContainerName } = request.server;
 
+  if (blobServiceClient === undefined || storageContainerName === undefined) {
+    throw new StorageNotConfiguredError();
+  }
+
   const data = await createReductionProjectService(
     prisma,
     request.body,
     user,
-    blobServiceClient ?? undefined,
-    storageContainerName ?? undefined
+    blobServiceClient,
+    storageContainerName
   );
 
   log.info("Reduction project created successfully");

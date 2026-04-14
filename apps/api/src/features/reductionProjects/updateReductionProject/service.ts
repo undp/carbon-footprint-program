@@ -10,7 +10,6 @@ import type {
   UpdateReductionProjectResponse,
   User,
 } from "@repo/types";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import {
   linkFilesToSubmission,
   cleanupSourceBlobs,
@@ -18,10 +17,7 @@ import {
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
   ReductionProjectNotFoundError,
-  ReductionProjectUnderReviewError,
-  ReductionProjectDraftNotUpdatableError,
-  ReductionProjectRejectedError,
-  ReductionProjectNotEditableError,
+  ReductionProjectNotUpdatableError,
 } from "../errors.js";
 import {
   calculateReductionProjectDisplayStatus,
@@ -39,13 +35,9 @@ export const updateReductionProjectService = async (
   id: string,
   data: UpdateReductionProjectRequest,
   user: User | null,
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  blobServiceClient: BlobServiceClient,
+  containerName: string
 ): Promise<UpdateReductionProjectResponse> => {
-  if (!blobServiceClient || !containerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   const userId = user?.id ? BigInt(user.id) : null;
 
   const sourceCleanup = await prismaClient.$transaction(async (tx) => {
@@ -69,19 +61,19 @@ export const updateReductionProjectService = async (
     const displayStatus = calculateReductionProjectDisplayStatus(existing);
 
     if (displayStatus === ReductionProjectDisplayStatusEnum.DRAFT) {
-      throw new ReductionProjectDraftNotUpdatableError(id);
+      throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
     if (displayStatus === ReductionProjectDisplayStatusEnum.SUBMITTED) {
-      throw new ReductionProjectUnderReviewError();
+      throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
     if (displayStatus === ReductionProjectDisplayStatusEnum.REJECTED) {
-      throw new ReductionProjectRejectedError(id);
+      throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
     if (displayStatus === ReductionProjectDisplayStatusEnum.APPROVED) {
-      throw new ReductionProjectNotEditableError(id);
+      throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
     // Only REVIEWED reaches here

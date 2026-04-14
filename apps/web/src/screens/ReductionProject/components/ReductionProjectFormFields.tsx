@@ -1,16 +1,23 @@
 import { FC, useMemo } from "react";
 import { Box, Tooltip } from "@mui/material";
 import { Control, useWatch } from "react-hook-form";
-import { FormTextField, FormSelectField } from "@/components/form";
+import {
+  FormTextField,
+  FormSelectField,
+  FormDateField,
+} from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { useSelectorOptions } from "@/hooks/useSelectorOptions";
+import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
 import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
 } from "@repo/types";
 import type { ReductionProjectFormValues } from "../types";
 import { GWP_OPTIONS } from "../constants";
+import { VOCAB } from "@/config/vocab";
+import { min } from "date-fns";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
@@ -60,7 +67,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           ? inv.year
             ? `${inv.name} (${inv.year})`
             : inv.name
-          : `Inventario ${inv.year ?? inv.id}`,
+          : `Huella ${inv.year ?? inv.id}`,
         value: inv.id,
       })),
     [filteredInventories]
@@ -78,6 +85,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             control={control}
             label="Nombre de proyecto"
             disabled={disabled}
+            required
           />
         </Box>
         <Box className="flex-1">
@@ -88,6 +96,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             options={organizationOptions}
             disabled={disabled || isLoadingOrgs}
             loading={isLoadingOrgs}
+            required
           />
         </Box>
       </Box>
@@ -99,17 +108,24 @@ export const ReductionProjectFormFields: FC<Props> = ({
             title={
               !selectedOrganizationId
                 ? "Seleccione una organización primero"
-                : ""
+                : inventoryOptions.length === 0
+                  ? `No hay huellas con reconocimiento de verificación para la ${VOCAB.organization.noun.singular} seleccionada`
+                  : ""
             }
           >
             <span>
               <FormSelectField
                 name="carbonInventoryId"
                 control={control}
-                label="Inventario de carbono verificado"
+                label="Huella con reconocimiento de verificación"
                 options={inventoryOptions}
-                disabled={disabled || !selectedOrganizationId}
                 loading={isLoadingInventories}
+                disabled={
+                  disabled ||
+                  !selectedOrganizationId ||
+                  inventoryOptions.length === 0
+                }
+                required
               />
             </span>
           </Tooltip>
@@ -118,7 +134,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Tooltip
             title={
               !hasInventorySelected
-                ? "Seleccione un inventario de carbono verificado primero"
+                ? "Seleccione una huella con reconocimiento de verificación primero"
                 : ""
             }
           >
@@ -132,6 +148,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                   disabled || !hasInventorySelected || isLoadingSubcategories
                 }
                 loading={isLoadingSubcategories}
+                required
               />
             </span>
           </Tooltip>
@@ -144,27 +161,23 @@ export const ReductionProjectFormFields: FC<Props> = ({
           <Tooltip
             title={
               !hasInventorySelected
-                ? "Seleccione un inventario de carbono verificado primero"
+                ? "Seleccione una huella con reconocimiento de verificación primero"
                 : ""
             }
           >
             <span>
-              <FormTextField
+              <FormDateField
                 name="implementationDate"
                 control={control}
                 label="Fecha de implementación"
-                type="date"
                 disabled={disabled || !hasInventorySelected}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                  htmlInput: {
-                    max:
-                      selectedInventoryYear &&
-                      Number.isFinite(selectedInventoryYear)
-                        ? `${selectedInventoryYear}-12-31`
-                        : undefined,
-                  },
-                }}
+                maxDate={
+                  selectedInventoryYear &&
+                  Number.isFinite(selectedInventoryYear)
+                    ? min([new Date(selectedInventoryYear, 11, 31), new Date()])
+                    : undefined
+                }
+                required
               />
             </span>
           </Tooltip>
@@ -199,6 +212,12 @@ export const ReductionProjectFormFields: FC<Props> = ({
             multiline
             rows={4}
             disabled={disabled}
+            required
+            slotProps={{
+              htmlInput: {
+                maxLength: REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH,
+              },
+            }}
           />
         </Box>
       </Box>

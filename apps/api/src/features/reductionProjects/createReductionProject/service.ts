@@ -13,7 +13,6 @@ import {
   linkFilesToSubmission,
   cleanupSourceBlobs,
 } from "@/features/files/helpers/linkFilesToSubmission.js";
-import { StorageNotConfiguredError } from "@/features/files/errors.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import {
   createReductionProjectSubmission,
@@ -24,13 +23,9 @@ export const createReductionProjectService = async (
   prismaClient: PrismaClient,
   data: CreateReductionProjectRequest,
   user: User | null,
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  blobServiceClient: BlobServiceClient,
+  containerName: string
 ): Promise<CreateReductionProjectResponse> => {
-  if (!blobServiceClient || !containerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   const createdById = user?.id ? BigInt(user.id) : null;
 
   const result = await prismaClient.$transaction(async (tx) => {
@@ -39,14 +34,13 @@ export const createReductionProjectService = async (
       data.organizationId,
       data.carbonInventoryId,
       createdById,
-      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN]
+      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
+      { skipRoleCheck: true }
     );
 
     // Create the reduction project record
     const project = await tx.reductionProject.create({
       data: {
-        createdById,
-        updatedAt: null,
         name: data.name,
         organizationId: mapBigIntField(data.organizationId),
         carbonInventoryId: mapBigIntField(data.carbonInventoryId),
@@ -60,6 +54,8 @@ export const createReductionProjectService = async (
         year: data.year,
         baselineScenario: data.baselineScenario,
         projectScenario: data.projectScenario,
+        createdById,
+        updatedAt: null,
       },
     });
 

@@ -11,7 +11,7 @@ export const mapProjectToFormValues = (
   organizationId: project.organizationId ?? "",
   carbonInventoryId: project.carbonInventoryId ?? "",
   implementationDate: project.implementationDate
-    ? project.implementationDate.slice(0, 10)
+    ? new Date(project.implementationDate).toISOString().split("T")[0]
     : "",
   description: project.description ?? "",
   subcategoryId: project.subcategoryId ?? "",
