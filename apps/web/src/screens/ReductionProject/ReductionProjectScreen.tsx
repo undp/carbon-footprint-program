@@ -203,8 +203,8 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
         {/* Content header with status chip */}
         <Box className="flex items-center justify-between">
           <Box className="flex items-center gap-1">
-            <Typography variant="body1" fontSize={18} fontWeight={500}>
-              Proyecto de Reducción
+            <Typography variant="body1" fontSize={18}>
+              Datos base
             </Typography>
             <InfoButton
               label="Más información"
