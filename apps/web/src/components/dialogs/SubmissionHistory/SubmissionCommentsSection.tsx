@@ -64,6 +64,7 @@ export const SubmissionCommentsSection: FC<Props> = ({ comment }) => {
                 fontSize: 12,
                 lineHeight: "19.5px",
                 display: "block",
+                wordBreak: "break-word",
               }}
             >
               {line}
