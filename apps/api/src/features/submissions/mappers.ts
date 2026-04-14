@@ -1,29 +1,25 @@
-import {
-  SubmissionHistoryEntry,
-  SubmissionEventType,
-  SubmissionStatus,
-} from "@repo/types";
+import { SubmissionStatus } from "@repo/database";
+import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import { sortBy } from "lodash-es";
 import { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 import { ReadSasUrlSigner } from "../../services/blobService.js";
 import {
+  SignedFile,
   SubmissionHistoryRow,
+  SubmissionEventGroup,
   OrgSummaryInfo,
   buildSubmissionBaseEntry,
   groupSubmissionHistoryFiles,
-  deriveEventType,
+  buildPostulationEvent,
+  buildOnReviewEvent,
+  buildApprovedEvent,
+  buildApprovedAutomaticallyEvent,
+  buildReviewedEvent,
+  buildRejectedEvent,
+  flattenEventGroup,
 } from "./helpers.js";
 
-type SubmissionEventGroup = {
-  postulationEvent: SubmissionHistoryEntry;
-  reviewedEvent: SubmissionHistoryEntry | null;
-};
-
-/**
- * Groups a submission's files by type and signs their blob URLs in parallel.
- * Returns empty arrays when no signer is available (i.e. no files exist in
- * the entire history request).
- */
+/** Signs blob URLs for a submission's files grouped by type. Returns empty arrays when no signer exists. */
 const mapSubmissionFiles = async (
   files: SubmissionHistoryRow["files"],
   signReadSasUrl: ReadSasUrlSigner | null
@@ -32,9 +28,9 @@ const mapSubmissionFiles = async (
 
   if (!signReadSasUrl) {
     return {
-      attachments: [],
-      recognitions: [],
-      revisionAttachments: [],
+      attachments: [] as SignedFile[],
+      recognitions: [] as SignedFile[],
+      revisionAttachments: [] as SignedFile[],
     };
   }
 
@@ -48,16 +44,8 @@ const mapSubmissionFiles = async (
 };
 
 /**
- * Transforms a single submission into an object with a pair of timeline events:
- *
- * 1. **POSTULATION** — always created, dated at `createdAt`, with the
- *    creator's name and the submission's attachment files.
- * 2. **Reviewed event** (APPROVED | REJECTED | REVIEWED | APPROVED_AUTOMATICALLY)
- *    — created only when the submission has been reviewed (status !== PENDING).
- *    Dated at `reviewedAt`, carries the reviewer's name, review comments,
- *    and either revision attachments (for REVIEWED) or recognition files.
- *
- * Returns `reviewedEvent: null` when the submission is still pending.
+ * Transforms a single DB submission into a typed SubmissionEventGroup.
+ * Signs files, then dispatches to the appropriate event builders based on submission status.
  */
 export const mapSubmissionEventGroup = async (
   submission: SubmissionHistoryRow,
@@ -68,89 +56,92 @@ export const mapSubmissionEventGroup = async (
     await mapSubmissionFiles(submission.files, signReadSasUrl);
 
   const baseEntry = buildSubmissionBaseEntry(submission, context);
-  const reviewedEventType = deriveEventType(submission.status);
-  const postulationEventType =
-    submission.status === SubmissionStatus.APPROVED_AUTOMATICALLY
-      ? SubmissionEventType.AUTOMATIC_POSTULATION
-      : SubmissionEventType.POSTULATION;
-  const postulationEvent: SubmissionHistoryEntry = {
-    ...baseEntry,
-    eventType: postulationEventType,
-    date: submission.createdAt.toISOString(),
-    userName: submission.creator?.email ?? null,
-    comment: "",
-    files: attachments,
-    recognitions: [],
-  };
 
-  if (reviewedEventType === SubmissionEventType.POSTULATION) {
-    return { postulationEvent, reviewedEvent: null };
+  switch (submission.status) {
+    case SubmissionStatus.PENDING:
+      return {
+        kind: SubmissionEventType.POSTULATION,
+        postulationEvent: buildPostulationEvent(
+          baseEntry,
+          submission,
+          attachments
+        ),
+      };
+    case SubmissionStatus.APPROVED: {
+      const postulationEvent = buildPostulationEvent(
+        baseEntry,
+        submission,
+        attachments
+      );
+      return {
+        kind: SubmissionEventType.APPROVED,
+        postulationEvent,
+        onReviewEvent: buildOnReviewEvent(postulationEvent),
+        approvedEvent: buildApprovedEvent(
+          baseEntry,
+          submission,
+          revisionAttachments,
+          recognitions
+        ),
+      };
+    }
+    case SubmissionStatus.APPROVED_AUTOMATICALLY:
+      return {
+        kind: SubmissionEventType.APPROVED_AUTOMATICALLY,
+        autoApprovedEvent: buildApprovedAutomaticallyEvent(
+          baseEntry,
+          submission
+        ),
+      };
+    case SubmissionStatus.REVIEWED: {
+      const postulationEvent = buildPostulationEvent(
+        baseEntry,
+        submission,
+        attachments
+      );
+      return {
+        kind: SubmissionEventType.REVIEWED,
+        postulationEvent,
+        onReviewEvent: buildOnReviewEvent(postulationEvent),
+        reviewedEvent: buildReviewedEvent(
+          baseEntry,
+          submission,
+          revisionAttachments,
+          recognitions
+        ),
+      };
+    }
+    case SubmissionStatus.REJECTED: {
+      const postulationEvent = buildPostulationEvent(
+        baseEntry,
+        submission,
+        attachments
+      );
+      return {
+        kind: SubmissionEventType.REJECTED,
+        postulationEvent,
+        onReviewEvent: buildOnReviewEvent(postulationEvent),
+        rejectedEvent: buildRejectedEvent(
+          baseEntry,
+          submission,
+          revisionAttachments
+        ),
+      };
+    }
   }
 
-  return {
-    postulationEvent,
-    reviewedEvent: {
-      ...baseEntry,
-      eventType: reviewedEventType,
-      userName: submission.reviewer?.email ?? null,
-      date: (submission.reviewedAt ?? submission.createdAt).toISOString(),
-      comment: submission.reviewComments ?? "",
-      files:
-        reviewedEventType === SubmissionEventType.REVIEWED
-          ? revisionAttachments
-          : [],
-      recognitions,
-    },
-  };
+  const unhandledStatus: never = submission.status;
+  throw new Error(`Unhandled SubmissionStatus: ${String(unhandledStatus)}`);
 };
 
-/**
- * Assembles the final sorted timeline from submission event groups.
- *
- * For each reviewed submission (index > 0) an ON_REVIEW marker is inserted
- * between the POSTULATION and the reviewed event. This marks the period
- * where the submission was under review in multi-submission timelines.
- *
- * If a self-declaration event is provided (carbon inventory histories only),
- * it is appended at the end before sorting.
- *
- * The resulting array is sorted by date descending (newest first).
- */
+/** Flattens event groups into a sorted timeline (newest first). */
 export const mapTimelineResponse = (
-  submissionEventGroups: SubmissionEventGroup[],
-  selfDeclarationEvent: SubmissionHistoryEntry | null
+  submissionEventGroups: SubmissionEventGroup[]
 ): SubmissionHistoryEntry[] => {
-  if (!submissionEventGroups.length) {
-    return selfDeclarationEvent ? [selfDeclarationEvent] : [];
-  }
+  if (!submissionEventGroups.length) return [];
 
-  const response = submissionEventGroups.flatMap<SubmissionHistoryEntry>(
-    ({ postulationEvent, reviewedEvent }, submissionIndex) => {
-      if (!reviewedEvent) {
-        return [postulationEvent];
-      }
-
-      const timelineEvents: SubmissionHistoryEntry[] = [postulationEvent];
-
-      if (submissionIndex > 0) {
-        timelineEvents.push({
-          ...postulationEvent,
-          eventType: SubmissionEventType.ON_REVIEW,
-          status: null,
-          comment: "",
-          files: [],
-          recognitions: [],
-        });
-      }
-
-      timelineEvents.push(reviewedEvent);
-      return timelineEvents;
-    }
-  );
-
-  if (selfDeclarationEvent) {
-    response.push(selfDeclarationEvent);
-  }
-
-  return sortBy(response, "date").reverse();
+  return sortBy(
+    submissionEventGroups.flatMap(flattenEventGroup),
+    "date"
+  ).reverse();
 };
