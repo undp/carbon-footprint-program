@@ -4,8 +4,9 @@ import { CalendarTodayOutlined } from "@mui/icons-material";
 import { type SubmissionHistoryEntry } from "@repo/types";
 import { formatDateTime } from "@/utils/formatting";
 import { FilesSection } from "./FilesSection";
-import { getEventLabel } from "../../../utils/submissions";
+import { getEventLabel, REQUEST_TYPE_LABEL } from "../../../utils/submissions";
 import { SubmissionCommentsSection } from "./SubmissionCommentsSection";
+import { SubmissionTypeChip } from "@components/SubmissionTypeChip";
 
 type Props = {
   history: SubmissionHistoryEntry[];
@@ -29,31 +30,41 @@ const HistoryCard: FC<{
         <Stack spacing={0.5}>
           {/* Event type + date */}
           <Stack direction="row" alignItems="center" spacing={1}>
-            <Typography
-              variant="body2"
-              fontWeight={600}
-              sx={{
-                color: theme.palette.text.primary,
-                fontSize: 14,
-                lineHeight: "20px",
-                letterSpacing: "-0.15px",
-              }}
-            >
-              {getEventLabel(entry)}
-            </Typography>
-            <Chip
-              label={formatDateTime(entry.date)}
-              size="small"
-              sx={{
-                bgcolor: theme.palette.background.default,
-                color: theme.palette.text.secondary,
-                border: `1px solid ${theme.palette.divider}`,
-                fontSize: 12,
-                height: 20,
-                borderRadius: "40px",
-                "& .MuiChip-label": { px: 1 },
-              }}
-            />
+            <Box className="flex w-full flex-row items-center justify-between">
+              <Box className="flex items-center gap-1.5">
+                <Typography
+                  variant="body2"
+                  fontWeight={600}
+                  sx={{
+                    color: theme.palette.text.primary,
+                    fontSize: 14,
+                    lineHeight: "20px",
+                    letterSpacing: "-0.15px",
+                  }}
+                >
+                  {getEventLabel(entry)}
+                </Typography>
+                <Chip
+                  label={formatDateTime(entry.date)}
+                  size="small"
+                  sx={{
+                    bgcolor: theme.palette.background.default,
+                    color: theme.palette.text.secondary,
+                    border: `1px solid ${theme.palette.divider}`,
+                    fontSize: 12,
+                    height: 20,
+                    borderRadius: "40px",
+                    "& .MuiChip-label": { px: 1 },
+                  }}
+                />
+              </Box>
+              {entry.submissionType && (
+                <SubmissionTypeChip
+                  label={REQUEST_TYPE_LABEL[entry.submissionType]}
+                  color={theme.palette.requestTypeColors[entry.submissionType]}
+                />
+              )}
+            </Box>
           </Stack>
 
           {/* User line */}
