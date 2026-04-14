@@ -9,6 +9,7 @@ import {
   Fade,
   Box,
   ClickAwayListener,
+  Tooltip,
 } from "@mui/material";
 import { SectionCard } from "./SectionCard";
 import { InfoCard } from "./InfoCard";
@@ -169,9 +170,20 @@ const OrganizationProfileSectionComponent: FC<
                   {lastSubmission?.eventType ===
                     SubmissionEventType.REVIEWED && (
                     <>
-                      <IconButton onClick={handleClick} size="small">
-                        <VisibilityOutlined />
-                      </IconButton>
+                      <Tooltip
+                        title="Ver detalles de la revisión"
+                        placement="top"
+                      >
+                        <IconButton
+                          aria-describedby={id}
+                          aria-label="Ver detalles de la revisión"
+                          aria-expanded={open}
+                          onClick={handleClick}
+                          size="small"
+                        >
+                          <VisibilityOutlined />
+                        </IconButton>
+                      </Tooltip>
                       <Popper
                         id={id}
                         open={open}
