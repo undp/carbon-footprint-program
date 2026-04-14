@@ -1,6 +1,7 @@
 import type { BlobServiceClient } from "@azure/storage-blob";
 import type { PrismaClient } from "@repo/database";
 import type { GetCarbonInventoryHistoryResponse } from "@repo/types";
+import { SubmissionEventType } from "@repo/types";
 import { CarbonInventoryNotFoundError } from "../../carbonInventories/errors.js";
 import {
   buildSelfDeclarationEvent,
@@ -60,15 +61,18 @@ export const getCarbonInventoryHistoryService = async (
     )
   );
 
-  const selfDeclarationEvent = carbonInventory.selfDeclaredAt
-    ? buildSelfDeclarationEvent(
+  if (carbonInventory.selfDeclaredAt) {
+    submissionEventGroups.push({
+      kind: SubmissionEventType.SELF_DECLARATION,
+      selfDeclarationEvent: buildSelfDeclarationEvent(
         carbonInventoryId,
         carbonInventory.year,
         carbonInventory.selfDeclaredAt,
         orgHistorySummary,
         carbonInventory.selfDeclaredBy
-      )
-    : null;
+      ),
+    });
+  }
 
-  return mapTimelineResponse(submissionEventGroups, selfDeclarationEvent);
+  return mapTimelineResponse(submissionEventGroups);
 };
