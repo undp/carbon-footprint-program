@@ -63,11 +63,9 @@ export const CurrentStatusBanner: FC<Props> = ({
               textTransform: "uppercase",
             }}
           >
-            {eventType === SubmissionEventType.SELF_DECLARATION
-              ? EVENT_TYPE_LABEL[SubmissionEventType.SELF_DECLARATION]
-              : status
-                ? REQUEST_STATUS_LABEL[status]
-                : ""}
+            {status
+              ? REQUEST_STATUS_LABEL[status]
+              : EVENT_TYPE_LABEL[eventType]}
           </Typography>
         </Stack>
       </Box>
