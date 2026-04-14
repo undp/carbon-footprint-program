@@ -65,20 +65,19 @@ Archive a completed change in the experimental workflow.
 
    Create the archive directory if it doesn't exist:
 
-```bash
-mkdir -p openspec/changes/archive
-```
+   ```bash
+   mkdir -p openspec/changes/archive
+   ```
 
-Generate target name using current date: `YYYY-MM-DD-<change-name>`
+   Generate target name using current date: `YYYY-MM-DD-<change-name>`
 
-**Check if target already exists:**
+   **Check if target already exists:**
+   - If yes: Fail with error, suggest renaming existing archive or using different date
+   - If no: Move the change directory to archive
 
-- If yes: Fail with error, suggest renaming existing archive or using different date
-- If no: Move the change directory to archive
-
-```bash
-mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
-```
+   ```bash
+   mv openspec/changes/<name> openspec/changes/archive/YYYY-MM-DD-<name>
+   ```
 
 6. **Display summary**
 
