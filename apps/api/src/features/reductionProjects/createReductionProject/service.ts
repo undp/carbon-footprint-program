@@ -41,8 +41,6 @@ export const createReductionProjectService = async (
     // Create the reduction project record
     const project = await tx.reductionProject.create({
       data: {
-        createdById,
-        updatedAt: null,
         name: data.name,
         organizationId: mapBigIntField(data.organizationId),
         carbonInventoryId: mapBigIntField(data.carbonInventoryId),
@@ -56,6 +54,8 @@ export const createReductionProjectService = async (
         year: data.year,
         baselineScenario: data.baselineScenario,
         projectScenario: data.projectScenario,
+        createdById,
+        updatedAt: null,
       },
     });
 
