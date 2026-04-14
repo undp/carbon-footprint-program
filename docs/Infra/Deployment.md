@@ -831,6 +831,19 @@ az account set --subscription "<correct-subscription-id>"
 --no-wait  # Para deployment asíncrono
 ```
 
+### Error: "Operation could not be completed as it results in exceeding approved quota"
+
+**Causa**: La suscripción de Azure no tiene suficiente cuota para el tipo de VM del App Service Plan (`appServiceSkuName`) en la región seleccionada (`LOCATION`). Azure impone límites por tipo de VM y por región.
+
+**Solución**: Solicitar un aumento de cuota de vCPUs para el tipo de VM del App Service Plan en el portal de Azure:
+
+1. Ir a **Azure Portal → Suscripciones → \<tu suscripción\> → Usage + quotas**.
+2. Filtrar por `App Service` y por la región de despliegue (ej.: `eastus2`).
+3. Localizar la familia de vCPUs correspondiente al SKU configurado en `appServiceSkuName` dentro de `params/main.<environment>.bicepparam` (ej.: `P1v3` usa la familia `Ddsv5`, `B1` usa `BS`).
+4. Hacer clic en **Request increase** e indicar la cantidad de vCores necesarios.
+
+Una vez aprobado el aumento (puede tardar minutos u horas según el tipo de instancia), volver a ejecutar `./deploy.sh`.
+
 ### Verificar Estado de Deployment
 
 ```bash
