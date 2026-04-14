@@ -38,14 +38,7 @@ import {
 import { StylizedDataGrid } from "@/components";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
-
-const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const year = date.getFullYear();
-  return `${day}/${month}/${year}`;
-};
+import { formatDate } from "@repo/utils";
 
 export const ReductionProjectsScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");

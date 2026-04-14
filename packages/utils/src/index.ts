@@ -13,3 +13,4 @@ export {
   isReductionProjectEditable,
   canRequestReductionProjectVerification,
 } from "./reductionProject.js";
+export { formatDate } from "./date.js";
