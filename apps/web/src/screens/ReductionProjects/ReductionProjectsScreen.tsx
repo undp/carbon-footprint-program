@@ -140,20 +140,13 @@ export const ReductionProjectsScreen: FC = () => {
               GetAllReductionProjectsResponse[number],
               GetAllReductionProjectsResponse[number]["year"]
             >
-          ) =>
-            params.value ? (
+          ) => (
+            <Tooltip title={params.value}>
               <Typography variant="body2" noWrap>
                 {params.value}
               </Typography>
-            ) : (
-              <Typography
-                color="textDisabled"
-                className="italic"
-                variant="body2"
-              >
-                (sin año)
-              </Typography>
-            ),
+            </Tooltip>
+          ),
         },
         {
           field: "firstReportDate",
