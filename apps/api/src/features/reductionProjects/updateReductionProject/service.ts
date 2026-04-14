@@ -25,10 +25,8 @@ import {
   reductionProjectWithSubmissionsMinimalSelect,
   validateReductionProjectPrerequisites,
 } from "../helpers.js";
-import {
-  ReductionProjectDisplayStatusEnum,
-  ReductionProjectStatus,
-} from "@repo/types";
+import { ReductionProjectStatus } from "@repo/types";
+import { isReductionProjectEditable } from "@repo/utils";
 
 export const updateReductionProjectService = async (
   prismaClient: PrismaClient,
@@ -60,19 +58,7 @@ export const updateReductionProjectService = async (
 
     const displayStatus = calculateReductionProjectDisplayStatus(existing);
 
-    if (displayStatus === ReductionProjectDisplayStatusEnum.DRAFT) {
-      throw new ReductionProjectNotUpdatableError(id, displayStatus);
-    }
-
-    if (displayStatus === ReductionProjectDisplayStatusEnum.SUBMITTED) {
-      throw new ReductionProjectNotUpdatableError(id, displayStatus);
-    }
-
-    if (displayStatus === ReductionProjectDisplayStatusEnum.REJECTED) {
-      throw new ReductionProjectNotUpdatableError(id, displayStatus);
-    }
-
-    if (displayStatus === ReductionProjectDisplayStatusEnum.APPROVED) {
+    if (!isReductionProjectEditable(displayStatus)) {
       throw new ReductionProjectNotUpdatableError(id, displayStatus);
     }
 
