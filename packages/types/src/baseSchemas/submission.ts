@@ -6,7 +6,6 @@ export const SubmissionStatusSchema = z.enum(SubmissionStatus);
 
 export const SubmissionEventType = {
   POSTULATION: "POSTULATION",
-  AUTOMATIC_POSTULATION: "AUTOMATIC_POSTULATION",
   SELF_DECLARATION: "SELF_DECLARATION",
   ON_REVIEW: "ON_REVIEW",
   APPROVED: "APPROVED",
@@ -20,7 +19,6 @@ export type SubmissionEventType =
 
 export const SubmissionEventTypeSchema = z.enum([
   SubmissionEventType.POSTULATION,
-  SubmissionEventType.AUTOMATIC_POSTULATION,
   SubmissionEventType.SELF_DECLARATION,
   SubmissionEventType.ON_REVIEW,
   SubmissionEventType.APPROVED,
