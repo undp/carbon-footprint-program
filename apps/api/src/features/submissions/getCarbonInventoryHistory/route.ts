@@ -1,5 +1,6 @@
 import { getCarbonInventoryHistoryHandler } from "./handler.js";
 import {
+  GetCarbonInventoryHistoryParams,
   GetCarbonInventoryHistoryParamsSchema,
   GetCarbonInventoryHistoryResponseSchema,
   OrganizationRole,
@@ -11,7 +12,7 @@ import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
   fastify
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetCarbonInventoryHistoryParams }>(
     "/carbon-inventory/:id/history",
     {
       schema: {

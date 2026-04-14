@@ -1,5 +1,6 @@
 import { getOrganizationHistoryHandler } from "./handler.js";
 import {
+  GetOrganizationHistoryParams,
   GetOrganizationHistoryParamsSchema,
   GetOrganizationHistoryResponseSchema,
   OrganizationRole,
@@ -11,7 +12,7 @@ import { idRequestExtractor } from "@/helpers/idRequestExtractor.js";
 export const getOrganizationHistoryRoute: StandardRouteSignature = (
   fastify
 ) => {
-  fastify.get(
+  fastify.get<{ Params: GetOrganizationHistoryParams }>(
     "/organization/:id/history",
     {
       schema: {
