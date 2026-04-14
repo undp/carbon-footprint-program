@@ -160,8 +160,7 @@ export async function validateReductionProjectPrerequisites(
   organizationId: string,
   carbonInventoryId: string,
   userId: bigint | null,
-  allowedRoles: OrganizationRole[],
-  options?: { skipRoleCheck?: boolean }
+  allowedRoles?: OrganizationRole[]
 ): Promise<void> {
   if (userId === null) {
     throw new ReductionProjectInvalidDataError();
@@ -172,7 +171,7 @@ export async function validateReductionProjectPrerequisites(
     summary: { isAccredited: true },
   };
 
-  if (!options?.skipRoleCheck) {
+  if (allowedRoles) {
     organizationWhere.memberships = {
       some: {
         userId,

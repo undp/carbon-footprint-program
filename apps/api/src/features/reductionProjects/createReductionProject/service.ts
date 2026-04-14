@@ -33,9 +33,7 @@ export const createReductionProjectService = async (
       tx,
       data.organizationId,
       data.carbonInventoryId,
-      createdById,
-      [OrganizationRole.CONTRIBUTOR, OrganizationRole.ADMIN],
-      { skipRoleCheck: true }
+      createdById
     );
 
     // Create the reduction project record
