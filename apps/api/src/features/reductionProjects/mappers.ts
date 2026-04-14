@@ -46,11 +46,22 @@ export function mapReductionProjectToGetByIdResponse(
 }
 
 type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
-  include: {
-    organization: {
-      include: {
-        summary: {
-          select: { name: true };
+  select: {
+    id: true;
+    name: true;
+    year: true;
+    createdAt: true;
+    baselineScenario: true;
+    projectScenario: true;
+    status: true;
+    submission: {
+      select: {
+        subject: {
+          select: {
+            submissions: {
+              select: { id: true; status: true; type: true };
+            };
+          };
         };
       };
     };
@@ -66,8 +77,9 @@ export function mapReductionProjectToListItem(
     Number(row.projectScenario.toString());
 
   return {
-    ...mapPersistenceFields(row),
-    organizationName: row.organization.summary?.name ?? null,
+    id: row.id.toString(),
+    name: row.name,
+    year: row.year,
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
     status: displayStatus,

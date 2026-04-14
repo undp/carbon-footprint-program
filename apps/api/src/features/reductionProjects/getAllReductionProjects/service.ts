@@ -13,6 +13,7 @@ import { mapReductionProjectToListItem } from "../mappers.js";
 import {
   calculateReductionProjectDisplayStatus,
   reductionProjectSubmissionFilter,
+  reductionProjectWithSubmissionsMinimalSelect,
 } from "../helpers.js";
 
 export const getAllReductionProjectsService = async (
@@ -54,31 +55,13 @@ export const getAllReductionProjectsService = async (
     where: {
       AND: [baseFilters, accessControlFilter, reductionProjectSubmissionFilter],
     },
-    include: {
-      organization: {
-        include: {
-          summary: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
-      submission: {
-        include: {
-          subject: {
-            include: {
-              submissions: {
-                select: {
-                  id: true,
-                  status: true,
-                  type: true,
-                },
-              },
-            },
-          },
-        },
-      },
+    select: {
+      ...reductionProjectWithSubmissionsMinimalSelect,
+      name: true,
+      year: true,
+      createdAt: true,
+      baselineScenario: true,
+      projectScenario: true,
     },
     orderBy: { createdAt: "desc" },
   });
