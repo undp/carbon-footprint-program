@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { organizationKeys } from "./keys";
 import { apiClient } from "@/api/http";
 import type { RequestOrganizationAccreditationResponse } from "@repo/types";
+import { SubmissionQueryKey } from "../submissions";
 
 export const useRequestOrganizationAccreditation = (id: string | undefined) => {
   const queryClient = useQueryClient();
@@ -31,6 +32,12 @@ export const useRequestOrganizationAccreditation = (id: string | undefined) => {
           queryClient.invalidateQueries({
             queryKey: organizationKeys.adminKpis(),
             exact: true,
+          }),
+          queryClient.invalidateQueries({
+            predicate: (query) =>
+              query.queryKey.includes(
+                SubmissionQueryKey.HistoryUpdateDependency
+              ),
           }),
         ]);
       },
