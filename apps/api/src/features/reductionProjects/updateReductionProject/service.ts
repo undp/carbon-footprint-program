@@ -39,13 +39,9 @@ export const updateReductionProjectService = async (
   id: string,
   data: UpdateReductionProjectRequest,
   user: User | null,
-  blobServiceClient?: BlobServiceClient,
-  containerName?: string
+  blobServiceClient: BlobServiceClient,
+  containerName: string
 ): Promise<UpdateReductionProjectResponse> => {
-  if (!blobServiceClient || !containerName) {
-    throw new StorageNotConfiguredError();
-  }
-
   const userId = user?.id ? BigInt(user.id) : null;
 
   const sourceCleanup = await prismaClient.$transaction(async (tx) => {
