@@ -38,7 +38,7 @@ import {
 import { StylizedDataGrid } from "@/components";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
-import { formatDate } from "@repo/utils";
+import { formatDateToDDMMYYYY } from "@repo/utils";
 
 export const ReductionProjectsScreen: FC = () => {
   const [selectedYear, setSelectedYear] = useState<string>("all");
@@ -170,7 +170,7 @@ export const ReductionProjectsScreen: FC = () => {
           ) =>
             params.value ? (
               <Typography variant="body2" noWrap>
-                {formatDate(params.value)}
+                {formatDateToDDMMYYYY(params.value)}
               </Typography>
             ) : (
               <Typography
