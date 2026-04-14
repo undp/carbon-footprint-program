@@ -234,7 +234,7 @@ const OrganizationProfileSectionComponent: FC<
                                 ref={setArrowRef}
                               />
                               <ClickAwayListener onClickAway={handleClickAway}>
-                                <Box className="w-[700px] rounded-[10px] border-2 shadow-lg">
+                                <Box className="w-full max-w-[700px] rounded-[10px] border-2 shadow-lg">
                                   <HistoryCard entry={lastSubmission} />
                                 </Box>
                               </ClickAwayListener>
