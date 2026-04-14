@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import {
+  CircularProgress,
   FormControl,
   FormHelperText,
   InputLabel,
@@ -20,6 +21,7 @@ type Props<T extends FieldValues> = {
   required?: boolean;
   helperText?: string;
   fullWidth?: boolean;
+  loading?: boolean;
 } & Omit<SelectProps, "name" | "label" | "labelId" | "value" | "onChange">;
 
 export const FormSelectField = <T extends FieldValues>({
@@ -31,6 +33,7 @@ export const FormSelectField = <T extends FieldValues>({
   required,
   helperText,
   fullWidth = true,
+  loading = false,
   ...props
 }: Props<T>) => {
   const computedLabelId = useMemo(
@@ -56,7 +59,17 @@ export const FormSelectField = <T extends FieldValues>({
         >
           <InputLabel id={computedLabelId}>{label}</InputLabel>
 
-          <Select {...field} labelId={computedLabelId} label={label} {...props}>
+          <Select
+            {...field}
+            labelId={computedLabelId}
+            label={label}
+            {...(loading && {
+              IconComponent: () => (
+                <CircularProgress size={20} sx={{ mr: 2 }} />
+              ),
+            })}
+            {...props}
+          >
             {options.map((option) => (
               <MenuItem key={option.value} value={option.value}>
                 {option.label}

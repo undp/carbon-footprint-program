@@ -25,6 +25,7 @@ interface Props {
   organizations: GetMyOrganizationsSelectorOptionsResponse;
   isLoadingOrgs: boolean;
   verifiedInventories: GetCarbonInventoriesMinimalResponse;
+  isLoadingInventories: boolean;
   selectedOrganizationId: string;
   subcategories: { id: string; name: string }[];
   isLoadingSubcategories: boolean;
@@ -38,6 +39,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
   organizations,
   isLoadingOrgs,
   verifiedInventories,
+  isLoadingInventories,
   selectedOrganizationId,
   subcategories,
   isLoadingSubcategories,
@@ -93,6 +95,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
             label="Organización"
             options={organizationOptions}
             disabled={disabled || isLoadingOrgs}
+            loading={isLoadingOrgs}
             required
           />
         </Box>
@@ -116,6 +119,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 control={control}
                 label="Huella con reconocimiento de verificación"
                 options={inventoryOptions}
+                loading={isLoadingInventories}
                 disabled={
                   disabled ||
                   !selectedOrganizationId ||
@@ -143,6 +147,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 disabled={
                   disabled || !hasInventorySelected || isLoadingSubcategories
                 }
+                loading={isLoadingSubcategories}
                 required
               />
             </span>
