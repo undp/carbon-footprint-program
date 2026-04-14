@@ -97,7 +97,7 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       "$inventoryId",
       carbonInventory.id
     );
-    window.open(href, "_blank");
+    window.open(href, "_blank", "noopener,noreferrer");
   }, [carbonInventory.id]);
 
   const getInventoryMissingFields = useCallback(() => {
