@@ -1,9 +1,4 @@
-import {
-  Prisma,
-  SubmissionFileType,
-  SubmissionStatus,
-  type PrismaClient,
-} from "@repo/database";
+import { Prisma, SubmissionFileType, type PrismaClient } from "@repo/database";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { SubmissionHistoryEntry, SubmissionEventType } from "@repo/types";
 import {
@@ -13,8 +8,9 @@ import {
 import { StorageNotConfiguredError } from "../files/errors.js";
 import {
   mapOrganizationSummary,
-  type OrganizationSummaryWithData,
+  OrganizationSummaryWithData,
 } from "../../mappers/mapOrganizationSummary.js";
+import type { mapFilesWithUrls } from "../../mappers/mapFilesWithUrls.js";
 
 export type SubmissionHistoryFileRow = {
   uuid: string;
@@ -36,35 +32,9 @@ export type SubmissionHistoryFileLink = {
   file: SubmissionHistoryFileRow;
 };
 
-/**
- * Maps a raw {@link SubmissionStatus} to its corresponding timeline
- * {@link SubmissionEventType}. PENDING submissions become POSTULATION events;
- * all other statuses map 1-to-1.
- */
-export function deriveEventType(status: SubmissionStatus): SubmissionEventType {
-  switch (status) {
-    case SubmissionStatus.PENDING:
-      return SubmissionEventType.POSTULATION;
-    case SubmissionStatus.APPROVED_AUTOMATICALLY:
-      return SubmissionEventType.APPROVED_AUTOMATICALLY;
-    case SubmissionStatus.APPROVED:
-      return SubmissionEventType.APPROVED;
-    case SubmissionStatus.REJECTED:
-      return SubmissionEventType.REJECTED;
-    case SubmissionStatus.REVIEWED:
-      return SubmissionEventType.REVIEWED;
-  }
+export type SignedFile = Awaited<ReturnType<typeof mapFilesWithUrls>>[number];
 
-  const unhandledStatus: never = status;
-  throw new Error(`Unhandled SubmissionStatus: ${String(unhandledStatus)}`);
-}
-
-/**
- * Categorizes a flat list of submission file links into three buckets:
- * attachments, recognitions, and revision attachments.
- * Called once per submission so the timeline mapper can reference each
- * bucket independently when building POSTULATION and reviewed events.
- */
+/** Splits submission files into attachments, recognitions, and revision attachments. */
 export function groupSubmissionHistoryFiles(
   files: SubmissionHistoryFileLink[]
 ): GroupedSubmissionHistoryFiles {
@@ -92,11 +62,7 @@ export function groupSubmissionHistoryFiles(
   );
 }
 
-/**
- * Prisma select clause shared by both history services.
- * Fetches the submission metadata, creator/reviewer names,
- * the linked carbon inventory ID, and all associated files.
- */
+/** Prisma select shared by both history services (carbon inventory & organization). */
 export const submissionHistorySelect = {
   id: true,
   type: true,
@@ -149,11 +115,11 @@ export type OrgSummaryInfo = {
   orgName: string | null;
 };
 
-/**
- * Loads the organization summary view and returns the context object
- * (name, last submission status, pending-changes flag) that every
- * timeline entry shares. Returns nulls when the org has no summary row.
- */
+// ---------------------------------------------------------------------------
+// Organization helpers
+// ---------------------------------------------------------------------------
+
+/** Loads org summary (name + data) used as shared context for every timeline entry. */
 export async function getOrgSummaryDetails(
   prisma: PrismaClient,
   organizationId: bigint
@@ -185,12 +151,7 @@ export async function getOrgSummaryDetails(
   };
 }
 
-/**
- * Creates a single Azure Blob Storage SAS signer for the entire request,
- * but only when at least one submission carries files. Returns null when
- * no files exist, and throws {@link StorageNotConfiguredError} if files
- * are present but blob storage is not configured.
- */
+/** Returns a SAS signer when submissions have files; null otherwise. */
 export const createHistoryReadSasSigner = async (
   submissions: SubmissionHistoryRow[],
   blobServiceClient: BlobServiceClient | null,
@@ -211,11 +172,11 @@ export const createHistoryReadSasSigner = async (
   return createReadSasUrlSigner(blobServiceClient, containerName);
 };
 
-/**
- * Builds the common fields shared by every timeline entry for a given
- * submission: IDs, type, status, organization metadata, and the linked
- * carbon inventory ID (if any).
- */
+// ---------------------------------------------------------------------------
+// Base entry builder
+// ---------------------------------------------------------------------------
+
+/** Builds the common fields (IDs, type, status, org metadata) shared by every event of a submission. */
 export const buildSubmissionBaseEntry = (
   submission: SubmissionHistoryRow,
   context: OrgSummaryInfo
@@ -232,12 +193,18 @@ export const buildSubmissionBaseEntry = (
   organizationData: context.organizationData,
 });
 
-/**
- * Creates the SELF_DECLARATION timeline entry shown at the bottom of a
- * carbon inventory history when the inventory has been self-declared.
- * Only called by the carbon inventory history service when selfDeclaredAt
- * is present.
- */
+/** Builds the date/userName/comment fields shared by all event builders. */
+const eventDateUserComment = (
+  date: Date,
+  userName: string | null | undefined,
+  comment: string
+) => ({
+  date: date.toISOString(),
+  userName: userName ?? null,
+  comment,
+});
+
+/** SELF_DECLARATION: user self-declared a carbon inventory footprint. Only for carbon inventory histories. */
 export const buildSelfDeclarationEvent = (
   carbonInventoryId: string,
   carbonInventoryYear: number | null,
@@ -260,3 +227,157 @@ export const buildSelfDeclarationEvent = (
   files: [],
   recognitions: [],
 });
+
+/** POSTULATION: user submitted a manual postulation. Carries attachment files. */
+export const buildPostulationEvent = (
+  baseEntry: ReturnType<typeof buildSubmissionBaseEntry>,
+  submission: SubmissionHistoryRow,
+  attachments: SignedFile[]
+): SubmissionHistoryEntry => ({
+  ...baseEntry,
+  ...eventDateUserComment(submission.createdAt, submission.creator?.email, ""),
+  eventType: SubmissionEventType.POSTULATION,
+  files: attachments,
+  recognitions: [],
+});
+
+/** ON_REVIEW: synthetic marker indicating the submission is under review. Derives from its postulation. */
+export const buildOnReviewEvent = (
+  postulationEvent: SubmissionHistoryEntry
+): SubmissionHistoryEntry => ({
+  ...postulationEvent,
+  eventType: SubmissionEventType.ON_REVIEW,
+  status: null,
+  comment: "",
+  files: [],
+  recognitions: [],
+});
+
+/** APPROVED: admin manually approved. Carries recognition files and revision attachments. */
+export const buildApprovedEvent = (
+  baseEntry: ReturnType<typeof buildSubmissionBaseEntry>,
+  submission: SubmissionHistoryRow,
+  revisionAttachments: SignedFile[],
+  recognitions: SignedFile[]
+): SubmissionHistoryEntry => ({
+  ...baseEntry,
+  ...eventDateUserComment(
+    submission.reviewedAt ?? submission.createdAt,
+    submission.reviewer?.email,
+    submission.reviewComments ?? ""
+  ),
+  eventType: SubmissionEventType.APPROVED,
+  files: revisionAttachments,
+  recognitions,
+});
+
+/** APPROVED_AUTOMATICALLY: system auto-approved. No files, no reviewer, no creator. */
+export const buildApprovedAutomaticallyEvent = (
+  baseEntry: ReturnType<typeof buildSubmissionBaseEntry>,
+  submission: SubmissionHistoryRow
+): SubmissionHistoryEntry => ({
+  ...baseEntry,
+  ...eventDateUserComment(submission.createdAt, null, ""),
+  eventType: SubmissionEventType.APPROVED_AUTOMATICALLY,
+  files: [],
+  recognitions: [],
+});
+
+/** REVIEWED: admin left observations. Carries review comments, revision attachments and recognitions. */
+export const buildReviewedEvent = (
+  baseEntry: ReturnType<typeof buildSubmissionBaseEntry>,
+  submission: SubmissionHistoryRow,
+  revisionAttachments: SignedFile[],
+  recognitions: SignedFile[]
+): SubmissionHistoryEntry => ({
+  ...baseEntry,
+  ...eventDateUserComment(
+    submission.reviewedAt ?? submission.createdAt,
+    submission.reviewer?.email,
+    submission.reviewComments ?? ""
+  ),
+  eventType: SubmissionEventType.REVIEWED,
+  files: revisionAttachments,
+  recognitions,
+});
+
+/** REJECTED: admin rejected. Carries review comments and revision attachments, no recognitions. */
+export const buildRejectedEvent = (
+  baseEntry: ReturnType<typeof buildSubmissionBaseEntry>,
+  submission: SubmissionHistoryRow,
+  revisionAttachments: SignedFile[]
+): SubmissionHistoryEntry => ({
+  ...baseEntry,
+  ...eventDateUserComment(
+    submission.reviewedAt ?? submission.createdAt,
+    submission.reviewer?.email,
+    submission.reviewComments ?? ""
+  ),
+  eventType: SubmissionEventType.REJECTED,
+  files: revisionAttachments,
+  recognitions: [],
+});
+
+/**
+ * Valid event combinations per submission status.
+ * Each variant uses SubmissionEventType as discriminant (`kind`).
+ */
+export type SubmissionEventGroup =
+  | {
+      kind: typeof SubmissionEventType.POSTULATION;
+      postulationEvent: SubmissionHistoryEntry;
+    }
+  | {
+      kind: typeof SubmissionEventType.APPROVED;
+      postulationEvent: SubmissionHistoryEntry;
+      onReviewEvent: SubmissionHistoryEntry;
+      approvedEvent: SubmissionHistoryEntry;
+    }
+  | {
+      kind: typeof SubmissionEventType.APPROVED_AUTOMATICALLY;
+      autoApprovedEvent: SubmissionHistoryEntry;
+    }
+  | {
+      kind: typeof SubmissionEventType.REVIEWED;
+      postulationEvent: SubmissionHistoryEntry;
+      onReviewEvent: SubmissionHistoryEntry;
+      reviewedEvent: SubmissionHistoryEntry;
+    }
+  | {
+      kind: typeof SubmissionEventType.REJECTED;
+      postulationEvent: SubmissionHistoryEntry;
+      onReviewEvent: SubmissionHistoryEntry;
+      rejectedEvent: SubmissionHistoryEntry;
+    }
+  | {
+      kind: typeof SubmissionEventType.SELF_DECLARATION;
+      selfDeclarationEvent: SubmissionHistoryEntry;
+    };
+
+/**
+ * Flattens a SubmissionEventGroup into an ordered array for the timeline.
+ * ON_REVIEW is always included for reviewed submissions (APPROVED, REVIEWED, REJECTED).
+ */
+export const flattenEventGroup = (
+  group: SubmissionEventGroup
+): SubmissionHistoryEntry[] => {
+  switch (group.kind) {
+    case SubmissionEventType.SELF_DECLARATION:
+      return [group.selfDeclarationEvent];
+
+    case SubmissionEventType.POSTULATION:
+      return [group.postulationEvent];
+
+    case SubmissionEventType.APPROVED_AUTOMATICALLY:
+      return [group.autoApprovedEvent];
+
+    case SubmissionEventType.APPROVED:
+      return [group.postulationEvent, group.onReviewEvent, group.approvedEvent];
+
+    case SubmissionEventType.REVIEWED:
+      return [group.postulationEvent, group.onReviewEvent, group.reviewedEvent];
+
+    case SubmissionEventType.REJECTED:
+      return [group.postulationEvent, group.onReviewEvent, group.rejectedEvent];
+  }
+};

@@ -103,7 +103,7 @@ export const useViewSubmission = ({
       "$inventoryId",
       inventoryId
     );
-    window.open(href, "_blank");
+    window.open(href, "_blank", "noopener,noreferrer");
   }, []);
 
   return {

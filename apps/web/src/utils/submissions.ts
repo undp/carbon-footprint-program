@@ -12,7 +12,7 @@ export const REQUEST_STATUS_LABEL: Record<SubmissionStatus, string> = {
   [SubmissionStatus.APPROVED]: "Aprobada",
   [SubmissionStatus.REVIEWED]: "Con Observaciones",
   [SubmissionStatus.REJECTED]: "Rechazada",
-  [SubmissionStatus.APPROVED_AUTOMATICALLY]: "Aprobada Automáticamente",
+  [SubmissionStatus.APPROVED_AUTOMATICALLY]: "Otorgado",
 };
 
 export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
@@ -25,51 +25,17 @@ export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
     "Reconocimiento de neutralización",
 };
 
-const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
+export const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
   [SubmissionEventType.POSTULATION]: "POSTULACIÓN",
-  [SubmissionEventType.AUTOMATIC_POSTULATION]: "POSTULACIÓN AUTOMÁTICA",
   [SubmissionEventType.SELF_DECLARATION]: "AUTODECLARADA",
   [SubmissionEventType.ON_REVIEW]: "EN REVISIÓN",
   [SubmissionEventType.APPROVED]: "APROBADA",
-  [SubmissionEventType.APPROVED_AUTOMATICALLY]: "APROBADA AUTOMÁTICAMENTE",
+  [SubmissionEventType.APPROVED_AUTOMATICALLY]: "OTORGADO",
   [SubmissionEventType.REJECTED]: "RECHAZADA",
   [SubmissionEventType.REVIEWED]: "CON OBSERVACIONES",
 };
 
-export const getPostulationLabel = (
-  submissionType: SubmissionType,
-  automatic = false
-): string => {
-  const prefix = automatic ? "POSTULACIÓN AUTOMÁTICA" : "POSTULACIÓN";
-  switch (submissionType) {
-    case SubmissionType.CARBON_INVENTORY_VERIFICATION:
-      return `${prefix} A RECONOCIMIENTO DE VERIFICACIÓN`;
-    case SubmissionType.CARBON_INVENTORY_CALCULATION:
-      return `${prefix} A RECONOCIMIENTO DE MEDICIÓN`;
-    case SubmissionType.ORGANIZATION_ACCREDITATION:
-      return `${prefix} A ${VOCAB.inscription.noun.singular} ${VOCAB.organization.noun.singular}`.toUpperCase();
-    case SubmissionType.REDUCTION_PLAN_VERIFICATION:
-      return `${prefix} A RECONOCIMIENTO DE REDUCCIÓN`;
-    case SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION:
-      return `${prefix} A RECONOCIMIENTO DE NEUTRALIZACIÓN`;
-    default:
-      return prefix;
-  }
-};
-
 export const getEventLabel = (entry: SubmissionHistoryEntry): string => {
-  if (
-    entry.eventType === SubmissionEventType.POSTULATION &&
-    entry.submissionType
-  ) {
-    return getPostulationLabel(entry.submissionType);
-  }
-  if (
-    entry.eventType === SubmissionEventType.AUTOMATIC_POSTULATION &&
-    entry.submissionType
-  ) {
-    return getPostulationLabel(entry.submissionType, true);
-  }
   return EVENT_TYPE_LABEL[entry.eventType] ?? entry.eventType;
 };
 

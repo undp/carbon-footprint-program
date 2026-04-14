@@ -117,12 +117,11 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   borderColor: theme.palette.divider,
                 }}
               >
-                {submission.status && submission.submissionType && (
-                  <CurrentStatusBanner
-                    status={submission.status}
-                    type={submission.submissionType}
-                  />
-                )}
+                <CurrentStatusBanner
+                  status={submission.status}
+                  eventType={submission.eventType}
+                  submissionType={submission.submissionType}
+                />
 
                 <Box sx={{ p: 2 }}>
                   {/* Date pill */}
@@ -187,7 +186,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                     <SubmissionCommentsSection comment={submissionComment} />
                   )}
 
-                  <FilesSection files={allFiles} />
+                  {allFiles.length > 0 && <FilesSection files={allFiles} />}
 
                   {submission.organizationData &&
                     isOrganizationAccreditation && (

@@ -3,7 +3,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { IconButton, Stack, useTheme } from "@mui/material";
 import { VisibilityOutlined, EditOutlined } from "@mui/icons-material";
 import { RequestStatusChip } from "../components/RequestStatusChip";
-import { RequestTypeChip } from "../components/RequestTypeChip";
+import { SubmissionTypeChip } from "@components/SubmissionTypeChip";
 import {
   GetAllAdminRequestsResponse,
   SubmissionStatus as RequestStatus,
@@ -64,7 +64,7 @@ export const useRequestColumns = ({
         sortComparator: (value1: string, value2: string, _, __) =>
           TYPE_SORT_ORDER[value1] - TYPE_SORT_ORDER[value2],
         renderCell: (params) => (
-          <RequestTypeChip
+          <SubmissionTypeChip
             label={TYPE_LABEL[params.row.type]}
             color={theme.palette.requestTypeColors[params.row.type]}
           />
@@ -75,13 +75,14 @@ export const useRequestColumns = ({
         headerName: "Periodo",
         cellClassName,
         flex: 0.8,
+        maxWidth: 70,
         valueFormatter: (value: number | null) => value ?? "-",
       },
       {
         field: "status",
         headerName: "Estado",
         cellClassName,
-        flex: 1,
+        flex: 0.7,
         valueGetter: (_value, row) => STATUS_LABEL[row.status],
         sortComparator: (value1: string, value2: string, _, __) =>
           STATUS_SORT_ORDER[value1] - STATUS_SORT_ORDER[value2],
@@ -96,7 +97,7 @@ export const useRequestColumns = ({
         field: "requestedAt",
         headerName: "Fecha Envío",
         cellClassName,
-        flex: 0.8,
+        flex: 0.7,
         valueFormatter: (value: string) => {
           return new Intl.DateTimeFormat("es", {
             day: "numeric",

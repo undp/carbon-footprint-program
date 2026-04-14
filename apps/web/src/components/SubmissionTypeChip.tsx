@@ -1,12 +1,15 @@
 import { FC } from "react";
 import { alpha, Box, Typography } from "@mui/material";
 
-interface RequestTypeChipProps {
+interface SubmissionTypeChipProps {
   label: string;
   color: string;
 }
 
-export const RequestTypeChip: FC<RequestTypeChipProps> = ({ label, color }) => {
+export const SubmissionTypeChip: FC<SubmissionTypeChipProps> = ({
+  label,
+  color,
+}) => {
   return (
     <Box
       sx={{

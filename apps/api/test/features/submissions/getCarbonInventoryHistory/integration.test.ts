@@ -108,7 +108,7 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
     });
   }
 
-  it("keeps carbon-inventory history type-agnostic and uses reviewedAt for auto-approved events", async () => {
+  it("excludes auto-approved submissions from timeline and keeps other types", async () => {
     const organization = await createMemberOrganization();
     const inventory = await createInventoryFromPattern(
       prisma,
@@ -124,7 +124,7 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
       prisma,
       inventory.id
     );
-    const automaticSubmission = await createTestSubmission(
+    await createTestSubmission(
       prisma,
       subject.id,
       SubmissionType.CARBON_INVENTORY_CALCULATION,
@@ -153,8 +153,6 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
 
     expect(history.map((entry) => entry.eventType)).toEqual([
       SubmissionEventType.APPROVED,
-      SubmissionEventType.POSTULATION,
-      SubmissionEventType.APPROVED_AUTOMATICALLY,
       SubmissionEventType.ON_REVIEW,
       SubmissionEventType.POSTULATION,
       SubmissionEventType.SELF_DECLARATION,
@@ -163,18 +161,6 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
       submissionId: verificationSubmission.id.toString(),
       submissionType: SubmissionType.CARBON_INVENTORY_VERIFICATION,
       date: "2026-01-05T08:00:00.000Z",
-    });
-    expect(history[2]).toMatchObject({
-      submissionId: automaticSubmission.id.toString(),
-      submissionType: SubmissionType.CARBON_INVENTORY_CALCULATION,
-      eventType: SubmissionEventType.APPROVED_AUTOMATICALLY,
-      date: "2026-01-03T08:00:00.000Z",
-    });
-    expect(history[3]).toMatchObject({
-      submissionId: automaticSubmission.id.toString(),
-      submissionType: SubmissionType.CARBON_INVENTORY_CALCULATION,
-      eventType: SubmissionEventType.ON_REVIEW,
-      date: "2026-01-02T08:00:00.000Z",
     });
   });
 

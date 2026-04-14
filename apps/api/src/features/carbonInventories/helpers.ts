@@ -330,14 +330,13 @@ export const calculateDisplayStatus = (
   )
     return CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED;
 
-  if (
-    calcSubs.some(
-      (s) =>
-        s.status === SubmissionStatus.APPROVED ||
-        s.status === SubmissionStatus.APPROVED_AUTOMATICALLY
-    )
-  )
+  if (calcSubs.some((s) => s.status === SubmissionStatus.APPROVED))
     return CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED;
+
+  if (
+    calcSubs.some((s) => s.status === SubmissionStatus.APPROVED_AUTOMATICALLY)
+  )
+    return CarbonInventoryDisplayStatusEnum.SELF_DECLARED;
 
   return carbonInventory.isSelfDeclared
     ? CarbonInventoryDisplayStatusEnum.SELF_DECLARED

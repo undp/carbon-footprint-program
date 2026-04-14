@@ -43,5 +43,5 @@ export const getOrganizationHistoryService = async (
     )
   );
 
-  return mapTimelineResponse(submissionEventGroups, null);
+  return mapTimelineResponse(submissionEventGroups);
 };
