@@ -113,22 +113,13 @@ export const ReductionProjectsScreen: FC = () => {
               GetAllReductionProjectsResponse[number],
               GetAllReductionProjectsResponse[number]["name"]
             >
-          ) =>
-            params.value ? (
-              <Tooltip title={params.value}>
-                <Typography variant="body2" noWrap>
-                  {params.value}
-                </Typography>
-              </Tooltip>
-            ) : (
-              <Typography
-                color="textDisabled"
-                className="italic"
-                variant="body2"
-              >
-                (sin nombre)
+          ) => (
+            <Tooltip title={params.value}>
+              <Typography variant="body2" noWrap>
+                {params.value}
               </Typography>
-            ),
+            </Tooltip>
+          ),
         },
         {
           field: "year",
