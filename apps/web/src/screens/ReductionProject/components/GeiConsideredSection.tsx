@@ -67,7 +67,7 @@ export const GeiConsideredSection: FC<Props> = ({
                 </TableCell>
                 <TableCell align="center">
                   <Typography variant="body2" fontWeight={500}>
-                    Selección
+                    Incluído
                   </Typography>
                 </TableCell>
               </TableRow>
