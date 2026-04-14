@@ -21,8 +21,8 @@ export const RequiredDocumentsSection: FC = () => {
       </Typography>
 
       <Box className="flex flex-col gap-2 rounded-[10px] border border-gray-200 bg-gray-50 p-4">
-        {REDUCTION_PROJECT_REQUIRED_DOCUMENTS.map((doc) => (
-          <Box key={doc.number} className="flex gap-2">
+        {REDUCTION_PROJECT_REQUIRED_DOCUMENTS.map((doc, index) => (
+          <Box key={index} className="flex gap-2">
             <Typography
               variant="body2"
               fontWeight={700}
@@ -31,7 +31,7 @@ export const RequiredDocumentsSection: FC = () => {
                 minWidth: 16,
               }}
             >
-              {doc.number}.
+              {index + 1}.
             </Typography>
             <Box>
               <Typography variant="body2" fontWeight={700}>

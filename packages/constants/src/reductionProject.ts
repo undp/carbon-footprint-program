@@ -23,19 +23,16 @@ export const REDUCTION_PROJECT_GWP_OPTIONS = [
 
 export const REDUCTION_PROJECT_REQUIRED_DOCUMENTS = [
   {
-    number: 1,
     title: "Informe del Proyecto de Reducción",
     description:
       "Documento que detalla la metodología, escenarios de línea base y proyecto, y resultados de la reducción de emisiones",
   },
   {
-    number: 2,
     title: "Informe de Verificación por Tercera Parte",
     description:
       "Informe emitido por un organismo verificador, con declaración de verificación firmada",
   },
   {
-    number: 3,
     title: "Declaración jurada de No Conflicto de Interés",
     description:
       "Checkbox de la plataforma y/o documento firmado por el representante legal",
