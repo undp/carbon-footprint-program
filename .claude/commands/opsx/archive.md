@@ -64,14 +64,6 @@ Archive a completed change in the experimental workflow.
 5. **Perform the archive**
 
    Create the archive directory if it doesn't exist:
-   <<<<<<< HEAD
-   <<<<<<< HEAD
-
-=======
-
-> > > > > > > # aa5d18b2c ([FEAT] Add OpenSpec tooling, skills, and admin dashboard specs)
-
-> > > > > > > 1d41dd745 (style: format pre-existing markdown and skills files)
 
 ```bash
 mkdir -p openspec/changes/archive
