@@ -21,7 +21,7 @@ const BADGE_MAPPINGS: Array<{ file: string; type: BadgeType }> = [
   },
   {
     file: "reduction-badge.svg",
-    type: BadgeType.REDUCTION_PLAN_VERIFICATION,
+    type: BadgeType.REDUCTION_PROJECT_VERIFICATION,
   },
   {
     file: "neutralization-badge.svg",
