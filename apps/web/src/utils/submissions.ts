@@ -25,7 +25,7 @@ export const REQUEST_TYPE_LABEL: Record<SubmissionType, string> = {
     "Reconocimiento de neutralización",
 };
 
-const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
+export const EVENT_TYPE_LABEL: Record<SubmissionEventType, string> = {
   [SubmissionEventType.POSTULATION]: "POSTULACIÓN",
   [SubmissionEventType.SELF_DECLARATION]: "AUTODECLARADA",
   [SubmissionEventType.ON_REVIEW]: "EN REVISIÓN",
