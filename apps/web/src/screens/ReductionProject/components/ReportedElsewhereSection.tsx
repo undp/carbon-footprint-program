@@ -5,7 +5,7 @@ import { FormTextField } from "@/components/form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
 import { REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH } from "@repo/constants";
-import type { ReductionProjectFormValues } from "../types";
+import type { ReductionProjectFormValues } from "../formSchema";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;

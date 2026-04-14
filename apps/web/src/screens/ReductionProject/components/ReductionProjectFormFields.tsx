@@ -14,7 +14,7 @@ import type {
   GetMyOrganizationsSelectorOptionsResponse,
   GetCarbonInventoriesMinimalResponse,
 } from "@repo/types";
-import type { ReductionProjectFormValues } from "../types";
+import type { ReductionProjectFormValues } from "../formSchema";
 import { GWP_OPTIONS } from "../constants";
 import { VOCAB } from "@/config/vocab";
 import { min } from "date-fns";

@@ -2,7 +2,7 @@ import type {
   GetReductionProjectByIdResponse,
   ReductionProjectMutationData,
 } from "@repo/types";
-import type { ReductionProjectFormValues } from "./types";
+import type { ReductionProjectFormValues } from "./formSchema";
 
 export const mapProjectToFormValues = (
   project: GetReductionProjectByIdResponse

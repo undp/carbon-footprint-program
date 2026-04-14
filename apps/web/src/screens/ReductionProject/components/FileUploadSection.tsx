@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Typography } from "@mui/material";
 import { Control } from "react-hook-form";
 import { FormFileUpload } from "@/components/form";
-import type { ReductionProjectFormValues } from "../types";
+import type { ReductionProjectFormValues } from "../formSchema";
 import { FormSwornDeclarationField } from "@/components/form/FormSwornDeclarationField";
 import { RequiredDocumentsSection } from "./RequiredDocumentsSection";
 

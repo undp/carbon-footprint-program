@@ -14,7 +14,7 @@ import {
 import { Control, Controller, useWatch } from "react-hook-form";
 import { InfoButton } from "@/components";
 import { useExplanationDialog } from "@/contexts";
-import type { ReductionProjectFormValues } from "../types";
+import type { ReductionProjectFormValues } from "../formSchema";
 import { GEI_ITEMS } from "../constants";
 
 interface Props {

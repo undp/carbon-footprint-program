@@ -8,7 +8,7 @@ import {
   createReductionProjectFormSchema,
   defaultFormValues,
   type ReductionProjectFormValues,
-} from "../types";
+} from "../formSchema";
 
 interface Params {
   project?: GetReductionProjectByIdResponse;

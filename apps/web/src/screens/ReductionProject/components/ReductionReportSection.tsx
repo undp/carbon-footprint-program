@@ -6,7 +6,7 @@ import type { GridColDef } from "@mui/x-data-grid";
 import { NumericInput } from "@/components/NumericInput";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { InfoButton } from "@/components";
-import type { ReductionProjectFormValues } from "../types";
+import type { ReductionProjectFormValues } from "../formSchema";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;

@@ -7,7 +7,7 @@ import {
 } from "@/api/query/reductionProjects";
 import { usePreUploadSubmissionFiles } from "@/api/query/submissions/usePreUploadSubmissionFiles";
 import { mapFormValuesToMutationData } from "../mappers";
-import type { ReductionProjectFormValues } from "../types";
+import type { ReductionProjectFormValues } from "../formSchema";
 import { Routes } from "@/interfaces";
 
 interface Params {
