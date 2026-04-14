@@ -69,7 +69,7 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
       if (
         data.implementationDate &&
         data.year !== "" &&
-        Number(data.implementationDate.slice(0, 4)) > data.year
+        new Date(data.implementationDate).getFullYear() > data.year
       ) {
         ctx.addIssue({
           code: "custom",
