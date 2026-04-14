@@ -33,7 +33,6 @@ import {
   useDuplicateCarbonInventory,
 } from "@/api/query";
 import { Routes } from "@/interfaces";
-import { useNavigate } from "@tanstack/react-router";
 import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
@@ -46,7 +45,6 @@ interface InventoryActionsCellProps {
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   carbonInventory,
 }) => {
-  const navigate = useNavigate();
   const [calculationDialogOpen, setCalculationDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -95,11 +93,12 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   }, [carbonInventory.id, duplicateInventory, setActiveTab]);
 
   const onViewClick = useCallback(() => {
-    void navigate({
-      to: Routes.CARBON_INVENTORY_EMISSION_SUMMARY,
-      params: { inventoryId: carbonInventory.id },
-    });
-  }, [navigate, carbonInventory.id]);
+    const href = Routes.CARBON_INVENTORY_EMISSION_SUMMARY.replace(
+      "$inventoryId",
+      carbonInventory.id
+    );
+    window.open(href, "_blank");
+  }, [carbonInventory.id]);
 
   const getInventoryMissingFields = useCallback(() => {
     const fields: string[] = [];
