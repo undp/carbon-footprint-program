@@ -4,7 +4,6 @@ import { ScreenEmptyState } from "@/components";
 import {
   useMyOrganizations,
   useOrganizationRecognitions,
-  useBadgePreviews,
   useCarbonInventoriesMinimalData,
 } from "@/api/query";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
@@ -13,12 +12,9 @@ import { capitalize } from "lodash-es";
 import { useNavigate } from "@tanstack/react-router";
 import { Routes } from "@/interfaces";
 import { RecognitionsTable } from "./RecognitionsTable";
-import { RecognitionCard } from "./RecognitionCard";
 import { RecognitionScreenHeader } from "./RecognitionScreenHeader";
-import {
-  RECOGNITION_BADGE_TYPES,
-  RECOGNITION_SUBMISSION_TYPES,
-} from "@/utils/recognitions";
+import { RecognitionsKpis } from "./RecognitionsKpis";
+import { RECOGNITION_SUBMISSION_TYPES } from "@/utils/recognitions";
 
 const APPROVED_STATUSES = [
   CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
@@ -44,10 +40,6 @@ export const RecognitionsScreen: FC = () => {
       RECOGNITION_SUBMISSION_TYPES
     );
 
-  const { data: badgePreviews = [] } = useBadgePreviews(
-    RECOGNITION_BADGE_TYPES
-  );
-
   const {
     data: approvedInventories = [],
     isLoading: isLoadingApprovedInventories,
@@ -62,14 +54,6 @@ export const RecognitionsScreen: FC = () => {
     );
     return Array.from(years).sort((a, b) => b - a);
   }, [approvedInventories, effectiveOrgId]);
-
-  const submissionTypeCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const r of recognitions) {
-      counts[r.submissionType] = (counts[r.submissionType] ?? 0) + 1;
-    }
-    return counts;
-  }, [recognitions]);
 
   if (!isLoadingOrgs && organizations.length === 0) {
     return (
@@ -109,23 +93,7 @@ export const RecognitionsScreen: FC = () => {
         onYearChange={setSelectedYear}
       />
 
-      {/* Summary cards */}
-      <Box
-        sx={{
-          display: "grid",
-          gridTemplateColumns: "repeat(4, 1fr)",
-          gap: 2,
-        }}
-      >
-        {RECOGNITION_SUBMISSION_TYPES.map((submissionType) => (
-          <RecognitionCard
-            key={submissionType}
-            submissionType={submissionType}
-            badgePreviews={badgePreviews}
-            count={submissionTypeCounts[submissionType] ?? 0}
-          />
-        ))}
-      </Box>
+      <RecognitionsKpis recognitions={recognitions} />
 
       <RecognitionsTable loading={isLoadingRecognitions} rows={recognitions} />
     </Box>
