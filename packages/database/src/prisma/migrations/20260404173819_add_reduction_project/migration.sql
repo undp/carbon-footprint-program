@@ -7,7 +7,7 @@ CREATE TABLE "reduction_projects" (
     "name" TEXT NOT NULL,
     "organization_id" BIGINT NOT NULL,
     "carbon_inventory_id" BIGINT NOT NULL,
-    "implementation_date" TIMESTAMP(3) NOT NULL,
+    "implementation_date" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "subcategory_id" BIGINT NOT NULL,
     "gwp_used" TEXT,

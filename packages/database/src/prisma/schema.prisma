@@ -926,7 +926,7 @@ model ReductionProject {
   name                         String
   organizationId               BigInt                 @map("organization_id")
   carbonInventoryId            BigInt                 @map("carbon_inventory_id")
-  implementationDate           DateTime               @map("implementation_date")
+  implementationDate           String                 @map("implementation_date")
   description                  String
   subcategoryId                BigInt                 @map("subcategory_id")
   gwpUsed                      String?                @map("gwp_used")

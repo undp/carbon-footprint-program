@@ -16,7 +16,7 @@ function mapPersistenceFields(
     name: row.name,
     organizationId: row.organizationId.toString(),
     carbonInventoryId: row.carbonInventoryId.toString(),
-    implementationDate: row.implementationDate.toISOString(),
+    implementationDate: row.implementationDate,
     description: row.description,
     subcategoryId: row.subcategoryId.toString(),
     gwpUsed: row.gwpUsed ? GwpSourceSchema.parse(row.gwpUsed) : null,

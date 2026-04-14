@@ -42,7 +42,7 @@ export const createReductionProjectService = async (
         name: data.name,
         organizationId: mapBigIntField(data.organizationId),
         carbonInventoryId: mapBigIntField(data.carbonInventoryId),
-        implementationDate: new Date(data.implementationDate),
+        implementationDate: data.implementationDate,
         description: data.description,
         subcategoryId: mapBigIntField(data.subcategoryId),
         gwpUsed: data.gwpUsed,

@@ -10,9 +10,7 @@ export const mapProjectToFormValues = (
   name: project.name ?? "",
   organizationId: project.organizationId ?? "",
   carbonInventoryId: project.carbonInventoryId ?? "",
-  implementationDate: project.implementationDate
-    ? new Date(project.implementationDate).toISOString().split("T")[0]
-    : "",
+  implementationDate: project.implementationDate ?? "",
   description: project.description ?? "",
   subcategoryId: project.subcategoryId ?? "",
   gwpUsed: project.gwpUsed ?? "",
@@ -34,7 +32,7 @@ export const mapFormValuesToMutationData = (
     name: values.name,
     organizationId: values.organizationId,
     carbonInventoryId: values.carbonInventoryId,
-    implementationDate: new Date(values.implementationDate).toISOString(),
+    implementationDate: values.implementationDate,
     description: values.description,
     subcategoryId: values.subcategoryId,
     gwpUsed: values.gwpUsed || null,

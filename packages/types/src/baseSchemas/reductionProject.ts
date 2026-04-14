@@ -14,7 +14,7 @@ export const ReductionProjectBaseSchema = z
       "The ID of the linked carbon inventory"
     ),
     implementationDate: z.iso
-      .datetime()
+      .date()
       .describe("Implementation date of the project"),
     description: z
       .string()

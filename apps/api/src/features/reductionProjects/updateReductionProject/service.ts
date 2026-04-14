@@ -72,7 +72,7 @@ export const updateReductionProjectService = async (
     };
 
     if (data.implementationDate !== undefined) {
-      updateData.implementationDate = new Date(data.implementationDate);
+      updateData.implementationDate = data.implementationDate;
     }
     if (data.description !== undefined)
       updateData.description = data.description;
