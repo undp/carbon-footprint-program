@@ -12,12 +12,6 @@ export const ReductionProjectCannotRequestVerificationError = createError(
   422
 );
 
-export const ReductionProjectUnderReviewError = createError(
-  "REDUCTION_PROJECT_UNDER_REVIEW",
-  "Unable to edit reduction project while a verification submission is pending review.",
-  409
-);
-
 export const ReductionProjectInvalidDataError = createError(
   "REDUCTION_PROJECT_INVALID_DATA",
   "The provided organization or carbon inventory data is invalid or inaccessible",
@@ -30,20 +24,8 @@ export const ReductionProjectFileAttachmentsRequiredError = createError(
   400
 );
 
-export const ReductionProjectDraftNotUpdatableError = createError(
-  "REDUCTION_PROJECT_DRAFT_NOT_UPDATABLE",
-  "Reduction project %s is in DRAFT status and cannot be updated via this endpoint",
-  422
-);
-
-export const ReductionProjectRejectedError = createError(
-  "REDUCTION_PROJECT_REJECTED",
-  "Reduction project %s has been rejected and cannot be updated",
-  422
-);
-
-export const ReductionProjectNotEditableError = createError(
-  "REDUCTION_PROJECT_NOT_EDITABLE",
-  "Reduction project %s is not in an editable state",
+export const ReductionProjectNotUpdatableError = createError(
+  "REDUCTION_PROJECT_NOT_UPDATABLE",
+  "Reduction project %s is not updatable in its current state (%s)",
   422
 );
