@@ -25,7 +25,9 @@ export const CurrentStatusBanner: FC<Props> = ({
   eventType,
 }) => {
   const theme = useTheme();
-  const statusColor = status ? getRequestStatusColor(status, theme) : undefined;
+  const statusColor = status
+    ? getRequestStatusColor(status, theme)
+    : theme.palette.text.secondary;
 
   return (
     <Box
