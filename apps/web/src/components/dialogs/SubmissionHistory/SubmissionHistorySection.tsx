@@ -12,7 +12,7 @@ type Props = {
   history: SubmissionHistoryEntry[];
 };
 
-const HistoryCard: FC<{
+export const HistoryCard: FC<{
   entry: SubmissionHistoryEntry;
 }> = ({ entry }) => {
   const theme = useTheme();
