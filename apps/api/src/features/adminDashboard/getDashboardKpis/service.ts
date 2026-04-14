@@ -41,6 +41,7 @@ export const getDashboardKpisService = async (
       select: {
         value: true,
         categoryId: true,
+        carbonInventoryId: true,
         carbonInventory: { select: { organizationId: true } },
       },
     }),
@@ -93,16 +94,10 @@ export const getDashboardKpisService = async (
       .filter((id): id is bigint => id != null)
   );
 
-  // Compute verified emissions from approved inventory subtotals
-  const verifiedEmissions =
-    verifiedIdSet.size > 0
-      ? (
-          await prismaClient.carbonInventorySubtotalsView.findMany({
-            where: { carbonInventoryId: { in: [...verifiedIdSet] } },
-            select: { value: true },
-          })
-        ).reduce((sum, s) => sum + Number(s.value), 0)
-      : 0;
+  // Compute verified emissions in-memory from the existing subtotals
+  const verifiedEmissions = subtotals
+    .filter((s) => verifiedIdSet.has(s.carbonInventoryId))
+    .reduce((sum, s) => sum + Number(s.value), 0);
 
   // --- Organizations by sector ---
   // Seed sector stats from all orgs with sectors (includes zero-emission orgs)
