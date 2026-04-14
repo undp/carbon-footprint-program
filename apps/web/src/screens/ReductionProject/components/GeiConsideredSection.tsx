@@ -43,7 +43,7 @@ export const GeiConsideredSection: FC<Props> = ({
       <Box className="flex-1">
         <Box className="mb-4 flex items-center gap-1">
           <Typography variant="body1" fontSize={18}>
-            GEI Considerados
+            GEI considerados
           </Typography>
           <InfoButton
             label="Más información"
