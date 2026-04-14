@@ -17,6 +17,7 @@ import type {
 import type { ReductionProjectFormValues } from "../types";
 import { GWP_OPTIONS } from "../constants";
 import { VOCAB } from "@/config/vocab";
+import { min } from "date-fns";
 
 interface Props {
   control: Control<ReductionProjectFormValues>;
@@ -168,7 +169,7 @@ export const ReductionProjectFormFields: FC<Props> = ({
                 maxDate={
                   selectedInventoryYear &&
                   Number.isFinite(selectedInventoryYear)
-                    ? new Date(selectedInventoryYear, 11, 31)
+                    ? min([new Date(selectedInventoryYear, 11, 31), new Date()])
                     : undefined
                 }
                 required
