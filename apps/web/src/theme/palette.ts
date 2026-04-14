@@ -21,7 +21,7 @@ const requestTypeColors: Record<RequestType, string> = {
 const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.CARBON_INVENTORY_CALCULATION]: `#89F8AF`,
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
-  [RequestType.REDUCTION_PLAN_VERIFICATION]: "#F7D634",
+  [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#F7D634",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
 };
 
