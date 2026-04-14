@@ -39,14 +39,15 @@ interface Props {
 
 export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const navigate = useNavigate();
+  const isCreateMode = mode === "create";
+  const isEditMode = mode === "edit";
   const params = useParams({
-    from:
-      mode === "create"
-        ? Routes.REDUCTION_PROJECT_NEW
-        : Routes.REDUCTION_PROJECT,
+    from: isCreateMode
+      ? Routes.REDUCTION_PROJECT_NEW
+      : Routes.REDUCTION_PROJECT,
   });
 
-  const id = mode === "create" ? undefined : (params as { id: string }).id;
+  const id = isCreateMode ? undefined : (params as { id: string }).id;
 
   const { openExplanation } = useExplanationDialog();
 
@@ -70,18 +71,20 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   ]);
 
   // Derived state
-  const isLoading =
-    mode === "edit"
-      ? isProjectLoading || isLoadingInventories || isLoadingOrgs
-      : false;
-  const hasError =
-    mode === "edit"
-      ? isProjectError || isErrorInventories || isErrorOrgs
-      : false;
-  const status = mode === "edit" ? project?.status : undefined;
+  const isProjectInformationLoading = isEditMode && isProjectLoading;
+
+  const isSelectorsLoading = isLoadingInventories || isLoadingOrgs;
+
+  const isLoading = isProjectInformationLoading || isSelectorsLoading;
+
+  const hasProjectInformationError = isEditMode && isProjectError;
+  const hasSelectorsError = isErrorOrgs || isErrorInventories;
+  const hasError = hasProjectInformationError || hasSelectorsError;
+
+  const status = isEditMode ? project?.status : undefined;
   const isFormDisabled = Boolean(status && !isReductionProjectEditable(status));
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
-  const showFileUpload = mode === "create" || isReviewed;
+  const showFileUpload = isCreateMode || isReviewed;
 
   // Form
   const form = useReductionProjectForm({ project, showFileUpload });
@@ -136,7 +139,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const saveButton: FooterButton | undefined = isFormDisabled
     ? undefined
     : {
-        text: mode === "create" ? "Ingresar Proyecto" : "Subir Cambios",
+        text: isCreateMode ? "Ingresar Proyecto" : "Subir Cambios",
         align: "right",
         buttonProps: {
           variant: "contained",
@@ -160,6 +163,10 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
     isLoading,
     hasError,
   };
+
+  if (hasError) {
+    throw new Error("Error al cargar la información del proyecto de reducción");
+  }
 
   if (!isLoadingOrgs && organizations.length === 0) {
     return (
@@ -211,7 +218,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
               onClick={() => openExplanation(null)}
             />
           </Box>
-          {mode === "edit" && status && (
+          {isEditMode && status && (
             <ReductionProjectStatusChip status={status} size="medium" />
           )}
         </Box>
