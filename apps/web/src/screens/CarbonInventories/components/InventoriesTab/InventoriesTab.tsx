@@ -29,7 +29,7 @@ export const InventoriesTab: FC<Props> = ({ inventories, isLoading }) => {
           headerName: "Nombre",
           align: "left",
           headerAlign: "left",
-          minWidth: 180,
+          minWidth: 225,
           flex: 1,
           cellClassName: "content-center",
           renderCell: (
@@ -104,7 +104,7 @@ export const InventoriesTab: FC<Props> = ({ inventories, isLoading }) => {
           ),
           headerAlign: "center",
           align: "center",
-          minWidth: 150,
+          minWidth: 190,
           flex: 0.8,
           cellClassName: "content-center",
           renderCell: (

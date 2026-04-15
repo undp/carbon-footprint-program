@@ -32,7 +32,7 @@ export const DraftsTab: FC<DraftsTabProps> = ({
           headerName: "Nombre",
           align: "left",
           headerAlign: "left",
-          minWidth: 180,
+          minWidth: 225,
           flex: 1,
           cellClassName: "content-center",
           renderCell: (
