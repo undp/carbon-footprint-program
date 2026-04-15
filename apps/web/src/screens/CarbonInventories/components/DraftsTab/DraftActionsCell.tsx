@@ -13,10 +13,7 @@ import {
   MeasurementRecognitionBehaviorEnum,
   OrganizationDisplayStatusValues,
 } from "@repo/types";
-import {
-  isCarbonInventoryDeletable,
-  isCarbonInventoryEditable,
-} from "@repo/utils";
+import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
 import { SelfDeclareCarbonInventoryDialog } from "../Dialogs/SelfDeclareCarbonInventoryDialog";
 import {
@@ -94,16 +91,11 @@ export const DraftActionsCell: FC<Props> = ({
     useDuplicateCarbonInventory();
 
   const onEditClick = useCallback(() => {
-    const canEdit = isCarbonInventoryEditable(carbonInventory.status);
-    if (!canEdit) {
-      enqueueSnackbar("No se puede editar esta huella", { variant: "info" });
-      return;
-    }
     void navigate({
       to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
       params: { inventoryId: carbonInventory.id },
     });
-  }, [carbonInventory.status, carbonInventory.id, navigate]);
+  }, [carbonInventory.id, navigate]);
 
   const onDuplicateClick = useCallback(async () => {
     try {
