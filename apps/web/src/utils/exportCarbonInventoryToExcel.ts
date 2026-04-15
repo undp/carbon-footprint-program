@@ -49,7 +49,7 @@ function buildSummarySheet(
       "Actividad principal",
       display(
         inventoryAttributes.mainActivityName
-          ? inventoryAttributes.mainActivityQuantity
+          ? inventoryAttributes.mainActivityQuantity != null
             ? `${inventoryAttributes.mainActivityName} (${inventoryAttributes.mainActivityQuantity})`
             : inventoryAttributes.mainActivityName
           : null
