@@ -290,15 +290,6 @@ export const ReductionProjectsScreen: FC = () => {
 
         {/* Container for selectors and button */}
         <Box className="flex gap-3">
-          {/* Create Project Button */}
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleCreateProject}
-          >
-            Ingresar Proyecto
-          </Button>
-
           {/* Organization Selector */}
           <OrganizationSelector
             organizations={organizations}
@@ -333,14 +324,24 @@ export const ReductionProjectsScreen: FC = () => {
 
       <Box className="flex w-full flex-col gap-4 rounded-lg bg-white p-6">
         {/* Section Header */}
-        <Box className="flex items-center gap-1">
-          <Typography variant="h6" fontWeight={600}>
-            Proyectos de reducción
-          </Typography>
-          <InfoButton
-            label="Más información"
-            onClick={() => openExplanation(null)}
-          />
+        <Box className="flex items-center justify-between gap-1">
+          <Box className="flex items-center gap-1">
+            <Typography variant="h6" fontWeight={600}>
+              Proyectos de reducción
+            </Typography>
+            <InfoButton
+              label="Más información"
+              onClick={() => openExplanation(null)}
+            />
+          </Box>
+          {/* Create Project Button */}
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreateProject}
+          >
+            Ingresar Proyecto
+          </Button>
         </Box>
 
         <StylizedDataGrid
