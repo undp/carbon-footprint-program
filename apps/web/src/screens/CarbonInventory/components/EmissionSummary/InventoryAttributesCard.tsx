@@ -42,7 +42,7 @@ export const InventoryAttributesCard: FC<InventoryAttributesCardProps> = ({
   if (!data) {
     return (
       <EmptyStateMessage
-        message="No se encontraron la información de la huella"
+        message="No se encontró la información de la huella"
         className="max-h-[120px]"
       />
     );
