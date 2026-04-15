@@ -56,19 +56,42 @@ export const ReductionProjectsScreen: FC = () => {
     void navigate({ to: Routes.REDUCTION_PROJECT_NEW });
   }, [navigate]);
 
-  const { data: organizations = [], isLoading: isLoadingOrganizations } =
-    useMyOrganizations();
+  const {
+    data: organizations = [],
+    isLoading: isLoadingOrganizations,
+    isError: isMyOrganizationsError,
+  } = useMyOrganizations();
 
-  const { data: verifiedInventories = [], isLoading: isLoadingInventories } =
-    useCarbonInventoriesMinimalData([
-      CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-    ]);
+  const {
+    data: verifiedInventories = [],
+    isLoading: isLoadingInventories,
+    isError: isCarbonInventoriesError,
+  } = useCarbonInventoriesMinimalData([
+    CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
+  ]);
 
-  const { data: projects = [], isLoading: isLoadingProjects } =
-    useReductionProjects(selectedYear, selectedOrganizationId);
+  const {
+    data: projects = [],
+    isLoading: isLoadingProjects,
+    isError: isReductionProjectsError,
+  } = useReductionProjects(selectedYear, selectedOrganizationId);
 
-  const { data: minimalProjects = [], isLoading: isLoadingYears } =
-    useReductionProjectsMinimal();
+  const {
+    data: minimalProjects = [],
+    isLoading: isLoadingYears,
+    isError: isReductionProjectsMinimalError,
+  } = useReductionProjectsMinimal();
+
+  const hasError =
+    isMyOrganizationsError ||
+    isCarbonInventoriesError ||
+    isReductionProjectsError ||
+    isReductionProjectsMinimalError;
+
+  if (hasError)
+    throw new Error(
+      "Error al cargar la información de los proyectos de reducción"
+    );
 
   const availableYears = useMemo(() => {
     const filtered =
