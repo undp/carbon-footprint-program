@@ -66,3 +66,13 @@ export const sanitizeExcelSheetName = (name: string) => {
   // Excel sheet names cannot contain / \ ? * [ ] : and must be ≤31 chars
   return name.replace(/[/\\?*[\]:]/g, "-").slice(0, 31);
 };
+
+const FILENAME_FORBIDDEN = new RegExp(
+  `[<>:"/\\\\|?*${String.fromCharCode(0)}-${String.fromCharCode(31)}]`,
+  "g"
+);
+
+export const sanitizeFilenamePart = (name: string) => {
+  // Remove characters forbidden in filenames on Windows/macOS/Linux and control chars
+  return name.replace(FILENAME_FORBIDDEN, "-").replace(/\s+/g, " ").trim();
+};
