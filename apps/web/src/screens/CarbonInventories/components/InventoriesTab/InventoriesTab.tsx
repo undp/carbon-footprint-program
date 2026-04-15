@@ -127,7 +127,6 @@ export const InventoriesTab: FC<Props> = ({ inventories, isLoading }) => {
           headerName: "Acciones",
           headerAlign: "left",
           align: "left",
-          minWidth: 300,
           flex: 1,
           cellClassName: "content-center max-h-[98px]",
           renderCell: (

@@ -95,7 +95,7 @@ export const DraftActionsCell: FC<Props> = ({
       to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
       params: { inventoryId: carbonInventory.id },
     });
-  }, [navigate, carbonInventory.id]);
+  }, [carbonInventory.id, navigate]);
 
   const onDuplicateClick = useCallback(async () => {
     try {
