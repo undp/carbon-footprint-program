@@ -274,7 +274,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     expect(history[2].files[0]?.originalName).toBe("original-attachment.pdf");
   });
 
-  it("does not expose revision attachments on non-objected reviewed events", async () => {
+  it("exposes revision attachments on reviewed events (APPROVED, REVIEWED, REJECTED)", async () => {
     const organization = await createMemberOrganization();
     const organizationData = await createTestOrganizationData(
       prisma,
@@ -300,7 +300,8 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
       submissionId: submission.id.toString(),
       eventType: SubmissionEventType.APPROVED,
     });
-    expect(history[0].files).toEqual([]);
+    expect(history[0].files).toHaveLength(1);
+    expect(history[0].files[0]?.originalName).toBe("internal-note.pdf");
   });
 
   it("returns 503 when there are attached files but storage is not configured", async () => {
