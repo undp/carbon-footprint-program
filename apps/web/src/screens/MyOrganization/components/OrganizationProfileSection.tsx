@@ -1,6 +1,16 @@
-import { FC, memo } from "react";
+import React, { FC, memo, useCallback, useMemo, useState } from "react";
 import { Edit, StarOutline } from "@mui/icons-material";
-import { Typography, useTheme, Theme } from "@mui/material";
+import {
+  Typography,
+  useTheme,
+  Theme,
+  IconButton,
+  Popper,
+  Fade,
+  Box,
+  ClickAwayListener,
+  Tooltip,
+} from "@mui/material";
 import { SectionCard } from "./SectionCard";
 import { InfoCard } from "./InfoCard";
 import { InfoRow } from "./InfoRow";
@@ -11,10 +21,14 @@ import {
   SubmissionStatus,
   OrganizationDisplayStatus,
   OrganizationDisplayStatusValues,
+  SubmissionEventType,
 } from "@repo/types";
 import { useAccreditationDialog } from "../hooks";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
+import { useGetOrganizationHistory } from "@/api/query";
+import { HistoryCard } from "@/components/dialogs/SubmissionHistory";
+import { VisibilityOutlined } from "@mui/icons-material";
 
 const DISPLAY_STATUS_LABELS: Record<OrganizationDisplayStatus, string> = {
   [OrganizationDisplayStatusValues.ACCREDITED]: capitalize(
@@ -69,7 +83,30 @@ const OrganizationProfileSectionComponent: FC<
 > = ({ profile, onEdit, canManageOrganization }) => {
   const representative = profile.representative;
   const theme = useTheme();
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [open, setOpen] = useState(false);
+  const [arrowRef, setArrowRef] = useState<HTMLElement | null>(null);
+
+  const handleClick = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+    setOpen((previousOpen) => !previousOpen);
+  }, []);
+
+  const handleClickAway = useCallback(() => {
+    setOpen(false);
+  }, []);
+
+  const canBeOpen = open && Boolean(anchorEl);
+  const id = canBeOpen ? "transition-popper" : undefined;
+
   const accreditationDialog = useAccreditationDialog(profile.id);
+
+  const orgHistory = useGetOrganizationHistory(profile.id);
+
+  const lastSubmission = useMemo(
+    () => orgHistory.data?.[0] ?? null,
+    [orgHistory.data]
+  );
 
   const actions = canManageOrganization
     ? [
@@ -120,13 +157,99 @@ const OrganizationProfileSectionComponent: FC<
             <InfoRow
               label="Estado última solicitud"
               value={
-                <RequestStatusChip
-                  label={SUBMISSION_STATUS_LABELS[profile.lastSubmissionStatus]}
-                  color={getSubmissionStatusColor(
-                    profile.lastSubmissionStatus,
-                    theme
-                  )}
-                />
+                <Box className="flex flex-row items-center gap-1">
+                  <RequestStatusChip
+                    label={
+                      SUBMISSION_STATUS_LABELS[profile.lastSubmissionStatus]
+                    }
+                    color={getSubmissionStatusColor(
+                      profile.lastSubmissionStatus,
+                      theme
+                    )}
+                  />
+                  {lastSubmission?.eventType === SubmissionEventType.REVIEWED &&
+                    profile.lastSubmissionStatus ===
+                      SubmissionStatus.REVIEWED && (
+                      <>
+                        <Tooltip
+                          title="Ver detalles de la revisión"
+                          placement="top"
+                        >
+                          <IconButton
+                            loading={orgHistory.isLoading}
+                            aria-describedby={id}
+                            aria-label="Ver detalles de la revisión"
+                            aria-expanded={open}
+                            onClick={handleClick}
+                            size="small"
+                          >
+                            <VisibilityOutlined />
+                          </IconButton>
+                        </Tooltip>
+                        <Popper
+                          id={id}
+                          open={open}
+                          anchorEl={anchorEl}
+                          transition
+                          placement="bottom"
+                          modifiers={[
+                            {
+                              name: "arrow",
+                              enabled: true,
+                              options: {
+                                element: arrowRef,
+                              },
+                            },
+                          ]}
+                          sx={{
+                            '&[data-popper-placement*="bottom"] .popper-arrow':
+                              {
+                                top: 0,
+                                marginTop: "-0.5em",
+                                "&::before": {
+                                  borderWidth: "0 1em 1em 1em",
+                                  borderColor: `transparent transparent white transparent`,
+                                },
+                              },
+
+                            ".popper-arrow": {
+                              position: "absolute",
+                              fontSize: 14,
+                              width: "3em",
+                              height: "3em",
+                              "&::before": {
+                                content: '""',
+                                margin: "auto",
+                                display: "block",
+                                width: 0,
+                                height: 0,
+                                borderStyle: "solid",
+                              },
+                            },
+                          }}
+                        >
+                          {({ TransitionProps }) => (
+                            <Fade {...TransitionProps} timeout={350}>
+                              <Box>
+                                <Box
+                                  component="span"
+                                  className="popper-arrow"
+                                  ref={setArrowRef}
+                                />
+                                <ClickAwayListener
+                                  onClickAway={handleClickAway}
+                                >
+                                  <Box className="w-[700px] rounded-[10px] border-2 shadow-lg">
+                                    <HistoryCard entry={lastSubmission} />
+                                  </Box>
+                                </ClickAwayListener>
+                              </Box>
+                            </Fade>
+                          )}
+                        </Popper>
+                      </>
+                    )}
+                </Box>
               }
             />
           )}

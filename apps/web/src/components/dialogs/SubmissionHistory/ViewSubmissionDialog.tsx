@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC } from "react";
 import {
   Box,
   Button,
@@ -57,11 +57,6 @@ export const ViewSubmissionDialog: FC<Props> = ({
     handleReviewSubmission,
     handleNavigateToInventory,
   } = useViewSubmission({ carbonInventoryId, organizationId, onClose });
-
-  const allFiles = useMemo(
-    () => [submission?.files, submission?.recognitions].flat(),
-    [submission?.files, submission?.recognitions]
-  );
 
   return (
     <Dialog
@@ -123,7 +118,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   submissionType={submission.submissionType}
                 />
 
-                <Box sx={{ p: 2 }}>
+                <Box className="gap-2 p-2">
                   {/* Date pill */}
                   <Stack
                     direction="row"
@@ -185,8 +180,17 @@ export const ViewSubmissionDialog: FC<Props> = ({
                   {submissionComment && (
                     <SubmissionCommentsSection comment={submissionComment} />
                   )}
-
-                  {allFiles.length > 0 && <FilesSection files={allFiles} />}
+                  <Stack direction="column" spacing={2}>
+                    {submission.files.length > 0 && (
+                      <FilesSection files={submission.files} />
+                    )}
+                    {submission.recognitions.length > 0 && (
+                      <FilesSection
+                        files={submission.recognitions}
+                        variant="recognitions"
+                      />
+                    )}
+                  </Stack>
 
                   {submission.organizationData &&
                     isOrganizationAccreditation && (

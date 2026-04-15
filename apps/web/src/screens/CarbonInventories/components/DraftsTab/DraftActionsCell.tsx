@@ -11,6 +11,7 @@ import {
   GetAllCarbonInventoriesResponse,
   SystemParameterKeyEnum,
   MeasurementRecognitionBehaviorEnum,
+  OrganizationDisplayStatusValues,
 } from "@repo/types";
 import { isCarbonInventoryDeletable } from "@repo/utils";
 import { DeleteConfirmationDialog } from "../Dialogs/DeleteConfirmationDialog";
@@ -118,6 +119,13 @@ export const DraftActionsCell: FC<Props> = ({
       setSelfDeclareValidationReason("missing-year");
       return;
     }
+    if (
+      carbonInventory.organizationDisplayStatus !==
+      OrganizationDisplayStatusValues.ACCREDITED
+    ) {
+      setSelfDeclareValidationReason("organization-not-accredited");
+      return;
+    }
     if (isYearAlreadySelfDeclared) {
       setSelfDeclareValidationReason("inventory-year-already-declared");
       return;
@@ -127,6 +135,7 @@ export const DraftActionsCell: FC<Props> = ({
     carbonInventory.organizationId,
     carbonInventory.name,
     carbonInventory.year,
+    carbonInventory.organizationDisplayStatus,
     isYearAlreadySelfDeclared,
   ]);
 

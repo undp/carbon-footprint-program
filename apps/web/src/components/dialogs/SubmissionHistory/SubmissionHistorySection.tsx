@@ -12,7 +12,7 @@ type Props = {
   history: SubmissionHistoryEntry[];
 };
 
-const HistoryCard: FC<{
+export const HistoryCard: FC<{
   entry: SubmissionHistoryEntry;
 }> = ({ entry }) => {
   const theme = useTheme();
@@ -88,6 +88,13 @@ const HistoryCard: FC<{
 
         {entry.files.length > 0 && (
           <FilesSection files={entry.files} sx={{ mt: 1.5 }} />
+        )}
+        {entry.recognitions.length > 0 && (
+          <FilesSection
+            files={entry.recognitions}
+            sx={{ mt: 1.5 }}
+            variant="recognitions"
+          />
         )}
       </Box>
     </Paper>
