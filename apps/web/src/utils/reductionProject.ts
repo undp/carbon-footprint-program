@@ -3,7 +3,7 @@ import {
   ReductionProjectDisplayStatusEnum,
 } from "@repo/types";
 
-const STATUS_LABELS = {
+const STATUS_LABELS: Record<ReductionProjectDisplayStatus, string> = {
   [ReductionProjectDisplayStatusEnum.DRAFT]: "Borrador",
   [ReductionProjectDisplayStatusEnum.SUBMITTED]: "En revisión",
   [ReductionProjectDisplayStatusEnum.REVIEWED]: "Con observaciones",
