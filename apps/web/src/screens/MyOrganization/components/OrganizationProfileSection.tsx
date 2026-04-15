@@ -176,6 +176,7 @@ const OrganizationProfileSectionComponent: FC<
                           placement="top"
                         >
                           <IconButton
+                            loading={orgHistory.isLoading}
                             aria-describedby={id}
                             aria-label="Ver detalles de la revisión"
                             aria-expanded={open}
