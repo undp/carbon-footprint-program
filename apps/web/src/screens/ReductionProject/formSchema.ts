@@ -77,7 +77,7 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           message: `El año no puede ser posterior al año de la huella (${data.year})`,
         });
       }
-      if (data.baselineScenario < data.projectScenario) {
+      if (Number(data.baselineScenario) < Number(data.projectScenario)) {
         ctx.addIssue({
           code: "custom",
           path: ["baselineScenario"],
