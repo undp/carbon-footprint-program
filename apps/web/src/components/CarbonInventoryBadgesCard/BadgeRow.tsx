@@ -6,7 +6,8 @@ const subjectTypeToLabelMap: Record<BadgeType, string> = {
   [BadgeType.CARBON_INVENTORY_CALCULATION]: "Huella Latam - Medición",
   [BadgeType.CARBON_INVENTORY_VERIFICATION]: "Huella Latam - Verificación",
   [BadgeType.ORGANIZATION_ACCREDITATION]: "Huella Latam - Acreditación",
-  [BadgeType.REDUCTION_PLAN_VERIFICATION]: "Huella Latam - Plan de Reducción",
+  [BadgeType.REDUCTION_PROJECT_VERIFICATION]:
+    "Huella Latam - Proyecto de reducción",
   [BadgeType.NEUTRALIZATION_PLAN_VERIFICATION]:
     "Huella Latam - Plan de Neutralización",
 };

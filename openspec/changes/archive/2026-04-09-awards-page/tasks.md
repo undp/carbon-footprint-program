@@ -50,7 +50,7 @@
 - [ ] 8.1 Create `apps/web/src/screens/Awards/AwardsScreen.tsx` with the page layout: header row (org name, year selector, org selector), summary cards section, and table section
 - [ ] 8.2 Implement year selector (MUI FormControl + Select) with "Todos" default, deriving available years from fetched badge data
 - [ ] 8.3 Implement organization selector reusing the existing `OrganizationSelector` component
-- [ ] 8.4 Implement the four badge summary cards (`CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, `REDUCTION_PLAN_VERIFICATION`, `NEUTRALIZATION_PLAN_VERIFICATION`) showing count from badges data and seal image preview from badge previews endpoint, with labels: Reconocimiento de Medición, Reconocimiento de Verificación, Reconocimiento de Reducción, Reconocimiento de Neutralización
+- [ ] 8.4 Implement the four badge summary cards (`CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, `REDUCTION_PROJECT_VERIFICATION`, `NEUTRALIZATION_PLAN_VERIFICATION`) showing count from badges data and seal image preview from badge previews endpoint, with labels: Diploma Medición, Sello Verificación, Sello Reducción, Sello Neutralización
 - [ ] 8.5 Implement the recognitions table using `StylizedDatagrid` with `disableColumnSorting={false}` and columns: Fecha otorgado, Año medición, Reconocimiento, Huella tCO₂e, Estado, Acciones
 - [ ] 8.6 Set default `sortModel` to `[{ field: 'measurementYear', sort: 'desc' }, { field: 'badgeType', sort: 'asc' }]`
 - [ ] 8.7 Render the "Estado" column as a MUI Chip with green background for APPROVED ("OTORGADO")

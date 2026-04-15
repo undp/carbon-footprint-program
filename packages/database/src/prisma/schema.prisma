@@ -75,39 +75,39 @@ model CountryOrganizationSize {
 }
 
 model CountrySector {
-  id                         BigInt                     @id @default(autoincrement())
-  countryId                  BigInt                     @map("country_id")
+  id                         BigInt                      @id @default(autoincrement())
+  countryId                  BigInt                      @map("country_id")
   name                       String
-  createdAt                  DateTime                   @default(now()) @map("created_at")
-  updatedAt                  DateTime?                  @updatedAt @map("updated_at")
-  createdById                BigInt?                    @map("created_by_id")
-  updatedById                BigInt?                    @map("updated_by_id")
-  country                    Country                    @relation(fields: [countryId], references: [id])
-  creator                    User?                      @relation("country_sector_created_by", fields: [createdById], references: [id])
-  updater                    User?                      @relation("country_sector_updated_by", fields: [updatedById], references: [id])
-  subsectors                   CountrySubsector[]
-  organizationMainActivities   OrganizationMainActivity[]
-  organizationData             OrganizationData[]
-  subcategoryRecommendations   SubcategoryRecommendation[]
+  createdAt                  DateTime                    @default(now()) @map("created_at")
+  updatedAt                  DateTime?                   @updatedAt @map("updated_at")
+  createdById                BigInt?                     @map("created_by_id")
+  updatedById                BigInt?                     @map("updated_by_id")
+  country                    Country                     @relation(fields: [countryId], references: [id])
+  creator                    User?                       @relation("country_sector_created_by", fields: [createdById], references: [id])
+  updater                    User?                       @relation("country_sector_updated_by", fields: [updatedById], references: [id])
+  subsectors                 CountrySubsector[]
+  organizationMainActivities OrganizationMainActivity[]
+  organizationData           OrganizationData[]
+  subcategoryRecommendations SubcategoryRecommendation[]
 
   @@unique([countryId, name])
   @@map("country_sector")
 }
 
 model CountrySubsector {
-  id                         BigInt                     @id @default(autoincrement())
-  countrySectorId            BigInt                     @map("country_sector_id")
+  id                         BigInt                      @id @default(autoincrement())
+  countrySectorId            BigInt                      @map("country_sector_id")
   name                       String
-  createdAt                  DateTime                   @default(now()) @map("created_at")
-  updatedAt                  DateTime?                  @updatedAt @map("updated_at")
-  createdById                BigInt?                    @map("created_by_id")
-  updatedById                BigInt?                    @map("updated_by_id")
-  countrySector              CountrySector              @relation(fields: [countrySectorId], references: [id])
-  creator                    User?                      @relation("country_subsector_created_by", fields: [createdById], references: [id])
-  updater                    User?                      @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
-  organizationMainActivities   OrganizationMainActivity[]
-  organizationData             OrganizationData[]
-  subcategoryRecommendations   SubcategoryRecommendation[]
+  createdAt                  DateTime                    @default(now()) @map("created_at")
+  updatedAt                  DateTime?                   @updatedAt @map("updated_at")
+  createdById                BigInt?                     @map("created_by_id")
+  updatedById                BigInt?                     @map("updated_by_id")
+  countrySector              CountrySector               @relation(fields: [countrySectorId], references: [id])
+  creator                    User?                       @relation("country_subsector_created_by", fields: [createdById], references: [id])
+  updater                    User?                       @relation("country_subsector_updated_by", fields: [updatedById], references: [id])
+  organizationMainActivities OrganizationMainActivity[]
+  organizationData           OrganizationData[]
+  subcategoryRecommendations SubcategoryRecommendation[]
 
   @@unique([countrySectorId, name])
   @@map("country_subsector")
@@ -240,6 +240,8 @@ model User {
   carbonInventoriesCreated             CarbonInventory[]              @relation("carbon_inventory_created_by")
   carbonInventoriesUpdated             CarbonInventory[]              @relation("carbon_inventory_updated_by")
   carbonInventoriesSelfDeclared        CarbonInventory[]              @relation("carbon_inventory_self_declared_by")
+  reductionProjectsCreated             ReductionProject[]             @relation("reduction_project_created_by")
+  reductionProjectsUpdated             ReductionProject[]             @relation("reduction_project_updated_by")
   methodologyVersionsCreated           MethodologyVersion[]           @relation("methodology_version_created_by")
   methodologyVersionsUpdated           MethodologyVersion[]           @relation("methodology_version_updated_by")
   categoriesCreated                    Category[]                     @relation("category_created_by")
@@ -440,6 +442,7 @@ model Subcategory {
   subcategoryMeasurementUnits SubcategoryMeasurementUnit[]
   recommendations             SubcategoryRecommendation[]
   reductionPlanInitiatives    ReductionPlanInitiative[]
+  reductionProjects           ReductionProject[]           @relation("reduction_project_subcategory")
 
   // Partial unique index exists in SQL migration:
   // ("category_id", "name") WHERE status <> 'DELETED'
@@ -603,6 +606,7 @@ model CarbonInventory {
   subtotals            CarbonInventorySubtotalsView[]
   organization         Organization?                     @relation(fields: [organizationId], references: [id])
   submission           SubmissionSubjectCarbonInventory?
+  reductionProjects    ReductionProject[]                @relation("reduction_project_carbon_inventory")
 
   @@map("carbon_inventory")
 }
@@ -779,6 +783,7 @@ model Organization {
   updater           User?                        @relation("organization_updated_by", fields: [updatedById], references: [id])
   data              OrganizationData[]
   carbonInventories CarbonInventory[]
+  reductionProjects ReductionProject[]
   memberships       UserOrganizationMembership[]
   summary           OrganizationSummaryView?
 
@@ -886,6 +891,7 @@ model SubmissionSubject {
   submissions      Submission[]
   carbonInventory  SubmissionSubjectCarbonInventory?
   organizationData SubmissionSubjectOrganizationData?
+  reductionProject SubmissionSubjectReductionProject?
 
   @@map("submission_subject")
 }
@@ -908,6 +914,54 @@ model SubmissionSubjectOrganizationData {
   @@map("submission_subject_organization_data")
 }
 
+enum ReductionProjectStatus {
+  ACTIVE
+  DELETED
+
+  @@map("reduction_project_status")
+}
+
+model ReductionProject {
+  id                           BigInt                 @id @default(autoincrement())
+  name                         String
+  organizationId               BigInt                 @map("organization_id")
+  carbonInventoryId            BigInt                 @map("carbon_inventory_id")
+  implementationDate           String                 @map("implementation_date")
+  description                  String
+  subcategoryId                BigInt                 @map("subcategory_id")
+  gwpUsed                      String?                @map("gwp_used")
+  consideredGei                String[]               @map("considered_gei")
+  reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
+  reportedElsewhereDescription String?                @map("reported_elsewhere_description")
+  year                         Int?
+  baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(15, 4)
+  projectScenario              Decimal                @map("project_scenario") @db.Decimal(15, 4)
+  status                       ReductionProjectStatus @default(ACTIVE)
+  createdAt                    DateTime               @default(now()) @map("created_at")
+  updatedAt                    DateTime?              @updatedAt @map("updated_at")
+  createdById                  BigInt?                @map("created_by_id")
+  updatedById                  BigInt?                @map("updated_by_id")
+
+  organization    Organization                       @relation(fields: [organizationId], references: [id])
+  carbonInventory CarbonInventory                    @relation("reduction_project_carbon_inventory", fields: [carbonInventoryId], references: [id])
+  subcategory     Subcategory                        @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id])
+  creator         User?                              @relation("reduction_project_created_by", fields: [createdById], references: [id])
+  updater         User?                              @relation("reduction_project_updated_by", fields: [updatedById], references: [id])
+  submission      SubmissionSubjectReductionProject?
+
+  @@map("reduction_projects")
+}
+
+model SubmissionSubjectReductionProject {
+  subjectId          BigInt @id @map("subject_id")
+  reductionProjectId BigInt @unique @map("reduction_project_id")
+
+  subject          SubmissionSubject @relation(fields: [subjectId], references: [id])
+  reductionProject ReductionProject  @relation(fields: [reductionProjectId], references: [id])
+
+  @@map("submission_subject_reduction_projects")
+}
+
 enum SubmissionStatus {
   PENDING
   APPROVED
@@ -922,7 +976,7 @@ enum SubmissionType {
   ORGANIZATION_ACCREDITATION
   CARBON_INVENTORY_CALCULATION
   CARBON_INVENTORY_VERIFICATION
-  REDUCTION_PLAN_VERIFICATION
+  REDUCTION_PROJECT_VERIFICATION
   NEUTRALIZATION_PLAN_VERIFICATION
 
   @@map("submission_type")
@@ -973,7 +1027,7 @@ enum BadgeType {
   ORGANIZATION_ACCREDITATION
   CARBON_INVENTORY_CALCULATION
   CARBON_INVENTORY_VERIFICATION
-  REDUCTION_PLAN_VERIFICATION
+  REDUCTION_PROJECT_VERIFICATION
   NEUTRALIZATION_PLAN_VERIFICATION
 
   @@map("badge_type")

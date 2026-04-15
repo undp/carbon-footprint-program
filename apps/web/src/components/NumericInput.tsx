@@ -1,11 +1,13 @@
 import { ChangeEventHandler, FC } from "react";
 import { InputAdornment, TextField, TextFieldProps } from "@mui/material";
+import type { FieldError } from "react-hook-form";
 
 interface Props extends Omit<TextFieldProps, "onChange" | "value"> {
   onChange: ChangeEventHandler<HTMLInputElement>;
   value?: number | null;
   suffix?: string;
   min?: number;
+  fieldError?: FieldError;
 }
 
 export const NumericInput: FC<Props> = ({
@@ -14,6 +16,9 @@ export const NumericInput: FC<Props> = ({
   suffix,
   min,
   sx,
+  fieldError,
+  error,
+  helperText,
   ...props
 }) => {
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -53,6 +58,8 @@ export const NumericInput: FC<Props> = ({
       fullWidth
       value={value ?? ""}
       placeholder="0"
+      error={error || !!fieldError}
+      helperText={helperText ?? fieldError?.message}
       slotProps={{
         input: {
           endAdornment: suffix && (

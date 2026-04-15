@@ -37,10 +37,10 @@ The page SHALL display four summary cards, one per badge type: Reconocimiento de
 
 Badge type to display label mapping:
 
-- `CARBON_INVENTORY_CALCULATION` → "Reconocimiento de Medición"
-- `CARBON_INVENTORY_VERIFICATION` → "Reconocimiento de Verificación"
-- `REDUCTION_PLAN_VERIFICATION` → "Reconocimiento de Reducción"
-- `NEUTRALIZATION_PLAN_VERIFICATION` → "Reconocimiento de Neutralización"
+- `CARBON_INVENTORY_CALCULATION` → "Diploma Medición"
+- `CARBON_INVENTORY_VERIFICATION` → "Sello Verificación"
+- `REDUCTION_PROJECT_VERIFICATION` → "Sello Reducción"
+- `NEUTRALIZATION_PLAN_VERIFICATION` → "Sello Neutralización"
 
 #### Scenario: All badge types represented
 

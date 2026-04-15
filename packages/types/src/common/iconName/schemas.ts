@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+// Deleting any entries from this enum could potentially break the application.
+// This enum is used to type and parse the icon name from the database.
+// if you need to delete an entry, you must first delete or modify the related data from the database.
 export const IconNameSchema = z.enum([
   "FACTORY",
   "BOLT",

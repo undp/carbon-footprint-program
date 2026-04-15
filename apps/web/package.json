@@ -30,6 +30,7 @@
     "@mui/x-charts": "^8.20.0",
     "@mui/x-data-grid": "^8.20.0",
     "@mui/x-date-pickers": "^8.19.0",
+    "@repo/constants": "workspace:*",
     "@repo/types": "workspace:*",
     "@repo/utils": "workspace:*",
     "@tailwindcss/typography": "^0.5.19",

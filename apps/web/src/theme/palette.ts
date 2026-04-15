@@ -14,14 +14,14 @@ const requestTypeColors: Record<RequestType, string> = {
   [RequestType.ORGANIZATION_ACCREDITATION]: "#1565C0",
   [RequestType.CARBON_INVENTORY_CALCULATION]: "#1E8449",
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#4A4A4A",
-  [RequestType.REDUCTION_PLAN_VERIFICATION]: "#B8860B",
+  [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#B8860B",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#117A65",
 };
 
 const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
   [RequestType.CARBON_INVENTORY_CALCULATION]: `#89F8AF`,
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
-  [RequestType.REDUCTION_PLAN_VERIFICATION]: "#F7D634",
+  [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#F7D634",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
 };
 

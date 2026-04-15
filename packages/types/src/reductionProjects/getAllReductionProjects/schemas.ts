@@ -1,0 +1,38 @@
+import { z } from "zod";
+import { ReductionProjectDisplayStatusSchema } from "../schemas.js";
+import { IdSchema } from "../../zod.js";
+import { ReductionProjectBaseSchema } from "../../baseSchemas/reductionProject.js";
+
+export const GetAllReductionProjectsQuerySchema = z.object({
+  organizationId: IdSchema.optional().describe(
+    "Filter by organization ID. Omit for all accessible organizations."
+  ),
+  year: z
+    .string()
+    .regex(/^\d+$/, "Year must be a valid number")
+    .optional()
+    .describe('Filter by reporting year (e.g. "2024")'),
+});
+
+const ReductionProjectListItemSchema = ReductionProjectBaseSchema.pick({
+  id: true,
+  name: true,
+  year: true,
+}).extend({
+  firstReportDate: z.iso
+    .datetime()
+    .describe("First report timestamp (creation time of the project row)"),
+  totalReduction: z
+    .number()
+    .nullable()
+    .describe(
+      "baselineScenario minus projectScenario when both are set; otherwise null"
+    ),
+  status: ReductionProjectDisplayStatusSchema.describe(
+    "Workflow display status derived from submissions"
+  ),
+});
+
+export const GetAllReductionProjectsResponseSchema = z.array(
+  ReductionProjectListItemSchema
+);
