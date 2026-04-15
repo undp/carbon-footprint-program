@@ -1,6 +1,6 @@
 ## Context
 
-The admin section already has pages for organization management (`AdminOrganizationsScreen`) and request management (`AdminRequestsScreen`), both following a Header + KPI Cards + DataTable pattern. The dashboard route (`/admin/dashboard`) currently renders `UnderConstructionScreen` and needs to become the admin landing page — an aggregated overview pulling data from organizations, carbon inventories, submissions, and badges.
+The admin section already has pages for organization management (`AdminOrganizationsScreen`) and request management (`AdminRequestsScreen`), both following a Header + KPI Cards + DataTable pattern. The dashboard route (`/admin/dashboard`) currently renders `UnderConstructionScreen` and needs to become the admin landing page — an aggregated overview pulling data from organizations, carbon inventories, and submissions.
 
 Existing API endpoints already serve some of this data (e.g., `getOrganizationKpis`, `getRequestsKpis`, `getSectorRanking`, `getEmissionsSummaryCategories`), but there is no single aggregated dashboard endpoint. The frontend uses TanStack React Query hooks, MUI components, and `@mui/x-charts` (v8.20.0) for visualizations.
 
@@ -26,23 +26,34 @@ Existing API endpoints already serve some of this data (e.g., `getOrganizationKp
 
 **Decision**: Three new API endpoints under `apps/api/src/features/dashboard/admin/`:
 
-- `GET /api/admin/dashboard/kpis?year=` — returns all KPI counts (organizations, emissions, submissions, recognitions)
-- `GET /api/admin/dashboard/sector-chart?year=` — returns top-5 organizations per sector for the bar chart
-- `GET /api/admin/dashboard/category-chart?year=` — returns emissions distribution per category for the pie chart
+- `GET /api/admin/dashboard/kpis?year=` — returns all KPI counts (organizations, emissions, recognitions)
+- `GET /api/admin/dashboard/sector-chart?limit=&year=` — returns both top-N organizations per sector (`sectorRanking`) and top-N emissions per sector (`sectorEmissions`) in a single response, used by the "Empresas" and "Emisiones" tabs respectively
+- `GET /api/admin/dashboard/category-chart?year=` — returns emissions distribution per category grouped by methodology. Each methodology entry includes its id, name, and category emissions. The frontend renders a methodology selector when multiple methodologies exist. Called with or without year filter (aggregates all years when no filter)
 
-**Rationale**: Splitting into three keeps each payload single-purpose and allows independent loading of KPI cards, sector chart, and category chart. Each section can render as its data arrives without blocking the others.
+**Rationale**: Splitting into three keeps payloads focused. The sector chart endpoint returns both org counts and emissions in one call since the data shares the same filters (`limit`, `year`) and sector resolution logic — this avoids duplicating the sector lookup query. The "Distribución por Alcance" card always shows the category pie chart (aggregating all years when no filter is active, or filtering to a specific year). The yearly emissions chart endpoint was removed as the category chart now serves both filtered and unfiltered views.
 
-**Alternatives considered**: Reusing existing endpoints (`getOrganizationKpis`, `getRequestsKpis`, etc.) — rejected because they don't return all the fields needed (e.g., self-declared count, verified emissions). A single charts endpoint was considered but splitting allows independent caching and loading states.
+**Alternatives considered**:
+
+- Reusing existing endpoints (`getOrganizationKpis`, `getRequestsKpis`, etc.) — rejected because they don't return all the fields needed.
+- Reusing `getEmissionsSummaryCategories` for the category pie chart — rejected because it fetches data for a single carbon inventory, not aggregated across all inventories for a given year. The dashboard needs the big picture for the entire year.
 
 ### 2. Year filter behavior
 
-**Decision**: The year selector defaults to "Todas" (no filter applied). When a year is selected, it is passed as an optional `year` query parameter to all four endpoints (three new + existing requests KPIs). The API filters on `CarbonInventory.year` for inventory-related data, `Submission.createdAt` year for submission counts, and `Badge`-related queries through their submission dates.
+**Decision**: The year selector defaults to "Todas" (no filter applied). When a year is selected, it is passed as an optional `year` query parameter to all endpoints (four new + existing requests KPIs). Each data point filters differently:
 
-**Rationale**: Matches the user requirement of optional filtering with "Todas" as default. Using the inventory year (not creation year) for emissions data is consistent with how the platform organizes measurement periods.
+- **Organization counts** (KPIs endpoint): Cumulative — counts organizations whose `ORGANIZATION_ACCREDITATION` submission was approved up to and including the selected year. This is an accumulative KPI.
+- **Emissions totals** (KPIs endpoint): Filters by `CarbonInventory.year = selectedYear`.
+- **Recognition counts** (KPIs endpoint): Filters by the `year` field of the carbon inventory associated to each submission.
+- **Sector ranking by orgs** (sector chart endpoint): Cumulative — counts accredited organizations whose accreditation was approved up to and including the selected year (same logic as organization KPIs).
+- **Sector ranking by emissions** (sector chart endpoint): Filters by `CarbonInventory.year = selectedYear`.
+- **Emissions by category** (category chart endpoint): Always called. Filters by `CarbonInventory.year = selectedYear` when a year is selected, or aggregates all years when "Todas" is active.
+- **Submissions by status** (requests KPIs endpoint): Filters by the `year` field of the carbon inventory associated to each submission.
+
+**Rationale**: Organization counts are cumulative (by accreditation approval date) because the platform grows over time and admins want to see the total accredited base at a point in time. Emissions and recognitions filter by inventory year because that represents the measurement period. Submissions filter through their associated inventory year for consistency. Note: when no year filter is active ("Todas"), `measuringOrganizations` applies a last-2-years window (matching the `organization_carbon_inventories_summary` view) rather than counting all years.
 
 ### 3. Charts implementation
 
-**Decision**: Use `@mui/x-charts/BarChart` for the sector ranking (horizontal) and `@mui/x-charts/PieChart` for the category emissions distribution. Data is pre-aggregated on the API side.
+**Decision**: Use `@mui/x-charts/BarChart` for both sector ranking views (vertical, toggled via tabs) and `@mui/x-charts/PieChart` for the category emissions distribution. Data is pre-aggregated on the API side. The sector card includes "Empresas" / "Emisiones" tabs in the upper-right corner to switch between org count and emissions views.
 
 **Rationale**: The project already depends on `@mui/x-charts` v8.20.0 (PieChart is already used in `EmissionsPieChart.tsx` for emissions results). Both chart types are included in the same package — no new dependencies. The pie chart is a natural fit for showing proportional category distribution. Pre-aggregating on the API avoids sending raw data to the frontend.
 
@@ -62,4 +73,4 @@ Existing API endpoints already serve some of this data (e.g., `getOrganizationKp
 
 - **[Performance on large datasets]** → Aggregation queries on submissions and inventories may slow down as data grows. Mitigation: Use COUNT queries with WHERE clauses (no full table scans). If needed later, add database views or materialized aggregations.
 - **[Stale data]** → Dashboard shows point-in-time counts, not live data. Mitigation: Standard React Query cache with reasonable staleTime (30s). Acceptable for admin overview use case.
-- **[Year filter edge cases]** → An inventory spanning year boundaries or a submission created in a different year than its inventory. Mitigation: Filter inventories by `year` field (explicit measurement year) and submissions by `createdAt` year. Document this in API response types.
+- **[Year filter edge cases]** → A submission may have been created in a different calendar year than its associated inventory's measurement year. Mitigation: All endpoints use `CarbonInventory.year` as the single source of truth for year filtering — submission queries join through the inventory relationship and filter on `CarbonInventory.year`, never on `Submission.createdAt`.
