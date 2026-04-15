@@ -77,6 +77,13 @@ export const createReductionProjectFormSchema = (showFileUpload: boolean) =>
           message: `El año no puede ser posterior al año de la huella (${data.year})`,
         });
       }
+      if (data.baselineScenario < data.projectScenario) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["baselineScenario"],
+          message: "El escenario base no puede ser inferior al del proyecto",
+        });
+      }
     });
 
 export type ReductionProjectFormValues = z.infer<
