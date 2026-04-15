@@ -210,7 +210,7 @@ export async function exportCarbonInventoryToExcel(
   buildSummarySheet(workbook, summaryData, year);
   buildFactorsSheet(workbook, factorsData);
 
-  const safeName = sanitizeFilenamePart(inventoryName ?? "huella");
+  const safeName = sanitizeFilenamePart(inventoryName ?? "") || "huella";
   const yearSuffix = year != null ? `-${year}` : "";
   const filename = `${safeName}${yearSuffix}-resumen-emisiones.xlsx`;
   await downloadWorkbook(workbook, filename);
