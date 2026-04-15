@@ -11,6 +11,7 @@ export const mapAdminSubmissionSummaryToResponse = (
   organizationId: submission.organizationId.toString(),
   organizationName: submission.organizationName ?? "",
   carbonInventoryId: submission.carbonInventoryId?.toString() ?? null,
+  reductionProjectId: submission.reductionProjectId?.toString() ?? null,
   type: submission.type,
   year: submission.period,
   status: submission.status,

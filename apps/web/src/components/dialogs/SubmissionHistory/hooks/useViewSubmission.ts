@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useSnackbar } from "notistack";
 import { useGetCarbonInventoryHistory } from "@/api/query/submissions/useGetCarbonInventoryHistory";
 import { useGetOrganizationHistory } from "@/api/query/submissions/useGetOrganizationHistory";
+import { useGetReductionProjectHistory } from "@/api/query/submissions/useGetReductionProjectHistory";
 import { useApproveRequest } from "@/api/query/requests/useApproveRequest";
 import { useReviewSubmission } from "@/api/query/requests/useReviewSubmission";
 import {
@@ -15,12 +16,14 @@ import { Routes } from "@/interfaces/routes/routes.const";
 type UseViewSubmissionParams = {
   carbonInventoryId?: string | null;
   organizationId?: string | null;
+  reductionProjectId?: string | null;
   onClose: () => void;
 };
 
 export const useViewSubmission = ({
   carbonInventoryId,
   organizationId,
+  reductionProjectId,
   onClose,
 }: UseViewSubmissionParams) => {
   const { enqueueSnackbar } = useSnackbar();
@@ -29,8 +32,15 @@ export const useViewSubmission = ({
     carbonInventoryId ?? undefined
   );
   const orgHistory = useGetOrganizationHistory(organizationId ?? undefined);
+  const rpHistory = useGetReductionProjectHistory(
+    reductionProjectId ?? undefined
+  );
 
-  const activeQuery = carbonInventoryId ? ciHistory : orgHistory;
+  const activeQuery = carbonInventoryId
+    ? ciHistory
+    : reductionProjectId
+      ? rpHistory
+      : orgHistory;
   const history = activeQuery.data ?? [];
   const isLoading = activeQuery.isLoading;
 
@@ -50,6 +60,9 @@ export const useViewSubmission = ({
     submission?.submissionType === SubmissionType.CARBON_INVENTORY_VERIFICATION;
   const isOrganizationAccreditation =
     submission?.submissionType === SubmissionType.ORGANIZATION_ACCREDITATION;
+  const isReductionProjectVerification =
+    submission?.submissionType ===
+    SubmissionType.REDUCTION_PROJECT_VERIFICATION;
   const isBusy = isApproving || isReviewing;
   const submissionComment = submission?.comment?.trim() ?? "";
 
@@ -113,6 +126,7 @@ export const useViewSubmission = ({
     isStatusPending,
     isCarbonInventorySubmission,
     isOrganizationAccreditation,
+    isReductionProjectVerification,
     isBusy,
     submissionComment,
     subtitle,

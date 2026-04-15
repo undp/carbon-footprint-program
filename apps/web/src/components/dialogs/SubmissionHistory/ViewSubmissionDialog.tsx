@@ -30,6 +30,7 @@ type Props = {
   open: boolean;
   carbonInventoryId?: string | null;
   organizationId?: string | null;
+  reductionProjectId?: string | null;
   onClose: () => void;
   isAdmin?: boolean;
 };
@@ -38,6 +39,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
   open,
   carbonInventoryId,
   organizationId,
+  reductionProjectId,
   onClose,
   isAdmin,
 }) => {
@@ -50,13 +52,19 @@ export const ViewSubmissionDialog: FC<Props> = ({
     isStatusPending,
     isCarbonInventorySubmission,
     isOrganizationAccreditation,
+    isReductionProjectVerification: _isReductionProjectVerification,
     isBusy,
     submissionComment,
     subtitle,
     handleApproveSubmission,
     handleReviewSubmission,
     handleNavigateToInventory,
-  } = useViewSubmission({ carbonInventoryId, organizationId, onClose });
+  } = useViewSubmission({
+    carbonInventoryId,
+    organizationId,
+    reductionProjectId,
+    onClose,
+  });
 
   return (
     <Dialog

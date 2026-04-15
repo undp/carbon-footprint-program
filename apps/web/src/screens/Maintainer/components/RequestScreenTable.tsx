@@ -11,6 +11,7 @@ const TABLE_ROW_COUNT = 6;
 type DialogState = {
   carbonInventoryId?: string;
   organizationId?: string;
+  reductionProjectId?: string;
 } | null;
 
 const TableSkeleton: FC = () => (
@@ -50,6 +51,10 @@ export const RequestScreenTable: FC = () => {
     ) {
       setDialogState({
         carbonInventoryId: row.carbonInventoryId ?? undefined,
+      });
+    } else if (row.type === SubmissionType.REDUCTION_PROJECT_VERIFICATION) {
+      setDialogState({
+        reductionProjectId: row.reductionProjectId ?? undefined,
       });
     } else {
       setDialogState({ organizationId: row.organizationId });
@@ -98,6 +103,7 @@ export const RequestScreenTable: FC = () => {
         open={dialogState !== null}
         carbonInventoryId={dialogState?.carbonInventoryId}
         organizationId={dialogState?.organizationId}
+        reductionProjectId={dialogState?.reductionProjectId}
         onClose={() => setDialogState(null)}
         isAdmin
       />

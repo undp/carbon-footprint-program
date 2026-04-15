@@ -5,7 +5,7 @@ import type {
   FastifyReply,
 } from "fastify";
 import type { OrganizationRole } from "@repo/database/enums";
-import { MembershipStatus } from "@repo/database/enums";
+import { MembershipStatus, SystemRole } from "@repo/database/enums";
 import { ReductionProjectStatus } from "@repo/types";
 
 const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
@@ -13,8 +13,12 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
 ) => {
   fastify.decorate(
     "requireReductionProjectAccess",
-    function (options?: { requiredOrganizationRoles?: OrganizationRole[] }) {
+    function (options?: {
+      requiredOrganizationRoles?: OrganizationRole[];
+      canAdminsBypass?: boolean;
+    }) {
       const requiredOrganizationRoles = options?.requiredOrganizationRoles;
+      const canAdminsBypass = options?.canAdminsBypass;
 
       return async function (request: FastifyRequest, reply: FastifyReply) {
         const log = request.log.child({
@@ -86,6 +90,23 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
         }
 
         const membership = project.organization?.memberships?.[0];
+
+        // Bypass checks for ADMIN and SUPERADMIN system roles
+        if (
+          canAdminsBypass &&
+          (request.currentUser.role === SystemRole.ADMIN ||
+            request.currentUser.role === SystemRole.SUPERADMIN)
+        ) {
+          log.debug(
+            {
+              userId: request.currentUser.id,
+              reductionProjectId,
+              systemRole: request.currentUser.role,
+            },
+            "Reduction project authorization bypassed for admin"
+          );
+          return;
+        }
 
         if (!project.organizationId && project.createdById !== userId) {
           log.warn(

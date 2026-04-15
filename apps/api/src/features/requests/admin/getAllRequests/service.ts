@@ -34,7 +34,9 @@ export const getAllRequestsService = async (
   const getGroupKey = (row: (typeof submissions)[number]): string =>
     row.carbonInventoryId !== null
       ? `ci:${row.carbonInventoryId}`
-      : `org:${row.organizationId}`;
+      : row.reductionProjectId !== null
+        ? `rp:${row.reductionProjectId}`
+        : `org:${row.organizationId}`;
 
   const grouped = groupBy(submissions, getGroupKey);
 

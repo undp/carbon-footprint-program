@@ -1010,15 +1010,16 @@ model Submission {
 }
 
 view SubmissionSummaryView {
-  submissionId      BigInt           @unique @map("submission_id")
-  type              SubmissionType
-  status            SubmissionStatus
-  organizationId    BigInt           @map("organization_id")
-  organizationName  String           @map("organization_name")
-  period            Int?
-  requestedAt       DateTime         @map("requested_at")
-  carbonInventoryId BigInt?          @map("carbon_inventory_id")
-  submission        Submission       @relation(fields: [submissionId], references: [id])
+  submissionId        BigInt           @unique @map("submission_id")
+  type                SubmissionType
+  status              SubmissionStatus
+  organizationId      BigInt           @map("organization_id")
+  organizationName    String           @map("organization_name")
+  period              Int?
+  requestedAt         DateTime         @map("requested_at")
+  carbonInventoryId   BigInt?          @map("carbon_inventory_id")
+  reductionProjectId  BigInt?          @map("reduction_project_id")
+  submission          Submission       @relation(fields: [submissionId], references: [id])
 
   @@map("submission_summary_view")
 }

@@ -168,6 +168,7 @@ declare module "fastify" {
      */
     requireReductionProjectAccess: (options?: {
       requiredOrganizationRoles?: OrganizationRole[];
+      canAdminsBypass?: boolean;
     }) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 
