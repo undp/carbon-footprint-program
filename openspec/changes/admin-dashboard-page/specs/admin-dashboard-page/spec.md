@@ -21,7 +21,7 @@ The system SHALL render a fully functional dashboard page at the `/admin/dashboa
 
 ### Requirement: Year filter defaults to "Todas" and filters all sections
 
-The page SHALL display a year selector in the header area. The selected year SHALL be stored in URL query parameters (e.g., `?year=2025`) so the filter state is shareable and persists on page refresh. The default selection SHALL be "Todas" (no `year` param in URL, no filtering). When a year is selected, all KPI cards, charts, and status sections SHALL update to reflect data for that year only.
+The page SHALL display a year selector in the header area. The selector SHALL display the last N years from the current year, where N is defined by the `DASHBOARD_YEARS_RANGE_FROM_CURRENT` constant (initial value: 10) in `apps/web/src/config/constants.ts`, plus a "Todas" option. The selected year SHALL be stored in URL query parameters (e.g., `?year=2025`) so the filter state is shareable and persists on page refresh. The default selection SHALL be "Todas" (no `year` param in URL, no filtering). When a year is selected, all KPI cards, charts, and status sections SHALL update to reflect data for that year only.
 
 #### Scenario: Default state shows all data
 
@@ -52,7 +52,7 @@ The page SHALL display a year selector in the header area. The selected year SHA
 
 The page SHALL display 3 summary cards in a horizontal row:
 
-1. Accredited organizations count and self-declared organizations count
+1. **"Empresas inscritas"**: Total accredited organizations (those with an approved `ORGANIZATION_ACCREDITATION` submission) as the first value, and measuring organizations (the subset of accredited organizations that have at least one ACTIVE self-declared carbon inventory — filtered to the last 2 years including the current year when no year filter is active, or to the specific selected year) as the second value
 2. Total emissions measured and verified emissions
 3. Total recognitions given and recognitions under review
 
@@ -83,12 +83,12 @@ The page SHALL display a card with a bar chart and tabs in the upper-right corne
 #### Scenario: Empresas tab renders by default
 
 - **WHEN** the chart data loads successfully
-- **THEN** the page SHALL display the "Empresas" tab as active, showing a vertical bar chart with sector names on the X-axis and organization counts on the Y-axis
+- **THEN** the page SHALL display the "Empresas" tab as active, the card title SHALL read "Empresas por Rubro", showing a vertical bar chart with sector names on the X-axis and organization counts on the Y-axis
 
 #### Scenario: Switching to Emisiones tab
 
 - **WHEN** the user clicks the "Emisiones" tab
-- **THEN** the page SHALL display a vertical bar chart with sector names on the X-axis and total emissions (tCO2e) on the Y-axis, using `sectorEmissions` from the same sector chart endpoint
+- **THEN** the card title SHALL change to "Emisiones por Rubro" and the page SHALL display a vertical bar chart with sector names on the X-axis and total emissions (tCO2e) on the Y-axis, using `sectorEmissions` from the same sector chart endpoint
 
 #### Scenario: Tab state is independent of year filter
 
