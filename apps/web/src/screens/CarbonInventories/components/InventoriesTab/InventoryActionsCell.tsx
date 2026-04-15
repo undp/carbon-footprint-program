@@ -7,6 +7,7 @@ import {
   VerifiedOutlined,
   DescriptionOutlined,
   FileCopyOutlined,
+  EditOutlined,
 } from "@mui/icons-material";
 import {
   GetAllCarbonInventoriesResponse,
@@ -15,7 +16,11 @@ import {
   MeasurementRecognitionBehaviorEnum,
   CarbonInventoryDisplayStatusEnum,
 } from "@repo/types";
-import { canSubmitToVerification, canSubmitToMeasurement } from "@repo/utils";
+import {
+  canSubmitToVerification,
+  canSubmitToMeasurement,
+  isCarbonInventoryEditable,
+} from "@repo/utils";
 import { BaseActionButton } from "../BaseActionButton";
 import { CalculationConfirmationDialog } from "../Dialogs/CalculationConfirmationDialog";
 import { VerifyConfirmationDialog } from "../Dialogs/VerifyConfirmation";
@@ -37,6 +42,7 @@ import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
+import { useNavigate } from "@tanstack/react-router";
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -45,6 +51,7 @@ interface InventoryActionsCellProps {
 export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   carbonInventory,
 }) => {
+  const navigate = useNavigate();
   const [calculationDialogOpen, setCalculationDialogOpen] = useState(false);
   const [verifyDialogOpen, setVerifyDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);
@@ -91,6 +98,13 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
       enqueueSnackbar("No se pudo duplicar la huella", { variant: "error" });
     }
   }, [carbonInventory.id, duplicateInventory, setActiveTab]);
+
+  const onEditClick = useCallback(() => {
+    void navigate({
+      to: Routes.CARBON_INVENTORY_BUSINESS_PROFILING,
+      params: { inventoryId: carbonInventory.id },
+    });
+  }, [carbonInventory.id, navigate]);
 
   const onViewClick = useCallback(() => {
     const href = Routes.CARBON_INVENTORY_EMISSION_SUMMARY.replace(
@@ -203,14 +217,21 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   return (
     <>
       <Box className="justify-left flex items-center gap-2">
-        {/* Ver huella */}
-        <Tooltip title="Ver huella">
-          <span>
-            <BaseActionButton onClick={onViewClick} aria-label="Ver huella">
-              <VisibilityOutlined fontSize="small" />
+        {isCarbonInventoryEditable(carbonInventory.status) ? (
+          <Tooltip title="Editar huella">
+            <BaseActionButton onClick={onEditClick} aria-label="Editar huella">
+              <EditOutlined fontSize="small" />
             </BaseActionButton>
-          </span>
-        </Tooltip>
+          </Tooltip>
+        ) : (
+          <Tooltip title="Ver huella">
+            <span>
+              <BaseActionButton onClick={onViewClick} aria-label="Ver huella">
+                <VisibilityOutlined fontSize="small" />
+              </BaseActionButton>
+            </span>
+          </Tooltip>
+        )}
 
         {/* Descargar (deshabilitado) */}
         <Tooltip title="Descargar (próximamente)">
