@@ -1,4 +1,4 @@
-import { FC } from "react";
+import { FC, useMemo } from "react";
 import {
   alpha,
   darken,
@@ -20,10 +20,19 @@ import { formatFileSize, formatMimeType } from "@/utils/files";
 type Props = {
   files: SubmissionHistoryEntry["files"];
   sx?: SxProps<Theme>;
+  variant?: "recognitions" | "files";
 };
 
-export const FilesSection: FC<Props> = ({ files, sx }) => {
+export const FilesSection: FC<Props> = ({ files, sx, variant = "files" }) => {
   const theme = useTheme();
+
+  const title = useMemo(() => {
+    if (variant === "recognitions") {
+      return `Reconocimientos adjuntos (${files.length})`;
+    }
+
+    return `Documentos adjuntos (${files.length})`;
+  }, [files.length, variant]);
 
   return (
     <Stack spacing={1} sx={sx}>
@@ -32,7 +41,7 @@ export const FilesSection: FC<Props> = ({ files, sx }) => {
         fontWeight={600}
         sx={{ color: theme.palette.text.primary }}
       >
-        {`Documentos adjuntos (${files.length})`}
+        {title}
       </Typography>
 
       {files.length === 0 ? (
