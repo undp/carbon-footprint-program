@@ -1,5 +1,5 @@
 import { FC, useMemo } from "react";
-import { Box, Button, Typography, useMediaQuery } from "@mui/material";
+import { Box, Typography, useMediaQuery } from "@mui/material";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { ResponsiveTypography, StylizedDataGrid } from "@/components";
 import { CarbonInventoryStatusChip } from "@/components/CarbonInventoryStatusChip";
@@ -18,11 +18,7 @@ interface Props {
   onNewInventory: () => void;
 }
 
-export const InventoriesTab: FC<Props> = ({
-  inventories,
-  isLoading,
-  onNewInventory,
-}) => {
+export const InventoriesTab: FC<Props> = ({ inventories, isLoading }) => {
   const isWiderScreen = useMediaQuery((theme) => theme.breakpoints.up(1400));
 
   const columns: GridColDef<GetAllCarbonInventoriesResponse[number]>[] =
@@ -44,6 +40,7 @@ export const InventoriesTab: FC<Props> = ({
             <InventoryNameCell
               name={params.row.name}
               recognitions={params.row.recognitions}
+              organizationName={params.row.organizationName}
             />
           ),
         },
@@ -144,39 +141,29 @@ export const InventoriesTab: FC<Props> = ({
     );
 
   return (
-    <Box className="flex w-full flex-col gap-4 rounded-lg bg-white">
-      <Box className="flex items-center justify-between px-6 pt-6">
-        <Typography variant="h6" fontWeight={600}>
-          Mis huellas autodeclaradas
-        </Typography>
-        <Button variant="contained" color="primary" onClick={onNewInventory}>
-          Nueva Huella
-        </Button>
+    <Box className="flex w-full flex-col gap-4">
+      <Box className="flex p-4">
+        <StylizedDataGrid
+          autoHeight
+          columnHeaderHeight={40}
+          rows={inventories}
+          columns={columns}
+          localeText={{
+            noRowsLabel: "No hay huellas disponibles",
+          }}
+          loading={isLoading}
+          sx={(theme) => ({
+            borderTop: `1px solid ${theme.palette.divider}`,
+            "& .MuiDataGrid-columnHeader": {
+              backgroundColor: theme.palette.background.default,
+              padding: "10px 8px",
+            },
+            "& .MuiDataGrid-cell": {
+              px: "8px",
+            },
+          })}
+        />
       </Box>
-
-      <StylizedDataGrid
-        autoHeight
-        columnHeaderHeight={40}
-        rows={inventories}
-        columns={columns}
-        localeText={{
-          noRowsLabel: "No hay huellas disponibles",
-        }}
-        loading={isLoading}
-        sx={(theme) => ({
-          border: "none",
-          borderTopLeftRadius: 0,
-          borderTopRightRadius: 0,
-          borderTop: `1px solid ${theme.palette.divider}`,
-          "& .MuiDataGrid-columnHeader": {
-            backgroundColor: theme.palette.background.default,
-            padding: "10px 8px",
-          },
-          "& .MuiDataGrid-cell": {
-            px: "8px",
-          },
-        })}
-      />
     </Box>
   );
 };

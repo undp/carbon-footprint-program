@@ -11,7 +11,6 @@ import {
   SelectChangeEvent,
   InputLabel,
   FormControl,
-  Divider,
 } from "@mui/material";
 import { OrganizationSelector } from "@/components";
 import { MainLayout } from "@/components/layout";
@@ -87,73 +86,75 @@ export const CarbonInventoriesScreen: FC = () => {
   return (
     <MainLayout>
       <Box className="flex flex-1 flex-col">
-        {/* Header */}
         <Box className="flex flex-col rounded-lg bg-white">
-          <Box className="flex flex-row items-center justify-between gap-4 px-6 py-4">
-            <Typography variant="h5" fontWeight={600}>
-              Huella Organizacional
-            </Typography>
+          {/* Header */}
+          <Box className="flex flex-col">
+            <Box className="flex flex-row items-center justify-between gap-4 px-6 py-4">
+              <Typography variant="h5" fontWeight={600}>
+                Huella Organizacional
+              </Typography>
 
-            {/* Container for selectors */}
-            <Box className="flex gap-3">
-              {/* Organization Selector */}
-              <OrganizationSelector
-                organizations={organizations}
-                value={selectedOrganizationId}
-                onChange={setSelectedOrganizationId}
-                isLoading={isLoadingOrganizations}
-                showAllOption
-                showNoneOption
-              />
+              {/* Container for selectors */}
+              <Box className="flex gap-3">
+                {/* Organization Selector */}
+                <OrganizationSelector
+                  organizations={organizations}
+                  value={selectedOrganizationId}
+                  onChange={setSelectedOrganizationId}
+                  isLoading={isLoadingOrganizations}
+                  showAllOption
+                  showNoneOption
+                />
 
-              {/* Year Selector */}
-              <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
-                <InputLabel id="year-select-label">Año</InputLabel>
-                <Select
-                  labelId="year-select-label"
-                  label="Año"
-                  value={selectedYear}
-                  onChange={onYearSelectChange}
-                  disabled={isLoadingYears}
-                >
-                  <MenuItem key="all" value="all">
-                    Todos
-                  </MenuItem>
-                  {availableYears.map((year) => (
-                    <MenuItem key={year} value={`${year}`}>
-                      {year}
+                {/* Year Selector */}
+                <FormControl sx={{ minHeight: 40, minWidth: 120 }} size="small">
+                  <InputLabel id="year-select-label">Año</InputLabel>
+                  <Select
+                    labelId="year-select-label"
+                    label="Año"
+                    value={selectedYear}
+                    onChange={onYearSelectChange}
+                    disabled={isLoadingYears}
+                  >
+                    <MenuItem key="all" value="all">
+                      Todos
                     </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                    {availableYears.map((year) => (
+                      <MenuItem key={year} value={`${year}`}>
+                        {year}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             </Box>
+
+            {/* Tabs */}
+            <InventoryTabs
+              activeTab={activeTab}
+              onTabChange={(_, value) => setActiveTab(value)}
+              onNewInventory={onNewInventory}
+            />
           </Box>
 
-          {/* Tabs */}
-          <InventoryTabs
-            activeTab={activeTab}
-            onTabChange={(_, value) => setActiveTab(value)}
-          />
-          <Divider />
+          {/* Tab Content */}
+          {activeTab === CarbonInventoriesTab.DRAFTS && (
+            <DraftsTab
+              darftInventories={draftInventories}
+              allInventories={filteredInventories}
+              isLoading={isLoadingInventories}
+            />
+          )}
+          {activeTab === CarbonInventoriesTab.HUELLAS && (
+            <InventoriesTab
+              inventories={huellasInventories}
+              isLoading={isLoadingInventories}
+              onNewInventory={onNewInventory}
+            />
+          )}
         </Box>
-
-        {/* Tab Content */}
-        {activeTab === CarbonInventoriesTab.DRAFTS && (
-          <DraftsTab
-            darftInventories={draftInventories}
-            allInventories={filteredInventories}
-            isLoading={isLoadingInventories}
-            onNewInventory={onNewInventory}
-          />
-        )}
-        {activeTab === CarbonInventoriesTab.HUELLAS && (
-          <InventoriesTab
-            inventories={huellasInventories}
-            isLoading={isLoadingInventories}
-            onNewInventory={onNewInventory}
-          />
-        )}
       </Box>
+
       <NewInventoryDialog
         open={newInventoryDialogOpen}
         onClose={() => setNewInventoryDialogOpen(false)}
