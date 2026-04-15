@@ -7,6 +7,7 @@ const EDITABLE_STATUSES: CarbonInventoryDisplayStatus[] = [
   CarbonInventoryDisplayStatusEnum.DRAFT,
   CarbonInventoryDisplayStatusEnum.CALCULATION_REVIEWED,
   CarbonInventoryDisplayStatusEnum.SELF_DECLARED,
+  CarbonInventoryDisplayStatusEnum.VERIFICATION_REVIEWED,
 ];
 
 export function isCarbonInventoryEditable(
