@@ -2,7 +2,7 @@
 
 ### Requirement: Category chart endpoint returns emissions per category grouped by methodology
 
-The system SHALL expose a `GET /api/admin/dashboard/category-chart` endpoint. The endpoint SHALL determine which methodologies to return based on the ACTIVE self-declared inventories that match the query filters. When no `year` filter is provided, ALL active methodology versions (status `ACTIVE`) SHALL be returned with their categories. When a `year` filter is provided, only methodologies referenced by matching inventories for that year SHALL be returned — if no inventories match the year, the response SHALL be an empty `methodologies` array. Methodologies are sorted descending by `MethodologyVersion.createdAt` (newest first). Categories with no matching emissions SHALL have `totalEmissions: 0`. This allows the frontend to render a methodology selector when multiple methodologies exist, defaulting to the first (most recent) methodology.
+The system SHALL expose a `GET /api/admin/dashboard/category-chart` endpoint. The endpoint SHALL only return methodologies that have at least one ACTIVE self-declared carbon inventory (`status: ACTIVE`, `isSelfDeclared: true`) matching the query filters. When no `year` filter is provided, the endpoint returns methodologies referenced by any ACTIVE self-declared inventory across all years. When a `year` filter is provided, it returns only methodologies referenced by ACTIVE self-declared inventories where `CarbonInventory.year` matches the selected year. If no matching inventories exist (with or without year filter), the response SHALL be an empty `methodologies` array. Methodologies are sorted descending by `MethodologyVersion.createdAt` (newest first). Categories with no matching emissions SHALL have `totalEmissions: 0`. This allows the frontend to render a methodology selector when multiple methodologies exist, defaulting to the first (most recent) methodology.
 
 #### Scenario: Single methodology — all categories returned
 
@@ -17,21 +17,16 @@ The system SHALL expose a `GET /api/admin/dashboard/category-chart` endpoint. Th
 #### Scenario: No year filter — all inventories aggregated
 
 - **WHEN** the endpoint is called without a `year` parameter
-- **THEN** the response SHALL aggregate emissions from ALL ACTIVE self-declared inventories across all years, grouping by methodology and category as usual
+- **THEN** the response SHALL return only methodologies referenced by at least one ACTIVE self-declared inventory, aggregating emissions across all years, grouping by methodology and category as usual
 
 #### Scenario: Multiple methodologies found
 
 - **WHEN** the endpoint is called and the matching inventories belong to more than one methodology
 - **THEN** the response SHALL include `methodologies` as an array with one entry per methodology, sorted descending by `MethodologyVersion.createdAt`, each containing `methodologyId`, `methodologyName`, and `categoryEmissions` with the emissions for that methodology's categories only
 
-#### Scenario: No year filter and no inventories found — all methodologies returned
+#### Scenario: No inventories found — empty response
 
-- **WHEN** the endpoint is called without a `year` parameter and no ACTIVE self-declared inventories exist
-- **THEN** the response SHALL include ALL active methodology versions with their categories, each category having `totalEmissions: 0`
-
-#### Scenario: Year filter and no inventories found — empty response
-
-- **WHEN** the endpoint is called with a `year` parameter and no ACTIVE self-declared inventories match that year
+- **WHEN** the endpoint is called (with or without a `year` parameter) and no ACTIVE self-declared inventories match the filters
 - **THEN** the response SHALL include an empty `methodologies` array
 
 #### Scenario: No active methodology versions exist
