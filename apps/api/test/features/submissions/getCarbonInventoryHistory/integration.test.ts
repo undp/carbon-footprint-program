@@ -108,7 +108,7 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
     });
   }
 
-  it("excludes auto-approved submissions from timeline and keeps other types", async () => {
+  it("includes auto-approved submissions in timeline", async () => {
     const organization = await createMemberOrganization();
     const inventory = await createInventoryFromPattern(
       prisma,
@@ -155,6 +155,7 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
       SubmissionEventType.APPROVED,
       SubmissionEventType.ON_REVIEW,
       SubmissionEventType.POSTULATION,
+      SubmissionEventType.APPROVED_AUTOMATICALLY,
       SubmissionEventType.SELF_DECLARATION,
     ]);
     expect(history[0]).toMatchObject({

@@ -7,7 +7,7 @@ import {
   CountrySectorBaseSchema,
   CountrySubsectorBaseSchema,
   OrganizationMainActivityBaseSchema,
-} from "../index.js";
+} from "../baseSchemas/index.js";
 
 export const OrganizationDisplayStatusSchema = z.enum([
   "ACCREDITED",
