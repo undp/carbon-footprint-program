@@ -1,6 +1,7 @@
 export const STALE_TIME_MS = 1000 * 60 * 5; // 5 minutes
 export const CALCULATOR_YEARS_RANGE_FROM_CURRENT = 5;
 export const REFETCH_INTERVAL_MS = 1000 * 60 * 5; // 5 minutes
+export const DASHBOARD_YEARS_RANGE_FROM_CURRENT = 10;
 export const SIDEBAR_WIDTH = 270; // in pixels
 
 export const MAX_FILE_UPLOAD_SIZE_MB = 20; // 20 MB
