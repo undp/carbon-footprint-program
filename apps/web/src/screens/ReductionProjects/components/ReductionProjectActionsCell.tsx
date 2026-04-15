@@ -1,10 +1,16 @@
-import { FC, useCallback, PropsWithChildren } from "react";
+import { FC, useCallback, useState, PropsWithChildren } from "react";
 import { Box, IconButtonProps, IconButton, Tooltip } from "@mui/material";
-import { EditOutlined, VisibilityOutlined } from "@mui/icons-material";
+import {
+  EditOutlined,
+  VisibilityOutlined,
+  FileDownloadOutlined,
+} from "@mui/icons-material";
 import { GetAllReductionProjectsResponse } from "@repo/types";
 import { isReductionProjectEditable } from "@repo/utils";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
+import { exportReductionProjectToExcel } from "@/utils/exportReductionProjectToExcel";
+import { enqueueSnackbar } from "notistack";
 
 const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
@@ -34,6 +40,7 @@ export const ReductionProjectActionsCell: FC<
   const navigate = useNavigate();
 
   const canEdit = isReductionProjectEditable(reductionProject.status);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const onEditClick = useCallback(() => {
     void navigate({
@@ -41,6 +48,17 @@ export const ReductionProjectActionsCell: FC<
       params: { id: reductionProject.id },
     });
   }, [navigate, reductionProject.id]);
+
+  const onDownloadClick = useCallback(async () => {
+    setIsDownloading(true);
+    try {
+      await exportReductionProjectToExcel(reductionProject.id);
+    } catch {
+      enqueueSnackbar("No se pudo descargar el proyecto", { variant: "error" });
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [reductionProject.id]);
 
   return (
     <Box className="flex justify-center gap-1">
@@ -59,6 +77,17 @@ export const ReductionProjectActionsCell: FC<
           </span>
         </Tooltip>
       )}
+      <Tooltip title="Descargar proyecto">
+        <span>
+          <BaseIconButton
+            onClick={onDownloadClick}
+            disabled={isDownloading}
+            aria-label="Descargar proyecto"
+          >
+            <FileDownloadOutlined fontSize="small" />
+          </BaseIconButton>
+        </span>
+      </Tooltip>
     </Box>
   );
 };
