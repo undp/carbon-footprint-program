@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import type {
   GetEmissionsDetailedSummaryResponse,
   GetEmissionFactorsResponse,
@@ -9,9 +9,12 @@ import { exportCarbonInventoryToExcel } from "@/utils/exportCarbonInventoryToExc
 
 export function useDownloadCarbonInventory() {
   const [isDownloading, setIsDownloading] = useState(false);
+  const isDownloadingRef = useRef(false);
 
   const download = useCallback(
     async (id: string, name: string | null, year: number | null) => {
+      if (isDownloadingRef.current) return;
+      isDownloadingRef.current = true;
       setIsDownloading(true);
       try {
         const [summaryData, factorsData] = await Promise.all([
@@ -32,6 +35,7 @@ export function useDownloadCarbonInventory() {
       } catch {
         enqueueSnackbar("No se pudo descargar la huella", { variant: "error" });
       } finally {
+        isDownloadingRef.current = false;
         setIsDownloading(false);
       }
     },
