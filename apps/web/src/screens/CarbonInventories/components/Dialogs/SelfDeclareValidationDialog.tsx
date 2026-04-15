@@ -31,8 +31,7 @@ const messages: Record<NonNullable<SelfDeclareValidationReason>, string> = {
     "No es posible autodeclarar esta huella porque no tiene un año asignado. Por favor, edite la huella para completar esta información antes de continuar.",
   "inventory-year-already-declared":
     "No es posible autodeclarar esta huella porque ya se ha autodeclarado una huella para este año. Por favor, seleccione un año diferente antes de continuar.",
-  "organization-not-accredited":
-    "No es posible autodeclarar esta huella porque la organización no está acreditada. Por favor, asegúrese de que la organización esté acreditada antes de continuar.",
+  "organization-not-accredited": `No es posible autodeclarar esta huella porque la ${VOCAB.organization.noun.singular} no está ${VOCAB.inscription.adjective.singular}. Por favor, asegúrese de que la ${VOCAB.organization.noun.singular} esté ${VOCAB.inscription.adjective.singular} antes de continuar.`,
 };
 
 export const SelfDeclareValidationDialog: FC<
