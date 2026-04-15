@@ -185,6 +185,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
 
       expect(history.map((entry) => entry.eventType)).toEqual([
         eventType,
+        SubmissionEventType.ON_REVIEW,
         SubmissionEventType.POSTULATION,
       ]);
       expect(history[0]).toMatchObject({
@@ -193,7 +194,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
         date: reviewedAt.toISOString(),
         comment: "Reviewed by admin",
       });
-      expect(history[1]).toMatchObject({
+      expect(history[2]).toMatchObject({
         submissionId: submission.id.toString(),
         eventType: SubmissionEventType.POSTULATION,
         date: createdAt.toISOString(),
@@ -247,6 +248,7 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
 
     expect(history.map((entry) => entry.eventType)).toEqual([
       SubmissionEventType.REVIEWED,
+      SubmissionEventType.ON_REVIEW,
       SubmissionEventType.POSTULATION,
     ]);
     expect(history[0]).toMatchObject({
@@ -260,16 +262,16 @@ describe("GET /api/submissions/organization/:id/history - Integration Tests", ()
     expect(history[0].files[0]?.uuid).toBe(revisionFile.uuid);
     expect(history[0].files[0]?.originalName).toBe("revision-note.pdf");
 
-    expect(history[1]).toMatchObject({
+    expect(history[2]).toMatchObject({
       submissionId: submission.id.toString(),
       eventType: SubmissionEventType.POSTULATION,
       date: createdAt.toISOString(),
       comment: "",
       recognitions: [],
     });
-    expect(history[1].files).toHaveLength(1);
-    expect(history[1].files[0]?.uuid).toBe(attachmentFile.uuid);
-    expect(history[1].files[0]?.originalName).toBe("original-attachment.pdf");
+    expect(history[2].files).toHaveLength(1);
+    expect(history[2].files[0]?.uuid).toBe(attachmentFile.uuid);
+    expect(history[2].files[0]?.originalName).toBe("original-attachment.pdf");
   });
 
   it("does not expose revision attachments on non-objected reviewed events", async () => {

@@ -63,11 +63,12 @@ describe("getOrganizationHistoryService", () => {
             reviewComments: "Please update the files",
             createdAt: new Date("2026-01-10T09:00:00.000Z"),
             reviewedAt: new Date("2026-01-12T14:30:00.000Z"),
-            creator: { firstName: "Maria", lastName: "Gonzalez" },
-            reviewer: { firstName: "Jorge", lastName: "Rodriguez" },
+            creator: { email: "maria.gonzalez@example.com" },
+            reviewer: { email: "jorge.rodriguez@example.com" },
             subject: {
               carbonInventory: {
                 carbonInventoryId: 20n,
+                carbonInventory: { year: 2026 },
               },
             },
             files: [
@@ -117,9 +118,10 @@ describe("getOrganizationHistoryService", () => {
       "1"
     );
 
-    expect(history).toHaveLength(2);
+    expect(history).toHaveLength(3);
     expect(history[0]?.eventType).toBe("REVIEWED");
-    expect(history[1]?.eventType).toBe("POSTULATION");
+    expect(history[1]?.eventType).toBe("ON_REVIEW");
+    expect(history[2]?.eventType).toBe("POSTULATION");
     expect(
       createReadSasUrlSigner as MockedFunction<typeof createReadSasUrlSigner>
     ).toHaveBeenCalledTimes(1);
