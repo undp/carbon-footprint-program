@@ -10,7 +10,7 @@ export async function exportReductionProjectToExcel(projectId: string) {
     .get(`reduction-projects/${projectId}`)
     .json<GetReductionProjectByIdResponse>();
 
-  const filename = `${sanitizeExcelSheetName(project.name)}.xlsx`;
+  const filename = `${sanitizeExcelSheetName(project.name)}-proyecto-de-reduccion.xlsx`;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Proyecto de Reducción");
 
