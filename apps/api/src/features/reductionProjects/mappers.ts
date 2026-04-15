@@ -26,8 +26,8 @@ function mapPersistenceFields(
     reportedElsewhere: row.reportedElsewhere,
     reportedElsewhereDescription: row.reportedElsewhereDescription,
     year: row.year,
-    baselineScenario: row.baselineScenario.toString(),
-    projectScenario: row.projectScenario.toString(),
+    baselineScenario: row.baselineScenario.toNumber(),
+    projectScenario: row.projectScenario.toNumber(),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt?.toISOString() ?? null,
     createdById: row.createdById?.toString() ?? null,
@@ -73,8 +73,7 @@ export function mapReductionProjectToListItem(
   displayStatus: ReductionProjectDisplayStatus
 ): GetAllReductionProjectsResponse[number] {
   const totalReduction =
-    Number(row.baselineScenario.toString()) -
-    Number(row.projectScenario.toString());
+    row.baselineScenario.toNumber() - row.projectScenario.toNumber();
 
   return {
     id: row.id.toString(),

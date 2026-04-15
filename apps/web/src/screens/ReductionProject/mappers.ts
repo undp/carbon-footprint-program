@@ -18,8 +18,8 @@ export const mapProjectToFormValues = (
   reportedElsewhere: project.reportedElsewhere,
   reportedElsewhereDescription: project.reportedElsewhereDescription ?? "",
   year: project.year ?? "",
-  baselineScenario: project.baselineScenario ?? "",
-  projectScenario: project.projectScenario ?? "",
+  baselineScenario: project.baselineScenario.toString(),
+  projectScenario: project.projectScenario.toString(),
   files: [],
   sworn: false,
 });
@@ -42,8 +42,8 @@ export const mapFormValuesToMutationData = (
       ? values.reportedElsewhereDescription
       : null,
     year: values.year !== "" ? values.year : null,
-    baselineScenario: values.baselineScenario,
-    projectScenario: values.projectScenario,
+    baselineScenario: Number(values.baselineScenario),
+    projectScenario: Number(values.projectScenario),
     fileUuids,
   };
 };

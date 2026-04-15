@@ -223,8 +223,8 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
           reportedElsewhere: true,
           reportedElsewhereDescription: "External registry",
           year: 2025,
-          baselineScenario: "2000.00",
-          projectScenario: "1500.00",
+          baselineScenario: 2000,
+          projectScenario: 1500,
         }
       );
 

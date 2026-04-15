@@ -311,7 +311,7 @@ describe("POST /api/reduction-projects - Integration Tests", () => {
         subcategory.id.toString(),
         [uuid],
         {
-          baselineScenario: "not-a-number",
+          baselineScenario: "not-a-number" as unknown as number,
         }
       );
 
@@ -349,8 +349,8 @@ describe("POST /api/reduction-projects - Integration Tests", () => {
         description: "Test",
         consideredGei: ["CO2"],
         reportedElsewhere: false,
-        baselineScenario: "1000.00",
-        projectScenario: "800.00",
+        baselineScenario: 1000,
+        projectScenario: 800,
         // name is missing
       };
 

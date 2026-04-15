@@ -40,14 +40,8 @@ export const ReductionProjectBaseSchema = z
       .int()
       .nullable()
       .describe("Reporting year for scenario metrics"),
-    baselineScenario: z
-      .string()
-      .regex(/^-?\d+(\.\d+)?$/, "Must be a valid decimal number")
-      .describe("Baseline scenario emissions (decimal as string)"),
-    projectScenario: z
-      .string()
-      .regex(/^-?\d+(\.\d+)?$/, "Must be a valid decimal number")
-      .describe("Project scenario emissions (decimal as string)"),
+    baselineScenario: z.number().describe("Baseline scenario emissions"),
+    projectScenario: z.number().describe("Project scenario emissions"),
     status: z
       .enum(ReductionProjectStatus)
       .describe("Persistence status of the reduction project record"),

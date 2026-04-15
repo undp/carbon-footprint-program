@@ -130,8 +130,8 @@ export function buildReductionProjectPayload(
     reportedElsewhere: false,
     reportedElsewhereDescription: null,
     year: 2024,
-    baselineScenario: "1000.00",
-    projectScenario: "800.00",
+    baselineScenario: 1000,
+    projectScenario: 800,
     fileUuids,
     ...overrides,
   };
