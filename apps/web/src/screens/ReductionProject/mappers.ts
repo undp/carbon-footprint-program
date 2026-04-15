@@ -38,7 +38,9 @@ export const mapFormValuesToMutationData = (
     gwpUsed: values.gwpUsed || null,
     consideredGei: values.consideredGei,
     reportedElsewhere: values.reportedElsewhere,
-    reportedElsewhereDescription: values.reportedElsewhereDescription || null,
+    reportedElsewhereDescription: values.reportedElsewhere
+      ? values.reportedElsewhereDescription
+      : null,
     year: values.year !== "" ? values.year : null,
     baselineScenario: values.baselineScenario,
     projectScenario: values.projectScenario,
