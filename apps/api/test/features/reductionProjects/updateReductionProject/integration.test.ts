@@ -19,6 +19,7 @@ import {
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
 import { SubmissionStatus, SubmissionType } from "@repo/database";
+import { GwpSourceEnum } from "@repo/types";
 import { OrganizationRole } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -217,7 +218,7 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
           name: "New Name",
           description: "New description",
           implementationDate: "2025-06-15",
-          gwpUsed: "AR6",
+          gwpUsed: GwpSourceEnum.IPCC_AR6,
           consideredGei: ["CO2", "CH4"],
           reportedElsewhere: true,
           reportedElsewhereDescription: "External registry",
@@ -240,7 +241,7 @@ describe("PATCH /api/reduction-projects/:id - Integration Tests", () => {
       });
       expect(updated?.name).toBe("New Name");
       expect(updated?.description).toBe("New description");
-      expect(updated?.gwpUsed).toBe("AR6");
+      expect(updated?.gwpUsed).toBe(GwpSourceEnum.IPCC_AR6);
       expect(updated?.reportedElsewhere).toBe(true);
       expect(updated?.year).toBe(2025);
     });

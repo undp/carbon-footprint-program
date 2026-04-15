@@ -17,6 +17,7 @@ import {
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
 import type { CreateReductionProjectResponse } from "@repo/types";
+import { GwpSourceEnum, ConsideredGeiEnum } from "@repo/types";
 import { SubmissionStatus, SubmissionType } from "@repo/database";
 import { OrganizationRole } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
@@ -223,11 +224,11 @@ describe("POST /api/reduction-projects - Integration Tests", () => {
         subcategory.id.toString(),
         [uuid],
         {
-          gwpUsed: "AR5",
+          gwpUsed: GwpSourceEnum.IPCC_AR5,
           reportedElsewhere: true,
           reportedElsewhereDescription: "Reported in external registry",
           year: 2023,
-          consideredGei: ["CO2", "CH4", "N2O"],
+          consideredGei: [ConsideredGeiEnum.CO2, ConsideredGeiEnum.CH4],
         }
       );
 
@@ -243,7 +244,7 @@ describe("POST /api/reduction-projects - Integration Tests", () => {
       const project = await prisma.reductionProject.findUnique({
         where: { id: BigInt(body.id) },
       });
-      expect(project?.gwpUsed).toBe("AR5");
+      expect(project?.gwpUsed).toBe(GwpSourceEnum.IPCC_AR5);
       expect(project?.reportedElsewhere).toBe(true);
       expect(project?.reportedElsewhereDescription).toBe(
         "Reported in external registry"

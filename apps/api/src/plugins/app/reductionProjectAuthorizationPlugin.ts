@@ -151,9 +151,5 @@ const reductionProjectAuthorizationPlugin: FastifyPluginCallback = (
 
 export default fp(reductionProjectAuthorizationPlugin, {
   name: "reduction-project-authorization-plugin",
-  dependencies: [
-    "prisma-plugin",
-    "authorization-plugin",
-    "user-resolve-plugin",
-  ],
+  dependencies: ["authorization-plugin", "user-resolve-plugin"],
 });
