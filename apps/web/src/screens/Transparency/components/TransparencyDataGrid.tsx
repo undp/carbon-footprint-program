@@ -1,29 +1,36 @@
 import { FC } from "react";
-import { DataGrid, type GridColDef } from "@mui/x-data-grid";
-import { RecognitionSeals } from "./RecognitionSeals";
+import type { GridColDef } from "@mui/x-data-grid";
+import type { GetBadgePreviewsResponse } from "@repo/types";
+import { StylizedDataGrid } from "@/components/StylizedDataGrid";
+import { VOCAB } from "@/config/vocab";
+import {
+  RecognitionSeals,
+  type TransparencyRecognitions,
+} from "./RecognitionSeals";
+
+const orgNoun = VOCAB.organization.noun;
 
 export interface TransparencyRow {
   id: number;
-  companyName: string;
+  organizationName: string;
   sectorName: string | null;
   subsectorName: string | null;
-  recognitions: {
-    measurement: boolean;
-    verification: boolean;
-    reduction: boolean;
-  };
+  recognitions: TransparencyRecognitions;
   year: number;
 }
 
 interface TransparencyDataGridProps {
   data: TransparencyRow[];
   loading: boolean;
+  badgePreviews: GetBadgePreviewsResponse;
 }
 
-const columns: GridColDef<TransparencyRow>[] = [
+const buildColumns = (
+  badgePreviews: GetBadgePreviewsResponse
+): GridColDef<TransparencyRow>[] => [
   {
-    field: "companyName",
-    headerName: "NOMBRE EMPRESA",
+    field: "organizationName",
+    headerName: `NOMBRE ${orgNoun.singular.toUpperCase()}`,
     flex: 1.5,
     minWidth: 220,
   },
@@ -56,7 +63,11 @@ const columns: GridColDef<TransparencyRow>[] = [
     sortable: false,
     filterable: false,
     renderCell: (params) => (
-      <RecognitionSeals recognitions={params.row.recognitions} size={32} />
+      <RecognitionSeals
+        recognitions={params.row.recognitions}
+        badgePreviews={badgePreviews}
+        size={32}
+      />
     ),
   },
 ];
@@ -64,65 +75,34 @@ const columns: GridColDef<TransparencyRow>[] = [
 export const TransparencyDataGrid: FC<TransparencyDataGridProps> = ({
   data,
   loading,
+  badgePreviews,
 }) => {
+  const columns = buildColumns(badgePreviews);
 
   return (
-    <DataGrid
+    <StylizedDataGrid
       rows={data}
       columns={columns}
       loading={loading}
+      autoHeight
+      columnHeaderHeight={40}
+      hideFooter={false}
       pageSizeOptions={[10, 25, 50]}
       initialState={{
         pagination: { paginationModel: { pageSize: 25 } },
       }}
-      rowHeight={64}
-      disableRowSelectionOnClick
-      disableColumnMenu
-      disableColumnResize
-      disableColumnSorting
-      sx={{
-        height: "calc(100vh - 300px)",
-        minHeight: 400,
-        border: "1px solid #E0E0E0",
-        borderRadius: "8px",
-        overflow: "hidden",
-        "& .MuiDataGrid-columnHeaders": {
-          backgroundColor: "#F9F9F9",
-          borderBottom: "1px solid #E0E0E0",
-        },
+      localeText={{
+        noRowsLabel: `No hay ${orgNoun.plural} disponibles`,
+      }}
+      sx={(theme) => ({
         "& .MuiDataGrid-columnHeader": {
-          backgroundColor: "#F9F9F9",
-        },
-        "& .MuiDataGrid-columnHeaderTitle": {
-          fontWeight: 500,
-          color: "#757575",
-          fontSize: "0.75rem",
-          letterSpacing: "0.05em",
-        },
-        "& .MuiDataGrid-columnSeparator": {
-          display: "none",
+          backgroundColor: theme.palette.background.default,
+          padding: "10px 8px",
         },
         "& .MuiDataGrid-cell": {
-          borderBottom: "none",
-          display: "flex",
-          alignItems: "center",
-          color: "#414046",
-          fontSize: "0.875rem",
-          maxHeight: "none !important",
+          padding: "10px 8px",
         },
-        "& .MuiDataGrid-row": {
-          minHeight: "64px !important",
-          maxHeight: "none !important",
-          borderBottom: "1px solid #F0F0F0",
-        },
-        "& .MuiDataGrid-cell--withRenderer": {
-          display: "flex",
-          alignItems: "center",
-        },
-        "& .MuiDataGrid-footerContainer": {
-          borderTop: "1px solid #E0E0E0",
-        },
-      }}
+      })}
     />
   );
 };

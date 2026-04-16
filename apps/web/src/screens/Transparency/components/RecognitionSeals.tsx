@@ -1,61 +1,101 @@
 import { FC } from "react";
-import { Box, Tooltip } from "@mui/material";
-import type { TransparencyCompany } from "@repo/types";
-import sealMedicion from "@/assets/seals/MEDICION.svg";
-import sealVerificacion from "@/assets/seals/VERIFICACION.svg";
-import sealReduccion from "@/assets/seals/REDUCCION.svg";
+import { Avatar, Box, Tooltip } from "@mui/material";
+import {
+  SubmissionType,
+  type CarbonInventoryRecognitionsType,
+  type GetBadgePreviewsResponse,
+} from "@repo/types";
+import { SUBMISSION_TYPE_TO_BADGE_TYPE } from "@/screens/Recognitions/constants";
+import { RECOGNITION_TYPE_CHIP_LABEL } from "@/utils/recognitions";
+import { VOCAB } from "@/config/vocab";
+
+export type TransparencyRecognitions = Record<
+  CarbonInventoryRecognitionsType,
+  boolean
+>;
 
 interface RecognitionSealsProps {
-  recognitions: TransparencyCompany["recognitions"];
+  recognitions: TransparencyRecognitions;
+  badgePreviews: GetBadgePreviewsResponse;
   size?: number;
 }
 
-const SEAL_CONFIG = [
+const orgArticle = VOCAB.organization.article.singular;
+
+const SEAL_CONFIG: {
+  type: CarbonInventoryRecognitionsType;
+  tooltip: string;
+  letter: string;
+}[] = [
   {
-    key: "measurement" as const,
-    label: "Diploma Medición",
-    tooltip:
-      "Diploma Medición — La empresa ha medido su huella de carbono organizacional",
-    image: sealMedicion,
+    type: SubmissionType.CARBON_INVENTORY_CALCULATION,
+    tooltip: `Reconocimiento Medición — ${orgArticle} ha medido su huella de carbono organizacional`,
+    letter: "M",
   },
   {
-    key: "verification" as const,
-    label: "Sello Verificación",
-    tooltip:
-      "Sello Verificación — La empresa ha verificado su huella de carbono",
-    image: sealVerificacion,
+    type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
+    tooltip: `Reconocimiento Verificación — ${orgArticle} ha verificado su huella de carbono`,
+    letter: "V",
   },
   {
-    key: "reduction" as const,
-    label: "Sello Reducción",
-    tooltip: "Sello Reducción — La empresa ha reducido su huella de carbono",
-    image: sealReduccion,
+    type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
+    tooltip: `Reconocimiento Reducción — ${orgArticle} ha reducido su huella de carbono`,
+    letter: "R",
+  },
+  {
+    type: SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
+    tooltip: `Reconocimiento Neutralización — ${orgArticle} ha neutralizado su huella de carbono`,
+    letter: "N",
   },
 ];
 
 export const RecognitionSeals: FC<RecognitionSealsProps> = ({
   recognitions,
+  badgePreviews,
   size = 32,
 }) => {
   return (
     <Box className="flex items-center gap-2">
       {SEAL_CONFIG.map((seal) => {
-        const isGranted = recognitions[seal.key];
-        if (!isGranted) return null;
+        if (!recognitions[seal.type]) return null;
+
+        const badgeType = SUBMISSION_TYPE_TO_BADGE_TYPE[seal.type];
+        const previewUrl = badgePreviews.find(
+          (p) => p.badgeType === badgeType
+        )?.previewUrl;
+
+        const label = RECOGNITION_TYPE_CHIP_LABEL[seal.type];
 
         return (
-          <Tooltip key={seal.key} title={seal.tooltip} arrow placement="top">
-            <Box
-              component="img"
-              src={seal.image}
-              alt={seal.label}
-              sx={{
-                width: size,
-                height: size,
-                flexShrink: 0,
-                cursor: "default",
-              }}
-            />
+          <Tooltip key={seal.type} title={seal.tooltip} arrow placement="top">
+            {previewUrl ? (
+              <Box
+                component="img"
+                src={previewUrl}
+                alt={label}
+                sx={{
+                  width: size,
+                  height: size,
+                  objectFit: "contain",
+                  borderRadius: "50%",
+                  flexShrink: 0,
+                  cursor: "default",
+                }}
+              />
+            ) : (
+              <Avatar
+                sx={{
+                  width: size,
+                  height: size,
+                  flexShrink: 0,
+                  fontSize: size * 0.4,
+                  fontWeight: 700,
+                  cursor: "default",
+                }}
+              >
+                {seal.letter}
+              </Avatar>
+            )}
           </Tooltip>
         );
       })}
