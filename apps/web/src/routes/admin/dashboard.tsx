@@ -4,14 +4,14 @@ import { Routes } from "@/interfaces";
 import { AdminDashboardScreen } from "@/screens/Maintainer/screens/AdminDashboardScreen";
 import { MainLayout } from "@/components";
 
-const currentYear = new Date().getFullYear();
-
 const dashboardSearchSchema = z.object({
   year: z.coerce
     .number()
     .int()
     .positive()
-    .max(currentYear)
+    .refine((y) => y <= new Date().getFullYear(), {
+      message: "Year cannot be in the future",
+    })
     .optional()
     .catch(undefined),
 });
