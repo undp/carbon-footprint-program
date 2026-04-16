@@ -1,2 +1,2 @@
-export * from "./getExplanationById/schemas.js";
-export * from "./getExplanationById/types.js";
+export * from "./getExplanationBySlug/schemas.js";
+export * from "./getExplanationBySlug/types.js";

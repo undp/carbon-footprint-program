@@ -1,6 +1,6 @@
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { getExplanationByIdRoute } from "@/features/explanations/getExplanationById/route.js";
+import { getExplanationBySlugRoute } from "@/features/explanations/getExplanationBySlug/route.js";
 
 export default function explanationsRoutes(fastify: FastifyZodInstance) {
-  getExplanationByIdRoute(fastify);
+  getExplanationBySlugRoute(fastify);
 }

@@ -16,7 +16,7 @@ export function mapCategoryToResponse(
     color: category.color,
     synonyms: category.synonyms,
     description: category.description,
-    explanationId: category.explanationId?.toString() ?? null,
+    explanationSlug: category.explanationSlug ?? null,
     examples: category.examples,
     position: category.position,
     status: category.status,
