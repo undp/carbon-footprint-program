@@ -52,13 +52,14 @@ export const ViewSubmissionDialog: FC<Props> = ({
     isStatusPending,
     isCarbonInventorySubmission,
     isOrganizationAccreditation,
-    isReductionProjectVerification: _isReductionProjectVerification,
+    isReductionProjectVerification,
     isBusy,
     submissionComment,
     subtitle,
     handleApproveSubmission,
     handleReviewSubmission,
     handleNavigateToInventory,
+    handleNavigateToReductionProject,
   } = useViewSubmission({
     carbonInventoryId,
     organizationId,
@@ -184,6 +185,33 @@ export const ViewSubmissionDialog: FC<Props> = ({
                         Ver resumen del cálculo de huella
                       </Button>
                     )}
+
+                  {/* Reduction project link */}
+                  {reductionProjectId && isReductionProjectVerification && (
+                    <Button
+                      variant="text"
+                      size="small"
+                      startIcon={
+                        <OpenInNewOutlined
+                          sx={{ fontSize: "0.75rem !important" }}
+                        />
+                      }
+                      onClick={() =>
+                        handleNavigateToReductionProject(reductionProjectId)
+                      }
+                      sx={{
+                        color: theme.palette.common.glossyTeal,
+                        px: 1,
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                        textTransform: "none",
+                        mb: 1,
+                        minWidth: 0,
+                      }}
+                    >
+                      Ver detalle del proyecto de reducción
+                    </Button>
+                  )}
 
                   {submissionComment && (
                     <SubmissionCommentsSection comment={submissionComment} />

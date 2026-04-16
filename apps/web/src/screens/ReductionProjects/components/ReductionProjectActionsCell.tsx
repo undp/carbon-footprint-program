@@ -51,7 +51,14 @@ export const ReductionProjectActionsCell: FC<
 
   const onEditClick = useCallback(() => {
     void navigate({
-      to: Routes.REDUCTION_PROJECT,
+      to: Routes.REDUCTION_PROJECT_EDIT,
+      params: { id: reductionProject.id },
+    });
+  }, [navigate, reductionProject.id]);
+
+  const onViewClick = useCallback(() => {
+    void navigate({
+      to: Routes.REDUCTION_PROJECT_DETAILS,
       params: { id: reductionProject.id },
     });
   }, [navigate, reductionProject.id]);
@@ -72,7 +79,7 @@ export const ReductionProjectActionsCell: FC<
         ) : (
           <Tooltip title="Ver proyecto">
             <span>
-              <BaseIconButton onClick={onEditClick} aria-label="Ver proyecto">
+              <BaseIconButton onClick={onViewClick} aria-label="Ver proyecto">
                 <VisibilityOutlined fontSize="small" />
               </BaseIconButton>
             </span>

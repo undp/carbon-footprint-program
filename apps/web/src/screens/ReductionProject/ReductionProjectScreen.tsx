@@ -34,17 +34,20 @@ import { capitalize } from "lodash-es";
 import { isReductionProjectEditable } from "@repo/utils";
 
 interface Props {
-  mode: "create" | "edit";
+  mode: "create" | "edit" | "view";
 }
 
 export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   const navigate = useNavigate();
   const isCreateMode = mode === "create";
   const isEditMode = mode === "edit";
+  const isViewMode = mode === "view";
   const params = useParams({
     from: isCreateMode
       ? Routes.REDUCTION_PROJECT_NEW
-      : Routes.REDUCTION_PROJECT,
+      : isEditMode
+        ? Routes.REDUCTION_PROJECT_EDIT
+        : Routes.REDUCTION_PROJECT_DETAILS,
   });
 
   const id = isCreateMode ? undefined : (params as { id: string }).id;
@@ -71,18 +74,21 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
   ]);
 
   // Derived state
-  const isProjectInformationLoading = isEditMode && isProjectLoading;
+  const isProjectInformationLoading =
+    (isEditMode || isViewMode) && isProjectLoading;
 
   const isSelectorsLoading = isLoadingInventories || isLoadingOrgs;
 
   const isLoading = isProjectInformationLoading || isSelectorsLoading;
 
-  const hasProjectInformationError = isEditMode && isProjectError;
+  const hasProjectInformationError =
+    (isEditMode || isViewMode) && isProjectError;
   const hasSelectorsError = isErrorOrgs || isErrorInventories;
   const hasError = hasProjectInformationError || hasSelectorsError;
 
-  const status = isEditMode ? project?.status : undefined;
-  const isFormDisabled = Boolean(status && !isReductionProjectEditable(status));
+  const status = isEditMode || isViewMode ? project?.status : undefined;
+  const isFormDisabled =
+    isViewMode || Boolean(status && !isReductionProjectEditable(status));
   const isReviewed = status === ReductionProjectDisplayStatusEnum.REVIEWED;
   const showFileUpload = isCreateMode || isReviewed;
 
@@ -218,7 +224,7 @@ export const ReductionProjectScreen: FC<Props> = ({ mode }) => {
               onClick={() => openExplanation(null)}
             />
           </Box>
-          {isEditMode && status && (
+          {(isEditMode || isViewMode) && status && (
             <ReductionProjectStatusChip status={status} size="medium" />
           )}
         </Box>

@@ -119,6 +119,11 @@ export const useViewSubmission = ({
     window.open(href, "_blank", "noopener,noreferrer");
   }, []);
 
+  const handleNavigateToReductionProject = useCallback((projectId: string) => {
+    const href = Routes.REDUCTION_PROJECT_DETAILS.replace("$id", projectId);
+    window.open(href, "_blank", "noopener,noreferrer");
+  }, []);
+
   return {
     submission,
     historicalEntries,
@@ -133,5 +138,6 @@ export const useViewSubmission = ({
     handleApproveSubmission,
     handleReviewSubmission,
     handleNavigateToInventory,
+    handleNavigateToReductionProject,
   };
 };
