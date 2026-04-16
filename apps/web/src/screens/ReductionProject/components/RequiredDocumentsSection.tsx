@@ -11,7 +11,7 @@ export const RequiredDocumentsSection: FC = () => {
       <Box className="flex items-center gap-2">
         <DescriptionOutlined color="primary" fontSize="small" />
         <Typography variant="subtitle1" fontWeight={600}>
-          Documentos Requeridos para la Postulación
+          Documentos requeridos para la postulación
         </Typography>
       </Box>
 
