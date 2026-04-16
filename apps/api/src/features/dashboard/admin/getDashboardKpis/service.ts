@@ -1,7 +1,6 @@
 import type { PrismaClient } from "@repo/database";
 import {
   InventoryStatus,
-  Prisma,
   SubmissionType,
   SubmissionStatus,
 } from "@repo/database";
@@ -69,9 +68,7 @@ async function getOrganizationKpis(
                       SubmissionStatus.APPROVED_AUTOMATICALLY,
                     ],
                   },
-                  ...(approvedAtFilter
-                    ? { reviewedAt: approvedAtFilter }
-                    : {}),
+                  ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
                 },
               },
             },
@@ -104,73 +101,50 @@ async function getEmissionsData(
   prismaClient: PrismaClient,
   year?: number
 ): Promise<{ totalEmissions: number; verifiedEmissions: number }> {
-  const inventoryFilter: Prisma.CarbonInventoryWhereInput = {
-    status: InventoryStatus.ACTIVE,
-    isSelfDeclared: true,
-    ...(year ? { year } : {}),
-  };
-
-  // Get all matching inventories
   const inventories = await prismaClient.carbonInventory.findMany({
-    where: inventoryFilter,
-    select: { id: true },
-  });
-  const inventoryIds = inventories.map((i) => i.id);
-
-  if (inventoryIds.length === 0) {
-    return { totalEmissions: 0, verifiedEmissions: 0 };
-  }
-
-  // Sum all subtotals for these inventories
-  const subtotals = await prismaClient.carbonInventorySubtotalsView.findMany({
-    where: { carbonInventoryId: { in: inventoryIds } },
-    select: { carbonInventoryId: true, value: true },
-  });
-
-  const totalEmissions = subtotals.reduce(
-    (sum, row) => sum + Number(row.value),
-    0
-  );
-
-  // Find inventories with an approved CARBON_INVENTORY_VERIFICATION submission
-  const verifiedInventoryIds = await prismaClient.submission
-    .findMany({
-      where: {
-        type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
-        status: {
-          in: [
-            SubmissionStatus.APPROVED,
-            SubmissionStatus.APPROVED_AUTOMATICALLY,
-          ],
-        },
-        subject: {
-          carbonInventory: {
-            carbonInventoryId: { in: inventoryIds },
-          },
-        },
-      },
-      select: {
-        subject: {
-          select: {
-            carbonInventory: {
-              select: { carbonInventoryId: true },
+    where: {
+      status: InventoryStatus.ACTIVE,
+      isSelfDeclared: true,
+      ...(year ? { year } : {}),
+    },
+    select: {
+      subtotals: { select: { value: true } },
+      submission: {
+        select: {
+          subject: {
+            select: {
+              submissions: {
+                where: {
+                  type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
+                  status: {
+                    in: [
+                      SubmissionStatus.APPROVED,
+                      SubmissionStatus.APPROVED_AUTOMATICALLY,
+                    ],
+                  },
+                },
+                select: { id: true },
+                take: 1,
+              },
             },
           },
         },
       },
-    })
-    .then(
-      (subs) =>
-        new Set(
-          subs
-            .map((s) => s.subject.carbonInventory?.carbonInventoryId)
-            .filter((id): id is bigint => id !== undefined)
-        )
-    );
+    },
+  });
 
-  const verifiedEmissions = subtotals
-    .filter((row) => verifiedInventoryIds.has(row.carbonInventoryId))
-    .reduce((sum, row) => sum + Number(row.value), 0);
+  let totalEmissions = 0;
+  let verifiedEmissions = 0;
+  for (const inventory of inventories) {
+    const inventoryTotal = inventory.subtotals.reduce(
+      (sum, row) => sum + Number(row.value),
+      0
+    );
+    totalEmissions += inventoryTotal;
+    if ((inventory.submission?.subject.submissions.length ?? 0) > 0) {
+      verifiedEmissions += inventoryTotal;
+    }
+  }
 
   return { totalEmissions, verifiedEmissions };
 }
