@@ -8,9 +8,11 @@ export const useAdminDashboardCategoryChart = (year?: number) => {
   return useQuery<GetAdminDashboardCategoryChartResponse>({
     queryKey: dashboardKeys.adminCategoryChart(year),
     queryFn: () => {
-      const searchParams = year !== undefined ? `?year=${year}` : "";
+      const searchParams = new URLSearchParams();
+      if (year !== undefined) searchParams.set("year", String(year));
+      const suffix = searchParams.toString();
       return apiClient
-        .get(`admin/dashboard/category-chart${searchParams}`)
+        .get(`admin/dashboard/category-chart${suffix ? `?${suffix}` : ""}`)
         .json<GetAdminDashboardCategoryChartResponse>();
     },
     staleTime: STALE_TIME_MS,
