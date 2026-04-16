@@ -17,6 +17,15 @@ export const getCarbonInventoryMetadataService = async (
       name: true,
       organizationData: true,
       methodologyVersionId: true,
+      organization: {
+        select: {
+          summary: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
       ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
@@ -65,7 +74,7 @@ export const getCarbonInventoryMetadataService = async (
     id: inventory.id.toString(),
     name: inventory.name,
     country: methodology?.country.name ?? null,
-    organizationName: orgData?.name ?? null,
+    organizationName: inventory.organization?.summary?.name ?? null,
     organizationBranchesQuantity: null,
     organizationSectorName: sector?.name ?? null,
     organizationSizeName: size?.name ?? null,

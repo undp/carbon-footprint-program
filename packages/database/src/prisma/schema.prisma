@@ -588,7 +588,7 @@ model CarbonInventory {
   year                 Int?
   status               InventoryStatus                   @default(ACTIVE)
   usageMode            UsageMode                         @map("usage_mode")
-  methodologyVersionId BigInt?                           @map("methodology_version_id")
+  methodologyVersionId BigInt                            @map("methodology_version_id")
   preselectedNodesId   BigInt?                           @map("preselected_nodes_id")
   isEditable           Boolean                           @default(true) @map("is_editable")
   createdAt            DateTime                          @default(now()) @map("created_at")
@@ -598,7 +598,7 @@ model CarbonInventory {
   updatedById          BigInt?                           @map("updated_by_id")
   selfDeclaredById     BigInt?                           @map("self_declared_by_id")
   isSelfDeclared       Boolean                           @default(false) @map("is_self_declared")
-  methodologyVersion   MethodologyVersion?               @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
+  methodologyVersion   MethodologyVersion                @relation(fields: [methodologyVersionId], references: [id], onDelete: Cascade)
   creator              User?                             @relation("carbon_inventory_created_by", fields: [createdById], references: [id])
   updater              User?                             @relation("carbon_inventory_updated_by", fields: [updatedById], references: [id])
   selfDeclaredBy       User?                             @relation("carbon_inventory_self_declared_by", fields: [selfDeclaredById], references: [id])

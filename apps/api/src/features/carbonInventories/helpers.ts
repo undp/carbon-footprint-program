@@ -22,12 +22,26 @@ import {
 } from "@repo/types";
 import { isCarbonInventoryEditable } from "@repo/utils";
 
-export type InventoryBase = {
-  id: bigint;
-  name: string | null;
-  organizationData: unknown;
-  methodologyVersionId: bigint;
-};
+export type InventoryBase = Pick<
+  Prisma.CarbonInventoryGetPayload<{
+    select: {
+      id: true;
+      name: true;
+      organizationData: true;
+      methodologyVersionId: true;
+      organization: { select: { summary: { select: { name: true } } } };
+    };
+  }>,
+  "id" | "name" | "organizationData" | "methodologyVersionId" | "organization"
+>;
+
+export const carbonInventoryBaseSelect = {
+  id: true,
+  name: true,
+  organizationData: true,
+  methodologyVersionId: true,
+  organization: { select: { summary: { select: { name: true } } } },
+} satisfies Prisma.CarbonInventorySelect;
 
 /**
  * Validates that a carbon inventory is in an editable state.
@@ -70,12 +84,7 @@ export async function fetchInventory(
 ): Promise<InventoryBase> {
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(id) },
-    select: {
-      id: true,
-      name: true,
-      organizationData: true,
-      methodologyVersionId: true,
-    },
+    select: carbonInventoryBaseSelect,
   });
 
   if (!inventory) {
@@ -98,7 +107,7 @@ export async function fetchCategoryData(
   inventory: InventoryBase
 ): Promise<{ categoryData: CategoryData[]; totalEmissions: number }> {
   const methodology = await prismaClient.methodologyVersion.findUnique({
-    where: { id: inventory.methodologyVersionId },
+    where: { id: inventory.methodologyVersionId ?? undefined },
     select: {
       categories: {
         select: {
