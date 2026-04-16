@@ -40,8 +40,8 @@ export async function resolveInventoryAttributes(
 
   return {
     name: inventory.name,
-    companyName: inventory.organization?.summary?.name ?? null,
-    countryName: methodology?.country.name ?? null,
+    companyName: inventory.organization?.summary?.name || orgData?.name || null,
+    countryName: methodology?.country.name || null,
     sectorName: sector?.name ?? null,
     sizeName: size?.name ?? null,
     branchCount: null,

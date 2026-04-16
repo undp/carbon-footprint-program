@@ -74,7 +74,8 @@ export const getCarbonInventoryMetadataService = async (
     id: inventory.id.toString(),
     name: inventory.name,
     country: methodology?.country.name ?? null,
-    organizationName: inventory.organization?.summary?.name ?? null,
+    organizationName:
+      inventory.organization?.summary?.name || orgData?.name || null,
     organizationBranchesQuantity: null,
     organizationSectorName: sector?.name ?? null,
     organizationSizeName: size?.name ?? null,
