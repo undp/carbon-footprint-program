@@ -1,5 +1,10 @@
 import { SubmissionType, SubmissionStatus } from "@repo/database/enums";
 import { z } from "zod";
+import { YearQueryParamSchema } from "../../../dashboard/admin/schemas.js";
+
+export const GetAdminRequestsKpisQuerySchema = z.object({
+  year: YearQueryParamSchema,
+});
 
 // Individual KPI count schema
 const BaseCountSchema = z.object({
