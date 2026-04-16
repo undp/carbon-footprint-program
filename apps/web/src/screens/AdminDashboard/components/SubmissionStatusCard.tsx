@@ -23,6 +23,9 @@ export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
 }) => (
   <Card
     sx={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 1,
       flex: 1,
       p: 2,
       borderRadius: "12px",
@@ -42,27 +45,16 @@ export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
       </Box>
     </Box>
     {secondary !== undefined ? (
-      <Box sx={{ mt: 1 }}>
-        <Stack direction="row" alignItems="baseline" spacing={0.5}>
-          <Typography variant="h5" fontWeight={700}>
-            {formatQuantity(primary)}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {primaryLabel}
-          </Typography>
-          <Typography variant="h5" fontWeight={700}>
-            |
-          </Typography>
-          <Typography variant="h5" fontWeight={700}>
-            {formatQuantity(secondary)}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {secondaryLabel}
-          </Typography>
-        </Stack>
-      </Box>
+      <Stack direction="column" alignItems="baseline" spacing={0.5}>
+        <Typography variant="h4" fontWeight={700}>
+          {formatQuantity(primary)} | {formatQuantity(secondary)}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {primaryLabel} | {secondaryLabel}
+        </Typography>
+      </Stack>
     ) : (
-      <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
+      <Typography variant="h4" fontWeight={700}>
         {formatQuantity(primary)}
       </Typography>
     )}

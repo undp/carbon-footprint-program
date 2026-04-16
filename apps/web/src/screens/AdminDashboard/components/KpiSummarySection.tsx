@@ -33,20 +33,20 @@ export const KpiSummarySection: FC<KpiSummarySectionProps> = ({ year }) => {
         color={theme.palette.primary.main}
         Icon={BusinessOutlined}
         primaryValue={data?.totalOrganizations ?? 0}
-        primaryLabel="Inscritas"
+        primaryLabel="Total"
         secondaryValue={data?.measuringOrganizations ?? 0}
         secondaryLabel="Midiendo"
         isLoading={isLoading}
         hasError={isError}
       />
       <KpiSummaryCard
-        title="Emisiones"
+        title="Emisiones (tCO₂e)"
         color={theme.palette.warning.main}
         Icon={Co2Outlined}
         primaryValue={data?.totalEmissions ?? 0}
-        primaryLabel="Total (tCO₂e)"
+        primaryLabel="Total"
         secondaryValue={data?.verifiedEmissions ?? 0}
-        secondaryLabel="Verificadas (tCO₂e)"
+        secondaryLabel="Verificadas"
         isLoading={isLoading}
         hasError={isError}
       />
@@ -55,7 +55,7 @@ export const KpiSummarySection: FC<KpiSummarySectionProps> = ({ year }) => {
         color={theme.palette.success.main}
         Icon={EmojiEventsOutlined}
         primaryValue={data?.recognitionsEarned ?? 0}
-        primaryLabel="Otorgados"
+        primaryLabel="Entregados"
         secondaryValue={data?.recognitionsUnderReview ?? 0}
         secondaryLabel="En revisión"
         isLoading={isLoading}

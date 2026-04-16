@@ -6,9 +6,9 @@ interface KpiSummaryCardProps {
   title: string;
   color: string;
   Icon: React.ElementType;
-  primaryValue: number | string;
+  primaryValue: number;
   primaryLabel: string;
-  secondaryValue: number | string;
+  secondaryValue: number;
   secondaryLabel: string;
   isLoading?: boolean;
   hasError?: boolean;
@@ -29,6 +29,9 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
     return (
       <Card
         sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
           flex: 1,
           p: 2,
           borderRadius: "12px",
@@ -87,29 +90,14 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
           <Icon />
         </Box>
       </Box>
-      <Box sx={{ mt: 1 }}>
-        <Stack direction="row" alignItems="baseline" spacing={0.5}>
-          <Typography variant="h5" fontWeight={700}>
-            {typeof primaryValue === "number"
-              ? formatQuantity(primaryValue)
-              : primaryValue}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {primaryLabel}
-          </Typography>
-          <Typography variant="h5" fontWeight={700}>
-            |
-          </Typography>
-          <Typography variant="h5" fontWeight={700}>
-            {typeof secondaryValue === "number"
-              ? formatQuantity(secondaryValue)
-              : secondaryValue}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {secondaryLabel}
-          </Typography>
-        </Stack>
-      </Box>
+      <Stack direction="column" alignItems="baseline" spacing={0.5}>
+        <Typography variant="h4" fontWeight={700}>
+          {formatQuantity(primaryValue)} | {formatQuantity(secondaryValue)}
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          {primaryLabel} | {secondaryLabel}
+        </Typography>
+      </Stack>
     </Card>
   );
 };

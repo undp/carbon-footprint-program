@@ -128,7 +128,7 @@ export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
         ) : (
           <Stack direction="row" spacing={2}>
             <SubmissionStatusCard
-              label="Pendientes"
+              label="En revisión"
               color={theme.palette.warning.dark}
               Icon={AccessTimeOutlined}
               primary={pendingCount}
@@ -143,7 +143,7 @@ export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
               secondaryLabel="Automática"
             />
             <SubmissionStatusCard
-              label="Revisadas"
+              label="Con observaciones"
               color={theme.palette.info.dark}
               Icon={DisabledVisibleOutlined}
               primary={reviewedCount}

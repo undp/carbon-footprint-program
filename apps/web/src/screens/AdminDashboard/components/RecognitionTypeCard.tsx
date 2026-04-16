@@ -19,6 +19,9 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
 }) => (
   <Card
     sx={{
+      display: "flex",
+      flexDirection: "column",
+      gap: 1,
       flex: 1,
       p: 2,
       borderRadius: "12px",
@@ -30,21 +33,12 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
       {label}
     </Typography>
     {showPaired ? (
-      <Stack direction="row" alignItems="baseline" spacing={0.5}>
-        <Typography variant="h5" fontWeight={700}>
-          {formatQuantity(approved)}
+      <Stack direction="column" alignItems="baseline" spacing={0.5}>
+        <Typography variant="h4" fontWeight={700}>
+          {formatQuantity(approved)} | {formatQuantity(approvedAuto)}
         </Typography>
         <Typography variant="caption" color="text.secondary">
-          Manual
-        </Typography>
-        <Typography variant="h5" fontWeight={700}>
-          |
-        </Typography>
-        <Typography variant="h5" fontWeight={700}>
-          {formatQuantity(approvedAuto)}
-        </Typography>
-        <Typography variant="caption" color="text.secondary">
-          Automática
+          Manual | Automático
         </Typography>
       </Stack>
     ) : (
