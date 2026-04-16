@@ -18,7 +18,7 @@ export async function exportReductionProjectToExcel(
     { header: "Campo", key: "field", width: 30 },
     { header: "Valor", key: "value", width: 50 },
   ];
-  worksheet.getRow(1).font = { bold: true };
+  worksheet.getRow(1).font = { bold: true, size: 14 };
 
   const rows = [
     ["Nombre", project.name],
@@ -42,7 +42,7 @@ export async function exportReductionProjectToExcel(
   ];
 
   for (const [field, value] of rows) {
-    worksheet.addRow({ field, value });
+    worksheet.addRow({ field, value, font: { size: 12 } });
   }
 
   await downloadWorkbook(workbook, filename);
