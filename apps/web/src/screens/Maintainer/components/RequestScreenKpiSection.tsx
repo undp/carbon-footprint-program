@@ -61,7 +61,11 @@ export const RequestScreenKpiSection: FC = () => {
       [RequestStatus.REJECTED]: 0,
     };
     for (const kpi of counts) {
-      map[kpi.status] += kpi.value;
+      if (kpi.status === RequestStatus.APPROVED_AUTOMATICALLY) {
+        map[RequestStatus.APPROVED] += kpi.value;
+      } else {
+        map[kpi.status] += kpi.value;
+      }
     }
     return map;
   }, [kpisData]);

@@ -12,3 +12,4 @@ export * from "./submissions";
 export * from "./systemParameters";
 export * from "./badges";
 export * from "./transparency";
+export * from "./dashboard";
