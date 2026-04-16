@@ -1,11 +1,11 @@
 import { FC, useEffect, useMemo } from "react";
 import {
+  alpha,
   Card,
   CardContent,
   Skeleton,
   Stack,
   Typography,
-  useTheme,
 } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { SubmissionType, SubmissionStatus } from "@repo/types";
@@ -16,6 +16,7 @@ import {
   RECOGNITION_TYPE_LABELS,
 } from "../constants";
 import { RecognitionTypeCard } from "./RecognitionTypeCard";
+import { SUBMISSION_CARD_COLORS } from "../../Recognitions/constants";
 
 interface RecognitionsSummaryCardProps {
   year?: number;
@@ -26,7 +27,6 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
 }) => {
   const { data, isLoading, isError } = useAdminRequestsKpis(year);
   const { enqueueSnackbar } = useSnackbar();
-  const theme = useTheme();
 
   useEffect(() => {
     if (isError) {
@@ -72,8 +72,6 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
     return { total, byType };
   }, [data]);
 
-  const color = theme.palette.success.dark;
-
   return (
     <Card
       sx={{
@@ -106,7 +104,7 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
               label="Total Reconocimientos"
               approved={recognitionData.total}
               approvedAuto={0}
-              color={color}
+              color={alpha("#9B59B6", 0.1)}
             />
             {RECOGNITION_TYPES.map((type) => {
               const typeData = recognitionData.byType[type] ?? {
@@ -119,7 +117,8 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
                   label={RECOGNITION_TYPE_LABELS[type]}
                   approved={typeData.approved}
                   approvedAuto={typeData.approvedAuto}
-                  color={color}
+                  // color={darken(SUBMISSION_CARD_COLORS[type], 0.05)}
+                  color={SUBMISSION_CARD_COLORS[type]}
                   showPaired={
                     type === SubmissionType.CARBON_INVENTORY_CALCULATION
                   }

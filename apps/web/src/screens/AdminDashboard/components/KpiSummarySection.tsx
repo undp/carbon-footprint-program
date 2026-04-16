@@ -30,7 +30,7 @@ export const KpiSummarySection: FC<KpiSummarySectionProps> = ({ year }) => {
     <Stack direction="row" spacing={2}>
       <KpiSummaryCard
         title="Empresas inscritas"
-        color={theme.palette.primary.main}
+        color={theme.palette.info.main}
         Icon={BusinessOutlined}
         primaryValue={data?.totalOrganizations ?? 0}
         primaryLabel="Total"
@@ -41,7 +41,7 @@ export const KpiSummarySection: FC<KpiSummarySectionProps> = ({ year }) => {
       />
       <KpiSummaryCard
         title="Emisiones (tCO₂e)"
-        color={theme.palette.warning.main}
+        color={theme.palette.secondary.main}
         Icon={Co2Outlined}
         primaryValue={data?.totalEmissions ?? 0}
         primaryLabel="Total"
@@ -52,7 +52,7 @@ export const KpiSummarySection: FC<KpiSummarySectionProps> = ({ year }) => {
       />
       <KpiSummaryCard
         title="Reconocimientos"
-        color={theme.palette.success.main}
+        color={theme.palette.warning.main}
         Icon={EmojiEventsOutlined}
         primaryValue={data?.recognitionsEarned ?? 0}
         primaryLabel="Entregados"

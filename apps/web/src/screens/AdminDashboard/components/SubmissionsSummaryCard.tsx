@@ -144,7 +144,7 @@ export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
             />
             <SubmissionStatusCard
               label="Con observaciones"
-              color={theme.palette.info.dark}
+              color={"#9B59B6"}
               Icon={DisabledVisibleOutlined}
               primary={reviewedCount}
             />

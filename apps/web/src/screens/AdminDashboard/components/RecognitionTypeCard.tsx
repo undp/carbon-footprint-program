@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Card, Stack, Typography, alpha } from "@mui/material";
+import { Card, Stack, Typography } from "@mui/material";
 import { formatQuantity } from "@/utils/formatting";
 
 interface RecognitionTypeCardProps {
@@ -26,7 +26,7 @@ export const RecognitionTypeCard: FC<RecognitionTypeCardProps> = ({
       p: 2,
       borderRadius: "12px",
       boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-      backgroundColor: alpha(color, 0.08),
+      backgroundColor: color,
     }}
   >
     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
