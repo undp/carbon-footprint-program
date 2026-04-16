@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@repo/database";
+import { CategoryStatus, InventoryStatus } from "@repo/database";
 import type { GetAdminDashboardCategoryChartResponse } from "@repo/types";
 
 export const getDashboardCategoryChartService = async (
@@ -6,7 +7,7 @@ export const getDashboardCategoryChartService = async (
   year?: number
 ): Promise<GetAdminDashboardCategoryChartResponse> => {
   const inventoryFilter = {
-    status: "ACTIVE" as const,
+    status: InventoryStatus.ACTIVE,
     isSelfDeclared: true,
     ...(year ? { year } : {}),
   };
@@ -47,7 +48,7 @@ export const getDashboardCategoryChartService = async (
       name: true,
       createdAt: true,
       categories: {
-        where: { status: "ACTIVE" },
+        where: { status: CategoryStatus.ACTIVE },
         select: {
           id: true,
           name: true,
