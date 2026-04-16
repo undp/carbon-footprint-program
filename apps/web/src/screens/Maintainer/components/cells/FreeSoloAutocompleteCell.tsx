@@ -1,6 +1,6 @@
 import { FC, useState, useEffect } from "react";
 import { Autocomplete, TextField, Typography, Tooltip } from "@mui/material";
-import { useOverflowTooltip } from "./useOverflowTooltip";
+import { useOverflowTooltip } from "@/hooks";
 
 interface FreeSoloAutocompleteCellProps {
   value: string;
