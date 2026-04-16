@@ -98,7 +98,7 @@ export async function fetchCategoryData(
   inventory: InventoryBase
 ): Promise<{ categoryData: CategoryData[]; totalEmissions: number }> {
   const methodology = await prismaClient.methodologyVersion.findUnique({
-    where: { id: inventory.methodologyVersionId ?? undefined },
+    where: { id: inventory.methodologyVersionId },
     select: {
       categories: {
         select: {
