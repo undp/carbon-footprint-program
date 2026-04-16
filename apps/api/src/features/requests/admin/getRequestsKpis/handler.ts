@@ -1,8 +1,9 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import { getRequestsKpisService } from "./service.js";
+import type { GetAdminRequestsKpisQuery } from "@repo/types";
 
 export const getRequestsKpisHandler = async (
-  request: FastifyRequest<{ Querystring: { year?: number } }>,
+  request: FastifyRequest<{ Querystring: GetAdminRequestsKpisQuery }>,
   reply: FastifyReply
 ) => {
   const log = request.log.child({ module: "admin-requests" });

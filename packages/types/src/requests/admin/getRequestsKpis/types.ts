@@ -1,6 +1,12 @@
 import { z } from "zod";
-import { GetAdminRequestsKpisResponseSchema } from "./schemas.js";
+import {
+  GetAdminRequestsKpisQuerySchema,
+  GetAdminRequestsKpisResponseSchema,
+} from "./schemas.js";
 
+export type GetAdminRequestsKpisQuery = z.infer<
+  typeof GetAdminRequestsKpisQuerySchema
+>;
 export type GetAdminRequestsKpisResponse = z.infer<
   typeof GetAdminRequestsKpisResponseSchema
 >;
