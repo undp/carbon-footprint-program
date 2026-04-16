@@ -46,7 +46,10 @@ export const getDashboardCategoryChartService = async (
     for (const inv of mv.carbonInventories) {
       for (const subtotal of inv.subtotals) {
         const key = String(subtotal.categoryId);
-        emissionsMap.set(key, (emissionsMap.get(key) ?? 0) + Number(subtotal.value));
+        emissionsMap.set(
+          key,
+          (emissionsMap.get(key) ?? 0) + Number(subtotal.value)
+        );
       }
     }
 

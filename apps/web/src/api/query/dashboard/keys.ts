@@ -10,9 +10,5 @@ export const dashboardKeys = {
       year ?? null,
     ] as const,
   adminCategoryChart: (year?: number) =>
-    [
-      ...dashboardKeys.adminDashboard,
-      "category-chart",
-      year ?? null,
-    ] as const,
+    [...dashboardKeys.adminDashboard, "category-chart", year ?? null] as const,
 };

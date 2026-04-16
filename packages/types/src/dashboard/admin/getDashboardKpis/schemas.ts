@@ -15,7 +15,9 @@ export const GetAdminDashboardKpisResponseSchema = z.object({
     .number()
     .int()
     .nonnegative()
-    .describe("Enrolled organizations with at least one active self-declared inventory"),
+    .describe(
+      "Enrolled organizations with at least one active self-declared inventory"
+    ),
   totalEmissions: z
     .number()
     .nonnegative()
@@ -28,7 +30,9 @@ export const GetAdminDashboardKpisResponseSchema = z.object({
     .number()
     .int()
     .nonnegative()
-    .describe("Total approved recognitions (APPROVED + APPROVED_AUTOMATICALLY)"),
+    .describe(
+      "Total approved recognitions (APPROVED + APPROVED_AUTOMATICALLY)"
+    ),
   recognitionsUnderReview: z
     .number()
     .int()

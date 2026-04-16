@@ -156,7 +156,7 @@ const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
         backgroundColor: alpha(color, 0.1),
       }}
     >
-      <Box className="flex w-full justify-between items-start">
+      <Box className="flex w-full items-start justify-between">
         <Typography variant="body2" color="text.secondary">
           {title}
         </Typography>
@@ -247,7 +247,7 @@ const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
       }}
     >
       <CardContent>
-        <Box className="flex justify-between items-center mb-4">
+        <Box className="mb-4 flex items-center justify-between">
           <Typography variant="h6" fontWeight={700}>
             {title}
           </Typography>
@@ -270,13 +270,27 @@ const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
         </Box>
 
         {isLoading && (
-          <Box sx={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box
+            sx={{
+              height: 200,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Skeleton variant="rectangular" width="100%" height={180} />
           </Box>
         )}
 
         {!isLoading && isError && (
-          <Box sx={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box
+            sx={{
+              height: 200,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Typography variant="body2" color="error.main">
               Error al cargar los datos
             </Typography>
@@ -284,7 +298,14 @@ const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
         )}
 
         {!isLoading && !isError && chartData.length === 0 && (
-          <Box sx={{ height: 200, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box
+            sx={{
+              height: 200,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Typography variant="body2" color="text.secondary">
               Sin datos disponibles
             </Typography>
@@ -359,7 +380,7 @@ const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
       }}
     >
       <CardContent>
-        <Box className="flex justify-between items-center mb-2">
+        <Box className="mb-2 flex items-center justify-between">
           <Typography variant="h6" fontWeight={700}>
             Distribución por Alcance
           </Typography>
@@ -382,13 +403,27 @@ const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
         </Box>
 
         {isLoading && (
-          <Box sx={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box
+            sx={{
+              height: 220,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Skeleton variant="circular" width={160} height={160} />
           </Box>
         )}
 
         {!isLoading && isError && (
-          <Box sx={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box
+            sx={{
+              height: 220,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Typography variant="body2" color="error.main">
               Error al cargar los datos
             </Typography>
@@ -396,60 +431,80 @@ const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
         )}
 
         {!isLoading && !isError && methodologies.length === 0 && (
-          <Box sx={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Box
+            sx={{
+              height: 220,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Typography variant="body2" color="text.secondary">
               Sin datos disponibles
             </Typography>
           </Box>
         )}
 
-        {!isLoading && !isError && methodologies.length > 0 && totalEmissions === 0 && (
-          <Box sx={{ height: 220, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Typography variant="body2" color="text.secondary">
-              Sin datos disponibles
-            </Typography>
-          </Box>
-        )}
+        {!isLoading &&
+          !isError &&
+          methodologies.length > 0 &&
+          totalEmissions === 0 && (
+            <Box
+              sx={{
+                height: 220,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Typography variant="body2" color="text.secondary">
+                Sin datos disponibles
+              </Typography>
+            </Box>
+          )}
 
-        {!isLoading && !isError && methodologies.length > 0 && totalEmissions > 0 && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-            <Box sx={{ position: "relative" }}>
-              <PieChart
-                series={[
-                  {
-                    data: pieData,
-                    innerRadius: 55,
-                    outerRadius: 80,
-                    paddingAngle: 1,
-                    cornerRadius: 2,
-                  },
-                ]}
-                width={260}
-                height={195}
-                hideLegend={false}
-                margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
-              />
-              <Box
-                sx={{
-                  position: "absolute",
-                  inset: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  pointerEvents: "none",
-                }}
-              >
-                <Typography variant="h6" fontWeight="fontWeightSemiBold">
-                  {formatNumber(totalEmissions)}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  tCO₂e
-                </Typography>
+        {!isLoading &&
+          !isError &&
+          methodologies.length > 0 &&
+          totalEmissions > 0 && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
+              <Box sx={{ position: "relative" }}>
+                <PieChart
+                  series={[
+                    {
+                      data: pieData,
+                      innerRadius: 55,
+                      outerRadius: 80,
+                      paddingAngle: 1,
+                      cornerRadius: 2,
+                    },
+                  ]}
+                  width={260}
+                  height={195}
+                  hideLegend={false}
+                  margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
+                />
+                <Box
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    pointerEvents: "none",
+                  }}
+                >
+                  <Typography variant="h6" fontWeight="fontWeightSemiBold">
+                    {formatNumber(totalEmissions)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    tCO₂e
+                  </Typography>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        )}
+          )}
       </CardContent>
     </Card>
   );
@@ -484,7 +539,15 @@ const RequestStatusCard: FC<{
   primaryLabel?: string;
   secondary?: number;
   secondaryLabel?: string;
-}> = ({ label, color, Icon, primary, primaryLabel, secondary, secondaryLabel }) => (
+}> = ({
+  label,
+  color,
+  Icon,
+  primary,
+  primaryLabel,
+  secondary,
+  secondaryLabel,
+}) => (
   <Card
     sx={{
       flex: 1,
@@ -599,7 +662,7 @@ const RequestsSummaryCard: FC<RequestsSummaryCardProps> = ({ year }) => {
       }}
     >
       <CardContent>
-        <Box className="flex justify-between items-center mb-4">
+        <Box className="mb-4 flex items-center justify-between">
           <Typography variant="h6" fontWeight={700}>
             Resumen de Postulaciones
           </Typography>
@@ -733,14 +796,15 @@ const RecognitionTypeCards: FC<RecognitionTypeCardsProps> = ({ year }) => {
     if (!data) {
       return {
         total: 0,
-        byType: {} as Record<string, { approved: number; approvedAuto: number }>,
+        byType: {} as Record<
+          string,
+          { approved: number; approvedAuto: number }
+        >,
       };
     }
 
-    const byType: Record<
-      string,
-      { approved: number; approvedAuto: number }
-    > = {};
+    const byType: Record<string, { approved: number; approvedAuto: number }> =
+      {};
 
     for (const type of RECOGNITION_TYPES) {
       byType[type] = { approved: 0, approvedAuto: 0 };
@@ -865,7 +929,11 @@ export const AdminDashboardScreen: FC = () => {
           boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
         }}
       >
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
+        >
           <Box>
             <Typography variant="h5" fontWeight={700}>
               Dashboard General
