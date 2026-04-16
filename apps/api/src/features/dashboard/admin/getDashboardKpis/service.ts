@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import { SubmissionType, SubmissionStatus } from "@repo/database";
+import { InventoryStatus, SubmissionType, SubmissionStatus } from "@repo/database";
 import type { GetAdminDashboardKpisResponse } from "@repo/types";
 
 const LAST_2_YEARS_WINDOW = 2;
@@ -105,7 +105,7 @@ async function getMeasuringOrganizations(
   // that also have an approved ORGANIZATION_ACCREDITATION submission
   const inventories = await prismaClient.carbonInventory.findMany({
     where: {
-      status: "ACTIVE",
+      status: InventoryStatus.ACTIVE,
       isSelfDeclared: true,
       year: inventoryYearFilter,
       organizationId: { not: null },
@@ -143,7 +143,7 @@ async function getEmissionsData(
   year?: number
 ): Promise<{ totalEmissions: number; verifiedEmissions: number }> {
   const inventoryFilter = {
-    status: "ACTIVE" as const,
+    status: InventoryStatus.ACTIVE,
     isSelfDeclared: true,
     ...(year ? { year } : {}),
   };
@@ -223,7 +223,7 @@ async function getRecognitionsEarned(
         ? {
             subject: {
               carbonInventory: {
-                carbonInventory: { year, status: "ACTIVE" },
+                carbonInventory: { year, status: InventoryStatus.ACTIVE },
               },
             },
           }
@@ -244,7 +244,7 @@ async function getRecognitionsUnderReview(
         ? {
             subject: {
               carbonInventory: {
-                carbonInventory: { year, status: "ACTIVE" },
+                carbonInventory: { year, status: InventoryStatus.ACTIVE },
               },
             },
           }
