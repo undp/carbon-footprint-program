@@ -581,24 +581,5 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
     });
-
-    it("should return 404 with 'Methodology not found' when carbon inventory has no methodology", async () => {
-      const carbonInventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: null }
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
-      });
-
-      expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(
-        /Methodology not found for carbon inventory with ID .+/
-      );
-    });
   });
 });

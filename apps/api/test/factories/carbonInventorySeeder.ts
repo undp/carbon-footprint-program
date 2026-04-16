@@ -2,6 +2,12 @@ import { type PrismaClient, Prisma } from "@repo/database";
 import { CarbonInventoryLineStatus } from "@repo/types";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { getTestLoggedUser } from "./userFactory.js";
+import { getTestMethodologyVersionId } from "./methodologyFactory.js";
+
+type CarbonInventoryCreateData = Omit<
+  Prisma.CarbonInventoryUncheckedCreateInput,
+  "methodologyVersionId"
+> & { methodologyVersionId?: bigint | number };
 
 /**
  * Common carbon inventory data patterns for testing
@@ -11,7 +17,7 @@ export const carbonInventoryPatterns = {
    * Returns a minimal draft carbon inventory input object with SIMPLIFIED mode.
    *   - usageMode: "SIMPLIFIED"
    */
-  simplifiedDraft: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
+  simplifiedDraft: (): CarbonInventoryCreateData => ({
     usageMode: "SIMPLIFIED",
   }),
 
@@ -19,7 +25,7 @@ export const carbonInventoryPatterns = {
    * Returns a minimal draft carbon inventory input object with EXPERT mode.
    *   - usageMode: "EXPERT"
    */
-  expertDraft: (): Prisma.CarbonInventoryUncheckedCreateInput => ({
+  expertDraft: (): CarbonInventoryCreateData => ({
     usageMode: "EXPERT",
   }),
 
@@ -63,7 +69,7 @@ export const carbonInventoryPatterns = {
       mainActivityId: string;
       mainActivityQuantity: number;
     }>
-  ): Prisma.CarbonInventoryUncheckedCreateInput => ({
+  ): CarbonInventoryCreateData => ({
     organizationData: {
       name: overrides?.name ?? "Acme Corp",
       sectorId: overrides?.sectorId ?? "5",
@@ -83,12 +89,15 @@ export const carbonInventoryPatterns = {
  */
 export async function createCarbonInventory(
   prisma: PrismaClient,
-  rawData: Prisma.CarbonInventoryUncheckedCreateInput
+  rawData: CarbonInventoryCreateData
 ) {
   const { id } = await getTestLoggedUser(prisma);
+  const methodologyVersionId =
+    rawData.methodologyVersionId ?? (await getTestMethodologyVersionId(prisma));
 
-  const data = {
+  const data: Prisma.CarbonInventoryUncheckedCreateInput = {
     ...rawData,
+    methodologyVersionId,
     createdById: rawData.createdById ?? id,
     updatedAt: null,
   };
@@ -102,15 +111,17 @@ export async function createCarbonInventory(
  */
 export async function createCarbonInventories(
   prisma: PrismaClient,
-  dataArray: Prisma.CarbonInventoryUncheckedCreateInput[]
+  dataArray: CarbonInventoryCreateData[]
 ) {
   const { id } = await getTestLoggedUser(prisma);
+  const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
-  const dataWithUserIds = dataArray.map((rawData) => ({
+  const dataWithDefaults = dataArray.map((rawData) => ({
     ...rawData,
+    methodologyVersionId: rawData.methodologyVersionId ?? methodologyVersionId,
     createdById: rawData.createdById ?? id,
   }));
-  await prisma.carbonInventory.createMany({ data: dataWithUserIds });
+  await prisma.carbonInventory.createMany({ data: dataWithDefaults });
 }
 
 /**
@@ -118,10 +129,11 @@ export async function createCarbonInventories(
  */
 export async function createInventoryFromPattern(
   prisma: PrismaClient,
-  pattern: () => Prisma.CarbonInventoryUncheckedCreateInput,
-  overrides?: Partial<Prisma.CarbonInventoryUncheckedCreateInput>
+  pattern: (() => CarbonInventoryCreateData) | CarbonInventoryCreateData,
+  overrides?: Partial<CarbonInventoryCreateData>
 ) {
-  const data = { ...pattern(), ...overrides };
+  const base = typeof pattern === "function" ? pattern() : pattern;
+  const data = { ...base, ...overrides };
   return createCarbonInventory(prisma, data);
 }
 
@@ -131,9 +143,10 @@ export async function createInventoryFromPattern(
  */
 export async function seedCarbonInventory(
   prisma: PrismaClient,
-  data: Prisma.CarbonInventoryUncheckedCreateInput
+  data: CarbonInventoryCreateData
 ) {
   const { id } = await getTestLoggedUser(prisma);
+  const defaultMethodologyVersionId = await getTestMethodologyVersionId(prisma);
   return prisma.carbonInventory.create({
     data: {
       year: data.year,
@@ -145,7 +158,8 @@ export async function seedCarbonInventory(
         mapBigIntField(data.organizationBranchId?.toString()) ?? null,
       organizationData: data.organizationData ?? Prisma.JsonNull,
       methodologyVersionId:
-        mapBigIntField(data.methodologyVersionId?.toString()) ?? null,
+        mapBigIntField(data.methodologyVersionId?.toString()) ??
+        defaultMethodologyVersionId,
       preselectedNodesId:
         mapBigIntField(data.preselectedNodesId?.toString()) ?? null,
       createdById: data.createdById ?? id,
@@ -320,16 +334,20 @@ export async function createCarbonInventoryLineFactor(
  */
 export async function createInventoryWithEmissions(
   prisma: PrismaClient,
-  inventoryData: Prisma.CarbonInventoryUncheckedCreateInput,
+  inventoryData: CarbonInventoryCreateData,
   options?: {
     emissionsByCategory?: { categoryPosition: number; emissions: number }[];
   }
 ) {
   // Create the inventory
   const { id } = await getTestLoggedUser(prisma);
+  const methodologyVersionId =
+    inventoryData.methodologyVersionId ??
+    (await getTestMethodologyVersionId(prisma));
   const inventory = await prisma.carbonInventory.create({
     data: {
       ...inventoryData,
+      methodologyVersionId,
       createdById: id,
       updatedAt: null,
     },

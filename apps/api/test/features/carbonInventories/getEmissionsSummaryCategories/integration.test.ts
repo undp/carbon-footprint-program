@@ -132,21 +132,5 @@ describe("GET /api/carbon-inventories/:id/emissions-summary/categories - Integra
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
     });
-
-    it("should return 404 when inventory has no methodology", async () => {
-      const inventory = await createCarbonInventory(prisma, {
-        usageMode: "SIMPLIFIED",
-        methodologyVersionId: null,
-      });
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${inventory.id}/emissions-summary/categories`,
-      });
-
-      expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("METHODOLOGY_NOT_FOUND");
-    });
   });
 });

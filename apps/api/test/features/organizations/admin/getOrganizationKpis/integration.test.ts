@@ -24,17 +24,20 @@ import { createTestOrganizationData } from "@test/factories/organizationDataFact
 import { createTestOrganizationDataSubmission } from "@test/factories/submissionFactory.js";
 import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
   let testUser: User;
+  let methodologyVersionId: bigint;
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
+    methodologyVersionId = await getTestMethodologyVersionId(prisma);
   });
 
   afterAll(async () => {
@@ -491,6 +494,7 @@ describe("GET /api/admin/organizations/kpis - Integration Tests", () => {
           organizationId: org.id,
           year: new Date().getFullYear() - 2,
           usageMode: "SIMPLIFIED",
+          methodologyVersionId,
           updatedAt: null,
         },
       });

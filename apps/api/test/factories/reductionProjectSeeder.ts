@@ -20,6 +20,7 @@ import { createTestOrganization } from "./organizationFactory.js";
 import { createTestOrganizationData } from "./organizationDataFactory.js";
 import { createTestMembership } from "./membershipFactory.js";
 import { createCarbonInventory } from "./carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "./methodologyFactory.js";
 import {
   createTestOrganizationDataSubmission,
   createTestCarbonInventorySubmission,
@@ -74,10 +75,12 @@ export async function setupReductionProjectPrerequisites(
   );
 
   // 4. Create carbon inventory linked to organization
+  const methodologyVersionId = await getTestMethodologyVersionId(prisma);
   const carbonInventory = await createCarbonInventory(prisma, {
     organizationId: organization.id,
     usageMode: "SIMPLIFIED",
     status: InventoryStatus.ACTIVE,
+    methodologyVersionId,
   });
 
   // 5. Create APPROVED verification submission for carbon inventory

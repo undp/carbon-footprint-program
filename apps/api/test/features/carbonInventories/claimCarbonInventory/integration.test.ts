@@ -16,6 +16,7 @@ import {
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
   type ApiErrorResponse,
   VALIDATION_ERROR_CODE,
@@ -25,10 +26,13 @@ describe("POST /api/carbon-inventories/:id/claim - Integration Tests", () => {
   let app: FastifyInstance;
   let prisma: PrismaClient;
 
+  let methodologyVersionId: bigint;
+
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
     app = await createTestApp(databaseUrl);
     prisma = app.prisma;
+    methodologyVersionId = await getTestMethodologyVersionId(prisma);
   });
 
   afterAll(async () => {
@@ -43,7 +47,11 @@ describe("POST /api/carbon-inventories/:id/claim - Integration Tests", () => {
 
   async function createAnonymousInventory() {
     return prisma.carbonInventory.create({
-      data: { usageMode: "SIMPLIFIED", createdById: null },
+      data: {
+        usageMode: "SIMPLIFIED",
+        createdById: null,
+        methodologyVersionId,
+      },
     });
   }
 
@@ -127,7 +135,11 @@ describe("POST /api/carbon-inventories/:id/claim - Integration Tests", () => {
     it("should return 404 when inventory is already claimed by a user", async () => {
       const user = await getTestLoggedUser(prisma);
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", createdById: BigInt(user.id) },
+        data: {
+          usageMode: "SIMPLIFIED",
+          createdById: BigInt(user.id),
+          methodologyVersionId,
+        },
       });
 
       const response = await app.inject({
@@ -149,6 +161,7 @@ describe("POST /api/carbon-inventories/:id/claim - Integration Tests", () => {
           usageMode: "SIMPLIFIED",
           createdById: null,
           organizationId: org.id,
+          methodologyVersionId,
         },
       });
 
@@ -165,7 +178,12 @@ describe("POST /api/carbon-inventories/:id/claim - Integration Tests", () => {
 
     it("should return 404 when inventory status is DELETED", async () => {
       const inventory = await prisma.carbonInventory.create({
-        data: { usageMode: "SIMPLIFIED", createdById: null, status: "DELETED" },
+        data: {
+          usageMode: "SIMPLIFIED",
+          createdById: null,
+          status: "DELETED",
+          methodologyVersionId,
+        },
       });
 
       const response = await app.inject({

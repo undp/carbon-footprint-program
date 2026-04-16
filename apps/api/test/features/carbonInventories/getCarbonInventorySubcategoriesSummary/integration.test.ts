@@ -506,25 +506,6 @@ describe("GET /api/carbon-inventories/:id/subcategories/summary - Integration Te
       expect(body.code).toBe("FORBIDDEN");
     });
 
-    it("should return 404 for carbon inventory without methodology", async () => {
-      const carbonInventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: null }
-      );
-
-      const response = await app.inject({
-        method: "GET",
-        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories/summary`,
-      });
-
-      expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(
-        /Methodology not found for carbon inventory with ID .+/
-      );
-    });
-
     it("should return 400 for invalid ID format (non-numeric)", async () => {
       const response = await app.inject({
         method: "GET",

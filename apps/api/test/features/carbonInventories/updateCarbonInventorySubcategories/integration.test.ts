@@ -441,41 +441,6 @@ describe("PATCH /api/carbon-inventories/:id/subcategories - Integration Tests", 
       expect(body.code).toBe("FORBIDDEN");
     });
 
-    it("should return 404 when carbon inventory has no methodology", async () => {
-      const methodologyId = await getTestMethodologyVersionId(prisma);
-      const carbonInventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
-      );
-
-      // Remove methodology from the carbon inventory
-      await prisma.carbonInventory.update({
-        where: { id: carbonInventory.id },
-        data: { methodologyVersionId: null },
-      });
-
-      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
-      expect(subcategoryIds.length).toBeGreaterThan(0);
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/carbon-inventories/${carbonInventory.id}/subcategories`,
-        payload: [
-          {
-            id: subcategoryIds[0].toString(),
-            selected: true,
-          },
-        ],
-      });
-
-      expect(response.statusCode).toBe(404);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.message).toMatch(
-        /Methodology not found for carbon inventory with ID .+/
-      );
-    });
-
     it("should return 404 when one or more subcategories do not exist", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
