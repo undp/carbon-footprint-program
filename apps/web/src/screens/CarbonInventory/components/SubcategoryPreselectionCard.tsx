@@ -72,7 +72,7 @@ export const SubcategoryPreselectionCard: FC<
           subtitle={category.synonyms || ""}
           title={category.name}
           description={category.description || ""}
-          explanationId={category.explanationId}
+          explanationSlug={category.explanationSlug}
         />
         <Divider className="w-full pt-4" />
         <Box
