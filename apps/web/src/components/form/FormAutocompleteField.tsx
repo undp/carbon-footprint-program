@@ -54,7 +54,7 @@ export const FormAutocompleteField = <T extends FieldValues>({
     [options, fieldValue]
   );
 
-  const { search } = useFuzzySearch<Option>(options, fuseOptions);
+  const { search } = useFuzzySearch<Option>(options, { fuseOptions });
 
   return (
     <Controller

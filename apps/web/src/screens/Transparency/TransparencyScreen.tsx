@@ -7,7 +7,6 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import Fuse from "fuse.js";
 import { LatamFootprintIcon } from "@/icons";
 import { Header } from "@/screens/Landing/components/Header";
 import {
@@ -18,6 +17,7 @@ import { SearchBar } from "./components/SearchBar";
 import { YearFilter } from "./components/YearFilter";
 import { useTransparencyData } from "@/api/query";
 import { useBadgePreviews } from "@/api/query/badges";
+import { useFuzzySearch } from "@/hooks";
 import { VOCAB } from "@/config/vocab";
 
 export const TransparencyScreen: FC = () => {
@@ -65,16 +65,18 @@ export const TransparencyScreen: FC = () => {
     return rows;
   }, [data, selectedYear]);
 
-  const filteredData = useMemo(() => {
-    if (!searchQuery.trim()) return flatRows;
-
-    const fuse = new Fuse<TransparencyRow>(flatRows, {
+  const fuseOptions = useMemo(
+    () => ({
       keys: ["organizationName", "sectorName", "subsectorName"],
       threshold: 0.3,
-    });
+    }),
+    []
+  );
 
-    return fuse.search(searchQuery).map((result) => result.item);
-  }, [flatRows, searchQuery]);
+  const { results: filteredData } = useFuzzySearch(flatRows, {
+    query: searchQuery,
+    fuseOptions,
+  });
 
   const alphaDeepForest = alpha(theme.palette.common.deepForest, 0.35);
 
