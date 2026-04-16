@@ -62,6 +62,15 @@ export const getAllReductionProjectsService = async (
       createdAt: true,
       baselineScenario: true,
       projectScenario: true,
+      organization: {
+        select: {
+          summary: {
+            select: {
+              name: true,
+            },
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });

@@ -3,9 +3,11 @@ import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { downloadWorkbook, sanitizeFilenamePart } from "@/services/excel";
 import { formatDateToDDMMYYYY } from "@repo/utils";
 import { getReductionProjectStatusLabel } from "./reductionProject";
+import { VOCAB } from "@/config/vocab";
 
 export async function exportReductionProjectToExcel(
-  project: GetReductionProjectByIdResponse
+  project: GetReductionProjectByIdResponse,
+  organizationName: string
 ) {
   const sanitizedName = sanitizeFilenamePart(project.name);
   const filename = `${sanitizedName}-proyecto-de-reduccion.xlsx`;
@@ -20,6 +22,7 @@ export async function exportReductionProjectToExcel(
 
   const rows = [
     ["Nombre", project.name],
+    [`Nombre ${VOCAB.organization.noun.singular}`, organizationName],
     ["Descripción", project.description],
     ["Año de Reducción", project.year?.toString() ?? "—"],
     [
@@ -31,7 +34,7 @@ export async function exportReductionProjectToExcel(
     ["Reducción (tCO₂e)", project.baselineScenario - project.projectScenario],
     ["GWP Utilizado", project.gwpUsed ?? "—"],
     ["GEI Considerados", project.consideredGei.join(", ") || "—"],
-    ["Reportado en Otro Lugar", project.reportedElsewhere ? "Sí" : "No"],
+    ["Reportado en Otra Iniciativa", project.reportedElsewhere ? "Sí" : "No"],
     ["Detalle Reporte Externo", project.reportedElsewhereDescription ?? "—"],
     ["Estado", getReductionProjectStatusLabel(project.status)],
     ["Fecha de Creación", formatDateToDDMMYYYY(project.createdAt)],

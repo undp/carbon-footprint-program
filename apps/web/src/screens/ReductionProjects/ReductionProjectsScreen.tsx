@@ -249,7 +249,12 @@ export const ReductionProjectsScreen: FC = () => {
             params: GridRenderCellParams<
               GetAllReductionProjectsResponse[number]
             >
-          ) => <ReductionProjectActionsCell reductionProject={params.row} />,
+          ) => (
+            <ReductionProjectActionsCell
+              reductionProject={params.row}
+              organizationName={params.row.organizationName}
+            />
+          ),
         },
       ],
       [isWiderScreen]

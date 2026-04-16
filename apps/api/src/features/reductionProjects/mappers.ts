@@ -65,6 +65,13 @@ type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
         };
       };
     };
+    organization: {
+      select: {
+        summary: {
+          select: { name: true };
+        };
+      };
+    };
   };
 }>;
 
@@ -82,6 +89,7 @@ export function mapReductionProjectToListItem(
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
     status: displayStatus,
+    organizationName: row.organization?.summary?.name ?? "",
   };
 }
 
