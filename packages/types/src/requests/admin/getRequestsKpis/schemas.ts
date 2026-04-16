@@ -89,7 +89,7 @@ const RequestKpiCountSchema = z.union([
     status: z.literal(SubmissionStatus.APPROVED),
   }),
   BaseCountSchema.extend({
-    type: z.literal(SubmissionType.REDUCTION_PLAN_VERIFICATION),
+    type: z.literal(SubmissionType.REDUCTION_PROJECT_VERIFICATION),
     status: z.literal(SubmissionStatus.APPROVED_AUTOMATICALLY),
   }),
   BaseCountSchema.extend({
