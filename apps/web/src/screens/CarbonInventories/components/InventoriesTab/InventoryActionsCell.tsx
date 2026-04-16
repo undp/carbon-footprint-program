@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Badge, Box, Tooltip } from "@mui/material";
+import { Badge, Box, CircularProgress, Tooltip } from "@mui/material";
 import {
   VisibilityOutlined,
   FileDownloadOutlined,
@@ -43,6 +43,7 @@ import {
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
 import { useNavigate } from "@tanstack/react-router";
+import { useDownloadCarbonInventory } from "../../hooks/useDownloadCarbonInventory";
 
 interface InventoryActionsCellProps {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -87,7 +88,21 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
   const { mutateAsync: requestVerification } = useRequestVerification();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
     useDuplicateCarbonInventory();
+  const { download, isDownloading } = useDownloadCarbonInventory();
   const { preUploadFiles } = usePreUploadSubmissionFiles();
+
+  const onDownloadClick = useCallback(() => {
+    void download(
+      carbonInventory.id,
+      carbonInventory.name,
+      carbonInventory.year
+    );
+  }, [
+    carbonInventory.id,
+    carbonInventory.name,
+    carbonInventory.year,
+    download,
+  ]);
 
   const onDuplicateClick = useCallback(async () => {
     try {
@@ -233,11 +248,27 @@ export const InventoryActionsCell: FC<InventoryActionsCellProps> = ({
           </Tooltip>
         )}
 
-        {/* Descargar (deshabilitado) */}
-        <Tooltip title="Descargar (próximamente)">
+        {/* Descargar */}
+        <Tooltip
+          title={
+            isDownloading
+              ? "Descargando..."
+              : carbonInventory.totalEmissions === 0
+                ? "Sin datos de emisiones"
+                : "Descargar"
+          }
+        >
           <span>
-            <BaseActionButton disabled aria-label="Descargar">
-              <FileDownloadOutlined fontSize="small" />
+            <BaseActionButton
+              onClick={onDownloadClick}
+              disabled={isDownloading || carbonInventory.totalEmissions === 0}
+              aria-label="Descargar"
+            >
+              {isDownloading ? (
+                <CircularProgress size={16} />
+              ) : (
+                <FileDownloadOutlined fontSize="small" />
+              )}
             </BaseActionButton>
           </span>
         </Tooltip>

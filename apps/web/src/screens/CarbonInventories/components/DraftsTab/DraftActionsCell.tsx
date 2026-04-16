@@ -1,5 +1,5 @@
 import { FC, useState, useCallback, useMemo } from "react";
-import { Box, Button, Tooltip } from "@mui/material";
+import { Box, Button, CircularProgress, Tooltip } from "@mui/material";
 import {
   EditOutlined,
   DeleteOutlined,
@@ -34,6 +34,7 @@ import {
   useCarbonInventoriesStore,
   CarbonInventoriesTab,
 } from "../../hooks/useCarbonInventoriesStore";
+import { useDownloadCarbonInventory } from "../../hooks/useDownloadCarbonInventory";
 
 interface Props {
   carbonInventory: GetAllCarbonInventoriesResponse[number];
@@ -89,6 +90,20 @@ export const DraftActionsCell: FC<Props> = ({
   const { mutateAsync: deleteInventory } = useDeleteCarbonInventory();
   const { mutateAsync: duplicateInventory, isPending: isDuplicating } =
     useDuplicateCarbonInventory();
+  const { download, isDownloading } = useDownloadCarbonInventory();
+
+  const onDownloadClick = useCallback(() => {
+    void download(
+      carbonInventory.id,
+      carbonInventory.name,
+      carbonInventory.year
+    );
+  }, [
+    carbonInventory.id,
+    carbonInventory.name,
+    carbonInventory.year,
+    download,
+  ]);
 
   const onEditClick = useCallback(() => {
     void navigate({
@@ -186,11 +201,27 @@ export const DraftActionsCell: FC<Props> = ({
           </span>
         </Tooltip>
 
-        {/* Descargar (deshabilitado) */}
-        <Tooltip title="Descargar (próximamente)">
+        {/* Descargar */}
+        <Tooltip
+          title={
+            isDownloading
+              ? "Descargando..."
+              : carbonInventory.totalEmissions === 0
+                ? "Sin datos de emisiones"
+                : "Descargar"
+          }
+        >
           <span>
-            <BaseActionButton disabled aria-label="Descargar">
-              <FileDownloadOutlined fontSize="small" />
+            <BaseActionButton
+              onClick={onDownloadClick}
+              disabled={isDownloading || carbonInventory.totalEmissions === 0}
+              aria-label="Descargar"
+            >
+              {isDownloading ? (
+                <CircularProgress size={16} />
+              ) : (
+                <FileDownloadOutlined fontSize="small" />
+              )}
             </BaseActionButton>
           </span>
         </Tooltip>
