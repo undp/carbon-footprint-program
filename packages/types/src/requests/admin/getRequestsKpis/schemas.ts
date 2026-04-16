@@ -128,7 +128,8 @@ const RequestKpiCountSchema = z.union([
 // If a new SubmissionType or SubmissionStatus is added, the RequestKpiCountSchema union entries
 // above must be updated to include all new combinations, otherwise runtime validation will fail.
 const ALL_STATUSES = Object.keys(SubmissionStatus);
-const expectedKpiCount = Object.keys(SubmissionType).length * ALL_STATUSES.length;
+const expectedKpiCount =
+  Object.keys(SubmissionType).length * ALL_STATUSES.length;
 
 export const GetAdminRequestsKpisResponseSchema = z.object({
   total: z.number().nonnegative().describe("The total count of requests"),

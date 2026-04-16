@@ -1,5 +1,10 @@
 import type { PrismaClient } from "@repo/database";
-import { InventoryStatus, Prisma, SubmissionType, SubmissionStatus } from "@repo/database";
+import {
+  InventoryStatus,
+  Prisma,
+  SubmissionType,
+  SubmissionStatus,
+} from "@repo/database";
 import type { GetAdminDashboardKpisResponse } from "@repo/types";
 import { MEASURING_ORGANIZATIONS_YEAR_RANGE } from "@/config/constants.js";
 
@@ -52,7 +57,10 @@ async function getTotalOrganizations(
     where: {
       type: SubmissionType.ORGANIZATION_ACCREDITATION,
       status: {
-        in: [SubmissionStatus.APPROVED, SubmissionStatus.APPROVED_AUTOMATICALLY],
+        in: [
+          SubmissionStatus.APPROVED,
+          SubmissionStatus.APPROVED_AUTOMATICALLY,
+        ],
       },
       ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
     },
@@ -73,7 +81,8 @@ async function getTotalOrganizations(
 
   const organizationIds = new Set<bigint>();
   for (const sub of submissions) {
-    const orgId = sub.subject.organizationData?.organizationData?.organizationId;
+    const orgId =
+      sub.subject.organizationData?.organizationData?.organizationId;
     if (orgId !== undefined) {
       organizationIds.add(orgId);
     }
@@ -88,9 +97,7 @@ async function getMeasuringOrganizations(
 ): Promise<number> {
   const currentYear = new Date().getFullYear();
 
-  let inventoryYearFilter:
-    | { equals: number }
-    | { gte: number; lte: number };
+  let inventoryYearFilter: { equals: number } | { gte: number; lte: number };
   if (year) {
     inventoryYearFilter = { equals: year };
   } else {
@@ -175,7 +182,10 @@ async function getEmissionsData(
       where: {
         type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
         status: {
-          in: [SubmissionStatus.APPROVED, SubmissionStatus.APPROVED_AUTOMATICALLY],
+          in: [
+            SubmissionStatus.APPROVED,
+            SubmissionStatus.APPROVED_AUTOMATICALLY,
+          ],
         },
         subject: {
           carbonInventory: {
@@ -193,12 +203,13 @@ async function getEmissionsData(
         },
       },
     })
-    .then((subs) =>
-      new Set(
-        subs
-          .map((s) => s.subject.carbonInventory?.carbonInventoryId)
-          .filter((id): id is bigint => id !== undefined)
-      )
+    .then(
+      (subs) =>
+        new Set(
+          subs
+            .map((s) => s.subject.carbonInventory?.carbonInventoryId)
+            .filter((id): id is bigint => id !== undefined)
+        )
     );
 
   const verifiedEmissions = subtotals
@@ -216,7 +227,10 @@ async function getRecognitionsEarned(
     where: {
       type: { in: [...RECOGNITION_SUBMISSION_TYPES] },
       status: {
-        in: [SubmissionStatus.APPROVED, SubmissionStatus.APPROVED_AUTOMATICALLY],
+        in: [
+          SubmissionStatus.APPROVED,
+          SubmissionStatus.APPROVED_AUTOMATICALLY,
+        ],
       },
       ...(year
         ? {

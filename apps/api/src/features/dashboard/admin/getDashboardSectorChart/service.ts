@@ -1,5 +1,11 @@
 import type { PrismaClient } from "@repo/database";
-import { InventoryStatus, OrganizationDataStatus, Prisma, SubmissionType, SubmissionStatus } from "@repo/database";
+import {
+  InventoryStatus,
+  OrganizationDataStatus,
+  Prisma,
+  SubmissionType,
+  SubmissionStatus,
+} from "@repo/database";
 import type { GetAdminDashboardSectorChartResponse } from "@repo/types";
 
 export const getDashboardSectorChartService = async (
@@ -31,7 +37,10 @@ async function getSectorRanking(
     where: {
       type: SubmissionType.ORGANIZATION_ACCREDITATION,
       status: {
-        in: [SubmissionStatus.APPROVED, SubmissionStatus.APPROVED_AUTOMATICALLY],
+        in: [
+          SubmissionStatus.APPROVED,
+          SubmissionStatus.APPROVED_AUTOMATICALLY,
+        ],
       },
       ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
     },
@@ -73,10 +82,12 @@ async function getSectorRanking(
   }
 
   return applySortAndLimit(
-    Array.from(sectorCounts.entries()).map(([sectorName, organizationCount]) => ({
-      sectorName,
-      value: organizationCount,
-    })),
+    Array.from(sectorCounts.entries()).map(
+      ([sectorName, organizationCount]) => ({
+        sectorName,
+        value: organizationCount,
+      })
+    ),
     limit
   ).map(({ sectorName, value }) => ({ sectorName, organizationCount: value }));
 }
@@ -151,10 +162,9 @@ async function getSectorEmissions(
  * Sorts entries descending by value (then alphabetically for ties, null last)
  * and returns all entries up to and including the cutoff at position `limit-1`.
  */
-function applySortAndLimit<T extends { sectorName: string | null; value: number }>(
-  entries: T[],
-  limit: number
-): T[] {
+function applySortAndLimit<
+  T extends { sectorName: string | null; value: number },
+>(entries: T[], limit: number): T[] {
   const sorted = [...entries].sort((a, b) => {
     if (b.value !== a.value) return b.value - a.value;
     if (a.sectorName === null && b.sectorName === null) return 0;
