@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import { InventoryStatus, SubmissionType, SubmissionStatus } from "@repo/database";
+import { InventoryStatus, Prisma, SubmissionType, SubmissionStatus } from "@repo/database";
 import type { GetAdminDashboardKpisResponse } from "@repo/types";
 
 const LAST_2_YEARS_WINDOW = 2;
@@ -142,7 +142,7 @@ async function getEmissionsData(
   prismaClient: PrismaClient,
   year?: number
 ): Promise<{ totalEmissions: number; verifiedEmissions: number }> {
-  const inventoryFilter = {
+  const inventoryFilter: Prisma.CarbonInventoryWhereInput = {
     status: InventoryStatus.ACTIVE,
     isSelfDeclared: true,
     ...(year ? { year } : {}),
