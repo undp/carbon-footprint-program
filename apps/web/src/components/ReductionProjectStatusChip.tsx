@@ -67,7 +67,7 @@ export const ReductionProjectStatusChip: FC<
     <Tooltip title={TOOLTIP_LABELS[status]}>
       <Chip
         sx={{
-          padding: "6px 16px",
+          padding: "6px 8px",
           backgroundColor: alpha(statusColor, 0.3),
           color: darken(statusColor, 0.5),
           border: `1px solid ${alpha(statusColor, 0.3)}`,

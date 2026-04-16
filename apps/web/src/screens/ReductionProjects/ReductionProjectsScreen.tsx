@@ -156,7 +156,7 @@ export const ReductionProjectsScreen: FC = () => {
           align: "center",
           headerAlign: "center",
           cellClassName: "content-center",
-          minWidth: 100,
+          minWidth: 80,
           flex: 0.6,
           renderCell: (
             params: GridRenderCellParams<
@@ -216,7 +216,7 @@ export const ReductionProjectsScreen: FC = () => {
           ),
           align: "center",
           headerAlign: "center",
-          minWidth: 120,
+          minWidth: 100,
           flex: 0.6,
           cellClassName: "content-center",
           valueFormatter: (value: number | null) =>
@@ -227,7 +227,7 @@ export const ReductionProjectsScreen: FC = () => {
           headerName: "Estado",
           headerAlign: "center",
           align: "center",
-          minWidth: 150,
+          minWidth: 200,
           flex: 0.8,
           cellClassName: "content-center",
           renderCell: (
