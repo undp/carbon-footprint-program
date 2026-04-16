@@ -2,11 +2,13 @@ import { FC } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
 import type { GetBadgePreviewsResponse } from "@repo/types";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
+import { OverflowTooltipText } from "@/components";
 import { VOCAB } from "@/config/vocab";
 import {
   RecognitionSeals,
   type TransparencyRecognitions,
 } from "./RecognitionSeals";
+import Typography from "@mui/material/Typography";
 
 const orgNoun = VOCAB.organization.noun;
 
@@ -30,34 +32,51 @@ const buildColumns = (
 ): GridColDef<TransparencyRow>[] => [
   {
     field: "organizationName",
-    headerName: `NOMBRE ${orgNoun.singular.toUpperCase()}`,
+    headerName: `Nombre ${orgNoun.singular}`,
     flex: 1.5,
     minWidth: 220,
+    renderCell: (params) => (
+      <OverflowTooltipText>{params.row.organizationName}</OverflowTooltipText>
+    ),
   },
   {
     field: "sectorName",
-    headerName: "RUBRO",
+    headerName: "Rubro",
     flex: 1,
     minWidth: 180,
-    valueGetter: (_value, row) => row.sectorName ?? "—",
+    renderCell: (params) =>
+      params.row.sectorName ? (
+        <OverflowTooltipText>{params.row.sectorName}</OverflowTooltipText>
+      ) : (
+        <Typography color="textDisabled" className="italic" variant="body2">
+          -
+        </Typography>
+      ),
   },
   {
     field: "subsectorName",
-    headerName: "SUB-RUBRO",
+    headerName: "Sub-rubro",
     flex: 1,
     minWidth: 180,
-    valueGetter: (_value, row) => row.subsectorName ?? "—",
+    renderCell: (params) =>
+      params.row.subsectorName ? (
+        <OverflowTooltipText>{params.row.subsectorName}</OverflowTooltipText>
+      ) : (
+        <Typography color="textDisabled" className="italic" variant="body2">
+          -
+        </Typography>
+      ),
   },
   {
     field: "year",
-    headerName: "AÑO",
+    headerName: "Año",
     width: 80,
     align: "center",
     headerAlign: "center",
   },
   {
     field: "recognitions",
-    headerName: "TIPO DE RECONOCIMIENTO",
+    headerName: "Tipo de Reconocimiento",
     flex: 1.2,
     minWidth: 250,
     sortable: false,

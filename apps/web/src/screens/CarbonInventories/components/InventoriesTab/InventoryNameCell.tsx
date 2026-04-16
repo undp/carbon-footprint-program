@@ -1,10 +1,8 @@
-import React from "react";
-import { FC } from "react";
+import React, { FC } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import { GetAllCarbonInventoriesResponse } from "@repo/types";
 import { RECOGNITION_TYPE_LABEL } from "@/utils/recognitions";
-import { RecognitionChip } from "@/components";
-import { useOverflowTooltip } from "@/screens/Maintainer/components/cells/useOverflowTooltip";
+import { OverflowTooltipText, RecognitionChip } from "@/components";
 
 interface InventoryNameCellProps {
   name: string | null;
@@ -17,12 +15,6 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
   recognitions,
   organizationName,
 }) => {
-  const { isOverflowed: isOrgOverflowed, overflowRef: orgOverflowRef } =
-    useOverflowTooltip<HTMLSpanElement>([organizationName]);
-
-  const { isOverflowed: isNameOverflowed, overflowRef: nameOverflowRef } =
-    useOverflowTooltip<HTMLSpanElement>([name]);
-
   return (
     <Box
       sx={{
@@ -35,38 +27,12 @@ export const InventoryNameCell: FC<InventoryNameCellProps> = ({
       }}
     >
       {organizationName && (
-        <Tooltip
-          title={isOrgOverflowed ? organizationName : ""}
-          arrow
-          placement="top"
-          enterDelay={500}
-        >
-          <Typography
-            ref={orgOverflowRef}
-            variant="caption"
-            noWrap
-            maxWidth="100%"
-          >
-            {organizationName}
-          </Typography>
-        </Tooltip>
+        <OverflowTooltipText variant="caption">
+          {organizationName}
+        </OverflowTooltipText>
       )}
       {name ? (
-        <Tooltip
-          title={isNameOverflowed ? name : ""}
-          arrow
-          placement="top"
-          enterDelay={500}
-        >
-          <Typography
-            ref={nameOverflowRef}
-            variant="body2"
-            noWrap
-            maxWidth="100%"
-          >
-            {name}
-          </Typography>
-        </Tooltip>
+        <OverflowTooltipText variant="body2">{name}</OverflowTooltipText>
       ) : (
         <Typography color="textDisabled" className="italic" variant="body2">
           (sin nombre)

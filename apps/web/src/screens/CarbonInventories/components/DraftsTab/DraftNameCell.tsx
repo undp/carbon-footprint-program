@@ -1,6 +1,6 @@
 import { FC } from "react";
-import { Box, Tooltip, Typography } from "@mui/material";
-import { useOverflowTooltip } from "@/screens/Maintainer/components/cells/useOverflowTooltip";
+import { Box, Typography } from "@mui/material";
+import { OverflowTooltipText } from "@/components";
 
 interface DraftNameCellProps {
   name: string | null;
@@ -11,12 +11,6 @@ export const DraftNameCell: FC<DraftNameCellProps> = ({
   name,
   organizationName,
 }) => {
-  const { isOverflowed: isOrgOverflowed, overflowRef: orgOverflowRef } =
-    useOverflowTooltip<HTMLSpanElement>([organizationName]);
-
-  const { isOverflowed: isNameOverflowed, overflowRef: nameOverflowRef } =
-    useOverflowTooltip<HTMLSpanElement>([name]);
-
   if (!name) {
     return (
       <Typography color="textDisabled" className="italic" variant="body2">
@@ -36,37 +30,11 @@ export const DraftNameCell: FC<DraftNameCellProps> = ({
       }}
     >
       {organizationName && (
-        <Tooltip
-          title={isOrgOverflowed ? organizationName : ""}
-          arrow
-          placement="top"
-          enterDelay={500}
-        >
-          <Typography
-            ref={orgOverflowRef}
-            variant="caption"
-            noWrap
-            maxWidth="100%"
-          >
-            {organizationName}
-          </Typography>
-        </Tooltip>
+        <OverflowTooltipText variant="caption">
+          {organizationName}
+        </OverflowTooltipText>
       )}
-      <Tooltip
-        title={isNameOverflowed ? name : ""}
-        arrow
-        placement="top"
-        enterDelay={500}
-      >
-        <Typography
-          ref={nameOverflowRef}
-          variant="body2"
-          noWrap
-          maxWidth="100%"
-        >
-          {name}
-        </Typography>
-      </Tooltip>
+      <OverflowTooltipText variant="body2">{name}</OverflowTooltipText>
     </Box>
   );
 };
