@@ -29,9 +29,12 @@ export const CategoryBaseSchema = z.object({
     .trim()
     .min(1)
     .describe("The description of the category"),
-  explanationId: IdSchema.nullable().describe(
-    "The ID of the explanation associated with this category, if any"
-  ),
+  explanationSlug: z
+    .string()
+    .nullable()
+    .describe(
+      "The slug of the explanation associated with this category, if any"
+    ),
   examples: z.string().nullable().describe("Example text"),
   position: z.number().int().min(1).describe("The display position"),
   status: CategoryStatusSchema.describe("The status of the category"),

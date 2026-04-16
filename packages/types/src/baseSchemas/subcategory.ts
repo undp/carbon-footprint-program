@@ -16,9 +16,12 @@ export const SubcategoryBaseSchema = z.object({
     .trim()
     .min(1)
     .describe("The description of the subcategory"),
-  explanationId: IdSchema.nullable().describe(
-    "The ID of the explanation associated with this subcategory, if any"
-  ),
+  explanationSlug: z
+    .string()
+    .nullable()
+    .describe(
+      "The slug of the explanation associated with this subcategory, if any"
+    ),
   examples: z.string().nullable().describe("Examples of the subcategory"),
   status: z.enum(SubcategoryStatus).describe("The status of the subcategory"),
   createdAt: z.iso.datetime().describe("The creation date"),
