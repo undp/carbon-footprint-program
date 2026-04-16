@@ -7,7 +7,7 @@ The system SHALL expose a `GET /api/admin/dashboard/category-chart` endpoint. Th
 #### Scenario: Single methodology — all categories returned
 
 - **WHEN** the endpoint is called and all matching inventories share the same methodology
-- **THEN** the response SHALL include `methodologies` as an array with a single object containing `methodologyId` (number), `methodologyName` (string), and `categoryEmissions` as an array of objects for ALL categories defined in that methodology, each with `categoryName` (string) and `totalEmissions` (number in tCO2e, summed from `CarbonInventorySubtotalsView` for self-declared inventories only), including categories with zero emissions, sorted ascending by the category's `position` attribute
+- **THEN** the response SHALL include `methodologies` as an array with a single object containing `methodologyVersionId` (number), `methodologyVersionName` (string), and `categoryEmissions` as an array of objects for ALL categories defined in that methodology, each with `categoryName` (string) and `totalEmissions` (raw number in ton CO2eq, summed from `CarbonInventorySubtotalsView` for self-declared inventories only), including categories with zero emissions, sorted ascending by `Category.position`
 
 #### Scenario: Single methodology with year filter
 
@@ -22,7 +22,7 @@ The system SHALL expose a `GET /api/admin/dashboard/category-chart` endpoint. Th
 #### Scenario: Multiple methodologies found
 
 - **WHEN** the endpoint is called and the matching inventories belong to more than one methodology
-- **THEN** the response SHALL include `methodologies` as an array with one entry per methodology, sorted descending by `MethodologyVersion.createdAt`, each containing `methodologyId`, `methodologyName`, and `categoryEmissions` with the emissions for that methodology's categories only
+- **THEN** the response SHALL include `methodologies` as an array with one entry per methodology, sorted descending by `MethodologyVersion.createdAt`, each containing `methodologyVersionId`, `methodologyVersionName`, and `categoryEmissions` with the emissions for that methodology's categories only
 
 #### Scenario: No inventories found — empty response
 

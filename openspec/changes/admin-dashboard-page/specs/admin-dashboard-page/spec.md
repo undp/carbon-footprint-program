@@ -21,12 +21,12 @@ The system SHALL render a fully functional dashboard page at the `/admin/dashboa
 
 ### Requirement: Year filter defaults to "Todas" and filters all sections
 
-The page SHALL display a year selector in the header area. The selector SHALL display the last N years from the current year, where N is defined by the `DASHBOARD_YEARS_RANGE_FROM_CURRENT` constant (initial value: 10) in `apps/web/src/config/constants.ts`, plus a "Todas" option. The selected year SHALL be stored in URL query parameters (e.g., `?year=2025`) so the filter state is shareable and persists on page refresh. The default selection SHALL be "Todas" (no `year` param in URL, no filtering). When a year is selected, all KPI cards, charts, and status sections SHALL update to reflect data for that year only.
+The page SHALL display a year selector in the header area. The selector SHALL display the last N years including the current year, where N is defined by the `DASHBOARD_YEARS_RANGE_FROM_CURRENT` constant (initial value: 10) in `apps/web/src/config/constants.ts` (e.g., if the current year is 2026 and N=10, the options are 2026, 2025, …, 2017), plus a "Todas" option. The selected year SHALL be stored in URL query parameters (e.g., `?year=2025`) so the filter state is shareable and persists on page refresh. The default selection SHALL be "Todas" (no `year` param in URL, no filtering). When a year is selected, all KPI cards, charts, and status sections SHALL update to reflect data for that year only.
 
 #### Scenario: Default state shows all data
 
 - **WHEN** the page loads with no `year` query parameter in the URL
-- **THEN** the year selector SHALL display "Todas" and all sections SHALL show unfiltered data
+- **THEN** the year selector SHALL display "Todas", no `year` query parameter SHALL be sent to the API, and all sections SHALL show data without year filtering (note: each KPI's own business rules still apply — e.g., `measuringOrganizations` always uses a last-2-years window as part of its definition, which is independent of the year filter)
 
 #### Scenario: Selecting a year filters data and updates URL
 
@@ -36,7 +36,7 @@ The page SHALL display a year selector in the header area. The selector SHALL di
 #### Scenario: Clearing year filter returns to "Todas"
 
 - **WHEN** the user clears the year selection or selects "Todas"
-- **THEN** the `year` query parameter SHALL be removed from the URL and all sections SHALL return to showing unfiltered data
+- **THEN** the `year` query parameter SHALL be removed from the URL, no `year` parameter SHALL be sent to the API, and all sections SHALL return to showing data without year filtering
 
 #### Scenario: Page loads with year in URL
 
@@ -52,7 +52,7 @@ The page SHALL display a year selector in the header area. The selector SHALL di
 
 The page SHALL display 3 summary cards in a horizontal row:
 
-1. **"Empresas inscritas"**: Total accredited organizations (those with an approved `ORGANIZATION_ACCREDITATION` submission) as the first value, and measuring organizations (the subset of accredited organizations that have at least one ACTIVE self-declared carbon inventory — filtered to the last 2 years including the current year when no year filter is active, or to the specific selected year) as the second value
+1. **"Empresas inscritas"**: Total enrolled organizations (those with an approved `ORGANIZATION_ACCREDITATION` submission) as the first value, and measuring organizations (the subset of enrolled organizations that have at least one ACTIVE self-declared carbon inventory — filtered to the last 2 years including the current year when no year filter is active, or to the specific selected year) as the second value
 2. Total emissions measured and verified emissions
 3. Total recognitions given and recognitions under review
 
