@@ -12,7 +12,7 @@ import {
 import { PieChart } from "@mui/x-charts/PieChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardCategoryChart } from "@/api/query/dashboard";
-import { formatNumber } from "../constants";
+import { formatQuantity } from "@/utils/formatting";
 
 interface CategoryChartCardProps {
   year?: number;
@@ -176,7 +176,7 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
                   }}
                 >
                   <Typography variant="h6" fontWeight="fontWeightSemiBold">
-                    {formatNumber(totalEmissions)}
+                    {formatQuantity(totalEmissions)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     tCO₂e

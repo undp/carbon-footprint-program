@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Card, Stack, Typography, alpha } from "@mui/material";
-import { formatNumber } from "../constants";
+import { formatQuantity } from "@/utils/formatting";
 
 interface RequestStatusCardProps {
   label: string;
@@ -45,7 +45,7 @@ export const RequestStatusCard: FC<RequestStatusCardProps> = ({
       <Box sx={{ mt: 1 }}>
         <Stack direction="row" alignItems="baseline" spacing={0.5}>
           <Typography variant="h5" fontWeight={700}>
-            {formatNumber(primary)}
+            {formatQuantity(primary)}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {primaryLabel}
@@ -54,7 +54,7 @@ export const RequestStatusCard: FC<RequestStatusCardProps> = ({
             |
           </Typography>
           <Typography variant="h5" fontWeight={700}>
-            {formatNumber(secondary)}
+            {formatQuantity(secondary)}
           </Typography>
           <Typography variant="caption" color="text.secondary">
             {secondaryLabel}
@@ -63,7 +63,7 @@ export const RequestStatusCard: FC<RequestStatusCardProps> = ({
       </Box>
     ) : (
       <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-        {formatNumber(primary)}
+        {formatQuantity(primary)}
       </Typography>
     )}
   </Card>
