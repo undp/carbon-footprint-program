@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Routes } from "@/interfaces";
-import { AdminDashboardScreen } from "@/screens/Maintainer/screens/AdminDashboardScreen";
+import { AdminDashboardScreen } from "@/screens/AdminDashboard/AdminDashboardScreen";
 import { MainLayout } from "@/components";
 
 const dashboardSearchSchema = z.object({
