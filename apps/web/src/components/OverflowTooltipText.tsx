@@ -1,0 +1,37 @@
+import { FC } from "react";
+import { Tooltip, Typography, type TypographyProps } from "@mui/material";
+import { useOverflowTooltip } from "@/hooks";
+
+type OverflowTooltipTextProps = TypographyProps;
+
+export const OverflowTooltipText: FC<OverflowTooltipTextProps> = ({
+  children,
+  variant = "body2",
+  sx,
+  ...rest
+}) => {
+  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLSpanElement>([
+    typeof children === "string" || typeof children === "number"
+      ? children
+      : null,
+  ]);
+
+  return (
+    <Tooltip
+      title={isOverflowed ? children : ""}
+      arrow
+      placement="top"
+      enterDelay={500}
+    >
+      <Typography
+        ref={overflowRef}
+        variant={variant}
+        noWrap
+        sx={{ maxWidth: "100%", ...sx }}
+        {...rest}
+      >
+        {children}
+      </Typography>
+    </Tooltip>
+  );
+};
