@@ -1,6 +1,6 @@
 ## 1. Types & Schemas
 
-- [ ] 1.1 Create `packages/types/src/dashboard/admin/schemas.ts` with Zod schemas for: shared `year` query param (optional, coerced to number, positive integer, max current year — returns 400 on invalid input), shared `limit` query param (required, coerced to number, positive integer), KPIs response (org counts, emissions), sector chart response (sector ranking + sector emissions), and category chart response (array of methodologies, each with methodologyId, methodologyName, and categoryEmissions)
+- [ ] 1.1 Create `packages/types/src/dashboard/admin/schemas.ts` with Zod schemas for: shared `year` query param (optional, coerced to number, positive integer, max current year — returns 400 on invalid input), shared `limit` query param (required, coerced to number, positive integer), KPIs response (org counts, emissions), sector chart response (sector ranking + sector emissions), and category chart response (array of methodologies, each with methodologyVersionId, methodologyVersionName, and categoryEmissions)
 - [ ] 1.2 Create `packages/types/src/dashboard/admin/types.ts` with inferred TypeScript types from schemas
 - [ ] 1.3 Export dashboard admin types from `packages/types/src/dashboard/admin/index.ts` and add to package barrel export
 
@@ -15,22 +15,22 @@
 
 - [ ] 3.1 Create `apps/api/src/features/dashboard/admin/getDashboardKpis/route.ts` with GET route, optional `year` query param, and Zod response schemas for all HTTP codes (200, 400, 401, 403, 500)
 - [ ] 3.2 Create `apps/api/src/features/dashboard/admin/getDashboardKpis/handler.ts` to parse request and call service
-- [ ] 3.3 Create `apps/api/src/features/dashboard/admin/getDashboardKpis/service.ts` with queries for: accredited orgs, self-declared orgs, total emissions, verified emissions — all with optional year filter
-- [ ] 3.4 Register the KPIs route in the admin dashboard feature plugin, using `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as `preHandler` hook
+- [ ] 3.3 Create `apps/api/src/features/dashboard/admin/getDashboardKpis/service.ts` with queries for: enrolled orgs, measuring organizations, total emissions, verified emissions — all with optional year filter
+- [ ] 3.4 Register the KPIs route in the `routes` folder, following the same folder structure as the route path (e.g., `routes/admin/dashboard/kpis/`), using `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as `preHandler` hook
 
 ## 4. API — Sector Chart Endpoint
 
 - [ ] 4.1 Create `apps/api/src/features/dashboard/admin/getDashboardSectorChart/route.ts` with GET route, required `limit` query param, optional `year` query param, and Zod response schemas for all HTTP codes (200, 400, 401, 403, 500)
 - [ ] 4.2 Create `apps/api/src/features/dashboard/admin/getDashboardSectorChart/handler.ts` to parse request and call service
 - [ ] 4.3 Create `apps/api/src/features/dashboard/admin/getDashboardSectorChart/service.ts` with queries for top-N sector ranking by org count and top-N sector ranking by total emissions, accepting `limit` and optional `year` filter, returning both `sectorRanking` and `sectorEmissions`
-- [ ] 4.4 Register the sector chart route in the admin dashboard feature plugin, using `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as `preHandler` hook
+- [ ] 4.4 Register the sector chart route in the `routes` folder, following the same folder structure as the route path (e.g., `routes/admin/dashboard/sector-chart/`), using `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as `preHandler` hook
 
 ## 5. API — Category Chart Endpoint
 
 - [ ] 5.1 Create `apps/api/src/features/dashboard/admin/getDashboardCategoryChart/route.ts` with GET route, optional `year` query param, and Zod response schemas for all HTTP codes (200, 400, 401, 403, 500)
 - [ ] 5.2 Create `apps/api/src/features/dashboard/admin/getDashboardCategoryChart/handler.ts` to parse request and call service
 - [ ] 5.3 Create `apps/api/src/features/dashboard/admin/getDashboardCategoryChart/service.ts` with query for emissions distribution by category grouped by methodology, with optional year filter. Returns array of methodologies each with id, name, and categoryEmissions
-- [ ] 5.4 Register the category chart route in the admin dashboard feature plugin, using `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as `preHandler` hook
+- [ ] 5.4 Register the category chart route in the `routes` folder, following the same folder structure as the route path (e.g., `routes/admin/dashboard/category-chart/`), using `fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])` as `preHandler` hook
 
 ## 6. Frontend — Query Hooks
 

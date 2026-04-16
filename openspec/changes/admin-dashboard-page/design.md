@@ -39,17 +39,17 @@ Existing API endpoints already serve some of this data (e.g., `getOrganizationKp
 
 ### 2. Year filter behavior
 
-**Decision**: The year selector defaults to "Todas" (no filter applied). When a year is selected, it is passed as an optional `year` query parameter to all endpoints (four new + existing requests KPIs). Each data point filters differently:
+**Decision**: The year selector defaults to "Todas" (no filter applied). When a year is selected, it is passed as an optional `year` query parameter to all endpoints (three new + existing requests KPIs). Each data point filters differently:
 
 - **Organization counts** (KPIs endpoint): Cumulative — counts organizations whose `ORGANIZATION_ACCREDITATION` submission was approved up to and including the selected year. This is an accumulative KPI.
 - **Emissions totals** (KPIs endpoint): Filters by `CarbonInventory.year = selectedYear`.
-- **Recognition counts** (KPIs endpoint): Filters by the `year` field of the carbon inventory associated to each submission.
-- **Sector ranking by orgs** (sector chart endpoint): Cumulative — counts accredited organizations whose accreditation was approved up to and including the selected year (same logic as organization KPIs).
+- **Recognition counts** (KPIs endpoint): Filters by the `year` field of the carbon inventory associated to each submission. For submissions without a carbon inventory association (e.g., `ORGANIZATION_ACCREDITATION`), the year is determined from `Submission.approvedAt`.
+- **Sector ranking by orgs** (sector chart endpoint): Cumulative — counts enrolled organizations (those with an approved `ORGANIZATION_ACCREDITATION` submission) whose enrollment was approved up to and including the selected year (same logic as organization KPIs).
 - **Sector ranking by emissions** (sector chart endpoint): Filters by `CarbonInventory.year = selectedYear`.
 - **Emissions by category** (category chart endpoint): Always called. Filters by `CarbonInventory.year = selectedYear` when a year is selected, or aggregates all years when "Todas" is active.
-- **Submissions by status** (requests KPIs endpoint): Filters by the `year` field of the carbon inventory associated to each submission.
+- **Submissions by status** (requests KPIs endpoint): Filters by the `year` field of the carbon inventory associated to each submission. For submissions without a carbon inventory association (e.g., `ORGANIZATION_ACCREDITATION`), the year is determined from `Submission.approvedAt`.
 
-**Rationale**: Organization counts are cumulative (by accreditation approval date) because the platform grows over time and admins want to see the total accredited base at a point in time. Emissions and recognitions filter by inventory year because that represents the measurement period. Submissions filter through their associated inventory year for consistency. Note: when no year filter is active ("Todas"), `measuringOrganizations` applies a last-2-years window (matching the `organization_carbon_inventories_summary` view) rather than counting all years.
+**Rationale**: Organization counts are cumulative (by enrollment approval date) because the platform grows over time and admins want to see the total enrolled base at a point in time. Emissions and recognitions filter by inventory year because that represents the measurement period. Submissions filter through their associated inventory year for consistency. Note: when no year filter is active ("Todas"), `measuringOrganizations` applies a last-2-years window (matching the `organization_carbon_inventories_summary` view) rather than counting all years.
 
 ### 3. Charts implementation
 

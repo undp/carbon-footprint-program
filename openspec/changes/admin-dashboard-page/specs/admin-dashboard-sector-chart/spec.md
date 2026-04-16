@@ -2,17 +2,17 @@
 
 ### Requirement: Sector chart endpoint returns top-N organizations and emissions per sector
 
-The system SHALL expose a `GET /api/admin/dashboard/sector-chart` endpoint that accepts a required `limit` query parameter (positive integer) and an optional `year` query parameter. The response SHALL include both `sectorRanking` (accredited organizations per sector) and `sectorEmissions` (emissions per sector). Only organizations with an approved `ORGANIZATION_ACCREDITATION` submission (status `APPROVED` or `APPROVED_AUTOMATICALLY`) SHALL be counted in `sectorRanking`. The sector for each organization is resolved exclusively from `OrganizationData.sectorId` (associated with the Organization) — the `CarbonInventory.organizationData.sectorId` field SHALL NOT be used. If `OrganizationData.sectorId` is NULL, the organization and its emissions SHALL be grouped under a NULL sector. Sector names are resolved from the `Sector` table; the frontend SHALL label the NULL sector group as "Desconocido". Emissions are computed by summing from the `CarbonInventorySubtotalsView`, filtering only ACTIVE inventories where `isSelfDeclared = true`.
+The system SHALL expose a `GET /api/admin/dashboard/sector-chart` endpoint that accepts a required `limit` query parameter (positive integer) and an optional `year` query parameter. The response SHALL include both `sectorRanking` (enrolled organizations per sector) and `sectorEmissions` (emissions per sector). Only organizations with an approved `ORGANIZATION_ACCREDITATION` submission (status `APPROVED` or `APPROVED_AUTOMATICALLY`) SHALL be counted in `sectorRanking`. The sector for each organization is resolved exclusively from `OrganizationData.sectorId` (associated with the Organization) — the `CarbonInventory.organizationData.sectorId` field SHALL NOT be used. If `OrganizationData.sectorId` is NULL, the organization and its emissions SHALL be grouped under a NULL sector. Sector names are resolved from the `Sector` table; the frontend SHALL label the NULL sector group as "Desconocido". Emissions are computed by summing from the `CarbonInventorySubtotalsView`, filtering only ACTIVE inventories where `isSelfDeclared = true`.
 
 #### Scenario: Sector ranking with limit
 
 - **WHEN** the endpoint is called with `limit=5`
-- **THEN** the response SHALL include `sectorRanking` as an array of up to 5 objects, each with `sectorName` (string | null) and `organizationCount` (integer), sorted descending by `organizationCount`
+- **THEN** the response SHALL include `sectorRanking` as an array of up to 5 objects, each with `sectorName` (string | null) and `organizationCount` (integer), sorted descending by `organizationCount`, then alphabetically ascending by `sectorName` for ties
 
 #### Scenario: Sector emissions with limit
 
 - **WHEN** the endpoint is called with `limit=5`
-- **THEN** the response SHALL include `sectorEmissions` as an array of up to 5 objects, each with `sectorName` (string | null) and `totalEmissions` (number in tCO2e), sorted descending by `totalEmissions`
+- **THEN** the response SHALL include `sectorEmissions` as an array of up to 5 objects, each with `sectorName` (string | null) and `totalEmissions` (raw number in ton CO2eq), sorted descending by `totalEmissions`, then alphabetically ascending by `sectorName` for ties
 
 #### Scenario: Organizations with null sector
 
@@ -27,7 +27,7 @@ The system SHALL expose a `GET /api/admin/dashboard/sector-chart` endpoint that 
 #### Scenario: Sector ranking with year filter
 
 - **WHEN** the endpoint is called with `limit=5&year=2025`
-- **THEN** the response SHALL include `sectorRanking` counting only accredited organizations whose accreditation was approved up to and including 2025 (cumulative, same logic as organization KPIs), and `sectorEmissions` filtered to self-declared inventories where `CarbonInventory.year = 2025`
+- **THEN** the response SHALL include `sectorRanking` counting only enrolled organizations whose enrollment was approved up to and including 2025 (cumulative, same logic as organization KPIs), and `sectorEmissions` filtered to self-declared inventories where `CarbonInventory.year = 2025`
 
 #### Scenario: Fewer sectors than limit
 
