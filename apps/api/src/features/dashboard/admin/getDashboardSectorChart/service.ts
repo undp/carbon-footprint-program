@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@repo/database";
-import { InventoryStatus, OrganizationDataStatus, SubmissionType, SubmissionStatus } from "@repo/database";
+import { InventoryStatus, OrganizationDataStatus, Prisma, SubmissionType, SubmissionStatus } from "@repo/database";
 import type { GetAdminDashboardSectorChartResponse } from "@repo/types";
 
 export const getDashboardSectorChartService = async (
@@ -86,7 +86,7 @@ async function getSectorEmissions(
   limit: number,
   year?: number
 ): Promise<{ sectorName: string | null; totalEmissions: number }[]> {
-  const inventoryFilter = {
+  const inventoryFilter: Prisma.CarbonInventoryWhereInput = {
     status: InventoryStatus.ACTIVE,
     isSelfDeclared: true,
     ...(year ? { year } : {}),

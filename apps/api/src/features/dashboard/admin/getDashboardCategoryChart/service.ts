@@ -1,12 +1,12 @@
 import type { PrismaClient } from "@repo/database";
-import { CategoryStatus, InventoryStatus } from "@repo/database";
+import { CategoryStatus, InventoryStatus, Prisma } from "@repo/database";
 import type { GetAdminDashboardCategoryChartResponse } from "@repo/types";
 
 export const getDashboardCategoryChartService = async (
   prismaClient: PrismaClient,
   year?: number
 ): Promise<GetAdminDashboardCategoryChartResponse> => {
-  const inventoryFilter = {
+  const inventoryFilter: Prisma.CarbonInventoryWhereInput = {
     status: InventoryStatus.ACTIVE,
     isSelfDeclared: true,
     ...(year ? { year } : {}),
