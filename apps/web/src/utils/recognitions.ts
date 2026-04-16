@@ -2,6 +2,7 @@ import {
   SubmissionType,
   CarbonInventoryRecognitionsType,
   BadgeType,
+  RECOGNITION_SUBMISSION_TYPES,
 } from "@repo/types";
 import {
   SvgIconComponent,
@@ -43,12 +44,7 @@ export const RECOGNITION_ICON: Record<
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: WorkspacePremiumOutlined,
 };
 
-export const RECOGNITION_SUBMISSION_TYPES: CarbonInventoryRecognitionsType[] = [
-  SubmissionType.CARBON_INVENTORY_CALCULATION,
-  SubmissionType.CARBON_INVENTORY_VERIFICATION,
-  SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-];
+export { RECOGNITION_SUBMISSION_TYPES };
 
 export const RECOGNITION_BADGE_TYPES: CarbonInventoryRecognitionsBadgeType[] = [
   BadgeType.CARBON_INVENTORY_CALCULATION,

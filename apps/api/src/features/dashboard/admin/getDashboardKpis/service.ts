@@ -5,29 +5,23 @@ import {
   SubmissionType,
   SubmissionStatus,
 } from "@repo/database";
-import type { GetAdminDashboardKpisResponse } from "@repo/types";
+import {
+  type GetAdminDashboardKpisResponse,
+  RECOGNITION_SUBMISSION_TYPES,
+} from "@repo/types";
 import { MEASURING_ORGANIZATIONS_YEAR_RANGE } from "@/config/constants.js";
-
-const RECOGNITION_SUBMISSION_TYPES = [
-  SubmissionType.CARBON_INVENTORY_CALCULATION,
-  SubmissionType.CARBON_INVENTORY_VERIFICATION,
-  SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-] as const;
 
 export const getDashboardKpisService = async (
   prismaClient: PrismaClient,
   year?: number
 ): Promise<GetAdminDashboardKpisResponse> => {
   const [
-    totalOrganizations,
-    measuringOrganizations,
+    { totalOrganizations, measuringOrganizations },
     emissionsData,
     recognitionsEarned,
     recognitionsUnderReview,
   ] = await Promise.all([
-    getTotalOrganizations(prismaClient, year),
-    getMeasuringOrganizations(prismaClient, year),
+    getOrganizationKpis(prismaClient, year),
     getEmissionsData(prismaClient, year),
     getRecognitionsEarned(prismaClient, year),
     getRecognitionsUnderReview(prismaClient, year),
@@ -43,93 +37,41 @@ export const getDashboardKpisService = async (
   };
 };
 
-async function getTotalOrganizations(
+async function getOrganizationKpis(
   prismaClient: PrismaClient,
   year?: number
-): Promise<number> {
-  // Cumulative: count distinct organizations with an approved ORGANIZATION_ACCREDITATION
-  // When year is given, only count those approved up to and including end of that year
+): Promise<{ totalOrganizations: number; measuringOrganizations: number }> {
+  const currentYear = new Date().getFullYear();
   const approvedAtFilter = year
     ? { lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) }
     : undefined;
 
-  const submissions = await prismaClient.submission.findMany({
+  const inventoryYearFilter: { equals: number } | { gte: number; lte: number } =
+    year
+      ? { equals: year }
+      : {
+          gte: currentYear - (MEASURING_ORGANIZATIONS_YEAR_RANGE - 1),
+          lte: currentYear,
+        };
+
+  const orgs = await prismaClient.organization.findMany({
     where: {
-      type: SubmissionType.ORGANIZATION_ACCREDITATION,
-      status: {
-        in: [
-          SubmissionStatus.APPROVED,
-          SubmissionStatus.APPROVED_AUTOMATICALLY,
-        ],
-      },
-      ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
-    },
-    select: {
-      subject: {
-        select: {
-          organizationData: {
-            select: {
-              organizationData: {
-                select: { organizationId: true },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
-
-  const organizationIds = new Set<bigint>();
-  for (const sub of submissions) {
-    const orgId =
-      sub.subject.organizationData?.organizationData?.organizationId;
-    if (orgId !== undefined) {
-      organizationIds.add(orgId);
-    }
-  }
-
-  return organizationIds.size;
-}
-
-async function getMeasuringOrganizations(
-  prismaClient: PrismaClient,
-  year?: number
-): Promise<number> {
-  const currentYear = new Date().getFullYear();
-
-  let inventoryYearFilter: { equals: number } | { gte: number; lte: number };
-  if (year) {
-    inventoryYearFilter = { equals: year };
-  } else {
-    inventoryYearFilter = {
-      gte: currentYear - (MEASURING_ORGANIZATIONS_YEAR_RANGE - 1),
-      lte: currentYear,
-    };
-  }
-
-  // Find organizations with at least one ACTIVE self-declared inventory in the year window
-  // that also have an approved ORGANIZATION_ACCREDITATION submission
-  const inventories = await prismaClient.carbonInventory.findMany({
-    where: {
-      status: InventoryStatus.ACTIVE,
-      isSelfDeclared: true,
-      year: inventoryYearFilter,
-      organizationId: { not: null },
-      organization: {
-        data: {
-          some: {
-            submission: {
-              subject: {
-                submissions: {
-                  some: {
-                    type: SubmissionType.ORGANIZATION_ACCREDITATION,
-                    status: {
-                      in: [
-                        SubmissionStatus.APPROVED,
-                        SubmissionStatus.APPROVED_AUTOMATICALLY,
-                      ],
-                    },
+      data: {
+        some: {
+          submission: {
+            subject: {
+              submissions: {
+                some: {
+                  type: SubmissionType.ORGANIZATION_ACCREDITATION,
+                  status: {
+                    in: [
+                      SubmissionStatus.APPROVED,
+                      SubmissionStatus.APPROVED_AUTOMATICALLY,
+                    ],
                   },
+                  ...(approvedAtFilter
+                    ? { reviewedAt: approvedAtFilter }
+                    : {}),
                 },
               },
             },
@@ -137,11 +79,25 @@ async function getMeasuringOrganizations(
         },
       },
     },
-    select: { organizationId: true },
-    distinct: ["organizationId"],
+    select: {
+      id: true,
+      carbonInventories: {
+        where: {
+          status: InventoryStatus.ACTIVE,
+          isSelfDeclared: true,
+          year: inventoryYearFilter,
+        },
+        select: { id: true },
+        take: 1,
+      },
+    },
   });
 
-  return inventories.length;
+  return {
+    totalOrganizations: orgs.length,
+    measuringOrganizations: orgs.filter((o) => o.carbonInventories.length > 0)
+      .length,
+  };
 }
 
 async function getEmissionsData(
