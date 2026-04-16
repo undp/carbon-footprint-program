@@ -10,3 +10,4 @@ export * from "./organizations";
 export * from "./submissions";
 export * from "./systemParameters";
 export * from "./badges";
+export * from "./dashboard";
