@@ -1,8 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import { InventoryStatus, Prisma, SubmissionType, SubmissionStatus } from "@repo/database";
 import type { GetAdminDashboardKpisResponse } from "@repo/types";
-
-const LAST_2_YEARS_WINDOW = 2;
+import { MEASURING_ORGANIZATIONS_YEAR_RANGE } from "@/config/constants.js";
 
 const RECOGNITION_SUBMISSION_TYPES = [
   SubmissionType.CARBON_INVENTORY_CALCULATION,
@@ -96,7 +95,7 @@ async function getMeasuringOrganizations(
     inventoryYearFilter = { equals: year };
   } else {
     inventoryYearFilter = {
-      gte: currentYear - (LAST_2_YEARS_WINDOW - 1),
+      gte: currentYear - (MEASURING_ORGANIZATIONS_YEAR_RANGE - 1),
       lte: currentYear,
     };
   }
