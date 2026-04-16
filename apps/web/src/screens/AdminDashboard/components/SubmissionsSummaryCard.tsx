@@ -19,16 +19,18 @@ import { useSnackbar } from "notistack";
 import { SubmissionType, SubmissionStatus } from "@repo/types";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
 import { RECOGNITION_TYPES } from "../constants";
-import { RequestStatusCard } from "./RequestStatusCard";
+import { SubmissionStatusCard } from "./SubmissionStatusCard";
 
-type RequestsTab = "inscription" | "recognitions";
+type SubmissionsTab = "inscription" | "recognitions";
 
-interface RequestsSummaryCardProps {
+interface SubmissionsSummaryCardProps {
   year?: number;
 }
 
-export const RequestsSummaryCard: FC<RequestsSummaryCardProps> = ({ year }) => {
-  const [activeTab, setActiveTab] = useState<RequestsTab>("recognitions");
+export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
+  year,
+}) => {
+  const [activeTab, setActiveTab] = useState<SubmissionsTab>("recognitions");
   const { data, isLoading, isError } = useAdminRequestsKpis(year);
   const { enqueueSnackbar } = useSnackbar();
   const theme = useTheme();
@@ -93,7 +95,7 @@ export const RequestsSummaryCard: FC<RequestsSummaryCardProps> = ({ year }) => {
           </Typography>
           <Tabs
             value={activeTab}
-            onChange={(_, val: RequestsTab) => setActiveTab(val)}
+            onChange={(_, val: SubmissionsTab) => setActiveTab(val)}
             sx={{ minHeight: "unset" }}
           >
             <Tab
@@ -125,13 +127,13 @@ export const RequestsSummaryCard: FC<RequestsSummaryCardProps> = ({ year }) => {
           </Typography>
         ) : (
           <Stack direction="row" spacing={2}>
-            <RequestStatusCard
+            <SubmissionStatusCard
               label="Pendientes"
               color={theme.palette.warning.dark}
               Icon={AccessTimeOutlined}
               primary={pendingCount}
             />
-            <RequestStatusCard
+            <SubmissionStatusCard
               label="Aprobadas"
               color={theme.palette.success.dark}
               Icon={CheckCircleOutlined}
@@ -140,7 +142,7 @@ export const RequestsSummaryCard: FC<RequestsSummaryCardProps> = ({ year }) => {
               secondary={approvedAutoCount}
               secondaryLabel="Automática"
             />
-            <RequestStatusCard
+            <SubmissionStatusCard
               label="Revisadas"
               color={theme.palette.info.dark}
               Icon={DisabledVisibleOutlined}

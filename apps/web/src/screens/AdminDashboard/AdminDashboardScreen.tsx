@@ -4,7 +4,7 @@ import { Route } from "@/routes/admin/dashboard";
 import { AdminDashboardHeader } from "./components/AdminDashboardHeader";
 import { KpiSummarySection } from "./components/KpiSummarySection";
 import { AdminDashboardCharts } from "./components/AdminDashboardCharts";
-import { RequestsSummaryCard } from "./components/RequestsSummaryCard";
+import { SubmissionsSummaryCard } from "./components/SubmissionsSummaryCard";
 import { RecognitionsSummaryCard } from "./components/RecognitionsSummaryCard";
 
 export const AdminDashboardScreen: FC = () => {
@@ -15,7 +15,7 @@ export const AdminDashboardScreen: FC = () => {
       <AdminDashboardHeader year={routeYear} />
       <KpiSummarySection year={routeYear} />
       <AdminDashboardCharts year={routeYear} />
-      <RequestsSummaryCard year={routeYear} />
+      <SubmissionsSummaryCard year={routeYear} />
       <RecognitionsSummaryCard year={routeYear} />
     </Box>
   );

@@ -2,7 +2,7 @@ import { FC } from "react";
 import { Box, Card, Stack, Typography, alpha } from "@mui/material";
 import { formatQuantity } from "@/utils/formatting";
 
-interface RequestStatusCardProps {
+interface SubmissionStatusCardProps {
   label: string;
   color: string;
   Icon: React.ElementType;
@@ -12,7 +12,7 @@ interface RequestStatusCardProps {
   secondaryLabel?: string;
 }
 
-export const RequestStatusCard: FC<RequestStatusCardProps> = ({
+export const SubmissionStatusCard: FC<SubmissionStatusCardProps> = ({
   label,
   color,
   Icon,
