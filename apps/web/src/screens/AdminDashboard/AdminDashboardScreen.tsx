@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useCallback, useEffect } from "react";
 import { Box, Card, Grid, Stack, Typography, useTheme } from "@mui/material";
 import {
   BusinessOutlined,
@@ -21,12 +21,15 @@ export const AdminDashboardScreen: FC = () => {
   const navigate = useNavigate({ from: "/admin/dashboard" });
   const theme = useTheme();
 
-  const handleYearChange = (year?: number) => {
-    void navigate({
-      search: year !== undefined ? { year } : {},
-      replace: true,
-    });
-  };
+  const handleYearChange = useCallback(
+    (year?: number) => {
+      void navigate({
+        search: year !== undefined ? { year } : {},
+        replace: true,
+      });
+    },
+    [navigate]
+  );
 
   const {
     data: kpisData,
