@@ -1009,44 +1009,6 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 422 when carbon inventory has no methodology", async () => {
-      // Create a carbon inventory without a methodology
-      const carbonInventory = await createInventoryFromPattern(
-        prisma,
-        carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: null }
-      );
-
-      const response = await app.inject({
-        method: "POST",
-        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
-        payload: {
-          create: [
-            {
-              subcategoryId: "1",
-              dimensionValue1Id: null,
-              dimensionValue2Id: null,
-              measurementUnitId: null,
-              quantity: null,
-              factorSource: null,
-              baseFactorId: null,
-              appliedFactorValue: null,
-              appliedFactorRateMeasurementUnitId: null,
-              manualTotalEmissions: null,
-              comment: null,
-              inputType: "SIMPLIFIED",
-            },
-          ],
-          update: [],
-          delete: [],
-        },
-      });
-
-      expect(response.statusCode).toBe(422);
-      const body = JSON.parse(response.body) as ApiErrorResponse;
-      expect(body.code).toBe("SUBCATEGORY_NOT_IN_METHODOLOGY");
-    });
-
     it("should return 422 when subcategory does not belong to the carbon inventory's methodology", async () => {
       const methodologyId1 = await getTestMethodologyVersionId(prisma);
       const emptyMethodology = await createEmptyMethodologyVersion(prisma);

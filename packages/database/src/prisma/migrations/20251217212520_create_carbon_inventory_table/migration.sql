@@ -17,7 +17,7 @@ CREATE TABLE "carbon_inventory" (
     "usage_mode" "usage_mode" NOT NULL,
     "is_self_declared" BOOLEAN NOT NULL DEFAULT false,
     "self_declared_at" TIMESTAMP(3),
-    "methodology_version_id" BIGINT,
+    "methodology_version_id" BIGINT NOT NULL,
     "preselected_nodes_id" BIGINT,
     "is_editable" BOOLEAN NOT NULL DEFAULT true,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

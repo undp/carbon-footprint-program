@@ -3,9 +3,9 @@ import { type GetEmissionsSummaryCategoriesResponse } from "@repo/types";
 import { distributePercentages, roundEmissions } from "../utils.js";
 import {
   fetchCategoryData,
-  carbonInventoryWithSubmissionsMinimalSelect,
   calculateDisplayStatus,
-  type InventoryBase,
+  carbonInventoryBaseSelect,
+  carbonInventoryWithSubmissionsMinimalSelect,
 } from "../helpers.js";
 import {
   CarbonInventoryNotFoundError,
@@ -19,9 +19,7 @@ export const getEmissionsSummaryCategoriesService = async (
   const inventory = await prismaClient.carbonInventory.findUnique({
     where: { id: BigInt(id) },
     select: {
-      name: true,
-      organizationData: true,
-      methodologyVersionId: true,
+      ...carbonInventoryBaseSelect,
       ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
@@ -36,7 +34,7 @@ export const getEmissionsSummaryCategoriesService = async (
 
   const { categoryData, totalEmissions } = await fetchCategoryData(
     prismaClient,
-    inventory as InventoryBase
+    inventory
   );
 
   const displayStatus = calculateDisplayStatus(inventory);

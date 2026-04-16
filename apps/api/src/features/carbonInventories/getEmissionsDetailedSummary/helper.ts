@@ -1,12 +1,12 @@
 import type { PrismaClient } from "@repo/database";
 import type { OrganizationDataField } from "@repo/types";
 import { roundEmissions } from "../utils.js";
-import type { CategoryData } from "../helpers.js";
+import type { CategoryData, InventoryBase } from "../helpers.js";
 import { kgToTon } from "@/utils/number.js";
 
 export async function resolveInventoryAttributes(
   prismaClient: PrismaClient,
-  inventory: { id: bigint; name: string | null; methodologyVersionId: bigint },
+  inventory: InventoryBase,
   orgData: OrganizationDataField
 ) {
   const sectorId = orgData?.sectorId ?? null;
@@ -40,8 +40,8 @@ export async function resolveInventoryAttributes(
 
   return {
     name: inventory.name,
-    companyName: orgData?.name ?? null,
-    countryName: methodology?.country.name ?? null,
+    companyName: inventory.organization?.summary?.name || orgData?.name || null,
+    countryName: methodology?.country.name || null,
     sectorName: sector?.name ?? null,
     sizeName: size?.name ?? null,
     branchCount: null,
