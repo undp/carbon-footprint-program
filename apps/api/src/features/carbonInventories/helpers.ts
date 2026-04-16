@@ -95,7 +95,7 @@ export async function fetchInventory(
     throw new MethodologyNotFoundError(id);
   }
 
-  return inventory as InventoryBase;
+  return inventory;
 }
 
 /**
