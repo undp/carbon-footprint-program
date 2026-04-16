@@ -4,6 +4,13 @@ import type { GetAdminDashboardKpisResponse } from "@repo/types";
 
 const LAST_2_YEARS_WINDOW = 2;
 
+const RECOGNITION_SUBMISSION_TYPES = [
+  SubmissionType.CARBON_INVENTORY_CALCULATION,
+  SubmissionType.CARBON_INVENTORY_VERIFICATION,
+  SubmissionType.REDUCTION_PLAN_VERIFICATION,
+  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
+] as const;
+
 export const getDashboardKpisService = async (
   prismaClient: PrismaClient,
   year?: number
@@ -67,7 +74,7 @@ async function getTotalOrganizations(
 
   const organizationIds = new Set<bigint>();
   for (const sub of submissions) {
-    const orgId = sub.subject.organizationData?.organizationData.organizationId;
+    const orgId = sub.subject.organizationData?.organizationData?.organizationId;
     if (orgId !== undefined) {
       organizationIds.add(orgId);
     }
@@ -128,7 +135,7 @@ async function getMeasuringOrganizations(
     distinct: ["organizationId"],
   });
 
-  return inventories.filter((i) => i.organizationId !== null).length;
+  return inventories.length;
 }
 
 async function getEmissionsData(
@@ -206,16 +213,9 @@ async function getRecognitionsEarned(
   prismaClient: PrismaClient,
   year?: number
 ): Promise<number> {
-  const recognitionTypes = [
-    SubmissionType.CARBON_INVENTORY_CALCULATION,
-    SubmissionType.CARBON_INVENTORY_VERIFICATION,
-    SubmissionType.REDUCTION_PLAN_VERIFICATION,
-    SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-  ];
-
   return prismaClient.submission.count({
     where: {
-      type: { in: recognitionTypes },
+      type: { in: [...RECOGNITION_SUBMISSION_TYPES] },
       status: {
         in: [SubmissionStatus.APPROVED, SubmissionStatus.APPROVED_AUTOMATICALLY],
       },
@@ -236,16 +236,9 @@ async function getRecognitionsUnderReview(
   prismaClient: PrismaClient,
   year?: number
 ): Promise<number> {
-  const recognitionTypes = [
-    SubmissionType.CARBON_INVENTORY_CALCULATION,
-    SubmissionType.CARBON_INVENTORY_VERIFICATION,
-    SubmissionType.REDUCTION_PLAN_VERIFICATION,
-    SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-  ];
-
   return prismaClient.submission.count({
     where: {
-      type: { in: recognitionTypes },
+      type: { in: [...RECOGNITION_SUBMISSION_TYPES] },
       status: SubmissionStatus.PENDING,
       ...(year
         ? {

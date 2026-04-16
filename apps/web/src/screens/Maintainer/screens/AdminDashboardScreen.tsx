@@ -318,16 +318,9 @@ interface CategoryChartCardProps {
 }
 
 const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
-  const [prevYear, setPrevYear] = useState(year);
   const [selectedMethodologyIdx, setSelectedMethodologyIdx] = useState(0);
   const { data, isLoading, isError } = useAdminDashboardCategoryChart(year);
   const { enqueueSnackbar } = useSnackbar();
-
-  // Reset methodology selector when year changes (derived state reset pattern)
-  if (prevYear !== year) {
-    setPrevYear(year);
-    setSelectedMethodologyIdx(0);
-  }
 
   useEffect(() => {
     if (isError) {
@@ -471,6 +464,8 @@ const RECOGNITION_TYPES = [
   SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
 ] as const;
 
+const RECOGNITION_TYPES_SET = new Set<string>(RECOGNITION_TYPES);
+
 const RECOGNITION_TYPE_LABELS: Record<
   (typeof RECOGNITION_TYPES)[number],
   string
@@ -580,7 +575,7 @@ const RequestsSummaryCard: FC<RequestsSummaryCardProps> = ({ year }) => {
       let reviewed = 0;
 
       for (const entry of data.counts) {
-        if (!typesToCount.includes(entry.type as never)) continue;
+        if (!typesToCount.some((t) => t === entry.type)) continue;
         if (entry.status === SubmissionStatus.PENDING) pending += entry.value;
         if (entry.status === SubmissionStatus.APPROVED) approved += entry.value;
         if (entry.status === SubmissionStatus.APPROVED_AUTOMATICALLY)
@@ -752,7 +747,7 @@ const RecognitionTypeCards: FC<RecognitionTypeCardsProps> = ({ year }) => {
     }
 
     for (const entry of data.counts) {
-      if (!RECOGNITION_TYPES.includes(entry.type as never)) continue;
+      if (!RECOGNITION_TYPES_SET.has(entry.type)) continue;
       if (entry.status === SubmissionStatus.APPROVED) {
         byType[entry.type].approved += entry.value;
       }
@@ -926,7 +921,7 @@ export const AdminDashboardScreen: FC = () => {
           <SectorChartCard year={routeYear} />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
-          <CategoryChartCard year={routeYear} />
+          <CategoryChartCard key={routeYear ?? "all"} year={routeYear} />
         </Grid>
       </Grid>
 

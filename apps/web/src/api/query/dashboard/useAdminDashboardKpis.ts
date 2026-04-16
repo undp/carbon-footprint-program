@@ -8,9 +8,11 @@ export const useAdminDashboardKpis = (year?: number) => {
   return useQuery<GetAdminDashboardKpisResponse>({
     queryKey: dashboardKeys.adminKpis(year),
     queryFn: () => {
-      const searchParams = year !== undefined ? `?year=${year}` : "";
+      const searchParams = new URLSearchParams();
+      if (year !== undefined) searchParams.set("year", String(year));
+      const suffix = searchParams.toString();
       return apiClient
-        .get(`admin/dashboard/kpis${searchParams}`)
+        .get(`admin/dashboard/kpis${suffix ? `?${suffix}` : ""}`)
         .json<GetAdminDashboardKpisResponse>();
     },
     staleTime: STALE_TIME_MS,
