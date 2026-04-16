@@ -79,7 +79,6 @@ const RequestKpiCountSchema = z.union([
     type: z.literal(SubmissionType.CARBON_INVENTORY_VERIFICATION),
     status: z.literal(SubmissionStatus.REJECTED),
   }),
-  // REDUCTION_PROJECT_VERIFICATION
   BaseCountSchema.extend({
     type: z.literal(SubmissionType.REDUCTION_PROJECT_VERIFICATION),
     status: z.literal(SubmissionStatus.PENDING),

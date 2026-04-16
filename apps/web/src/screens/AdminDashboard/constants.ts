@@ -11,7 +11,7 @@ export const formatNumber = (value: number): string =>
 export const RECOGNITION_TYPES = [
   SubmissionType.CARBON_INVENTORY_CALCULATION,
   SubmissionType.CARBON_INVENTORY_VERIFICATION,
-  SubmissionType.REDUCTION_PLAN_VERIFICATION,
+  SubmissionType.REDUCTION_PROJECT_VERIFICATION,
   SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
 ] as const;
 
@@ -23,6 +23,6 @@ export const RECOGNITION_TYPE_LABELS: Record<
 > = {
   [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
   [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Diploma Verificación",
-  [SubmissionType.REDUCTION_PLAN_VERIFICATION]: "Diploma Reducción",
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: "Diploma Reducción",
   [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Diploma Neutralización",
 };

@@ -163,7 +163,7 @@ The sector ranking chart and category emissions chart SHALL be displayed in a si
 The "Resumen de Postulaciones" card SHALL render a tab group in the top-right corner with two tabs: "Inscripción" and "Reconocimientos". The "Reconocimientos" tab SHALL be selected by default. The data SHALL be sourced from the existing `useAdminRequestsKpis` hook (GET /api/admin/requests/kpis). Both tabs display 3 status cards (pending, approved, reviewed), but filter by different submission types.
 
 - **"Inscripción" tab**: counts submissions of type `ORGANIZATION_ACCREDITATION` only
-- **"Reconocimientos" tab**: counts submissions of the other 4 types (`CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, `REDUCTION_PLAN_VERIFICATION`, `NEUTRALIZATION_PLAN_VERIFICATION`)
+- **"Reconocimientos" tab**: counts submissions of the other 4 types (`CARBON_INVENTORY_CALCULATION`, `CARBON_INVENTORY_VERIFICATION`, `REDUCTION_PROJECT_VERIFICATION`, `NEUTRALIZATION_PLAN_VERIFICATION`)
 
 The "Aprobadas" card SHALL display both manual and automatic approval counts separated by a pipe character ("|"). The left value shows the count of submissions with status `APPROVED` (manual approvals) and the right value shows the count of submissions with status `APPROVED_AUTOMATICALLY`. Below the numbers, the labels "Manual" and "Automática" SHALL be displayed, also separated by "|", to clarify each value. This layout follows the same paired-value pattern used in the KPI summary cards.
 
@@ -209,7 +209,7 @@ The page SHALL display cards showing the count of granted recognitions. The data
 #### Scenario: Recognition cards render
 
 - **WHEN** the requests KPI data loads successfully
-- **THEN** the page SHALL display 5 cards: a total count card, plus one card each for CARBON_INVENTORY_CALCULATION (measurement), CARBON_INVENTORY_VERIFICATION (verification), REDUCTION_PLAN_VERIFICATION (reduction), and NEUTRALIZATION_PLAN_VERIFICATION (neutralization), each showing the sum of `APPROVED` and `APPROVED_AUTOMATICALLY` counts for that type. The CARBON_INVENTORY_CALCULATION card SHALL additionally show the manual (`APPROVED`) and automatic (`APPROVED_AUTOMATICALLY`) counts separated by "|" with "Manual" | "Automática" labels below
+- **THEN** the page SHALL display 5 cards: a total count card, plus one card each for CARBON_INVENTORY_CALCULATION (measurement), CARBON_INVENTORY_VERIFICATION (verification), REDUCTION_PROJECT_VERIFICATION (reduction), and NEUTRALIZATION_PLAN_VERIFICATION (neutralization), each showing the sum of `APPROVED` and `APPROVED_AUTOMATICALLY` counts for that type. The CARBON_INVENTORY_CALCULATION card SHALL additionally show the manual (`APPROVED`) and automatic (`APPROVED_AUTOMATICALLY`) counts separated by "|" with "Manual" | "Automática" labels below
 
 #### Scenario: ORGANIZATION_ACCREDITATION is excluded from display
 

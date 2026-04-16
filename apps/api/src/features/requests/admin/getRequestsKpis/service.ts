@@ -29,7 +29,7 @@ export const getRequestsKpisService = async (
     const inventoryLinkedTypes = [
       SubmissionType.CARBON_INVENTORY_CALCULATION,
       SubmissionType.CARBON_INVENTORY_VERIFICATION,
-      SubmissionType.REDUCTION_PLAN_VERIFICATION,
+      SubmissionType.REDUCTION_PROJECT_VERIFICATION,
       SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
     ];
 
