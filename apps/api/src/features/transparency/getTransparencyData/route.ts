@@ -1,7 +1,9 @@
-import { z } from "zod";
 import type { FastifyZodInstance } from "@/types/fastify.js";
-import { getTransparencyDataHandler } from "./getTransparencyDataHandler.js";
-import { GetTransparencyDataResponseSchema } from "@repo/types";
+import { getTransparencyDataHandler } from "./handler.js";
+import {
+  GetTransparencyDataQuerySchema,
+  GetTransparencyDataResponseSchema,
+} from "@repo/types";
 
 export const getTransparencyDataRoute = (fastify: FastifyZodInstance) => {
   fastify.get(
@@ -12,14 +14,8 @@ export const getTransparencyDataRoute = (fastify: FastifyZodInstance) => {
         tags: ["transparency"],
         summary: "Get transparency data",
         description:
-          "Get all companies with their recognition seals. This is a public endpoint.",
-        querystring: z.object({
-          year: z
-            .string()
-            .regex(/^\d{4}$/)
-            .optional()
-            .describe("Filter by year"),
-        }),
+          "Get all accredited organizations with their recognition seals. This is a public endpoint.",
+        querystring: GetTransparencyDataQuerySchema,
         response: {
           200: GetTransparencyDataResponseSchema,
         },
