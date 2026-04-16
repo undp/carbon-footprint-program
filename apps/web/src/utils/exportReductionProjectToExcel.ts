@@ -1,16 +1,14 @@
 import ExcelJS from "exceljs";
 import type { GetReductionProjectByIdResponse } from "@repo/types";
-import { downloadWorkbook, sanitizeExcelSheetName } from "@/services/excel";
+import { downloadWorkbook, sanitizeFilenamePart } from "@/services/excel";
 import { formatDateToDDMMYYYY } from "@repo/utils";
-import { apiClient } from "@/api/http";
 import { getReductionProjectStatusLabel } from "./reductionProject";
 
-export async function exportReductionProjectToExcel(projectId: string) {
-  const project = await apiClient
-    .get(`reduction-projects/${projectId}`)
-    .json<GetReductionProjectByIdResponse>();
-
-  const filename = `${sanitizeExcelSheetName(project.name)}-proyecto-de-reduccion.xlsx`;
+export async function exportReductionProjectToExcel(
+  project: GetReductionProjectByIdResponse
+) {
+  const sanitizedName = sanitizeFilenamePart(project.name);
+  const filename = `${sanitizedName}-proyecto-de-reduccion.xlsx`;
   const workbook = new ExcelJS.Workbook();
   const worksheet = workbook.addWorksheet("Proyecto de Reducción");
 
