@@ -30,6 +30,7 @@ export async function exportReductionProjectToExcel(projectId: string) {
     ],
     ["Escenario Base (tCO₂e)", project.baselineScenario],
     ["Escenario Proyecto (tCO₂e)", project.projectScenario],
+    ["Reducción (tCO₂e)", project.baselineScenario - project.projectScenario],
     ["GWP Utilizado", project.gwpUsed ?? "—"],
     ["GEI Considerados", project.consideredGei.join(", ") || "—"],
     ["Reportado en Otro Lugar", project.reportedElsewhere ? "Sí" : "No"],
