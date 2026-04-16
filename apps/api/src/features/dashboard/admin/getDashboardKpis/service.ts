@@ -17,13 +17,11 @@ export const getDashboardKpisService = async (
   const [
     { totalOrganizations, measuringOrganizations },
     emissionsData,
-    recognitionsEarned,
-    recognitionsUnderReview,
+    { earned: recognitionsEarned, underReview: recognitionsUnderReview },
   ] = await Promise.all([
     getOrganizationKpis(prismaClient, year),
     getEmissionsData(prismaClient, year),
-    getRecognitionsEarned(prismaClient, year),
-    getRecognitionsUnderReview(prismaClient, year),
+    getRecognitionCounts(prismaClient, year),
   ]);
 
   return {
@@ -149,17 +147,19 @@ async function getEmissionsData(
   return { totalEmissions, verifiedEmissions };
 }
 
-async function getRecognitionsEarned(
+async function getRecognitionCounts(
   prismaClient: PrismaClient,
   year?: number
-): Promise<number> {
-  return prismaClient.submission.count({
+): Promise<{ earned: number; underReview: number }> {
+  const groups = await prismaClient.submission.groupBy({
+    by: ["status"],
     where: {
       type: { in: [...RECOGNITION_SUBMISSION_TYPES] },
       status: {
         in: [
           SubmissionStatus.APPROVED,
           SubmissionStatus.APPROVED_AUTOMATICALLY,
+          SubmissionStatus.PENDING,
         ],
       },
       ...(year
@@ -172,26 +172,21 @@ async function getRecognitionsEarned(
           }
         : {}),
     },
+    _count: { _all: true },
   });
-}
 
-async function getRecognitionsUnderReview(
-  prismaClient: PrismaClient,
-  year?: number
-): Promise<number> {
-  return prismaClient.submission.count({
-    where: {
-      type: { in: [...RECOGNITION_SUBMISSION_TYPES] },
-      status: SubmissionStatus.PENDING,
-      ...(year
-        ? {
-            subject: {
-              carbonInventory: {
-                carbonInventory: { year, status: InventoryStatus.ACTIVE },
-              },
-            },
-          }
-        : {}),
-    },
-  });
+  let earned = 0;
+  let underReview = 0;
+  for (const g of groups) {
+    if (
+      g.status === SubmissionStatus.APPROVED ||
+      g.status === SubmissionStatus.APPROVED_AUTOMATICALLY
+    ) {
+      earned += g._count._all;
+    } else if (g.status === SubmissionStatus.PENDING) {
+      underReview = g._count._all;
+    }
+  }
+
+  return { earned, underReview };
 }
