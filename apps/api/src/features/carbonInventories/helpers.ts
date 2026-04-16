@@ -22,19 +22,6 @@ import {
 } from "@repo/types";
 import { isCarbonInventoryEditable } from "@repo/utils";
 
-export type InventoryBase = Pick<
-  Prisma.CarbonInventoryGetPayload<{
-    select: {
-      id: true;
-      name: true;
-      organizationData: true;
-      methodologyVersionId: true;
-      organization: { select: { summary: { select: { name: true } } } };
-    };
-  }>,
-  "id" | "name" | "organizationData" | "methodologyVersionId" | "organization"
->;
-
 export const carbonInventoryBaseSelect = {
   id: true,
   name: true,
@@ -42,6 +29,10 @@ export const carbonInventoryBaseSelect = {
   methodologyVersionId: true,
   organization: { select: { summary: { select: { name: true } } } },
 } satisfies Prisma.CarbonInventorySelect;
+
+export type InventoryBase = Prisma.CarbonInventoryGetPayload<{
+  select: typeof carbonInventoryBaseSelect;
+}>;
 
 /**
  * Validates that a carbon inventory is in an editable state.
