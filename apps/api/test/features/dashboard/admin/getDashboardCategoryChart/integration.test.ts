@@ -90,10 +90,8 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
         select: { id: true, name: true },
       });
 
-      if (!methodologyVersion) {
-        // Skip if no methodology version is seeded
-        return;
-      }
+      expect(methodologyVersion).toBeDefined();
+      if (!methodologyVersion) return;
 
       // Create ACTIVE self-declared inventory linked to a methodology version
       await createInventoryWithEmissions(prisma, {
