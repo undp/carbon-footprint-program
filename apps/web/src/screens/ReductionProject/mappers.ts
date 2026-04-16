@@ -12,7 +12,7 @@ export const mapProjectToFormValues = (
   carbonInventoryId: project.carbonInventoryId ?? "",
   implementationDate: project.implementationDate ?? "",
   description: project.description ?? "",
-  subcategoryId: project.subcategoryId ?? "",
+  subcategoryId: project.subcategory.id,
   gwpUsed: project.gwpUsed ?? "",
   consideredGei: project.consideredGei,
   reportedElsewhere: project.reportedElsewhere,

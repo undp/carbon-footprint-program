@@ -1,5 +1,8 @@
 import { z } from "zod";
-import { ReductionProjectBaseSchema } from "../../baseSchemas/index.js";
+import {
+  ReductionProjectBaseSchema,
+  SubcategoryBaseSchema,
+} from "../../baseSchemas/index.js";
 import { IdSchema } from "../../zod.js";
 import { ReductionProjectDisplayStatusSchema } from "../schemas.js";
 
@@ -8,8 +11,11 @@ export const GetReductionProjectByIdParamsSchema = z.object({
 });
 
 export const GetReductionProjectByIdResponseSchema =
-  ReductionProjectBaseSchema.omit({ status: true }).extend({
-    status: ReductionProjectDisplayStatusSchema.describe(
-      "Workflow display status derived from submissions"
-    ),
-  });
+  ReductionProjectBaseSchema.omit({ status: true, subcategoryId: true }).extend(
+    {
+      subcategory: SubcategoryBaseSchema.pick({ id: true, name: true }),
+      status: ReductionProjectDisplayStatusSchema.describe(
+        "Workflow display status derived from submissions"
+      ),
+    }
+  );

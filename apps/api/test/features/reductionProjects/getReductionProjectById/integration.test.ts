@@ -67,7 +67,10 @@ describe("GET /api/reduction-projects/:id - Integration Tests", () => {
       expect(body.name).toBe(project.name);
       expect(body.organizationId).toBe(organization.id.toString());
       expect(body.carbonInventoryId).toBe(carbonInventory.id.toString());
-      expect(body.subcategoryId).toBe(subcategory.id.toString());
+      expect(body.subcategory).toEqual({
+        id: subcategory.id.toString(),
+        name: subcategory.name,
+      });
       expect(body.createdById).toBe(testUserId.toString());
     });
 

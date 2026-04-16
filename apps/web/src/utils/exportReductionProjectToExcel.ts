@@ -25,6 +25,7 @@ export async function exportReductionProjectToExcel(
     [`Nombre ${VOCAB.organization.noun.singular}`, organizationName],
     ["Descripción", project.description],
     ["Año de Reducción", project.year?.toString() ?? "—"],
+    ["Subcategoría", project.subcategory?.name ?? "—"],
     [
       "Fecha de Implementación",
       formatDateToDDMMYYYY(project.implementationDate),
