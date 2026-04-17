@@ -30,6 +30,7 @@ type Props = {
   open: boolean;
   carbonInventoryId?: string | null;
   organizationId?: string | null;
+  reductionProjectId?: string | null;
   onClose: () => void;
   isAdmin?: boolean;
 };
@@ -38,6 +39,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
   open,
   carbonInventoryId,
   organizationId,
+  reductionProjectId,
   onClose,
   isAdmin,
 }) => {
@@ -50,13 +52,20 @@ export const ViewSubmissionDialog: FC<Props> = ({
     isStatusPending,
     isCarbonInventorySubmission,
     isOrganizationAccreditation,
+    isReductionProjectVerification,
     isBusy,
     submissionComment,
     subtitle,
     handleApproveSubmission,
     handleReviewSubmission,
     handleNavigateToInventory,
-  } = useViewSubmission({ carbonInventoryId, organizationId, onClose });
+    handleNavigateToReductionProject,
+  } = useViewSubmission({
+    carbonInventoryId,
+    organizationId,
+    reductionProjectId,
+    onClose,
+  });
 
   return (
     <Dialog
@@ -176,6 +185,33 @@ export const ViewSubmissionDialog: FC<Props> = ({
                         Ver resumen del cálculo de huella
                       </Button>
                     )}
+
+                  {/* Reduction project link */}
+                  {reductionProjectId && isReductionProjectVerification && (
+                    <Button
+                      variant="text"
+                      size="small"
+                      startIcon={
+                        <OpenInNewOutlined
+                          sx={{ fontSize: "0.75rem !important" }}
+                        />
+                      }
+                      onClick={() =>
+                        handleNavigateToReductionProject(reductionProjectId)
+                      }
+                      sx={{
+                        color: theme.palette.common.glossyTeal,
+                        px: 1,
+                        fontSize: "0.75rem",
+                        fontWeight: 500,
+                        textTransform: "none",
+                        mb: 1,
+                        minWidth: 0,
+                      }}
+                    >
+                      Ver detalle del proyecto de reducción
+                    </Button>
+                  )}
 
                   {submissionComment && (
                     <SubmissionCommentsSection comment={submissionComment} />

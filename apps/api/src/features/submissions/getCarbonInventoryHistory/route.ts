@@ -27,8 +27,8 @@ export const getCarbonInventoryHistoryRoute: StandardRouteSignature = (
         },
       },
       preHandler: [
-        fastify.requireOrganizationRole(idRequestExtractor, {
-          allowedRoles: [
+        fastify.requireCarbonInventoryAccess(idRequestExtractor, {
+          requiredOrganizationRoles: [
             OrganizationRole.ADMIN,
             OrganizationRole.CONTRIBUTOR,
             OrganizationRole.VIEWER,

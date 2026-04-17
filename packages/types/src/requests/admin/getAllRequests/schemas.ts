@@ -9,6 +9,9 @@ const AdminRequestSchema = z.object({
   carbonInventoryId: IdSchema.nullable().describe(
     "The ID of the carbon inventory"
   ),
+  reductionProjectId: IdSchema.nullable().describe(
+    "The ID of the reduction project"
+  ),
   type: z.enum(SubmissionType).describe("The type of the request"),
   year: z.number().int().nullable().describe("The year of the request"),
   status: z.enum(SubmissionStatus).describe("The status of the request"),
