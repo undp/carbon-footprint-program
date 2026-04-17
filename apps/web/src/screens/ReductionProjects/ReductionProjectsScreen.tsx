@@ -133,15 +133,21 @@ export const ReductionProjectsScreen: FC = () => {
           cellClassName: "content-center",
           renderCell: (
             params: GridRenderCellParams<
-              GetAllReductionProjectsResponse[number],
-              GetAllReductionProjectsResponse[number]["name"]
+              GetAllReductionProjectsResponse[number]
             >
           ) => (
-            <Tooltip title={params.value}>
-              <Typography variant="body2" noWrap>
-                {params.value}
-              </Typography>
-            </Tooltip>
+            <Box className="flex flex-col items-center gap-1">
+              <Tooltip title={params.row.organizationName}>
+                <Typography variant="caption" noWrap>
+                  {params.row.organizationName}
+                </Typography>
+              </Tooltip>
+              <Tooltip title={params.row.name}>
+                <Typography variant="body2" noWrap>
+                  {params.row.name}
+                </Typography>
+              </Tooltip>
+            </Box>
           ),
         },
         {

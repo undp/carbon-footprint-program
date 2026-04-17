@@ -113,6 +113,17 @@ export const ReductionProjectActionsCell: FC<
             </Badge>
           </span>
         </Tooltip>
+        <Tooltip title="Descargar proyecto">
+          <span>
+            <BaseIconButton
+              onClick={onDownloadClick}
+              disabled={isDownloading}
+              aria-label="Descargar proyecto"
+            >
+              <FileDownloadOutlined fontSize="small" />
+            </BaseIconButton>
+          </span>
+        </Tooltip>
       </Box>
 
       {historyDialogOpen && (
@@ -122,17 +133,6 @@ export const ReductionProjectActionsCell: FC<
           onClose={() => setHistoryDialogOpen(false)}
         />
       )}
-      <Tooltip title="Descargar proyecto">
-        <span>
-          <BaseIconButton
-            onClick={onDownloadClick}
-            disabled={isDownloading}
-            aria-label="Descargar proyecto"
-          >
-            <FileDownloadOutlined fontSize="small" />
-          </BaseIconButton>
-        </span>
-      </Tooltip>
     </>
   );
 };
