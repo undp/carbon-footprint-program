@@ -31,12 +31,11 @@ const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
 
 interface ReductionProjectActionsCellProps {
   reductionProject: GetAllReductionProjectsResponse[number];
-  organizationName: string;
 }
 
 export const ReductionProjectActionsCell: FC<
   ReductionProjectActionsCellProps
-> = ({ reductionProject, organizationName }) => {
+> = ({ reductionProject }) => {
   const navigate = useNavigate();
   const { download, isDownloading } = useDownloadReductionProject();
 
@@ -50,8 +49,8 @@ export const ReductionProjectActionsCell: FC<
   }, [navigate, reductionProject.id]);
 
   const onDownloadClick = useCallback(() => {
-    void download(reductionProject.id, organizationName);
-  }, [download, reductionProject.id, organizationName]);
+    void download(reductionProject.id, reductionProject.organizationName);
+  }, [download, reductionProject.id, reductionProject.organizationName]);
 
   return (
     <Box className="flex justify-center gap-1">
