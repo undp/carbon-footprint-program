@@ -5,9 +5,9 @@ import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { OverflowTooltipText } from "@/components";
 import { VOCAB } from "@/config/vocab";
 import {
-  RecognitionSeals,
+  RecognitionBadge,
   type TransparencyRecognitions,
-} from "./RecognitionSeals";
+} from "./RecognitionBadge";
 import Typography from "@mui/material/Typography";
 
 const orgNoun = VOCAB.organization.noun;
@@ -82,7 +82,7 @@ const buildColumns = (
     sortable: false,
     filterable: false,
     renderCell: (params) => (
-      <RecognitionSeals
+      <RecognitionBadge
         recognitions={params.row.recognitions}
         badgePreviews={badgePreviews}
         size={32}
