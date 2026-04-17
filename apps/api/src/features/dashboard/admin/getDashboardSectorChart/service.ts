@@ -2,7 +2,6 @@ import type { PrismaClient } from "@repo/database";
 import {
   InventoryStatus,
   OrganizationDataStatus,
-  Prisma,
   SubmissionType,
   SubmissionStatus,
 } from "@repo/database";
@@ -26,68 +25,52 @@ async function getSectorRanking(
   limit: number,
   year?: number
 ): Promise<{ sectorName: string | null; organizationCount: number }[]> {
-  // Cumulative: count enrolled orgs per sector
-  // Sector comes from OrganizationData.sectorId (active organization data)
   const approvedAtFilter = year
     ? { lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) }
     : undefined;
 
-  // Get all approved org accreditation submissions with their org's sector
-  const submissions = await prismaClient.submission.findMany({
+  const groups = await prismaClient.organizationData.groupBy({
+    by: ["sectorId"],
     where: {
-      type: SubmissionType.ORGANIZATION_ACCREDITATION,
-      status: {
-        in: [
-          SubmissionStatus.APPROVED,
-          SubmissionStatus.APPROVED_AUTOMATICALLY,
-        ],
-      },
-      ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
-    },
-    select: {
-      subject: {
-        select: {
-          organizationData: {
-            select: {
-              organizationData: {
-                select: {
-                  organizationId: true,
-                  sector: {
-                    select: { name: true },
-                  },
-                },
+      status: OrganizationDataStatus.ACTIVE,
+      submission: {
+        subject: {
+          submissions: {
+            some: {
+              type: SubmissionType.ORGANIZATION_ACCREDITATION,
+              status: {
+                in: [
+                  SubmissionStatus.APPROVED,
+                  SubmissionStatus.APPROVED_AUTOMATICALLY,
+                ],
               },
+              ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
             },
           },
         },
       },
     },
+    _count: { _all: true },
   });
 
-  // Deduplicate by organizationId (count each org only once)
-  const orgSectorMap = new Map<bigint, string | null>();
-  for (const sub of submissions) {
-    const orgData = sub.subject.organizationData?.organizationData;
-    if (!orgData) continue;
-    const orgId = orgData.organizationId;
-    if (!orgSectorMap.has(orgId)) {
-      orgSectorMap.set(orgId, orgData.sector?.name ?? null);
-    }
-  }
-
-  // Group by sector name
-  const sectorCounts = new Map<string | null, number>();
-  for (const sectorName of orgSectorMap.values()) {
-    sectorCounts.set(sectorName, (sectorCounts.get(sectorName) ?? 0) + 1);
-  }
+  const sectorIds = groups
+    .map((g) => g.sectorId)
+    .filter((id): id is bigint => id !== null);
+  const sectors =
+    sectorIds.length > 0
+      ? await prismaClient.countrySector.findMany({
+          where: { id: { in: sectorIds } },
+          select: { id: true, name: true },
+        })
+      : [];
+  const sectorNameMap = new Map(sectors.map((s) => [s.id, s.name]));
 
   return applySortAndLimit(
-    Array.from(sectorCounts.entries()).map(
-      ([sectorName, organizationCount]) => ({
-        sectorName,
-        value: organizationCount,
-      })
-    ),
+    groups.map((g) => ({
+      sectorName:
+        g.sectorId !== null ? (sectorNameMap.get(g.sectorId) ?? null) : null,
+      value: g._count._all,
+    })),
     limit
   ).map(({ sectorName, value }) => ({ sectorName, organizationCount: value }));
 }
@@ -97,62 +80,20 @@ async function getSectorEmissions(
   limit: number,
   year?: number
 ): Promise<{ sectorName: string | null; totalEmissions: number }[]> {
-  const inventoryFilter: Prisma.CarbonInventoryWhereInput = {
-    status: InventoryStatus.ACTIVE,
-    isSelfDeclared: true,
-    ...(year ? { year } : {}),
-  };
-
-  // Get relevant inventories with their organization's active data sector
-  const inventories = await prismaClient.carbonInventory.findMany({
-    where: { ...inventoryFilter, organizationId: { not: null } },
-    select: {
-      id: true,
-      organization: {
-        select: {
-          data: {
-            where: { status: OrganizationDataStatus.ACTIVE },
-            select: {
-              sector: { select: { name: true } },
-            },
-            take: 1,
-          },
-        },
-      },
+  const groups = await prismaClient.carbonInventorySectorSubtotalsView.groupBy({
+    by: ["sectorId", "sectorName"],
+    where: {
+      status: InventoryStatus.ACTIVE,
+      isSelfDeclared: true,
+      ...(year ? { year } : {}),
     },
+    _sum: { value: true },
   });
-
-  if (inventories.length === 0) return [];
-
-  const inventoryIds = inventories.map((i) => i.id);
-
-  // Build map: inventoryId → sector name
-  const inventorySectorMap = new Map<bigint, string | null>();
-  for (const inv of inventories) {
-    const sectorName = inv.organization?.data[0]?.sector?.name ?? null;
-    inventorySectorMap.set(inv.id, sectorName);
-  }
-
-  // Get subtotals for these inventories
-  const subtotals = await prismaClient.carbonInventorySubtotalsView.findMany({
-    where: { carbonInventoryId: { in: inventoryIds } },
-    select: { carbonInventoryId: true, value: true },
-  });
-
-  // Group emissions by sector
-  const sectorEmissionsMap = new Map<string | null, number>();
-  for (const row of subtotals) {
-    const sectorName = inventorySectorMap.get(row.carbonInventoryId) ?? null;
-    sectorEmissionsMap.set(
-      sectorName,
-      (sectorEmissionsMap.get(sectorName) ?? 0) + Number(row.value)
-    );
-  }
 
   return applySortAndLimit(
-    Array.from(sectorEmissionsMap.entries()).map(([sectorName, value]) => ({
-      sectorName,
-      value,
+    groups.map((g) => ({
+      sectorName: g.sectorName,
+      value: Number(g._sum.value ?? 0),
     })),
     limit
   ).map(({ sectorName, value }) => ({ sectorName, totalEmissions: value }));
