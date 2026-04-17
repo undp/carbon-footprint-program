@@ -13,6 +13,7 @@ import {
   ReductionProjectDisplayStatusEnum,
   ReductionProjectDisplayStatus,
 } from "@repo/types";
+import { getReductionProjectStatusLabel } from "@/utils/reductionProject";
 
 const getStatusColor = (
   theme: Theme,
@@ -34,15 +35,6 @@ const getStatusColor = (
     default:
       return theme.palette.grey[400];
   }
-};
-
-const STATUS_LABELS: Record<ReductionProjectDisplayStatus, string> = {
-  [ReductionProjectDisplayStatusEnum.DRAFT]: "Borrador",
-  [ReductionProjectDisplayStatusEnum.SUBMITTED]: "En revisión",
-  [ReductionProjectDisplayStatusEnum.REVIEWED]: "Con observaciones",
-  [ReductionProjectDisplayStatusEnum.REJECTED]: "Rechazado",
-  [ReductionProjectDisplayStatusEnum.APPROVED]: "Aprobado",
-  [ReductionProjectDisplayStatusEnum.DELETED]: "Eliminado",
 };
 
 const TOOLTIP_LABELS: Record<ReductionProjectDisplayStatus, string> = {
@@ -75,7 +67,7 @@ export const ReductionProjectStatusChip: FC<
     <Tooltip title={TOOLTIP_LABELS[status]}>
       <Chip
         sx={{
-          padding: "6px 16px",
+          padding: "6px 8px",
           backgroundColor: alpha(statusColor, 0.3),
           color: darken(statusColor, 0.5),
           border: `1px solid ${alpha(statusColor, 0.3)}`,
@@ -83,7 +75,7 @@ export const ReductionProjectStatusChip: FC<
         }}
         label={
           <Typography variant={variant} fontWeight={fontWeight}>
-            {STATUS_LABELS[status]}
+            {getReductionProjectStatusLabel(status)}
           </Typography>
         }
         size={size}

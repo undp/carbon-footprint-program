@@ -29,7 +29,7 @@ import {
 export interface ReductionProjectPrerequisites {
   organization: Organization;
   carbonInventory: CarbonInventory;
-  subcategory: { id: bigint };
+  subcategory: { id: bigint; name: string };
   membership: UserOrganizationMembership;
 }
 
@@ -101,7 +101,7 @@ export async function setupReductionProjectPrerequisites(
         },
       },
     },
-    select: { id: true },
+    select: { id: true, name: true },
   });
 
   if (!subcategory) {

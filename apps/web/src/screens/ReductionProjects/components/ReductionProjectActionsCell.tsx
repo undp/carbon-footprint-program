@@ -1,10 +1,15 @@
 import { FC, useCallback, PropsWithChildren } from "react";
 import { Box, IconButtonProps, IconButton, Tooltip } from "@mui/material";
-import { EditOutlined, VisibilityOutlined } from "@mui/icons-material";
+import {
+  EditOutlined,
+  VisibilityOutlined,
+  FileDownloadOutlined,
+} from "@mui/icons-material";
 import { GetAllReductionProjectsResponse } from "@repo/types";
 import { isReductionProjectEditable } from "@repo/utils";
 import { Routes } from "@/interfaces";
 import { useNavigate } from "@tanstack/react-router";
+import { useDownloadReductionProject } from "../hooks/useDownloadReductionProject";
 
 const BaseIconButton: FC<PropsWithChildren<IconButtonProps>> = ({
   children,
@@ -32,6 +37,7 @@ export const ReductionProjectActionsCell: FC<
   ReductionProjectActionsCellProps
 > = ({ reductionProject }) => {
   const navigate = useNavigate();
+  const { download, isDownloading } = useDownloadReductionProject();
 
   const canEdit = isReductionProjectEditable(reductionProject.status);
 
@@ -41,6 +47,10 @@ export const ReductionProjectActionsCell: FC<
       params: { id: reductionProject.id },
     });
   }, [navigate, reductionProject.id]);
+
+  const onDownloadClick = useCallback(() => {
+    void download(reductionProject.id, reductionProject.organizationName);
+  }, [download, reductionProject.id, reductionProject.organizationName]);
 
   return (
     <Box className="flex justify-center gap-1">
@@ -59,6 +69,17 @@ export const ReductionProjectActionsCell: FC<
           </span>
         </Tooltip>
       )}
+      <Tooltip title="Descargar proyecto">
+        <span>
+          <BaseIconButton
+            onClick={onDownloadClick}
+            disabled={isDownloading}
+            aria-label="Descargar proyecto"
+          >
+            <FileDownloadOutlined fontSize="small" />
+          </BaseIconButton>
+        </span>
+      </Tooltip>
     </Box>
   );
 };

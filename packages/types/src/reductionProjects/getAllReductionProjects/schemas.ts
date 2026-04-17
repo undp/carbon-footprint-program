@@ -19,6 +19,7 @@ const ReductionProjectListItemSchema = ReductionProjectBaseSchema.pick({
   name: true,
   year: true,
 }).extend({
+  organizationName: z.string().describe("Name of the organization"),
   firstReportDate: z.iso
     .datetime()
     .describe("First report timestamp (creation time of the project row)"),

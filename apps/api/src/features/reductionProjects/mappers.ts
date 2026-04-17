@@ -8,8 +8,12 @@ import type { ReductionProjectDisplayStatus } from "@repo/types";
 import { GwpSourceSchema } from "@repo/types";
 import { ConsideredGeiSchema } from "@repo/types";
 
+type ReductionProjectWithSubcategory = Prisma.ReductionProjectGetPayload<{
+  include: { subcategory: { select: { id: true; name: true } } };
+}>;
+
 function mapPersistenceFields(
-  row: Prisma.ReductionProjectGetPayload<object>
+  row: ReductionProjectWithSubcategory
 ): Omit<GetReductionProjectByIdResponse, "status"> {
   return {
     id: row.id.toString(),
@@ -18,7 +22,10 @@ function mapPersistenceFields(
     carbonInventoryId: row.carbonInventoryId.toString(),
     implementationDate: row.implementationDate,
     description: row.description,
-    subcategoryId: row.subcategoryId.toString(),
+    subcategory: {
+      id: row.subcategory.id.toString(),
+      name: row.subcategory.name,
+    },
     gwpUsed: row.gwpUsed ? GwpSourceSchema.parse(row.gwpUsed) : null,
     consideredGei: row.consideredGei.map((gei) =>
       ConsideredGeiSchema.parse(gei)
@@ -36,7 +43,7 @@ function mapPersistenceFields(
 }
 
 export function mapReductionProjectToGetByIdResponse(
-  row: Prisma.ReductionProjectGetPayload<object>,
+  row: ReductionProjectWithSubcategory,
   displayStatus: ReductionProjectDisplayStatus
 ): GetReductionProjectByIdResponse {
   return {
@@ -65,6 +72,13 @@ type ReductionProjectListRow = Prisma.ReductionProjectGetPayload<{
         };
       };
     };
+    organization: {
+      select: {
+        summary: {
+          select: { name: true };
+        };
+      };
+    };
   };
 }>;
 
@@ -82,6 +96,7 @@ export function mapReductionProjectToListItem(
     firstReportDate: row.createdAt.toISOString(),
     totalReduction,
     status: displayStatus,
+    organizationName: row.organization?.summary?.name ?? "",
   };
 }
 

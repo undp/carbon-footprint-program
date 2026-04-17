@@ -15,6 +15,7 @@ export const getReductionProjectByIdService = async (
       status: ReductionProjectStatus.ACTIVE,
     },
     include: {
+      subcategory: { select: { id: true, name: true } },
       submission: {
         include: {
           subject: {
