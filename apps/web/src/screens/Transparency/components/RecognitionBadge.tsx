@@ -14,7 +14,7 @@ export type TransparencyRecognitions = Record<
   boolean
 >;
 
-interface RecognitionSealsProps {
+interface Props {
   recognitions: TransparencyRecognitions;
   badgePreviews: GetBadgePreviewsResponse;
   size?: number;
@@ -29,27 +29,27 @@ const SEAL_CONFIG: {
 }[] = [
   {
     type: SubmissionType.CARBON_INVENTORY_CALCULATION,
-    tooltip: `Reconocimiento Medición — ${orgArticle} ha medido su huella de carbono organizacional`,
+    tooltip: `Reconocimiento Medición — ${orgArticle} ha medido su huella de carbono organizacional.`,
     letter: "M",
   },
   {
     type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
-    tooltip: `Reconocimiento Verificación — ${orgArticle} ha verificado su huella de carbono`,
+    tooltip: `Reconocimiento Verificación — ${orgArticle} ha verificado su huella de carbono.`,
     letter: "V",
   },
   {
     type: SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-    tooltip: `Reconocimiento Reducción — ${orgArticle} ha reducido su huella de carbono`,
+    tooltip: `Reconocimiento Reducción — ${orgArticle} ha reducido su huella de carbono.`,
     letter: "R",
   },
   {
     type: SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-    tooltip: `Reconocimiento Neutralización — ${orgArticle} ha neutralizado su huella de carbono`,
+    tooltip: `Reconocimiento Neutralización — ${orgArticle} ha neutralizado su huella de carbono.`,
     letter: "N",
   },
 ];
 
-export const RecognitionSeals: FC<RecognitionSealsProps> = ({
+export const RecognitionBadge: FC<Props> = ({
   recognitions,
   badgePreviews,
   size = 32,
