@@ -1,23 +1,15 @@
 import { FC, useMemo, useState } from "react";
-import {
-  alpha,
-  Box,
-  Container,
-  Paper,
-  Typography,
-  useTheme,
-} from "@mui/material";
-import { LatamFootprintIcon } from "@/icons";
+import { alpha, Box, Paper, Typography, useTheme } from "@mui/material";
 import { Header } from "@/screens/Landing/components/Header";
 import {
   TransparencyDataGrid,
   type TransparencyRow,
 } from "./components/TransparencyDataGrid";
-import { SearchBar } from "./components/SearchBar";
 import { YearFilter } from "./components/YearFilter";
 import { useTransparencyData } from "@/api/query";
 import { useBadgePreviews } from "@/api/query/badges";
 import { useFuzzySearch } from "@/hooks";
+import { SearchBar } from "@/components";
 import { VOCAB } from "@/config/vocab";
 
 export const TransparencyScreen: FC = () => {
@@ -89,75 +81,44 @@ export const TransparencyScreen: FC = () => {
           linear-gradient(293deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
         }}
       >
-        <LatamFootprintIcon
-          sx={{
-            fill: theme.palette.common.white,
-            opacity: 0.06,
-            width: "100%",
-            height: "100%",
-            position: "absolute",
-            top: 0,
-            left: 0,
-            zIndex: 0,
-            pointerEvents: "none",
-          }}
-        />
         <Header />
       </Box>
 
-      <Box
-        className="flex flex-1 flex-col"
-        sx={{ backgroundColor: theme.palette.background.default }}
-      >
-        <Container maxWidth={false} sx={{ maxWidth: 1280, py: 4 }}>
-          <Paper elevation={0} sx={{ p: 3, borderRadius: 2 }}>
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 2,
-                mb: 0.5,
-              }}
+      <Box className="flex flex-1 flex-col p-6">
+        <Paper className="border p-6" elevation={0}>
+          <Box className="mb-1 flex items-center justify-between gap-2">
+            <Typography
+              variant="h5"
+              fontWeight={600}
+              color="text.primary"
+              className="shrink-0"
             >
-              <Typography
-                variant="h5"
-                fontWeight={600}
-                color="text.primary"
-                sx={{ flexShrink: 0 }}
-              >
-                Transparencia
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "32px",
-                  flexGrow: 1,
-                  maxWidth: 500,
-                }}
-              >
-                <Box sx={{ flexGrow: 1 }}>
-                  <SearchBar value={searchQuery} onChange={setSearchQuery} />
-                </Box>
-                <YearFilter
-                  years={availableYears}
-                  value={selectedYear}
-                  onChange={setSelectedYear}
-                />
-              </Box>
-            </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-              {`Conoce ${VOCAB.organization.article.plural} que están comprometidas con la medición, verificación y reducción de su huella de carbono. La transparencia es fundamental para avanzar hacia un desarrollo sostenible en la región.`}
+              Transparencia
             </Typography>
+            <Box className="center flex w-full max-w-[500px] gap-4">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={`Buscar por ${VOCAB.organization.noun.singular}, rubro o sub-rubro`}
+              />
 
-            <TransparencyDataGrid
-              data={filteredData}
-              loading={isLoading}
-              badgePreviews={badgePreviews}
-            />
-          </Paper>
-        </Container>
+              <YearFilter
+                years={availableYears}
+                value={selectedYear}
+                onChange={setSelectedYear}
+              />
+            </Box>
+          </Box>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {`Conoce ${VOCAB.organization.article.plural} que están comprometidas con la medición, verificación y reducción de su huella de carbono. La transparencia es fundamental para avanzar hacia un desarrollo sostenible en la región.`}
+          </Typography>
+          <Box className="flex w-full justify-end"></Box>
+          <TransparencyDataGrid
+            data={filteredData}
+            loading={isLoading}
+            badgePreviews={badgePreviews}
+          />
+        </Paper>
       </Box>
     </Box>
   );
