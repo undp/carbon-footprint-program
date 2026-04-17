@@ -42,7 +42,8 @@ export async function exportReductionProjectToExcel(
   ];
 
   for (const [field, value] of rows) {
-    worksheet.addRow({ field, value, font: { size: 12 } });
+    const row = worksheet.addRow({ field, value });
+    row.font = { size: 12 };
   }
 
   await downloadWorkbook(workbook, filename);
