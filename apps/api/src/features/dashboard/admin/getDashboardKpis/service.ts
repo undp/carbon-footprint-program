@@ -51,68 +51,71 @@ async function getOrganizationKpis(
           lte: currentYear,
         };
 
-  const orgs = await prismaClient.organization.findMany({
-    where: {
-      data: {
-        some: {
-          submission: {
-            subject: {
-              submissions: {
-                some: {
-                  type: SubmissionType.ORGANIZATION_ACCREDITATION,
-                  status: {
-                    in: [
-                      SubmissionStatus.APPROVED,
-                      SubmissionStatus.APPROVED_AUTOMATICALLY,
-                    ],
-                  },
-                  ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
+  const accreditedOrgWhere = {
+    data: {
+      some: {
+        submission: {
+          subject: {
+            submissions: {
+              some: {
+                type: SubmissionType.ORGANIZATION_ACCREDITATION,
+                status: {
+                  in: [
+                    SubmissionStatus.APPROVED,
+                    SubmissionStatus.APPROVED_AUTOMATICALLY,
+                  ],
                 },
+                ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
               },
             },
           },
         },
       },
     },
-    select: {
-      id: true,
-      carbonInventories: {
-        where: {
-          status: InventoryStatus.ACTIVE,
-          isSelfDeclared: true,
-          year: inventoryYearFilter,
-        },
-        select: { id: true },
-        take: 1,
-      },
-    },
-  });
-
-  return {
-    totalOrganizations: orgs.length,
-    measuringOrganizations: orgs.filter((o) => o.carbonInventories.length > 0)
-      .length,
   };
+
+  const [totalOrganizations, measuringOrganizations] = await Promise.all([
+    prismaClient.organization.count({ where: accreditedOrgWhere }),
+    prismaClient.organization.count({
+      where: {
+        ...accreditedOrgWhere,
+        carbonInventories: {
+          some: {
+            status: InventoryStatus.ACTIVE,
+            isSelfDeclared: true,
+            year: inventoryYearFilter,
+          },
+        },
+      },
+    }),
+  ]);
+
+  return { totalOrganizations, measuringOrganizations };
 }
 
 async function getEmissionsData(
   prismaClient: PrismaClient,
   year?: number
 ): Promise<{ totalEmissions: number; verifiedEmissions: number }> {
-  const inventories = await prismaClient.carbonInventory.findMany({
-    where: {
-      status: InventoryStatus.ACTIVE,
-      isSelfDeclared: true,
-      ...(year ? { year } : {}),
-    },
-    select: {
-      subtotals: { select: { value: true } },
-      submission: {
-        select: {
-          subject: {
-            select: {
+  const activeInventoryFilter = {
+    status: InventoryStatus.ACTIVE,
+    isSelfDeclared: true,
+    ...(year ? { year } : {}),
+  };
+
+  const [totalResult, verifiedResult] = await Promise.all([
+    prismaClient.carbonInventorySubtotalsView.aggregate({
+      where: { carbonInventory: activeInventoryFilter },
+      _sum: { value: true },
+    }),
+    prismaClient.carbonInventorySubtotalsView.aggregate({
+      where: {
+        carbonInventory: {
+          ...activeInventoryFilter,
+          submission: {
+            subject: {
               submissions: {
-                where: {
+                some: {
                   type: SubmissionType.CARBON_INVENTORY_VERIFICATION,
                   status: {
                     in: [
@@ -121,30 +124,19 @@ async function getEmissionsData(
                     ],
                   },
                 },
-                select: { id: true },
-                take: 1,
               },
             },
           },
         },
       },
-    },
-  });
+      _sum: { value: true },
+    }),
+  ]);
 
-  let totalEmissions = 0;
-  let verifiedEmissions = 0;
-  for (const inventory of inventories) {
-    const inventoryTotal = inventory.subtotals.reduce(
-      (sum, row) => sum + Number(row.value),
-      0
-    );
-    totalEmissions += inventoryTotal;
-    if ((inventory.submission?.subject.submissions.length ?? 0) > 0) {
-      verifiedEmissions += inventoryTotal;
-    }
-  }
-
-  return { totalEmissions, verifiedEmissions };
+  return {
+    totalEmissions: Number(totalResult._sum.value ?? 0),
+    verifiedEmissions: Number(verifiedResult._sum.value ?? 0),
+  };
 }
 
 async function getRecognitionCounts(
