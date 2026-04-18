@@ -132,8 +132,7 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
       {/* Right container: reduction plan */}
       <Box className="flex min-h-0 flex-1">
         <ReductionPlanCard
-          mainGoal={reductionPlan?.summary ?? null}
-          actions={reductionPlan?.items ?? null}
+          initiatives={reductionPlan ?? null}
           // TODO: implement navigation to full reduction plan
           onViewFullPlan={() => {}}
           isLoading={isReductionPlanLoading}

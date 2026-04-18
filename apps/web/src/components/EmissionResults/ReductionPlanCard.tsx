@@ -6,24 +6,28 @@ import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { VOCAB } from "@/config/vocab";
 
+interface ReductionPlanInitiative {
+  id: string;
+  title: string;
+  description: string;
+}
+
 interface ReductionPlanCardProps {
-  mainGoal: string | null;
-  actions: string[] | null;
+  initiatives: ReductionPlanInitiative[] | null;
   onViewFullPlan: () => void;
   isLoading?: boolean;
   hasError?: boolean;
 }
 
 export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
-  mainGoal,
-  actions,
+  initiatives,
   onViewFullPlan,
   isLoading = false,
   hasError = false,
 }) => {
   const theme = useTheme();
 
-  const existsPlan = !!mainGoal || !!actions;
+  const hasInitiatives = Array.isArray(initiatives) && initiatives.length > 0;
 
   return (
     <Box
@@ -37,11 +41,6 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
       <Box className="flex min-h-0 w-full flex-col gap-4 overflow-y-auto">
         {isLoading && (
           <>
-            <Skeleton
-              variant="rounded"
-              height={72}
-              sx={{ borderRadius: 1, width: "100%" }}
-            />
             {[1, 2, 3, 4].map((i) => (
               <Skeleton
                 key={i}
@@ -53,36 +52,27 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
           </>
         )}
 
-        {!isLoading && !hasError && mainGoal != null && mainGoal !== "" && (
-          <Box
-            className="flex w-full items-center justify-center rounded px-2 py-4"
-            sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
-          >
-            <Typography variant="body2" className="whitespace-pre-wrap">
-              {mainGoal}
-            </Typography>
+        {!isLoading && !hasError && hasInitiatives && (
+          <Box component="ul" className="m-0 flex flex-col gap-3 p-0">
+            {initiatives.map((initiative) => (
+              <Box
+                component="li"
+                key={initiative.id}
+                className="ml-[21px] list-disc"
+                sx={{ "::marker": { color: theme.palette.text.primary } }}
+              >
+                <Typography variant="body2" fontWeight="fontWeightSemiBold">
+                  {initiative.title}
+                </Typography>
+                <Typography variant="body2">
+                  {initiative.description}
+                </Typography>
+              </Box>
+            ))}
           </Box>
         )}
 
-        {!isLoading &&
-          !hasError &&
-          Array.isArray(actions) &&
-          actions.length > 0 && (
-            <Box component="ul" className="m-0 flex flex-col gap-2 p-0">
-              {actions.map((action, index) => (
-                <Box
-                  component="li"
-                  key={index}
-                  className="ml-[21px] list-disc"
-                  sx={{ "::marker": { color: theme.palette.text.primary } }}
-                >
-                  <Typography variant="body2">{action}</Typography>
-                </Box>
-              ))}
-            </Box>
-          )}
-
-        {!isLoading && !hasError && existsPlan && (
+        {!isLoading && !hasError && hasInitiatives && (
           <Button
             variant="text"
             onClick={onViewFullPlan}
@@ -112,7 +102,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
         />
       )}
 
-      {!isLoading && !hasError && !existsPlan && (
+      {!isLoading && !hasError && !hasInitiatives && (
         <EmptyStateMessage
           message={`Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu ${VOCAB.organization.noun.singular}`}
         />
