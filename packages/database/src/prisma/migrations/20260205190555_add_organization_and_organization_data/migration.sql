@@ -24,18 +24,18 @@ CREATE TABLE "organization_data" (
     "status" "organization_data_status" NOT NULL DEFAULT 'ACTIVE',
     "legal_name" TEXT NOT NULL,
     "trade_name" TEXT,
-    "tax_id" TEXT NOT NULL,
+    "tax_id" TEXT,
     "country_organization_size_id" BIGINT,
     "sector_id" BIGINT,
     "main_activity_id" BIGINT,
     "subsector_id" BIGINT,
     "address" TEXT,
     "employees_count" INTEGER,
-    "representative_full_name" TEXT NOT NULL,
-    "representative_tax_id" TEXT NOT NULL,
-    "representative_country_job_position_id" BIGINT NOT NULL,
-    "representative_phone" TEXT NOT NULL,
-    "representative_email" TEXT NOT NULL,
+    "representative_full_name" TEXT,
+    "representative_tax_id" TEXT,
+    "representative_country_job_position_id" BIGINT,
+    "representative_phone" TEXT,
+    "representative_email" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3),
     "created_by_id" BIGINT,
@@ -69,7 +69,7 @@ ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_sector_id_fkey
 ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_subsector_id_fkey" FOREIGN KEY ("subsector_id") REFERENCES "country_subsector"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_representative_country_job_position_id_fkey" FOREIGN KEY ("representative_country_job_position_id") REFERENCES "country_job_position"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_representative_country_job_position_id_fkey" FOREIGN KEY ("representative_country_job_position_id") REFERENCES "country_job_position"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "organization_data" ADD CONSTRAINT "organization_data_created_by_id_fkey" FOREIGN KEY ("created_by_id") REFERENCES "user"("id") ON DELETE SET NULL ON UPDATE CASCADE;
