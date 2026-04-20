@@ -49,13 +49,13 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
 
         {!isLoading && hasError && (
           <LoadingErrorStateMessage
-            message={`Ocurrió un error al cargar el plan de reducción sugerida para tu ${VOCAB.organization.noun.singular}`}
+            message={`Ocurrió un error al cargar el plan de reducción sugerido para tu ${VOCAB.organization.noun.singular}`}
           />
         )}
 
         {!isLoading && !hasError && !hasInitiatives && (
           <EmptyStateMessage
-            message={`Cuando tengas completo el registro, se creará con inteligencia artificial un plan de reducción sugerido que puedes implementar en tu ${VOCAB.organization.noun.singular}`}
+            message={`Cuando tengas completo el registro, se creará un plan de reducción sugerido que puedes implementar en tu ${VOCAB.organization.noun.singular}`}
           />
         )}
 
