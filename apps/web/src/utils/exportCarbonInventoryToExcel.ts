@@ -7,15 +7,10 @@ import {
   downloadWorkbook,
   sanitizeFilenamePart,
   display,
-  addBoldRow,
-  applyNumberFormat,
-  applyBorderTopBottom,
   BASE_FONT_SIZE,
 } from "@/services/excel";
 
 const NUM_FMT_DECIMAL = "#,##0.00";
-const NUM_FMT_PERCENT = "0.0%";
-const CATEGORY_FONT_SIZE = 14;
 
 function buildSummarySheet(
   workbook: ExcelJS.Workbook,
@@ -24,19 +19,10 @@ function buildSummarySheet(
 ) {
   const worksheet = workbook.addWorksheet("Resumen");
 
-  worksheet.columns = [
-    { width: 35 },
-    { width: 18 },
-    { width: 15 },
-    { width: 22 },
-    { width: 18 },
-    { width: 20 },
-  ];
+  worksheet.columns = [{ width: 35 }, { width: 40 }];
 
-  const { inventoryAttributes, totalEmissions, equivalence, categories } =
-    summaryData;
+  const { inventoryAttributes } = summaryData;
 
-  // Inventory attributes
   const attributes: [string, string | number][] = [
     ["Nombre organización", display(inventoryAttributes.companyName)],
     ["País", display(inventoryAttributes.countryName)],
@@ -62,98 +48,99 @@ function buildSummarySheet(
     row.getCell(1).font = { bold: true, size: BASE_FONT_SIZE };
     row.getCell(2).font = { size: BASE_FONT_SIZE };
   }
+}
 
-  // Empty row
-  worksheet.addRow([]);
+function buildDetailTableSheet(
+  workbook: ExcelJS.Workbook,
+  summaryData: GetEmissionsDetailedSummaryResponse
+) {
+  const worksheet = workbook.addWorksheet("Detalle emisiones");
 
-  // Total emissions
-  const totalRow = addBoldRow(worksheet, ["Total emisiones", totalEmissions]);
-  applyNumberFormat(totalRow, 2, NUM_FMT_DECIMAL);
+  worksheet.columns = [
+    { width: 28 },
+    { width: 28 },
+    { width: 36 },
+    { width: 14 },
+    { width: 14 },
+    { width: 22 },
+    { width: 28 },
+    { width: 20 },
+  ];
 
-  // Equivalence (optional)
-  if (equivalence) {
-    const eqRow = worksheet.addRow([
-      "Equivalencia",
-      equivalence.rate,
-      `kg CO₂e/${equivalence.activityName}`,
-    ]);
-    eqRow.font = { size: BASE_FONT_SIZE };
-    applyNumberFormat(eqRow, 2, NUM_FMT_DECIMAL);
-  }
-
-  // Empty row
-  worksheet.addRow([]);
-
-  // Categories
-  const sortedCategories = [...categories].sort(
+  const sortedCategories = [...summaryData.categories].sort(
     (a, b) => a.position - b.position
   );
+
+  const rows: (string | number | null)[][] = [];
 
   for (const category of sortedCategories) {
     const categoryLabel = category.synonyms
       ? `${category.name} (${category.synonyms})`
       : category.name;
 
-    // Category header row
-    const catRow = addBoldRow(worksheet, [
-      categoryLabel,
-      "-",
-      "-",
-      "-",
-      category.subtotal,
-      category.percentage,
-    ]);
-    catRow.font = { bold: true, size: CATEGORY_FONT_SIZE };
-    applyNumberFormat(catRow, 5, NUM_FMT_DECIMAL);
-    applyNumberFormat(catRow, 6, NUM_FMT_PERCENT);
-
     for (const subcategory of category.subcategories) {
-      // Subcategory row
-      const subRow = addBoldRow(worksheet, [
-        display(subcategory.name),
-        "-",
-        "-",
-        "-",
-        subcategory.subtotal,
-        subcategory.percentage,
-      ]);
-      applyNumberFormat(subRow, 5, NUM_FMT_DECIMAL);
-      applyNumberFormat(subRow, 6, NUM_FMT_PERCENT);
-      applyBorderTopBottom(subRow, 6);
-
-      if (subcategory.hasLines && subcategory.lines.length > 0) {
-        // Lines table header
-        const headerRow = worksheet.addRow([
-          "Fuente de emisión",
-          "Unidad",
-          "Cantidad",
-          "Factor kgCO₂e/unidad",
-          "Fuente factor",
-          "Emisiones (tCO₂e)",
+      if (!subcategory.hasLines || subcategory.lines.length === 0) {
+        rows.push([
+          categoryLabel,
+          display(subcategory.name),
+          "-",
+          "-",
+          "-",
+          "-",
+          "-",
+          subcategory.subtotal,
         ]);
-        headerRow.font = { bold: true, italic: true, size: BASE_FONT_SIZE };
+        continue;
+      }
 
-        // Line data rows
-        for (const line of subcategory.lines) {
-          const lineRow = worksheet.addRow([
-            display(line.emissionSource),
-            display(line.measurementUnitName),
-            display(line.quantity),
-            display(line.factorValue),
-            display(line.factorSource),
-            display(line.emissions),
-          ]);
-          lineRow.font = { size: BASE_FONT_SIZE };
-          applyNumberFormat(lineRow, 3, NUM_FMT_DECIMAL);
-          applyNumberFormat(lineRow, 4, NUM_FMT_DECIMAL);
-          applyNumberFormat(lineRow, 6, NUM_FMT_DECIMAL);
-        }
+      for (const line of subcategory.lines) {
+        rows.push([
+          categoryLabel,
+          display(subcategory.name),
+          display(line.emissionSource),
+          display(line.measurementUnitName),
+          line.quantity,
+          line.factorValue,
+          display(line.factorSource),
+          line.emissions,
+        ]);
       }
     }
-
-    // Empty row between categories
-    worksheet.addRow([]);
   }
+
+  if (rows.length === 0) {
+    const emptyRow = worksheet.addRow(["Sin datos de emisiones"]);
+    emptyRow.font = { bold: true, size: BASE_FONT_SIZE };
+    return;
+  }
+
+  worksheet.addTable({
+    name: "DetalleEmisiones",
+    ref: "A1",
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: "TableStyleMedium2",
+      showRowStripes: true,
+    },
+    columns: [
+      { name: "Categoría", filterButton: true },
+      { name: "Sub-categoría", filterButton: true },
+      { name: "Fuente de emisión", filterButton: true },
+      { name: "Unidad", filterButton: true },
+      { name: "Cantidad", filterButton: true },
+      { name: "Factor kgCO₂e/unidad", filterButton: true },
+      { name: "Fuente factor", filterButton: true },
+      { name: "Emisiones (tCO₂e)", filterButton: true },
+    ],
+    rows,
+  });
+
+  worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+  worksheet.getColumn(5).numFmt = NUM_FMT_DECIMAL;
+  worksheet.getColumn(6).numFmt = NUM_FMT_DECIMAL;
+  worksheet.getColumn(8).numFmt = NUM_FMT_DECIMAL;
 }
 
 function buildFactorsSheet(
@@ -170,16 +157,7 @@ function buildFactorsSheet(
     { width: 30 },
   ];
 
-  // Header
-  addBoldRow(worksheet, [
-    "Categoría / Alcance",
-    "Sub-categoría",
-    "Parámetros de actividad",
-    "Factor (Kg CO₂e/unidad)",
-    "Fuente",
-  ]);
-
-  for (const factor of factorsData) {
+  const rows: (string | number)[][] = factorsData.map((factor) => {
     const categoryLabel = factor.categorySynonyms
       ? `${factor.categoryName} (${factor.categorySynonyms})`
       : factor.categoryName;
@@ -188,15 +166,41 @@ function buildFactorsSheet(
       ? `${factor.factorSource} - ${factor.factorSourceDetail}`
       : factor.factorSource;
 
-    const row = worksheet.addRow([
+    return [
       display(categoryLabel),
       display(factor.subcategoryName),
       display(factor.activityParameter),
       display(factor.factorLabel),
       display(source),
-    ]);
-    row.font = { size: BASE_FONT_SIZE };
+    ];
+  });
+
+  if (rows.length === 0) {
+    const emptyRow = worksheet.addRow(["Sin factores utilizados"]);
+    emptyRow.font = { bold: true, size: BASE_FONT_SIZE };
+    return;
   }
+
+  worksheet.addTable({
+    name: "FactoresUtilizados",
+    ref: "A1",
+    headerRow: true,
+    totalsRow: false,
+    style: {
+      theme: "TableStyleMedium2",
+      showRowStripes: true,
+    },
+    columns: [
+      { name: "Categoría / Alcance", filterButton: true },
+      { name: "Sub-categoría", filterButton: true },
+      { name: "Parámetros de actividad", filterButton: true },
+      { name: "Factor (Kg CO₂e/unidad)", filterButton: true },
+      { name: "Fuente", filterButton: true },
+    ],
+    rows,
+  });
+
+  worksheet.views = [{ state: "frozen", ySplit: 1 }];
 }
 
 export async function exportCarbonInventoryToExcel(
@@ -208,6 +212,7 @@ export async function exportCarbonInventoryToExcel(
   const workbook = new ExcelJS.Workbook();
 
   buildSummarySheet(workbook, summaryData, year);
+  buildDetailTableSheet(workbook, summaryData);
   buildFactorsSheet(workbook, factorsData);
 
   const safeName = sanitizeFilenamePart(inventoryName ?? "") || "huella";
