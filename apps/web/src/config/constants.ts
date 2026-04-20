@@ -7,5 +7,7 @@ export const MAX_FILE_UPLOAD_SIZE_MB = 20; // 20 MB
 
 export const DEFAULT_SEARCH_DEBOUNCE_MS = 300;
 
+export const TRANSPARENCY_YEARS_RANGE_FROM_CURRENT = 5;
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";

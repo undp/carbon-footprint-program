@@ -11,6 +11,7 @@ import { useTransparencyData } from "@/api/query";
 import { useBadgePreviews } from "@/api/query/badges";
 import { useFuzzySearch } from "@/hooks";
 import { SearchBar } from "@/components";
+import { TRANSPARENCY_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { VOCAB } from "@/config/vocab";
 
 export const TransparencyScreen: FC = () => {
@@ -18,17 +19,16 @@ export const TransparencyScreen: FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedYear, setSelectedYear] = useState<number | undefined>();
 
-  const { data: allData = [] } = useTransparencyData();
   const { data = [], isLoading } = useTransparencyData(selectedYear);
   const { data: badgePreviews = [] } = useBadgePreviews();
 
   const availableYears = useMemo(() => {
-    const yearsSet = new Set<number>();
-    allData.forEach((org) => {
-      org.years.forEach((y) => yearsSet.add(y));
-    });
-    return [...yearsSet].sort((a, b) => b - a);
-  }, [allData]);
+    const currentYear = new Date().getFullYear();
+    return Array.from(
+      { length: TRANSPARENCY_YEARS_RANGE_FROM_CURRENT },
+      (_, i) => currentYear - i
+    );
+  }, []);
 
   const flatRows: TransparencyRow[] = useMemo(() => {
     const rows = flatMap(data, (org) => {
