@@ -217,6 +217,7 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
         prisma,
         carbonInventoryPatterns.simplifiedDraft
       );
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
 
       const { id: userId } = await getTestLoggedUser(prisma);
 
@@ -234,7 +235,9 @@ describe("GET /api/carbon-inventories - Integration Tests", () => {
       expect(inventory.organizationId).toBeNull();
       expect(inventory.organizationBranchId).toBeNull();
       expect(inventory.organizationData).toBeNull();
-      expect(inventory.methodologyVersionId).toBeNull();
+      expect(inventory.methodologyVersionId).toBe(
+        methodologyVersionId.toString()
+      );
       expect(inventory.preselectedNodesId).toBeNull();
       expect(inventory.createdById).toBe(userId.toString());
       expect(inventory.updatedById).toBeNull();

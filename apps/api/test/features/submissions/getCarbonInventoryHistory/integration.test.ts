@@ -68,7 +68,10 @@ describe("GET /api/submissions/carbon-inventory/:id/history - Integration Tests"
 
   beforeAll(async () => {
     const databaseUrl = inject("databaseUrl");
-    app = await createTestApp(databaseUrl);
+    app = await createTestApp(databaseUrl, {
+      storageConnectionString: inject("storageConnectionString"),
+      storageContainerName: inject("storageContainerName"),
+    });
     prisma = app.prisma;
     testUser = await getTestLoggedUser(prisma);
   });
