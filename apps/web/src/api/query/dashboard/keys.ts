@@ -1,14 +1,15 @@
+import { SubmissionQueryKey } from "../submissions/keys.js";
+
 export const dashboardKeys = {
-  adminDashboard: ["admin", "dashboard"] as const,
+  common: [
+    "admin",
+    "dashboard",
+    SubmissionQueryKey.SubmissionUpdateDependency,
+  ] as const,
   adminKpis: (year?: number) =>
-    [...dashboardKeys.adminDashboard, "kpis", year ?? null] as const,
+    [...dashboardKeys.common, "kpis", year ?? null] as const,
   adminSectorChart: (limit: number, year?: number) =>
-    [
-      ...dashboardKeys.adminDashboard,
-      "sector-chart",
-      limit,
-      year ?? null,
-    ] as const,
+    [...dashboardKeys.common, "sector-chart", limit, year ?? null] as const,
   adminCategoryChart: (year?: number) =>
-    [...dashboardKeys.adminDashboard, "category-chart", year ?? null] as const,
+    [...dashboardKeys.common, "category-chart", year ?? null] as const,
 };

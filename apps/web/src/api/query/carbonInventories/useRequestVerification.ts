@@ -3,7 +3,7 @@ import { apiClient } from "@/api/http/client";
 import { requestsKeys } from "../requests/keys";
 import { RequestVerificationBody } from "@repo/types";
 import { CarbonInventoryQueryKey } from "./keys";
-import { SubmissionQueryKey } from "../submissions/keys";
+import { SubmissionQueryKey } from "../submissions/keys.js";
 
 interface RequestVerificationInput {
   id: string;
