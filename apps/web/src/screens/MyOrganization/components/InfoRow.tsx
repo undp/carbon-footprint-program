@@ -2,7 +2,7 @@ import { FC, memo } from "react";
 import { Box, Typography } from "@mui/material";
 
 type InfoRowProps = {
-  label: string | null;
+  label: string;
   value: React.ReactNode;
 };
 
