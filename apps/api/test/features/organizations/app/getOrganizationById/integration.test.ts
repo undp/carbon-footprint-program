@@ -83,8 +83,8 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(body.representative.email).toBeDefined();
       expect(body.representative.phone).toBeDefined();
       expect(body.representative.position).toBeDefined();
-      expect(body.representative.position.id).toBeDefined();
-      expect(body.representative.position.name).toBeDefined();
+      expect(body.representative.position?.id).toBeDefined();
+      expect(body.representative.position?.name).toBeDefined();
       expect(body.lastSubmissionStatus).toBeNull();
       expect(body.hasUnsubmittedChanges).toBe(true);
       expect(body.status).toBe("NOT_ACCREDITED");
@@ -657,12 +657,12 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationByIdResponse;
 
-      // Representative position should always be set (required field)
+      // Representative position is nullable
       expect(body.representative.position).toBeDefined();
-      expect(body.representative.position.id).toBeDefined();
-      expect(body.representative.position.name).toBeDefined();
-      expect(typeof body.representative.position.id).toBe("string");
-      expect(typeof body.representative.position.name).toBe("string");
+      expect(body.representative.position?.id).toBeDefined();
+      expect(body.representative.position?.name).toBeDefined();
+      expect(typeof body.representative.position?.id).toBe("string");
+      expect(typeof body.representative.position?.name).toBe("string");
     });
   });
 });
