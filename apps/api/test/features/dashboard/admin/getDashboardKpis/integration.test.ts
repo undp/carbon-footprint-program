@@ -410,7 +410,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
-      expect(body.totalEmissions).toBe(3000);
+      expect(body.totalEmissions).toBe(3); // 1000 + 2000 = 3000 kg = 3 tons
     });
   });
 
@@ -464,7 +464,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
-      expect(body.verifiedEmissions).toBe(5000);
+      expect(body.verifiedEmissions).toBe(5); // 5000 kg = 5 tons
     });
 
     it("should not count emissions from inventories with only pending verification", async () => {
@@ -616,7 +616,7 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
       const body2023 = JSON.parse(
         response2023.body
       ) as GetAdminDashboardKpisResponse;
-      expect(body2023.totalEmissions).toBe(1000);
+      expect(body2023.totalEmissions).toBe(1); // 1000 kg = 1 ton
 
       // Year 2022 should have no emissions
       const response2022 = await app.inject({

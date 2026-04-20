@@ -246,8 +246,8 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
       expect(methodology).toBeDefined();
       if (!methodology) return;
 
-      expect(methodology.categoryEmissions[0].totalEmissions).toBe(500);
-      expect(methodology.categoryEmissions[1].totalEmissions).toBe(300);
+      expect(methodology.categoryEmissions[0].totalEmissions).toBe(0.5); // 500 kg = 0.5 tons
+      expect(methodology.categoryEmissions[1].totalEmissions).toBe(0.3); // 300 kg = 0.3 tons
     });
 
     it("should aggregate emissions across multiple inventories for the same methodology", async () => {
@@ -319,7 +319,7 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
       if (!methodology) return;
 
       const firstCategory = methodology.categoryEmissions[0];
-      expect(firstCategory.totalEmissions).toBe(300);
+      expect(firstCategory.totalEmissions).toBe(0.3); // 300 kg aggregated = 0.3 tons
     });
   });
 

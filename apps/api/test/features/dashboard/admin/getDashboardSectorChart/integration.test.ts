@@ -443,7 +443,7 @@ describe("GET /api/admin/dashboard/sector-chart - Integration Tests", () => {
       );
       expect(miningEntry).toBeDefined();
       expect(typeof miningEntry?.totalEmissions).toBe("number");
-      expect(miningEntry?.totalEmissions).toBe(7500);
+      expect(miningEntry?.totalEmissions).toBe(7.5); // 7500 kg should be converted to 7.5 tons
     });
   });
 
