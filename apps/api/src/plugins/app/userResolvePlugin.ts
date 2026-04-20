@@ -50,7 +50,7 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
             idpUserId: authUser.idpUserId,
             email: authUser.email,
             idpName: authUser.idpName,
-            role: IS_PROD ? SystemRole.USER : SystemRole.SUPERADMIN, // In local, create users as ADMIN for easier testing
+            role: IS_PROD ? SystemRole.USER : SystemRole.SUPERADMIN, // In local, create users as SUPERADMIN for easier testing
             updatedAt: null,
           },
         });
