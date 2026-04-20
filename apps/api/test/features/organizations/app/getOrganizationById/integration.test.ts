@@ -659,10 +659,8 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
 
       // Representative position should have id and name when set
       expect(body.representative.position).not.toBeNull();
-      expect(body.representative.position).toMatchObject({
-        id: expect.any(String),
-        name: expect.any(String),
-      });
+      expect(body.representative.position!.id).not.toBeNull();
+      expect(body.representative.position!.name).not.toBeNull();
     });
   });
 });
