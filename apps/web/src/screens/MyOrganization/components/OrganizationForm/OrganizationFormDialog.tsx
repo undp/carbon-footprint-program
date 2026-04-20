@@ -13,7 +13,10 @@ import {
 } from "@mui/material";
 import { Close } from "@mui/icons-material";
 import { DevTool } from "@hookform/devtools";
-import { IS_DEVELOPMENT } from "../../../../config/environment";
+import {
+  IS_DEVELOPMENT,
+  LOCAL_BYPASS_REQUIRED_FIELDS,
+} from "../../../../config/environment";
 import { GetOrganizationByIdResponse } from "@repo/types";
 import {
   useOrganizationForm,
@@ -189,7 +192,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="taxId"
                   control={control}
                   label="RUT / RUC / ID Tributario"
-                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
                 <FormSelectField
                   name="countryOrganizationSizeId"
@@ -278,13 +281,13 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="representativeFullName"
                   control={control}
                   label="Nombre completo"
-                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
                 <FormTextField
                   name="representativeTaxId"
                   control={control}
                   label="ID representante"
-                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
               </Box>
 
@@ -296,13 +299,13 @@ export const OrganizationFormDialog: FC<Props> = ({
                   label="Cargo"
                   options={jobPositionOptions}
                   disabled={jobPositionsLoading}
-                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
                 <FormTextField
                   name="representativePhone"
                   control={control}
                   label="Teléfono"
-                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
               </Box>
 
@@ -313,7 +316,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   control={control}
                   label="Correo"
                   className="flex-1"
-                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
                 <Box className="flex-1" />
               </Box>
@@ -333,7 +336,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 control={control}
                 name="files"
                 disabled={isSubmitting}
-                required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
+                required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 requiredMessage="Al menos un archivo es requerido"
               />
             </>

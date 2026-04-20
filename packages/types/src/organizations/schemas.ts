@@ -8,7 +8,7 @@ import {
   CountrySubsectorBaseSchema,
   OrganizationMainActivityBaseSchema,
 } from "../baseSchemas/index.js";
-import { IS_DEVELOPMENT } from "../environment.js";
+import { LOCAL_BYPASS_REQUIRED_FIELDS } from "../environment.js";
 
 export const OrganizationDisplayStatusSchema = z.enum([
   "ACCREDITED",
@@ -32,7 +32,9 @@ const RepresentativeItemSchema = z.object({
 export const OrganizationDisplayStatusValues =
   OrganizationDisplayStatusSchema.enum;
 
-const minLength = IS_DEVELOPMENT ? 0 : 1;
+// When LOCAL_BYPASS_REQUIRED_FIELDS=true, relaxes minLength to 0 so developers
+// can submit forms without filling every field during local testing.
+const minLength = LOCAL_BYPASS_REQUIRED_FIELDS ? 0 : 1;
 
 // Organization mutation data (for POST/PATCH endpoints)
 export const OrganizationMutationDataSchema = z

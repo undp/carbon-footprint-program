@@ -10,6 +10,9 @@ const {
 
 export const IS_DEVELOPMENT = import.meta.env.DEV;
 
+export const LOCAL_BYPASS_REQUIRED_FIELDS =
+  import.meta.env.VITE_LOCAL_BYPASS_REQUIRED_FIELDS === "true";
+
 export const IS_DEMO = VITE_IS_DEMO_APP === "true";
 
 export const API_BASE_URL = VITE_API_BASE_URL!;
