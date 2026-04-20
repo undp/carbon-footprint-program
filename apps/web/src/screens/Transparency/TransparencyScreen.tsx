@@ -61,7 +61,7 @@ export const TransparencyScreen: FC = () => {
 
       <Box className="flex flex-1 flex-col p-6">
         <Paper className="border p-6" elevation={0}>
-          <Box className="mb-1 flex items-center justify-between gap-2">
+          <Box className="mb-4 flex items-center justify-between gap-2">
             <Typography
               variant="h5"
               fontWeight={600}
