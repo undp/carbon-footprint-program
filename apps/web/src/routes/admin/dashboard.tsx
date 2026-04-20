@@ -2,7 +2,6 @@ import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { Routes } from "@/interfaces";
 import { AdminDashboardScreen } from "@/screens/AdminDashboard/AdminDashboardScreen";
-import { MainLayout } from "@/components";
 
 const dashboardSearchSchema = z.object({
   year: z.coerce
@@ -20,9 +19,5 @@ const dashboardSearchSchema = z.object({
 // in the parent route (admin.tsx), which wraps all child routes via its Outlet.
 export const Route = createFileRoute(Routes.ADMIN_DASHBOARD)({
   validateSearch: dashboardSearchSchema,
-  component: () => (
-    <MainLayout>
-      <AdminDashboardScreen />
-    </MainLayout>
-  ),
+  component: AdminDashboardScreen,
 });
