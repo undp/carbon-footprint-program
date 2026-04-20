@@ -2,6 +2,8 @@ import fp from "fastify-plugin";
 import { FastifyPluginCallback, FastifyRequest } from "fastify";
 import { mapUserToResponse } from "../../features/users/mappers.js";
 import { authService } from "../../auth/index.js";
+import { SystemRole } from "@repo/database";
+import { BOOTSTRAP_SUPERADMIN } from "../../config/environment.js";
 
 const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
   // Find or create user on the DB with the data of the authenticated user with oid and email and attach to request
@@ -48,6 +50,9 @@ const userResolvePlugin: FastifyPluginCallback = (fastify, _options, done) => {
             idpUserId: authUser.idpUserId,
             email: authUser.email,
             idpName: authUser.idpName,
+            role: BOOTSTRAP_SUPERADMIN
+              ? SystemRole.SUPERADMIN
+              : SystemRole.USER,
             updatedAt: null,
           },
         });

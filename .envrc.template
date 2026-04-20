@@ -24,6 +24,7 @@ export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
 # export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=""     # Must be set when using AUTH_PROVIDER="forced-user"
 # export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
+# export BOOTSTRAP_SUPERADMIN=""                    # Set to "true" to create new users as SUPERADMIN (local dev only)
 
 # Generic JWKS overrides (optional, for non-Azure IdPs)
 # export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
