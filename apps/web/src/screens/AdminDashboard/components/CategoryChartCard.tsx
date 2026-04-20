@@ -35,7 +35,11 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
   }, [isError, enqueueSnackbar]);
 
   const methodologies = data?.methodologies ?? [];
-  const selectedMethodology = methodologies[selectedMethodologyIdx];
+  const clampedIdx =
+    methodologies.length > 0
+      ? Math.min(selectedMethodologyIdx, methodologies.length - 1)
+      : 0;
+  const selectedMethodology = methodologies[clampedIdx];
   const hasMultipleMethodologies = methodologies.length > 1;
 
   const totalEmissions = useMemo(
@@ -75,7 +79,7 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
           {hasMultipleMethodologies && !isLoading && !isError && (
             <FormControl size="small" sx={{ minWidth: 150 }}>
               <Select
-                value={selectedMethodologyIdx}
+                value={clampedIdx}
                 onChange={(e) =>
                   setSelectedMethodologyIdx(Number(e.target.value))
                 }

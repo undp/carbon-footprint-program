@@ -25,19 +25,18 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
   isLoading,
   hasError,
 }) => {
+  const cardBaseSx = {
+    flex: 1,
+    p: 2,
+    borderRadius: "12px",
+    boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
+    backgroundColor: alpha(color, 0.1),
+  };
+
   if (isLoading) {
     return (
       <Card
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 1,
-          flex: 1,
-          p: 2,
-          borderRadius: "12px",
-          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-          backgroundColor: alpha(color, 0.1),
-        }}
+        sx={{ ...cardBaseSx, display: "flex", flexDirection: "column", gap: 1 }}
       >
         <Stack spacing={1}>
           <Skeleton variant="text" width={120} height={20} />
@@ -50,15 +49,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
 
   if (hasError) {
     return (
-      <Card
-        sx={{
-          flex: 1,
-          p: 2,
-          borderRadius: "12px",
-          boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-          backgroundColor: alpha(color, 0.1),
-        }}
-      >
+      <Card sx={cardBaseSx}>
         <Typography variant="body2" color="text.secondary">
           {title}
         </Typography>
@@ -70,15 +61,7 @@ export const KpiSummaryCard: FC<KpiSummaryCardProps> = ({
   }
 
   return (
-    <Card
-      sx={{
-        flex: 1,
-        p: 2,
-        borderRadius: "12px",
-        boxShadow: "0px 2px 8px rgba(0, 0, 0, 0.08)",
-        backgroundColor: alpha(color, 0.1),
-      }}
-    >
+    <Card sx={cardBaseSx}>
       <Box className="flex w-full items-start justify-between">
         <Typography variant="body2" color="text.secondary">
           {title}

@@ -53,14 +53,27 @@ export const getRequestsKpisService = async (
           },
           _count: true,
         }),
+        // PENDING uses createdAt (reviewedAt is null); reviewed/approved use reviewedAt
         prismaClient.submission.groupBy({
           by: ["type", "status"],
           where: {
             type: orgAccreditationType,
-            reviewedAt: {
-              gte: new Date(`${year}-01-01T00:00:00.000Z`),
-              lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
-            },
+            OR: [
+              {
+                status: SubmissionStatus.PENDING,
+                createdAt: {
+                  gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                  lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
+                },
+              },
+              {
+                status: { not: SubmissionStatus.PENDING },
+                reviewedAt: {
+                  gte: new Date(`${year}-01-01T00:00:00.000Z`),
+                  lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
+                },
+              },
+            ],
           },
           _count: true,
         }),

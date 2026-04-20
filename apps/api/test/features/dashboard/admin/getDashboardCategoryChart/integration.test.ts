@@ -7,6 +7,7 @@ import {
   afterEach,
   inject,
 } from "vitest";
+import { InventoryStatus } from "@repo/database";
 import { createTestApp } from "@test/factories/appFactory.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
@@ -98,7 +99,7 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
       await createInventoryWithEmissions(prisma, {
         year: 2024,
         usageMode: "EXPERT",
-        status: "ACTIVE",
+        status: InventoryStatus.ACTIVE,
         isSelfDeclared: true,
         isEditable: false,
         methodologyVersionId: methodologyVersion.id,
@@ -136,15 +137,14 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
         select: { id: true },
       });
 
-      if (!methodologyVersion) {
-        return;
-      }
+      expect(methodologyVersion).toBeDefined();
+      if (!methodologyVersion) return;
 
       // Create inventory with isSelfDeclared = false
       await createInventoryWithEmissions(prisma, {
         year: 2024,
         usageMode: "EXPERT",
-        status: "ACTIVE",
+        status: InventoryStatus.ACTIVE,
         isSelfDeclared: false,
         isEditable: false,
         methodologyVersionId: methodologyVersion.id,
@@ -329,15 +329,14 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
         select: { id: true },
       });
 
-      if (!methodologyVersion) {
-        return;
-      }
+      expect(methodologyVersion).toBeDefined();
+      if (!methodologyVersion) return;
 
       // Create inventory for year 2023
       await createInventoryWithEmissions(prisma, {
         year: 2023,
         usageMode: "EXPERT",
-        status: "ACTIVE",
+        status: InventoryStatus.ACTIVE,
         isSelfDeclared: true,
         isEditable: false,
         methodologyVersionId: methodologyVersion.id,

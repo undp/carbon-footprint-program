@@ -12,7 +12,7 @@ import { BarChart } from "@mui/x-charts/BarChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardSectorChart } from "@/api/query/dashboard";
 import { SECTOR_CHART_LIMIT } from "../constants";
-import { formatEmissions } from "../../../utils/formatting";
+import { formatEmissions, formatQuantity } from "../../../utils/formatting";
 
 type SectorTab = "companies" | "emissions";
 
@@ -146,7 +146,7 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
                 valueFormatter: (value) =>
                   activeTab === "emissions"
                     ? formatEmissions(value ?? 0, true)
-                    : (value ?? 0).toString(),
+                    : formatQuantity(value ?? 0),
               },
             ]}
             height={220}
