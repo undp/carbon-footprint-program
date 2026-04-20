@@ -1,27 +1,79 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetSuggestedReductionPlanResponse } from "@repo/types";
-import { fetchInventory } from "../helpers.js";
+import {
+  ReductionPlanInitiativeStatus,
+  type GetSuggestedReductionPlanResponse,
+} from "@repo/types";
+import { fetchInventoryWithCategoryData } from "../helpers.js";
 
-// TODO: implement real reduction plan logic (could be AI-generated in the future)
 export const getSuggestedReductionPlanService = async (
   prismaClient: PrismaClient,
-  id: string
+  id: string,
+  limit: number
 ): Promise<GetSuggestedReductionPlanResponse> => {
-  // Validate the inventory exists
-  await fetchInventory(prismaClient, id);
+  const { categoryData } = await fetchInventoryWithCategoryData(
+    prismaClient,
+    id
+  );
 
-  // TODO: remove once real implementation is in place
-  return null;
+  const rankedSubcategories = categoryData
+    .flatMap((category) =>
+      category.subcategories.map((sub) => ({
+        subcategoryId: sub.id,
+        subtotal: sub.subtotal,
+        categoryPosition: category.position,
+        subcategoryName: sub.name,
+      }))
+    )
+    .sort(
+      (a, b) =>
+        b.subtotal - a.subtotal ||
+        a.categoryPosition - b.categoryPosition ||
+        a.subcategoryName.localeCompare(b.subcategoryName)
+    );
 
-  return {
-    summary:
-      "Reducir las emisiones de proceso y combustión, en línea con la Ley Marco de Cambio Climático y los objetivos globales del sector.",
-    items: [
-      "Optimizar procesos productivos para reducir emisiones directas.",
-      "Mejorar la eficiencia energética en instalaciones y equipos.",
-      "Aumentar el uso de energías renovables y combustibles alternativos.",
-      "Reducir consumos eléctricos con equipos eficientes.",
-      "Optimizar transportes internos y despachos para bajar uso de combustible.",
-    ],
-  };
+  if (rankedSubcategories.length === 0) {
+    return [];
+  }
+
+  const initiatives = await prismaClient.reductionPlanInitiative.findMany({
+    where: {
+      subcategoryId: {
+        in: rankedSubcategories.map((s) => BigInt(s.subcategoryId)),
+      },
+      status: ReductionPlanInitiativeStatus.ACTIVE,
+    },
+    select: { id: true, title: true, description: true, subcategoryId: true },
+    orderBy: { id: "asc" },
+  });
+
+  const initiativesBySubcategory = new Map<
+    string,
+    { id: bigint; title: string; description: string }[]
+  >();
+  for (const initiative of initiatives) {
+    const key = initiative.subcategoryId.toString();
+    const bucket = initiativesBySubcategory.get(key) ?? [];
+    bucket.push({
+      id: initiative.id,
+      title: initiative.title,
+      description: initiative.description,
+    });
+    initiativesBySubcategory.set(key, bucket);
+  }
+
+  const result: GetSuggestedReductionPlanResponse = [];
+  for (const sub of rankedSubcategories) {
+    const bucket = initiativesBySubcategory.get(sub.subcategoryId);
+    if (!bucket) continue;
+    for (const initiative of bucket) {
+      result.push({
+        id: initiative.id.toString(),
+        title: initiative.title,
+        description: initiative.description,
+      });
+      if (result.length === limit) return result;
+    }
+  }
+
+  return result;
 };
