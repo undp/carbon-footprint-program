@@ -4,8 +4,7 @@ import type {
   GetSuggestedReductionPlanQuery,
 } from "@repo/types";
 import { getSuggestedReductionPlanService } from "./service.js";
-
-const DEFAULT_SUGGESTED_REDUCTION_PLAN_LIMIT = 5;
+import { DEFAULT_SUGGESTED_INITIATIVES_LIMIT } from "./constants.js";
 
 export const getSuggestedReductionPlanHandler = async (
   request: FastifyRequest<{
@@ -18,7 +17,7 @@ export const getSuggestedReductionPlanHandler = async (
   const carbonInventoryId = request.params.id;
   const limit = request.query.limit
     ? parseInt(request.query.limit, 10)
-    : DEFAULT_SUGGESTED_REDUCTION_PLAN_LIMIT;
+    : DEFAULT_SUGGESTED_INITIATIVES_LIMIT;
 
   log.info(
     { carbonInventoryId, limit },
