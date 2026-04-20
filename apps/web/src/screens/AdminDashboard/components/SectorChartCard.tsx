@@ -58,6 +58,15 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
   const yAxisLabel =
     activeTab === "companies" ? "Empresas" : "Emisiones (tCO₂e)";
 
+  const noDataMessage =
+    activeTab === "companies"
+      ? year
+        ? "No hay empresas inscritas hasta el año seleccionado"
+        : "No hay empresas inscritas"
+      : year
+        ? "No hay huellas autodeclaradas el año seleccionado"
+        : "No hay huellas autodeclaradas";
+
   return (
     <Card
       sx={{
@@ -127,7 +136,7 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
             }}
           >
             <Typography variant="body2" color="text.secondary">
-              Sin datos disponibles
+              {noDataMessage}
             </Typography>
           </Box>
         )}
