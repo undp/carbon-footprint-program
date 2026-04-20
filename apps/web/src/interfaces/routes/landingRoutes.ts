@@ -12,5 +12,6 @@ type PageRoute = (typeof LandingHeaderRoutes)[keyof typeof LandingHeaderRoutes];
 export const LandingHeaderRoutesTranslations: Record<PageRoute, string> = {
   [LandingHeaderRoutes.ABOUT_US]: "Sobre Huella Latam",
   [LandingHeaderRoutes.TRANSPARENCY]: "Transparencia",
-  [LandingHeaderRoutes.CAPINAUT]: "Capinauta",
+  //TODO: Update when Capinaut page is ready
+  // [LandingHeaderRoutes.CAPINAUT]: "Capinaut",
 };
