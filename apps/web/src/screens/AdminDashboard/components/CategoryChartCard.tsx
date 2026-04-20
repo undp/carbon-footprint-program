@@ -9,14 +9,17 @@ import {
   Skeleton,
   Typography,
 } from "@mui/material";
-import { PieChart } from "@mui/x-charts/PieChart";
+import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardCategoryChart } from "@/api/query/dashboard";
-import { formatQuantity } from "@/utils/formatting";
+import { formatEmissions } from "../../../utils/formatting";
 
 interface CategoryChartCardProps {
   year?: number;
 }
+
+const formatAsPercentage = (value: number, total: number) =>
+  `${((value / total) * 100).toFixed(0)}%`;
 
 export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
   const [selectedMethodologyIdx, setSelectedMethodologyIdx] = useState(0);
@@ -35,6 +38,15 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
   const selectedMethodology = methodologies[selectedMethodologyIdx];
   const hasMultipleMethodologies = methodologies.length > 1;
 
+  const totalEmissions = useMemo(
+    () =>
+      selectedMethodology?.categoryEmissions.reduce(
+        (sum, d) => sum + d.totalEmissions,
+        0
+      ) ?? 0,
+    [selectedMethodology]
+  );
+
   const pieData = useMemo(() => {
     if (!selectedMethodology) return [];
     return selectedMethodology.categoryEmissions
@@ -43,13 +55,9 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
         id: idx,
         value: c.totalEmissions,
         label: c.categoryName,
+        percentage: c.totalEmissions / totalEmissions,
       }));
-  }, [selectedMethodology]);
-
-  const totalEmissions = useMemo(
-    () => pieData.reduce((sum, d) => sum + d.value, 0),
-    [pieData]
-  );
+  }, [selectedMethodology, totalEmissions]);
 
   return (
     <Card
@@ -148,41 +156,30 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
           methodologies.length > 0 &&
           totalEmissions > 0 && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
-              <Box sx={{ position: "relative" }}>
-                <PieChart
-                  series={[
-                    {
-                      data: pieData,
-                      innerRadius: 55,
-                      outerRadius: 80,
-                      paddingAngle: 1,
-                      cornerRadius: 2,
-                    },
-                  ]}
-                  width={260}
-                  height={195}
-                  hideLegend={false}
-                  margin={{ top: 0, bottom: 0, left: 40, right: 40 }}
-                />
-                <Box
-                  sx={{
-                    position: "absolute",
-                    inset: 0,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    pointerEvents: "none",
-                  }}
-                >
-                  <Typography variant="h6" fontWeight="fontWeightSemiBold">
-                    {formatQuantity(totalEmissions)}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    tCO₂e
-                  </Typography>
-                </Box>
-              </Box>
+              <PieChart
+                sx={{
+                  [`& .${pieArcLabelClasses.root}`]: {
+                    fontSize: "12px",
+                  },
+                }}
+                series={[
+                  {
+                    data: pieData,
+                    innerRadius: 40,
+                    outerRadius: 80,
+                    paddingAngle: 3,
+                    cornerRadius: 2,
+                    arcLabel: (item) =>
+                      `${formatAsPercentage(item.value, totalEmissions)}`,
+                    arcLabelRadius: 100,
+                    valueFormatter: (item) => formatEmissions(item.value, true),
+                    highlightScope: { fade: "global", highlight: "item" },
+                    highlighted: { additionalRadius: 2 },
+                  },
+                ]}
+                width={260}
+                height={210}
+              />
             </Box>
           )}
       </CardContent>
