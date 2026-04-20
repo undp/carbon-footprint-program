@@ -24,7 +24,8 @@
     "CI",
     "AZURE_STORAGE_ACCOUNT_NAME",
     "AZURE_STORAGE_CONTAINER_NAME",
-    "ALLOWED_ORIGIN"
+    "ALLOWED_ORIGIN",
+    "BOOTSTRAP_SUPERADMIN"
   ],
   "tasks": {
     "clean": {
