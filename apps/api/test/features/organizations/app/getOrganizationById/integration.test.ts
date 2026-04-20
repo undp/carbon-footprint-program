@@ -657,12 +657,12 @@ describe("GET /api/app/organizations/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetOrganizationByIdResponse;
 
-      // Representative position is nullable
-      expect(body.representative.position).toBeDefined();
-      expect(body.representative.position?.id).toBeDefined();
-      expect(body.representative.position?.name).toBeDefined();
-      expect(typeof body.representative.position?.id).toBe("string");
-      expect(typeof body.representative.position?.name).toBe("string");
+      // Representative position should have id and name when set
+      expect(body.representative.position).not.toBeNull();
+      expect(body.representative.position).toMatchObject({
+        id: expect.any(String),
+        name: expect.any(String),
+      });
     });
   });
 });
