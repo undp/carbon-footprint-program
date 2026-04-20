@@ -1,6 +1,5 @@
 import { FC, useMemo, useState } from "react";
 import { alpha, Box, Paper, Typography, useTheme } from "@mui/material";
-import { flatMap, orderBy } from "lodash-es";
 import { Header } from "@/screens/Landing/components/Header";
 import {
   TransparencyDataGrid,
@@ -30,21 +29,10 @@ export const TransparencyScreen: FC = () => {
     );
   }, []);
 
-  const flatRows: TransparencyRow[] = useMemo(() => {
-    const rows = flatMap(data, (org) => {
-      const years = selectedYear
-        ? [selectedYear]
-        : orderBy(org.years, [], ["desc"]);
-      return years.map((year) => ({
-        organizationName: org.organizationName,
-        sectorName: org.sectorName,
-        subsectorName: org.subsectorName,
-        recognitions: org.recognitions,
-        year,
-      }));
-    });
-    return rows.map((row, id) => ({ id, ...row }));
-  }, [data, selectedYear]);
+  const flatRows: TransparencyRow[] = useMemo(
+    () => data.map((row, id) => ({ id, ...row })),
+    [data]
+  );
 
   const fuseOptions = useMemo(
     () => ({
