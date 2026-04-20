@@ -145,7 +145,7 @@ export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
               primary={approvedCount}
               primaryLabel="Manual"
               secondary={approvedAutoCount}
-              secondaryLabel="Automática"
+              secondaryLabel="Automático"
             />
             <SubmissionStatusCard
               label="Con observaciones"
