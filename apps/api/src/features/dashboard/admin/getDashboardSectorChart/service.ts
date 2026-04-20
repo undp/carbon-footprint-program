@@ -1,9 +1,8 @@
 import type { PrismaClient } from "@repo/database";
 import {
   InventoryStatus,
-  OrganizationDataStatus,
-  SubmissionType,
   SubmissionStatus,
+  OrganizationStatus,
 } from "@repo/database";
 import type { GetAdminDashboardSectorChartResponse } from "@repo/types";
 
@@ -29,26 +28,12 @@ async function getSectorRanking(
     ? { lt: new Date(`${year + 1}-01-01T00:00:00.000Z`) }
     : undefined;
 
-  const groups = await prismaClient.organizationData.groupBy({
+  const groups = await prismaClient.organizationSummaryView.groupBy({
     by: ["sectorId"],
     where: {
-      status: OrganizationDataStatus.ACTIVE,
-      submission: {
-        subject: {
-          submissions: {
-            some: {
-              type: SubmissionType.ORGANIZATION_ACCREDITATION,
-              status: {
-                in: [
-                  SubmissionStatus.APPROVED,
-                  SubmissionStatus.APPROVED_AUTOMATICALLY,
-                ],
-              },
-              ...(approvedAtFilter ? { reviewedAt: approvedAtFilter } : {}),
-            },
-          },
-        },
-      },
+      organizationStatus: OrganizationStatus.ACTIVE,
+      lastSubmissionStatus: SubmissionStatus.APPROVED,
+      lastSubmissionUpdatedAt: approvedAtFilter,
     },
     _count: { _all: true },
   });
