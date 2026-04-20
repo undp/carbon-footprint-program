@@ -145,7 +145,9 @@ const mapOrganizationMutationData = (data: OrganizationMutationData) => {
     sectorId: toNullableBigInt(data.sectorId),
     subsectorId: toNullableBigInt(data.subsectorId),
     mainActivityId: toNullableBigInt(data.mainActivityId),
-    representativeCountryJobPositionId: BigInt(data.representativePositionId),
+    representativeCountryJobPositionId: toNullableBigInt(
+      data.representativePositionId
+    ),
   };
 };
 
