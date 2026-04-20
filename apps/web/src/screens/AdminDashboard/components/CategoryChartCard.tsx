@@ -143,7 +143,7 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
             }}
           >
             <Typography variant="body2" color="text.secondary">
-              Sin datos disponibles
+              No hay huellas autodeclaradas para el año seleccionado
             </Typography>
           </Box>
         )}
@@ -161,7 +161,7 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
               }}
             >
               <Typography variant="body2" color="text.secondary">
-                Sin datos disponibles
+                No hay emisiones autodeclaradas para el año seleccionado
               </Typography>
             </Box>
           )}
