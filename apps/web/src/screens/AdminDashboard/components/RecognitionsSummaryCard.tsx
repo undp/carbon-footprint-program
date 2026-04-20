@@ -132,7 +132,9 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
                   approvedAuto={typeData.approvedAuto}
                   color={SUBMISSION_CARD_COLORS[type]}
                   showPaired={
-                    type === SubmissionType.CARBON_INVENTORY_CALCULATION
+                    type === SubmissionType.CARBON_INVENTORY_CALCULATION &&
+                    typeData.approved > 0 &&
+                    typeData.approvedAuto > 0
                   }
                   previewUrl={badgePreviewByType.get(
                     SUBMISSION_TYPE_TO_BADGE_TYPE[type]
