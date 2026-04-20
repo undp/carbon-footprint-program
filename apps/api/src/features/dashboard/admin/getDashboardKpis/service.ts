@@ -9,6 +9,7 @@ import {
   RECOGNITION_SUBMISSION_TYPES,
 } from "@repo/types";
 import { MEASURING_ORGANIZATIONS_YEAR_RANGE } from "@/config/constants.js";
+import { kgToTon } from "@repo/utils";
 
 export const getDashboardKpisService = async (
   prismaClient: PrismaClient,
@@ -134,8 +135,8 @@ async function getEmissionsData(
   ]);
 
   return {
-    totalEmissions: Number(totalResult._sum.value ?? 0),
-    verifiedEmissions: Number(verifiedResult._sum.value ?? 0),
+    totalEmissions: kgToTon(Number(totalResult._sum.value ?? 0)),
+    verifiedEmissions: kgToTon(Number(verifiedResult._sum.value ?? 0)),
   };
 }
 

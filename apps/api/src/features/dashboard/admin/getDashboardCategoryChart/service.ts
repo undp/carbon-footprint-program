@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@repo/database";
 import { CategoryStatus, InventoryStatus, Prisma } from "@repo/database";
 import type { GetAdminDashboardCategoryChartResponse } from "@repo/types";
+import { kgToTon } from "@repo/utils";
 
 export const getDashboardCategoryChartService = async (
   prismaClient: PrismaClient,
@@ -58,7 +59,7 @@ export const getDashboardCategoryChartService = async (
       methodologyVersionName: mv.name,
       categoryEmissions: mv.categories.map((cat) => ({
         categoryName: cat.name,
-        totalEmissions: emissionsMap.get(String(cat.id)) ?? 0,
+        totalEmissions: kgToTon(emissionsMap.get(String(cat.id)) ?? 0),
       })),
     };
   });

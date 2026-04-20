@@ -5,6 +5,7 @@ import {
   OrganizationStatus,
 } from "@repo/database";
 import type { GetAdminDashboardSectorChartResponse } from "@repo/types";
+import { kgToTon } from "@repo/utils";
 
 export const getDashboardSectorChartService = async (
   prismaClient: PrismaClient,
@@ -81,7 +82,10 @@ async function getSectorEmissions(
       value: Number(g._sum.value ?? 0),
     })),
     limit
-  ).map(({ sectorName, value }) => ({ sectorName, totalEmissions: value }));
+  ).map(({ sectorName, value }) => ({
+    sectorName,
+    totalEmissions: kgToTon(value),
+  }));
 }
 
 /**
