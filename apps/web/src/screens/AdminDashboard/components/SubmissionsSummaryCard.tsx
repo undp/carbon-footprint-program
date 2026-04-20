@@ -92,7 +92,7 @@ export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
         <Box className="mb-4 flex items-center justify-between">
           <Typography variant="h6" fontWeight={700}>
             Resumen de postulaciones{" "}
-            {activeTab === "inscription" ? "de empresas" : "de huellas"}
+            {activeTab === "inscription" ? "de Empresas" : "de Huellas"}
           </Typography>
           <Tabs
             value={activeTab}
