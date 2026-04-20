@@ -7,6 +7,7 @@ export const GetAdminDashboardCategoryChartQuerySchema = z.object({
 
 const CategoryEmissionsEntrySchema = z.object({
   categoryName: z.string(),
+  categoryColor: z.string(),
   totalEmissions: z.number().nonnegative().describe("Total emissions in tCO2e"),
 });
 

@@ -23,7 +23,7 @@ export const getDashboardCategoryChartService = async (
       createdAt: true,
       categories: {
         where: { status: CategoryStatus.ACTIVE },
-        select: { id: true, name: true, position: true },
+        select: { id: true, name: true, color: true, position: true },
         orderBy: { position: "asc" },
       },
       carbonInventories: {
@@ -59,6 +59,7 @@ export const getDashboardCategoryChartService = async (
       methodologyVersionName: mv.name,
       categoryEmissions: mv.categories.map((cat) => ({
         categoryName: cat.name,
+        categoryColor: cat.color,
         totalEmissions: kgToTon(emissionsMap.get(String(cat.id)) ?? 0),
       })),
     };

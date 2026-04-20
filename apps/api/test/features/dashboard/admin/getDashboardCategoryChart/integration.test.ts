@@ -126,6 +126,7 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
 
         for (const categoryEmission of methodology.categoryEmissions) {
           expect(typeof categoryEmission.categoryName).toBe("string");
+          expect(typeof categoryEmission.categoryColor).toBe("string");
           expect(typeof categoryEmission.totalEmissions).toBe("number");
           expect(categoryEmission.totalEmissions).toBeGreaterThanOrEqual(0);
         }

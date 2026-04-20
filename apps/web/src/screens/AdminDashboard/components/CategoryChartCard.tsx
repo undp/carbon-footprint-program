@@ -51,17 +51,28 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
     [selectedMethodology]
   );
 
-  const pieData = useMemo(() => {
+  const filteredCategories = useMemo(() => {
     if (!selectedMethodology) return [];
-    return selectedMethodology.categoryEmissions
-      .filter((c) => c.totalEmissions > 0)
-      .map((c, idx) => ({
+    return selectedMethodology.categoryEmissions.filter(
+      (c) => c.totalEmissions > 0
+    );
+  }, [selectedMethodology]);
+
+  const pieData = useMemo(
+    () =>
+      filteredCategories.map((c, idx) => ({
         id: idx,
         value: c.totalEmissions,
         label: c.categoryName,
         percentage: c.totalEmissions / totalEmissions,
-      }));
-  }, [selectedMethodology, totalEmissions]);
+      })),
+    [filteredCategories, totalEmissions]
+  );
+
+  const pieColors = useMemo(
+    () => filteredCategories.map((c) => c.categoryColor),
+    [filteredCategories]
+  );
 
   return (
     <Card
@@ -161,6 +172,7 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
           totalEmissions > 0 && (
             <Box sx={{ display: "flex", justifyContent: "center", mt: 1 }}>
               <PieChart
+                colors={pieColors}
                 sx={{
                   [`& .${pieArcLabelClasses.root}`]: {
                     fontSize: "12px",
