@@ -7,6 +7,7 @@ import {
   Tab,
   Tabs,
   Typography,
+  useTheme,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
 import { useSnackbar } from "notistack";
@@ -21,6 +22,7 @@ interface SectorChartCardProps {
 }
 
 export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
+  const theme = useTheme();
   const [activeTab, setActiveTab] = useState<SectorTab>("companies");
   const { data, isLoading, isError } = useAdminDashboardSectorChart(
     SECTOR_CHART_LIMIT,
@@ -143,6 +145,7 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
             series={[
               {
                 data: chartData.map((d) => d.value),
+                color: theme.palette.primary.main,
                 valueFormatter: (value) =>
                   activeTab === "emissions"
                     ? formatEmissions(value ?? 0, true)
