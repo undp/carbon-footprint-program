@@ -7,7 +7,6 @@ import {
   LandingHeaderRoutesTranslations,
   Routes,
 } from "@/interfaces";
-import { IS_DEMO } from "@/config/environment";
 import { useAuth } from "../../../contexts";
 import { SystemRole } from "@repo/types";
 
