@@ -15,3 +15,5 @@ export * from "./Carousel";
 export * from "./ResponsiveTypography";
 export * from "./RecognitionChip";
 export * from "./SubmissionTypeChip";
+export * from "./OverflowTooltipText";
+export * from "./SearchBar";

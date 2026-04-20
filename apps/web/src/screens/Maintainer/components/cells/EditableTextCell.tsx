@@ -13,7 +13,7 @@ import {
   type Theme,
 } from "@mui/material";
 import { getNestedError } from "./cellUtils";
-import { useOverflowTooltip } from "./useOverflowTooltip";
+import { useOverflowTooltip } from "@/hooks";
 
 interface EditableTextCellProps {
   /** Name of the form array (e.g. "methodologies", "categories") */

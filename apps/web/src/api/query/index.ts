@@ -11,3 +11,4 @@ export * from "./reductionProjects";
 export * from "./submissions";
 export * from "./systemParameters";
 export * from "./badges";
+export * from "./transparency";

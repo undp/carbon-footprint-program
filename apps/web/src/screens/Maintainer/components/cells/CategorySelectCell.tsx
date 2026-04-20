@@ -2,7 +2,7 @@ import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
 import { Select, MenuItem, Typography, Tooltip } from "@mui/material";
 import { getNestedError } from "./cellUtils";
-import { useOverflowTooltip } from "./useOverflowTooltip";
+import { useOverflowTooltip } from "@/hooks";
 
 interface CategorySelectCellProps {
   formArrayName: string;

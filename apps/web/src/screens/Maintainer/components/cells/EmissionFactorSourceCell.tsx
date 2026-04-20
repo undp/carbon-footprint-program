@@ -5,7 +5,7 @@ import { Lock as LockIcon } from "@mui/icons-material";
 import { SOURCE_OPTIONS } from "../../constants";
 import type { EmissionFactorsFormValues } from "../../hooks/useEmissionFactorsForm";
 import { FreeSoloAutocompleteCell } from "./FreeSoloAutocompleteCell";
-import { useOverflowTooltip } from "./useOverflowTooltip";
+import { useOverflowTooltip } from "@/hooks";
 
 const options = SOURCE_OPTIONS.map((o) => o.value);
 
