@@ -20,7 +20,8 @@ WITH accredited_organizations_ids AS (
 organizations_latest_submission_status AS (
   SELECT DISTINCT ON (od.organization_id)
     od.organization_id,
-    s.status AS submission_status
+    s.status AS submission_status,
+    s.updated_at AS last_submission_updated_at
   FROM organization_data od
   JOIN submission_subject_organization_data ssod
     ON ssod.organization_data_id = od.id
@@ -90,13 +91,16 @@ SELECT
   odd.id                                                   AS organization_data_id,
   o.status                                                 AS organization_status,
   COALESCE(odd.trade_name, odd.legal_name, odd.tax_id)     AS name,
-  lss.submission_status::TEXT                              AS last_submission_status,
+  odd.sector_id                                            AS sector_id,
+  odd.subsector_id                                         AS subsector_id,
+  lss.submission_status::submission_status                 AS last_submission_status,
+  lss.last_submission_updated_at                           AS last_submission_updated_at,
   (uioc.organization_id IS NOT NULL)                       AS has_unsubmitted_changes,
-  CASE
+  (CASE
     WHEN o.status = 'BLOCKED' THEN 'BLOCKED'
     WHEN acoi.organization_id IS NOT NULL THEN 'ACCREDITED'
     ELSE 'NOT_ACCREDITED'
-  END                                                      AS display_status,
+  END)::organization_summary_display_status                AS display_status,
   (acoi.organization_id IS NOT NULL)                       AS is_accredited,
   COALESCE(ocs.has_carbon_inventories, FALSE)              AS has_carbon_inventories,
   COALESCE(ocs.total_emissions, 0)                         AS total_emissions,
