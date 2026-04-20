@@ -35,6 +35,7 @@ const buildColumns = (
     headerName: `Nombre ${orgNoun.singular}`,
     flex: 1.5,
     minWidth: 220,
+    cellClassName: "content-center",
     renderCell: (params) => (
       <OverflowTooltipText>{params.row.organizationName}</OverflowTooltipText>
     ),
@@ -44,6 +45,7 @@ const buildColumns = (
     headerName: "Rubro",
     flex: 1,
     minWidth: 180,
+    cellClassName: "content-center",
     renderCell: (params) =>
       params.row.sectorName ? (
         <OverflowTooltipText>{params.row.sectorName}</OverflowTooltipText>
@@ -58,6 +60,7 @@ const buildColumns = (
     headerName: "Sub-rubro",
     flex: 1,
     minWidth: 180,
+    cellClassName: "content-center",
     renderCell: (params) =>
       params.row.subsectorName ? (
         <OverflowTooltipText>{params.row.subsectorName}</OverflowTooltipText>
@@ -73,6 +76,7 @@ const buildColumns = (
     width: 80,
     align: "center",
     headerAlign: "center",
+    cellClassName: "content-center",
   },
   {
     field: "recognitions",
@@ -81,6 +85,7 @@ const buildColumns = (
     minWidth: 250,
     sortable: false,
     filterable: false,
+    cellClassName: "content-center",
     renderCell: (params) => (
       <RecognitionBadge
         recognitions={params.row.recognitions}
