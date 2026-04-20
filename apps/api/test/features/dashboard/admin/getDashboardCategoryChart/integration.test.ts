@@ -18,6 +18,7 @@ import {
 } from "@test/factories/carbonInventorySeeder.js";
 import { cleanupTestOrganization } from "@test/factories/organizationFactory.js";
 import { cleanupTestSubmissions } from "@test/factories/submissionFactory.js";
+import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
   let app: FastifyInstance;
@@ -162,6 +163,164 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
 
       expect(body.methodologies).toHaveLength(0);
     });
+
+    it("should not include DELETED inventories", async () => {
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: { id: true },
+      });
+
+      if (!methodologyVersion) return;
+
+      await createInventoryWithEmissions(prisma, {
+        year: 2024,
+        usageMode: "EXPERT",
+        status: "DELETED",
+        isSelfDeclared: true,
+        isEditable: false,
+        methodologyVersionId: methodologyVersion.id,
+        createdById: testUser.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/category-chart",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAdminDashboardCategoryChartResponse;
+
+      expect(body.methodologies).toHaveLength(0);
+    });
+
+    it("should return correct emission values aggregated by category", async () => {
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          id: true,
+          categories: {
+            select: { position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+
+      const positions = methodologyVersion.categories.map((c) => c.position);
+      expect(positions.length).toBeGreaterThanOrEqual(2);
+
+      await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2024,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId: methodologyVersion.id,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: positions[0], emissions: 500 },
+            { categoryPosition: positions[1], emissions: 300 },
+          ],
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/category-chart",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAdminDashboardCategoryChartResponse;
+
+      expect(body.methodologies.length).toBeGreaterThan(0);
+      const methodology = body.methodologies.find(
+        (m) => m.methodologyVersionId === Number(methodologyVersion.id)
+      );
+      expect(methodology).toBeDefined();
+      if (!methodology) return;
+
+      expect(methodology.categoryEmissions[0].totalEmissions).toBe(500);
+      expect(methodology.categoryEmissions[1].totalEmissions).toBe(300);
+    });
+
+    it("should aggregate emissions across multiple inventories for the same methodology", async () => {
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          id: true,
+          categories: {
+            select: { position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+
+      const firstPosition = methodologyVersion.categories[0].position;
+
+      // Create two inventories on the same methodology
+      await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2024,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId: methodologyVersion.id,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: firstPosition, emissions: 100 },
+          ],
+        }
+      );
+
+      await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2024,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId: methodologyVersion.id,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: firstPosition, emissions: 200 },
+          ],
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/category-chart",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAdminDashboardCategoryChartResponse;
+
+      const methodology = body.methodologies.find(
+        (m) => m.methodologyVersionId === Number(methodologyVersion.id)
+      );
+      expect(methodology).toBeDefined();
+      if (!methodology) return;
+
+      const firstCategory = methodology.categoryEmissions[0];
+      expect(firstCategory.totalEmissions).toBe(300);
+    });
   });
 
   describe("Year filter", () => {
@@ -208,6 +367,155 @@ describe("GET /api/admin/dashboard/category-chart - Integration Tests", () => {
         responseWith2022.body
       ) as GetAdminDashboardCategoryChartResponse;
       expect(bodyWith2022.methodologies).toHaveLength(0);
+    });
+  });
+
+  describe("Multiple methodologies", () => {
+    it("should return entries for multiple methodology versions with inventories", async () => {
+      const seededMethodology = await prisma.methodologyVersion.findFirst({
+        select: { id: true },
+      });
+
+      if (!seededMethodology) return;
+
+      // Create inventory on seeded methodology
+      await createInventoryWithEmissions(prisma, {
+        year: 2024,
+        usageMode: "EXPERT",
+        status: "ACTIVE",
+        isSelfDeclared: true,
+        isEditable: false,
+        methodologyVersionId: seededMethodology.id,
+        createdById: testUser.id,
+      });
+
+      // Create a second methodology and a bare inventory on it
+      const emptyMethodology = await createEmptyMethodologyVersion(prisma);
+      await prisma.carbonInventory.create({
+        data: {
+          year: 2024,
+          usageMode: "SIMPLIFIED",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId: emptyMethodology.id,
+          createdById: testUser.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/category-chart",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAdminDashboardCategoryChartResponse;
+
+      const ids = body.methodologies.map((m) => m.methodologyVersionId);
+      expect(ids).toContain(Number(seededMethodology.id));
+      expect(ids).toContain(Number(emptyMethodology.id));
+    });
+  });
+
+  describe("Ordering", () => {
+    it("should return methodologies ordered by creation date descending", async () => {
+      const seededMethodology = await prisma.methodologyVersion.findFirst({
+        select: { id: true },
+      });
+
+      if (!seededMethodology) return;
+
+      await createInventoryWithEmissions(prisma, {
+        year: 2024,
+        usageMode: "EXPERT",
+        status: "ACTIVE",
+        isSelfDeclared: true,
+        isEditable: false,
+        methodologyVersionId: seededMethodology.id,
+        createdById: testUser.id,
+      });
+
+      // Newer methodology created after seeded one
+      const newerMethodology = await createEmptyMethodologyVersion(prisma);
+      await prisma.carbonInventory.create({
+        data: {
+          year: 2024,
+          usageMode: "SIMPLIFIED",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId: newerMethodology.id,
+          createdById: testUser.id,
+          updatedAt: null,
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/category-chart",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAdminDashboardCategoryChartResponse;
+
+      expect(body.methodologies.length).toBeGreaterThanOrEqual(2);
+      // Newer methodology should come first
+      expect(body.methodologies[0].methodologyVersionId).toBe(
+        Number(newerMethodology.id)
+      );
+    });
+
+    it("should return category emissions ordered by category position", async () => {
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          id: true,
+          categories: {
+            select: { name: true, position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+      if (methodologyVersion.categories.length < 2) return;
+
+      await createInventoryWithEmissions(prisma, {
+        year: 2024,
+        usageMode: "EXPERT",
+        status: "ACTIVE",
+        isSelfDeclared: true,
+        isEditable: false,
+        methodologyVersionId: methodologyVersion.id,
+        createdById: testUser.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/category-chart",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetAdminDashboardCategoryChartResponse;
+
+      const methodology = body.methodologies.find(
+        (m) => m.methodologyVersionId === Number(methodologyVersion.id)
+      );
+      expect(methodology).toBeDefined();
+      if (!methodology) return;
+
+      // Category names should match the position-ordered names from the DB
+      const expectedNames = methodologyVersion.categories.map((c) => c.name);
+      const actualNames = methodology.categoryEmissions.map(
+        (ce) => ce.categoryName
+      );
+      expect(actualNames).toEqual(expectedNames);
     });
   });
 });

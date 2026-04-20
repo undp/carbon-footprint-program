@@ -23,7 +23,11 @@ import {
   cleanupTestSubmissions,
 } from "@test/factories/submissionFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { cleanupCarbonInventoryTestData } from "@test/factories/carbonInventorySeeder.js";
+import {
+  cleanupCarbonInventoryTestData,
+  createInventoryWithEmissions,
+} from "@test/factories/carbonInventorySeeder.js";
+import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 
 describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
   let app: FastifyInstance;
@@ -190,6 +194,43 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
       expect(body.recognitionsEarned).toBe(1);
     });
 
+    it("should count APPROVED_AUTOMATICALLY carbon inventory submissions as earned", async () => {
+      const inventory = await prisma.carbonInventory.create({
+        data: {
+          year: 2024,
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          usageMode: "SIMPLIFIED",
+          createdById: testUser.id,
+          updatedAt: null,
+        },
+      });
+
+      const { submission } = await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_CALCULATION,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+
+      // Change to APPROVED_AUTOMATICALLY
+      await prisma.submission.update({
+        where: { id: submission.id },
+        data: { status: SubmissionStatus.APPROVED_AUTOMATICALLY },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
+      expect(body.recognitionsEarned).toBe(1);
+    });
+
     it("should not count PENDING carbon inventory submissions as earned", async () => {
       const inventory = await prisma.carbonInventory.create({
         data: {
@@ -253,6 +294,231 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
     });
   });
 
+  describe("measuringOrganizations", () => {
+    it("should count accredited organizations with active self-declared inventories", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+
+      // Create accredited org
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+
+      // Create ACTIVE self-declared inventory linked to the org
+      const currentYear = new Date().getFullYear();
+      await createInventoryWithEmissions(prisma, {
+        year: currentYear,
+        usageMode: "EXPERT",
+        status: "ACTIVE",
+        isSelfDeclared: true,
+        isEditable: false,
+        methodologyVersionId,
+        organizationId: org.id,
+        createdById: testUser.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
+      expect(body.measuringOrganizations).toBe(1);
+    });
+
+    it("should not count accredited organizations without self-declared inventories", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+
+      const org = await createTestOrganization(prisma);
+      const orgData = await createTestOrganizationData(prisma, org.id);
+      await createTestOrganizationDataSubmission(
+        prisma,
+        orgData.id,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+
+      // Create inventory that is NOT self-declared
+      const currentYear = new Date().getFullYear();
+      await createInventoryWithEmissions(prisma, {
+        year: currentYear,
+        usageMode: "EXPERT",
+        status: "ACTIVE",
+        isSelfDeclared: false,
+        isEditable: false,
+        methodologyVersionId,
+        organizationId: org.id,
+        createdById: testUser.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
+      expect(body.measuringOrganizations).toBe(0);
+    });
+  });
+
+  describe("totalEmissions", () => {
+    it("should sum emissions from all active self-declared inventories", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          categories: {
+            select: { position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+      const positions = methodologyVersion.categories.map((c) => c.position);
+
+      await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2024,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: positions[0], emissions: 1000 },
+            { categoryPosition: positions[1], emissions: 2000 },
+          ],
+        }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
+      expect(body.totalEmissions).toBe(3000);
+    });
+  });
+
+  describe("verifiedEmissions", () => {
+    it("should sum emissions from inventories with approved verification", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          categories: {
+            select: { position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+      const firstPosition = methodologyVersion.categories[0].position;
+
+      const inventory = await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2024,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: firstPosition, emissions: 5000 },
+          ],
+        }
+      );
+
+      // Create APPROVED verification submission
+      await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_VERIFICATION,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
+      expect(body.verifiedEmissions).toBe(5000);
+    });
+
+    it("should not count emissions from inventories with only pending verification", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          categories: {
+            select: { position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+      const firstPosition = methodologyVersion.categories[0].position;
+
+      const inventory = await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2024,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: firstPosition, emissions: 5000 },
+          ],
+        }
+      );
+
+      // Create PENDING verification submission
+      await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_VERIFICATION,
+        SubmissionStatus.PENDING,
+        testUser.id
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis",
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetAdminDashboardKpisResponse;
+      expect(body.verifiedEmissions).toBe(0);
+    });
+  });
+
   describe("Year filter", () => {
     it("should return 400 for an invalid year", async () => {
       const response = await app.inject({
@@ -306,6 +572,109 @@ describe("GET /api/admin/dashboard/kpis - Integration Tests", () => {
         prevResponse.body
       ) as GetAdminDashboardKpisResponse;
       expect(prevBody.totalOrganizations).toBe(0);
+    });
+
+    it("should filter totalEmissions by inventory year", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const methodologyVersion = await prisma.methodologyVersion.findFirst({
+        select: {
+          categories: {
+            select: { position: true },
+            orderBy: { position: "asc" },
+          },
+        },
+      });
+
+      if (!methodologyVersion) return;
+      const firstPosition = methodologyVersion.categories[0].position;
+
+      await createInventoryWithEmissions(
+        prisma,
+        {
+          year: 2023,
+          usageMode: "EXPERT",
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          isEditable: false,
+          methodologyVersionId,
+          createdById: testUser.id,
+        },
+        {
+          emissionsByCategory: [
+            { categoryPosition: firstPosition, emissions: 1000 },
+          ],
+        }
+      );
+
+      // Year 2023 should include emissions
+      const response2023 = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis?year=2023",
+      });
+
+      expect(response2023.statusCode).toBe(200);
+      const body2023 = JSON.parse(
+        response2023.body
+      ) as GetAdminDashboardKpisResponse;
+      expect(body2023.totalEmissions).toBe(1000);
+
+      // Year 2022 should have no emissions
+      const response2022 = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis?year=2022",
+      });
+
+      expect(response2022.statusCode).toBe(200);
+      const body2022 = JSON.parse(
+        response2022.body
+      ) as GetAdminDashboardKpisResponse;
+      expect(body2022.totalEmissions).toBe(0);
+    });
+
+    it("should filter recognitionsEarned by carbon inventory year", async () => {
+      const inventory = await prisma.carbonInventory.create({
+        data: {
+          year: 2023,
+          status: "ACTIVE",
+          isSelfDeclared: true,
+          usageMode: "SIMPLIFIED",
+          createdById: testUser.id,
+          updatedAt: null,
+        },
+      });
+
+      await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_CALCULATION,
+        SubmissionStatus.APPROVED,
+        testUser.id,
+        testUser.id
+      );
+
+      // Year 2023 should include recognition
+      const response2023 = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis?year=2023",
+      });
+
+      expect(response2023.statusCode).toBe(200);
+      const body2023 = JSON.parse(
+        response2023.body
+      ) as GetAdminDashboardKpisResponse;
+      expect(body2023.recognitionsEarned).toBe(1);
+
+      // Year 2022 should have no recognitions
+      const response2022 = await app.inject({
+        method: "GET",
+        url: "/api/admin/dashboard/kpis?year=2022",
+      });
+
+      expect(response2022.statusCode).toBe(200);
+      const body2022 = JSON.parse(
+        response2022.body
+      ) as GetAdminDashboardKpisResponse;
+      expect(body2022.recognitionsEarned).toBe(0);
     });
   });
 });
