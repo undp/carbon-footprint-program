@@ -34,6 +34,7 @@ export const mapFormValuesToRequest = (
 ): CreateOrganizationBody => {
   return {
     ...values,
+    taxId: values.taxId || null,
     representativeEmail: values.representativeEmail || null,
     representativeFullName: values.representativeFullName || null,
     representativePhone: values.representativePhone || null,
