@@ -1,21 +1,17 @@
 import { FC } from "react";
 import { Avatar, Box, Tooltip } from "@mui/material";
 import {
+  GetTransparencyDataResponse,
   SubmissionType,
-  type CarbonInventoryRecognitionsType,
-  type GetBadgePreviewsResponse,
+  CarbonInventoryRecognitionsType,
+  GetBadgePreviewsResponse,
 } from "@repo/types";
 import { SUBMISSION_TYPE_TO_BADGE_TYPE } from "@/screens/Recognitions/constants";
 import { RECOGNITION_TYPE_CHIP_LABEL } from "@/utils/recognitions";
 import { VOCAB } from "@/config/vocab";
 
-export type TransparencyRecognitions = Record<
-  CarbonInventoryRecognitionsType,
-  boolean
->;
-
 interface Props {
-  recognitions: TransparencyRecognitions;
+  recognitions: GetTransparencyDataResponse[number]["recognitions"];
   badgePreviews: GetBadgePreviewsResponse;
   size?: number;
 }

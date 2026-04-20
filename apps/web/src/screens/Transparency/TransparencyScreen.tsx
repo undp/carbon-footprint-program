@@ -1,10 +1,7 @@
 import { FC, useMemo, useState } from "react";
 import { alpha, Box, Paper, Typography, useTheme } from "@mui/material";
 import { Header } from "@/screens/Landing/components/Header";
-import {
-  TransparencyDataGrid,
-  type TransparencyRow,
-} from "./components/TransparencyDataGrid";
+import { TransparencyDataGrid } from "./components/TransparencyDataGrid";
 import { YearFilter } from "./components/YearFilter";
 import { useTransparencyData } from "@/api/query";
 import { useBadgePreviews } from "@/api/query/badges";
@@ -12,6 +9,7 @@ import { useFuzzySearch } from "@/hooks";
 import { SearchBar } from "@/components";
 import { TRANSPARENCY_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 import { VOCAB } from "@/config/vocab";
+import { GetTransparencyDataResponse } from "@repo/types";
 
 export const TransparencyScreen: FC = () => {
   const theme = useTheme();
@@ -29,7 +27,7 @@ export const TransparencyScreen: FC = () => {
     );
   }, []);
 
-  const flatRows: TransparencyRow[] = useMemo(
+  const flatRows: GetTransparencyDataResponse[number][] = useMemo(
     () => data.map((row, id) => ({ id, ...row })),
     [data]
   );

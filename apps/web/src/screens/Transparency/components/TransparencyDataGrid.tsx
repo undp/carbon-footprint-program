@@ -1,35 +1,26 @@
 import { FC } from "react";
 import type { GridColDef } from "@mui/x-data-grid";
-import type { GetBadgePreviewsResponse } from "@repo/types";
+import type {
+  GetBadgePreviewsResponse,
+  GetTransparencyDataResponse,
+} from "@repo/types";
 import { StylizedDataGrid } from "@/components/StylizedDataGrid";
 import { OverflowTooltipText } from "@/components";
 import { VOCAB } from "@/config/vocab";
-import {
-  RecognitionBadge,
-  type TransparencyRecognitions,
-} from "./RecognitionBadge";
+import { RecognitionBadge } from "./RecognitionBadge";
 import Typography from "@mui/material/Typography";
 
 const orgNoun = VOCAB.organization.noun;
 
-export interface TransparencyRow {
-  id: number;
-  organizationName: string;
-  sectorName: string | null;
-  subsectorName: string | null;
-  recognitions: TransparencyRecognitions;
-  year: number;
-}
-
 interface TransparencyDataGridProps {
-  data: TransparencyRow[];
+  data: GetTransparencyDataResponse;
   loading: boolean;
   badgePreviews: GetBadgePreviewsResponse;
 }
 
 const buildColumns = (
   badgePreviews: GetBadgePreviewsResponse
-): GridColDef<TransparencyRow>[] => [
+): GridColDef<GetTransparencyDataResponse[number]>[] => [
   {
     field: "organizationName",
     headerName: `Nombre ${orgNoun.singular}`,
