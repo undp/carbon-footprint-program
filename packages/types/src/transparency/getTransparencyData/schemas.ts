@@ -32,11 +32,7 @@ const TransparencyOrganizationSchema = z.object({
   recognitions: TransparencyRecognitionsSchema.describe(
     "Recognition seals granted to the organization"
   ),
-  years: z
-    .array(z.number().int())
-    .describe(
-      "Years for which the organization has inventories with recognitions"
-    ),
+  year: z.number().int().describe("Year of the carbon footprint"),
 });
 
 export const GetTransparencyDataResponseSchema = z.array(
