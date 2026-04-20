@@ -5,15 +5,10 @@ import { AutoAwesome } from "@mui/icons-material";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { VOCAB } from "@/config/vocab";
-
-interface ReductionPlanInitiative {
-  id: string;
-  title: string;
-  description: string;
-}
+import { type GetSuggestedReductionPlanResponse } from "@repo/types";
 
 interface ReductionPlanCardProps {
-  initiatives: ReductionPlanInitiative[] | null;
+  initiatives: GetSuggestedReductionPlanResponse | null;
   onViewFullPlan: () => void;
   isLoading?: boolean;
   hasError?: boolean;
