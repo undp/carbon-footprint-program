@@ -10,13 +10,19 @@ import {
 import { useSnackbar } from "notistack";
 import { SubmissionType, SubmissionStatus } from "@repo/types";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
+import { useBadgePreviews } from "@/api/query";
+import { RECOGNITION_BADGE_TYPES } from "@/utils/recognitions";
 import {
   RECOGNITION_TYPES,
   RECOGNITION_TYPES_SET,
   RECOGNITION_TYPE_LABELS,
 } from "../constants";
 import { RecognitionTypeCard } from "./RecognitionTypeCard";
-import { SUBMISSION_CARD_COLORS } from "../../Recognitions/constants";
+import {
+  SUBMISSION_CARD_COLORS,
+  SUBMISSION_LETTER,
+  SUBMISSION_TYPE_TO_BADGE_TYPE,
+} from "../../Recognitions/constants";
 
 interface RecognitionsSummaryCardProps {
   year?: number;
@@ -26,6 +32,13 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
   year,
 }) => {
   const { data, isLoading, isError } = useAdminRequestsKpis(year);
+  const { data: badgePreviews = [] } = useBadgePreviews(
+    RECOGNITION_BADGE_TYPES
+  );
+  const badgePreviewByType = useMemo(
+    () => new Map(badgePreviews.map((p) => [p.badgeType, p.previewUrl])),
+    [badgePreviews]
+  );
   const { enqueueSnackbar } = useSnackbar();
 
   useEffect(() => {
@@ -117,11 +130,14 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
                   label={RECOGNITION_TYPE_LABELS[type]}
                   approved={typeData.approved}
                   approvedAuto={typeData.approvedAuto}
-                  // color={darken(SUBMISSION_CARD_COLORS[type], 0.05)}
                   color={SUBMISSION_CARD_COLORS[type]}
                   showPaired={
                     type === SubmissionType.CARBON_INVENTORY_CALCULATION
                   }
+                  previewUrl={badgePreviewByType.get(
+                    SUBMISSION_TYPE_TO_BADGE_TYPE[type]
+                  )}
+                  fallbackLetter={SUBMISSION_LETTER[type]}
                 />
               );
             })}
