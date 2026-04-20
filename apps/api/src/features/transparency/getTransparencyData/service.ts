@@ -78,39 +78,42 @@ export const getTransparencyDataService = async (
   });
 
   const rows = flatMap(organizations, (org) =>
-    flatMap(org.organization.carbonInventories, (inventory): TransparencyRow[] => {
-      if (inventory.year == null) return [];
+    flatMap(
+      org.organization.carbonInventories,
+      (inventory): TransparencyRow[] => {
+        if (inventory.year == null) return [];
 
-      const recognitionSet = new Set<CarbonInventoryRecognitionsType>();
+        const recognitionSet = new Set<CarbonInventoryRecognitionsType>();
 
-      for (const s of inventory.submission?.subject.submissions ?? []) {
-        recognitionSet.add(s.type as CarbonInventoryRecognitionsType);
-      }
-
-      for (const project of inventory.reductionProjects) {
-        if (project.year !== inventory.year) continue;
-        for (const s of project.submission?.subject.submissions ?? []) {
+        for (const s of inventory.submission?.subject.submissions ?? []) {
           recognitionSet.add(s.type as CarbonInventoryRecognitionsType);
         }
+
+        for (const project of inventory.reductionProjects) {
+          if (project.year !== inventory.year) continue;
+          for (const s of project.submission?.subject.submissions ?? []) {
+            recognitionSet.add(s.type as CarbonInventoryRecognitionsType);
+          }
+        }
+
+        if (recognitionSet.size === 0) return [];
+
+        const recognitions = Object.fromEntries(
+          RECOGNITION_SUBMISSION_TYPES.map((t) => [t, recognitionSet.has(t)])
+        ) as TransparencyRow["recognitions"];
+
+        return [
+          {
+            organizationId: String(org.organizationId),
+            organizationName: org.name,
+            sectorName: org.organizationData.sector?.name ?? null,
+            subsectorName: org.organizationData.subsector?.name ?? null,
+            recognitions,
+            year: inventory.year,
+          },
+        ];
       }
-
-      if (recognitionSet.size === 0) return [];
-
-      const recognitions = Object.fromEntries(
-        RECOGNITION_SUBMISSION_TYPES.map((t) => [t, recognitionSet.has(t)])
-      ) as TransparencyRow["recognitions"];
-
-      return [
-        {
-          organizationId: String(org.organizationId),
-          organizationName: org.name,
-          sectorName: org.organizationData.sector?.name ?? null,
-          subsectorName: org.organizationData.subsector?.name ?? null,
-          recognitions,
-          year: inventory.year,
-        },
-      ];
-    })
+    )
   );
 
   return orderBy(rows, ["year", "organizationName"], ["desc", "asc"]);
