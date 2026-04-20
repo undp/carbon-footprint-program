@@ -116,5 +116,13 @@ export const getTransparencyDataService = async (
     )
   );
 
-  return orderBy(rows, ["year", "organizationName"], ["desc", "asc"]);
+  return orderBy(
+    rows,
+    [
+      "year",
+      (row) => Object.values(row.recognitions).filter(Boolean).length,
+      "organizationName",
+    ],
+    ["desc", "desc", "asc"]
+  );
 };
