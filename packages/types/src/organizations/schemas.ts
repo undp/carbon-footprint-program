@@ -86,7 +86,6 @@ export const OrganizationMutationDataSchema = z
       .describe("Phone of representative"),
     representativeEmail: z
       .email()
-      .min(minLength)
       .nullable()
       .describe("Email of representative"),
   })
