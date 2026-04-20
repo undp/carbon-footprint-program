@@ -35,40 +35,41 @@ export const getRequestsKpisService = async (
 
     const orgAccreditationType = SubmissionType.ORGANIZATION_ACCREDITATION;
 
-    // Query inventory-linked submissions filtered by CarbonInventory.year
-    const inventorySubmissions = await prismaClient.submission.groupBy({
-      by: ["type", "status"],
-      where: {
-        type: { in: inventoryLinkedTypes },
-        subject: {
-          carbonInventory: {
-            carbonInventory: {
-              year,
-              status: "ACTIVE",
+    // Run both queries in parallel since they are independent
+    const [inventorySubmissions, orgAccreditationSubmissions] =
+      await Promise.all([
+        prismaClient.submission.groupBy({
+          by: ["type", "status"],
+          where: {
+            type: { in: inventoryLinkedTypes },
+            subject: {
+              carbonInventory: {
+                carbonInventory: {
+                  year,
+                  status: "ACTIVE",
+                },
+              },
             },
           },
-        },
-      },
-      _count: true,
-    });
+          _count: true,
+        }),
+        prismaClient.submission.groupBy({
+          by: ["type", "status"],
+          where: {
+            type: orgAccreditationType,
+            reviewedAt: {
+              gte: new Date(`${year}-01-01T00:00:00.000Z`),
+              lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
+            },
+          },
+          _count: true,
+        }),
+      ]);
 
     for (const sub of inventorySubmissions) {
       const key = `${sub.type}:${sub.status}`;
       bucket.set(key, sub._count);
     }
-
-    // Query ORGANIZATION_ACCREDITATION submissions filtered by year(reviewedAt)
-    const orgAccreditationSubmissions = await prismaClient.submission.groupBy({
-      by: ["type", "status"],
-      where: {
-        type: orgAccreditationType,
-        reviewedAt: {
-          gte: new Date(`${year}-01-01T00:00:00.000Z`),
-          lt: new Date(`${year + 1}-01-01T00:00:00.000Z`),
-        },
-      },
-      _count: true,
-    });
 
     for (const sub of orgAccreditationSubmissions) {
       const key = `${sub.type}:${sub.status}`;
