@@ -24,19 +24,19 @@ export enum DialogMode {
  */
 export interface OrganizationFormValues {
   legalName: string;
-  tradeName: string;
-  taxId: string;
-  address: string;
-  sectorId: string;
-  subsectorId: string;
-  countryOrganizationSizeId: string;
-  mainActivityId: string;
+  tradeName: string | null;
+  taxId: string | null;
+  address: string | null;
+  sectorId: string | null;
+  subsectorId: string | null;
+  countryOrganizationSizeId: string | null;
+  mainActivityId: string | null;
   employeesCount: number | null;
-  representativeFullName: string;
-  representativeTaxId: string;
-  representativePositionId: string;
-  representativePhone: string;
-  representativeEmail: string;
+  representativeFullName: string | null;
+  representativeTaxId: string | null;
+  representativePositionId: string | null;
+  representativePhone: string | null;
+  representativeEmail: string | null;
   files: File[];
 }
 

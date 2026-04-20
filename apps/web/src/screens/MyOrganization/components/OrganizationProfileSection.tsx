@@ -283,7 +283,7 @@ const OrganizationProfileSectionComponent: FC<
             label="ID representante / Rut"
             value={representative.taxId}
           />
-          <InfoRow label="Cargo" value={representative.position.name} />
+          <InfoRow label="Cargo" value={representative.position?.name} />
           <InfoRow label="Correo" value={representative.email} />
           <InfoRow label="Teléfono" value={representative.phone} />
         </InfoCard>

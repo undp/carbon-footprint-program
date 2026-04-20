@@ -4,8 +4,8 @@ import { ReadOnlyField } from "@/components";
 
 interface ApplicantIdentificationSectionProps {
   legalName?: string;
-  taxId?: string;
-  representativeFullName?: string;
+  taxId?: string | null;
+  representativeFullName?: string | null;
   isLoading?: boolean;
 }
 

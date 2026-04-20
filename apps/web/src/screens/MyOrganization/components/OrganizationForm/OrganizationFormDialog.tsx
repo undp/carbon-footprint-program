@@ -189,7 +189,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="taxId"
                   control={control}
                   label="RUT / RUC / ID Tributario"
-                  required
+                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 />
                 <FormSelectField
                   name="countryOrganizationSizeId"
@@ -278,13 +278,13 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="representativeFullName"
                   control={control}
                   label="Nombre completo"
-                  required
+                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 />
                 <FormTextField
                   name="representativeTaxId"
                   control={control}
                   label="ID representante"
-                  required
+                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 />
               </Box>
 
@@ -296,13 +296,13 @@ export const OrganizationFormDialog: FC<Props> = ({
                   label="Cargo"
                   options={jobPositionOptions}
                   disabled={jobPositionsLoading}
-                  required
+                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 />
                 <FormTextField
                   name="representativePhone"
                   control={control}
                   label="Teléfono"
-                  required
+                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 />
               </Box>
 
@@ -313,7 +313,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   control={control}
                   label="Correo"
                   className="flex-1"
-                  required
+                  required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 />
                 <Box className="flex-1" />
               </Box>
@@ -333,7 +333,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 control={control}
                 name="files"
                 disabled={isSubmitting}
-                required
+                required={!IS_DEVELOPMENT} // Only required in production to allow easier testing in development
                 requiredMessage="Al menos un archivo es requerido"
               />
             </>
