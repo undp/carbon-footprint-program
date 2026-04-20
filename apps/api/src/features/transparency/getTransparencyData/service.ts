@@ -1,19 +1,16 @@
 import type { PrismaClient } from "@repo/database";
 import {
   SubmissionStatus,
-  SubmissionType,
   InventoryStatus,
   OrganizationStatus,
   ReductionProjectStatus,
 } from "@repo/database/enums";
-import type { GetTransparencyDataResponse } from "@repo/types";
-
-const RECOGNITION_TYPES: SubmissionType[] = [
-  SubmissionType.CARBON_INVENTORY_CALCULATION,
-  SubmissionType.CARBON_INVENTORY_VERIFICATION,
-  SubmissionType.REDUCTION_PROJECT_VERIFICATION,
-  SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION,
-];
+import { flatMap, orderBy } from "lodash-es";
+import {
+  RECOGNITION_SUBMISSION_TYPES,
+  CarbonInventoryRecognitionsType,
+  GetTransparencyDataResponse,
+} from "@repo/types";
 
 const APPROVED_STATUSES: SubmissionStatus[] = [
   SubmissionStatus.APPROVED,
@@ -27,7 +24,7 @@ const submissionsSelect = {
         submissions: {
           where: {
             status: { in: APPROVED_STATUSES },
-            type: { in: RECOGNITION_TYPES },
+            type: { in: RECOGNITION_SUBMISSION_TYPES },
           },
           select: { type: true },
         },
@@ -35,6 +32,8 @@ const submissionsSelect = {
     },
   },
 } as const;
+
+type TransparencyRow = GetTransparencyDataResponse[number];
 
 export const getTransparencyDataService = async (
   prismaClient: PrismaClient,
@@ -64,12 +63,13 @@ export const getTransparencyDataService = async (
             select: {
               year: true,
               submission: submissionsSelect,
-            },
-          },
-          reductionProjects: {
-            where: { status: ReductionProjectStatus.ACTIVE },
-            select: {
-              submission: submissionsSelect,
+              reductionProjects: {
+                where: { status: ReductionProjectStatus.ACTIVE },
+                select: {
+                  year: true,
+                  submission: submissionsSelect,
+                },
+              },
             },
           },
         },
@@ -77,58 +77,41 @@ export const getTransparencyDataService = async (
     },
   });
 
-  const result: GetTransparencyDataResponse = [];
+  const rows = flatMap(organizations, (org) =>
+    flatMap(org.organization.carbonInventories, (inventory): TransparencyRow[] => {
+      if (inventory.year == null) return [];
 
-  for (const org of organizations) {
-    const recognitionSet = new Set<SubmissionType>();
-    const years = new Set<number>();
+      const recognitionSet = new Set<CarbonInventoryRecognitionsType>();
 
-    for (const inventory of org.organization.carbonInventories) {
-      const submissions = inventory.submission?.subject.submissions ?? [];
-
-      for (const s of submissions) {
-        recognitionSet.add(s.type);
+      for (const s of inventory.submission?.subject.submissions ?? []) {
+        recognitionSet.add(s.type as CarbonInventoryRecognitionsType);
       }
 
-      if (submissions.length > 0 && inventory.year != null) {
-        years.add(inventory.year);
+      for (const project of inventory.reductionProjects) {
+        if (project.year !== inventory.year) continue;
+        for (const s of project.submission?.subject.submissions ?? []) {
+          recognitionSet.add(s.type as CarbonInventoryRecognitionsType);
+        }
       }
-    }
 
-    for (const project of org.organization.reductionProjects) {
-      const submissions = project.submission?.subject.submissions ?? [];
+      if (recognitionSet.size === 0) return [];
 
-      for (const s of submissions) {
-        recognitionSet.add(s.type);
-      }
-    }
+      const recognitions = Object.fromEntries(
+        RECOGNITION_SUBMISSION_TYPES.map((t) => [t, recognitionSet.has(t)])
+      ) as TransparencyRow["recognitions"];
 
-    if (recognitionSet.size === 0) continue;
+      return [
+        {
+          organizationId: String(org.organizationId),
+          organizationName: org.name,
+          sectorName: org.organizationData.sector?.name ?? null,
+          subsectorName: org.organizationData.subsector?.name ?? null,
+          recognitions,
+          year: inventory.year,
+        },
+      ];
+    })
+  );
 
-    result.push({
-      organizationId: String(org.organizationId),
-      organizationName: org.name,
-      sectorName: org.organizationData.sector?.name ?? null,
-      subsectorName: org.organizationData.subsector?.name ?? null,
-      recognitions: {
-        CARBON_INVENTORY_CALCULATION: recognitionSet.has(
-          SubmissionType.CARBON_INVENTORY_CALCULATION
-        ),
-        CARBON_INVENTORY_VERIFICATION: recognitionSet.has(
-          SubmissionType.CARBON_INVENTORY_VERIFICATION
-        ),
-        REDUCTION_PROJECT_VERIFICATION: recognitionSet.has(
-          SubmissionType.REDUCTION_PROJECT_VERIFICATION
-        ),
-        NEUTRALIZATION_PLAN_VERIFICATION: recognitionSet.has(
-          SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION
-        ),
-      },
-      years: [...years].sort((a, b) => b - a),
-    });
-  }
-
-  result.sort((a, b) => a.organizationName.localeCompare(b.organizationName));
-
-  return result;
+  return orderBy(rows, ["year", "organizationName"], ["desc", "asc"]);
 };
