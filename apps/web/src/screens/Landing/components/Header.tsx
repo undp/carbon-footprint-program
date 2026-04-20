@@ -53,16 +53,15 @@ export const Header: FC = () => {
           />
         </Box>
         <Box className="flex flex-1 gap-12">
-          {!IS_DEMO &&
-            pages.map((page) => (
-              <Link
-                className="text-base font-medium text-white no-underline"
-                key={page.route}
-                to={page.route}
-              >
-                {page.text}
-              </Link>
-            ))}
+          {pages.map((page) => (
+            <Link
+              className="text-base font-medium text-white no-underline"
+              key={page.route}
+              to={page.route}
+            >
+              {page.text}
+            </Link>
+          ))}
         </Box>
         {user ? (
           <Box className="flex gap-4">
