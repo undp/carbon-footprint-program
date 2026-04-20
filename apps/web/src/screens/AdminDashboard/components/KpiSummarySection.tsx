@@ -8,6 +8,8 @@ import {
 import { useSnackbar } from "notistack";
 import { useAdminDashboardKpis } from "@/api/query/dashboard";
 import { KpiSummaryCard } from "./KpiSummaryCard";
+import { VOCAB } from "@/config/vocab";
+import { capitalize } from "lodash-es";
 
 interface KpiSummarySectionProps {
   year?: number;
@@ -29,7 +31,7 @@ export const KpiSummarySection: FC<KpiSummarySectionProps> = ({ year }) => {
   return (
     <Stack direction="row" spacing={2}>
       <KpiSummaryCard
-        title="Empresas inscritas"
+        title={`${capitalize(VOCAB.organization.noun.plural)} ${VOCAB.inscription.adjective.plural}`}
         color={theme.palette.info.main}
         Icon={BusinessOutlined}
         primaryValue={data?.totalOrganizations ?? 0}

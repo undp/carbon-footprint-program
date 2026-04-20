@@ -14,6 +14,8 @@ import { useSnackbar } from "notistack";
 import { useAdminDashboardSectorChart } from "@/api/query/dashboard";
 import { SECTOR_CHART_LIMIT } from "../constants";
 import { formatEmissions, formatQuantity } from "../../../utils/formatting";
+import { capitalize } from "lodash-es";
+import { VOCAB } from "@/config/vocab";
 
 type SectorTab = "companies" | "emissions";
 
@@ -39,7 +41,9 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
   }, [isError, enqueueSnackbar]);
 
   const title =
-    activeTab === "companies" ? "Empresas por Rubro" : "Emisiones por Rubro";
+    activeTab === "companies"
+      ? `${capitalize(VOCAB.organization.noun.plural)} por Rubro`
+      : "Emisiones por Rubro";
 
   const chartData = useMemo(() => {
     if (!data) return [];
@@ -56,13 +60,15 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
   }, [data, activeTab]);
 
   const yAxisLabel =
-    activeTab === "companies" ? "Empresas" : "Emisiones (tCO₂e)";
+    activeTab === "companies"
+      ? capitalize(VOCAB.organization.noun.plural)
+      : "Emisiones (tCO₂e)";
 
   const noDataMessage =
     activeTab === "companies"
       ? year
-        ? "No hay empresas inscritas hasta el año seleccionado"
-        : "No hay empresas inscritas"
+        ? `No hay ${VOCAB.organization.noun.plural} ${VOCAB.inscription.adjective.plural} hasta el año seleccionado`
+        : `No hay ${VOCAB.organization.noun.plural} ${VOCAB.inscription.adjective.plural}`
       : year
         ? "No hay huellas autodeclaradas el año seleccionado"
         : "No hay huellas autodeclaradas";
@@ -86,7 +92,7 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
             sx={{ minHeight: "unset" }}
           >
             <Tab
-              label="Empresas"
+              label={capitalize(VOCAB.organization.noun.plural)}
               value="companies"
               sx={{ minHeight: "unset", py: 0.5, px: 1, fontSize: "0.75rem" }}
             />

@@ -20,6 +20,8 @@ import { SubmissionType, SubmissionStatus } from "@repo/types";
 import { useAdminRequestsKpis } from "@/api/query/requests/useAdminRequestsKpis";
 import { RECOGNITION_TYPES } from "../constants";
 import { SubmissionStatusCard } from "./SubmissionStatusCard";
+import { VOCAB } from "../../../config/vocab";
+import { capitalize } from "lodash-es";
 
 type SubmissionsTab = "inscription" | "recognitions";
 
@@ -92,7 +94,9 @@ export const SubmissionsSummaryCard: FC<SubmissionsSummaryCardProps> = ({
         <Box className="mb-4 flex items-center justify-between">
           <Typography variant="h6" fontWeight={700}>
             Resumen de postulaciones{" "}
-            {activeTab === "inscription" ? "de Empresas" : "de Huellas"}
+            {activeTab === "inscription"
+              ? `de ${capitalize(VOCAB.organization.noun.plural)}`
+              : `de Huellas`}
           </Typography>
           <Tabs
             value={activeTab}
