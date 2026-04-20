@@ -18,14 +18,14 @@ interface Props {
 
 const orgArticle = VOCAB.organization.article.singular;
 
-const SEAL_CONFIG: {
+const BADGE_CONFIG: {
   type: CarbonInventoryRecognitionsType;
   tooltip: string;
   letter: string;
 }[] = [
   {
     type: SubmissionType.CARBON_INVENTORY_CALCULATION,
-    tooltip: `Reconocimiento Medición — ${orgArticle} ha medido su huella de carbono organizacional.`,
+    tooltip: `Reconocimiento Medición — ${orgArticle} ha medido y autodeclarado su huella de carbono.`,
     letter: "M",
   },
   {
@@ -52,7 +52,7 @@ export const RecognitionBadge: FC<Props> = ({
 }) => {
   return (
     <Box className="flex items-center gap-2">
-      {SEAL_CONFIG.map((seal) => {
+      {BADGE_CONFIG.map((seal) => {
         if (!recognitions[seal.type]) return null;
 
         const badgeType = SUBMISSION_TYPE_TO_BADGE_TYPE[seal.type];
