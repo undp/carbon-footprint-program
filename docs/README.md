@@ -92,6 +92,4 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ---
 
----
-
 > All legacy `DataModel/` and `Infra/` folder references have been migrated to `data-model/` and `infrastructure/` respectively.
