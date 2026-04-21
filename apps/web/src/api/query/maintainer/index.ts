@@ -31,3 +31,9 @@ export {
   useUpdateEmissionFactorDimension,
   useDeleteEmissionFactorDimension,
 } from "./useEmissionFactorDimensions";
+export {
+  useInitiatives,
+  useCreateInitiative,
+  useUpdateInitiative,
+  useDeleteInitiative,
+} from "./useInitiatives";
