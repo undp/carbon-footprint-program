@@ -8,9 +8,15 @@
  * Intended for local development and initial deployment setup only.
  * Run against a production database with care.
  */
-import { PrismaClient, SystemRole } from "../generated/prisma/index.js";
+import { generatePrismaAdapter, PrismaClient, SystemRole } from "../index.js";
 
 const email = (process.argv[2] ?? process.env.SUPERADMIN_EMAIL)?.trim();
+const databaseUrl = process.env.DATABASE_URL;
+
+if (!databaseUrl) {
+  console.error("Error: DATABASE_URL environment variable is not set.");
+  process.exit(1);
+}
 
 if (!email) {
   console.error(
@@ -19,7 +25,8 @@ if (!email) {
   process.exit(1);
 }
 
-const prisma = new PrismaClient();
+const adapter = generatePrismaAdapter(databaseUrl);
+const prisma = new PrismaClient({ adapter });
 
 try {
   const user = await prisma.user.update({
