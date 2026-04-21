@@ -12,7 +12,7 @@ Status: Complete
 - `packages/types/src/reductionPlanInitiatives/admin/schemas.ts` — shared `InitiativeMutationDataSchema` + `InitiativeMutationData` type (pattern mirrors `ReductionProjectMutationDataSchema`).
 - `packages/types/src/reductionPlanInitiatives/admin/getAllInitiatives/schemas.ts` — `AdminInitiativeListItemSchema` (shared list-item shape) + `GetAllInitiativesResponseSchema`.
 - `packages/types/src/reductionPlanInitiatives/admin/getAllInitiatives/types.ts` — inferred types.
-- `packages/types/src/reductionPlanInitiatives/admin/createInitiative/schemas.ts` — `CreateInitiativeRequestSchema = InitiativeMutationDataSchema`; response = `AdminInitiativeListItemSchema`.
+- `packages/types/src/reductionPlanInitiatives/admin/createInitiative/schemas.ts` — `CreateInitiativeRequestSchema = InitiativeMutationDataSchema`; response = `z.strictObject({ id })`.
 - `packages/types/src/reductionPlanInitiatives/admin/createInitiative/types.ts` — inferred types.
 - `packages/types/src/reductionPlanInitiatives/admin/updateInitiative/schemas.ts` — strict `{ id }` params; request = `InitiativeMutationDataSchema.partial()` + "at least one field" refine; response = `z.strictObject({})`.
 - `packages/types/src/reductionPlanInitiatives/admin/updateInitiative/types.ts` — inferred types.
@@ -32,7 +32,7 @@ Status: Complete
 ## 4. Implementation summary
 
 1. **Prisma / database** — No schema changes. `ReductionPlanInitiative` model and `ReductionPlanInitiativeStatus` enum already expose every needed field. Soft-delete behavior will be handled in the API service layer (not in this sub-plan). Verification that the suggested-initiatives consumer from #244 filters by `status = ACTIVE` is deferred to the API sub-plan.
-2. **Shared types** — Created all per-action folders under `packages/types/src/reductionPlanInitiatives/admin/` following the codebase's `schemas.ts` + `types.ts` convention. `AdminInitiativeListItemSchema` is shared between list and create responses. `InitiativeMutationDataSchema` (strict object) is shared between create and update request bodies — create uses it as-is, update uses `.partial()` plus a refine requiring at least one defined field. Strictness on the mutation schema implicitly rejects `status` in update bodies. Update and delete responses are `z.strictObject({})` per user request. All schemas exported through the package barrel.
+2. **Shared types** — Created all per-action folders under `packages/types/src/reductionPlanInitiatives/admin/` following the codebase's `schemas.ts` + `types.ts` convention. `AdminInitiativeListItemSchema` is the list-item shape (list response only). `InitiativeMutationDataSchema` (strict object) is shared between create and update request bodies — create uses it as-is, update uses `.partial()` plus a refine requiring at least one defined field. Strictness on the mutation schema implicitly rejects `status` in update bodies. Create response is `z.strictObject({ id })`; update and delete responses are `z.strictObject({})`. All schemas exported through the package barrel.
 3. **Constants** — Added `REDUCTION_PLAN_INITIATIVE_TITLE_MAX_LENGTH` and `REDUCTION_PLAN_INITIATIVE_DESCRIPTION_MAX_LENGTH` in `@repo/constants` and wired through its barrel, so backend schemas and the future frontend form share identical limits.
 4. **Verification** — `pnpm type-check` and `pnpm lint` both green across the workspace. Downstream consumers in `api` / `web` compile against the new exports.
 
@@ -42,4 +42,5 @@ Status: Complete
 - Constants exported with `REDUCTION_PLAN_INITIATIVE_` prefix to match `REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH` naming in `@repo/constants` and avoid barrel collisions.
 - Delete response is empty `z.strictObject({})` instead of `{ id }` (user requested).
 - Update response is empty `z.strictObject({})` instead of the list-item shape (user requested).
+- Create response is `z.strictObject({ id })` instead of the list-item shape (plan updated: client invalidates list on success, only needs id to reconcile the new row).
 - Create and update share `InitiativeMutationDataSchema` — refactor requested by user to follow the `ReductionProjectMutationDataSchema` pattern.
