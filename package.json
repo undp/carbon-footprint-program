@@ -22,7 +22,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean",
-    "db:reset": "pnpm --filter=@repo/database dev:reset --force && pnpm --filter=@repo/database dev:seed"
+    "db:reset": "pnpm --filter=@repo/database dev:reset --force && pnpm --filter=@repo/database dev:seed",
+    "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin"
   },
   "devDependencies": {
     "cpy-cli": "^5.0.0",

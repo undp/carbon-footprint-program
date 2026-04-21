@@ -29,7 +29,8 @@
     "dev:reset": "prisma migrate reset",
     "prod:deploy": "prisma migrate deploy",
     "clean": "rimraf dist tsconfig.build.tsbuildinfo .turbo",
-    "validate:version": "tsx scripts/validate-postgres-version.ts"
+    "validate:version": "tsx scripts/validate-postgres-version.ts",
+    "promote-superadmin": "tsx src/scripts/promote-superadmin.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",

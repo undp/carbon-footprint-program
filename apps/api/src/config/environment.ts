@@ -5,16 +5,6 @@ export const JWT_SECRET = process.env.JWT_SECRET || "super-secret-key";
 
 export const IS_PROD = process.env.NODE_ENV?.toLowerCase() === "production";
 
-/**
- * When true, new users created via the user-resolve plugin are assigned
- * SUPERADMIN instead of USER.  Intended **only** for local development.
- *
- * Set `BOOTSTRAP_SUPERADMIN=true` in your local .env to enable.
- * Defaults to false so staging or misconfigured environments stay safe.
- */
-export const BOOTSTRAP_SUPERADMIN =
-  process.env.BOOTSTRAP_SUPERADMIN?.toLowerCase() === "true";
-
 export const LOG_LEVEL = process.env.LOG_LEVEL ?? (IS_PROD ? "info" : "debug");
 
 export const HOST = process.env.API_HOST ?? (IS_PROD ? "0.0.0.0" : "localhost");
