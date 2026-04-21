@@ -15,10 +15,12 @@ import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
 import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGroup";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
-import { Route } from "@/routes/app/reduction-plan";
+import { getRouteApi } from "@tanstack/react-router";
 
 export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
+
+  const Route = getRouteApi(Routes.REDUCTION_PLAN);
 
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
