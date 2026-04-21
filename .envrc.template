@@ -24,7 +24,7 @@ export NODE_ENV=""      # Options: development, production, test
 export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
 # export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER=""     # Must be set when using AUTH_PROVIDER="forced-user"
 # export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
-# export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin`
+# export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin` (used as fallback when no email argument is provided)
 
 # Generic JWKS overrides (optional, for non-Azure IdPs)
 # export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
