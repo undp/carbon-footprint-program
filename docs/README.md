@@ -9,6 +9,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | Document | Description |
 |---|---|
 | [Project Overview](./overview/project-overview.md) | Goal, use cases, scope, and key assumptions |
+| [Submission Workflow](./overview/submission-workflow.md) | End-to-end flow: inventory creation → submission → admin review → external validation → badge issuance |
 
 ## Architecture
 
