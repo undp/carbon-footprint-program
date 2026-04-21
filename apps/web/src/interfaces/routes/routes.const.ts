@@ -41,6 +41,7 @@ export const Routes = {
   ADMIN_ORGANIZATIONS: "/admin/organizations",
   ADMIN_BADGES: "/admin/badges",
   ADMIN_SUBCATEGORY_RECOMMENDATIONS: "/admin/subcategory-recommendations",
+  ADMIN_REDUCTION_PLAN: "/admin/reduction-plan",
 } as const;
 
 export type Route = (typeof Routes)[keyof typeof Routes];

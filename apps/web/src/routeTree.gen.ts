@@ -29,6 +29,7 @@ import { Route as AdminUnitsRouteImport } from './routes/admin/units'
 import { Route as AdminSubcategoryRecommendationsRouteImport } from './routes/admin/subcategory-recommendations'
 import { Route as AdminSubcategoriesRouteImport } from './routes/admin/subcategories'
 import { Route as AdminRequestsRouteImport } from './routes/admin/requests'
+import { Route as AdminReductionPlanRouteImport } from './routes/admin/reduction-plan'
 import { Route as AdminParametersRouteImport } from './routes/admin/parameters'
 import { Route as AdminOrganizationsRouteImport } from './routes/admin/organizations'
 import { Route as AdminMethodologiesRouteImport } from './routes/admin/methodologies'
@@ -150,6 +151,11 @@ const AdminSubcategoriesRoute = AdminSubcategoriesRouteImport.update({
 const AdminRequestsRoute = AdminRequestsRouteImport.update({
   id: '/requests',
   path: '/requests',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminReductionPlanRoute = AdminReductionPlanRouteImport.update({
+  id: '/reduction-plan',
+  path: '/reduction-plan',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminParametersRoute = AdminParametersRouteImport.update({
@@ -284,6 +290,7 @@ export interface FileRoutesByFullPath {
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/reduction-plan': typeof AdminReductionPlanRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
@@ -324,6 +331,7 @@ export interface FileRoutesByTo {
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/reduction-plan': typeof AdminReductionPlanRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
@@ -367,6 +375,7 @@ export interface FileRoutesById {
   '/admin/methodologies': typeof AdminMethodologiesRoute
   '/admin/organizations': typeof AdminOrganizationsRoute
   '/admin/parameters': typeof AdminParametersRoute
+  '/admin/reduction-plan': typeof AdminReductionPlanRoute
   '/admin/requests': typeof AdminRequestsRoute
   '/admin/subcategories': typeof AdminSubcategoriesRoute
   '/admin/subcategory-recommendations': typeof AdminSubcategoryRecommendationsRoute
@@ -412,6 +421,7 @@ export interface FileRouteTypes {
     | '/admin/methodologies'
     | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/reduction-plan'
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/subcategory-recommendations'
@@ -452,6 +462,7 @@ export interface FileRouteTypes {
     | '/admin/methodologies'
     | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/reduction-plan'
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/subcategory-recommendations'
@@ -494,6 +505,7 @@ export interface FileRouteTypes {
     | '/admin/methodologies'
     | '/admin/organizations'
     | '/admin/parameters'
+    | '/admin/reduction-plan'
     | '/admin/requests'
     | '/admin/subcategories'
     | '/admin/subcategory-recommendations'
@@ -672,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRequestsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/reduction-plan': {
+      id: '/admin/reduction-plan'
+      path: '/reduction-plan'
+      fullPath: '/admin/reduction-plan'
+      preLoaderRoute: typeof AdminReductionPlanRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/parameters': {
       id: '/admin/parameters'
       path: '/parameters'
@@ -833,6 +852,7 @@ interface AdminRouteChildren {
   AdminMethodologiesRoute: typeof AdminMethodologiesRoute
   AdminOrganizationsRoute: typeof AdminOrganizationsRoute
   AdminParametersRoute: typeof AdminParametersRoute
+  AdminReductionPlanRoute: typeof AdminReductionPlanRoute
   AdminRequestsRoute: typeof AdminRequestsRoute
   AdminSubcategoriesRoute: typeof AdminSubcategoriesRoute
   AdminSubcategoryRecommendationsRoute: typeof AdminSubcategoryRecommendationsRoute
@@ -851,6 +871,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMethodologiesRoute: AdminMethodologiesRoute,
   AdminOrganizationsRoute: AdminOrganizationsRoute,
   AdminParametersRoute: AdminParametersRoute,
+  AdminReductionPlanRoute: AdminReductionPlanRoute,
   AdminRequestsRoute: AdminRequestsRoute,
   AdminSubcategoriesRoute: AdminSubcategoriesRoute,
   AdminSubcategoryRecommendationsRoute: AdminSubcategoryRecommendationsRoute,
