@@ -135,7 +135,7 @@ Used for CDN, WAF, and custom domain with TLS. Recommended for production deploy
 
 ### Database Server
 - **OS:** Managed by Azure (Ubuntu-based)
-- **PostgreSQL:** ≥ 15 (currently deployed on PostgreSQL 18)
+- **PostgreSQL:** ≥ 15 (as of 2026-04-21, deployed on PostgreSQL 18)
 
 ### Local Development
 - **OS:** Any (macOS, Linux, Windows with WSL2 recommended)
@@ -156,6 +156,8 @@ Used for CDN, WAF, and custom domain with TLS. Recommended for production deploy
 ---
 
 ## Cost Estimation Summary
+
+> **As of 2026-04-21.** Azure pricing changes over time — treat these figures as a planning baseline, not a current quote. The linked PDF was generated at project inception and reflects pricing at that date.
 
 The following is a rough monthly estimate for Azure resources. See [`docs/infra cost estimation.pdf`](../infra%20cost%20estimation.pdf) for the full breakdown.
 
