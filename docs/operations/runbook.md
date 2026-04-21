@@ -295,7 +295,7 @@ az appservice plan update \
 ```
 
 ### Rotate Database Password
-See [Infrastructure Deployment Guide — Rotate Password](../Infra/Deployment.md#rotar-contraseña).
+See the "Rotar Contraseña" section in the [Infrastructure Deployment Guide](../Infra/Deployment.md).
 
 ---
 
