@@ -85,21 +85,18 @@ export const ReductionPlanScreen: FC = () => {
     navigate,
   ]);
 
-  const activeOrganizationId = selectedOrganizationId;
-  const activeInventoryId = selectedCarbonInventoryId;
-
   const inventoriesForSelectedOrg = useMemo(() => {
-    if (!activeOrganizationId) return [];
+    if (!selectedOrganizationId) return [];
     return inventories?.filter(
-      (inv) => inv.organizationId === activeOrganizationId
+      (inv) => inv.organizationId === selectedOrganizationId
     );
-  }, [inventories, activeOrganizationId]);
+  }, [inventories, selectedOrganizationId]);
 
   const {
     data: reductionPlan,
     isLoading: isLoadingPlan,
     isError: isErrorPlan,
-  } = useReductionPlan(activeInventoryId);
+  } = useReductionPlan(selectedCarbonInventoryId);
 
   const effectiveCategoryId = useMemo(() => {
     const categories = reductionPlan?.categories ?? [];
@@ -149,7 +146,7 @@ export const ReductionPlanScreen: FC = () => {
     );
   }
 
-  if (!activeOrganizationId || !activeInventoryId) {
+  if (!selectedOrganizationId || !selectedCarbonInventoryId) {
     return (
       <Box className="flex flex-1 items-center justify-center">
         <CircularProgress />
@@ -158,8 +155,9 @@ export const ReductionPlanScreen: FC = () => {
   }
 
   const activeInventoryName =
-    inventoriesForSelectedOrg?.find((inv) => inv.id === activeInventoryId)
-      ?.name ?? "";
+    inventoriesForSelectedOrg?.find(
+      (inv) => inv.id === selectedCarbonInventoryId
+    )?.name ?? "";
 
   return (
     <ExplanationProvider>
@@ -167,8 +165,8 @@ export const ReductionPlanScreen: FC = () => {
         <ReductionPlanHeader
           organizations={organizations ?? []}
           inventories={inventoriesForSelectedOrg ?? []}
-          selectedOrganizationId={activeOrganizationId}
-          selectedCarbonInventory={activeInventoryId}
+          selectedOrganizationId={selectedOrganizationId}
+          selectedCarbonInventory={selectedCarbonInventoryId}
           onOrganizationChange={(orgId) => {
             void navigate({
               to: Routes.REDUCTION_PLAN,
