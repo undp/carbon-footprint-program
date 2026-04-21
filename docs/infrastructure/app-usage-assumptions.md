@@ -83,7 +83,8 @@ Shared characteristics:
 
 | Metric | Staging | Production |
 |---|---|---|
-| **Expected DB size** | 5–20 GB | Hundreds of GB growing to TB-scale |
+| **Expected DB size (initial)** | 5–20 GB | ~50 GB baseline |
+| **Expected DB size (mature)** | 5–20 GB (stable) | Hundreds of GB → TB-scale |
 | **Growth expectation** | Small, controlled, periodic resets | ~Doubles every year |
 | **Concurrent queries baseline** | < 10 | Scales with DAU |
 | **Provisioned IOPS** | Baseline (default) | Baseline, storage scales independently |

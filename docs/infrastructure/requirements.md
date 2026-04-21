@@ -33,7 +33,7 @@ The tier and capacity of each service is derived from the usage assumptions in [
 | **DAU: 10–30 → 200** | App Service instance count (1 → 2 min), autoscale (off → on) |
 | **API RPS peak: 1–3 → ~20** | App Service SKU (S1 single core → S2/P1v3 dual core) |
 | **API requests: 60k–270k/mo → 6M/mo** | Log sampling (10–25% → 5–10%), Monitor ingestion sizing |
-| **DB size: 5–20 GB → hundreds of GB (doubles yearly)** | PostgreSQL tier (Burstable B2ms → General Purpose D4ds v5), storage autoscale |
+| **DB size: Staging 5–20 GB; Production initial ~50 GB → mature hundreds of GB (doubles yearly)** | PostgreSQL tier (Burstable B2ms → General Purpose D4ds v5), storage autoscale |
 | **Concurrent DB queries: < 10 → moderate** | PostgreSQL vCores (2 → 4), RAM (8 → 16 GB) |
 | **Blob storage: < 50 GB → 1 TB+** | Storage capacity target, redundancy (LRS → ZRS) |
 | **Error rate: ≤ 5% → ≤ 0.5%** | Production requires 2 App Service instances; HA path documented |
@@ -163,7 +163,7 @@ Minimum version: **PostgreSQL 15** (the schema uses `NULLS NOT DISTINCT` syntax)
 | **vCores** | 2 | 4 |
 | **Memory** | 8 GB | 16 GB |
 | **Storage type** | Premium SSD | Premium SSD |
-| **Storage size** | 32 GB | 50 GB (growing) |
+| **Storage size** | 32 GB | 50 GB initial (autoscales; mature: hundreds of GB → TB-scale) |
 | **Provisioned IOPS** | 0 (default / auto) | 0 (auto) |
 | **High availability** | Disabled | Disabled (initial Production phase) |
 | **PITR backup** | Enabled | Enabled |
