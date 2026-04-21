@@ -57,6 +57,10 @@ Welcome to the project documentation. Use this index to navigate all available d
 |---|---|
 | [Authentication](./security/authentication.md) | Authentication providers, token validation, provider selection |
 | [RBAC and Authorization](./security/rbac.md) | Role model, authorization plugins, permission matrix |
+| [Sensitive Data Handling](./security/sensitive-data.md) | PII inventory, encryption at rest/transit, compliance considerations |
+| [Secrets Management](./security/secrets.md) | Managed identities, Key Vault, env var classification, anti-patterns |
+| [Infrastructure Hardening](./security/hardening.md) | TLS, CORS, security headers, network isolation, WAF, input validation |
+| [Audit and Logging](./security/audit-logging.md) | Log structure, redaction, security events, database audit trail |
 
 ## Operations
 
