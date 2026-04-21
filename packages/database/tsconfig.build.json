@@ -1,7 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src"],
-  "exclude": ["src/prisma/seeds"],
+  "exclude": ["src/prisma/seeds", "src/scripts"],
   "compilerOptions": {
     "noEmit": false,
     "composite": false,
