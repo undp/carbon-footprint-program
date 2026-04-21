@@ -401,7 +401,9 @@ Currently optional. Recommended for Production when the deployment requires:
 
 ## Networking Considerations
 
-- **PostgreSQL Flexible Server firewall:** Must explicitly allow the App Service IP range (or use VNet integration). For local development, developers add their IP manually in Azure Portal.
+- **PostgreSQL Flexible Server firewall:** The App Service outbound IP range must be added via the `allowedIpRanges` parameter in `infra/modules/postgres.bicep` — this is the Bicep-managed path and the only sanctioned way to make permanent firewall changes.
+
+  > **Break-glass exception — developer local IPs only.** If a developer needs temporary direct database access from a local workstation (e.g., to run a migration or inspect data), they may add their IP via Azure Portal under **PostgreSQL → Networking → Add current client IP**. This exception requires: (1) approval from the tech lead or on-call engineer, (2) a maximum TTL of 8 hours, and (3) explicit removal of the rule before the TTL expires. Persistent entries not backed by a Bicep change are non-compliant and will be removed on the next `deploy.sh` run (which reconciles the stack to the declared state).
 - **Blob Storage:** Network ACLs set to `Deny` by default; only Azure services bypass. For development, `Allow` or specific IP exceptions are configured.
 - **VNet integration:** Optional but recommended for Production to isolate API ↔ DB communication.
 - **Front Door:** Routes external traffic; App Service can be locked to only accept traffic from Front Door.
