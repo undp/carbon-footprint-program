@@ -37,7 +37,12 @@ Non-goals:
 
 ### Modified Capabilities
 
-<!-- None. The existing `get-organization-badges` spec describes a different endpoint (earned-badges-per-org) and is not changed. The upload flow under `/files/badges/:badgeType/*` already exists and its contract is not changing. -->
+- `files-badge-upload`: existing `/files/badges/:badgeType/request-upload` and `/files/badges/:badgeType/confirm-upload` are modified:
+  - access restricted from `[SUPERADMIN, ADMIN]` to `[SUPERADMIN]`
+  - `confirm-upload` now creates `INACTIVE` badges (no automatic active swap)
+  - `confirm-upload` adds server-side mime/size validation and returns `{ badge: BadgeDTO }`
+
+The existing `get-organization-badges` spec describes a different endpoint (earned-badges-per-org) and is not changed.
 
 ## Impact
 
