@@ -8,32 +8,30 @@ Depends on the shared Zod contracts created in `database.plan.md` (`@repo/types`
 
 ## Scope summary (api-relevant)
 
-| Area                   | Decision                                                                    |
-| ---------------------- | --------------------------------------------------------------------------- |
-| Route base             | `/api/admin/reduction-plan`                                                 |
-| Roles (read + write)   | `SystemRole.ADMIN`, `SystemRole.SUPERADMIN`                                 |
-| Fields persisted       | `title`, `description`, `subcategoryId`                                     |
-| Sort (getAll)          | `category.name` → `subcategory.name` → `title` (ASC)                        |
-| Delete                 | Soft delete (`status = DELETED`); idempotent                                |
-| Include-deleted toggle | API supports `includeDeleted` query flag; default `false`                   |
-| Update body            | Must reject `status` (400)                                                  |
-| Validation             | enforced by `@repo/types` schemas                                           |
-| Tests                  | Integration tests per endpoint: role/auth (401, 403) + validation negatives |
+| Area                 | Decision                                                                    |
+| -------------------- | --------------------------------------------------------------------------- |
+| Route base           | `/api/admin/reduction-plan`                                                 |
+| Roles (read + write) | `SystemRole.ADMIN`, `SystemRole.SUPERADMIN`                                 |
+| Fields persisted     | `title`, `description`, `subcategoryId`                                     |
+| Sort (getAll)        | `category.name` → `subcategory.name` → `title` (ASC)                        |
+| Delete               | Soft delete (`status = DELETED`); idempotent                                |
+| Update body          | Must reject `status` (400)                                                  |
+| Validation           | enforced by `@repo/types` schemas                                           |
+| Tests                | Integration tests per endpoint: role/auth (401, 403) + validation negatives |
 
 ## Backend — `apps/api/src/features/reductionPlanInitiatives/admin/`
 
 Four action folders, each `{ route.ts, handler.ts, service.ts, integration.test.ts }`, modeled on `apps/api/src/features/organizations/admin/getAllOrganizations/`:
 
 - `getAllInitiatives/`
-  - Prisma query filtering `status = ACTIVE` by default.
-  - Support `?includeDeleted=true` query flag (UI won't wire it, but API exposes it).
+  - Prisma query filtering `status = ACTIVE`.
   - `include: { subcategory: { include: { category: true } } }`.
   - `orderBy: [{ subcategory: { category: { name: "asc" } } }, { subcategory: { name: "asc" } }, { title: "asc" }]`.
 
 - `createInitiative/`
   - Validate `subcategoryId` exists → `404` if not.
   - Insert with `status = ACTIVE`, `createdById = req.user.id`, `dimensionValue1Id = null`, `dimensionValue2Id = null`.
-  - Return same shape as list item.
+  - Return `{ id }` only — frontend invalidates the list query on success, so no need to echo the full row. Client uses the returned id to reconcile the newly-created row before the refetch lands.
 
 - `updateInitiative/`
   - Load row → `404` if missing.

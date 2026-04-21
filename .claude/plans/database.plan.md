@@ -55,7 +55,7 @@ Schemas to create (one folder per action):
 
   (no dimension fields, no `status`)
 
-- `createInitiative/response.ts` — same shape as list item.
+- `createInitiative/response.ts` — `{ id }` only. Frontend invalidates the list on success, so the new row's full shape arrives via refetch; the client just needs the id to reconcile the optimistic row.
 
 - `updateInitiative/request.ts`
   - params: `{ id }`
