@@ -114,7 +114,7 @@ export const RecognitionsSummaryCard: FC<RecognitionsSummaryCardProps> = ({
         ) : (
           <Stack direction="row" spacing={2} flexWrap="wrap">
             <RecognitionTypeCard
-              label="Total Reconocimientos"
+              label="Total"
               approved={recognitionData.total}
               approvedAuto={0}
               color={alpha("#9B59B6", 0.1)}

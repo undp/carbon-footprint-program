@@ -15,8 +15,8 @@ export const RECOGNITION_TYPE_LABELS: Record<
   CarbonInventoryRecognitionsType,
   string
 > = {
-  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Diploma Medición",
-  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Diploma Verificación",
-  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: "Diploma Reducción",
-  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Diploma Neutralización",
+  [SubmissionType.CARBON_INVENTORY_CALCULATION]: "Medición",
+  [SubmissionType.CARBON_INVENTORY_VERIFICATION]: "Verificación",
+  [SubmissionType.REDUCTION_PROJECT_VERIFICATION]: "Reducción",
+  [SubmissionType.NEUTRALIZATION_PLAN_VERIFICATION]: "Neutralización",
 };
