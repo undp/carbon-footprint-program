@@ -3,7 +3,7 @@
 This document describes the recommended compute, storage, and OS specifications for deploying Huella Latam on Azure, along with a summary of cost estimates.
 
 For the full cost breakdown see [`docs/infra cost estimation.pdf`](../infra%20cost%20estimation.pdf).
-For the deployment guide see [`docs/Infra/Deployment.md`](../Infra/Deployment.md).
+For the deployment guide see [`docs/infrastructure/Deployment.md`](./Deployment.md).
 
 ---
 

@@ -21,22 +21,22 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 | Document | Description |
 |---|---|
-| [Conceptual Guide](./DataModel/Conceptual%20Guide.md) | Domain concepts and modeling principles |
-| [Developer Guide](./DataModel/Developer%20Guide.md) | Database developer reference |
-| [ER Diagram](./DataModel/ER%20Diagram.svg) | Entity-relationship diagram |
-| [Organization Model](./DataModel/Organization.md) | Organization entity deep-dive |
-| [Organization Summary View](./DataModel/OrganizationSummaryView.md) | Organization summary view reference |
+| [Conceptual Guide](./data-model/Conceptual%20Guide.md) | Domain concepts and modeling principles |
+| [Developer Guide](./data-model/Developer%20Guide.md) | Database developer reference |
+| [ER Diagram](./data-model/ER%20Diagram.svg) | Entity-relationship diagram |
+| [Organization Model](./data-model/Organization.md) | Organization entity deep-dive |
+| [Organization Summary View](./data-model/OrganizationSummaryView.md) | Organization summary view reference |
 
 ## Infrastructure
 
 | Document | Description |
 |---|---|
 | [Infrastructure Requirements](./infrastructure/requirements.md) | CPU, RAM, storage, OS sizing guide |
-| [Deployment Guide](./Infra/Deployment.md) | Azure Bicep infrastructure deployment |
-| [API Deployment](./Infra/ApiDeployment.md) | Deploying the API via Docker + ACR + App Service |
-| [Frontend Deployment](./Infra/StaticWebAppDeployment.md) | Deploying the frontend via Azure Static Web Apps |
-| [File Storage](./Infra/FileStorage.md) | Azure Blob Storage setup and SAS upload flow |
-| [Database Migrations](./Infra/Migrations.md) | Running Prisma migrations against Azure PostgreSQL |
+| [Deployment Guide](./infrastructure/Deployment.md) | Azure Bicep infrastructure deployment |
+| [API Deployment](./infrastructure/ApiDeployment.md) | Deploying the API via Docker + ACR + App Service |
+| [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md) | Deploying the frontend via Azure Static Web Apps |
+| [File Storage](./infrastructure/FileStorage.md) | Azure Blob Storage setup and SAS upload flow |
+| [Database Migrations](./infrastructure/Migrations.md) | Running Prisma migrations against Azure PostgreSQL |
 
 ## Development
 
@@ -46,6 +46,13 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Environment Variables](./development/environment-variables.md) | Complete reference for all environment variables |
 | [Docker Compose](./DockerCompose.md) | Local Docker Compose configuration |
 | [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md) | Azure authentication configuration |
+
+## Security
+
+| Document | Description |
+|---|---|
+| [Authentication](./security/authentication.md) | Authentication providers, token validation, provider selection |
+| [RBAC and Authorization](./security/rbac.md) | Role model, authorization plugins, permission matrix |
 
 ## Operations
 
@@ -70,4 +77,6 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 ---
 
-> **Note on folder organization:** The docs currently contain a mix of new organized folders (`overview/`, `architecture/`, `infrastructure/`, `development/`, `operations/`, `release/`) and legacy folders (`DataModel/`, `Infra/`) kept in place to preserve existing links. Future maintenance should consider consolidating into the new structure.
+---
+
+> All legacy `DataModel/` and `Infra/` folder references have been migrated to `data-model/` and `infrastructure/` respectively.

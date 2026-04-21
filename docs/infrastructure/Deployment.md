@@ -454,7 +454,7 @@ Ejemplos inválidos: `Production`, `STAGING`, `Development`
 - Construye la aplicación web con `pnpm build` (usando `VITE_API_BASE_URL` en el build)
 - Usa el token para desplegar la aplicación web
 
-**Nota**: Para más detalles sobre `VITE_API_BASE_URL` y su configuración, consulta la sección "Variables de Entorno" en [`docs/Infra/StaticWebAppDeployment.md`](../Infra/StaticWebAppDeployment.md#variables-de-entorno).
+**Nota**: Para más detalles sobre `VITE_API_BASE_URL` y su configuración, consulta la sección "Variables de Entorno" en [`docs/infrastructure/StaticWebAppDeployment.md`](./StaticWebAppDeployment.md#variables-de-entorno).
 
 **En Bicep**:
 

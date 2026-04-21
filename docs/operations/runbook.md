@@ -171,7 +171,7 @@ Prisma does not have automatic migration rollback. If a migration causes issues:
 
 ## Database Migrations (Production)
 
-See [Database Migrations](../Infra/Migrations.md) for the full guide.
+See [Database Migrations](../infrastructure/Migrations.md) for the full guide.
 
 **Quick reference:**
 
@@ -295,7 +295,7 @@ az appservice plan update \
 ```
 
 ### Rotate Database Password
-See the "Rotar Contraseña" section in the [Infrastructure Deployment Guide](../Infra/Deployment.md).
+See the "Rotar Contraseña" section in the [Infrastructure Deployment Guide](../infrastructure/Deployment.md).
 
 ---
 

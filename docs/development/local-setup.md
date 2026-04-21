@@ -2,7 +2,7 @@
 
 This guide walks through setting up a complete local development environment from scratch.
 
-For deployment to Azure, see [Infrastructure Deployment](../Infra/Deployment.md).
+For deployment to Azure, see [Infrastructure Deployment](../infrastructure/Deployment.md).
 
 ---
 

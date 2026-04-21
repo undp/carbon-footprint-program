@@ -76,7 +76,7 @@ This guide explains how to configure authentication for the Huella Latam applica
 ## Prerequisites
 
 > Before following this setup, ensure you have completed the initial infrastructure deployment.
-> See `docs/Infra/Deployment.md` for the full first-run deployment steps.
+> See `docs/infrastructure/Deployment.md` for the full first-run deployment steps.
 
 - Azure subscription with access to create resources
 - Permission to create or manage an Azure Entra tenant
@@ -548,4 +548,4 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 - [Azure Entra ID (Organizational) Documentation](https://learn.microsoft.com/en-us/entra/identity/)
 - [MSAL.js Documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js)
 - [Azure Easy-Auth Documentation](https://learn.microsoft.com/en-us/azure/app-service/overview-authentication-authorization)
-- [Infrastructure Deployment Guide](./Infra/Deployment.md)
+- [Infrastructure Deployment Guide](./infrastructure/Deployment.md)
