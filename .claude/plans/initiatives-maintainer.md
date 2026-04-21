@@ -10,23 +10,22 @@ OpenSpec draft at `openspec/changes/initiatives-maintainer/` exists but is being
 
 ## Scope summary
 
-| Area                   | Decision                                                                          |
-| ---------------------- | --------------------------------------------------------------------------------- |
-| Route                  | `/admin/reduction-plan`                                                           |
-| Sidebar label          | `Plan de reducción`                                                               |
-| Roles (read + write)   | `SystemRole.ADMIN`, `SystemRole.SUPERADMIN`                                       |
-| Edit mode              | Inline cell edit, auto-save on blur (Categories-style)                            |
-| Fields persisted       | `title`, `description`, `subcategoryId` only                                      |
-| UI-only field          | `category` (filters subcategory selector; **never sent to API**)                  |
-| Columns                | `Título`, `Descripción`, `Subcategoría`, `Categoría`, `Acciones`                  |
-| Delete                 | Soft delete (`status = DELETED`) + confirmation dialog                            |
-| Sort                   | `category.name` → `subcategory.name` → `title` (ASC)                              |
-| Reorder                | No                                                                                |
-| Include-deleted toggle | No (API supports `includeDeleted`, UI does not wire it)                           |
-| Validation             | `title` min 1 / max 120, `description` min 1 / max 1000, `subcategoryId` required |
-| Navigation blocker     | Yes — `useBlocker` + `UnsavedChangesDialog`                                       |
-| Empty state            | `Aun no hay iniciativas registradas` + `Agregar fila`                             |
-| Tests                  | API integration tests focused on role/auth (401, 403) + validation negatives      |
+| Area                 | Decision                                                                          |
+| -------------------- | --------------------------------------------------------------------------------- |
+| Route                | `/admin/reduction-plan`                                                           |
+| Sidebar label        | `Plan de reducción`                                                               |
+| Roles (read + write) | `SystemRole.ADMIN`, `SystemRole.SUPERADMIN`                                       |
+| Edit mode            | Inline cell edit, auto-save on blur (Categories-style)                            |
+| Fields persisted     | `title`, `description`, `subcategoryId` only                                      |
+| UI-only field        | `category` (filters subcategory selector; **never sent to API**)                  |
+| Columns              | `Título`, `Descripción`, `Subcategoría`, `Categoría`, `Acciones`                  |
+| Delete               | Soft delete (`status = DELETED`) + confirmation dialog                            |
+| Sort                 | `category.name` → `subcategory.name` → `title` (ASC)                              |
+| Reorder              | No                                                                                |
+| Validation           | `title` min 1 / max 120, `description` min 1 / max 1000, `subcategoryId` required |
+| Navigation blocker   | Yes — `useBlocker` + `UnsavedChangesDialog`                                       |
+| Empty state          | `Aun no hay iniciativas registradas` + `Agregar fila`                             |
+| Tests                | API integration tests focused on role/auth (401, 403) + validation negatives      |
 
 ## Files to create / modify
 
@@ -36,7 +35,7 @@ Reuse `ReductionPlanInitiativeBaseSchema` (already defined at `packages/types/sr
 
 - `getAllInitiatives/response.ts` — `z.array(ReductionPlanInitiativeBaseSchema.pick({ id, title, description, subcategoryId, createdAt, updatedAt }).extend({ subcategory: SubcategoryBaseSchema.pick({ id, name }).extend({ category: CategoryBaseSchema.pick({ id, name }) }) }))`
 - `createInitiative/request.ts` — body: `{ title: z.string().trim().min(1).max(120), description: z.string().trim().min(1).max(1000), subcategoryId: IdSchema }` (no dimension fields)
-- `createInitiative/response.ts` — same shape as list item
+- `createInitiative/response.ts` — `{ id }` only (client invalidates the list on success; refetch delivers the full row)
 - `updateInitiative/request.ts` — params: `{ id }`; body: partial of create body, excluding `status` (rejected explicitly)
 - `updateInitiative/response.ts` — same shape as list item
 - `deleteInitiative/request.ts` — params: `{ id }`
