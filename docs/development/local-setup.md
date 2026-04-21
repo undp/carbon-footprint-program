@@ -224,6 +224,8 @@ pnpm clean
 
 ## Database Management
 
+> **Note:** Run these commands from the `packages/database` directory, or use `pnpm --filter=@repo/database <command>` from the root. Exception: `pnpm db:reset` is a root-level script.
+
 | Command | Description |
 |---|---|
 | `pnpm dev:migrate` | Apply pending migrations |
