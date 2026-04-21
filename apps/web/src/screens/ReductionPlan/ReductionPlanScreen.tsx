@@ -1,4 +1,4 @@
-import { FC, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState } from "react";
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
@@ -15,18 +15,19 @@ import { ReductionPlanHeader } from "./components/ReductionPlanHeader";
 import { SubcategoryInitiativeGroup } from "./components/SubcategoryInitiativeGroup";
 import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
+import { Route } from "@/routes/app/reduction-plan";
 
 export const ReductionPlanScreen: FC = () => {
   const navigate = useNavigate();
-  const [selectedOrganizationId, setSelectedOrganizationId] = useState<
-    string | null
-  >(null);
-  const [selectedCarbonInventoryId, setSelectedCarbonInventoryId] = useState<
-    string | null
-  >(null);
+
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
+
+  const {
+    carbonInventoryId: selectedCarbonInventoryId,
+    organizationId: selectedOrganizationId,
+  } = Route.useSearch();
 
   const {
     data: organizations,
@@ -46,19 +47,51 @@ export const ReductionPlanScreen: FC = () => {
     )
   );
 
-  const activeOrganizationId = selectedOrganizationId ?? organizations?.[0]?.id;
+  useEffect(() => {
+    if (!organizations?.length || !inventories) return;
+
+    const nextOrganizationId = selectedOrganizationId ?? organizations[0].id;
+
+    const inventoriesForOrg = inventories.filter(
+      (inv) => inv.organizationId === nextOrganizationId
+    );
+
+    const nextInventoryId =
+      selectedCarbonInventoryId ?? inventoriesForOrg?.[0]?.id;
+
+    if (!nextInventoryId) return;
+
+    const shouldUpdate =
+      nextOrganizationId !== selectedOrganizationId ||
+      nextInventoryId !== selectedCarbonInventoryId;
+
+    if (shouldUpdate) {
+      void navigate({
+        to: Routes.REDUCTION_PLAN,
+        replace: true,
+        search: {
+          organizationId: nextOrganizationId,
+          carbonInventoryId: nextInventoryId,
+        },
+      });
+    }
+  }, [
+    organizations,
+    inventories,
+    selectedOrganizationId,
+    selectedCarbonInventoryId,
+    navigate,
+  ]);
+
+  const activeOrganizationId = selectedOrganizationId;
+  const activeInventoryId = selectedCarbonInventoryId;
 
   const inventoriesForSelectedOrg = useMemo(() => {
     if (!activeOrganizationId) return [];
     return inventories?.filter(
-      (inv) =>
-        inv.organizationId != null &&
-        inv.organizationId === activeOrganizationId
+      (inv) => inv.organizationId === activeOrganizationId
     );
   }, [inventories, activeOrganizationId]);
-
-  const activeInventoryId =
-    selectedCarbonInventoryId ?? inventoriesForSelectedOrg?.[0]?.id;
 
   const {
     data: reductionPlan,
@@ -66,16 +99,17 @@ export const ReductionPlanScreen: FC = () => {
     isError: isErrorPlan,
   } = useReductionPlan(activeInventoryId);
 
-  // Derive effective category: use selected if valid, otherwise first available
   const effectiveCategoryId = useMemo(() => {
     const categories = reductionPlan?.categories ?? [];
     if (categories.length === 0) return null;
+
     if (
       selectedCategoryId &&
       categories.some((c) => c.id === selectedCategoryId)
     ) {
       return selectedCategoryId;
     }
+
     return categories[0].id;
   }, [reductionPlan?.categories, selectedCategoryId]);
 
@@ -113,6 +147,14 @@ export const ReductionPlanScreen: FC = () => {
     );
   }
 
+  if (!activeOrganizationId || !activeInventoryId) {
+    return (
+      <Box className="flex flex-1 items-center justify-center">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   const activeInventoryName =
     inventoriesForSelectedOrg?.find((inv) => inv.id === activeInventoryId)
       ?.name ?? "";
@@ -126,18 +168,33 @@ export const ReductionPlanScreen: FC = () => {
           selectedOrganizationId={activeOrganizationId}
           selectedCarbonInventory={activeInventoryId}
           onOrganizationChange={(orgId) => {
-            setSelectedOrganizationId(orgId);
-            setSelectedCarbonInventoryId(null);
+            void navigate({
+              to: Routes.REDUCTION_PLAN,
+              replace: true,
+              search: (prev) => ({
+                ...prev,
+                organizationId: orgId,
+                carbonInventoryId: undefined,
+              }),
+            });
           }}
-          onCarbonInventoryChange={setSelectedCarbonInventoryId}
+          onCarbonInventoryChange={(inventoryId) => {
+            void navigate({
+              to: Routes.REDUCTION_PLAN,
+              search: (prev) => ({
+                ...prev,
+                carbonInventoryId: inventoryId,
+              }),
+            });
+          }}
         />
 
         <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
-          {/* Title row */}
           <Box className="flex items-center justify-between">
-            <Typography variant="h6" color="text.primary">
+            <Typography variant="h6">
               Plan de reducción por categoría
             </Typography>
+
             <Button
               variant="outlined"
               startIcon={<Download />}
@@ -167,14 +224,12 @@ export const ReductionPlanScreen: FC = () => {
                 <EmptyStateMessage message="No hay iniciativas de reducción para esta huella." />
               ) : (
                 <>
-                  {/* Category carousel */}
                   <CategoryCarousel
                     categories={reductionPlan.categories}
                     selectedCategoryId={effectiveCategoryId ?? ""}
                     onCategorySelect={setSelectedCategoryId}
                   />
 
-                  {/* Subcategory groups with initiatives */}
                   {effectiveCategory &&
                   effectiveCategory.subcategories.length > 0 ? (
                     <Box className="flex flex-col gap-6">
@@ -200,8 +255,7 @@ export const ReductionPlanScreen: FC = () => {
           {!isLoadingPlan && !isErrorPlan && !reductionPlan && (
             <EmptyStateMessage
               message={
-                inventoriesForSelectedOrg &&
-                inventoriesForSelectedOrg.length === 0
+                inventoriesForSelectedOrg?.length === 0
                   ? `Esta ${VOCAB.organization.noun.singular} no tiene huellas autodeclaradas disponibles.`
                   : "Selecciona una huella autodeclarada para ver el plan de reducción."
               }
