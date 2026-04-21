@@ -206,15 +206,15 @@ Stores user-uploaded documents, images, generated PDF reports, and application m
 | **Access tier** | Hot | Hot |
 | **Capacity target** | 50 GB | 1,000 GB (1 TB) |
 | **Soft limit alert** | 40 GB | — (growth expected) |
-| **Writes/month** | ~10,000 | ~2,000 |
-| **Reads/month** | ~20,000 | ~5,000 |
+| **Writes/month** | ~2,000 | ~10,000 |
+| **Reads/month** | ~5,000 | ~20,000 |
 | **Iterative read/write** | ~3,000 each | Moderate |
 | **Data write/month** | ~30 GB | ~100 GB |
 | **Data retrieval/month** | ~10 GB | ~5–10 GB |
 | **SSH File Transfer Protocol** | Disabled | Disabled |
 | **Billing model** | Pay-as-you-go | Pay-as-you-go |
 
-**Pricing calculator inputs (Staging):** Block Blob, Standard, GPv2, Hierarchical Namespace, Hot, LRS, 50 GB, write 10k, read 20k, iter 3k each, retrieval 10 GB.
+**Pricing calculator inputs (Staging):** Block Blob, Standard, GPv2, Hierarchical Namespace, Hot, LRS, 50 GB, write 2k, read 5k, iter 3k each, retrieval 10 GB.
 **Pricing calculator inputs (Production):** Blob (Hot), 1 TB, ZRS.
 
 **Sizing rationale:**
@@ -222,7 +222,7 @@ Stores user-uploaded documents, images, generated PDF reports, and application m
 | Decision | Justification (from assumptions) |
 |---|---|
 | **GPv2 + Hierarchical Namespace (both)** | ADLS Gen2 semantics enable future analytics use cases and cleaner folder-based organization; no cost penalty vs flat namespace. |
-| **Hot access tier (both)** | Files are accessed frequently during certification workflows (reads ~20k/mo Staging, ~5k/mo Production); cool/archive tiers would add retrieval costs and latency. |
+| **Hot access tier (both)** | Files are accessed frequently during certification workflows (reads ~5k/mo Staging, ~20k/mo Production); cool/archive tiers would add retrieval costs and latency. |
 | **Staging LRS, Production ZRS** | Staging is disposable, LRS is sufficient. Production ZRS provides zone-redundancy within a region, aligning with the 4-hour RTO and 15-min RPO without cross-region complexity. |
 | **Staging 50 GB cap + 40 GB alert + 90-day purge** | Usage is user-driven, low volume, often repeated/disposable. No long-term retention required. |
 | **Production 1 TB target** | Data accumulates across many organizations; growth expected from hundreds of GB to TB-scale over time. |
