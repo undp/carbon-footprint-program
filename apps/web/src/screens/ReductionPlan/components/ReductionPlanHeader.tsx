@@ -69,6 +69,7 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
           value={selectedOrganizationId ?? ""}
           onChange={onOrganizationChange}
           label={capitalize(VOCAB.organization.noun.singular)}
+          showNoneOption
         />
         <FormControl
           sx={{ minHeight: 40, minWidth: 216, maxWidth: "10dvw" }}

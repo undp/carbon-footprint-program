@@ -47,13 +47,20 @@ export const ReductionPlanScreen: FC = () => {
     )
   );
 
+  const matchesOrg = (inv: { organizationId: string | null }, orgId: string) =>
+    orgId === "none"
+      ? inv.organizationId === null
+      : inv.organizationId === orgId;
+
   useEffect(() => {
     if (!organizations?.length || !inventories) return;
 
     const nextOrganizationId = selectedOrganizationId ?? organizations[0].id;
 
     const inventoriesForOrg = inventories.filter(
-      (inv) => inv.organizationId === nextOrganizationId
+      (inv) =>
+        inv.organizationId ===
+        (nextOrganizationId === "none" ? null : nextOrganizationId)
     );
 
     const nextInventoryId =
@@ -85,8 +92,8 @@ export const ReductionPlanScreen: FC = () => {
 
   const inventoriesForSelectedOrg = useMemo(() => {
     if (!selectedOrganizationId) return [];
-    return inventories?.filter(
-      (inv) => inv.organizationId === selectedOrganizationId
+    return inventories?.filter((inv) =>
+      matchesOrg(inv, selectedOrganizationId)
     );
   }, [inventories, selectedOrganizationId]);
 
@@ -141,14 +148,6 @@ export const ReductionPlanScreen: FC = () => {
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
         }}
       />
-    );
-  }
-
-  if (!selectedOrganizationId || !selectedCarbonInventoryId) {
-    return (
-      <Box className="flex flex-1 items-center justify-center">
-        <CircularProgress />
-      </Box>
     );
   }
 
@@ -254,7 +253,9 @@ export const ReductionPlanScreen: FC = () => {
             <EmptyStateMessage
               message={
                 inventoriesForSelectedOrg?.length === 0
-                  ? `Esta ${VOCAB.organization.noun.singular} no tiene huellas disponibles.`
+                  ? selectedOrganizationId === "none"
+                    ? `No hay huellas sin ${VOCAB.organization.noun.singular}.`
+                    : `Esta ${VOCAB.organization.noun.singular} no tiene huellas disponibles.`
                   : "Selecciona una huella para ver el plan de reducción."
               }
             />
