@@ -133,7 +133,7 @@ For full setup details, see [Authentication](./security/authentication.md) and [
 | **ORM** | Prisma |
 | **Connection** | Direct TCP to PostgreSQL Flexible Server |
 | **Configuration** | `DATABASE_URL` env var (connection string) |
-| **Schema** | ~45 tables; see [Developer Guide](./data-model/Developer%20Guide.md) |
+| **Schema** | ~45 tables; see [Developer Guide](./data-model/developer-guide.md) |
 
 PostgreSQL is a first-party infrastructure component, not a third-party SaaS. It is provisioned and operated by the project team via Azure Bicep. It is listed here because it is an external process dependency at runtime.
 

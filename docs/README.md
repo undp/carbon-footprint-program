@@ -21,11 +21,11 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 | Document | Description |
 |---|---|
-| [Conceptual Guide](./data-model/Conceptual%20Guide.md) | Domain concepts and modeling principles |
-| [Developer Guide](./data-model/Developer%20Guide.md) | Database developer reference |
-| [ER Diagram](./data-model/ER%20Diagram.svg) | Entity-relationship diagram |
-| [Organization Model](./data-model/Organization.md) | Organization entity deep-dive |
-| [Organization Summary View](./data-model/OrganizationSummaryView.md) | Organization summary view reference |
+| [Conceptual Guide](./data-model/conceptual-guide.md) | Domain concepts and modeling principles |
+| [Developer Guide](./data-model/developer-guide.md) | Database developer reference |
+| [ER Diagram](./data-model/er-diagram.svg) | Entity-relationship diagram |
+| [Organization Model](./data-model/organization.md) | Organization entity deep-dive |
+| [Organization Summary View](./data-model/organization-summary-view.md) | Organization summary view reference |
 
 ## Infrastructure
 
