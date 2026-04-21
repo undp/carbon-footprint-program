@@ -10,7 +10,7 @@
  */
 import { PrismaClient } from "../generated/prisma/index.js";
 
-const email = process.argv[2] ?? process.env.SUPERADMIN_EMAIL;
+const email = (process.argv[2] ?? process.env.SUPERADMIN_EMAIL)?.trim();
 
 if (!email) {
   console.error(
