@@ -66,6 +66,12 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Operations Runbook](./operations/runbook.md) | Backup, restore, rollback, and incident management |
 | [Risks and Limitations](./operations/risks-and-limitations.md) | Known technical risks, single points of failure, critical dependencies, and system limitations |
 
+## Integrations
+
+| Document | Description |
+|---|---|
+| [Integrations and APIs](./integrations.md) | REST API overview, OpenAPI spec, external dependencies, and third-party SLAs |
+
 ## Release
 
 | Document | Description |

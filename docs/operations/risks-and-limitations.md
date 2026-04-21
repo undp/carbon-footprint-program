@@ -182,11 +182,11 @@ The platform requires continuous connectivity to Azure services. There is no off
 
 By design, the system does not support user-triggered bulk operations (e.g., bulk document upload, bulk status changes, bulk exports). All operations are single-entity, user-initiated API calls. Bulk data ingestion or mass updates must be performed via direct database operations with DBA involvement.
 
-### No Rate Limiting
+### Rate Limiting Is In-Memory Only
 
-The API does not currently implement per-user or per-IP rate limiting. Under sustained abuse or accidental client-side retry storms, the database connection pool and App Service compute can become saturated. This is acceptable at current DAU levels (≤ 200) but becomes a risk as adoption grows.
+The API uses `@fastify/rate-limit` configured at 100 requests/minute per IP. However, the store is in-memory with no Redis backend. In a multi-instance deployment (Production with autoscaling), each App Service instance maintains an independent counter, making the effective limit `100 × instance_count` per IP. The rate limiter does not protect against abuse when horizontal scaling is active.
 
-**Recommended action:** Implement rate limiting (e.g., via `@fastify/rate-limit` with Redis backend) before the platform reaches national-scale traffic.
+**Recommended action:** Back the rate limiter with Redis (e.g., Azure Cache for Redis) before enabling autoscaling in Production.
 
 ### No Connection Pooling (PgBouncer)
 
