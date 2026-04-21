@@ -18,7 +18,7 @@ This change delivers a dedicated Badge Maintainer screen in the admin area so `S
 - Add new backend endpoints to **activate** (`POST /badges/:id/activate`) and **deactivate** (`POST /badges/:id/deactivate`) an existing badge by id, enforcing the "at most one ACTIVE per type" invariant atomically in a transaction.
 - **BREAKING**: Tighten the existing upload endpoints `POST /files/badges/:badgeType/request-upload` and `POST /files/badges/:badgeType/confirm-upload` from `[SUPERADMIN, ADMIN]` to `[SUPERADMIN]`. Callers relying on the `ADMIN` role will now receive `403`.
 - **Lock in current behaviour** that submission approval (both manual `approveRequest` and automatic `selfDeclareCarbonInventory`) SHALL proceed when no `ACTIVE` badge exists for the submission's type. In that case the submission is approved with `badgeId = null`. This is already how the code works (`activeBadge?.id` on nullable `Submission.badgeId`); promoted to a named requirement so a standalone deactivate can never silently break approvals.
-- Add **server-side file validation** to `confirm-upload`: reject files whose mime type is not in the badge allow-list and whose size exceeds the configured maximum.
+- Add **server-side file validation** to `confirm-upload`: reject files whose mime type is not in the badge allow-list **or** whose size exceeds the configured maximum.
 - Restrict all new endpoints and the new screen to `SUPERADMIN`.
 
 Non-goals:
