@@ -1,4 +1,4 @@
-import { FC, useCallback } from "react";
+import { FC, useCallback, useMemo } from "react";
 import {
   Box,
   Typography,
@@ -6,11 +6,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  ListSubheader,
   SelectChangeEvent,
 } from "@mui/material";
-import type {
-  GetCarbonInventoriesMinimalResponse,
-  GetMyOrganizationsSelectorOptionsResponse,
+import {
+  CarbonInventoryDisplayStatusEnum,
+  type GetCarbonInventoriesMinimalResponse,
+  type GetMyOrganizationsSelectorOptionsResponse,
 } from "@repo/types";
 import { OrganizationSelector } from "@/components";
 import { VOCAB } from "@/config/vocab";
@@ -43,6 +45,19 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
   const selectedInventoryName =
     inventories.find((inv) => inv.id === selectedCarbonInventory)?.name ?? "";
 
+  const { drafts, published } = useMemo(() => {
+    const drafts: GetCarbonInventoriesMinimalResponse = [];
+    const published: GetCarbonInventoriesMinimalResponse = [];
+    for (const inv of inventories) {
+      if (inv.status === CarbonInventoryDisplayStatusEnum.DRAFT) {
+        drafts.push(inv);
+      } else {
+        published.push(inv);
+      }
+    }
+    return { drafts, published };
+  }, [inventories]);
+
   return (
     <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
       <Typography variant="h5" fontWeight={600} noWrap maxWidth="30dvw">
@@ -67,12 +82,26 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
             onChange={onCarbonInventorySelectChange}
             disabled={inventories.length === 0}
           >
-            {inventories.map(({ id, name, year }) => (
-              <MenuItem key={id} value={id}>
-                {name}
-                {year != null ? ` (${year})` : ""}
-              </MenuItem>
-            ))}
+            {drafts.length > 0 && [
+              <ListSubheader key="header-drafts">Borradores</ListSubheader>,
+              ...drafts.map(({ id, name, year }) => (
+                <MenuItem key={id} value={id}>
+                  {name ?? "Huella sin nombre"}
+                  {year != null ? ` (${year})` : ""}
+                </MenuItem>
+              )),
+            ]}
+            {published.length > 0 && [
+              <ListSubheader key="header-published">
+                Autodeclaradas
+              </ListSubheader>,
+              ...published.map(({ id, name, year }) => (
+                <MenuItem key={id} value={id}>
+                  {name}
+                  {year != null ? ` (${year})` : ""}
+                </MenuItem>
+              )),
+            ]}
           </Select>
         </FormControl>
       </Box>

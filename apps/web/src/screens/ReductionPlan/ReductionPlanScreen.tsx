@@ -43,9 +43,7 @@ export const ReductionPlanScreen: FC = () => {
     isError: isErrorInventories,
   } = useCarbonInventoriesMinimalData(
     Object.values(CarbonInventoryDisplayStatusEnum).filter(
-      (status) =>
-        status !== CarbonInventoryDisplayStatusEnum.DRAFT &&
-        status !== CarbonInventoryDisplayStatusEnum.DELETED
+      (status) => status !== CarbonInventoryDisplayStatusEnum.DELETED
     )
   );
 
@@ -136,8 +134,8 @@ export const ReductionPlanScreen: FC = () => {
   if (inventories && inventories.length === 0) {
     return (
       <ScreenEmptyState
-        title="Aún no tienes una huella autodeclarada"
-        description="Crea tu primera huella o autodeclara una existente para comenzar a ver tu plan de reducción."
+        title="Aún no tienes una huella"
+        description="Crea tu primera huella para comenzar a ver tu plan de reducción."
         action={{
           label: "Ir a Huella Organizacional",
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
@@ -256,8 +254,8 @@ export const ReductionPlanScreen: FC = () => {
             <EmptyStateMessage
               message={
                 inventoriesForSelectedOrg?.length === 0
-                  ? `Esta ${VOCAB.organization.noun.singular} no tiene huellas autodeclaradas disponibles.`
-                  : "Selecciona una huella autodeclarada para ver el plan de reducción."
+                  ? `Esta ${VOCAB.organization.noun.singular} no tiene huellas disponibles.`
+                  : "Selecciona una huella para ver el plan de reducción."
               }
             />
           )}
