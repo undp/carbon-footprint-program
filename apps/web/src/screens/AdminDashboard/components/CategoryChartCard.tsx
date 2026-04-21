@@ -64,9 +64,8 @@ export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
         id: idx,
         value: c.totalEmissions,
         label: c.categoryName,
-        percentage: c.totalEmissions / totalEmissions,
       })),
-    [filteredCategories, totalEmissions]
+    [filteredCategories]
   );
 
   const pieColors = useMemo(
