@@ -110,9 +110,11 @@ Both environments store:
 
 ## Logs & Observability
 
+> **Status:** The values below are **target-state** targets, not current implementation. Application Insights and Azure Monitor are provisioned in the infrastructure plan but the SDK is not yet instrumented in the application code. Current observability relies on Pino structured logs written to stdout only.
+
 | Metric | Staging | Production |
 |---|---|---|
-| **APM** | Application Insights | Application Insights + Azure Monitor |
+| **APM** | Application Insights (target) | Application Insights + Azure Monitor (target) |
 | **Log ingestion verbosity** | Reduced | Standard |
 | **Sampling** | ≥ 10% (adjustable) | ~10% |
 | **Retention** | 30 days | 90 days (3 months) |
