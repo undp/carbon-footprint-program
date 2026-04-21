@@ -44,6 +44,8 @@ Welcome to the project documentation. Use this index to navigate all available d
 |---|---|
 | [Local Setup](./development/local-setup.md) | Step-by-step local development setup |
 | [Environment Variables](./development/environment-variables.md) | Complete reference for all environment variables |
+| [Contributing Guide](./development/contributing.md) | Branch workflow, code review, adding a new API feature |
+| [Internationalization Plan](./development/i18n-plan.md) | Forward-looking plan for adding i18n (not yet implemented) |
 | [Docker Compose](./DockerCompose.md) | Local Docker Compose configuration |
 | [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md) | Azure authentication configuration |
 
