@@ -12,14 +12,11 @@ import {
 import { PieChart, pieArcLabelClasses } from "@mui/x-charts/PieChart";
 import { useSnackbar } from "notistack";
 import { useAdminDashboardCategoryChart } from "@/api/query/dashboard";
-import { formatEmissions } from "../../../utils/formatting";
+import { formatEmissions, formatAsPercentage } from "../../../utils/formatting";
 
 interface CategoryChartCardProps {
   year?: number;
 }
-
-const formatAsPercentage = (value: number, total: number) =>
-  `${((value / total) * 100).toFixed(0)}%`;
 
 export const CategoryChartCard: FC<CategoryChartCardProps> = ({ year }) => {
   const [selectedMethodologyIdx, setSelectedMethodologyIdx] = useState(0);
