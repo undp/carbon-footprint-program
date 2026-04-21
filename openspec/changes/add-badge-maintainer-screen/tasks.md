@@ -37,8 +37,12 @@
   - The current shared `preHandler` there applies to `badgeRequestUploadRoute`, `badgeConfirmUploadRoute`, **and** `badgeGetFilesRoute`. Simply tightening the shared hook will also lock down `getBadgeFiles`.
   - Split the registration so `request-upload` and `confirm-upload` get a per-route `preHandler` enforcing `requireRoles([SystemRole.SUPERADMIN])`, while `badgeGetFilesRoute` keeps a separate `preHandler` that still allows `[SUPERADMIN, ADMIN]` (its existing policy).
   - Update the existing integration tests per endpoint: `request-upload` and `confirm-upload` — `ADMIN` expects 403, `SUPERADMIN` expects 2xx; `getBadgeFiles` — behaviour unchanged for both roles.
-- [ ] 3.2 In `confirmBadgeUpload/service.ts`, add server-side validation: reject with 400 when the uploaded file's `mimeType` is not in a static allow-list (start with `image/png`, `image/svg+xml`, `image/jpeg`, `image/webp` — confirm exact list against current code and fixtures) and when its size exceeds `BADGE_UPLOAD_MAX_BYTES` (default 5 MB, sourced from env). No `File` or `Badge` row is created on rejection.
-- [ ] 3.3 Add integration tests for the validation: valid file accepted, disallowed mime rejected with 400 and no rows created, oversize file rejected with 400 and no rows created, existing active badge unchanged on rejection.
+- [ ] 3.2 In `confirmBadgeUpload/service.ts`, add server-side validation: reject with 400 when **either** the uploaded file's `mimeType` is not in a static allow-list (start with `image/png`, `image/svg+xml`, `image/jpeg`, `image/webp` — confirm exact list against current code and fixtures) **or** its size exceeds `BADGE_UPLOAD_MAX_BYTES` (default 5 MB, sourced from env). No `File` or `Badge` row is created on rejection.
+- [ ] 3.3 Add integration tests for the validation, one case per failure condition:
+  - valid file accepted,
+  - disallowed mime rejected with 400 and no `File`/`Badge` rows created,
+  - oversize file rejected with 400 and no `File`/`Badge` rows created,
+  - an existing `ACTIVE` badge of the same type remains unchanged after each rejection.
 - [ ] 3.4 **Decouple upload from activation** in `apps/api/src/features/files/badges/confirmBadgeUpload/service.ts`:
   - Remove the logic that demotes the prior `ACTIVE` badge and the logic that inserts the new badge as `ACTIVE`. The new behaviour: insert the new `Badge` row with `status = INACTIVE` and leave any existing `ACTIVE` badge of the same type untouched.
   - Change the response body of `confirm-upload` to `{ badge: BadgeDTO }` where `BadgeDTO` matches the shape returned by `listBadges` (id, type, status, createdAt, fileName, mimeType, previewUrl with a short-lived read SAS).
