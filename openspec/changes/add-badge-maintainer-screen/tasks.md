@@ -33,7 +33,10 @@
 
 ## 3. Backend: tighten auth, add file validation, wiring
 
-- [ ] 3.1 Tighten middleware on `apps/api/src/features/files/badges/index.ts` from `requireRoles([SUPERADMIN, ADMIN])` to `requireRoles([SUPERADMIN])` on both `request-upload` and `confirm-upload`. Update the existing integration tests so `ADMIN` now expects 403 and `SUPERADMIN` still expects 2xx.
+- [ ] 3.1 Tighten auth for `request-upload` and `confirm-upload` to `requireRoles([SystemRole.SUPERADMIN])` in `apps/api/src/features/files/badges/index.ts`.
+  - The current shared `preHandler` there applies to `badgeRequestUploadRoute`, `badgeConfirmUploadRoute`, **and** `badgeGetFilesRoute`. Simply tightening the shared hook will also lock down `getBadgeFiles`.
+  - Split the registration so `request-upload` and `confirm-upload` get a per-route `preHandler` enforcing `requireRoles([SystemRole.SUPERADMIN])`, while `badgeGetFilesRoute` keeps a separate `preHandler` that still allows `[SUPERADMIN, ADMIN]` (its existing policy).
+  - Update the existing integration tests per endpoint: `request-upload` and `confirm-upload` — `ADMIN` expects 403, `SUPERADMIN` expects 2xx; `getBadgeFiles` — behaviour unchanged for both roles.
 - [ ] 3.2 In `confirmBadgeUpload/service.ts`, add server-side validation: reject with 400 when the uploaded file's `mimeType` is not in a static allow-list (start with `image/png`, `image/svg+xml`, `image/jpeg`, `image/webp` — confirm exact list against current code and fixtures) and when its size exceeds `BADGE_UPLOAD_MAX_BYTES` (default 5 MB, sourced from env). No `File` or `Badge` row is created on rejection.
 - [ ] 3.3 Add integration tests for the validation: valid file accepted, disallowed mime rejected with 400 and no rows created, oversize file rejected with 400 and no rows created, existing active badge unchanged on rejection.
 - [ ] 3.4 **Decouple upload from activation** in `apps/api/src/features/files/badges/confirmBadgeUpload/service.ts`:
