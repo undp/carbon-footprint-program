@@ -8,7 +8,7 @@
  * Intended for local development and initial deployment setup only.
  * Run against a production database with care.
  */
-import { PrismaClient } from "../generated/prisma/index.js";
+import { PrismaClient, SystemRole } from "../generated/prisma/index.js";
 
 const email = (process.argv[2] ?? process.env.SUPERADMIN_EMAIL)?.trim();
 
@@ -24,7 +24,7 @@ const prisma = new PrismaClient();
 try {
   const user = await prisma.user.update({
     where: { email },
-    data: { role: "SUPERADMIN" },
+    data: { role: SystemRole.SUPERADMIN },
     select: { id: true, email: true, role: true },
   });
   console.log(`Promoted ${user.email} (id: ${user.id}) to ${user.role}.`);
