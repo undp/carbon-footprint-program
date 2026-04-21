@@ -46,7 +46,7 @@ Organizations and administrators can attach supporting documents (certifications
 **In scope:**
 - GHG emissions measurement aligned to country-specific methodologies
 - Organization lifecycle management (registration, accreditation, updates)
-- Carbon inventory creation, calculation, and verification
+- Carbon inventory creation, calculation, and submission for external verification by certified third parties
 - Submission and review workflows
 - Recognition and badge issuance
 - Reduction and neutralization planning

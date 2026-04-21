@@ -61,8 +61,8 @@ All endpoints are served under `/api/`. The table below lists the 22 domain grou
 | Carbon Inventories | `/api/carbon-inventories` | Carbon inventory lifecycle — create, fill, submit |
 | Inventory Lines | (nested under carbon inventories) | Individual emission line items per category |
 | Reduction Projects | `/api/reduction-projects` | Reduction initiative tracking |
-| Submissions | `/api/submissions` | Submission and certification workflow |
-| Badges | `/api/badges` | Certification badge issuance and retrieval |
+| Submissions | `/api/submissions` | Submission and external validation workflow |
+| Badges | `/api/badges` | Recognition badge issuance and retrieval |
 | Files | `/api/files` | SAS URL generation for document upload and download |
 | Forms | `/api/forms` | Form submission handling |
 | Explanations | `/api/explanations` | Content help texts and explanations |

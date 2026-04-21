@@ -9,12 +9,12 @@ For how those services are provisioned, see [Infrastructure Provisioning Model](
 
 ## About the Product
 
-Huella Latam is a **carbon footprint registry and certification system** designed for country-level adoption and long-term operation. Both environments run the same application codebase; they differ in scale, reliability targets, and operational posture.
+Huella Latam is a **carbon footprint traceability and transparency platform** designed for country-level adoption and long-term operation. It enables organizations to measure and manage their GHG emissions, submit inventories for external validation by certified third parties, and receive official recognition badges. Both environments run the same application codebase; they differ in scale, reliability targets, and operational posture.
 
 Primary use cases (both environments):
 - Document upload and management
 - Report generation
-- Status tracking of submissions and certifications
+- Status tracking of submissions and external validation workflows
 - User notifications and communications
 
 System characteristics:
@@ -172,7 +172,7 @@ Both environments use **Microsoft Entra ID** as the identity provider.
 
 **RPO:**
 - Staging ≤ 24 hours is acceptable because pilot data can often be re-created, and no legal/regulatory commitments depend on it.
-- Production ≤ 15 minutes is conservative and defensible. Even small data loss on a certification platform can create legal or audit issues and undermine trust. Comparable regulatory record systems target 5–30 minutes.
+- Production ≤ 15 minutes is conservative and defensible. Even small data loss on a traceability and regulatory evidence platform can create legal or audit issues and undermine trust. Comparable regulatory record systems target 5–30 minutes.
 
 ### What these targets do and do not require
 
