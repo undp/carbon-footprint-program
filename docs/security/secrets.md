@@ -130,7 +130,6 @@ The following env vars are used by the API. Each is classified by sensitivity:
 | `AZURE_STORAGE_CONTAINER_NAME` | Non-secret — public container name | App Service setting (plaintext) |
 | `ALLOWED_ORIGIN` | Non-secret — frontend hostname | App Service setting (plaintext) |
 | `AUTH_PROVIDER` | Non-secret — provider selector | App Service setting (plaintext) |
-| `BOOTSTRAP_SUPERADMIN` | Non-secret — but dangerous if `true` | App Service setting; **must be `false` in Production** |
 
 Full variable reference: [Environment Variables](../development/environment-variables.md).
 
@@ -143,7 +142,6 @@ For local development, secrets are managed via a `.env` file at `apps/api/.env`:
 ```
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/huella_latam
 AUTH_PROVIDER=forced-user
-BOOTSTRAP_SUPERADMIN=true
 JWT_SECRET=local-dev-only
 ```
 

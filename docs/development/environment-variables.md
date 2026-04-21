@@ -43,7 +43,6 @@ Variables are loaded from `.envrc` (root) using `direnv`. App-specific `.envrc` 
 | `API_HOST` | No | `localhost` (dev) / `0.0.0.0` (prod) | Host to bind the API server |
 | `API_PORT` | No | `8080` | Port to bind the API server |
 | `AUTH_PROVIDER` | No | `none` | Authentication provider. See below. |
-| `BOOTSTRAP_SUPERADMIN` | No | `false` | Set `true` to auto-assign SUPERADMIN to new users (local dev only) |
 
 ### Auth Provider (`AUTH_PROVIDER`)
 

@@ -275,9 +275,6 @@ The recommended local auth mode is `forced-user`, which bypasses real authentica
 export AUTH_PROVIDER="forced-user"
 export FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 export FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user-001"
-
-# Optional: make this user a superadmin automatically
-export BOOTSTRAP_SUPERADMIN="true"
 ```
 
 To test with real Azure Entra ID authentication locally, switch to `AUTH_PROVIDER=jwks` and configure the Azure tenant variables. See [Environment Variables](./environment-variables.md) and [MSAL / Easy Auth Setup](../MSAL-EasyAuth-Setup.md).

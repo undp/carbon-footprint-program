@@ -25,15 +25,6 @@ The JWKS authentication provider caches signing keys for 10 minutes. During an E
 - Evaluate shortening the cache TTL if the platform moves to high-frequency rotations.
 - Monitor 401 error spikes after any known key rotation event.
 
-### `BOOTSTRAP_SUPERADMIN` Left Enabled in Production
-
-The `BOOTSTRAP_SUPERADMIN` environment variable auto-promotes the first resolved user to SUPERADMIN on their initial login. If accidentally left set to `true` in a Production environment, any new user who logs in before a legitimate SUPERADMIN is established can claim the highest system privilege.
-
-**Mitigations:**
-- Unset or explicitly set `BOOTSTRAP_SUPERADMIN=false` before any Production deployment after the first SUPERADMIN account is established.
-- Include a post-deployment checklist item to verify this value via Key Vault.
-- Audit the SUPERADMIN role assignment after every environment promotion.
-
 ### Growing Database and Migration Risk Over Time
 
 Production database size is expected to double roughly every year, reaching hundreds of GB to TB scale. As the schema matures and data volume grows, the cost and risk of schema migrations increases significantly — long-running `ALTER TABLE` operations can cause table locks and elevated error rates.

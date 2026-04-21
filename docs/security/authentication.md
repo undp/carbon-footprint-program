@@ -136,13 +136,6 @@ FORCED_USER_EMAIL_WHEN_NO_PROVIDER="dev@example.com"
 FORCED_USER_IDP_ID_WHEN_NO_PROVIDER="local-dev-user-001"
 ```
 
-**Optional — auto-promote to SUPERADMIN on first login:**
-```bash
-BOOTSTRAP_SUPERADMIN="true"
-```
-
-When `BOOTSTRAP_SUPERADMIN=true`, the first user resolved from the database is automatically assigned the `SUPERADMIN` system role. This avoids manual database seeding for initial setup. Only effective when combined with `forced-user` (or any provider) for the first run.
-
 > Never use `forced-user` in production or staging environments.
 
 ---

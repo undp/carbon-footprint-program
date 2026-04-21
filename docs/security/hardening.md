@@ -175,7 +175,6 @@ Authentication and authorization hardening is documented in detail in the dedica
 Key hardening points:
 - JWT tokens are validated for signature, issuer, audience, expiry, and scope on every request.
 - The `forced-user` and `none` auth providers must never be used in Production or Staging.
-- `BOOTSTRAP_SUPERADMIN=true` must be unset after the first SUPERADMIN is created.
 - Organization-level authorization is re-checked in each route handler; a valid token alone does not grant cross-organization access.
 
 ---
@@ -197,7 +196,6 @@ Known package security tools applicable to this stack:
 |---|---|---|
 | Helmet plugin registered | ❌ Missing | Create `apps/api/src/plugins/external/helmet.ts` |
 | `ALLOWED_ORIGIN` set in all environments | ⚠️ Required | Set via App Service configuration / Key Vault reference |
-| `BOOTSTRAP_SUPERADMIN=false` in Production | ⚠️ Required | Verify via App Service app settings after initial setup |
 | `AUTH_PROVIDER=jwks` in all deployed environments | ⚠️ Required | Verify; `forced-user`/`none` must not appear in Production |
 | PostgreSQL firewall allows only App Service IPs | ⚠️ Verify | Review `allowedIpRanges` Bicep parameter per environment |
 | HTTPS-only enforced on App Service | ⚠️ Verify | Add `httpsOnly: true` to App Service Bicep module |

@@ -25,12 +25,11 @@ Defined in `packages/database/src/prisma/schema.prisma` as the `SystemRole` enum
 |---|---|
 | `USER` | Default role assigned to all new users. Can access resources they own or belong to. |
 | `ADMIN` | Platform administrator. Can bypass organization membership checks on routes that opt in to admin bypass. |
-| `SUPERADMIN` | Full access. Same bypass as ADMIN. First user can be auto-promoted via `BOOTSTRAP_SUPERADMIN=true`. |
+| `SUPERADMIN` | Full access. Same bypass as ADMIN. |
 
 **Role assignment:**
 - New users are always created with `USER` role.
 - Role changes must be performed directly in the database (no API endpoint exists for role management).
-- The `BOOTSTRAP_SUPERADMIN=true` environment variable auto-promotes the first user resolved on a fresh deployment to `SUPERADMIN`.
 
 ### Organization Roles
 
@@ -262,5 +261,4 @@ Users are provisioned on first authenticated request — no pre-registration is 
 3. A new `User` row is created with `role = USER`.
 4. On subsequent requests, the existing record is found and updated if the email changed.
 
-**Bootstrap Superadmin:**
-When `BOOTSTRAP_SUPERADMIN=true`, the `userResolvePlugin` checks whether any `SUPERADMIN` user exists in the database. If none exists, the first user resolved is promoted to `SUPERADMIN`. This flag is intended for initial environment setup only — disable it after the first admin user is established.
+To promote a user to `SUPERADMIN`, update the `systemRole` column directly in the database after the first login.
