@@ -70,7 +70,7 @@ export const SectorChartCard: FC<SectorChartCardProps> = ({ year }) => {
         ? `No hay ${VOCAB.organization.noun.plural} ${VOCAB.inscription.adjective.plural} hasta el año seleccionado`
         : `No hay ${VOCAB.organization.noun.plural} ${VOCAB.inscription.adjective.plural}`
       : year
-        ? "No hay huellas autodeclaradas el año seleccionado"
+        ? "No hay huellas autodeclaradas en el año seleccionado"
         : "No hay huellas autodeclaradas";
 
   return (
