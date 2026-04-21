@@ -31,7 +31,9 @@ Welcome to the project documentation. Use this index to navigate all available d
 
 | Document | Description |
 |---|---|
-| [Infrastructure Requirements](./infrastructure/requirements.md) | CPU, RAM, storage, OS sizing guide |
+| [Infrastructure Requirements](./infrastructure/requirements.md) | Consolidated Azure services, SKUs, capacity sizing per environment |
+| [App Usage Assumptions](./infrastructure/app-usage-assumptions.md) | Expected load, reliability targets, AI/background workloads (Staging & Production) |
+| [Infrastructure Provisioning Model](./infrastructure/provisioning-model.md) | IaC standard, CI/CD approach, IT team prerequisites |
 | [Deployment Guide](./infrastructure/Deployment.md) | Azure Bicep infrastructure deployment |
 | [API Deployment](./infrastructure/ApiDeployment.md) | Deploying the API via Docker + ACR + App Service |
 | [Frontend Deployment](./infrastructure/StaticWebAppDeployment.md) | Deploying the frontend via Azure Static Web Apps |
