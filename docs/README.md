@@ -51,6 +51,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Testing Guide](./development/testing.md) | Vitest + Testcontainers setup, test structure, writing integration tests |
 | [Packages and Monorepo Internals](./development/packages.md) | Shared packages, dependency graph, Turborepo pipeline, schema change propagation |
 | [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior |
+| [Country Onboarding Guide](./development/country-onboarding.md) | How to deploy the platform in a new country: seed data, methodology, Entra ID, and infrastructure |
 | [Internationalization Plan](./development/i18n-plan.md) | Forward-looking plan for adding i18n (not yet implemented) |
 | [Docker Compose](./DockerCompose.md) | Local Docker Compose configuration |
 | [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md) | Azure authentication configuration |
