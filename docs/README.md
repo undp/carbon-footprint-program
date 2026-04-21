@@ -64,6 +64,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 |---|---|
 | [Observability](./operations/observability.md) | Logs, metrics, alerts, and monitoring recommendations |
 | [Operations Runbook](./operations/runbook.md) | Backup, restore, rollback, and incident management |
+| [Risks and Limitations](./operations/risks-and-limitations.md) | Known technical risks, single points of failure, critical dependencies, and system limitations |
 
 ## Release
 
