@@ -1,14 +1,6 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
-import { Box, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { FormProvider } from "react-hook-form";
 import { uniqBy } from "lodash-es";
@@ -21,12 +13,13 @@ import {
   useMethodologies,
   useSubcategories,
 } from "@/api/query/maintainer";
-import { StylizedDataGrid } from "@components";
 import { IS_DEVELOPMENT } from "@/config/environment";
 import { FormDebugPanel } from "@/devtools";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerPageHeader } from "../../layout/MaintainerPageHeader";
 import { UnsavedChangesDialog } from "../../components/UnsavedChangesDialog";
+import { MaintainerDataGrid } from "../../components/MaintainerDataGrid";
+import { useMaintainerFormSync } from "../../hooks/useMaintainerFormSync";
 import {
   useInitiativesForm,
   toFormInitiative,
@@ -74,6 +67,10 @@ export const ReductionPlanMaintainerScreen: FC = () => {
   );
 
   const [editingRowId, setEditingRowId] = useState<string | null>(null);
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 25,
+  });
 
   const createMutation = useCreateInitiative();
   const updateMutation = useUpdateInitiative();
@@ -82,16 +79,19 @@ export const ReductionPlanMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } = useInitiativesForm();
   const currentRows = form.watch("initiatives");
 
-  const editingRowIdRef = useRef(editingRowId);
-  useLayoutEffect(() => {
-    editingRowIdRef.current = editingRowId;
-  }, [editingRowId]);
-
-  useEffect(() => {
-    if (editingRowIdRef.current !== null) return;
-    if (!initiatives) return;
-    form.reset({ initiatives: initiatives.map(toFormInitiative) });
-  }, [initiatives, form]);
+  const toFormData = useCallback(
+    (data: unknown[]) =>
+      (data as NonNullable<typeof initiatives>).map(toFormInitiative),
+    []
+  );
+  useMaintainerFormSync({
+    form,
+    fieldName: "initiatives",
+    editingRowId,
+    methodologyVersionId: undefined,
+    serverData: initiatives,
+    toFormData,
+  });
 
   const handleStopEditRow = useCallback(async (): Promise<boolean> => {
     if (!editingRowId) return true;
@@ -205,9 +205,15 @@ export const ReductionPlanMaintainerScreen: FC = () => {
       subcategoryId: "",
       categoryId: "",
     };
+    const currentCount = form.getValues("initiatives").length;
+    const lastPage = Math.max(
+      0,
+      Math.ceil((currentCount + 1) / paginationModel.pageSize) - 1
+    );
     fieldArray.append(newRow);
+    setPaginationModel((prev) => ({ ...prev, page: lastPage }));
     setEditingRowId(tempId);
-  }, [fieldArray]);
+  }, [fieldArray, form, paginationModel.pageSize]);
 
   const handleDelete = useCallback(
     async (row: InitiativeFormRow) => {
@@ -242,13 +248,6 @@ export const ReductionPlanMaintainerScreen: FC = () => {
     [form, handleCellChange]
   );
 
-  useEffect(() => {
-    if (!editingRowId?.startsWith("temp_")) return;
-    requestAnimationFrame(() => {
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    });
-  }, [editingRowId]);
-
   const { proceed, reset, status } = useBlocker({
     shouldBlockFn: () => form.formState.isDirty,
     enableBeforeUnload: form.formState.isDirty,
@@ -277,38 +276,22 @@ export const ReductionPlanMaintainerScreen: FC = () => {
         addLabel="Agregar fila"
       />
       <Box className="rounded-sm bg-white p-3">
-        {currentRows.length === 0 && !isLoading ? (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{ m: 2, textAlign: "center" }}
-          >
-            Aun no hay iniciativas registradas
-          </Typography>
-        ) : (
-          <form id="initiatives-form" noValidate>
-            <Box className="flex w-full">
-              <StylizedDataGrid
-                sx={(theme) => ({
-                  "& .MuiDataGrid-columnHeader": {
-                    backgroundColor: theme.palette.grey[200],
-                  },
-                  "& .MuiDataGrid-row.row--editing": {
-                    backgroundColor: theme.palette.grey[100],
-                  },
-                })}
-                loading={isLoading}
-                columns={columns}
-                rows={currentRows}
-                getRowHeight={() => "auto"}
-                getRowId={(row: InitiativeFormRow) => row.id}
-                getRowClassName={({ id }) =>
-                  String(id) === editingRowId ? "row--editing" : ""
-                }
-              />
-            </Box>
-          </form>
-        )}
+        <form id="initiatives-form" noValidate>
+          <Box className="flex w-full">
+            <MaintainerDataGrid
+              editingRowId={editingRowId}
+              columns={columns}
+              rows={currentRows}
+              loading={isLoading}
+              getRowHeight={() => "auto"}
+              getRowId={(row: InitiativeFormRow) => row.id}
+              hideFooter={false}
+              pageSizeOptions={[25, 50, 100]}
+              paginationModel={paginationModel}
+              onPaginationModelChange={setPaginationModel}
+            />
+          </Box>
+        </form>
       </Box>
       {IS_DEVELOPMENT && <FormDebugPanel control={form.control} />}
       <UnsavedChangesDialog
