@@ -6,7 +6,7 @@ type SubcategorySummaryItem =
 
 type SubcategoryItem = Pick<
   MethodologySubcategory,
-  "id" | "name" | "description" | "explanationId"
+  "id" | "name" | "description" | "explanationSlug"
 > &
   Pick<SubcategorySummaryItem, "included" | "edited"> & {
     isRecommended: boolean;
@@ -21,7 +21,7 @@ type CategoryWithSubcategories = Pick<
   | "description"
   | "synonyms"
   | "position"
-  | "explanationId"
+  | "explanationSlug"
 > & {
   subcategories: SubcategoryItem[];
 };

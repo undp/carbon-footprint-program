@@ -1,24 +1,24 @@
 import type { PrismaClient } from "@repo/database";
-import type { GetExplanationByIdResponse } from "@repo/types";
+import type { GetExplanationBySlugResponse } from "@repo/types";
 import { ExplanationNotFoundError } from "../errors.js";
 
-export const getExplanationByIdService = async (
+export const getExplanationBySlugService = async (
   prismaClient: PrismaClient,
-  id: string
-): Promise<GetExplanationByIdResponse> => {
+  slug: string
+): Promise<GetExplanationBySlugResponse> => {
   const explanation = await prismaClient.explanation.findUnique({
     where: {
-      id: BigInt(id),
+      slug,
     },
   });
 
   if (!explanation) {
-    throw new ExplanationNotFoundError(id);
+    throw new ExplanationNotFoundError(slug);
   }
 
   return {
-    id: explanation.id.toString(),
-    name: explanation.name,
+    slug: explanation.slug,
     content: explanation.content,
+    visible: explanation.visible,
   };
 };

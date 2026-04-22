@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 /**
- * Normalizes a subcategory name to match the filename convention:
+ * Normalizes a name to match the filename convention:
  * lowercase, spaces → underscores, strips accents, removes special chars except underscores.
  */
 function normalizeName(name: string): string {
@@ -105,18 +105,18 @@ async function seedCategoryExplanations(
       continue;
     }
 
-    const explanationName = `Explicación de la categoría ${category.name}`;
+    const slug = `cat_${file.categoryPosition}_${file.normalizedName}`;
 
-    const explanation = await prisma.explanation.create({
+    await prisma.explanation.create({
       data: {
-        name: explanationName,
+        slug,
         content: file.content,
       },
     });
 
     await prisma.category.update({
       where: { id: category.id },
-      data: { explanationId: explanation.id },
+      data: { explanationSlug: slug },
     });
 
     linkedCount++;
@@ -167,18 +167,18 @@ async function seedSubcategoryExplanations(
       continue;
     }
 
-    const explanationName = `Explicación de la subcategoría ${subcategory.name}`;
+    const slug = `sub_${file.categoryPosition}_${file.normalizedName}`;
 
-    const explanation = await prisma.explanation.create({
+    await prisma.explanation.create({
       data: {
-        name: explanationName,
+        slug,
         content: file.content,
       },
     });
 
     await prisma.subcategory.update({
       where: { id: subcategory.id },
-      data: { explanationId: explanation.id },
+      data: { explanationSlug: slug },
     });
 
     linkedCount++;

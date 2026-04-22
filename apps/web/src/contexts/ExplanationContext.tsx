@@ -1,10 +1,10 @@
 /**
  * ExplanationContext manages the explanation dialog state.
  *
- * State semantics for `explanationId`:
+ * State semantics for `explanationSlug`:
  *  - `undefined` → dialog is closed
  *  - `null`      → dialog is open, but there is no explanation to fetch (shows empty content)
- *  - `string`    → dialog is open and fetches the explanation by id
+ *  - `string`    → dialog is open and fetches the explanation by slug
  */
 import {
   createContext,
@@ -22,7 +22,7 @@ import { useSnackbar } from "notistack";
 import { useExplanation } from "@/api/query/explanations";
 
 interface ExplanationContextType {
-  openExplanation: (id: string | null) => void;
+  openExplanation: (slug: string | null) => void;
 }
 
 const ExplanationContext = createContext<ExplanationContextType | undefined>(
@@ -30,21 +30,21 @@ const ExplanationContext = createContext<ExplanationContextType | undefined>(
 );
 
 export function ExplanationProvider({ children }: { children: ReactNode }) {
-  const [explanationId, setExplanationId] = useState<string | null | undefined>(
-    undefined
-  );
+  const [explanationSlug, setExplanationSlug] = useState<
+    string | null | undefined
+  >(undefined);
   const {
     data: explanation,
     isLoading,
     isError,
-  } = useExplanation(explanationId ?? null);
+  } = useExplanation(explanationSlug ?? null);
 
-  const openExplanation = useCallback((id: string | null) => {
-    setExplanationId(id);
+  const openExplanation = useCallback((slug: string | null) => {
+    setExplanationSlug(slug);
   }, []);
 
   const handleClose = useCallback(() => {
-    setExplanationId(undefined);
+    setExplanationSlug(undefined);
   }, []);
 
   const { enqueueSnackbar } = useSnackbar();
@@ -67,7 +67,7 @@ export function ExplanationProvider({ children }: { children: ReactNode }) {
         maxWidth="md"
         fullWidth
         scroll="body"
-        open={explanationId !== undefined && !isError}
+        open={explanationSlug !== undefined && !isError}
         onClose={handleClose}
         slotProps={{ transition: { onExited: handleClose } }}
       >

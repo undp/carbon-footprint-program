@@ -84,7 +84,7 @@ export const SubcategoryPreselectionField = ({
                         label="Más información de la subcategoría"
                         onClick={(e) => {
                           e.stopPropagation();
-                          openExplanation(subcategory.explanationId);
+                          openExplanation(subcategory.explanationSlug);
                         }}
                       />
                     </Box>

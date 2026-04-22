@@ -2,9 +2,16 @@ import { z } from "zod";
 import { IdSchema } from "../zod.js";
 
 export const ExplanationBaseSchema = z.object({
-  id: IdSchema.describe("The ID of the explanation"),
-  name: z.string().min(1).describe("The name of the explanation"),
+  slug: z
+    .string()
+    .min(1)
+    .regex(
+      /^[a-zA-Z0-9]+(?:_[a-zA-Z0-9]+)*$/,
+      "Slug must contain only alphanumeric characters separated by underscores"
+    )
+    .describe("The slug identifier of the explanation"),
   content: z.string().describe("The markdown content of the explanation"),
+  visible: z.boolean().describe("Whether the explanation is visible"),
   createdAt: z.iso.datetime().describe("The creation date"),
   updatedAt: z.iso.datetime().nullable().describe("The last update date"),
   createdById: IdSchema.nullable().describe(

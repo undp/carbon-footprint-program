@@ -14,7 +14,7 @@ interface CategoryCardProps {
   title: string;
   subtitle: string | null;
   description: string | null;
-  explanationId: string | null;
+  explanationSlug: string | null;
   onClick?: () => void;
 }
 
@@ -25,7 +25,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
   title,
   subtitle,
   description,
-  explanationId,
+  explanationSlug,
   onClick,
 }) => {
   const { openExplanation } = useExplanationDialog();
@@ -96,7 +96,7 @@ export const CategoryCard: FC<CategoryCardProps> = ({
           disabled={isUnfocused}
           onClick={(e) => {
             e.stopPropagation();
-            openExplanation(explanationId);
+            openExplanation(explanationSlug);
           }}
         />
       </Box>
