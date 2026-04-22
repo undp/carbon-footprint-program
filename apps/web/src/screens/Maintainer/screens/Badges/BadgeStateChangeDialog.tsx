@@ -22,6 +22,7 @@ interface ActivateDialogProps {
   incoming: BadgeDTO;
   outgoing: BadgeDTO;
   loading?: boolean;
+  errorMessage?: string | null;
 }
 
 interface DeactivateDialogProps {
@@ -31,6 +32,7 @@ interface DeactivateDialogProps {
   onConfirm: () => void;
   outgoing: BadgeDTO;
   loading?: boolean;
+  errorMessage?: string | null;
 }
 
 type BadgeStateChangeDialogProps = ActivateDialogProps | DeactivateDialogProps;
@@ -38,7 +40,8 @@ type BadgeStateChangeDialogProps = ActivateDialogProps | DeactivateDialogProps;
 export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
   props
 ) => {
-  const { mode, open, onClose, onConfirm, outgoing, loading } = props;
+  const { mode, open, onClose, onConfirm, outgoing, loading, errorMessage } =
+    props;
   const incoming = mode === "activate" ? props.incoming : null;
 
   return (
@@ -87,6 +90,11 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
               aprobaciones durante ese periodo se registrarán sin sello.
             </Alert>
           </Box>
+        )}
+        {errorMessage && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {errorMessage}
+          </Alert>
         )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>

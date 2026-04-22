@@ -19,6 +19,7 @@ import {
 } from "@mui/icons-material";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
 import { formatDate } from "@/utils/formatting";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { BadgePreview } from "./BadgePreview";
 import { BadgeStateChangeDialog } from "./BadgeStateChangeDialog";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
@@ -46,6 +47,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
   >(null);
 
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [dialogError, setDialogError] = useState<string | null>(null);
 
   const activate = useActivateBadge();
   const deactivate = useDeactivateBadge();
@@ -99,18 +101,32 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
     }
   }, [active]);
 
+  const handleDialogClose = useCallback(() => {
+    setDialogState(null);
+    setDialogError(null);
+  }, []);
+
   const handleDialogConfirm = useCallback(() => {
     if (!dialogState) return;
+    setDialogError(null);
     if (dialogState.mode === "activate") {
       activate.mutate(dialogState.incoming.id, {
-        onSuccess: () => setDialogState(null),
+        onSuccess: () => handleDialogClose(),
+        onError: (err) =>
+          setDialogError(
+            getApiErrorMessage(err, "No se pudo activar el sello.")
+          ),
       });
     } else {
       deactivate.mutate(dialogState.outgoing.id, {
-        onSuccess: () => setDialogState(null),
+        onSuccess: () => handleDialogClose(),
+        onError: (err) =>
+          setDialogError(
+            getApiErrorMessage(err, "No se pudo desactivar el sello.")
+          ),
       });
     }
-  }, [dialogState, activate, deactivate]);
+  }, [dialogState, activate, deactivate, handleDialogClose]);
 
   const isMutating = activate.isPending || deactivate.isPending || isUploading;
 
@@ -301,9 +317,10 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
         <BadgeStateChangeDialog
           {...dialogState}
           open
-          onClose={() => setDialogState(null)}
+          onClose={handleDialogClose}
           onConfirm={handleDialogConfirm}
           loading={activate.isPending || deactivate.isPending}
+          errorMessage={dialogError}
         />
       )}
     </>
