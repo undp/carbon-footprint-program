@@ -47,6 +47,27 @@ export const ReductionPlanScreen: FC = () => {
     )
   );
 
+  const onOrganizationChange = useCallback(
+    (orgId: string) => {
+      void navigate({
+        to: Routes.REDUCTION_PLAN,
+        replace: true,
+        search: { organizationId: orgId, carbonInventoryId: undefined },
+      });
+    },
+    [navigate]
+  );
+
+  const onCarbonInventoryChange = useCallback(
+    (inventoryId: string) => {
+      void navigate({
+        to: Routes.REDUCTION_PLAN,
+        search: { carbonInventoryId: inventoryId },
+      });
+    },
+    [navigate]
+  );
+
   const matchesOrg = useCallback(
     (inv: { organizationId: string | null }, orgId: string) =>
       orgId === "none"
@@ -174,26 +195,8 @@ export const ReductionPlanScreen: FC = () => {
           inventories={inventoriesForSelectedOrg ?? []}
           selectedOrganizationId={selectedOrganizationId}
           selectedCarbonInventory={selectedCarbonInventoryId}
-          onOrganizationChange={(orgId) => {
-            void navigate({
-              to: Routes.REDUCTION_PLAN,
-              replace: true,
-              search: (prev) => ({
-                ...prev,
-                organizationId: orgId,
-                carbonInventoryId: undefined,
-              }),
-            });
-          }}
-          onCarbonInventoryChange={(inventoryId) => {
-            void navigate({
-              to: Routes.REDUCTION_PLAN,
-              search: (prev) => ({
-                ...prev,
-                carbonInventoryId: inventoryId,
-              }),
-            });
-          }}
+          onOrganizationChange={onOrganizationChange}
+          onCarbonInventoryChange={onCarbonInventoryChange}
         />
 
         <Box className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto rounded-lg bg-white p-4">
