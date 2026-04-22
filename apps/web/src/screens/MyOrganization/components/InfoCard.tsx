@@ -3,7 +3,7 @@ import { Box, Button, Typography } from "@mui/material";
 import { Edit } from "@mui/icons-material";
 
 type InfoCardProps = {
-  title: string;
+  title: string | null;
   children: ReactNode;
   onEdit?: () => void;
 };

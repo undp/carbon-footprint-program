@@ -20,7 +20,7 @@ export type OrganizationSummaryWithData = OrganizationSummaryView & {
     subsector: CountrySubsector | null;
     countryOrganizationSize: CountryOrganizationSize | null;
     mainActivity: OrganizationMainActivity | null;
-    representativeCountryJobPosition: CountryJobPosition;
+    representativeCountryJobPosition: CountryJobPosition | null;
   };
 };
 
@@ -64,10 +64,12 @@ export const mapOrganizationSummary = (
     representative: {
       fullName: orgData.representativeFullName,
       taxId: orgData.representativeTaxId,
-      position: {
-        id: orgData.representativeCountryJobPosition.id.toString(),
-        name: orgData.representativeCountryJobPosition.name,
-      },
+      position: orgData.representativeCountryJobPosition
+        ? {
+            id: orgData.representativeCountryJobPosition.id.toString(),
+            name: orgData.representativeCountryJobPosition.name,
+          }
+        : null,
       email: orgData.representativeEmail,
       phone: orgData.representativePhone,
     },

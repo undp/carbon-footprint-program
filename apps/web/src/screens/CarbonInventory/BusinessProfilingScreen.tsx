@@ -23,7 +23,10 @@ import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
-import { IS_DEVELOPMENT } from "@/config/environment";
+import {
+  IS_DEVELOPMENT,
+  LOCAL_BYPASS_REQUIRED_FIELDS,
+} from "@/config/environment";
 import { useSnackbar } from "notistack";
 import { ArrowRightAltRounded } from "@mui/icons-material";
 import { useBusinessProfilingData } from "./hooks/useBusinessProfilingData";
@@ -260,7 +263,7 @@ export const BusinessProfilingScreen: FC = () => {
                   labelId="sector-label"
                   options={sectorOptions}
                   loading={sectorsLoading}
-                  required={!IS_DEVELOPMENT}
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
                 <FormAutocompleteField
                   name="subSector"
@@ -274,7 +277,7 @@ export const BusinessProfilingScreen: FC = () => {
                     subsectorSelectOptions.length === 0 ||
                     sectorsLoading
                   }
-                  required={!IS_DEVELOPMENT}
+                  required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
               </Box>
               <Box className="flex flex-col gap-8">

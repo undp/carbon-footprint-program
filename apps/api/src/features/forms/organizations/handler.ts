@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import type { GetOrganizationFormFieldsResponse } from "@repo/types";
+import { LOCAL_BYPASS_REQUIRED_FIELDS } from "@/config/environment.js";
 
 /**
  * Handler for GET /forms/organizations
@@ -44,27 +45,27 @@ export const getOrganizationFormFieldsHandler = async (
       {
         key: "representativeFullName",
         label: "Nombre completo",
-        required: true,
+        required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
       {
         key: "representativeTaxId",
         label: "ID representante",
-        required: true,
+        required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
       {
         key: "representativePositionId",
         label: "Cargo",
-        required: true,
+        required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
       {
         key: "representativePhone",
         label: "Teléfono",
-        required: true,
+        required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
       {
         key: "representativeEmail",
         label: "Correo",
-        required: true,
+        required: !LOCAL_BYPASS_REQUIRED_FIELDS,
       },
       { key: "mainActivityId", label: "Actividad Principal", required: false },
     ],

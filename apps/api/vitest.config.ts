@@ -96,6 +96,7 @@ export default defineConfig({
       AUTH_PROVIDER: "forced-user", // Set AUTH_PROVIDER for all tests
       FORCED_USER_IDP_ID_WHEN_NO_PROVIDER: "test-user-idp-id",
       FORCED_USER_EMAIL_WHEN_NO_PROVIDER: "me@test.com",
+      LOCAL_BYPASS_REQUIRED_FIELDS: "false",
     },
   },
 });

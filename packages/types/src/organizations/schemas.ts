@@ -8,6 +8,7 @@ import {
   CountrySubsectorBaseSchema,
   OrganizationMainActivityBaseSchema,
 } from "../baseSchemas/index.js";
+import { LOCAL_BYPASS_REQUIRED_FIELDS } from "../environment.js";
 
 export const OrganizationDisplayStatusSchema = z.enum([
   "ACCREDITED",
@@ -16,25 +17,38 @@ export const OrganizationDisplayStatusSchema = z.enum([
 ]);
 
 const RepresentativeItemSchema = z.object({
-  fullName: z.string().describe("Full name of the representative"),
-  taxId: z.string().describe("Tax ID of the representative"),
+  fullName: z.string().nullable().describe("Full name of the representative"),
+  taxId: z.string().nullable().describe("Tax ID of the representative"),
   position: CountryJobPositionBaseSchema.pick({
     id: true,
     name: true,
-  }).describe("Job position of the representative"),
-  email: z.email().describe("Email of the representative"),
-  phone: z.string().describe("Phone number of the representative"),
+  })
+    .nullable()
+    .describe("Job position of the representative"),
+  email: z.email().nullable().describe("Email of the representative"),
+  phone: z.string().nullable().describe("Phone number of the representative"),
 });
 
 export const OrganizationDisplayStatusValues =
   OrganizationDisplayStatusSchema.enum;
 
+// When LOCAL_BYPASS_REQUIRED_FIELDS=true, relaxes minLength to 0 so developers
+// can submit forms without filling every field during local testing.
+const minLength = LOCAL_BYPASS_REQUIRED_FIELDS ? 0 : 1;
+
 // Organization mutation data (for POST/PATCH endpoints)
 export const OrganizationMutationDataSchema = z
   .object({
-    legalName: z.string().min(1).describe("Legal name of the organization"),
+    legalName: z
+      .string()
+      .min(minLength)
+      .describe("Legal name of the organization"),
     tradeName: z.string().nullable().describe("Trade name of the organization"),
-    taxId: z.string().min(1).describe("Tax ID of the organization"),
+    taxId: z
+      .string()
+      .min(minLength)
+      .nullable()
+      .describe("Tax ID of the organization"),
     countryOrganizationSizeId: IdSchema.nullable().describe(
       "ID of the organization size classification"
     ),
@@ -54,14 +68,26 @@ export const OrganizationMutationDataSchema = z
     ),
     representativeFullName: z
       .string()
-      .min(1)
+      .min(minLength)
+      .nullable()
       .describe("Full name of representative"),
-    representativeTaxId: z.string().min(1).describe("Tax ID of representative"),
-    representativePositionId: IdSchema.describe(
+    representativeTaxId: z
+      .string()
+      .min(minLength)
+      .nullable()
+      .describe("Tax ID of representative"),
+    representativePositionId: IdSchema.nullable().describe(
       "ID of representative's job position"
     ),
-    representativePhone: z.string().min(1).describe("Phone of representative"),
-    representativeEmail: z.email().describe("Email of representative"),
+    representativePhone: z
+      .string()
+      .min(minLength)
+      .nullable()
+      .describe("Phone of representative"),
+    representativeEmail: z
+      .email()
+      .nullable()
+      .describe("Email of representative"),
   })
   .strict(); // strict to disallow extra fields
 
@@ -79,7 +105,7 @@ export const CommonOrganizationFieldsSchema = z.object({
 
 export const CompleteOrganizationInfoSchema =
   CommonOrganizationFieldsSchema.extend({
-    taxId: z.string().describe("Tax ID of the organization"),
+    taxId: z.string().nullable().describe("Tax ID of the organization"),
     legalName: z.string().describe("Legal name of the organization"),
     tradeName: z.string().nullable().describe("Trade name of the organization"),
     isEditable: z.boolean().describe("Whether the organization is editable"),

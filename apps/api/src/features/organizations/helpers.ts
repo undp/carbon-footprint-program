@@ -131,21 +131,23 @@ export const createOrganizationDataSubmission = (
 const mapOrganizationMutationData = (data: OrganizationMutationData) => {
   return {
     legalName: data.legalName,
-    tradeName: data.tradeName,
-    taxId: data.taxId,
-    address: data.address,
+    tradeName: data.tradeName || null,
+    taxId: data.taxId || null,
+    address: data.address || null,
     employeesCount: data.employeesCount,
 
-    representativeFullName: data.representativeFullName,
-    representativeTaxId: data.representativeTaxId,
-    representativePhone: data.representativePhone,
-    representativeEmail: data.representativeEmail,
+    representativeFullName: data.representativeFullName || null,
+    representativeTaxId: data.representativeTaxId || null,
+    representativePhone: data.representativePhone || null,
+    representativeEmail: data.representativeEmail || null,
 
     countryOrganizationSizeId: toNullableBigInt(data.countryOrganizationSizeId),
     sectorId: toNullableBigInt(data.sectorId),
     subsectorId: toNullableBigInt(data.subsectorId),
     mainActivityId: toNullableBigInt(data.mainActivityId),
-    representativeCountryJobPositionId: BigInt(data.representativePositionId),
+    representativeCountryJobPositionId: toNullableBigInt(
+      data.representativePositionId
+    ),
   };
 };
 

@@ -15,7 +15,7 @@ export const OrganizationDataBaseSchema = z.object({
     .string()
     .nullable()
     .describe("The trade name of the organization."),
-  taxId: z.string().describe("The tax ID of the organization."),
+  taxId: z.string().nullable().describe("The tax ID of the organization."),
   countryOrganizationSizeId: IdSchema.nullable().describe(
     "The ID of the associated country organization size."
   ),

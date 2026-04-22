@@ -44,7 +44,7 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
           {data?.tradeName ?? data?.legalName}
         </Typography>
         <Box>
-          <InfoRow label="RUT / Tax ID" value={data?.taxId} />
+          <InfoRow label="RUT / Tax ID" value={data?.taxId ?? "-"} />
           <InfoRow label="Razón social" value={data?.legalName} />
           <InfoRow
             label="Rubro / Sector económico"

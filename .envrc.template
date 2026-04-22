@@ -26,6 +26,9 @@ export AUTH_PROVIDER=""    # Options: jwks, easy-auth, forced-user
 # export FORCED_USER_EMAIL_WHEN_NO_PROVIDER=""      # Must be set when using AUTH_PROVIDER="forced-user"
 # export SUPERADMIN_EMAIL=""                        # Email of the user to promote via `pnpm db:promote-superadmin` (used as fallback when no email argument is provided)
 
+# Dev UX
+# export LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation (e.g. allow empty strings) for local testing
+
 # Generic JWKS overrides (optional, for non-Azure IdPs)
 # export JWKS_URI=""              # JWKS endpoint URL (overrides Azure-derived value)
 # export JWKS_ISSUER=""           # Expected token issuer (overrides Azure-derived value)
@@ -45,3 +48,4 @@ else
   export VITE_AZURE_AUTH_AUTHORITY="https://${AZURE_TENANT_SUBDOMAIN}.ciamlogin.com/${AZURE_TENANT_ID}/v2.0"
 fi
 export VITE_FRONT_BASE_URL=""
+# export VITE_LOCAL_BYPASS_REQUIRED_FIELDS="true"  # Set to "true" to relax required-field validation in the web app for local testing

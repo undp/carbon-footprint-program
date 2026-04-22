@@ -22,7 +22,7 @@ export const mapOrganizationToFormValues = (
     employeesCount: organization.employeesCount,
     representativeFullName: organization.representative.fullName,
     representativeTaxId: organization.representative.taxId,
-    representativePositionId: organization.representative.position.id,
+    representativePositionId: organization.representative.position?.id ?? null,
     representativePhone: organization.representative.phone,
     representativeEmail: organization.representative.email,
     files: [],
@@ -34,6 +34,12 @@ export const mapFormValuesToRequest = (
 ): CreateOrganizationBody => {
   return {
     ...values,
+    taxId: values.taxId || null,
+    representativeEmail: values.representativeEmail || null,
+    representativeFullName: values.representativeFullName || null,
+    representativePhone: values.representativePhone || null,
+    representativePositionId: values.representativePositionId || null,
+    representativeTaxId: values.representativeTaxId || null,
     tradeName: values.tradeName || null,
     address: values.address || null,
     sectorId: values.sectorId || null,

@@ -3,7 +3,7 @@ import { Box, Skeleton, Typography, TextField, useTheme } from "@mui/material";
 
 interface Props {
   label: string;
-  value?: string;
+  value?: string | null;
   isLoading?: boolean;
 }
 
