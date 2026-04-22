@@ -129,13 +129,9 @@ export const BadgeStateChangeDialog: FC<BadgeStateChangeDialogProps> = (
           variant="contained"
           color={mode === "deactivate" ? "warning" : "primary"}
           onClick={onConfirm}
-          disabled={loading}
+          loading={loading}
         >
-          {loading
-            ? "Procesando..."
-            : mode === "activate"
-              ? "Activar"
-              : "Desactivar"}
+          {mode === "activate" ? "Activar" : "Desactivar"}
         </Button>
       </DialogActions>
     </Dialog>
