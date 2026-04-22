@@ -76,6 +76,12 @@ The API uses a two-dimension role model. Apply the correct decorator in `route.t
 - Access the current user via `request.currentUser` (set by the `user-resolve-plugin` in preHandler).
 - Source: `apps/api/src/plugins/app/authorizationPlugin.ts`, `organizationAuthorizationPlugin.ts`.
 
+# Error Handling
+
+- **API errors**: throw custom error classes from `apps/api/src/errors/` (e.g., `DataIntegrityError`, `EmptyResourceError`, `DatabaseUniqueConstraintViolationError`). The error handler plugin normalizes them into a standard response.
+- **Error response schema**: use `ApiErrorResponseSchema` from `apps/api/src/commonSchemas/errors.ts` for error responses in route schemas (e.g., `response: { 404: ApiErrorResponseSchema }`).
+- **Prisma errors**: use helpers like `extractP2002Fields()` from `apps/api/src/errors/` to handle unique constraint violations with meaningful messages.
+- **Frontend error messages**: `getApiErrorMessage()` in `apps/web/src/utils/getApiErrorMessage.ts` maps API error codes to user-facing Spanish messages.
 
 # Frontend & React Rules
 
