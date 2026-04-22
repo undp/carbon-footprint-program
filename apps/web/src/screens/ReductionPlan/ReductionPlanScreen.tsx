@@ -57,10 +57,8 @@ export const ReductionPlanScreen: FC = () => {
 
     const nextOrganizationId = selectedOrganizationId ?? organizations[0].id;
 
-    const inventoriesForOrg = inventories.filter(
-      (inv) =>
-        inv.organizationId ===
-        (nextOrganizationId === "none" ? null : nextOrganizationId)
+    const inventoriesForOrg = inventories.filter((inv) =>
+      matchesOrg(inv, nextOrganizationId)
     );
 
     const nextInventoryId =
@@ -148,6 +146,14 @@ export const ReductionPlanScreen: FC = () => {
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
         }}
       />
+    );
+  }
+
+  if (!selectedOrganizationId) {
+    return (
+      <Box className="flex flex-1 items-center justify-center">
+        <CircularProgress />
+      </Box>
     );
   }
 

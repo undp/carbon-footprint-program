@@ -79,7 +79,7 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
           <Select
             labelId="reduction-inventory-select-label"
             label="Huella"
-            value={selectedCarbonInventory}
+            value={selectedCarbonInventory ?? ""}
             onChange={onCarbonInventorySelectChange}
             disabled={inventories.length === 0}
           >
