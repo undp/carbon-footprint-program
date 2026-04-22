@@ -54,6 +54,7 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 - **Early returns**: use early returns in components for loading states, error states, and edge cases. Check these conditions at the top of the component and return early, rather than nesting the main content inside conditionals.
 - **Avoid excessive ternaries in JSX**: prefer early returns or intermediate variables over inline ternary expressions in the render tree. If a ternary is simple and short (one line), it is acceptable. For anything more complex, extract the logic.
 - **UI stack**: MUI v7 + Tailwind CSS. Follow existing patterns for styling.
+- **Use theme colors, never hardcoded values**: always reference colors from the theme (`theme.palette.*`) instead of ad-hoc hex/rgb literals. Use MUI helpers like `alpha()` and `darken()` from `@mui/material/styles` when you need transparency or shade variations. For category-specific colors, use the existing patterns: `theme.palette.requestTypeColors`, `theme.palette.recognitionTypeColors`, and the `CATEGORY_COLORS` utility in `utils/categoryColors.ts`. If a required color doesn't exist in the theme, add it to `apps/web/src/theme/palette.ts` (and augment the type in `undp-huella-latam.theme.d.ts`) rather than hardcoding it inline.
 
 # PR Interaction with Reviewers
 
