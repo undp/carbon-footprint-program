@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { Box, Grid, Typography } from "@mui/material";
+import { Box, Typography } from "@mui/material";
 import { BadgeType } from "@repo/types";
 import { useBadgeCatalog } from "@/api/query/badges/useBadgeCatalog";
 import { BadgeCard } from "./BadgeCard";
@@ -14,6 +14,17 @@ const BADGE_TYPE_ORDER: BadgeType[] = [
   BadgeType.ORGANIZATION_ACCREDITATION,
 ];
 
+const CARD_MIN_WIDTH = 540;
+const CARD_MAX_WIDTH = 680;
+
+const gridSx = {
+  display: "grid",
+  gridTemplateColumns: `repeat(auto-fill, minmax(${CARD_MIN_WIDTH}px, 1fr))`,
+  justifyItems: "center",
+  gap: 3,
+  "& > *": { maxWidth: CARD_MAX_WIDTH, width: "100%" },
+};
+
 export const BadgesScreen: FC = () => {
   const { data: catalog, isLoading, isError } = useBadgeCatalog();
 
@@ -21,13 +32,11 @@ export const BadgesScreen: FC = () => {
     return (
       <Box className="flex flex-col gap-6">
         <BadgesScreenHeader />
-        <Grid container spacing={3}>
+        <Box sx={gridSx}>
           {BADGE_TYPE_ORDER.map((type) => (
-            <Grid key={type} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <BadgeCardSkeleton />
-            </Grid>
+            <BadgeCardSkeleton key={type} />
           ))}
-        </Grid>
+        </Box>
       </Box>
     );
   }
@@ -48,17 +57,13 @@ export const BadgesScreen: FC = () => {
     <Box className="flex flex-col gap-6">
       <BadgesScreenHeader />
 
-      <Grid container spacing={3}>
+      <Box sx={gridSx}>
         {BADGE_TYPE_ORDER.map((type) => {
           const entry = catalogByType[type];
           if (!entry) return null;
-          return (
-            <Grid key={type} size={{ xs: 12, sm: 6, lg: 4 }}>
-              <BadgeCard entry={entry} />
-            </Grid>
-          );
+          return <BadgeCard key={type} entry={entry} />;
         })}
-      </Grid>
+      </Box>
     </Box>
   );
 };
