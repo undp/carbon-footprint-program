@@ -143,7 +143,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
             <Typography variant="subtitle1" fontWeight={600}>
               {BADGE_TYPE_LABELS[type]}
             </Typography>
-            <Tooltip title="Subir nuevo badge">
+            <Tooltip title="Subir nuevo sello">
               <IconButton
                 size="small"
                 onClick={handleUploadClick}
@@ -156,9 +156,9 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
 
           <Chip
             icon={<CheckCircleOutlined />}
-            label="Badge activo"
+            label={active ? "Sello activo" : "Sello inactivo"}
             size="small"
-            color={active ? "success" : "default"}
+            color={active ? "success" : "warning"}
             variant="outlined"
             sx={{ mb: 2 }}
           />
@@ -214,7 +214,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
                 display="block"
                 mb={1.5}
               >
-                No hay badge activo
+                No hay sello activo
               </Typography>
               <Button
                 variant="outlined"
@@ -223,7 +223,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
                 onClick={handleUploadClick}
                 disabled={isMutating}
               >
-                Subir badge
+                Subir sello
               </Button>
             </Box>
           )}
@@ -284,7 +284,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
                           color="primary"
                           display="block"
                         >
-                          Recién subido · ¿Activar este badge?
+                          Recién subido · ¿Activar este sello?
                         </Typography>
                       )}
                     </Box>
