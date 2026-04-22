@@ -10,6 +10,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 |---|---|
 | [Project Overview](./overview/project-overview.md) | Goal, use cases, scope, and key assumptions |
 | [Submission Workflow](./overview/submission-workflow.md) | End-to-end flow: inventory creation → submission → admin review → external validation → badge issuance |
+| [Reduction Projects Workflow](./overview/reduction-projects.md) | Creation, verification, and re-submission of GHG reduction projects |
 
 ## Architecture
 
