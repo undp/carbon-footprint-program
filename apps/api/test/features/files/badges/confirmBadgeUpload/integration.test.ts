@@ -17,7 +17,7 @@ import {
 import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
-import { BadgeType, BadgeStatus, FileStatus } from "@repo/database";
+import { BadgeType, BadgeStatus } from "@repo/database";
 import type { ConfirmBadgeUploadResponse } from "@repo/types";
 import {
   type ApiErrorResponse,
@@ -25,8 +25,20 @@ import {
 } from "@/commonSchemas/errors.js";
 
 vi.mock("@/services/blobService.js", () => ({
-  generateWriteSasUrl: vi.fn(),
-  generateReadSasUrl: vi.fn(),
+  generateWriteSasUrl: vi.fn().mockResolvedValue({
+    url: "https://mock.blob.core.windows.net/test/file?sig=mock",
+    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+  }),
+  generateReadSasUrl: vi.fn().mockResolvedValue({
+    url: "https://mock.blob.core.windows.net/test/file?sig=mock",
+    expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+  }),
+  createReadSasUrlSigner: vi.fn().mockResolvedValue(
+    vi.fn().mockResolvedValue({
+      url: "https://mock.blob.core.windows.net/test/preview?sig=mock",
+      expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+    })
+  ),
 }));
 
 describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", () => {
@@ -53,7 +65,7 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
   });
 
   describe("Happy path", () => {
-    it("should create file and badge DB records when blob exists", async () => {
+    it("should create file and INACTIVE badge DB records when blob exists", async () => {
       const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
       const uuid = "660e8400-e29b-41d4-a716-446655440000";
       const originalName = "badge.png";
@@ -71,11 +83,11 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
 
       expect(response.statusCode).toBe(201);
       const body = JSON.parse(response.body) as ConfirmBadgeUploadResponse;
-      expect(body.uuid).toBe(uuid);
-      expect(body.originalName).toBe(originalName);
-      expect(body.mimeType).toBe("image/png");
-      expect(body.sizeBytes).toBeGreaterThan(0);
-      expect(body.status).toBe(FileStatus.ACTIVE);
+      expect(body.badge.type).toBe(badgeType);
+      expect(body.badge.status).toBe(BadgeStatus.INACTIVE);
+      expect(body.badge.fileName).toBe(originalName);
+      expect(body.badge.mimeType).toBe("image/png");
+      expect(body.badge.previewUrl).toBeTruthy();
     });
 
     it("should persist the correct metadata in the database", async () => {
@@ -98,29 +110,26 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
       const fileRecord = await prisma.file.findUnique({ where: { uuid } });
       expect(fileRecord).toBeDefined();
       expect(fileRecord?.originalName).toBe(originalName);
-      // TODO: Uncomment once a badge maintainer role is implemented and createdById is populated again.
-      // expect(fileRecord?.createdById).toBe(testUser.id);
 
       const badgeRecord = await prisma.badge.findUnique({
         where: { fileId: fileRecord!.id },
       });
       expect(badgeRecord).toBeDefined();
       expect(badgeRecord?.type).toBe(badgeType);
-      expect(badgeRecord?.status).toBe(BadgeStatus.ACTIVE);
+      expect(badgeRecord?.status).toBe(BadgeStatus.INACTIVE);
     });
 
-    it("should deactivate the previous ACTIVE badge of the same type", async () => {
+    it("should NOT deactivate the existing ACTIVE badge of the same type (upload is non-destructive)", async () => {
       const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
 
-      // Seed an existing ACTIVE badge
       const { badge: existingBadge } = await createTestFileForBadge(
         prisma,
         testUser.id,
-        badgeType
+        badgeType,
+        { badgeOverrides: { status: BadgeStatus.ACTIVE } }
       );
       expect(existingBadge.status).toBe(BadgeStatus.ACTIVE);
 
-      // Confirm a new badge upload
       const uuid = "660e8400-e29b-41d4-a716-446655440002";
       const originalName = "new-badge.png";
       await uploadBlobToAzurite(
@@ -135,19 +144,73 @@ describe("POST /api/files/badge/:badgeType/confirm-upload - Integration Tests", 
         payload: { uuid, originalName },
       });
       expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as ConfirmBadgeUploadResponse;
+      expect(body.badge.status).toBe(BadgeStatus.INACTIVE);
 
-      // Previous badge should now be INACTIVE
+      // Existing active badge must remain ACTIVE
       const updatedBadge = await prisma.badge.findUnique({
         where: { id: existingBadge.id },
       });
-      expect(updatedBadge?.status).toBe(BadgeStatus.INACTIVE);
+      expect(updatedBadge?.status).toBe(BadgeStatus.ACTIVE);
 
-      // New badge should be ACTIVE
+      // New badge is INACTIVE
       const newFile = await prisma.file.findUnique({ where: { uuid } });
       const newBadge = await prisma.badge.findUnique({
         where: { fileId: newFile!.id },
       });
-      expect(newBadge?.status).toBe(BadgeStatus.ACTIVE);
+      expect(newBadge?.status).toBe(BadgeStatus.INACTIVE);
+    });
+  });
+
+  describe("File validation", () => {
+    it("should reject a disallowed MIME type with 400 and not create records", async () => {
+      const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
+      const uuid = "660e8400-e29b-41d4-a716-446655440010";
+      const originalName = "document.pdf";
+      const blobPath = `BADGE/${badgeType}/${uuid}-${originalName}`;
+
+      await uploadBlobToAzurite(app.blobStorage!, blobPath, {
+        contentType: "application/pdf",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/files/badge/${badgeType}/confirm-upload`,
+        payload: { uuid, originalName },
+      });
+
+      expect(response.statusCode).toBe(400);
+      const fileRecord = await prisma.file.findUnique({ where: { uuid } });
+      expect(fileRecord).toBeNull();
+    });
+
+    it("should leave an existing ACTIVE badge unchanged when mime validation fails", async () => {
+      const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
+      const { badge: existingBadge } = await createTestFileForBadge(
+        prisma,
+        testUser.id,
+        badgeType,
+        { badgeOverrides: { status: BadgeStatus.ACTIVE } }
+      );
+
+      const uuid = "660e8400-e29b-41d4-a716-446655440011";
+      const originalName = "bad.pdf";
+      await uploadBlobToAzurite(
+        app.blobStorage!,
+        `BADGE/${badgeType}/${uuid}-${originalName}`,
+        { contentType: "application/pdf" }
+      );
+
+      await app.inject({
+        method: "POST",
+        url: `/api/files/badge/${badgeType}/confirm-upload`,
+        payload: { uuid, originalName },
+      });
+
+      const unchanged = await prisma.badge.findUnique({
+        where: { id: existingBadge.id },
+      });
+      expect(unchanged?.status).toBe(BadgeStatus.ACTIVE);
     });
   });
 

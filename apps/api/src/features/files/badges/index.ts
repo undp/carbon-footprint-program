@@ -5,11 +5,19 @@ import { badgeGetFilesRoute } from "./getBadgeFiles/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function badgeRoutes(fastify: FastifyZodInstance) {
-  fastify.addHook(
-    "preHandler",
-    fastify.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])
-  );
-  badgeRequestUploadRoute(fastify);
-  badgeConfirmUploadRoute(fastify);
-  badgeGetFilesRoute(fastify);
+  // request-upload and confirm-upload require SUPERADMIN only
+  fastify.register((f) => {
+    f.addHook("preHandler", f.requireRoles([SystemRole.SUPERADMIN]));
+    badgeRequestUploadRoute(f);
+    badgeConfirmUploadRoute(f);
+  });
+
+  // getBadgeFiles retains the original [SUPERADMIN, ADMIN] policy
+  fastify.register((f) => {
+    f.addHook(
+      "preHandler",
+      f.requireRoles([SystemRole.SUPERADMIN, SystemRole.ADMIN])
+    );
+    badgeGetFilesRoute(f);
+  });
 }

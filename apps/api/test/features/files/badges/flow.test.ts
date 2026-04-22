@@ -17,7 +17,7 @@ import {
 import { uploadBlobToAzurite } from "@test/factories/blobHelper.js";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient, User } from "@repo/database";
-import { BadgeType, BadgeStatus, FileStatus } from "@repo/database";
+import { BadgeType, BadgeStatus } from "@repo/database";
 import type {
   RequestBadgeUploadResponse,
   ConfirmBadgeUploadResponse,
@@ -33,6 +33,12 @@ vi.mock("@/services/blobService.js", () => ({
     url: "https://mock.blob.core.windows.net/test/file?sig=mock",
     expiresAt: new Date("2099-12-31T23:59:59.000Z"),
   }),
+  createReadSasUrlSigner: vi.fn().mockResolvedValue(
+    vi.fn().mockResolvedValue({
+      url: "https://mock.blob.core.windows.net/test/preview?sig=mock",
+      expiresAt: new Date("2099-12-31T23:59:59.000Z"),
+    })
+  ),
 }));
 
 describe("Badge files — Full upload flow: request-upload → upload → confirm-upload → get files", () => {
@@ -79,8 +85,7 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
     expect(uploadUrl).toBeTruthy();
     expect(expiresAt).toBeTruthy();
 
-    // Step 2 – Simulate the client uploading the file. The blob path mirrors
-    // buildBlobPath({ fileType: "BADGE", groupKey: badgeType, uuid, name }).
+    // Step 2 – Simulate the client uploading the file.
     const blobPath = `BADGE/${badgeType}/${uuid}-${originalName}`;
     await uploadBlobToAzurite(app.blobStorage!, blobPath, {
       contentType: "image/png",
@@ -94,16 +99,16 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
     });
 
     expect(confirmResponse.statusCode).toBe(201);
-    const confirmedFile = JSON.parse(
+    const { badge } = JSON.parse(
       confirmResponse.body
     ) as ConfirmBadgeUploadResponse;
-    expect(confirmedFile.uuid).toBe(uuid);
-    expect(confirmedFile.originalName).toBe(originalName);
-    expect(confirmedFile.mimeType).toBe("image/png");
-    expect(confirmedFile.sizeBytes).toBeGreaterThan(0);
-    expect(confirmedFile.status).toBe(FileStatus.ACTIVE);
+    expect(badge.type).toBe(badgeType);
+    expect(badge.status).toBe(BadgeStatus.INACTIVE);
+    expect(badge.fileName).toBe(originalName);
+    expect(badge.mimeType).toBe("image/png");
+    expect(badge.previewUrl).toBeTruthy();
 
-    // Step 4 – Verify the file appears when listing badge files
+    // Step 4 – getBadgeFiles with no filter returns ACTIVE only, so nothing yet
     const listResponse = await app.inject({
       method: "GET",
       url: `/api/files/badge/${badgeType}`,
@@ -111,21 +116,18 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
 
     expect(listResponse.statusCode).toBe(200);
     const files = JSON.parse(listResponse.body) as GetBadgeFilesResponse;
-    expect(files).toHaveLength(1);
-    expect(files[0].uuid).toBe(uuid);
+    expect(files).toHaveLength(0);
 
     // Step 5 – Verify the DB records were created correctly
     const fileRecord = await prisma.file.findUnique({ where: { uuid } });
     expect(fileRecord).toBeDefined();
-    // TODO: Uncomment once a badge maintainer role is implemented and createdById is populated again.
-    // expect(fileRecord?.createdById).toBe(testUser.id);
 
     const badgeRecord = await prisma.badge.findUnique({
       where: { fileId: fileRecord!.id },
     });
     expect(badgeRecord).toBeDefined();
     expect(badgeRecord?.type).toBe(badgeType);
-    expect(badgeRecord?.status).toBe(BadgeStatus.ACTIVE);
+    expect(badgeRecord?.status).toBe(BadgeStatus.INACTIVE);
   });
 
   it("should complete the full lifecycle for an ORGANIZATION_ACCREDITATION badge", async () => {
@@ -152,29 +154,23 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
     });
 
     expect(confirmResponse.statusCode).toBe(201);
-
-    const listResponse = await app.inject({
-      method: "GET",
-      url: `/api/files/badge/${badgeType}`,
-    });
-
-    expect(listResponse.statusCode).toBe(200);
-    expect(JSON.parse(listResponse.body) as GetBadgeFilesResponse).toHaveLength(
-      1
-    );
+    const { badge } = JSON.parse(
+      confirmResponse.body
+    ) as ConfirmBadgeUploadResponse;
+    expect(badge.status).toBe(BadgeStatus.INACTIVE);
   });
 
-  it("should deactivate the previous badge when a new one is confirmed", async () => {
+  it("should NOT deactivate the previous badge when a new one is confirmed (upload is non-destructive)", async () => {
     const badgeType = BadgeType.CARBON_INVENTORY_CALCULATION;
 
-    // Upload first badge
-    const { file: firstFile } = await createTestFileForBadge(
+    const { badge: firstBadge } = await createTestFileForBadge(
       prisma,
       testUser.id,
-      badgeType
+      badgeType,
+      { badgeOverrides: { status: BadgeStatus.ACTIVE } }
     );
+    expect(firstBadge.status).toBe(BadgeStatus.ACTIVE);
 
-    // Upload second badge via the full flow
     const originalName = "new-badge.png";
     const { body: reqBody } = await app.inject({
       method: "POST",
@@ -194,22 +190,10 @@ describe("Badge files — Full upload flow: request-upload → upload → confir
       payload: { uuid, originalName },
     });
 
-    // Only the new badge should be returned (previous is INACTIVE)
-    const listResponse = await app.inject({
-      method: "GET",
-      url: `/api/files/badge/${badgeType}`,
+    // First badge must remain ACTIVE (upload is non-destructive)
+    const reloaded = await prisma.badge.findUnique({
+      where: { id: firstBadge.id },
     });
-
-    expect(listResponse.statusCode).toBe(200);
-    const files = JSON.parse(listResponse.body) as GetBadgeFilesResponse;
-    expect(files).toHaveLength(1);
-    expect(files[0].uuid).toBe(uuid);
-    expect(files[0].uuid).not.toBe(firstFile.uuid);
-
-    // Verify the first badge was deactivated in the DB
-    const firstBadge = await prisma.badge.findUnique({
-      where: { fileId: firstFile.id },
-    });
-    expect(firstBadge?.status).toBe(BadgeStatus.INACTIVE);
+    expect(reloaded?.status).toBe(BadgeStatus.ACTIVE);
   });
 });
