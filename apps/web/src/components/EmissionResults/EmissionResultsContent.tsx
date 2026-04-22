@@ -1,4 +1,4 @@
-import { FC, useEffect } from "react";
+import { FC, useCallback, useEffect } from "react";
 import { Box } from "@mui/material";
 import { useSnackbar } from "notistack";
 import { useNavigate } from "@tanstack/react-router";
@@ -77,6 +77,18 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
       });
   }, [isError, enqueueSnackbar]);
 
+  const onViewFullPlan = useCallback(() => {
+    const organizationId =
+      summaryData?.carbonInventory.organizationId ?? "none";
+    void navigate({
+      to: Routes.REDUCTION_PLAN,
+      search: {
+        organizationId,
+        carbonInventoryId: inventoryId,
+      },
+    });
+  }, [navigate, inventoryId, summaryData?.carbonInventory.organizationId]);
+
   return (
     <Box className="flex min-h-0 flex-1 flex-row gap-4">
       {/* Left container: Emission category cards + equivalence + plot + rankings */}
@@ -136,17 +148,7 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
       <Box className="flex min-h-0 flex-1">
         <ReductionPlanCard
           initiatives={reductionPlan ?? null}
-          onViewFullPlan={() => {
-            const organizationId =
-              summaryData?.carbonInventory.organizationId ?? "none";
-            void navigate({
-              to: Routes.REDUCTION_PLAN,
-              search: {
-                organizationId,
-                carbonInventoryId: inventoryId,
-              },
-            });
-          }}
+          onViewFullPlan={onViewFullPlan}
           isViewFullPlanDisabled={isSummaryLoading || !summaryData}
           isLoading={isReductionPlanLoading}
           hasError={isReductionPlanError}
