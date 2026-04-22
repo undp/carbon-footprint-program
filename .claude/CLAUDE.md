@@ -100,7 +100,7 @@ The API uses a two-dimension role model. Apply the correct decorator in `route.t
 - **Router**: TanStack Router with file-based routing in `apps/web/src/routes/`. The file `routeTree.gen.ts` is auto-generated — never edit it manually.
 - **Route guards**: use `beforeLoad` in route definitions for auth checks and redirects.
 - **Layout routes**: `app.tsx` and `admin.tsx` serve as layout wrappers for nested routes.
-- **Server state**: TanStack Query v5. Query hooks live in `apps/web/src/api/query/`, mutation hooks in `apps/web/src/api/mutation/`.
+- **Server state**: TanStack Query v5. Both query and mutation hooks live in `apps/web/src/api/query/`, organized by domain (e.g., `query/organizations/`, `query/carbonInventories/`).
 - **Query key factories**: each domain defines a keys file (e.g., `apps/web/src/api/query/organizations/keys.ts`) with a structured key object (`organizationKeys.all`, `.detail(id)`, `.users(orgId)`). Use these for cache invalidation.
 - **HTTP client**: `ky` via `apiClient` in `apps/web/src/api/http/client.ts`. Auth tokens are injected automatically in a `beforeRequest` hook via MSAL.
 
