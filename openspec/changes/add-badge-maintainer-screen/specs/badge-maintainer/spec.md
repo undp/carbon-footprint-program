@@ -1,5 +1,21 @@
 ## ADDED Requirements
 
+### Requirement: Visual reference for the Badge Maintainer screen
+
+The Badge Maintainer screen SHALL follow the layout and visual language captured in `openspec/files/admin-badges-page.png`, which is the authoritative mockup for this change. Subsequent UI requirements in this spec are grounded in that reference, and any deviation introduced during implementation SHOULD be justified in the PR description.
+
+The reference establishes the following screen-level elements:
+
+- A page header titled **"Gestión de Badges"** with a short Spanish subtitle describing the screen's purpose (e.g. "Administra los badges de reconocimiento por tipo. Sube nuevos badges, activa o desactiva los existentes.").
+- A **"Badges"** entry in the Maintainer sidebar, shown only to `SUPERADMIN` users, that is highlighted as active while the screen is mounted.
+- A responsive **grid of cards** under the header, with one card per `BadgeType`, rendered in the order defined by the `BadgeType` enum.
+- Per-card content: badge-type name, an upload (cloud-up) affordance in the card's top-right corner, an "Badge activo" status line, the active badge preview area (or empty-state placeholder), the active badge's file name and `createdAt`, the primary state-change button (**DESACTIVAR** when active), and a collapsible/visible **"Historial"** section listing inactive badges with their own **ACTIVAR** buttons.
+
+#### Scenario: Implementation matches the reference mockup
+
+- **WHEN** the Badge Maintainer screen is implemented
+- **THEN** the page header, sidebar entry, card grid, per-card layout, and Spanish labels match `openspec/files/admin-badges-page.png`, with any intentional deviation called out in the PR description
+
 ### Requirement: Access restricted to SUPERADMIN
 
 The system SHALL expose a Badge Maintainer screen and supporting API endpoints that are accessible only to users with `SystemRole.SUPERADMIN`. Users without that role SHALL NOT be able to load the screen or call any maintainer endpoint, regardless of whether they hold `ADMIN` or any other role. The existing badge upload endpoints `POST /files/badges/:badgeType/request-upload` and `POST /files/badges/:badgeType/confirm-upload` SHALL be tightened from `[SUPERADMIN, ADMIN]` to `[SUPERADMIN]` as part of this change.
@@ -238,14 +254,35 @@ The Badge Maintainer screen SHALL display a confirmation dialog before performin
 
 ### Requirement: Active badge is displayed on the maintainer screen
 
-The Badge Maintainer screen SHALL render, for every `BadgeType`, the currently `ACTIVE` badge (if any) using its `previewUrl`, along with its `createdAt` and `fileName`. Inactive badges SHALL be rendered in a separate "history" section for that type, visually distinguished from the active one.
+The Badge Maintainer screen SHALL render, for every `BadgeType`, one card (per the layout in `openspec/files/admin-badges-page.png`) containing:
+
+- the badge-type display name (in Spanish) as the card title,
+- an upload affordance in the card's top-right corner (cloud-up icon) that opens the file picker for that type,
+- a "Badge activo" status line with a small indicator,
+- the currently `ACTIVE` badge's preview (rendered from its `previewUrl`) centered in the card, accompanied by the badge's `fileName` and `createdAt`,
+- a **DESACTIVAR** button when an active badge exists, positioned at the bottom-right of the active-badge block,
+- a **"Historial"** section listing the type's inactive badges, each row showing the thumbnail, `fileName`, `createdAt`, and an **ACTIVAR** button.
+
+When a type has no `ACTIVE` badge, the preview area SHALL instead show an empty-state placeholder with the text "No hay badge activo" and a **SUBIR BADGE** call-to-action that opens the same upload flow as the top-right icon; the **DESACTIVAR** button SHALL not be rendered in that case. The "Historial" section SHALL still be shown (with an **ACTIVAR** button on each entry) when history exists, regardless of whether an active badge is present.
+
+Inactive badges SHALL be visually distinguished from the active one (e.g., smaller thumbnails, separator line labeled "Historial") so operators can tell at a glance which badge is live.
 
 #### Scenario: Rendering a type that has an active badge
 
 - **WHEN** `GET /badges` returns a group with `active` set for a type
-- **THEN** the screen renders the active badge's preview and metadata prominently and lists any `history` entries below
+- **THEN** the card shows the active badge's preview centered, with `fileName`, `createdAt`, and a **DESACTIVAR** button; the "Historial" section lists any inactive badges below with an **ACTIVAR** button on each row
 
 #### Scenario: Rendering a type with no active badge
 
 - **WHEN** `GET /badges` returns a group with `active = null`
-- **THEN** the screen renders an empty-state placeholder for that type and still shows any `history` entries with an "Activate" action
+- **THEN** the card shows a dashed-border empty-state placeholder containing the text "No hay badge activo" and a **SUBIR BADGE** button, no **DESACTIVAR** button is rendered, and any `history` entries are still listed under "Historial" with an **ACTIVAR** action
+
+#### Scenario: Upload affordance is always reachable from the card
+
+- **WHEN** a `SUPERADMIN` views any card on the Badge Maintainer screen
+- **THEN** the card exposes an upload entry point in the top-right corner (cloud-up icon); for empty-state cards, the central **SUBIR BADGE** button opens the same flow
+
+#### Scenario: Card ordering follows the `BadgeType` enum
+
+- **WHEN** the catalog is rendered
+- **THEN** cards appear in the grid in the order defined by the `BadgeType` enum, so the visual ordering is deterministic and matches `openspec/files/admin-badges-page.png`
