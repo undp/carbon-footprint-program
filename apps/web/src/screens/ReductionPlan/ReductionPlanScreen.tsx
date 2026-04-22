@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useState } from "react";
+import { FC, useEffect, useMemo, useState, useCallback } from "react";
 import { Box, Button, CircularProgress, Typography } from "@mui/material";
 import { Download } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
@@ -47,10 +47,13 @@ export const ReductionPlanScreen: FC = () => {
     )
   );
 
-  const matchesOrg = (inv: { organizationId: string | null }, orgId: string) =>
-    orgId === "none"
-      ? inv.organizationId === null
-      : inv.organizationId === orgId;
+  const matchesOrg = useCallback(
+    (inv: { organizationId: string | null }, orgId: string) =>
+      orgId === "none"
+        ? inv.organizationId === null
+        : inv.organizationId === orgId,
+    []
+  );
 
   useEffect(() => {
     if (!organizations?.length || !inventories) return;
