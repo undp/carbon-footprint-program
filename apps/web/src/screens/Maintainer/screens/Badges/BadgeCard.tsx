@@ -49,12 +49,13 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
 
   const activate = useActivateBadge();
   const deactivate = useDeactivateBadge();
-  const { upload, isUploading } = useBadgeUpload();
+  const { upload, isUploading, reset: resetUpload } = useBadgeUpload();
 
   const handleUploadClick = useCallback(() => {
     setUploadError(null);
+    resetUpload();
     fileInputRef.current?.click();
-  }, []);
+  }, [resetUpload]);
 
   const handleFileChange = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
