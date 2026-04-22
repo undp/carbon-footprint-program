@@ -25,9 +25,7 @@ export interface InitiativesFormValues {
 
 const REQUIRED_MESSAGE = "Requerido";
 
-const idField = IdSchema.refine((value) => value.length > 0, {
-  message: REQUIRED_MESSAGE,
-});
+const idField = z.string().min(1, REQUIRED_MESSAGE).pipe(IdSchema);
 
 const InitiativeRowSchema = InitiativeMutationDataSchema.extend({
   id: z.string(),

@@ -21,6 +21,7 @@ export const deleteInitiativeRoute: StandardRouteSignature = (
           200: DeleteInitiativeResponseSchema,
           400: ApiErrorResponseSchema,
           401: ApiErrorResponseSchema,
+          403: ApiErrorResponseSchema,
           404: ApiErrorResponseSchema,
         },
       },
