@@ -14,6 +14,7 @@ import {
   TaskOutlined,
   BusinessOutlined,
   ViewColumnOutlined,
+  WorkspacePremiumOutlined,
 } from "@mui/icons-material";
 import { SystemRole } from "@repo/types";
 import { Routes } from "@/interfaces/routes";
@@ -91,6 +92,12 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     text: "Solicitudes",
     icon: <TaskOutlined />,
     path: Routes.ADMIN_REQUESTS,
+  },
+  {
+    text: "Badges",
+    icon: <WorkspacePremiumOutlined />,
+    path: Routes.ADMIN_BADGES,
+    requiredRoles: [SystemRole.SUPERADMIN],
   },
   {
     text: "Historial de cambios",
