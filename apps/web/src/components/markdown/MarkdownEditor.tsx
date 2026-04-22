@@ -88,6 +88,7 @@ const MarkdownEditor = ({
           flex: 1,
           minWidth: 0,
           height,
+          minHeight,
           overflow: "auto",
           border: "1px solid",
           borderColor: "divider",
