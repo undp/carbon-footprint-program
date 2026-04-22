@@ -12,6 +12,18 @@ import type {
   DeleteInitiativeResponse,
 } from "@repo/types";
 
+const useInitiativeMutationSuccess = () => {
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar } = useSnackbar();
+
+  return (message: string) => {
+    void queryClient.invalidateQueries({
+      queryKey: maintainerKeys.initiatives.all,
+    });
+    void enqueueSnackbar({ message, variant: "success" });
+  };
+};
+
 export const useInitiatives = () =>
   useQuery<GetAllInitiativesResponse>({
     queryKey: maintainerKeys.initiatives.all,
@@ -21,22 +33,13 @@ export const useInitiatives = () =>
   });
 
 export const useCreateInitiative = () => {
-  const queryClient = useQueryClient();
-  const { enqueueSnackbar } = useSnackbar();
+  const onMutationSuccess = useInitiativeMutationSuccess();
   return useMutation<CreateInitiativeResponse, Error, CreateInitiativeRequest>({
     mutationFn: (data) =>
       apiClient
         .post("admin/reduction-plan", { json: data })
         .json<CreateInitiativeResponse>(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: maintainerKeys.initiatives.all,
-      });
-      void enqueueSnackbar({
-        message: "Iniciativa creada exitosamente",
-        variant: "success",
-      });
-    },
+    onSuccess: () => onMutationSuccess("Iniciativa creada exitosamente"),
   });
 };
 
@@ -46,8 +49,7 @@ interface UpdateInitiativeVariables {
 }
 
 export const useUpdateInitiative = () => {
-  const queryClient = useQueryClient();
-  const { enqueueSnackbar } = useSnackbar();
+  const onMutationSuccess = useInitiativeMutationSuccess();
   return useMutation<
     UpdateInitiativeResponse,
     Error,
@@ -57,34 +59,17 @@ export const useUpdateInitiative = () => {
       apiClient
         .patch(`admin/reduction-plan/${id}`, { json: data })
         .json<UpdateInitiativeResponse>(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: maintainerKeys.initiatives.all,
-      });
-      void enqueueSnackbar({
-        message: "Cambios guardados satisfactoriamente",
-        variant: "success",
-      });
-    },
+    onSuccess: () => onMutationSuccess("Cambios guardados satisfactoriamente"),
   });
 };
 
 export const useDeleteInitiative = () => {
-  const queryClient = useQueryClient();
-  const { enqueueSnackbar } = useSnackbar();
+  const onMutationSuccess = useInitiativeMutationSuccess();
   return useMutation<DeleteInitiativeResponse, Error, string>({
     mutationFn: (id) =>
       apiClient
         .delete(`admin/reduction-plan/${id}`)
         .json<DeleteInitiativeResponse>(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
-        queryKey: maintainerKeys.initiatives.all,
-      });
-      void enqueueSnackbar({
-        message: "Iniciativa eliminada",
-        variant: "success",
-      });
-    },
+    onSuccess: () => onMutationSuccess("Iniciativa eliminada"),
   });
 };
