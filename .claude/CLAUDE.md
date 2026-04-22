@@ -93,6 +93,8 @@ The API uses a two-dimension role model. Apply the correct decorator in `route.t
 - **Avoid prop drilling**: when data is needed across many component levels, use the Context API or an external state library like Zustand instead of passing props through intermediate components.
 - **Memoization**: prevent unnecessary re-renders using `React.memo` for components and `useMemo`/`useCallback` for expensive calculations and callback functions passed as props.
 - **Screen filter state in query params**: user selections in screen-level filters (e.g., header dropdowns, search inputs) should be stored in URL query params, not in local component state. This makes filters shareable, bookmarkable, and persistent across navigation.
+- **Language**: all user-facing text is in Spanish — there is no i18n library. Dates use `date-fns` with the Spanish locale (`es`). New features must follow this convention: labels, placeholders, error messages, tooltips, and button text are all in Spanish.
+
 
 # Constants & Configurable Values
 
