@@ -48,6 +48,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Local Setup](./development/local-setup.md) | Step-by-step local development setup |
 | [Environment Variables](./development/environment-variables.md) | Complete reference for all environment variables |
 | [Contributing Guide](./development/contributing.md) | Branch workflow, code review, adding a new API feature |
+| [Frontend Architecture](./development/frontend-architecture.md) | React + Vite structure, TanStack Router, state management, forms, theme, adding a new screen |
 | [Testing Guide](./development/testing.md) | Vitest + Testcontainers setup, test structure, writing integration tests |
 | [Packages and Monorepo Internals](./development/packages.md) | Shared packages, dependency graph, Turborepo pipeline, schema change propagation |
 | [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior |
