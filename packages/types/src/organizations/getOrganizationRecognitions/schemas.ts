@@ -34,7 +34,10 @@ const GetOrganizationRecognitionsItemSchema = z.object({
   submissionType: SubmissionTypeSchema.describe("The type of submission"),
   totalEmissions: z
     .number()
-    .describe("Total emissions in tCO₂e for the carbon inventory"),
+    .nullable()
+    .describe(
+      "Total emissions in tCO₂e for the carbon inventory, or null for reduction project recognitions"
+    ),
   recognitionFileUrl: z
     .string()
     .nullable()

@@ -8,6 +8,7 @@ import {
   SubmissionType,
   SubmissionStatus,
   GetOrganizationRecognitionsResponse,
+  ReductionProjectStatus,
 } from "@repo/types";
 import { BlobServiceClient } from "@azure/storage-blob";
 
@@ -149,6 +150,108 @@ export const getOrganizationRecognitionsService = async (
     );
 
     result.push(...items);
+  }
+
+  const includeReductionProjects =
+    !submissionTypes?.length ||
+    submissionTypes.includes(SubmissionType.REDUCTION_PROJECT_VERIFICATION);
+
+  if (includeReductionProjects) {
+    const reductionSubmissionTypeFilter = {
+      in: [SubmissionType.REDUCTION_PROJECT_VERIFICATION],
+    };
+
+    const reductionProjects = await prismaClient.reductionProject.findMany({
+      where: {
+        organizationId: BigInt(organizationId),
+        status: ReductionProjectStatus.ACTIVE,
+        ...(yearFilter !== undefined ? { year: yearFilter } : {}),
+        submission: {
+          subject: {
+            submissions: {
+              some: {
+                status: {
+                  in: [
+                    SubmissionStatus.APPROVED,
+                    SubmissionStatus.APPROVED_AUTOMATICALLY,
+                  ],
+                },
+                type: reductionSubmissionTypeFilter,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        year: true,
+        submission: {
+          select: {
+            subject: {
+              select: {
+                submissions: {
+                  where: {
+                    status: {
+                      in: [
+                        SubmissionStatus.APPROVED,
+                        SubmissionStatus.APPROVED_AUTOMATICALLY,
+                      ],
+                    },
+                    type: reductionSubmissionTypeFilter,
+                  },
+                  select: {
+                    id: true,
+                    type: true,
+                    updatedAt: true,
+                    files: {
+                      where: { type: SubmissionFileType.RECOGNITION },
+                      select: {
+                        file: {
+                          select: { blobPath: true, mimeType: true },
+                        },
+                      },
+                      take: 1,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    for (const project of reductionProjects) {
+      const submissions = project.submission?.subject.submissions ?? [];
+      if (submissions.length === 0) continue;
+
+      const items = await Promise.all(
+        submissions.map(async (submission) => {
+          const recognitionFile = submission.files[0]?.file;
+          let recognitionFileUrl: string | null = null;
+
+          if (recognitionFile?.blobPath && blobServiceClient && containerName) {
+            const { url } = await generateReadSasUrl(
+              blobServiceClient,
+              containerName,
+              recognitionFile.blobPath,
+              { contentType: recognitionFile.mimeType ?? undefined }
+            );
+            recognitionFileUrl = url;
+          }
+
+          return {
+            submissionId: submission.id.toString(),
+            earningDate: submission.updatedAt?.toISOString() ?? null,
+            measurementYear: project.year,
+            submissionType: submission.type,
+            totalEmissions: null,
+            recognitionFileUrl,
+          };
+        })
+      );
+
+      result.push(...items);
+    }
   }
 
   return result.sort(

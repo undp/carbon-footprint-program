@@ -926,7 +926,7 @@ model ReductionProject {
   consideredGei                String[]               @map("considered_gei")
   reportedElsewhere            Boolean                @default(false) @map("reported_elsewhere")
   reportedElsewhereDescription String?                @map("reported_elsewhere_description")
-  year                         Int?
+  year                         Int
   baselineScenario             Decimal                @map("baseline_scenario") @db.Decimal(15, 4)
   projectScenario              Decimal                @map("project_scenario") @db.Decimal(15, 4)
   status                       ReductionProjectStatus @default(ACTIVE)
