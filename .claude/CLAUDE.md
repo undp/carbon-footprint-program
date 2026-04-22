@@ -5,7 +5,7 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 # Commands
 
 - `pnpm type-check`: Use to check for TypeScript compilation errors.
-- `pnpm lint`: needs to be run after any code changes.
+- `pnpm lint`: Run after making any code changes.
 - `pnpm format`: **Run before every commit** to format files with Prettier. This is mandatory — never commit unformatted code.
 - `pnpm test --filter=api -- /{feature-name}/integration.test.ts --coverage=false`: Use to run a single test file.
   - Example: `pnpm test --filter=api -- /getOrganizationById/integration.test.ts --coverage=false`
