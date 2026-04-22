@@ -56,6 +56,16 @@ CI runs automatically on PRs to `main` (lint, type-check, format:check, test, bu
   - Inside each subfolder, one directory per endpoint (e.g., `app/getOrganizationById/`) containing its own `schemas.ts` and `types.ts` for route params, query params, request body, and response body.
   - An `index.ts` at each level to re-export everything.
 
+# Testing Patterns
+
+- **Framework**: Vitest + Testcontainers (real PostgreSQL and Azurite containers — no mocks for the database layer).
+- **Test location**: `apps/api/test/features/<feature>/<action>/integration.test.ts` (tests live in `test/`, separate from source).
+- **HTTP requests**: use `app.inject()` to call endpoints (no actual network, Fastify handles it internally).
+- **Factories**: use existing factories in `apps/api/test/factories/` (`appFactory`, `userFactory`, `organizationFactory`) for test setup and data creation.
+- **Auth in tests**: tests run with `AUTH_PROVIDER=forced-user`, which injects a hardcoded user without real authentication.
+- **Execution**: tests run sequentially (`maxWorkers: 1`, `fileParallelism: false`).
+- **Coverage**: 80% threshold enforced locally.
+
 # Frontend & React Rules
 
 - **One component per file**: each React component must live in its own file. Do not define multiple components or subcomponents in the same file.
