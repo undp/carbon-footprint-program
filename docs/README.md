@@ -30,6 +30,7 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [ER Diagram](./data-model/er-diagram.svg) | Entity-relationship diagram |
 | [Organization Model](./data-model/organization.md) | Organization entity deep-dive |
 | [Organization Summary View](./data-model/organization-summary-view.md) | Organization summary view reference |
+| [Submission Summary View](./data-model/submission-summary-view.md) | Submission summary view reference — fields, SQL, and admin queue queries |
 
 ## Infrastructure
 
@@ -59,6 +60,8 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [System Parameters Reference](./development/system-parameters.md) | Database-backed configuration parameters and their effects on platform behavior |
 | [Country Onboarding Guide](./development/country-onboarding.md) | How to deploy the platform in a new country: seed data, methodology, Entra ID, and infrastructure |
 | [Internationalization Plan](./development/i18n-plan.md) | Forward-looking plan for adding i18n (not yet implemented) |
+| [CI/CD Pipeline](./development/ci-cd.md) | GitHub Actions workflow: triggers, jobs, debugging failures, and adding new steps |
+| [Troubleshooting and FAQ](./development/troubleshooting.md) | Common problems and fixes: local dev, testing, authentication, deployments, and application behaviour |
 | [Docker Compose](./DockerCompose.md) | Local Docker Compose configuration |
 | [MSAL / Easy Auth Setup](./MSAL-EasyAuth-Setup.md) | Azure authentication configuration |
 
@@ -80,6 +83,8 @@ Welcome to the project documentation. Use this index to navigate all available d
 | [Observability](./operations/observability.md) | Logs, metrics, alerts, and monitoring recommendations |
 | [Operations Runbook](./operations/runbook.md) | Backup, restore, rollback, and incident management |
 | [Risks and Limitations](./operations/risks-and-limitations.md) | Known technical risks, single points of failure, critical dependencies, and system limitations |
+| [Admin Operations Guide](./operations/admin-guide.md) | Reviewing the submission queue, approving/reviewing/rejecting requests, managing organizations |
+| [Performance and Scaling Playbook](./operations/scaling-playbook.md) | Redis-backed rate limiting, PgBouncer, PostgreSQL HA, App Service scale-out decision criteria |
 
 ## Integrations
 
