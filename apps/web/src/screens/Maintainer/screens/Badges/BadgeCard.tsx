@@ -1,35 +1,36 @@
 import { FC, useRef, useState, useCallback } from "react";
 import {
+  Alert,
   Box,
+  Button,
   Card,
   CardContent,
-  Typography,
-  Button,
-  Stack,
-  Divider,
-  IconButton,
   Chip,
+  IconButton,
+  Stack,
   Tooltip,
-  Alert,
+  Typography,
 } from "@mui/material";
 import {
-  CloudUploadOutlined,
   CheckCircleOutlined,
-  BrokenImageOutlined,
+  CloudUploadOutlined,
+  HistoryOutlined,
 } from "@mui/icons-material";
 import type { BadgeCatalogEntry, BadgeDTO } from "@repo/types";
-import { formatDate } from "@/utils/formatting";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
-import { BadgePreview } from "./BadgePreview";
-import { BadgeStateChangeDialog } from "./BadgeStateChangeDialog";
 import { useActivateBadge } from "@/api/query/badges/useActivateBadge";
 import { useDeactivateBadge } from "@/api/query/badges/useDeactivateBadge";
 import { useBadgeUpload } from "@/api/query/badges/useBadgeUpload";
+import { ActiveBadgeCardContent } from "./ActiveBadgeCardContent";
+import { BadgeHistoryDialog } from "./BadgeHistoryDialog";
+import { BadgeStateChangeDialog } from "./BadgeStateChangeDialog";
+import { InactiveBadgeCardContent } from "./InactiveBadgeCardContent";
 import {
   BADGE_TYPE_LABELS,
   BADGE_UPLOAD_ACCEPTED_EXTENSIONS_LABEL,
   BADGE_UPLOAD_ACCEPT_ATTRIBUTE,
 } from "./constants";
+import type { BadgeDialogState } from "./types";
 
 interface BadgeCardProps {
   entry: BadgeCatalogEntry;
@@ -40,11 +41,8 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [newlyUploadedId, setNewlyUploadedId] = useState<string | undefined>();
 
-  const [dialogState, setDialogState] = useState<
-    | { mode: "activate"; incoming: BadgeDTO; outgoing: BadgeDTO }
-    | { mode: "deactivate"; outgoing: BadgeDTO }
-    | null
-  >(null);
+  const [dialogState, setDialogState] = useState<BadgeDialogState>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [dialogError, setDialogError] = useState<string | null>(null);
@@ -67,6 +65,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
       try {
         const result = await upload(file, type);
         setNewlyUploadedId(result.badge.id);
+        setHistoryOpen(true);
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Error al subir el archivo";
@@ -89,7 +88,7 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
       if (active) {
         setDialogState({ mode: "activate", incoming: badge, outgoing: active });
       } else {
-        activate.mutate(badge.id);
+        activate.mutate(badge.id, { onSuccess: () => setHistoryOpen(false) });
       }
     },
     [active, activate]
@@ -111,7 +110,10 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
     setDialogError(null);
     if (dialogState.mode === "activate") {
       activate.mutate(dialogState.incoming.id, {
-        onSuccess: () => handleDialogClose(),
+        onSuccess: () => {
+          handleDialogClose();
+          setHistoryOpen(false);
+        },
         onError: (err) =>
           setDialogError(
             getApiErrorMessage(err, "No se pudo activar el sello.")
@@ -164,68 +166,16 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
           />
 
           {active ? (
-            <Box>
-              <BadgePreview src={active.previewUrl} alt={active.fileName} />
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                align="center"
-                mt={1}
-                noWrap
-              >
-                {active.fileName}
-              </Typography>
-              <Typography
-                variant="caption"
-                color="text.disabled"
-                align="center"
-                display="block"
-              >
-                {formatDate(active.createdAt)}
-              </Typography>
-              <Box sx={{ display: "flex", justifyContent: "flex-end", mt: 1 }}>
-                <Button
-                  variant="outlined"
-                  color="warning"
-                  size="small"
-                  onClick={handleDeactivateClick}
-                  disabled={isMutating}
-                >
-                  Desactivar
-                </Button>
-              </Box>
-            </Box>
+            <ActiveBadgeCardContent
+              active={active}
+              disabled={isMutating}
+              onDeactivate={handleDeactivateClick}
+            />
           ) : (
-            <Box
-              sx={{
-                border: "2px dashed",
-                borderColor: "divider",
-                borderRadius: 2,
-                py: 3,
-                textAlign: "center",
-              }}
-            >
-              <BrokenImageOutlined
-                sx={{ fontSize: 36, color: "text.disabled", mb: 1 }}
-              />
-              <Typography
-                variant="body2"
-                color="text.disabled"
-                display="block"
-                mb={1.5}
-              >
-                No hay sello activo
-              </Typography>
-              <Button
-                variant="outlined"
-                startIcon={<CloudUploadOutlined />}
-                size="small"
-                onClick={handleUploadClick}
-                disabled={isMutating}
-              >
-                Subir sello
-              </Button>
-            </Box>
+            <InactiveBadgeCardContent
+              disabled={isMutating}
+              onUpload={handleUploadClick}
+            />
           )}
 
           {uploadError && (
@@ -238,70 +188,16 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
             </Alert>
           )}
 
-          {history.length > 0 && (
-            <Box mt={2}>
-              <Divider sx={{ mb: 1.5 }}>
-                <Typography variant="caption" color="text.secondary">
-                  Historial
-                </Typography>
-              </Divider>
-              <Stack spacing={1}>
-                {history.map((badge) => (
-                  <Stack
-                    key={badge.id}
-                    direction="row"
-                    alignItems="center"
-                    spacing={1.5}
-                  >
-                    <Box
-                      component="img"
-                      src={badge.previewUrl}
-                      alt={badge.fileName}
-                      sx={{
-                        width: 40,
-                        height: 40,
-                        objectFit: "contain",
-                        borderRadius: 0.5,
-                        border: "1px solid",
-                        borderColor: "divider",
-                        flexShrink: 0,
-                        opacity: badge.id === newlyUploadedId ? 1 : 0.85,
-                      }}
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).style.opacity = "0.3";
-                      }}
-                    />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography variant="body2" noWrap>
-                        {badge.fileName}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary">
-                        {formatDate(badge.createdAt)}
-                      </Typography>
-                      {badge.id === newlyUploadedId && (
-                        <Typography
-                          variant="caption"
-                          color="primary"
-                          display="block"
-                        >
-                          Recién subido · ¿Activar este sello?
-                        </Typography>
-                      )}
-                    </Box>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => handleActivateClick(badge)}
-                      disabled={isMutating}
-                      sx={{ flexShrink: 0 }}
-                    >
-                      Activar
-                    </Button>
-                  </Stack>
-                ))}
-              </Stack>
-            </Box>
-          )}
+          <Box sx={{ mt: 2, display: "flex", justifyContent: "flex-end" }}>
+            <Button
+              size="small"
+              startIcon={<HistoryOutlined />}
+              onClick={() => setHistoryOpen(true)}
+              disabled={history.length === 0}
+            >
+              Ver historial ({history.length})
+            </Button>
+          </Box>
         </CardContent>
       </Card>
 
@@ -311,6 +207,15 @@ export const BadgeCard: FC<BadgeCardProps> = ({ entry }) => {
         accept={BADGE_UPLOAD_ACCEPT_ATTRIBUTE}
         style={{ display: "none" }}
         onChange={handleFileChange}
+      />
+
+      <BadgeHistoryDialog
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        history={history}
+        newlyUploadedId={newlyUploadedId}
+        disabled={isMutating}
+        onActivate={handleActivateClick}
       />
 
       {dialogState && (
