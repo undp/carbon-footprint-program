@@ -8,7 +8,7 @@ import type {
 } from "@repo/types";
 import { badgeKeys } from "./keys";
 
-export interface UseBadgeUploadResult {
+interface UseBadgeUploadResult {
   upload: (
     file: File,
     badgeType: BadgeType
