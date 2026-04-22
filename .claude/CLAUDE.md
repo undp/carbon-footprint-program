@@ -34,7 +34,11 @@ Huella Latam is a digital public good for Latin America: a country-agnostic plat
 
 # API & Backend Rules
 
-- **Minimize database calls**: endpoints must be efficient. Prefer a single query with `include`/`select` over multiple sequential queries. Fetch all needed data in as few queries as possible, then process and transform with application logic.
+- **Efficient database usage**: endpoints must be efficient and mindful that datasets will grow over time. Apply these principles in order of preference:
+  1. **Push logic to the database**: use aggregations, filters, and calculations at the query level (e.g., `groupBy`, `count`, `_sum`, raw SQL when needed) instead of fetching raw rows and processing in memory.
+  2. **Parallelize independent queries**: use `Promise.all` or `prisma.$transaction` to run independent queries concurrently instead of sequentially.
+  3. **Avoid overfetching**: use `select` to retrieve only the fields you need. Do not fetch entire records when only a few columns are required — the dataset will grow and overfetching will degrade performance.
+  4. **Use `include` wisely**: prefer a single query with `include` over multiple sequential queries, but only include relations that are actually needed.
 - **Helper functions**: auxiliary/utility functions must be placed in a separate `helpers.ts` file within the feature directory, not inside `service.ts`. Keep `service.ts` focused on business logic and database operations.
 - **Feature structure**: follow the existing pattern — `route.ts` → `handler.ts` → `service.ts` (→ `helpers.ts` if needed) per feature, under `apps/api/src/features/`.
 
