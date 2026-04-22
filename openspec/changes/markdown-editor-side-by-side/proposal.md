@@ -31,6 +31,6 @@ Admins currently edit category and subcategory `explanation` markdown blind in a
 - **Untouched**: `apps/web/src/components/ExplanationContent.tsx`, `apps/web/src/contexts/ExplanationContext.tsx`, all end-user surfaces (`SubcategoryPreselectionField`, `CategoryCard`, `EmissionEditorHeader`, `ReductionPlanScreen`). No API, Zod schema, Prisma schema, or `packages/types` changes — explanation fields are already nullable strings and accept arbitrary markdown.
 - **Tests**: no automated tests for the new component (thin wrapper over a third-party library). Manual QA covers both edit and read-only paths on category and subcategory maintainer screens, verifies the end-user explanation dialog still renders correctly (no regression), and confirms the editor chunk is lazy-loaded via devtools network inspection.
 - **Risk**:
-  - `@uiw/react-md-editor` peer-dependency range must accept React 19.2 (repo currently on React 19). Pre-install check required; escalate before merge if the library pins to React 18.
+  - `@uiw/react-md-editor` peer-dependency range must accept React 19.2 (repo currently on React 19.2). Pre-install check required; escalate before merge if the library pins to React 18.
   - CSS overrides target library-internal class names (`.w-md-editor-*`); pin the library version exactly to avoid drift on minor bumps.
   - Bundle size: ~300–500kb gzipped added to admin routes only via lazy-loading — verify chunk split in Network tab during QA.
